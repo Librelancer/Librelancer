@@ -23,65 +23,65 @@ internal static unsafe partial class GL
         int len = s.Length;
         fixed(byte* ptr = bytes) {
             var intptr = (IntPtr)ptr;
-            GL._glShaderSource (shader, 1,  &intptr, IntPtr.Zero);
+            _glShaderSource (shader, 1,  &intptr, IntPtr.Zero);
         }
     }
 
     public static uint GenBuffer()
     {
         uint buf;
-        GL.GenBuffers (1, out buf);
+        GenBuffers (1, out buf);
         return buf;
     }
 
     public static void DeleteBuffer(uint buffer)
     {
-        GL.DeleteBuffers (1, ref buffer);
+        DeleteBuffers (1, ref buffer);
     }
     public static void DeleteVertexArray(uint buffer)
     {
-        GL.DeleteVertexArrays (1, ref buffer);
+        DeleteVertexArrays (1, ref buffer);
     }
 
     public static unsafe void DrawBuffer(int buffer)
     {
-        if (GL.GLES)
-            GL._glDrawBuffers(1, &buffer);
+        if (GLES)
+            _glDrawBuffers(1, &buffer);
         else
-            GL._glDrawBuffer(buffer);
+            _glDrawBuffer(buffer);
     }
     public static uint GenFramebuffer()
     {
         uint fbo;
-        GL.GenFramebuffers (1, out fbo);
+        GenFramebuffers (1, out fbo);
         return fbo;
     }
     public static uint GenRenderbuffer()
     {
         uint rbo;
-        GL.GenRenderbuffers (1, out rbo);
+        GenRenderbuffers (1, out rbo);
         return rbo;
     }
     public static void DeleteFramebuffer(uint framebuffer)
     {
-        GL.DeleteFramebuffers (1, ref framebuffer);
+        DeleteFramebuffers (1, ref framebuffer);
     }
 
     public static void DeleteRenderbuffer(uint renderbuffer)
     {
-        GL.DeleteRenderbuffers (1, ref renderbuffer);
+        DeleteRenderbuffers (1, ref renderbuffer);
     }
 
     public static uint GenTexture()
     {
         uint tex;
-        GL.GenTextures(1, out tex);
+        GenTextures(1, out tex);
         return tex;
     }
 
     public static void DeleteTexture(uint tex)
     {
-        GL.DeleteTextures(1, ref tex);
+        DeleteTextures(1, ref tex);
     }
 
 
@@ -104,15 +104,15 @@ internal static unsafe partial class GL
         errors.Add(0x0504, "Stack Underflow");
         errors.Add(0x0505, "Out Of Memory");
         errors.Add(0x0506, "Invalid Framebuffer Operation");
-        GL.Load(getProcAddress, GLES);
+        Load(getProcAddress, GLES);
         if (GLExtensions.DebugInfo)
         {
-            GL.Enable(GL_DEBUG_OUTPUT_KHR);
-            GL.DebugMessageControl(GL_DEBUG_SOURCE_SHADER_COMPILER, GL_DONT_CARE, GL_DONT_CARE, 0, IntPtr.Zero, false);
-            GL.DebugMessageControl(GL_DEBUG_SOURCE_OTHER, GL_DONT_CARE, GL_DONT_CARE, 0, IntPtr.Zero, false);
-            GL.DebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_PERFORMANCE, GL_DONT_CARE, 0, IntPtr.Zero, false);
-            GL.DebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, IntPtr.Zero, false);
-            GL._glDebugMessageCallback(Marshal.GetFunctionPointerForDelegate(DebugCallback), IntPtr.Zero);
+            Enable(GL_DEBUG_OUTPUT_KHR);
+            DebugMessageControl(GL_DEBUG_SOURCE_SHADER_COMPILER, GL_DONT_CARE, GL_DONT_CARE, 0, IntPtr.Zero, false);
+            DebugMessageControl(GL_DEBUG_SOURCE_OTHER, GL_DONT_CARE, GL_DONT_CARE, 0, IntPtr.Zero, false);
+            DebugMessageControl(GL_DONT_CARE, GL_DEBUG_TYPE_PERFORMANCE, GL_DONT_CARE, 0, IntPtr.Zero, false);
+            DebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_LOW, 0, IntPtr.Zero, false);
+            _glDebugMessageCallback(Marshal.GetFunctionPointerForDelegate(DebugCallback), IntPtr.Zero);
         }
 #if DEBUG
             ErrorChecking = true;
@@ -138,11 +138,11 @@ internal static unsafe partial class GL
     public static bool CheckStringSDL(bool checkGles = false)
     {
         if(SDL3.Supported)
-            GL._glGetString = (delegate*unmanaged<int, byte*>) SDL3.SDL_GL_GetProcAddress("glGetString");
+            _glGetString = (delegate*unmanaged<int, byte*>) SDL3.SDL_GL_GetProcAddress("glGetString");
         else
-            GL._glGetString = (delegate*unmanaged<int, byte*>) SDL2.SDL_GL_GetProcAddress("glGetString");
-        var str = GL.GetString(GL.GL_VERSION);
-        FLLog.Info("GL", "Version String: " + GL.GetString(GL.GL_VERSION));
+            _glGetString = (delegate*unmanaged<int, byte*>) SDL2.SDL_GL_GetProcAddress("glGetString");
+        var str = GetString(GL_VERSION);
+        FLLog.Info("GL", "Version String: " + GetString(GL_VERSION));
         if (checkGles) return str.StartsWith("OpenGL ES 3");
         var major = int.Parse(str[0].ToString());
         return major >= 3;
@@ -152,7 +152,7 @@ internal static unsafe partial class GL
     {
         int len;
         using var ptr = UnsafeHelpers.Allocate (4096);
-        GL._glGetProgramInfoLog (program, 4096,  &len, (IntPtr)ptr);
+        _glGetProgramInfoLog (program, 4096,  &len, (IntPtr)ptr);
         var str = Marshal.PtrToStringAnsi ((IntPtr)ptr, len);
         return str;
     }
@@ -161,7 +161,7 @@ internal static unsafe partial class GL
     {
         int len;
         using var ptr = UnsafeHelpers.Allocate (4096);
-        GL._glGetShaderInfoLog (shader, 4096,  &len, (IntPtr)ptr);
+        _glGetShaderInfoLog (shader, 4096,  &len, (IntPtr)ptr);
         var str = Marshal.PtrToStringAnsi ((IntPtr)ptr, len);
         return str;
     }
@@ -179,7 +179,7 @@ internal static unsafe partial class GL
             throw new InvalidOperationException("Called GL off the main thread");
         }
 
-        var err = GL.GetError();
+        var err = GetError();
 
         if (err == 0)
         {
@@ -193,10 +193,10 @@ internal static unsafe partial class GL
     public static bool FrameHadErrors()
     {
         bool hasErrors = false;
-        var err = GL.GetError ();
+        var err = GetError ();
         while (err != 0) {
             hasErrors = true;
-            err = GL.GetError ();
+            err = GetError ();
         }
         return hasErrors;
     }

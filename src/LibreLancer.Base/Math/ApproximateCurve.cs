@@ -96,7 +96,7 @@ public static class ApproximateCurve
         double sxn = 0;
         for (var i = 0; i < pointx.Length; i++)
         {
-            sxn += System.Math.Pow(pointx[i], n);
+            sxn += Math.Pow(pointx[i], n);
         }
         return sxn;
     }

@@ -16,7 +16,7 @@ public struct VertexPosition : IVertexType
     public VertexPosition(Vector3 position)
         : this()
     {
-        this.Position = position;
+        Position = position;
     }
 
     public VertexDeclaration GetVertexDeclaration()

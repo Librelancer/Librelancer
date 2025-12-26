@@ -26,10 +26,10 @@ public struct Vector4i
     {
         unchecked
         {
-            var hashCode = this.X;
-            hashCode = (hashCode * 397) ^ this.Y;
-            hashCode = (hashCode * 397) ^ this.Z;
-            hashCode = (hashCode * 397) ^ this.W;
+            var hashCode = X;
+            hashCode = (hashCode * 397) ^ Y;
+            hashCode = (hashCode * 397) ^ Z;
+            hashCode = (hashCode * 397) ^ W;
             return hashCode;
         }
     }

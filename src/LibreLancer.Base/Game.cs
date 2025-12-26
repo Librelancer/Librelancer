@@ -177,11 +177,11 @@ public class Game : IUIThread, IGLWindow
     public double FrameTime => impl.FrameTime;
 
 
-    public void QueueUIThread(Action? work) => impl.QueueUIThread(work);
+    public void QueueUIThread(Action work) => impl.QueueUIThread(work);
 
     public bool IsUiThread() => impl.IsUiThread();
 
-    public void Screenshot(string? filename) => impl.Screenshot(filename);
+    public void Screenshot(string filename) => impl.Screenshot(filename);
 
     public bool IsFullScreen => impl.IsFullScreen;
 

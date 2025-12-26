@@ -52,17 +52,17 @@ public static class MathExtensions
     private static void ToEuler(Matrix4x4 mx, out float yaw, out float pitch, out float roll)
     {
         double p, y, r;
-        double h = System.Math.Sqrt(mx.M11 * mx.M11 + mx.M12 * mx.M12);
+        double h = Math.Sqrt(mx.M11 * mx.M11 + mx.M12 * mx.M12);
         if (h > 0.00000001)
         {
-            p = System.Math.Atan2( mx.M23, mx.M33);
-            y = System.Math.Atan2(-mx.M13, h);
-            r = System.Math.Atan2( mx.M12, mx.M11);
+            p = Math.Atan2( mx.M23, mx.M33);
+            y = Math.Atan2(-mx.M13, h);
+            r = Math.Atan2( mx.M12, mx.M11);
         }
         else
         {
-            p = System.Math.Atan2(-mx.M32, mx.M22);
-            y = System.Math.Atan2(-mx.M13, h);
+            p = Math.Atan2(-mx.M32, mx.M22);
+            y = Math.Atan2(-mx.M13, h);
             r = 0;
         }
         pitch = (float) p;
@@ -70,7 +70,7 @@ public static class MathExtensions
         roll = (float) r;
     }
 
-    private static float Sanitize(float f) => System.Math.Abs(f) < float.Epsilon ? 0.0f : f;
+    private static float Sanitize(float f) => Math.Abs(f) < float.Epsilon ? 0.0f : f;
 
     private static Matrix4x4 Orthonormalize(Matrix4x4 m)
     {

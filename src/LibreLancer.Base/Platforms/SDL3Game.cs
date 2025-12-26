@@ -229,7 +229,7 @@ internal class SDL3Game : IGame
 
     private double frameTime;
 
-    public void QueueUIThread(Action? work)
+    public void QueueUIThread(Action work)
     {
         actions.Enqueue(work);
         InterruptWait();
@@ -237,12 +237,12 @@ internal class SDL3Game : IGame
 
     public bool IsUiThread() => Thread.CurrentThread.ManagedThreadId == mythread;
 
-    private string? _screenshotpath;
+    private string? _screenShotPath;
     private bool _screenshot;
 
-    public void Screenshot(string? filename)
+    public void Screenshot(string filename)
     {
-        _screenshotpath = filename;
+        _screenShotPath = filename;
         _screenshot = true;
     }
 
@@ -257,7 +257,7 @@ internal class SDL3Game : IGame
             colordata[i].A = 0xFF;
         }
 
-        OnScreenshotSave?.Invoke(_screenshotpath, Width, height, colordata);
+        OnScreenshotSave?.Invoke(_screenShotPath, Width, height, colordata);
     }
 
     private bool isVsync = false;
@@ -390,7 +390,7 @@ internal class SDL3Game : IGame
         //Window sizing
         if (sdlWin == IntPtr.Zero)
         {
-            Dialogs.CrashWindow.Run("Librelancer", "Failed to create SDL window",
+            CrashWindow.Run("Librelancer", "Failed to create SDL window",
                 "SDL Error: " + (SDL3.SDL_GetError() ?? ""));
             return;
         }
@@ -405,7 +405,7 @@ internal class SDL3Game : IGame
         IRenderContext? renderBackend = GLRenderContext.Create(sdlWin);
         if (renderBackend == null)
         {
-            Dialogs.CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
+            CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
                 "Your driver or gpu does not support at least OpenGL 3.2 or OpenGL ES 3.1\n" +
                 SDL3.SDL_GetError() ?? "");
             return;

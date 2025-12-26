@@ -14,14 +14,14 @@ public class HeadlessContext : IGLWindow, IUIThread
 
     private ConcurrentQueue<Action?> queue = new();
 
-    public RenderContext? RenderContext { get; internal set; }
+    public RenderContext RenderContext { get; internal set; } = null!;
 
-    public void QueueUIThread(Action? work)
+    public void QueueUIThread(Action work)
     {
         if (!IsUiThread())
             queue.Enqueue(work);
         else
-            work?.Invoke();
+            work.Invoke();
     }
 
     public void RunUIEvents()

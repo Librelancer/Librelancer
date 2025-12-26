@@ -8,5 +8,5 @@ namespace LibreLancer;
 
 public interface IUIThread
 {
-    void QueueUIThread(Action? work);
+    void QueueUIThread(Action work);
 }

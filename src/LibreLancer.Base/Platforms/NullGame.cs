@@ -8,8 +8,8 @@ namespace LibreLancer.Platforms;
 
 internal class NullGame : IGame
 {
-    private ConcurrentQueue<Action?> actions = new();
-    public void QueueUIThread(Action? work) => actions.Enqueue(work);
+    private ConcurrentQueue<Action> actions = new();
+    public void QueueUIThread(Action work) => actions.Enqueue(work);
 
     public void WaitForEvent(int timeout)
     {
@@ -121,7 +121,7 @@ internal class NullGame : IGame
     {
     }
 
-    public void Screenshot(string? filename)
+    public void Screenshot(string filename)
     {
     }
 

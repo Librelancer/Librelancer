@@ -915,10 +915,10 @@ public struct Bgra8 : IEquatable<Bgra8>
     public bool Equals(Bgra8 other)
     {
         return
-            this.R == other.R &&
-            this.G == other.G &&
-            this.B == other.B &&
-            this.A == other.A;
+            R == other.R &&
+            G == other.G &&
+            B == other.B &&
+            A == other.A;
     }
 
     #endregion

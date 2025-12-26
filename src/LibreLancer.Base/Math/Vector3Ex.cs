@@ -26,7 +26,7 @@ public static class Vector3Ex
             (vec.Z * invmat.M34)
         ) + invmat.M44;
 
-        if (System.Math.Abs(1.0 - a) > float.Epsilon)
+        if (Math.Abs(1.0 - a) > float.Epsilon)
         {
             invsrc /= a;
         }

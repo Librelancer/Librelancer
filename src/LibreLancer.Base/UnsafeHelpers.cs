@@ -130,7 +130,7 @@ public ref struct UTF8ZHelper
 
         int byteCount = Encoding.UTF8.GetBytes(value, bytes);
         bytes[byteCount] = 0;
-        utf8z = bytes[..(byteCount + 1)];
+        utf8z = bytes.Slice(0, byteCount + 1);
     }
 
     public Span<byte> ToUTF8Z()

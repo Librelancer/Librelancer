@@ -33,8 +33,8 @@ public class IdPool
                 var index = BitOperations.TrailingZeroCount(bits[i]);
                 bits[i] &= ~(1U << index);
                 allocated = (i << 5) + index;
-                maxIndex = System.Math.Max(maxIndex, i);
-                minIndex = System.Math.Min(minIndex, i);
+                maxIndex = Math.Max(maxIndex, i);
+                minIndex = Math.Min(minIndex, i);
                 minFree = bits[i] == 0 ? i + 1 : i;
                 Count++;
                 return true;
@@ -47,8 +47,8 @@ public class IdPool
             bits[i] = 0xfffffffe;
             for (int j = i + 1; j < bits.Length; j++) bits[j] = uint.MaxValue;
             allocated = i << 5;
-            maxIndex = System.Math.Max(maxIndex, i);
-            minIndex = System.Math.Min(minIndex, i);
+            maxIndex = Math.Max(maxIndex, i);
+            minIndex = Math.Min(minIndex, i);
             Count++;
             return true;
         }
@@ -66,9 +66,9 @@ public class IdPool
         public AllocatedEnumerator(IdPool pool)
         {
             this.pool = pool;
-            this.j = this.tzcnt = 0;
-            this.innerLoop = false;
-            this.i = pool.minIndex - 1;
+            j = tzcnt = 0;
+            innerLoop = false;
+            i = pool.minIndex - 1;
         }
         public bool MoveNext()
         {
@@ -131,7 +131,7 @@ public class IdPool
         Count--;
         int index = id >> 5;
         bits[index] |= 1U << (id & 0x1f);
-        minFree = System.Math.Min(minFree, index);
+        minFree = Math.Min(minFree, index);
         if (bits[index] == uint.MaxValue) {
             if (maxIndex == index) maxIndex--;
             if (minIndex == index) minIndex++;

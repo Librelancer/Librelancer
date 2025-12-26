@@ -62,7 +62,7 @@ internal class BlurgEngine : RichTextEngine
     }
 
     private Blurg blurg;
-    private RenderContext? context;
+    private RenderContext context;
     private Renderer2D renderer;
     private HashSet<string> loadedTtfs = new(StringComparer.OrdinalIgnoreCase);
 
@@ -82,7 +82,7 @@ internal class BlurgEngine : RichTextEngine
         tex.SetData(0, new Rectangle(x, y, width, height), buffer);
     }
 
-    public BlurgEngine(RenderContext? context, Renderer2D renderer)
+    public BlurgEngine(RenderContext context, Renderer2D renderer)
     {
         textures = new Texture2D[32];
         this.context = context;

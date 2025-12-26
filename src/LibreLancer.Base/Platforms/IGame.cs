@@ -42,7 +42,7 @@ internal interface IGame : IUIThread
     void DisableTextInput();
     void SetTextInputRect(Rectangle? rect);
     ScreenshotSaveHandler? OnScreenshotSave { get; set; }
-    void Screenshot(string? filename);
+    void Screenshot(string filename);
     //Clipboard
     ClipboardContents ClipboardStatus();
     string? GetClipboardText();

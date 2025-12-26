@@ -33,7 +33,7 @@ public class WeightedRandomCollection<T>
 
     private void CalculateCutoffs(int[] inWeights)
     {
-        this.weights = inWeights;
+        weights = inWeights;
         max = inWeights.Sum();
         float current = 0;
         cutoffs = new float[inWeights.Length];

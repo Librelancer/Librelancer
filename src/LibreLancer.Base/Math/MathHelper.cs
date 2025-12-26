@@ -33,7 +33,7 @@ public static class MathHelper
     /// <returns>The angle expressed in radians</returns>
     public static float DegreesToRadians(float degrees)
     {
-        const float degToRad = (float)System.Math.PI / 180.0f;
+        const float degToRad = (float)Math.PI / 180.0f;
         return degrees * degToRad;
     }
 
@@ -44,7 +44,7 @@ public static class MathHelper
     /// <returns>The angle expressed in degrees</returns>
     public static float RadiansToDegrees(float radians)
     {
-        const float radToDeg = 180.0f / (float)System.Math.PI;
+        const float radToDeg = 180.0f / (float)Math.PI;
         return radians * radToDeg;
     }
 
@@ -55,7 +55,7 @@ public static class MathHelper
     /// <returns>The angle expressed in radians</returns>
     public static double DegreesToRadians(double degrees)
     {
-        const double degToRad = System.Math.PI / 180.0;
+        const double degToRad = Math.PI / 180.0;
         return degrees * degToRad;
     }
 
@@ -66,7 +66,7 @@ public static class MathHelper
     /// <returns>The angle expressed in degrees</returns>
     public static double RadiansToDegrees(double radians)
     {
-        const double radToDeg = 180.0 / System.Math.PI;
+        const double radToDeg = 180.0 / Math.PI;
         return radians * radToDeg;
     }
 
@@ -183,9 +183,9 @@ public static class MathHelper
     public static Vector3 ApplyEpsilon(Vector3 input, float epsilon = 0.0001f)
     {
         var output = input;
-        if (System.Math.Abs(output.X) < epsilon) output.X = 0;
-        if (System.Math.Abs(output.Y) < epsilon) output.Y = 0;
-        if (System.Math.Abs(output.Z) < epsilon) output.Z = 0;
+        if (Math.Abs(output.X) < epsilon) output.X = 0;
+        if (Math.Abs(output.Y) < epsilon) output.Y = 0;
+        if (Math.Abs(output.Z) < epsilon) output.Z = 0;
         return output;
     }
 

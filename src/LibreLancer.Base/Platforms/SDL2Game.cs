@@ -27,7 +27,7 @@ internal class SDL2Game : IGame
     private double renderFrequency;
     public Mouse Mouse { get; } = new();
     public Keyboard Keyboard { get; } = new();
-    private ConcurrentQueue<Action?> actions = new();
+    private ConcurrentQueue<Action> actions = new();
     private int mythread;
     private uint wakeEvent;
 
@@ -188,7 +188,7 @@ internal class SDL2Game : IGame
     public double FrameTime => frameTime;
 
 
-    public void QueueUIThread(Action? work)
+    public void QueueUIThread(Action work)
     {
         actions.Enqueue(work);
         InterruptWait();
@@ -196,11 +196,11 @@ internal class SDL2Game : IGame
 
     public bool IsUiThread() =>  Thread.CurrentThread.ManagedThreadId == mythread;
 
-    private string? _screenshotpath;
+    private string? _screenShotPath;
     private bool _screenshot;
-    public void Screenshot(string? filename)
+    public void Screenshot(string filename)
     {
-        _screenshotpath = filename;
+        _screenShotPath = filename;
         _screenshot = true;
     }
 
@@ -218,7 +218,7 @@ internal class SDL2Game : IGame
             colorData[i].A = 0xFF;
         }
 
-        OnScreenshotSave?.Invoke(_screenshotpath, width, height, colorData);
+        OnScreenshotSave?.Invoke(_screenShotPath, width, height, colorData);
     }
 
     private bool isVsync = false;
@@ -364,7 +364,7 @@ internal class SDL2Game : IGame
         //Window sizing
         if (sdlWin == IntPtr.Zero)
         {
-            Dialogs.CrashWindow.Run("Librelancer", "Failed to create SDL window",
+            CrashWindow.Run("Librelancer", "Failed to create SDL window",
                 "SDL Error: " + (SDL2.SDL_GetError() ?? ""));
             return;
         }
@@ -381,7 +381,7 @@ internal class SDL2Game : IGame
 
         if (renderBackend == null)
         {
-            Dialogs.CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
+            CrashWindow.Run("Librelancer", "Failed to create OpenGL context",
                 "Your driver or gpu does not support at least OpenGL 3.2 or OpenGL ES 3.1\n" + SDL2.SDL_GetError() ?? "");
             return;
         }

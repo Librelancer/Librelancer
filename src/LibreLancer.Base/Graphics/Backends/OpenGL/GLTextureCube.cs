@@ -81,7 +81,7 @@ internal class GLTextureCube : GLTexture, ITextureCube
     public void SetData<T>(CubeMapFace face, int level, Rectangle? rect, T[] data, int start, int count) where T : unmanaged
     {
         int target = face.ToGL();
-        maxLevel = System.Math.Max(level, maxLevel);
+        maxLevel = Math.Max(level, maxLevel);
         BindForModify();
         if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
         {
@@ -112,8 +112,8 @@ internal class GLTextureCube : GLTexture, ITextureCube
                 handle.Free ();
             }
             else {
-                w = System.Math.Max(Size >> level, 1);
-                h = System.Math.Max(Size >> level, 1);
+                w = Math.Max(Size >> level, 1);
+                h = Math.Max(Size >> level, 1);
                 var conv = ConvertData(data, w, h);
                 GCHandle handle;
                 if(conv != null) handle = GCHandle.Alloc (conv, GCHandleType.Pinned);

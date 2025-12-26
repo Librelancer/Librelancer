@@ -131,7 +131,7 @@ public class ParallelActionRunner : IDisposable
     /// <param name="maximumWorkerCount">Max amount of workers from this instance</param>
     public void RunWorkers(Action<int> workerBody, int maximumWorkerCount = int.MaxValue)
     {
-        if (this.managedWorker != null)
+        if (managedWorker != null)
             throw new InvalidOperationException();
         if (maximumWorkerCount <= 1)
         {
@@ -139,12 +139,12 @@ public class ParallelActionRunner : IDisposable
         }
         else
         {
-            this.managedWorker = workerBody;
+            managedWorker = workerBody;
             SignalThreads(maximumWorkerCount);
             //Calling thread does work. No reason to spin up another worker and block this one!
             DispatchThread(0);
             finished.WaitOne();
-            this.managedWorker = null;
+            managedWorker = null;
         }
     }
 
@@ -164,8 +164,8 @@ public class ParallelActionRunner : IDisposable
             return;
         }
 
-        this.currentTask = -1;
-        this.tasks = actions;
+        currentTask = -1;
+        tasks = actions;
 
         if (maximumWorkerCount <= 1)
         {
@@ -176,24 +176,24 @@ public class ParallelActionRunner : IDisposable
         }
         else
         {
-            this.managedWorker = ActionWorker;
+            managedWorker = ActionWorker;
             SignalThreads(maximumWorkerCount);
             //Calling thread does work. No reason to spin up another worker and block this one!
             DispatchThread(0);
             finished.WaitOne();
-            this.managedWorker = null;
+            managedWorker = null;
         }
 
-        this.tasks = null;
+        tasks = null;
     }
 
     public void RunActions(Action<int> taskBody, int taskCount, int maximumWorkerCount = int.MaxValue)
     {
-        if (this.managedWorker != null)
+        if (managedWorker != null)
             throw new InvalidOperationException();
         if (taskCount <= 0)
             return;
-        this.currentTask = -1;
+        currentTask = -1;
         this.taskCount = taskCount;
         this.taskBody = taskBody;
         if (maximumWorkerCount <= 1) {
@@ -204,12 +204,12 @@ public class ParallelActionRunner : IDisposable
         }
         else
         {
-            this.managedWorker = IndexWorker;
+            managedWorker = IndexWorker;
             SignalThreads(maximumWorkerCount);
             //Calling thread does work. No reason to spin up another worker and block this one!
             DispatchThread(0);
             finished.WaitOne();
-            this.managedWorker = null;
+            managedWorker = null;
         }
         this.taskBody = null;
     }

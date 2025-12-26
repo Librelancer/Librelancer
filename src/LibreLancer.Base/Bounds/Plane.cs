@@ -54,8 +54,8 @@ internal class PlaneHelper
     public static float PerpendicularDistance(ref Vector3 point, ref Plane plane)
     {
         // dist = (ax + by + cz + d) / sqrt(a*a + b*b + c*c)
-        return (float)System.Math.Abs((plane.Normal.X * point.X + plane.Normal.Y * point.Y + plane.Normal.Z * point.Z)
-                                      / System.Math.Sqrt(plane.Normal.X * plane.Normal.X + plane.Normal.Y * plane.Normal.Y + plane.Normal.Z * plane.Normal.Z));
+        return (float)Math.Abs((plane.Normal.X * point.X + plane.Normal.Y * point.Y + plane.Normal.Z * point.Z)
+                                      / Math.Sqrt(plane.Normal.X * plane.Normal.X + plane.Normal.Y * plane.Normal.Y + plane.Normal.Z * plane.Normal.Z));
     }
 }
 
@@ -107,32 +107,32 @@ public struct Plane : IEquatable<Plane>
 
     public float Dot(Vector4 value)
     {
-        return ((((this.Normal.X * value.X) + (this.Normal.Y * value.Y)) + (this.Normal.Z * value.Z)) + (this.D * value.W));
+        return ((((Normal.X * value.X) + (Normal.Y * value.Y)) + (Normal.Z * value.Z)) + (D * value.W));
     }
 
     public void Dot(ref Vector4 value, out float result)
     {
-        result = (((this.Normal.X * value.X) + (this.Normal.Y * value.Y)) + (this.Normal.Z * value.Z)) + (this.D * value.W);
+        result = (((Normal.X * value.X) + (Normal.Y * value.Y)) + (Normal.Z * value.Z)) + (D * value.W);
     }
 
     public float DotCoordinate(Vector3 value)
     {
-        return ((((this.Normal.X * value.X) + (this.Normal.Y * value.Y)) + (this.Normal.Z * value.Z)) + this.D);
+        return ((((Normal.X * value.X) + (Normal.Y * value.Y)) + (Normal.Z * value.Z)) + D);
     }
 
     public void DotCoordinate(ref Vector3 value, out float result)
     {
-        result = (((this.Normal.X * value.X) + (this.Normal.Y * value.Y)) + (this.Normal.Z * value.Z)) + this.D;
+        result = (((Normal.X * value.X) + (Normal.Y * value.Y)) + (Normal.Z * value.Z)) + D;
     }
 
     public float DotNormal(Vector3 value)
     {
-        return (((this.Normal.X * value.X) + (this.Normal.Y * value.Y)) + (this.Normal.Z * value.Z));
+        return (((Normal.X * value.X) + (Normal.Y * value.Y)) + (Normal.Z * value.Z));
     }
 
     public void DotNormal(ref Vector3 value, out float result)
     {
-        result = ((this.Normal.X * value.X) + (this.Normal.Y * value.Y)) + (this.Normal.Z * value.Z);
+        result = ((Normal.X * value.X) + (Normal.Y * value.Y)) + (Normal.Z * value.Z);
     }
 
     /*
@@ -162,8 +162,8 @@ public struct Plane : IEquatable<Plane>
         float factor;
         Vector3 normal = Normal;
         Normal = Vector3.Normalize(Normal);
-        factor = (float)System.Math.Sqrt(Normal.X * Normal.X + Normal.Y * Normal.Y + Normal.Z * Normal.Z) /
-                 (float)System.Math.Sqrt(normal.X * normal.X + normal.Y * normal.Y + normal.Z * normal.Z);
+        factor = (float)Math.Sqrt(Normal.X * Normal.X + Normal.Y * Normal.Y + Normal.Z * Normal.Z) /
+                 (float)Math.Sqrt(normal.X * normal.X + normal.Y * normal.Y + normal.Z * normal.Z);
         D = D * factor;
     }
 
@@ -178,8 +178,8 @@ public struct Plane : IEquatable<Plane>
     {
         float factor;
         result.Normal = Vector3.Normalize(value.Normal);
-        factor = (float)System.Math.Sqrt(result.Normal.X * result.Normal.X + result.Normal.Y * result.Normal.Y + result.Normal.Z * result.Normal.Z) /
-                 (float)System.Math.Sqrt(value.Normal.X * value.Normal.X + value.Normal.Y * value.Normal.Y + value.Normal.Z * value.Normal.Z);
+        factor = (float)Math.Sqrt(result.Normal.X * result.Normal.X + result.Normal.Y * result.Normal.Y + result.Normal.Z * result.Normal.Z) /
+                 (float)Math.Sqrt(value.Normal.X * value.Normal.X + value.Normal.Y * value.Normal.Y + value.Normal.Z * value.Normal.Z);
         result.D = value.D * factor;
     }
 
@@ -195,12 +195,12 @@ public struct Plane : IEquatable<Plane>
 
     public override bool Equals(object? other)
     {
-        return (other is Plane plane) && this.Equals(plane);
+        return (other is Plane plane) && Equals(plane);
     }
 
     public bool Equals(Plane other)
     {
-        return ((Normal == other.Normal) && (System.Math.Abs(D - other.D) < float.Epsilon));
+        return ((Normal == other.Normal) && (Math.Abs(D - other.D) < float.Epsilon));
     }
 
     public override int GetHashCode()

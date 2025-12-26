@@ -16,8 +16,8 @@ public struct VertexPositionNormal : IVertexType
 
     public VertexPositionNormal(Vector3 position, Vector3 normal)
     {
-        this.Position = position;
-        this.Normal = normal;
+        Position = position;
+        Normal = normal;
     }
 
     public VertexDeclaration GetVertexDeclaration()

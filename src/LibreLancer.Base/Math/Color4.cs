@@ -920,7 +920,7 @@ public struct Color4 : IEquatable<Color4>
         }
         else
         {
-            r = (float)System.Math.Pow((srgb.R + 0.055f) / (1.0f + 0.055f), 2.4f);
+            r = (float)Math.Pow((srgb.R + 0.055f) / (1.0f + 0.055f), 2.4f);
         }
 
         if (srgb.G <= 0.04045f)
@@ -929,7 +929,7 @@ public struct Color4 : IEquatable<Color4>
         }
         else
         {
-            g = (float)System.Math.Pow((srgb.G + 0.055f) / (1.0f + 0.055f), 2.4f);
+            g = (float)Math.Pow((srgb.G + 0.055f) / (1.0f + 0.055f), 2.4f);
         }
 
         if (srgb.B <= 0.04045f)
@@ -938,7 +938,7 @@ public struct Color4 : IEquatable<Color4>
         }
         else
         {
-            b = (float)System.Math.Pow((srgb.B + 0.055f) / (1.0f + 0.055f), 2.4f);
+            b = (float)Math.Pow((srgb.B + 0.055f) / (1.0f + 0.055f), 2.4f);
         }
 
         return new Color4(r, g, b, srgb.A);
@@ -962,7 +962,7 @@ public struct Color4 : IEquatable<Color4>
         }
         else
         {
-            r = (1.0f + 0.055f) * (float)System.Math.Pow(rgb.R, 1.0f / 2.4f) - 0.055f;
+            r = (1.0f + 0.055f) * (float)Math.Pow(rgb.R, 1.0f / 2.4f) - 0.055f;
         }
 
         if (rgb.G <= 0.0031308)
@@ -971,7 +971,7 @@ public struct Color4 : IEquatable<Color4>
         }
         else
         {
-            g = (1.0f + 0.055f) * (float)System.Math.Pow(rgb.G, 1.0f / 2.4f) - 0.055f;
+            g = (1.0f + 0.055f) * (float)Math.Pow(rgb.G, 1.0f / 2.4f) - 0.055f;
         }
 
         if (rgb.B <= 0.0031308)
@@ -980,7 +980,7 @@ public struct Color4 : IEquatable<Color4>
         }
         else
         {
-            b = (1.0f + 0.055f) * (float)System.Math.Pow(rgb.B, 1.0f / 2.4f) - 0.055f;
+            b = (1.0f + 0.055f) * (float)Math.Pow(rgb.B, 1.0f / 2.4f) - 0.055f;
         }
 
         return new Color4(r, g, b, rgb.A);
@@ -1007,10 +1007,10 @@ public struct Color4 : IEquatable<Color4>
         var saturation = hsl.Y;
         var lightness = hsl.Z;
 
-        var C = (1.0f - System.Math.Abs(2.0f * lightness - 1.0f)) * saturation;
+        var C = (1.0f - Math.Abs(2.0f * lightness - 1.0f)) * saturation;
 
         var h = hue / 60.0f;
-        var X = C * (1.0f - System.Math.Abs(h % 2.0f - 1.0f));
+        var X = C * (1.0f - Math.Abs(h % 2.0f - 1.0f));
 
         float r, g, b;
         if (0.0f <= h && h < 1.0f)
@@ -1071,8 +1071,8 @@ public struct Color4 : IEquatable<Color4>
     /// <param name="rgb">Color value to convert.</param>
     public static Vector4 ToHsl(Color4 rgb)
     {
-        var M = System.Math.Max(rgb.R, System.Math.Max(rgb.G, rgb.B));
-        var m = System.Math.Min(rgb.R, System.Math.Min(rgb.G, rgb.B));
+        var M = Math.Max(rgb.R, Math.Max(rgb.G, rgb.B));
+        var m = Math.Min(rgb.R, Math.Min(rgb.G, rgb.B));
         var C = M - m;
 
         float h = 0.0f;
@@ -1100,7 +1100,7 @@ public struct Color4 : IEquatable<Color4>
         var saturation = 0.0f;
         if (0.0f != lightness && lightness != 1.0f)
         {
-            saturation = C / (1.0f - System.Math.Abs(2.0f * lightness - 1.0f));
+            saturation = C / (1.0f - Math.Abs(2.0f * lightness - 1.0f));
         }
 
         return new Vector4(hue, saturation, lightness, rgb.A);
@@ -1130,7 +1130,7 @@ public struct Color4 : IEquatable<Color4>
         var C = value * saturation;
 
         var h = hue / 60.0f;
-        var X = C * (1.0f - System.Math.Abs(h % 2.0f - 1.0f));
+        var X = C * (1.0f - Math.Abs(h % 2.0f - 1.0f));
 
         float r, g, b;
         if (0.0f <= h && h < 1.0f)
@@ -1191,8 +1191,8 @@ public struct Color4 : IEquatable<Color4>
     /// <param name="rgb">Color value to convert.</param>
     public static Vector4 ToHsv(Color4 rgb)
     {
-        var M = System.Math.Max(rgb.R, System.Math.Max(rgb.G, rgb.B));
-        var m = System.Math.Min(rgb.R, System.Math.Min(rgb.G, rgb.B));
+        var M = Math.Max(rgb.R, Math.Max(rgb.G, rgb.B));
+        var m = Math.Min(rgb.R, Math.Min(rgb.G, rgb.B));
         var C = M - m;
 
         float h = 0.0f;
@@ -1323,7 +1323,7 @@ public struct Color4 : IEquatable<Color4>
         var luminance = hcy.Z;
 
         var h = hue / 60.0f;
-        var X = C * (1.0f - System.Math.Abs(h % 2.0f - 1.0f));
+        var X = C * (1.0f - Math.Abs(h % 2.0f - 1.0f));
 
         float r, g, b;
         if (0.0f <= h && h < 1.0f)
@@ -1384,8 +1384,8 @@ public struct Color4 : IEquatable<Color4>
     /// <param name="rgb">Color value to convert.</param>
     public static Vector4 ToHcy(Color4 rgb)
     {
-        var M = System.Math.Max(rgb.R, System.Math.Max(rgb.G, rgb.B));
-        var m = System.Math.Min(rgb.R, System.Math.Min(rgb.G, rgb.B));
+        var M = Math.Max(rgb.R, Math.Max(rgb.G, rgb.B));
+        var m = Math.Min(rgb.R, Math.Min(rgb.G, rgb.B));
         var C = M - m;
 
         float h = 0.0f;
@@ -1423,17 +1423,17 @@ public struct Color4 : IEquatable<Color4>
     public bool Equals(Color4 other)
     {
         return
-            this.R == other.R &&
-            this.G == other.G &&
-            this.B == other.B &&
-            this.A == other.A;
+            R == other.R &&
+            G == other.G &&
+            B == other.B &&
+            A == other.A;
     }
 
     #endregion
 
     public Color4 ChangeAlpha(float a)
     {
-        return new Color4(this.Rgb, a);
+        return new Color4(Rgb, a);
     }
 
     public static Color4 operator +(Color4 left, Color4 right)

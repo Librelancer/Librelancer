@@ -78,7 +78,7 @@ public struct Ray : IEquatable<Ray>
 
         float? tMin = null, tMax = null;
 
-        if (System.Math.Abs(Direction.X) < epsilon)
+        if (Math.Abs(Direction.X) < epsilon)
         {
             if (Position.X < box.Min.X || Position.X > box.Max.X)
                 return null;
@@ -94,7 +94,7 @@ public struct Ray : IEquatable<Ray>
             }
         }
 
-        if (System.Math.Abs(Direction.Y) < epsilon)
+        if (Math.Abs(Direction.Y) < epsilon)
         {
             if (Position.Y < box.Min.Y || Position.Y > box.Max.Y)
                 return null;
@@ -116,7 +116,7 @@ public struct Ray : IEquatable<Ray>
             if (!tMax.HasValue || tMaxY < tMax) tMax = tMaxY;
         }
 
-        if (System.Math.Abs(Direction.Z) < epsilon)
+        if (Math.Abs(Direction.Z) < epsilon)
         {
             if (Position.Z < box.Min.Z || Position.Z > box.Max.Z)
                 return null;
@@ -184,7 +184,7 @@ public struct Ray : IEquatable<Ray>
     public void Intersects(ref Plane plane, out float? result)
     {
         var den = Vector3.Dot(Direction, plane.Normal);
-        if (System.Math.Abs(den) < 0.00001f)
+        if (Math.Abs(den) < 0.00001f)
         {
             result = null;
             return;
@@ -238,7 +238,7 @@ public struct Ray : IEquatable<Ray>
         // if x^2 + z^2 - y^2 < 0, we do not intersect
         var dist = sphereRadiusSquared + distanceAlongRay * distanceAlongRay - differenceLengthSquared;
 
-        result = (dist < 0) ? null : distanceAlongRay - (float?)System.Math.Sqrt(dist);
+        result = (dist < 0) ? null : distanceAlongRay - (float?)Math.Sqrt(dist);
     }
 
     public static bool operator !=(Ray a, Ray b) => !a.Equals(b);
