@@ -250,8 +250,8 @@ public class EditMap2D
     void DrawObjectsLOD(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
     {
         float clusterRadius =
-            lod == MapLod.Minimal ? 60f :
-            lod == MapLod.Reduced ? 20f :
+            lod == MapLod.Minimal ? 90f :
+            lod == MapLod.Reduced ? 45f :
                                     30f;
 
         List<ObjectCluster> clusters = new();
@@ -330,11 +330,11 @@ public class EditMap2D
                 size =
                         lod == MapLod.Minimal ? 16f :
                         lod == MapLod.Reduced ? 32f :
-                                                100f;
+                                                64f;
             }
 
             // Cluster icon (zoom 1->7)
-            if (cluster.Objects.Count > 1 && lod != MapLod.Detailed)
+            if (cluster.Objects.Count > 1)
             {
                 drawList.AddCircleFilled(cluster.ScreenPos, size, 0xFF8888FF);
                 drawList.AddText(
