@@ -68,10 +68,13 @@ public static class Controls
     }
 
     public static void CheckboxUndo(string label, EditorUndoBuffer buffer,
-        EditorPropertyModification<bool>.Accessor value)
+        EditorPropertyModification<bool>.Accessor value, float labelWidth=100f, float inputWidth=0f)
     {
         var v = value();
-        if (ImGui.Checkbox(label, ref v))
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text(label);
+        ImGui.SameLine(labelWidth);
+        if (ImGui.Checkbox($"##{label}", ref v))
         {
             buffer.Set(label, value, v);
         }
@@ -80,12 +83,13 @@ public static class Controls
     public static void InputTextIdUndo(string label,
         EditorUndoBuffer buffer,
         EditorPropertyModification<string>.Accessor value,
-        float width = 0.0f)
+        float width = 0.0f,
+        float labelWidth = 0.0f)
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
         Label(label);
-        ImGui.SameLine();
+        ImGui.SameLine(labelWidth);
         if (width != 0.0f)
         {
             ImGui.SetNextItemWidth(width);
@@ -107,20 +111,23 @@ public static class Controls
         int step = 1,
         int step_fast = 100,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
-        Point? clamp = null
+        Point? clamp = null,
+        float labelWidth = -1f
     )
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
         Label(label);
-        ImGui.SameLine();
+        ImGui.SameLine(labelWidth);
         ref int v = ref value();
         int oldCopy = v;
+        ImGui.PushItemWidth(-1);
         ImGui.InputInt("##input", ref v, step, step_fast, flags);
         if (clamp != null)
         {
             v = Math.Clamp(v, clamp.Value.X, clamp.Value.Y);
         }
+        ImGui.PopItemWidth();
         if (ImGui.IsItemActivated())
         {
             oldInt = oldCopy;
@@ -141,15 +148,19 @@ public static class Controls
         float v_min,
         float v_max,
         string format = "%.3f",
-        ImGuiSliderFlags flags = ImGuiSliderFlags.None)
+        ImGuiSliderFlags flags = ImGuiSliderFlags.None,
+        float labelWidth = 100f,
+        float inputWidth = -1f
+        )
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
         Label(label);
-        ImGui.SameLine();
+        ImGui.SameLine(labelWidth);
         ref float v = ref value();
         float oldCopy = v;
-        ImGui.SliderFloat(label, ref v, v_min, v_max, format, flags);
+        ImGui.SetNextItemWidth(inputWidth);
+        ImGui.SliderFloat($"##{label}", ref v, v_min, v_max, format, flags);
         if (ImGui.IsItemActivated())
         {
             oldFloat = oldCopy; // Can be modified in the same frame
@@ -168,15 +179,19 @@ public static class Controls
         int step = 0,
         int step_fast = 0,
         string format = "%.3f",
-        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None
+        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
+        float labelWidth = 100f,
+        float inputWidth = 0f
+
     )
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
         Label(label);
-        ImGui.SameLine();
+        ImGui.SameLine(labelWidth);
         ref float v = ref value();
         float oldCopy = v;
+        ImGui.PushItemWidth(inputWidth);
         ImGui.InputFloat("##input", ref v, step, step_fast, format, flags);
         if (ImGui.IsItemActivated())
         {
@@ -186,6 +201,7 @@ public static class Controls
         {
             buffer.Set(label, value, oldFloat, v);
         }
+        ImGui.PopItemWidth();
         ImGui.PopID();
     }
 
@@ -193,15 +209,20 @@ public static class Controls
 
     public static void InputQuaternionUndo(string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<Quaternion>.Accessor value)
+        EditorPropertyModification<Quaternion>.Accessor value,
+        float labelWidth = 100f,
+        float inputWidth = 0f
+        )
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
         Label(label);
-        ImGui.SameLine();
+        ImGui.SameLine(labelWidth);
         ref Quaternion q = ref value();
         Quaternion oldCopy = q;
+        ImGui.PushItemWidth(inputWidth);
         ImGui.InputFloat4("##input", ref Unsafe.As<Quaternion, Vector4>(ref q));
+        ImGui.PopItemWidth();
         if (ImGui.IsItemActivated())
         {
             oldQuaternion = oldCopy;
@@ -220,15 +241,18 @@ public static class Controls
         EditorUndoBuffer buffer,
         EditorPropertyModification<Vector3>.Accessor value,
         string format = "%.3f",
-        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None
+        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
+        float labelWidth = 100f,
+        float inputWidth = 0f
     )
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
         Label(label);
-        ImGui.SameLine();
+        ImGui.SameLine(labelWidth);
         ref Vector3 v = ref value();
         Vector3 oldCopy = v;
+        ImGui.PushItemWidth(inputWidth);
         ImGui.InputFloat3("##input", ref v, format, flags);
         if (ImGui.IsItemActivated())
         {
@@ -239,6 +263,7 @@ public static class Controls
             buffer.Set(label, value, oldVector, v);
         }
         ImGui.PopID();
+        ImGui.PopItemWidth();
     }
 
     public static void DisabledInputTextId(string label, string value, float width = 0.0f)
@@ -465,15 +490,16 @@ public static class Controls
         }
     }
 
-    public static void InputStringList(string id, EditorUndoBuffer undoBuffer, List<string> list, bool rmButtonOnEveryElement = true)
+    public static void InputStringList(string id, EditorUndoBuffer undoBuffer, List<string> list, bool rmButtonOnEveryElement = true, float labelWidth = 100f)
     {
         ImGui.PushID(id);
         ImGui.AlignTextToFramePadding();
-        Label(id);
+        Label(id); ImGui.SameLine(labelWidth);
 
+        AddListControls();
+        ImGui.Spacing();
         if (list.Count is 0)
         {
-            AddListControls();
             ImGui.PopID();
             return;
         }
@@ -482,20 +508,22 @@ public static class Controls
         {
             var str = list[index];
             ImGui.PushID(index);
+            ImGui.Dummy(new Vector2(2)); ImGui.SameLine(labelWidth);
 
             ImGui.SetNextItemWidth(150f);
+
             int curr = index;
+
             ImGuiExt.InputTextLogged("###", ref str, 32,
                 (old, upd) =>
                undoBuffer.Commit(new ListSet<string>(id, list, curr, old, upd)));
             list[index] = str;
 
-            if (index + 1 != list.Count)
-            {
+
                 if (rmButtonOnEveryElement)
                 {
                     ImGui.SameLine();
-                    if (ImGui.Button(Icons.X))
+                    if (ImGui.Button(Icons.TrashAlt))
                     {
                         undoBuffer.Commit(new ListRemove<string>(id, list, index, list[index]));
                     }
@@ -503,11 +531,11 @@ public static class Controls
 
                 ImGui.PopID();
                 continue;
-            }
+
 
             ImGui.PopID();
 
-            AddListControls();
+            //AddListControls();
         }
 
         ImGui.PopID();
@@ -515,7 +543,6 @@ public static class Controls
 
         void AddListControls()
         {
-            ImGui.SameLine();
             if (ImGui.Button(Icons.PlusCircle))
             {
                 undoBuffer.Commit(new ListAdd<string>(id, list, ""));
@@ -524,7 +551,7 @@ public static class Controls
 
             ImGui.SameLine();
             ImGui.BeginDisabled(list.Count is 0);
-            if (ImGui.Button(Icons.X))
+            if (ImGui.Button(Icons.TrashAlt))
             {
                 undoBuffer.Commit(new ListRemove<string>(id, list, list.Count - 1, list[^1]));
             }
@@ -559,16 +586,21 @@ public static class Controls
 
     public static void IdsInputStringUndo(string label, GameDataContext gameData, PopupManager popup,
         EditorUndoBuffer undoBuffer, EditorPropertyModification<int>.Accessor accessor,
-        bool showTooltipOnHover = true, float inputWidth = 100f)
+        bool showTooltipOnHover = true, float inputWidth = 100f, float labelWidth = 0.0f, float buttonWidth = -1f)
     {
         int ids = accessor();
         var infocard = gameData.Infocards.GetStringResource(ids);
+
+        ImGui.Text(label); ImGui.SameLine(labelWidth);
+
         ImGui.PushItemWidth(inputWidth);
-        IdsInput(label, infocard, ids, showTooltipOnHover);
+        IdsInput($"##{label}", infocard, ids, showTooltipOnHover);
         ImGui.PopItemWidth();
-        ImGui.PushID(label);
+
         ImGui.SameLine();
-        if (ImGui.Button("Browse Ids"))
+
+        ImGui.PushID($"##{label}_button");
+        if (ImGui.Button("Browse Ids", new Vector2(buttonWidth, 0f)))
         {
             popup.OpenPopup(new StringSelection(accessor(), gameData.Infocards,
                 n => undoBuffer.Set(label, accessor, n)));
