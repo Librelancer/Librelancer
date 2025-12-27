@@ -1,7 +1,5 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Popups;
@@ -15,303 +13,621 @@ namespace LancerEdit.GameContent;
 
 public class EditMap2D
 {
-    public static int MarginH = (int) (40 * ImGuiHelper.Scale);
+    public static int MarginH = (int)(40 * ImGuiHelper.Scale);
     public static int MarginW = (int)(15 * ImGuiHelper.Scale);
+
     private const float GridSizeDefault = 240000;
 
+    private static readonly string[] GRIDNUMBERS = { "1", "2", "3", "4", "5", "6", "7", "8" };
+    private static readonly string[] GRIDLETTERS = { "A", "B", "C", "D", "E", "F", "G", "H" };
+    private static readonly int GRID_DIVISIONS = 8;
 
-    private static readonly string[] GRIDNUMBERS = {
-        "1", "2", "3", "4", "5", "6", "7", "8"
-    };
 
-    private static readonly string[] GRIDLETTERS = {
-        "A", "B", "C", "D", "E", "F", "G", "H"
-    };
+    private static readonly float ZOOM_SPEED = 0.15f;
+    private static readonly float MIN_ZOOM = 1f;
+    private static readonly float MAX_ZOOM = 10f;
+    private Vector2 CameraCenter = new(0.5f, 0.5f); // normalized (0..1)
 
     public float Zoom = 1;
+    private float lastZoom = 1f;
 
-    private GameObject dragTarget;
-    private Transform3D dragOriginalTransform;
-    private RenderContext renderContext;
+    private enum MapLod { Minimal, Reduced, Detailed }
 
- // Creation tools (patrols, zones)
+    GameObject dragTarget;
+    Transform3D dragOriginalTransform;
+    RenderContext renderContext;
+    List<GameObject> currentClusterObjects;
+
+    // Creation tools (patrols, zones)
     public Map2DCreationTools CreationTools { get; } = new();
 
     public void Draw(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, RenderContext renderContext)
     {
-        var renderWidth = Math.Max(120, ImGui.GetWindowWidth() - MarginW);
-        var renderHeight = Math.Max(120, ImGui.GetWindowHeight() - MarginH);
+        // Reserve stable layout space (CRITICAL: prevents scrolling bug)
+        Vector2 canvasPos = ImGui.GetCursorScreenPos();
+        Vector2 canvasSize = new(
+            Math.Max(120, ImGui.GetWindowWidth() - MarginW),
+            Math.Max(120, ImGui.GetWindowHeight() - MarginH)
+        );
 
-        var overlayOrigin = ImGui.GetCursorScreenPos();
+        ImGui.Dummy(canvasSize);
 
-        ImGui.BeginChild("##scrollchild", new Vector2(renderWidth, renderHeight), 0, ImGuiWindowFlags.HorizontalScrollbar);
+        Vector2 canvasMin = canvasPos;
+        Vector2 canvasMax = canvasPos + canvasSize;
 
-        float buttonSize = (int) ((renderWidth / 838.0f) * 12f);
-        if (buttonSize < 2) buttonSize = 2;
+        var drawList = ImGui.GetWindowDrawList();
+        drawList.PushClipRect(canvasMin, canvasMax, true);
 
-        renderWidth -= 2 * ImGuiHelper.Scale;
-        renderHeight -= 2 * ImGuiHelper.Scale;
-        //make it square
-        renderWidth = Math.Min(renderWidth, renderHeight);
-        renderHeight = renderWidth;
-        renderWidth *= Zoom;
-        renderHeight *= Zoom;
+        Vector2 viewportCenter = canvasMin + canvasSize * 0.5f;
 
-        ImGui.BeginChild("##edit2d", new Vector2(renderWidth, renderHeight), ImGuiChildFlags.None);
-
-        var gridMargin = 15 * ImGuiHelper.Scale;
-
-        var dlist = ImGui.GetWindowDrawList();
-        var mapScreenPos = (Vector2)ImGui.GetWindowPos();
-
-        var cellWidth = (renderWidth / 8f);
-        var cellHeight = (renderHeight / 8f);
-
-        ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
-        for (int i = 0; i < 8; i++)
+        // Zoom + camera
+        if (Zoom <= 1.0f)
         {
-            var sz = ImGui.CalcTextSize(GRIDLETTERS[i]);
-            var xPos = mapScreenPos.X + i * cellWidth + (cellWidth / 2 - sz.X / 2);
-            dlist.AddText(new Vector2(xPos, mapScreenPos.Y), 0xFFFFFFFF, GRIDLETTERS[i]);
-            var yPos = mapScreenPos.Y + i * cellHeight + (cellHeight / 2 - sz.Y / 2);
-            dlist.AddText(new Vector2(mapScreenPos.X, yPos), 0xFFFFFFFF, GRIDNUMBERS[i]);
-        }
-        ImGui.PopFont();
-        //Draw Grid
-        mapScreenPos += new Vector2(gridMargin);
-        renderWidth -= 2 * gridMargin;
-        renderHeight -= 2 * gridMargin;
-        dlist.AddRectFilled(mapScreenPos, mapScreenPos + new Vector2(renderWidth, renderHeight), 0xFF1C0812);
-        dlist.AddRect(mapScreenPos, mapScreenPos + new Vector2(renderWidth, renderHeight), 0xFFFFFFFF);
-        for (int x = 1; x < 8; x++)
-        {
-            var pos0 = mapScreenPos + new Vector2(x * (renderWidth / 8f), 0);
-            var pos1 = mapScreenPos + new Vector2(x * (renderWidth / 8f), renderHeight);
-            dlist.AddLine(pos0, pos1, 0xFFFFFFFF, 1.5f);
-        }
-        for (int y = 1; y < 8; y++)
-        {
-            var pos0 = mapScreenPos + new Vector2(0, y * (renderHeight / 8f));
-            var pos1 = mapScreenPos + new Vector2(renderWidth, y * (renderHeight / 8f));
-            dlist.AddLine(pos0, pos1, 0xFFFFFFFF, 1.5f);
+            Zoom = 1.0f;
+            CameraCenter = new Vector2(0.5f, 0.5f);
         }
 
-        var mapScale = new Vector2(GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale));
+        float baseMapSize = Math.Min(canvasSize.X, canvasSize.Y);
+        float mapSize = baseMapSize * Zoom;
 
-        // Takes in Vector3 from the game world, outputs Vector2 relative to the #scrollchild window
-        // drawlist calls should use windowpos + this return value
-        // controls should set the cursor position to this value
-        Vector2 WorldToWindow(Vector3 pos)
+        float halfVisible = 0.5f / Zoom;
+        CameraCenter.X = Math.Clamp(CameraCenter.X, halfVisible, 1f - halfVisible);
+        CameraCenter.Y = Math.Clamp(CameraCenter.Y, halfVisible, 1f - halfVisible);
+
+        Vector2 mapTopLeft = viewportCenter - (CameraCenter * mapSize);
+
+        // Background
+        drawList.AddRectFilled(mapTopLeft, mapTopLeft + new Vector2(mapSize), 0xFF1C0812);
+
+        drawList.AddRect(mapTopLeft, mapTopLeft + new Vector2(mapSize), 0xFFFFFFFF, 0, ImDrawFlags.None, 2f);
+
+        // Grid + labels
+        DrawGridAndLabelsViewportAware(drawList, canvasMin, canvasSize, mapTopLeft, mapSize);
+
+        // LOD
+        MapLod lod =
+            Zoom < 2f ? MapLod.Minimal :
+            Zoom < 5f ? MapLod.Reduced :
+                        MapLod.Detailed;
+
+        DrawTradeLanesLOD(system, tab, mapTopLeft, mapSize, drawList, lod);
+        DrawObjectsLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
+
+        // Pan
+        if (ImGui.IsWindowHovered() && ImGui.IsMouseDragging(ImGuiMouseButton.Middle))
         {
-            var relPos = (new Vector2(pos.X, pos.Z) + (mapScale / 2)) / mapScale;
-            return new Vector2(gridMargin) + relPos * new Vector2(renderWidth, renderHeight);
+            Vector2 delta = ImGui.GetIO().MouseDelta;
+            CameraCenter -= delta / mapSize;
+        }
+        // Zoom
+        else if (ImGui.IsWindowHovered() && ImGui.GetIO().MouseWheel != 0f)
+        {
+            float wheel = ImGui.GetIO().MouseWheel;
+            float oldZoom = Zoom;
+
+            Zoom *= MathF.Exp(wheel * ZOOM_SPEED);
+            Zoom = Math.Clamp(Zoom, MIN_ZOOM, MAX_ZOOM);
+
+            if (Zoom != oldZoom)
+            {
+                Vector2 mouseScreen = ImGui.GetIO().MousePos;
+
+                Vector2 mouseMapBefore =
+                    (mouseScreen - mapTopLeft) / mapSize;
+
+                float newMapSize = baseMapSize * Zoom;
+
+                Vector2 mouseMapAfter =
+                    (mouseScreen - viewportCenter) / newMapSize + CameraCenter;
+
+                CameraCenter += (mouseMapBefore - mouseMapAfter);
+            }
         }
 
-        // Takes in Vector2 relative to top left of map grid, returns Vector3 world coordinate
-        // To convert to map position, subtract mapScreenPos from a screen position.
-        Vector3 MapToWorld(Vector2 pos)
+        drawList.PopClipRect();
+
+        // Context menu (anchored to Dummy, NOT cursor movement)
+        DrawContextMenu(system, world, ctx, tab, mapSize, mapTopLeft);
+
+        // Creation tools (correct coordinate contract)
+        var helpText = CreationTools.Draw(
+            drawList,
+            mapTopLeft,
+            mapSize,
+            world => WorldToMap_Local(world, system, mapSize),
+            map => MapToWorld_Local(map, system, mapSize),
+            tab
+        );
+
+        // Cluster popup
+        if (ImGui.BeginPopup("##clusterPopup"))
         {
-            // Account for grid margin when converting map position to world
-            var gridMargin = 15 * ImGuiHelper.Scale;
-            pos -= new Vector2(gridMargin);
+            if (currentClusterObjects != null)
+            {
+                foreach (var obj in currentClusterObjects)
+                {
+                    if (ImGui.Selectable(obj.Nickname))
+                    {
+                        tab.ForceSelectObject(obj);
+                        ImGui.CloseCurrentPopup();
+                    }
+                }
+            }
+            ImGui.EndPopup();
+        }
+    }
 
-            var scale = new Vector3(GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale));
-            scale.Y = 0;
-            var relPos = (pos - new Vector2(renderWidth / 2f, renderHeight / 2f)) / new Vector2(renderWidth, renderHeight);
+    static bool IsTradeLaneRing(GameObject obj)
+    {
+        return obj.SystemObject?.Archetype?.Nickname == "Trade_Lane_Ring";
+    }
 
-            return new Vector3(relPos.X, 0, relPos.Y) * scale;
+    void DrawGridAndLabelsViewportAware(ImDrawListPtr drawList, Vector2 viewportPos, Vector2 viewportSize, Vector2 mapTopLeft, float mapSize)
+    {
+        Vector2 viewportMin = viewportPos;
+        Vector2 viewportMax = viewportPos + viewportSize;
+
+        // Convert viewport corners to normalized map space (0..1)
+        Vector2 mapMin = (viewportMin - mapTopLeft) / mapSize;
+        Vector2 mapMax = (viewportMax - mapTopLeft) / mapSize;
+
+        mapMin = Vector2.Clamp(mapMin, Vector2.Zero, Vector2.One);
+        mapMax = Vector2.Clamp(mapMax, Vector2.Zero, Vector2.One);
+
+        int colMin = Math.Clamp((int)Math.Floor(mapMin.X * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
+        int colMax = Math.Clamp((int)Math.Floor(mapMax.X * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
+        int rowMin = Math.Clamp((int)Math.Floor(mapMin.Y * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
+        int rowMax = Math.Clamp((int)Math.Floor(mapMax.Y * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
+
+        float cellSize = mapSize / GRID_DIVISIONS;
+        uint gridColor = ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 0.4f));
+
+        // ---- Grid lines (map space) ----
+        for (int i = 1; i < GRID_DIVISIONS; i++)
+        {
+            float p = i * cellSize;
+
+            drawList.AddLine(
+                mapTopLeft + new Vector2(p, 0),
+                mapTopLeft + new Vector2(p, mapSize),
+                gridColor,
+                1f
+            );
+
+            drawList.AddLine(
+                mapTopLeft + new Vector2(0, p),
+                mapTopLeft + new Vector2(mapSize, p),
+                gridColor,
+                1f
+            );
         }
 
+        // ---- Labels (viewport space) ----
+        ImGui.PushFont(ImGuiHelper.SystemMonospace, 12f);
 
-        int obji = 0;
-        bool grabbed = false;
-
-        GameObject dragCurrent = null;
-
-        foreach (var obj in world.Objects)
+        // Column labels (top)
+        for (int col = colMin; col <= colMax; col++)
         {
-            if (obj.SystemObject == null)
+            float mapX = (col + 0.5f) / GRID_DIVISIONS;
+            float screenX = mapTopLeft.X + mapX * mapSize;
+
+            if (screenX < viewportMin.X || screenX > viewportMax.X)
                 continue;
-            var objPos = obj.LocalTransform.Position;
-            ImGui.SetCursorPos(WorldToWindow(objPos) - new Vector2(buttonSize * 0.5f));
-            var id = $"##{obj.Nickname}";
 
-            var buttonColor = Color4.LightGray;
-             if(CreationTools.IsAnyToolActive)
-            {
-                buttonColor.A = 0.5f;
-                ImGui.BeginDisabled();
-            }
+            string label = GRIDLETTERS[col];
+            Vector2 size = ImGui.CalcTextSize(label);
 
-            ImGui.PushStyleColor(ImGuiCol.Button, buttonColor);
-            if (ImGui.Button(id, new Vector2(buttonSize)))
-            {
-                tab.ForceSelectObject(obj);
-            }
-            ImGui.PopStyleColor();
+            drawList.AddText(
+                new Vector2(screenX - size.X * 0.5f, viewportMin.Y + 4),
+                0xFFFFFFFF,
+                label
+            );
+        }
 
-            if(CreationTools.IsAnyToolActive)
+        // Row labels (left)
+        for (int row = rowMin; row <= rowMax; row++)
+        {
+            float mapY = (row + 0.5f) / GRID_DIVISIONS;
+            float screenY = mapTopLeft.Y + mapY * mapSize;
+
+            if (screenY < viewportMin.Y || screenY > viewportMax.Y)
+                continue;
+
+            string label = GRIDNUMBERS[row];
+            Vector2 size = ImGui.CalcTextSize(label);
+
+            float labelX = Math.Max(viewportMin.X, mapTopLeft.X) + 4;
+
+            drawList.AddText(
+                new Vector2(labelX, screenY - size.Y * 0.5f),
+                0xFFFFFFFF,
+                label
+            );
+        }
+
+        ImGui.PopFont();
+    }
+    void DrawObjectsLOD(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
+    {
+        float clusterRadius =
+            lod == MapLod.Minimal ? 90f :
+            lod == MapLod.Reduced ? 45f :
+                                    30f;
+
+        List<ObjectCluster> clusters = new();
+
+        // ---- Build clusters ----
+        foreach (var obj in tab.ObjectsList.Objects)
+        {
+            bool isTradelane = IsTradeLaneRing(obj);
+
+            Vector2 screen = WorldToScreen(
+                obj.LocalTransform.Position,
+                system,
+                mapTopLeft,
+                mapSize
+            );
+
+            // Tradelanes NEVER cluster
+            if (clusterRadius > 0 && !isTradelane)
             {
-                ImGui.EndDisabled();
+                bool added = false;
+                foreach (var c in clusters)
+                {
+                    if (Vector2.DistanceSquared(c.ScreenPos, screen) <
+                        clusterRadius * clusterRadius)
+                    {
+                        c.Objects.Add(obj);
+                        added = true;
+                        break;
+                    }
+                }
+
+                if (!added)
+                {
+                    clusters.Add(new ObjectCluster
+                    {
+                        ScreenPos = screen,
+                        Objects = { obj }
+                    });
+                }
             }
             else
             {
-                // Interaction logic only when not creating patrol
-                if (ImGui.IsItemActive() && ImGui.IsMouseDragging(0) && !grabbed &&
-                    (dragTarget == null || dragTarget == obj))
+                // Tradelane OR no clustering -> always its own cluster
+                clusters.Add(new ObjectCluster
                 {
-                    grabbed = true;
-                    if (dragTarget == null)
-                    {
-                        dragTarget = obj;
-                        dragOriginalTransform = obj.LocalTransform;
-                    }
+                    ScreenPos = screen,
+                    Objects = { obj }
+                });
+            }
 
-                    var delta = (ImGui.GetIO().MouseDelta / new Vector2(renderWidth, renderHeight)) * mapScale;
-                    objPos += new Vector3(delta.X, 0, delta.Y);
-                    obj.SetLocalTransform(new Transform3D(objPos, obj.LocalTransform.Orientation));
-                    dragCurrent = obj;
+        }
+
+        // ---- Render clusters / objects ----
+        foreach (var cluster in clusters)
+        {
+
+            var obj = cluster.Objects[0];
+            bool isTradelane = IsTradeLaneRing(obj);
+
+            Vector2 min = cluster.ScreenPos - new Vector2(12);
+            Vector2 max = cluster.ScreenPos + new Vector2(12);
+
+            bool hovered = ImGui.IsMouseHoveringRect(min, max);
+            bool clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
+
+            float size = 0;
+            if (isTradelane)
+            {
+                size =
+                        lod == MapLod.Minimal ? 4f :
+                        lod == MapLod.Reduced ? 8f :
+                                                12f;
+            }
+            else
+            {
+                size =
+                        lod == MapLod.Minimal ? 16f :
+                        lod == MapLod.Reduced ? 32f :
+                                                64f;
+            }
+
+            // Cluster icon (zoom 1->7)
+            if (cluster.Objects.Count > 1)
+            {
+                drawList.AddCircleFilled(cluster.ScreenPos, size, 0xFF8888FF);
+                drawList.AddText(
+                    cluster.ScreenPos - new Vector2(8, 8),
+                    0xFFFFFFFF,
+                    $"{cluster.Objects.Count}" 
+                );
+
+                //if (hovered)
+                //{
+                //    ImGui.BeginTooltip();
+                //    foreach (var o in cluster.Objects)
+                //        ImGui.Text(o.Nickname);
+                //    ImGui.EndTooltip();
+                //}
+
+                if (clicked)
+                {
+                    currentClusterObjects = cluster.Objects;
+                    ImGui.OpenPopup("##clusterPopup");
                 }
+            }
+            // Single object
+            else
+            {
+                bool selected = tab.ObjectsList.Selection.Contains(obj);
 
-                if (ImGui.BeginItemTooltip())
+                
+
+                if (lod == MapLod.Detailed)
                 {
-                    ImGui.Text(obj.Nickname);
+                    // Icon instead of circle
+                    var icon = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
+                    Vector2 imageSize = new Vector2(96, 96) * ImGuiHelper.Scale;
 
-                    var ed = obj.GetEditData(false);
-                    var arch = (ed == null) ? obj.SystemObject.Archetype : ed.Archetype;
-                    var star = (ed == null) ? obj.SystemObject.Star : ed.Star;
-                    if (star != null)
+                    drawList.AddImage(
+                        icon,
+                        cluster.ScreenPos - imageSize * 0.5f,
+                        cluster.ScreenPos + imageSize * 0.5f
+                    );
+
+                    if (selected)
                     {
-                        ImGui.InvisibleButton("##dummy", new Vector2(80) * ImGuiHelper.Scale);
-                        var min = ImGui.GetItemRectMin();
-                        var max = ImGui.GetItemRectMax();
-                        var r = new Rectangle((int)min.X, (int)min.Y, (int)(max.X - min.X), (int)(max.Y - min.Y));
-                        var dl = ImGui.GetWindowDrawList();
-                        unsafe
+                        drawList.AddCircle(
+                            cluster.ScreenPos,
+                            imageSize.X * 0.6f,
+                            0xFFFFFF00,
+                            0,
+                            2f
+                        );
+                    }
+                }
+                else if (lod == MapLod.Reduced)
+                {
+                    // Icon instead of circle
+                    var icon = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
+                    Vector2 imageSize = new Vector2(64, 64) * ImGuiHelper.Scale;
+
+                    drawList.AddImage(
+                        icon,
+                        cluster.ScreenPos - imageSize * 0.5f,
+                        cluster.ScreenPos + imageSize * 0.5f
+                    );
+
+                    if (selected)
+                    {
+                        drawList.AddCircle(
+                            cluster.ScreenPos,
+                            imageSize.X * 0.6f,
+                            0xFFFFFF00,
+                            0,
+                            2f
+                        );
+                    }
+                } else
+                {
+                    if (isTradelane)
+                    {
+                        uint lightBlue = ImGui.ColorConvertFloat4ToU32(
+                            new Vector4(
+                                0.4f,  // R
+                                0.7f,  // G
+                                1.0f,  // B
+                                1.0f   // A
+                            )
+                        );
+                        drawList.AddCircleFilled(cluster.ScreenPos, size, lightBlue);
+                        if (selected)
                         {
-                            dl.AddCallback((_, cmd) =>
-                            {
-                                renderContext.PushScissor(ImGuiHelper.GetClipRect(cmd), false);
-                                tab.SunPreview.Render(star,  (Color4)(VertexDiffuse)ImGui.GetColorU32(ImGuiCol.FrameBg), renderContext, r);
-                                renderContext.PopScissor();
-                            }, IntPtr.Zero);
+                            Vector2 selectedSize = new Vector2(size + 5);
+                            drawList.AddRect(
+                                selectedSize,
+                                selectedSize,
+                                0xFF4DA6FF,
+                                2f,
+                                ImDrawFlags.None,
+                                2f
+                            );
                         }
                     }
-                    else if (arch != null)
+                    else
                     {
-                        var img = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
-                        ImGui.Image(img, new Vector2(80) * ImGuiHelper.Scale, new Vector2(0, 1),
-                            new Vector2(1, 0));
+                        size =
+                        lod == MapLod.Minimal ? 16f :
+                        lod == MapLod.Reduced ? 64f :
+                                                128f;
+                        Vector2 half = new Vector2(size * 0.5f);
+                        Vector2 minSize = cluster.ScreenPos - half;
+                        Vector2 maxSize = cluster.ScreenPos + half;
+
+                        // Filled square
+                        drawList.AddRectFilled(minSize, maxSize, 0xFFFFFFFF);
+                        // Blue selection outline
+                        if (selected)
+                        {
+                            drawList.AddRect(
+                                minSize,
+                                maxSize,
+                                0xFF4DA6FF,
+                                0f,
+                                ImDrawFlags.None,
+                                2f
+                            );
+                        }
                     }
+                }
+
+                if (hovered && lod != MapLod.Minimal)
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.Text(obj.Nickname);
                     ImGui.EndTooltip();
+                }
+
+                if (clicked)
+                {
+                    tab.ForceSelectObject(obj);
+                }
+
+                Vector2 mouse = ImGui.GetIO().MousePos;
+
+                if (hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                {
+                    tab.ForceSelectObject(obj);
+                    dragTarget = obj;
+                    dragOriginalTransform = obj.LocalTransform;
+                }
+
+                if (dragTarget == obj &&
+                    ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+                {
+                    Vector2 delta = ImGui.GetIO().MouseDelta;
+
+                    float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+                    Vector3 worldDelta = new Vector3(
+                        delta.X / mapSize * scale,
+                        0,
+                        delta.Y / mapSize * scale
+                    );
+
+                    obj.SetLocalTransform(
+                        new Transform3D(
+                            obj.LocalTransform.Position + worldDelta,
+                            obj.LocalTransform.Orientation
+                        )
+                    );
+                }
+
+                if (ImGui.IsMouseReleased(ImGuiMouseButton.Left) &&
+                    dragTarget == obj)
+                {
+                    tab.UndoBuffer.Commit(
+                        new ObjectSetTransform(
+                            obj,
+                            tab.ObjectsList,
+                            dragOriginalTransform,
+                            obj.LocalTransform
+                        )
+                    );
+
+                    dragTarget = null;
                 }
             }
         }
-
-        if (dragCurrent == null && dragTarget != null)
-        {
-            tab.UndoBuffer.Commit(new ObjectSetTransform(dragTarget, tab.ObjectsList, dragOriginalTransform, dragTarget.LocalTransform));
-            dragTarget = null;
-        }
-
-        var windowPos = ImGui.GetWindowPos();
-        foreach (var lt in tab.LightsList.Sources)
-        {
-            ImGui.SetCursorPos(WorldToWindow(lt.Light.Position) - new Vector2(buttonSize * 0.5f));
-            var id = $"##{lt.Nickname}";
-            ImGui.PushStyleColor(ImGuiCol.Button, Color4.LightYellow);
-            if (ImGui.Button(id, new Vector2(buttonSize)))
-            {
-                tab.ForceSelectLight(lt);
-            }
-            ImGui.PopStyleColor();
-            if (ImGui.BeginItemTooltip())
-            {
-                ImGui.Text($"{Icons.Lightbulb} {lt.Nickname}");
-                ImGui.EndTooltip();
-            }
-            if (tab.LightsList.Selected == lt)
-            {
-                var radius = (lt.Light.Range / mapScale.X) * renderWidth;
-                dlist.AddCircle(windowPos + WorldToWindow(lt.Light.Position), radius,
-                    (VertexDiffuse)Color4.Yellow);
-            }
-        }
-
-        foreach (var z in tab.ZoneList.Zones)
-        {
-            if (!z.Visible)
-                continue;
-            var mesh = z.Current.TopDownMesh();
-            var transformed = ArrayPool<Vector2>.Shared.Rent(mesh.Length);
-            for (int i = 0; i < mesh.Length; i++)
-                transformed[i] = windowPos + WorldToWindow(z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y));
-            dlist.AddTriangleMesh(transformed, mesh.Length, (VertexDiffuse)Color4.Pink.ChangeAlpha(0.12f));
-            mesh = z.Current.OutlineMesh();
-            for (int i = 0; i < mesh.Length; i++)
-                transformed[i] = windowPos + WorldToWindow(z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y));
-            dlist.AddPolyline(ref transformed[0], mesh.Length, (VertexDiffuse)Color4.Red, ImDrawFlags.None, 2f);
-            ArrayPool<Vector2>.Shared.Return(transformed);
-        }
-
-        //Context menu
-        ImGui.SetCursorPos(new Vector2(gridMargin));
-        ImGui.InvisibleButton("##canvas", new Vector2(renderWidth, renderHeight));
-
-        if (ImGui.BeginPopupContextItem())
+    }
+    void DrawTradeLanesLOD(SystemEditData system, SystemEditorTab tab, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
+    {
+        // Intentionally empty.
+        // Tradelanes are currently rendered as individual rings only.
+    }
+    void DrawContextMenu(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, float mapSize, Vector2 mapTopLeft)
+    {
+        ImGui.SetNextItemAllowOverlap();
+        if (ImGui.BeginPopupContextItem("##mapContext"))
         {
             var pos = ImGui.GetMousePosOnOpeningCurrentPopup();
+
+            Vector3 worldPos = MapToWorld(
+                pos - mapTopLeft,
+                system,
+                mapSize
+            );
+
             if (ImGui.MenuItem("Add Object"))
             {
-                FLLog.Info("Obj", $"Add at {pos - mapScreenPos}");
-                tab.Popups.OpenPopup(new NewObjectPopup(ctx, world, MapToWorld(pos - mapScreenPos), tab.CreateObject));
+                tab.Popups.OpenPopup(
+                    new NewObjectPopup(ctx, world, worldPos, tab.CreateObject)
+                );
             }
+
             if (!CreationTools.Patrol.IsActive && ImGui.MenuItem("New Patrol Path"))
             {
                 CreationTools.Patrol.Start();
             }
 
             ImGui.Separator();
+
             if (!CreationTools.Tradelane.IsActive && ImGui.MenuItem("New Tradelane"))
             {
                 CreationTools.Tradelane.Start();
             }
+
             ImGui.Separator();
+
             if (!CreationTools.ZoneShape.IsActive && ImGui.MenuItem("New Sphere Zone"))
             {
-                CreationTools.ZoneShape.Start(ShapeKind.Sphere, pos - windowPos, MapToWorld(pos - windowPos));
+                CreationTools.ZoneShape.Start(
+                    ShapeKind.Sphere,
+                    pos - mapTopLeft,
+                    worldPos
+                );
             }
+
             if (!CreationTools.ZoneShape.IsActive && ImGui.MenuItem("New Ellipsoid Zone"))
             {
-                CreationTools.ZoneShape.Start(ShapeKind.Ellipsoid, pos - windowPos, MapToWorld(pos - windowPos));
+                CreationTools.ZoneShape.Start(
+                    ShapeKind.Ellipsoid,
+                    pos - mapTopLeft,
+                    worldPos
+                );
             }
+
             ImGui.EndPopup();
         }
+    }
 
 
-        // Draw creation tools (patrol and zones)
-        var helpText = CreationTools.Draw(dlist, windowPos, renderWidth, WorldToWindow, MapToWorld, tab);
+    Vector2 WorldToScreen(Vector3 worldPos, SystemEditData system, Vector2 mapTopLeft, float mapSize)
+    {
+        float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
 
-        ImGui.EndChild();
-        ImGui.EndChild();
+        Vector2 mapPos = new(
+            (worldPos.X / scale) + 0.5f,
+            (worldPos.Z / scale) + 0.5f
+        );
 
-        // Help text popup must live outside of scrolling region
-        if (helpText != null)
-        {
-            var dim = ImGui.CalcTextSize(helpText);
-            var pad = 4 * ImGuiHelper.Scale;
-            var yHeight = overlayOrigin.Y + gridMargin;
-            var w = ImGui.GetContentRegionAvail().X;
-            ImGui.SetNextWindowPos(new (w - dim.X - 3 * pad, yHeight), ImGuiCond.Always);
-            ImGui.SetNextWindowSize(dim + new Vector2(4 * pad), ImGuiCond.Always);
-            if (ImGui.Begin("##helpText", ImGuiWindowFlags.NoInputs |
-                                          ImGuiWindowFlags.NoDecoration))
-            {
-                ImGui.Text(helpText);
-            }
-            ImGui.End();
-        }
+        return mapTopLeft + mapPos * mapSize;
+    }
+    Vector3 MapToWorld(Vector2 mapPos, SystemEditData system, float mapSize)
+    {
+        float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+
+        Vector2 rel = (mapPos / mapSize) - new Vector2(0.5f);
+        return new Vector3(rel.X * scale, 0, rel.Y * scale);
+    }
+    Vector2 WorldToMap_Local(Vector3 world, SystemEditData system, float mapSize)
+    {
+        // returns MAP-LOCAL coordinates (0..mapSize)
+        float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+
+        Vector2 map01 = new(
+            (world.X / scale) + 0.5f,
+            (world.Z / scale) + 0.5f
+        );
+
+        return map01 * mapSize;
+    }
+    Vector3 MapToWorld_Local(Vector2 mapLocal, SystemEditData system, float mapSize)
+    {
+        float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+
+        Vector2 map01 = mapLocal / mapSize - new Vector2(0.5f);
+
+        return new Vector3(
+            map01.X * scale,
+            0,
+            map01.Y * scale
+        );
     }
 }
 
-
+class ObjectCluster
+{
+    public Vector2 ScreenPos;
+    public readonly List<GameObject> Objects = new();
+}
