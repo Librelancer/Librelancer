@@ -1,4 +1,6 @@
 using System;
+using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Drawing;
@@ -11,6 +13,7 @@ using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Equipment;
+using LibreLancer.Data.Schema.Universe;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.Interface;
@@ -91,7 +94,7 @@ public class EditMap2D
         // Background
         drawList.AddRectFilled(mapTopLeft, mapTopLeft + new Vector2(mapSize), MAP_BG_COLOUR);
 
-        drawList.AddRect(mapTopLeft, mapTopLeft + new Vector2(mapSize), 0xFFFFFFFF, 0, ImDrawFlags.None, 2f);
+        drawList.AddRect(mapTopLeft, mapTopLeft + new Vector2(mapSize), COLOUR_WHITE, 0, ImDrawFlags.None, 2f);
 
         // Grid + labels
         DrawGridAndLabelsViewportAware(drawList, canvasMin, canvasSize, mapTopLeft, mapSize);
@@ -101,7 +104,7 @@ public class EditMap2D
             Zoom < 4f ? MapLod.Minimal :
             Zoom < 10f ? MapLod.Reduced :
                         MapLod.Detailed;
-
+        DrawZones(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
         DrawTradeLaneLinesLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
         DrawTradeLaneIconsLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
         DrawObjectsLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
@@ -168,14 +171,6 @@ public class EditMap2D
             }
             ImGui.EndPopup();
         }
-    }
-
-    static bool IsTradeLaneRing(GameObject obj)
-    {
-        var arch = obj.SystemObject.Archetype?.Nickname;
-        return arch != null &&
-               arch.Contains("trade_lane", StringComparison.OrdinalIgnoreCase)
-               && obj.SystemObject.Dock.Kind == DockKinds.Tradelane;
     }
 
     void DrawGridAndLabelsViewportAware(ImDrawListPtr drawList, Vector2 viewportPos, Vector2 viewportSize, Vector2 mapTopLeft, float mapSize)
@@ -262,6 +257,77 @@ public class EditMap2D
         }
 
         ImGui.PopFont();
+    }
+    void DrawZones(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
+    {
+        foreach (var z in tab.ZoneList.Zones)
+        {
+            if (!z.Visible)
+                continue;
+
+            VertexDiffuse col = new VertexDiffuse();
+            switch (tab.ZoneList.GetZoneType(z.Current.Nickname))
+            {
+                case ZoneDisplayKind.Normal:
+                    col = (VertexDiffuse)Color4.Pink.ChangeAlpha(0.33f);
+                    break;
+                case ZoneDisplayKind.ExclusionZone:
+                    col = (VertexDiffuse)Color4.Red.ChangeAlpha(0.33f);
+                    break;
+                case ZoneDisplayKind.AsteroidField:
+                    col = (VertexDiffuse)Color4.Orange.ChangeAlpha(0.33f);
+                    break;
+                case ZoneDisplayKind.Nebula:
+                    col = (VertexDiffuse)Color4.LightGreen.ChangeAlpha(0.33f);
+                    break;
+                default:
+                    break;
+            }
+
+            // ----- Filled mesh -----
+            var mesh = z.Current.TopDownMesh();
+            var verts = ArrayPool<Vector2>.Shared.Rent(mesh.Length);
+
+            for (int i = 0; i < mesh.Length; i++)
+            {
+                var world = z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y);
+                verts[i] = WorldToScreen(world, system, mapTopLeft, mapSize);
+            }
+
+            drawList.AddTriangleMesh(
+                verts,
+                mesh.Length,
+                col
+            );
+
+            // ----- Outline -----
+            mesh = z.Current.OutlineMesh();
+            for (int i = 0; i < mesh.Length; i++)
+            {
+                var world = z.Current.Position + new Vector3(mesh[i].X, 0, mesh[i].Y);
+                verts[i] = WorldToScreen(world, system, mapTopLeft, mapSize);
+            }
+
+            drawList.AddPolyline(
+                ref verts[0],
+                mesh.Length,
+                ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 0.51f)),
+                ImDrawFlags.None,
+                1f
+            );
+
+            Vector2 center = PolygonCentroid(verts.AsSpan(0, mesh.Length));
+
+            string label = z.Current.Nickname; // or DisplayName
+            Vector2 textSize = ImGui.CalcTextSize(label);
+
+            drawList.AddText(
+                center - textSize * 0.5f,
+                ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 1f)),
+                label
+            );
+            ArrayPool<Vector2>.Shared.Return(verts);
+        }
     }
     void DrawObjectsLOD(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
     {
@@ -607,6 +673,7 @@ public class EditMap2D
         }
     }
 
+    // coord helpers
     Vector2 WorldToScreen(Vector3 worldPos, SystemEditData system, Vector2 mapTopLeft, float mapSize)
     {
         float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
@@ -618,14 +685,14 @@ public class EditMap2D
 
         return mapTopLeft + mapPos * mapSize;
     }
-    Vector3 MapToWorld(Vector2 mapPos, SystemEditData system, float mapSize)
+    static Vector3 MapToWorld(Vector2 mapPos, SystemEditData system, float mapSize)
     {
         float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
 
         Vector2 rel = (mapPos / mapSize) - new Vector2(0.5f);
         return new Vector3(rel.X * scale, 0, rel.Y * scale);
     }
-    Vector2 WorldToMap_Local(Vector3 world, SystemEditData system, float mapSize)
+    static Vector2 WorldToMap_Local(Vector3 world, SystemEditData system, float mapSize)
     {
         // returns MAP-LOCAL coordinates (0..mapSize)
         float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
@@ -637,7 +704,7 @@ public class EditMap2D
 
         return map01 * mapSize;
     }
-    Vector3 MapToWorld_Local(Vector2 mapLocal, SystemEditData system, float mapSize)
+    static Vector3 MapToWorld_Local(Vector2 mapLocal, SystemEditData system, float mapSize)
     {
         float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
 
@@ -648,6 +715,36 @@ public class EditMap2D
             0,
             map01.Y * scale
         );
+    }
+    static Vector2 PolygonCentroid(ReadOnlySpan<Vector2> poly)
+    {
+        float area = 0f;
+        float cx = 0f;
+        float cy = 0f;
+
+        for (int i = 0, j = poly.Length - 1; i < poly.Length; j = i++)
+        {
+            float cross = poly[j].X * poly[i].Y - poly[i].X * poly[j].Y;
+            area += cross;
+            cx += (poly[j].X + poly[i].X) * cross;
+            cy += (poly[j].Y + poly[i].Y) * cross;
+        }
+
+        area *= 0.5f;
+
+        if (MathF.Abs(area) < 0.0001f)
+            return poly[0]; // fallback
+
+        float inv = 1f / (6f * area);
+        return new Vector2(cx * inv, cy * inv);
+    }
+
+    static bool IsTradeLaneRing(GameObject obj)
+    {
+        var arch = obj.SystemObject.Archetype?.Nickname;
+        return arch != null &&
+               arch.Contains("trade_lane", StringComparison.OrdinalIgnoreCase)
+               && obj.SystemObject.Dock.Kind == DockKinds.Tradelane;
     }
 }
 
