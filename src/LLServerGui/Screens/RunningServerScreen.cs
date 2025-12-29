@@ -9,6 +9,7 @@ using LibreLancer.ImUI;
 using LibreLancer.Server;
 
 namespace LLServer.Screens;
+
 public class RunningServerScreen(
     MainWindow win,
     ScreenManager sm,
@@ -17,11 +18,6 @@ public class RunningServerScreen(
     LLServerGuiConfig guiConfig)
     : Screen(sm, pm)
 {
-    private readonly Vector4 ERROR_TEXT_COLOUR = new(1f, 0.3f, 0.3f, 1f);
-    private readonly Vector4 WARN_TEXT_COLOUR = new(1f, 0.86f, 0.25f, 1f);
-    private readonly Vector4 SUCCESS_TEXT_COLOUR = new(0f, 0.8f, 0.2f, 1f);
-    private static readonly float LABEL_WIDTH = 125f;
-
     private bool isStarting = true;
 
     private List<BannedPlayerDescription>? bannedPlayers = [];
@@ -42,6 +38,7 @@ public class RunningServerScreen(
                 sm.SetScreen(new ServerConfigurationScreen(win, sm, pm, config, guiConfig))
             );
         }
+
         win.StartupError = false;
         RefreshDataAll();
     }
@@ -59,15 +56,15 @@ public class RunningServerScreen(
 
         if (win.Server == null || (!win.IsRunning && !isStarting))
         {
-            ImGuiExt.CenterText(config.ServerName, ERROR_TEXT_COLOUR);
+            ImGuiExt.CenterText(config.ServerName, Theme.ERROR_TEXT_COLOUR);
         }
         else if (isStarting)
         {
-            ImGuiExt.CenterText(config.ServerName, WARN_TEXT_COLOUR);
+            ImGuiExt.CenterText(config.ServerName, Theme.WARN_TEXT_COLOUR);
         }
         else
         {
-            ImGuiExt.CenterText(config.ServerName, SUCCESS_TEXT_COLOUR);
+            ImGuiExt.CenterText(config.ServerName, Theme.SUCCESS_TEXT_COLOUR);
         }
 
         ImGui.PopFont();
@@ -76,9 +73,9 @@ public class RunningServerScreen(
 
         ImGui.PushItemWidth(-1);
         if (ImGui.BeginTable(
-            "server_stats_layout",
-            3,
-            ImGuiTableFlags.SizingStretchProp))
+                "server_stats_layout",
+                3,
+                ImGuiTableFlags.SizingStretchProp))
         {
             ImGui.TableSetupColumn("stats", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("spacing", ImGuiTableColumnFlags.WidthFixed);
@@ -107,11 +104,13 @@ public class RunningServerScreen(
                 DrawConnectedPlayersTab();
                 ImGui.EndTabItem();
             }
+
             if (ImGui.BeginTabItem("Banned Players"))
             {
                 DrawBansTab();
                 ImGui.EndTabItem();
             }
+
             if (ImGui.BeginTabItem("Admins"))
             {
                 DrawAdminsTab();
@@ -128,42 +127,47 @@ public class RunningServerScreen(
     // Draw Methods
     private void DrawServerStats()
     {
-        ImGui.Text("Status:"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Status:");
+        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
         if (win.Server == null || (!win.IsRunning && !isStarting))
         {
-            ImGui.TextColored(ERROR_TEXT_COLOUR, "Not running");
+            ImGui.TextColored(Theme.ERROR_TEXT_COLOUR, "Not running");
         }
         else if (isStarting)
         {
-            ImGui.TextColored(WARN_TEXT_COLOUR, "Starting");
+            ImGui.TextColored(Theme.WARN_TEXT_COLOUR, "Starting");
         }
         else
         {
-            ImGui.TextColored(SUCCESS_TEXT_COLOUR, "Running");
+            ImGui.TextColored(Theme.SUCCESS_TEXT_COLOUR, "Running");
         }
 
-        ImGui.Text("Listening Port:"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Listening Port:");
+        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
         ImGui.Text(win.Server?.Server?.Listener?.Port.ToString() ?? "-");
 
         ImGui.Separator();
 
-        ImGui.Text("Players in Lobby"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Players in Lobby");
+        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
         ImGui.Text(lobbyPlayers.Count().ToString());
 
-        ImGui.Text("Players in Game"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Players in Game");
+        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
         ImGui.Text(universePlayers.Count().ToString());
 
-        ImGui.Text("Admins in Game"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Admins in Game");
+        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
         ImGui.Text(universePlayers.Count(p =>
-                p.Character != null && admins != null &&
-                admins.Any(a => a.Name == p.Character.Name)).ToString());
+            p.Character != null && admins != null &&
+            admins.Any(a => a.Name == p.Character.Name)).ToString());
 
-        ImGui.Text("Banned Players"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Banned Players");
+        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
         ImGui.Text(bannedPlayers?.Count().ToString() ?? "-");
 
         if (ImGui.Button("Stop Server", new Vector2(-1, ImGui.GetFrameHeight() * 2 * ImGuiHelper.Scale)))
         {
-
             pm.MessageBox(
                 title: "Confirm Stop",
                 message: "The server is currently running.\n\nStop the server and return to configuration?",
@@ -182,9 +186,9 @@ public class RunningServerScreen(
                     }
                 }
             );
-
         }
     }
+
     private void DrawPerformanceStats()
     {
         if (isStarting)
@@ -231,28 +235,31 @@ public class RunningServerScreen(
 
     private void DrawConnectedPlayersTab()
     {
-        ImGui.BeginChild("connected_players_child", new Vector2(0, 0), ImGuiChildFlags.None);
+        ImGui.BeginChild("connected_players_child", new Vector2(0, 0));
 
-        var tableHeight = ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale;
         if (ImGui.BeginTable(
-            "connected_players",
-            8,
-            ImGuiTableFlags.Borders |
-            ImGuiTableFlags.RowBg |
-            ImGuiTableFlags.Resizable |
-            ImGuiTableFlags.ScrollY |
-            ImGuiTableFlags.Sortable,
-            new Vector2(0, 0)
-        ))
+                "connected_players",
+                8,
+                ImGuiTableFlags.Borders |
+                ImGuiTableFlags.RowBg |
+                ImGuiTableFlags.Resizable |
+                ImGuiTableFlags.ScrollY |
+                ImGuiTableFlags.Sortable,
+                new Vector2(0, 0)
+            ))
         {
             ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("System", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("Last Docked Base", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Admin", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Promote", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Ban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Inspect", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Admin", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize,
+                60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Promote", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize,
+                60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Ban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize,
+                60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Inspect", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize,
+                60 * ImGuiHelper.Scale);
             ImGui.TableHeadersRow();
 
 
@@ -284,7 +291,7 @@ public class RunningServerScreen(
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
                     var icon = isAdmin ? Icons.Check : Icons.X;
-                    var colour = isAdmin ? SUCCESS_TEXT_COLOUR : ERROR_TEXT_COLOUR;
+                    var colour = isAdmin ? Theme.SUCCESS_TEXT_COLOUR : Theme.ERROR_TEXT_COLOUR;
                     ImGui.TextColored(colour, icon.ToString());
 
                     ImGui.TableNextColumn();
@@ -292,19 +299,22 @@ public class RunningServerScreen(
 
                     if (ImGuiExt.Button($"{Icons.ArrowUp.ToString()}##{uiId}", !isAdmin && uiId != "-", buttonSize))
                     {
-                        pm.MessageBox("Confirm", $"Are you sure you want to promote {player.Character.Name} to an admin?", false, MessageBoxButtons.YesNo, response =>
-                        {
-                            if (response == MessageBoxResponse.Yes)
+                        pm.MessageBox("Confirm",
+                            $"Are you sure you want to promote {player.Character.Name} to an admin?", false,
+                            MessageBoxButtons.YesNo, response =>
                             {
-                                PromotePlayer(player.Character.ID, player.Character.Name);
-                            }
-                        });
+                                if (response == MessageBoxResponse.Yes)
+                                {
+                                    PromotePlayer(player.Character.ID, player.Character.Name);
+                                }
+                            });
                     }
 
                     ImGui.TableNextColumn();
-                    if (ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name ?? "-"}", bannedPlayers.All(b => b.AccountId != player.AccountId), buttonSize))
+                    if (ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name ?? "-"}",
+                            bannedPlayers.All(b => b.AccountId != player.AccountId), buttonSize))
                     {
-                        pm.OpenPopup(new BanPopup(player.Name, expiry =>
+                        pm.OpenPopup(new BanPopup(player.Name ?? "-", expiry =>
                         {
                             if (expiry.HasValue)
                             {
@@ -312,12 +322,14 @@ public class RunningServerScreen(
                             }
                         }));
                     }
+
                     ImGui.TableNextColumn();
                     if (ImGui.Button($"{Icons.Eye}##{player.Name ?? "-"}", buttonSize))
                     {
                         pm.OpenPopup(new InspectorPopup(player));
                     }
                 }
+
                 foreach (var player in lobbyPlayers)
                 {
                     var isAdmin = player.Character != null && player.Character.Admin;
@@ -343,7 +355,7 @@ public class RunningServerScreen(
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
                     var icon = isAdmin ? Icons.Check : Icons.X;
-                    var colour = isAdmin ? SUCCESS_TEXT_COLOUR : ERROR_TEXT_COLOUR;
+                    var colour = isAdmin ? Theme.SUCCESS_TEXT_COLOUR : Theme.ERROR_TEXT_COLOUR;
                     ImGui.TextColored(colour, icon.ToString());
 
                     ImGui.TableNextColumn();
@@ -352,17 +364,19 @@ public class RunningServerScreen(
                     ImGuiExt.Button($"{Icons.ArrowUp.ToString()}##{uiId}", false, buttonSize);
 
                     ImGui.TableNextColumn();
-                    if(ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name ?? "-"}", bannedPlayers.All(b => b.AccountId != player.AccountId), buttonSize))
+                    if (ImGuiExt.Button($"{Icons.Fire.ToString()}##{player.Name ?? "-"}",
+                            bannedPlayers.All(b => b.AccountId != player.AccountId), buttonSize))
                     {
                         pm.OpenPopup(new BanPopup(player.Name, expiry =>
                         {
                             if (expiry.HasValue)
                             {
                                 Guid? g = player.AccountId;
-                                BanPlayerWithGuid( g, expiry);
+                                BanPlayerWithGuid(g, expiry);
                             }
                         }));
                     }
+
                     ImGui.TableNextColumn();
                     ImGuiExt.Button($"{Icons.Eye}##{player.Name ?? "-"}", false, buttonSize);
                 }
@@ -394,7 +408,7 @@ public class RunningServerScreen(
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
                     var icon = isAdmin ? Icons.Check : Icons.X;
-                    var colour = isAdmin ? SUCCESS_TEXT_COLOUR : ERROR_TEXT_COLOUR;
+                    var colour = isAdmin ? Theme.SUCCESS_TEXT_COLOUR : Theme.ERROR_TEXT_COLOUR;
                     ImGui.TextColored(colour, icon.ToString());
 
                     ImGui.TableNextColumn();
@@ -429,31 +443,36 @@ public class RunningServerScreen(
                 }
                 */
             }
+
             ImGui.EndTable();
         }
+
         ImGui.EndChild();
     }
+
     private void DrawBansTab()
     {
         ImGui.BeginChild("banned_players_child", new Vector2(0, 0));
 
         var tableHeight = ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale;
         if (ImGui.BeginTable(
-            "banned_players",
-            5,
-            ImGuiTableFlags.Borders |
-            ImGuiTableFlags.RowBg |
-            ImGuiTableFlags.Resizable |
-            ImGuiTableFlags.ScrollY |
-            ImGuiTableFlags.Sortable,
-            new Vector2(0, 0)
-        ))
+                "banned_players",
+                5,
+                ImGuiTableFlags.Borders |
+                ImGuiTableFlags.RowBg |
+                ImGuiTableFlags.Resizable |
+                ImGuiTableFlags.ScrollY |
+                ImGuiTableFlags.Sortable,
+                new Vector2(0, 0)
+            ))
         {
             ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("Characters", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("Ban Expiry", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Unban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Increase Ban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 100 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Unban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize,
+                60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Increase Ban", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize,
+                100 * ImGuiHelper.Scale);
             ImGui.TableHeadersRow();
 
             var buttonSize = new Vector2(-1, ImGui.GetFrameHeight());
@@ -462,7 +481,6 @@ public class RunningServerScreen(
             {
                 foreach (var player in bannedPlayers)
                 {
-
                     ImGui.TableNextRow();
 
                     ImGui.TableNextColumn();
@@ -476,19 +494,20 @@ public class RunningServerScreen(
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
                     ImGui.Text(player.BanExpiry.HasValue
-                            ? player.BanExpiry.Value.ToString("G") // system culture, short date + time
-                            : "-");
+                        ? player.BanExpiry.Value.ToString("G") // system culture, short date + time
+                        : "-");
 
                     ImGui.TableNextColumn();
-                    if (ImGui.Button($"{Icons.Eraser .ToString()}##{player.AccountId.ToString()}", buttonSize))
+                    if (ImGui.Button($"{Icons.Eraser.ToString()}##{player.AccountId.ToString()}", buttonSize))
                     {
-                        pm.MessageBox("Confirm", $"Are you sure you want to unban \n{player.AccountId.ToString()}?", false, MessageBoxButtons.YesNo, response =>
-                        {
-                            if (response == MessageBoxResponse.Yes)
+                        pm.MessageBox("Confirm", $"Are you sure you want to unban \n{player.AccountId.ToString()}?",
+                            false, MessageBoxButtons.YesNo, response =>
                             {
-                                UnbanPlayer(player.AccountId);
-                            }
-                        });
+                                if (response == MessageBoxResponse.Yes)
+                                {
+                                    UnbanPlayer(player.AccountId);
+                                }
+                            });
                     }
 
                     ImGui.TableNextColumn();
@@ -501,37 +520,40 @@ public class RunningServerScreen(
                                 BanPlayerWithGuid(player.AccountId, expiry.Value);
                             }
                         }));
-
                     }
                 }
             }
 
             ImGui.EndTable();
         }
+
         ImGui.EndChild();
     }
+
     private void DrawAdminsTab()
     {
         ImGui.BeginChild("admin_players_child", new Vector2(0, 0), ImGuiChildFlags.None);
 
         var tableHeight = ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale;
         if (ImGui.BeginTable(
-            "admin_players",
-            6,
-            ImGuiTableFlags.Borders |
-            ImGuiTableFlags.RowBg |
-            ImGuiTableFlags.Resizable |
-            ImGuiTableFlags.ScrollY |
-            ImGuiTableFlags.Sortable,
-            new Vector2(0, 0)
-        ))
+                "admin_players",
+                6,
+                ImGuiTableFlags.Borders |
+                ImGuiTableFlags.RowBg |
+                ImGuiTableFlags.Resizable |
+                ImGuiTableFlags.ScrollY |
+                ImGuiTableFlags.Sortable,
+                new Vector2(0, 0)
+            ))
         {
             ImGui.TableSetupColumn("Id", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("System", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
             ImGui.TableSetupColumn("Last Docked Base", ImGuiTableColumnFlags.WidthStretch, 200 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Online", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
-            ImGui.TableSetupColumn("Demote", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, 60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Online", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize,
+                60 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("Demote", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize,
+                60 * ImGuiHelper.Scale);
             ImGui.TableHeadersRow();
 
             if (admins != null)
@@ -560,7 +582,7 @@ public class RunningServerScreen(
                     ImGui.AlignTextToFramePadding();
                     var isOnline = win.Server?.Server.AllPlayers.Any(p => p.Name == admin.Name) ?? false;
                     var icon = isOnline ? Icons.Check : Icons.X;
-                    var color = isOnline ? SUCCESS_TEXT_COLOUR : ERROR_TEXT_COLOUR;
+                    var color = isOnline ? Theme.SUCCESS_TEXT_COLOUR : Theme.ERROR_TEXT_COLOUR;
                     ImGui.TextColored(color, icon.ToString());
 
 
@@ -571,19 +593,21 @@ public class RunningServerScreen(
                             new Vector2(-1, ImGui.GetFrameHeight()
                             )))
                     {
-                        pm.MessageBox("Confirm", $"Are you sure you want to demote {admin.Name}?", false, MessageBoxButtons.YesNo, response =>
-                        {
-                            if (response == MessageBoxResponse.Yes)
+                        pm.MessageBox("Confirm", $"Are you sure you want to demote {admin.Name}?", false,
+                            MessageBoxButtons.YesNo, response =>
                             {
-                                DemotePlayer(admin.Id, admin.Name);
-                            }
-                        });
+                                if (response == MessageBoxResponse.Yes)
+                                {
+                                    DemotePlayer(admin.Id, admin.Name);
+                                }
+                            });
                     }
                 }
             }
 
             ImGui.EndTable();
         }
+
         ImGui.EndChild();
     }
 
@@ -640,6 +664,7 @@ public class RunningServerScreen(
             return Task.CompletedTask;
         });
     }
+
     private void UnbanPlayer(Guid? account)
     {
         Task.Run(() =>
@@ -671,7 +696,7 @@ public class RunningServerScreen(
     {
         while (win.Server?.Server.ServerEvents.Count > 0)
         {
-            if(win.Server.Server.ServerEvents.TryDequeue(out var serverEvent))
+            if (win.Server.Server.ServerEvents.TryDequeue(out var serverEvent))
             {
                 switch (serverEvent.Type)
                 {
@@ -685,7 +710,7 @@ public class RunningServerScreen(
                         HandleCharacterConnected(serverEvent.GetPayload<CharacterConnectedEventPayload>());
                         break;
                     case ServerEventType.CharacterDisconnected:
-                        HandleCharacterDisonnected(serverEvent.GetPayload<CharacterDisconnectedEventPayload>());
+                        HandleCharacterDisconnected(serverEvent.GetPayload<CharacterDisconnectedEventPayload>());
                         break;
                     case ServerEventType.PlayerAdminChanged:
                         HandleCharacterAdminChanged(serverEvent.GetPayload<CharacterAdminChangedEventPayload>());
@@ -702,7 +727,7 @@ public class RunningServerScreen(
 
     private void HandlePlayerBannedChanged(PlayerBanChangedEventPayload? playerBanChangedEventPayload)
     {
-        FLLog.Info("Server Gui", "Recieved Character Admin Changed Server Event");
+        FLLog.Info("Server Gui", "Received Character Admin Changed Server Event");
         if (playerBanChangedEventPayload == null) return;
 
         var player = playerBanChangedEventPayload.BannedPlayer;
@@ -718,9 +743,10 @@ public class RunningServerScreen(
             bannedPlayers.RemoveAll(b => b.AccountId == player.AccountId);
         }
     }
+
     private void HandleCharacterAdminChanged(CharacterAdminChangedEventPayload? characterAdminChangedEventPayload)
     {
-        FLLog.Info("Server Gui", "Recieved Character Admin Changed Server Event");
+        FLLog.Info("Server Gui", "Received Character Admin Changed Server Event");
         if (characterAdminChangedEventPayload == null) return;
 
         var player = characterAdminChangedEventPayload.AdminCharacter;
@@ -736,22 +762,21 @@ public class RunningServerScreen(
             admins.RemoveAll(a => a.Id == player.Id);
         }
     }
-    private void HandleCharacterDisonnected(CharacterDisconnectedEventPayload? characterDisconnectedEventPayload)
+
+    private void HandleCharacterDisconnected(CharacterDisconnectedEventPayload? characterDisconnectedEventPayload)
     {
-        FLLog.Info("Server Gui", "Recieved Character Disconnect Server Event");
+        FLLog.Info("Server Gui", "Received Character Disconnect Server Event");
         if (characterDisconnectedEventPayload == null) return;
 
         var player = characterDisconnectedEventPayload.DisconnectedCharacter;
         if (player == null) return;
 
         universePlayers.RemoveAll(p => p.AccountId == player.AccountId);
-
-        if (lobbyPlayers.Any(p => p.AccountId == player.AccountId)) return;
-
     }
+
     private void HandleCharacterConnected(CharacterConnectedEventPayload? characterConnectedEventPayload)
     {
-        FLLog.Info("Server Gui", "Recieved Character Connect Server Event");
+        FLLog.Info("Server Gui", "Received Character Connect Server Event");
 
         var player = characterConnectedEventPayload?.ConnectedCharacter;
         if (player == null)
@@ -765,9 +790,10 @@ public class RunningServerScreen(
 
         universePlayers.Add(player);
     }
+
     private void HandlePlayerDisconnected(PlayerDisconnectedEventPayload? playerDisconnectedEventPayload)
     {
-        FLLog.Info("Server Gui", "Recieved Player Disconnect Server Event");
+        FLLog.Info("Server Gui", "Received Player Disconnect Server Event");
         if (playerDisconnectedEventPayload == null) return;
 
         var player = playerDisconnectedEventPayload.DisconnectedPlayer;
@@ -778,15 +804,16 @@ public class RunningServerScreen(
         lobbyPlayers.RemoveAll(x => x.AccountId == player.AccountId);
         universePlayers.RemoveAll(x => x.AccountId == player.AccountId);
     }
+
     private void HandlePlayerConnected(PlayerConnectedEventPayload? playerConnectedEventPayload)
     {
-        FLLog.Info("Server Gui", "Recieved Player Connect Server Event");
+        FLLog.Info("Server Gui", "Received Player Connect Server Event");
         if (playerConnectedEventPayload == null) return;
 
         var player = playerConnectedEventPayload.ConnectedPlayer;
         if (player == null) return;
 
-        if(lobbyPlayers.Any(p => p.AccountId == player.AccountId)) return;
+        if (lobbyPlayers.Any(p => p.AccountId == player.AccountId)) return;
 
         lobbyPlayers.Add(player);
     }

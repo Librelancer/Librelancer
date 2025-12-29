@@ -29,7 +29,7 @@ public class BanPopup : PopupWindow
     {
         ImGui.Text("Are you sure you want to ban:");
         ImGui.Spacing();
-        ImGui.TextColored(new Vector4(0f, 0.8f, 0.2f, 1f), playerName);
+        ImGui.TextColored(Theme.SUCCESS_TEXT_COLOUR, playerName);
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();

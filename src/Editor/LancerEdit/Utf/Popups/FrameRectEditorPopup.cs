@@ -36,16 +36,8 @@ namespace LancerEdit.Utf.Popups
         public override bool NoClose => false;
         public override Vector2 InitSize => new Vector2(400, 300);
 
-        static readonly float LABEL_WIDTH = 125f;
-        static readonly float BUTTON_WIDTH = 110f;
-        static readonly float BUTTON_WIDTH_LONG = 180f;
-        static readonly float BUTTON_PADDING = 16;
-        static readonly float SQAURE_BUTTON_WIDTH = 30;
         float TABLE_WIDTH = 550f;
         float TABLE_HEIGHT = 300f;
-        readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
-        readonly Vector4 WARN_TEXT_COLOUR = new Vector4(1f, 0.86f, 0.25f, 1f);
-        readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
 
         int texWidth = 256;
         int texHeight = 256;
@@ -81,13 +73,13 @@ namespace LancerEdit.Utf.Popups
         {
             ImGui.Spacing();
             ImGui.PushFont(ImGuiHelper.Roboto, 22);
-            ImGuiExt.CenterText(sourceDataErrorMessage, ERROR_TEXT_COLOUR);
+            ImGuiExt.CenterText(sourceDataErrorMessage, Theme.ERROR_TEXT_COLOUR);
             ImGui.PopFont();
             ImGui.Spacing();
             ImGui.Separator();
             ImGui.Spacing();
             ImGuiExt.CenterText("New frame rect data needs to be generated.");
-            ImGuiExt.CenterText("This will delete any existing data on the selected node.", WARN_TEXT_COLOUR);
+            ImGuiExt.CenterText("This will delete any existing data on the selected node.", Theme.WARN_TEXT_COLOUR);
             ImGui.NewLine();
             ImGuiExt.CenterText("Do you want to continue?");
 
@@ -95,16 +87,16 @@ namespace LancerEdit.Utf.Popups
             ImGui.Separator();
             ImGui.NewLine();
             float avail = ImGui.GetContentRegionAvail().X;
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + BUTTON_PADDING * ImGuiHelper.Scale);
-            if (ImGui.Button("Continue", new Vector2(BUTTON_WIDTH, 0)))
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + Theme.BUTTON_PADDING * ImGuiHelper.Scale);
+            if (ImGui.Button("Continue", new Vector2(Theme.BUTTON_WIDTH, 0)))
             {
                 generateRect = true;
                 sourceDataError = false;
                 sourceDataErrorMessage = "";
             }
             ImGui.SameLine();
-            ImGui.SetCursorPosX((avail - BUTTON_WIDTH - BUTTON_PADDING) * ImGuiHelper.Scale);
-            if (ImGui.Button("Cancel", new Vector2(BUTTON_WIDTH, 0)))
+            ImGui.SetCursorPosX((avail - Theme.BUTTON_WIDTH - Theme.BUTTON_PADDING) * ImGuiHelper.Scale);
+            if (ImGui.Button("Cancel", new Vector2(Theme.BUTTON_WIDTH, 0)))
             {
                 ImGui.CloseCurrentPopup();
             }
@@ -115,7 +107,7 @@ namespace LancerEdit.Utf.Popups
             ImGui.Spacing();
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Texture size");
-            ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
 
             ImGui.InputInt("##TextureSizeX", ref texWidth);
             ImGui.SameLine();
@@ -123,12 +115,12 @@ namespace LancerEdit.Utf.Popups
 
             ImGui.Spacing();
 
-            ImGui.Text("Grid size"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            ImGui.Text("Grid size"); ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
             ImGui.InputInt("##GridSizeX", ref gridSizeX);
             ImGui.SameLine();
             ImGui.InputInt("##GridSizeY", ref gridSizeY);
             ImGui.Spacing();
-            ImGui.Text("Frame Count"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+            ImGui.Text("Frame Count"); ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
             ImGui.InputInt("##frameCount", ref frameCount);
 
             ImGui.NewLine();
@@ -137,7 +129,7 @@ namespace LancerEdit.Utf.Popups
 
             ImGui.Dummy(new Vector2(ImGui.GetFrameHeightWithSpacing()));
             ImGui.SameLine();
-            if (ImGui.Button("Generate Frame Rects", new Vector2(BUTTON_WIDTH_LONG, 0)))
+            if (ImGui.Button("Generate Frame Rects", new Vector2(Theme.BUTTON_WIDTH_LONG, 0)))
             {
                 frameRectsUpdated = FrameRectCalculator.GenerateFrameRects(gridSizeX, gridSizeY, frameCount);
                 generateRect = false;
@@ -145,7 +137,7 @@ namespace LancerEdit.Utf.Popups
             ImGui.SameLine();
             ImGui.Dummy(new Vector2(ImGui.GetFrameHeightWithSpacing()));
             ImGui.SameLine();
-            if (ImGui.Button("Cancel", new Vector2(BUTTON_WIDTH_LONG, 0)))
+            if (ImGui.Button("Cancel", new Vector2(Theme.BUTTON_WIDTH_LONG, 0)))
             {
                 ImGui.CloseCurrentPopup();
             }
@@ -156,7 +148,7 @@ namespace LancerEdit.Utf.Popups
         void DrawEditor()
         {
             float scale = ImGuiHelper.Scale;
-            float buttonColWidth = SQAURE_BUTTON_WIDTH + 16 * scale;
+            float buttonColWidth = Theme.SQAURE_BUTTON_WIDTH + 16 * scale;
 
             // ---------- Top bar ----------
             ImGui.AlignTextToFramePadding();
@@ -166,7 +158,7 @@ namespace LancerEdit.Utf.Popups
             ImGui.SameLine();
             float btnWidth = 220 * scale;
             float avail = ImGui.GetContentRegionAvail().X;
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + avail - btnWidth - BUTTON_PADDING);
+            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + avail - btnWidth - Theme.BUTTON_PADDING);
 
             if (ImGui.Button("Generate New Frame Rect Data", new Vector2(btnWidth, 0)))
             {
@@ -256,7 +248,7 @@ namespace LancerEdit.Utf.Popups
 
             ImGui.BeginDisabled(selectedFrameIndex < 0);
 
-            if (ImGui.Button(Icons.ArrowUp.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
+            if (ImGui.Button(Icons.ArrowUp.ToString(), new Vector2(Theme.SQAURE_BUTTON_WIDTH)))
             {
                 if (selectedFrameIndex > 0)
                 {
@@ -268,7 +260,7 @@ namespace LancerEdit.Utf.Popups
 
             ImGui.Spacing();
 
-            if (ImGui.Button(Icons.ArrowDown.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
+            if (ImGui.Button(Icons.ArrowDown.ToString(), new Vector2(Theme.SQAURE_BUTTON_WIDTH)))
             {
                 if (selectedFrameIndex < frameRectsUpdated.Count - 1)
                 {
@@ -282,7 +274,7 @@ namespace LancerEdit.Utf.Popups
 
             ImGui.Dummy(new Vector2(0, ImGui.GetFrameHeightWithSpacing()));
 
-            if (ImGui.Button(Icons.SquarePlus.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
+            if (ImGui.Button(Icons.SquarePlus.ToString(), new Vector2(Theme.SQAURE_BUTTON_WIDTH)))
             {
                 frameRectsUpdated.Add(new FrameRect
                 {
@@ -298,7 +290,7 @@ namespace LancerEdit.Utf.Popups
             ImGui.Spacing();
 
             ImGui.BeginDisabled(selectedFrameIndex < 0);
-            if (ImGui.Button(Icons.TrashAlt.ToString(), new Vector2(SQAURE_BUTTON_WIDTH)))
+            if (ImGui.Button(Icons.TrashAlt.ToString(), new Vector2(Theme.SQAURE_BUTTON_WIDTH)))
             {
                 frameRectsUpdated.RemoveAt(selectedFrameIndex);
                 selectedFrameIndex = Math.Clamp(selectedFrameIndex, 0, frameRectsUpdated.Count - 1);
