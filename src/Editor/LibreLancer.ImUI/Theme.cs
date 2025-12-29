@@ -22,6 +22,26 @@ namespace LibreLancer.ImUI
         public static Vector4 VTabActive = RGBA(95, 97, 98, 255);
         public static Vector4 WorkspaceBackground = RGBA(34, 34, 34, 255);
 
+        public static readonly Vector4 ERROR_TEXT_COLOUR = new(1f, 0.3f, 0.3f, 1f);
+        public static readonly Vector4 WARN_TEXT_COLOUR = new(1f, 0.86f, 0.25f, 1f);
+        public static readonly Vector4 SUCCESS_TEXT_COLOUR = new(0f, 0.8f, 0.2f, 1f);
+
+        public static readonly Vector4 ERROR_INPUT_COLOUR = new Vector4(0.4f, 0.05f, 0.05f, 1f);
+        public static readonly Vector4 ERROR_INPUT_HOVER_COLOUR = new Vector4(0.6f, 0.1f, 0.1f, 1f);
+        public static readonly Vector4 ERROR_INPUT_ACTIVE_COLOUR = new Vector4(0.7f, 0.1f, 0.1f, 1f);
+
+        public static readonly float LABEL_WIDTH = 100f;
+        public static readonly float LABEL_WIDTH_MEDIUM = 125f;
+        public static readonly float LABEL_WIDTH_LONG = 135f;
+
+        public static readonly float BUTTON_WIDTH = 110f;
+        public static readonly float BUTTON_WIDTH_MEDIUM = 120f;
+        public static readonly float BUTTON_WIDTH_LONG = 180f;
+
+        public static readonly float SQAURE_BUTTON_WIDTH = 30;
+        public static readonly float BUTTON_PADDING = 16;
+
+
         private static float currentScale = -1;
         private static ImGuiStyle savedStyle;
         private static bool inited = false;
