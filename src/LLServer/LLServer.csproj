@@ -8,6 +8,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <!-- Required for sqlite debug -->
     <GenerateDependencyFile>true</GenerateDependencyFile>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
     <ItemGroup>

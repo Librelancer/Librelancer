@@ -7,34 +7,32 @@ using LibreLancer.ImUI;
 
 namespace LLServer.Screens;
 
-public class ServerConfigurationScreen : Screen
+public class ServerConfigurationScreen(
+    MainWindow win,
+    ScreenManager sm,
+    PopupManager pm,
+    ServerConfig config,
+    LLServerGuiConfig guiConfig)
+    : Screen(sm, pm)
 {
-    readonly MainWindow win;
-    readonly ServerConfig config;
-    readonly LLServerGuiConfig guiConfig;
-    public ServerConfigurationScreen(MainWindow win, ScreenManager sm, PopupManager pm, ServerConfig config, LLServerGuiConfig guiConfig) : base(sm, pm)
-    {
-        this.win = win;
-        this.config = config;
-        this.guiConfig = guiConfig;
-    }
-
-    static readonly FileDialogFilters dbInputFilters = new FileDialogFilters(
+    private static readonly FileDialogFilters dbInputFilters = new FileDialogFilters(
         new FileFilter("Database File", "db")
         );
-    static readonly FileDialogFilters inputFilters = new FileDialogFilters(
+
+    private static readonly FileDialogFilters inputFilters = new FileDialogFilters(
         new FileFilter("Config File", "json")
         );
-    static readonly FileDialogFilters lrpkFilter = new FileDialogFilters(
+
+    private static readonly FileDialogFilters lrpkFilter = new FileDialogFilters(
         new FileFilter("Lancer Pack File", "lrpk")
         );
 
-    static readonly float LABEL_WIDTH = 135f;
-    static readonly float BUTTON_WIDTH = 110f;
-    readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
-    readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
+    private static readonly float LABEL_WIDTH = 135f;
+    private static readonly float BUTTON_WIDTH = 110f;
+    private readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
+    private readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
 
-    string _portInputBuffer;
+    private string? portInputBuffer;
 
     public override void OnEnter()
     {
@@ -76,7 +74,7 @@ public class ServerConfigurationScreen : Screen
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Listening Port"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
         ImGui.PushItemWidth(BUTTON_WIDTH * ImGuiHelper.Scale);
-        ref string portInput = ref _portInputBuffer;
+        ref string portInput = ref portInputBuffer;
         portInput ??= config.Port.ToString();
         if (ImGui.InputText("##serverPort", ref portInput, 6, ImGuiInputTextFlags.CharsDecimal))
         {
@@ -98,7 +96,7 @@ public class ServerConfigurationScreen : Screen
             {
                 FileDialog.ChooseFolder(folder =>
                 {
-                    if (folder == null || folder.Length == 0)
+                    if (string.IsNullOrEmpty(folder))
                     {
                         return;
                     }
@@ -137,7 +135,7 @@ public class ServerConfigurationScreen : Screen
             {
                 FileDialog.Open(filepath =>
                 {
-                    if (filepath == null || filepath.Length == 0)
+                    if (string.IsNullOrEmpty(filepath))
                     {
                         return;
                     }
@@ -167,7 +165,7 @@ public class ServerConfigurationScreen : Screen
             {
                 FileDialog.Open(filepath =>
                 {
-                    if (filepath == null || filepath.Length == 0)
+                    if (string.IsNullOrEmpty(filepath))
                     {
                         return;
                     }
@@ -187,27 +185,29 @@ public class ServerConfigurationScreen : Screen
         ImGui.SameLine();
         if (ImGui.Button("Launch Server", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
         {
-            win.QueueUIThread(() =>
-            {
-                LaunchServer();
-            });
+            win.QueueUIThread(LaunchServer);
         }
+
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
-        if (win.StartupError)
+
+        if (!win.StartupError)
         {
-            ImGui.Dummy(new Vector2(0, ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() - 5 * ImGuiHelper.Scale));
-            ImGui.BeginChild("startupError", new Vector2(0, ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale), ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar);
-            ImGuiExt.CenterText("Server Startup Error", ERROR_TEXT_COLOUR);
-            ImGui.EndChild();
+            return;
         }
+
+        ImGui.Dummy(new Vector2(0, ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() - 5 * ImGuiHelper.Scale));
+        ImGui.BeginChild("startupError", new Vector2(0, ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale), ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar);
+        ImGuiExt.CenterText("Server Startup Error", ERROR_TEXT_COLOUR);
+        ImGui.EndChild();
 
     }
     public override void OnExit()
     {
     }
-    void LaunchServer()
+
+    private void LaunchServer()
     {
 
         File.WriteAllText(win.ServerGuiConfig.LastConfigPath, JSON.Serialize(config));
