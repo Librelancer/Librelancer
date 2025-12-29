@@ -5,23 +5,22 @@
 using System;
 using LibreLancer;
 
-namespace lancer
+namespace lancer;
+
+internal static class MainClass
 {
-    class MainClass
+    [STAThread]
+    public static void Main(string[] args)
     {
-        [STAThread]
-        public static void Main(string[] args)
+        FreelancerGame? game = null;
+        AppHandler.Run(() =>
         {
-            FreelancerGame flgame = null;
-            AppHandler.Run(() =>
-            {
-                Func<string> filePath = null;
-                if (args.Length > 0)
-                    filePath = () => args[0];
-                var cfg = GameConfig.Create(true, filePath);
-                flgame = new FreelancerGame(cfg);
-                flgame.Run();
-            }, () => flgame.Crashed());
-        }
+            Func<string>? filePath = null;
+            if (args.Length > 0)
+                filePath = () => args[0];
+            var cfg = GameConfig.Create(true, filePath);
+            game = new FreelancerGame(cfg);
+            game.Run();
+        }, () => game?.Crashed());
     }
 }
