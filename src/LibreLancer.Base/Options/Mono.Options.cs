@@ -499,7 +499,7 @@ public abstract class ArgumentSource
 {
     public abstract string[]? GetNames();
     public abstract string Description { get; }
-    public abstract bool GetArguments(string value, out IEnumerable<string> replacement);
+    public abstract bool GetArguments(string value, out IEnumerable<string?> replacement);
 
     public static IEnumerable<string> GetArgumentsFromFile(string file)
     {
@@ -753,12 +753,12 @@ public class OptionSet : KeyedCollection<string, Option>
         }
     }
 
-    public OptionSet Add(string prototype, Action<string> action)
+    public OptionSet Add(string prototype, Action<string?> action)
     {
         return Add(prototype, null!, action);
     }
 
-    public OptionSet Add(string prototype, string description, Action<string> action)
+    public OptionSet Add(string prototype, string description, Action<string?> action)
     {
         return Add(prototype, description, action, false);
     }
@@ -855,7 +855,7 @@ public class OptionSet : KeyedCollection<string, Option>
         return new OptionContext(this);
     }
 
-    public List<string> Parse(IEnumerable<string> arguments)
+    public List<string> Parse(IEnumerable<string?> arguments)
     {
         if (arguments == null)
             throw new ArgumentNullException(nameof(arguments));
@@ -894,23 +894,23 @@ public class OptionSet : KeyedCollection<string, Option>
 
     private class ArgumentEnumerator : IEnumerable<string>
     {
-        private readonly List<IEnumerator<string>> sources = new();
+        private readonly List<IEnumerator<string?>> sources = new();
 
-        public ArgumentEnumerator(IEnumerable<string> arguments)
+        public ArgumentEnumerator(IEnumerable<string?> arguments)
         {
             sources.Add(arguments.GetEnumerator());
         }
 
-        public void Add(IEnumerable<string> arguments)
+        public void Add(IEnumerable<string?> arguments)
         {
             sources.Add(arguments.GetEnumerator());
         }
 
-        public IEnumerator<string> GetEnumerator()
+        public IEnumerator<string?> GetEnumerator()
         {
             do
             {
-                IEnumerator<string> c = sources[^1];
+                IEnumerator<string?> c = sources[^1];
 
                 if (c.MoveNext())
                 {
@@ -934,7 +934,7 @@ public class OptionSet : KeyedCollection<string, Option>
     {
         foreach (ArgumentSource source in sources)
         {
-            if (!source.GetArguments(argument, out IEnumerable<string> replacement))
+            if (!source.GetArguments(argument, out IEnumerable<string?> replacement))
                 continue;
             ae.Add(replacement);
             return true;
