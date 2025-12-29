@@ -211,6 +211,19 @@ public class SystemObjectList
                 }
                 if(ImGui.MenuItem("Delete"))
                     OnDelete(obj);
+                if(Selection != null && Selection.Contains(obj) && Selection.Count > 1)
+                {
+                    if (ImGui.MenuItem("Delete Selected"))
+                    {
+                        var toDelete = Selection.ToArray(); // snapshot
+
+                        foreach (var o in toDelete)
+                        {
+                            OnDelete(o);
+                        }
+                    }
+                        
+                }
                 ImGui.EndPopup();
             }
             ImGui.PopID();
