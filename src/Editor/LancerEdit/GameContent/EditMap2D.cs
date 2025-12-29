@@ -52,12 +52,21 @@ public class EditMap2D
     RenderContext renderContext;
     List<ObjectCluster> clusters = new();
     List<GameObject> currentClusterObjects;
+    List<TradeLaneGroup> groupedTradelanes = new();
+    TradeLaneGroup selectedTradeLaneGroup = new();
+
+    TradeLaneGroup draggingTradeLaneGroup;
+    Dictionary<GameObject, Transform3D> tradeLaneDragStartTransforms;
+    Vector2 tradeLaneDragStartMouse;
 
     // Creation tools (patrols, zones)
     public Map2DCreationTools CreationTools { get; } = new();
 
     public void Draw(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, RenderContext renderContext)
     {
+        groupedTradelanes = new TradeLaneGrouper()
+            .Build(tab.ObjectsList.Objects);
+
         // Reserve stable layout space (CRITICAL: prevents scrolling bug)
         Vector2 canvasPos = ImGui.GetCursorScreenPos();
         Vector2 canvasSize = new(
@@ -108,6 +117,7 @@ public class EditMap2D
         DrawTradeLaneLinesLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
         DrawTradeLaneIconsLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
         DrawObjectsLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
+        UpdateTradeLaneGroupDrag(system, mapSize, tab);
 
         // Pan
         if (ImGui.IsWindowHovered() && ImGui.IsMouseDragging(ImGuiMouseButton.Middle))
@@ -483,6 +493,9 @@ public class EditMap2D
 
                 if (dragTarget == obj)
                 {
+                    if (draggingTradeLaneGroup != null)
+                        return; // group drag takes priority
+
                     if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
                     {
                         Vector2 delta = ImGui.GetIO().MouseDelta;
@@ -524,19 +537,17 @@ public class EditMap2D
         if (CreationTools.Tradelane.IsActive)
             return;
 
-        // Build groups (derived state)
-        var groups = new TradeLaneGrouper()
-            .Build(tab.ObjectsList.Objects);
-
-        if (groups.Count == 0)
+        if (groupedTradelanes.Count == 0)
             return;
 
         var size = lod == MapLod.Minimal
                 ? 2f : lod == MapLod.Reduced
                 ? 4f : 6f;
 
-        foreach (var group in groups)
+        foreach (var group in groupedTradelanes)
         {
+            var selected = group.Members.All(g => selectedTradeLaneGroup!= null && selectedTradeLaneGroup.Members.Contains(g));
+
             var (startObj, endObj) = group.GetEndpoints();
             if (startObj == null || endObj == null)
                 continue;
@@ -545,23 +556,21 @@ public class EditMap2D
             Vector2 end = WorldToScreen(endObj.LocalTransform.Position, system, mapTopLeft, mapSize);
 
             // draw line
-            drawList.AddLine(start, end, TRADELANE_DESELECTED_COLOUR, size);
+            var col = selected ? SELECTED_COLOUR : TRADELANE_DESELECTED_COLOUR;
+            drawList.AddLine(start, end, col, size);
         }
     }
     void DrawTradeLaneIconsLOD(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
     {
-        // Build groups (derived state)
-        var groups = new TradeLaneGrouper()
-            .Build(tab.ObjectsList.Objects);
 
-        if (groups.Count == 0)
+        if (groupedTradelanes.Count == 0)
             return;
 
         var size = lod == MapLod.Minimal
             ? 12f : lod == MapLod.Reduced
             ? 20f : 96f;
 
-        foreach (var group in groups)
+        foreach (var group in groupedTradelanes)
         {
             foreach (var ring in group.Members)
             {
@@ -573,6 +582,7 @@ public class EditMap2D
                 Vector2 max = screenPos + new Vector2(size / 2);
                 bool hovered = ImGui.IsMouseHoveringRect(min, max);
                 bool clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
+                bool doubleClicked = hovered && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
 
                 // REDUCED: draw squares for each ring
                 if (lod is MapLod.Reduced or MapLod.Minimal)
@@ -610,9 +620,28 @@ public class EditMap2D
                     ImGui.Text(ring.Nickname);
                     ImGui.EndTooltip();
                 }
+
+
+
                 if (clicked)
                 {
-                    tab.ForceSelectObject(ring);
+                    // If this ring is part of the selected group -> start group drag
+                    if (selectedTradeLaneGroup != null &&
+                        selectedTradeLaneGroup.Members.Contains(ring))
+                    {
+                        BeginTradeLaneGroupDrag(selectedTradeLaneGroup);
+                    }
+                    else
+                    {
+                        // Normal single selection
+                        selectedTradeLaneGroup = null;
+                        tab.ForceSelectObject(ring);
+                    }
+                }
+                if (doubleClicked)
+                {
+                    selectedTradeLaneGroup = group;
+                    tab.ObjectsList.SelectMultiple(selectedTradeLaneGroup.Members);
                 }
             }
         }
@@ -745,6 +774,79 @@ public class EditMap2D
         return arch != null &&
                arch.Contains("trade_lane", StringComparison.OrdinalIgnoreCase)
                && obj.SystemObject.Dock.Kind == DockKinds.Tradelane;
+    }
+    void BeginTradeLaneGroupDrag(TradeLaneGroup group)
+    {
+
+        draggingTradeLaneGroup = group;
+
+        tradeLaneDragStartMouse = ImGui.GetIO().MousePos;
+
+        tradeLaneDragStartTransforms = new Dictionary<GameObject, Transform3D>();
+        foreach (var obj in group.Members)
+        {
+            tradeLaneDragStartTransforms[obj] = obj.LocalTransform;
+        }
+    }
+    void UpdateTradeLaneGroupDrag(SystemEditData system, float mapSize, SystemEditorTab tab)
+    {
+        if (draggingTradeLaneGroup == null)
+            return;
+
+        if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+        {
+            Vector2 mouseNow = ImGui.GetIO().MousePos;
+            Vector2 mouseDelta = mouseNow - tradeLaneDragStartMouse;
+
+            float scale = GridSizeDefault /
+                (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+
+            Vector3 worldDelta = new(
+                mouseDelta.X / mapSize * scale,
+                0,
+                mouseDelta.Y / mapSize * scale
+            );
+
+            foreach (var obj in draggingTradeLaneGroup.Members)
+            {
+                var start = tradeLaneDragStartTransforms[obj];
+
+                obj.SetLocalTransform(
+                    new Transform3D(
+                        start.Position + worldDelta,
+                        start.Orientation
+                    )
+                );
+            }
+        }
+
+        if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+        {
+            CommitTradeLaneGroupDrag(tab);
+        }
+    }
+
+    void CommitTradeLaneGroupDrag(SystemEditorTab tab)
+    {
+        foreach (var kvp in tradeLaneDragStartTransforms)
+        {
+            tab.UndoBuffer.Commit(
+                new ObjectSetTransform(
+                    kvp.Key,
+                    tab.ObjectsList,
+                    kvp.Value,
+                    kvp.Key.LocalTransform
+                )
+            );
+        }
+
+        draggingTradeLaneGroup = null;
+        tradeLaneDragStartTransforms = null;
+    }
+
+    public void ClearSelectedTradelaneGroup()
+    {
+        if (selectedTradeLaneGroup != null) selectedTradeLaneGroup = null;
     }
 }
 

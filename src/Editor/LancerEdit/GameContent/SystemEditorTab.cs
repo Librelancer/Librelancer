@@ -123,6 +123,7 @@ public class SystemEditorTab : GameContentTab
         layout.ActiveLeftTab = 1;
         ObjectsList. SelectSingle(obj);
         ObjectsList.ScrollToSelection();
+        map2D.ClearSelectedTradelaneGroup();
     }
 
     public void ForceSelectObjectMultiple(IEnumerable<GameObject> obj)
