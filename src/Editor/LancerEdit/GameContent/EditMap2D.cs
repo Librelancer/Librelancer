@@ -1,12 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.Drawing;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.Numerics;
 using ImGuiNET;
+using LancerEdit.GameContent.Groups;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
+using LibreLancer.Interface;
 using LibreLancer.World;
 
 namespace LancerEdit.GameContent;
@@ -17,15 +24,19 @@ public class EditMap2D
     public static int MarginW = (int)(15 * ImGuiHelper.Scale);
 
     private const float GridSizeDefault = 240000;
-
     private static readonly string[] GRIDNUMBERS = { "1", "2", "3", "4", "5", "6", "7", "8" };
     private static readonly string[] GRIDLETTERS = { "A", "B", "C", "D", "E", "F", "G", "H" };
     private static readonly int GRID_DIVISIONS = 8;
 
+    private static readonly uint MAP_BG_COLOUR = 0xFF1C0812;
+    private static readonly uint CLUSTER_BG_COLOUR = 0xFF8888FF;
+    private static readonly uint TRADELANE_DESELECTED_COLOUR = 0xFF454770;
+    private static readonly uint SELECTED_COLOUR = 0xFFFFB366;
+    private static readonly uint COLOUR_WHITE = 0xFFFFFFFF;
 
     private static readonly float ZOOM_SPEED = 0.15f;
     private static readonly float MIN_ZOOM = 1f;
-    private static readonly float MAX_ZOOM = 10f;
+    private static readonly float MAX_ZOOM = 100f;
     private Vector2 CameraCenter = new(0.5f, 0.5f); // normalized (0..1)
 
     public float Zoom = 1;
@@ -36,6 +47,7 @@ public class EditMap2D
     GameObject dragTarget;
     Transform3D dragOriginalTransform;
     RenderContext renderContext;
+    List<ObjectCluster> clusters = new();
     List<GameObject> currentClusterObjects;
 
     // Creation tools (patrols, zones)
@@ -77,7 +89,7 @@ public class EditMap2D
         Vector2 mapTopLeft = viewportCenter - (CameraCenter * mapSize);
 
         // Background
-        drawList.AddRectFilled(mapTopLeft, mapTopLeft + new Vector2(mapSize), 0xFF1C0812);
+        drawList.AddRectFilled(mapTopLeft, mapTopLeft + new Vector2(mapSize), MAP_BG_COLOUR);
 
         drawList.AddRect(mapTopLeft, mapTopLeft + new Vector2(mapSize), 0xFFFFFFFF, 0, ImDrawFlags.None, 2f);
 
@@ -86,11 +98,12 @@ public class EditMap2D
 
         // LOD
         MapLod lod =
-            Zoom < 2f ? MapLod.Minimal :
-            Zoom < 5f ? MapLod.Reduced :
+            Zoom < 4f ? MapLod.Minimal :
+            Zoom < 10f ? MapLod.Reduced :
                         MapLod.Detailed;
 
-        DrawTradeLanesLOD(system, tab, mapTopLeft, mapSize, drawList, lod);
+        DrawTradeLaneLinesLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
+        DrawTradeLaneIconsLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
         DrawObjectsLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
 
         // Pan
@@ -129,7 +142,7 @@ public class EditMap2D
         // Context menu (anchored to Dummy, NOT cursor movement)
         DrawContextMenu(system, world, ctx, tab, mapSize, mapTopLeft);
 
-        // Creation tools (correct coordinate contract)
+        // Creation tools
         var helpText = CreationTools.Draw(
             drawList,
             mapTopLeft,
@@ -159,7 +172,10 @@ public class EditMap2D
 
     static bool IsTradeLaneRing(GameObject obj)
     {
-        return obj.SystemObject?.Archetype?.Nickname == "Trade_Lane_Ring";
+        var arch = obj.SystemObject.Archetype?.Nickname;
+        return arch != null &&
+               arch.Contains("trade_lane", StringComparison.OrdinalIgnoreCase)
+               && obj.SystemObject.Dock.Kind == DockKinds.Tradelane;
     }
 
     void DrawGridAndLabelsViewportAware(ImDrawListPtr drawList, Vector2 viewportPos, Vector2 viewportSize, Vector2 mapTopLeft, float mapSize)
@@ -249,17 +265,17 @@ public class EditMap2D
     }
     void DrawObjectsLOD(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
     {
-        float clusterRadius =
-            lod == MapLod.Minimal ? 90f :
-            lod == MapLod.Reduced ? 45f :
-                                    30f;
+        float clusterRadius = lod == MapLod.Minimal
+            ? 30f : lod == MapLod.Reduced
+            ? 15f : 5f;
 
-        List<ObjectCluster> clusters = new();
+        clusters.Clear();
 
         // ---- Build clusters ----
         foreach (var obj in tab.ObjectsList.Objects)
         {
-            bool isTradelane = IsTradeLaneRing(obj);
+            if (IsTradeLaneRing(obj))
+                continue;
 
             Vector2 screen = WorldToScreen(
                 obj.LocalTransform.Position,
@@ -269,7 +285,7 @@ public class EditMap2D
             );
 
             // Tradelanes NEVER cluster
-            if (clusterRadius > 0 && !isTradelane)
+            if (clusterRadius > 0)
             {
                 bool added = false;
                 foreach (var c in clusters)
@@ -294,7 +310,7 @@ public class EditMap2D
             }
             else
             {
-                // Tradelane OR no clustering -> always its own cluster
+                // no clustering -> always its own cluster
                 clusters.Add(new ObjectCluster
                 {
                     ScreenPos = screen,
@@ -307,49 +323,38 @@ public class EditMap2D
         // ---- Render clusters / objects ----
         foreach (var cluster in clusters)
         {
+            Vector2 min;
+            Vector2 max;
+            bool hovered;
+            bool clicked;
 
             var obj = cluster.Objects[0];
             bool isTradelane = IsTradeLaneRing(obj);
 
-            Vector2 min = cluster.ScreenPos - new Vector2(12);
-            Vector2 max = cluster.ScreenPos + new Vector2(12);
-
-            bool hovered = ImGui.IsMouseHoveringRect(min, max);
-            bool clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
-
-            float size = 0;
-            if (isTradelane)
-            {
-                size =
-                        lod == MapLod.Minimal ? 4f :
-                        lod == MapLod.Reduced ? 8f :
-                                                12f;
-            }
-            else
-            {
-                size =
-                        lod == MapLod.Minimal ? 16f :
-                        lod == MapLod.Reduced ? 32f :
-                                                64f;
-            }
-
-            // Cluster icon (zoom 1->7)
+            // Cluster
             if (cluster.Objects.Count > 1)
             {
-                drawList.AddCircleFilled(cluster.ScreenPos, size, 0xFF8888FF);
-                drawList.AddText(
-                    cluster.ScreenPos - new Vector2(8, 8),
-                    0xFFFFFFFF,
-                    $"{cluster.Objects.Count}" 
-                );
+                bool selected = tab.ObjectsList.Selection.Any(cluster.Objects.Contains);
 
-                //if (hovered)
-                //{
-                //    ImGui.BeginTooltip();
-                //    foreach (var o in cluster.Objects)
-                //        ImGui.Text(o.Nickname);
-                //    ImGui.EndTooltip();
-                //}
+                float clusterIconSize = lod == MapLod.Minimal
+                    ? 16f : lod == MapLod.Reduced
+                    ? 32f : 64f;
+
+
+                min = cluster.ScreenPos - new Vector2(clusterIconSize);
+                max = cluster.ScreenPos + new Vector2(clusterIconSize);
+                hovered = ImGui.IsMouseHoveringRect(min, max);
+                clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
+
+                var offset = cluster.Objects.Count > 9 ? 8 : 4;
+
+                drawList.AddCircleFilled(cluster.ScreenPos, clusterIconSize,
+                    selected ? SELECTED_COLOUR : CLUSTER_BG_COLOUR);
+                drawList.AddText(
+                    cluster.ScreenPos - new Vector2(offset, offset),
+                    0xFFFFFFFF,
+                    $"{cluster.Objects.Count}"
+                );
 
                 if (clicked)
                 {
@@ -357,112 +362,41 @@ public class EditMap2D
                     ImGui.OpenPopup("##clusterPopup");
                 }
             }
-            // Single object
-            else
+            else // Single object
             {
                 bool selected = tab.ObjectsList.Selection.Contains(obj);
 
-                
+                var objectIconSize = 64;
 
-                if (lod == MapLod.Detailed)
-                {
-                    // Icon instead of circle
-                    var icon = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
-                    Vector2 imageSize = new Vector2(96, 96) * ImGuiHelper.Scale;
+                min = cluster.ScreenPos - new Vector2(objectIconSize / 2);
+                max = cluster.ScreenPos + new Vector2(objectIconSize / 2);
+                hovered = ImGui.IsMouseHoveringRect(min, max);
+                clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
 
-                    drawList.AddImage(
-                        icon,
-                        cluster.ScreenPos - imageSize * 0.5f,
-                        cluster.ScreenPos + imageSize * 0.5f
-                    );
+                var icon = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
+                Vector2 imageSize = new Vector2(objectIconSize) * ImGuiHelper.Scale;
 
-                    if (selected)
-                    {
-                        drawList.AddCircle(
-                            cluster.ScreenPos,
-                            imageSize.X * 0.6f,
-                            0xFFFFFF00,
-                            0,
-                            2f
-                        );
-                    }
-                }
-                else if (lod == MapLod.Reduced)
-                {
-                    // Icon instead of circle
-                    var icon = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
-                    Vector2 imageSize = new Vector2(64, 64) * ImGuiHelper.Scale;
+                var text = cluster.Objects[0].Nickname;
+                var TextPos = new Vector2(
+                    cluster.ScreenPos.X - (text.Length * 3),
+                    cluster.ScreenPos.Y + imageSize.Y / 2
+                );
 
-                    drawList.AddImage(
-                        icon,
-                        cluster.ScreenPos - imageSize * 0.5f,
-                        cluster.ScreenPos + imageSize * 0.5f
-                    );
+                drawList.AddText(TextPos, COLOUR_WHITE, cluster.Objects[0].Nickname);
 
-                    if (selected)
-                    {
-                        drawList.AddCircle(
-                            cluster.ScreenPos,
-                            imageSize.X * 0.6f,
-                            0xFFFFFF00,
-                            0,
-                            2f
-                        );
-                    }
-                } else
-                {
-                    if (isTradelane)
-                    {
-                        uint lightBlue = ImGui.ColorConvertFloat4ToU32(
-                            new Vector4(
-                                0.4f,  // R
-                                0.7f,  // G
-                                1.0f,  // B
-                                1.0f   // A
-                            )
-                        );
-                        drawList.AddCircleFilled(cluster.ScreenPos, size, lightBlue);
-                        if (selected)
-                        {
-                            Vector2 selectedSize = new Vector2(size + 5);
-                            drawList.AddRect(
-                                selectedSize,
-                                selectedSize,
-                                0xFF4DA6FF,
-                                2f,
-                                ImDrawFlags.None,
-                                2f
-                            );
-                        }
-                    }
-                    else
-                    {
-                        size =
-                        lod == MapLod.Minimal ? 16f :
-                        lod == MapLod.Reduced ? 64f :
-                                                128f;
-                        Vector2 half = new Vector2(size * 0.5f);
-                        Vector2 minSize = cluster.ScreenPos - half;
-                        Vector2 maxSize = cluster.ScreenPos + half;
+                drawList.AddImage(icon,min,max,
+                    new Vector2(0, 1), // UV top-left
+                    new Vector2(1, 0)  // UV bottom-right (flipped V)
+                );
 
-                        // Filled square
-                        drawList.AddRectFilled(minSize, maxSize, 0xFFFFFFFF);
-                        // Blue selection outline
-                        if (selected)
-                        {
-                            drawList.AddRect(
-                                minSize,
-                                maxSize,
-                                0xFF4DA6FF,
-                                0f,
-                                ImDrawFlags.None,
-                                2f
-                            );
-                        }
-                    }
-                }
+                drawList.AddRect(min,max,COLOUR_WHITE,2);
 
-                if (hovered && lod != MapLod.Minimal)
+                drawList.AddRect(min, max,
+                    selected ? SELECTED_COLOUR : TRADELANE_DESELECTED_COLOUR,
+                    2
+                );
+
+                if (hovered)
                 {
                     ImGui.BeginTooltip();
                     ImGui.Text(obj.Nickname);
@@ -474,8 +408,6 @@ public class EditMap2D
                     tab.ForceSelectObject(obj);
                 }
 
-                Vector2 mouse = ImGui.GetIO().MousePos;
-
                 if (hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
                     tab.ForceSelectObject(obj);
@@ -483,47 +415,141 @@ public class EditMap2D
                     dragOriginalTransform = obj.LocalTransform;
                 }
 
-                if (dragTarget == obj &&
-                    ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+                if (dragTarget == obj)
                 {
-                    Vector2 delta = ImGui.GetIO().MouseDelta;
+                    if (ImGui.IsMouseDragging(ImGuiMouseButton.Left))
+                    {
+                        Vector2 delta = ImGui.GetIO().MouseDelta;
 
-                    float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
-                    Vector3 worldDelta = new Vector3(
-                        delta.X / mapSize * scale,
-                        0,
-                        delta.Y / mapSize * scale
-                    );
+                        float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+                        Vector3 worldDelta = new Vector3(
+                            delta.X / mapSize * scale,
+                            0,
+                            delta.Y / mapSize * scale
+                        );
 
-                    obj.SetLocalTransform(
-                        new Transform3D(
-                            obj.LocalTransform.Position + worldDelta,
-                            obj.LocalTransform.Orientation
-                        )
-                    );
-                }
+                        obj.SetLocalTransform(
+                            new Transform3D(
+                                obj.LocalTransform.Position + worldDelta,
+                                obj.LocalTransform.Orientation
+                            )
+                        );
+                    }
+                    if (dragTarget == obj && ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+                    {
+                        tab.UndoBuffer.Commit(
+                            new ObjectSetTransform(
+                                obj,
+                                tab.ObjectsList,
+                                dragOriginalTransform,
+                                obj.LocalTransform
+                            )
+                        );
 
-                if (ImGui.IsMouseReleased(ImGuiMouseButton.Left) &&
-                    dragTarget == obj)
-                {
-                    tab.UndoBuffer.Commit(
-                        new ObjectSetTransform(
-                            obj,
-                            tab.ObjectsList,
-                            dragOriginalTransform,
-                            obj.LocalTransform
-                        )
-                    );
-
-                    dragTarget = null;
+                        dragTarget = null;
+                    }
                 }
             }
         }
     }
-    void DrawTradeLanesLOD(SystemEditData system, SystemEditorTab tab, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
+    void DrawTradeLaneLinesLOD(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
     {
-        // Intentionally empty.
-        // Tradelanes are currently rendered as individual rings only.
+        // Do not interfere while creating lanes
+        if (CreationTools.Tradelane.IsActive)
+            return;
+
+        // Build groups (derived state)
+        var groups = new TradeLaneGrouper()
+            .Build(tab.ObjectsList.Objects);
+
+        if (groups.Count == 0)
+            return;
+
+        var size = lod == MapLod.Minimal
+                ? 2f : lod == MapLod.Reduced
+                ? 4f : 6f;
+
+        foreach (var group in groups)
+        {
+            var (startObj, endObj) = group.GetEndpoints();
+            if (startObj == null || endObj == null)
+                continue;
+
+            Vector2 start = WorldToScreen(startObj.LocalTransform.Position, system, mapTopLeft, mapSize);
+            Vector2 end = WorldToScreen(endObj.LocalTransform.Position, system, mapTopLeft, mapSize);
+
+            // draw line
+            drawList.AddLine(start, end, TRADELANE_DESELECTED_COLOUR, size);
+        }
+    }
+    void DrawTradeLaneIconsLOD(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
+    {
+        // Build groups (derived state)
+        var groups = new TradeLaneGrouper()
+            .Build(tab.ObjectsList.Objects);
+
+        if (groups.Count == 0)
+            return;
+
+        var size = lod == MapLod.Minimal
+            ? 12f : lod == MapLod.Reduced
+            ? 20f : 96f;
+
+        foreach (var group in groups)
+        {
+            foreach (var ring in group.Members)
+            {
+                bool selected = tab.ObjectsList.Selection.Contains(ring);
+
+                Vector2 screenPos = WorldToScreen(ring.LocalTransform.Position, system, mapTopLeft, mapSize);
+
+                Vector2 min = screenPos - new Vector2(size / 2);
+                Vector2 max = screenPos + new Vector2(size / 2);
+                bool hovered = ImGui.IsMouseHoveringRect(min, max);
+                bool clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
+
+                // REDUCED: draw squares for each ring
+                if (lod is MapLod.Reduced or MapLod.Minimal)
+                {
+                    Vector2 half = new(size * 0.5f);
+
+                    drawList.AddRectFilled(min, max,
+                        selected ? SELECTED_COLOUR : TRADELANE_DESELECTED_COLOUR);
+                }
+                else // draw icon
+                {
+                    var icon = ctx.GetArchetypePreview(ring.SystemObject.Archetype);
+                    Vector2 imageSize = new Vector2(size) * ImGuiHelper.Scale;
+
+                    drawList.AddImage(
+                        icon,
+                        min,
+                        max
+                    );
+
+                    if (selected)
+                    {
+                        drawList.AddRect(
+                            min,
+                            max,
+                            SELECTED_COLOUR,
+                            2
+                        );
+                    }
+                }
+
+                if (hovered)
+                {
+                    ImGui.BeginTooltip();
+                    ImGui.Text(ring.Nickname);
+                    ImGui.EndTooltip();
+                }
+                if (clicked)
+                {
+                    tab.ForceSelectObject(ring);
+                }
+            }
+        }
     }
     void DrawContextMenu(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, float mapSize, Vector2 mapTopLeft)
     {
@@ -580,7 +606,6 @@ public class EditMap2D
             ImGui.EndPopup();
         }
     }
-
 
     Vector2 WorldToScreen(Vector3 worldPos, SystemEditData system, Vector2 mapTopLeft, float mapSize)
     {

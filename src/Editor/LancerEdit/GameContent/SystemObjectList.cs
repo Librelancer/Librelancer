@@ -51,6 +51,25 @@ public class SystemObjectList
         }
     }
 
+    public void SelectMultiple(IEnumerable<GameObject> objects)
+    {
+        if (Selection.Count > 0)
+        {
+            Selection = [];
+        }
+
+        foreach (var obj in objects)
+        {
+            SelectedTransform = (obj?.LocalTransform ?? Transform3D.Identity).Matrix();
+
+            if (obj != null)
+            {
+                Selection.Add(obj);
+            }
+        }
+        
+    }
+
     private GameWorld prevWorld;
 
     public void Refresh()
@@ -118,8 +137,10 @@ public class SystemObjectList
     bool IsPrimarySelection(GameObject obj) =>
         Selection.Count > 0 && Selection[0] == obj;
 
-    bool ShouldAddSecondary() => Selection.Count > 0 && (win.Keyboard.IsKeyDown(Keys.LeftShift) ||
-                                                         win.Keyboard.IsKeyDown(Keys.RightShift));
+    bool ShouldAddSecondary() => Selection.Count > 0 && (win.Keyboard.IsKeyDown(Keys.LeftShift)
+        || win.Keyboard.IsKeyDown(Keys.RightShift)
+        || win.Keyboard.IsKeyDown(Keys.LeftControl)
+        || win.Keyboard.IsKeyDown(Keys.RightControl));
 
     public void ScrollToSelection()
     {
