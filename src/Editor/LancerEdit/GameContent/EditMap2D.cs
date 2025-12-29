@@ -164,6 +164,8 @@ public class EditMap2D
             map => MapToWorld_Local(map, system, mapSize),
             tab
         );
+        var pos = canvasPos + new Vector2(30f * ImGuiHelper.Scale);
+        drawList.AddText(pos, COLOUR_WHITE, helpText);
 
         // Cluster popup
         if (ImGui.BeginPopup("##clusterPopup"))
