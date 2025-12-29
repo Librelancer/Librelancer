@@ -8,7 +8,6 @@ using ImGuiNET;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
 using LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 using LancerEdit.GameContent.MissionEditor.NodeTypes.Conditions;
-using LancerEdit.GameContent.MissionEditor.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
@@ -34,8 +33,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
     private NodeId contextNodeId = 0;
     private readonly Queue<(NodeId Id, Vector2 Pos)> nodeRelocationQueue = [];
 
-    private readonly MissionIni missionIni;
-    private List<ScriptAiCommands> objLists;
+    private readonly MissionScriptDocument missionIni;
     public string FileSaveLocation;
     public string NodeFilter = "";
 
@@ -62,24 +60,9 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         NodeBuilder.LoadTexture(win.RenderContext);
 
         nodes = [];
-        missionIni = new MissionIni(file, null);
-        objLists = missionIni.ObjLists.Select(x => new ScriptAiCommands(x)).ToList();
-        missionIni.Info ??= new MissionInfo();
 
-        if (!string.IsNullOrWhiteSpace(missionIni.Info.NpcShipFile))
-        {
-            var npcPath = gameData.GameData.VFS.GetBackingFileName(gameData.GameData.Items.DataPath(missionIni.Info.NpcShipFile));
-            if (npcPath is not null)
-            {
-                missionIni.ShipIni = new NPCShipIni(npcPath, null);
-            }
-        }
-        else
-        {
-            missionIni.Info.NpcShipFile = "";
-        }
-
-        var pos = new Vector2(0, 0);
+        // Load ini file
+        missionIni = MissionScriptDocument.FromFile(file, gameData, out var iniTriggers);
 
         Queue<(Node Source, string Target, bool Input)> toLink = new();
 
@@ -87,13 +70,14 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         Dictionary<NodeMissionTrigger, int> counts = new Dictionary<NodeMissionTrigger, int>();
 
 
-        foreach (var t in missionIni.Triggers)
+        foreach (var t in iniTriggers)
         {
             var n = new NodeMissionTrigger(t, this);
             triggerNodes[t.Nickname] = n;
             nodes.Add(n);
             counts[n] = 0;
-            foreach (var c in n.Actions) {
+            foreach (var c in n.Actions)
+            {
                 if (c is ActActivateNodeTrigger or ActDeactivateNodeTrigger or ActSave)
                 {
                     var triggerTarget = c switch
@@ -106,6 +90,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                     toLink.Enqueue((c, triggerTarget, false));
                 }
             }
+
             foreach (var c in n.Conditions)
             {
                 if (c is CndWatchNodeTrigger watch)
@@ -117,11 +102,13 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         while (toLink.Count > 0)
         {
-            var x= toLink.Dequeue();
-            if (!triggerNodes.TryGetValue(x.Target, out var target)) {
+            var x = toLink.Dequeue();
+            if (!triggerNodes.TryGetValue(x.Target, out var target))
+            {
                 // warning
                 continue;
             }
+
             if (x.Input)
             {
                 TryLinkNodes(target, x.Source, LinkType.Trigger, out _);
@@ -130,6 +117,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             {
                 TryLinkNodes(x.Source, target, LinkType.Trigger, out _);
             }
+
             counts[target]++;
         }
 
@@ -146,59 +134,41 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         using var fileStream = File.OpenRead(file);
         var sections = IniFile.ParseFile(file, fileStream);
         var nodesSection = sections.FirstOrDefault(x => x.Name.Equals("nodes", StringComparison.OrdinalIgnoreCase));
-        if (nodesSection is not null)
+        if (nodesSection == null)
+            return false;
+        int count = 0;
+        foreach (var nodePos in nodesSection)
         {
-            int count = 0;
-            foreach (var nodePos in nodesSection)
+            if (nodePos.Count < 4)
             {
-                if (nodePos.Count < 4)
-                {
-                    FLLog.Warning("MissionScriptEditor", "Invalid node position in nodes section!");
-                    continue;
-                }
+                FLLog.Warning("MissionScriptEditor", "Invalid node position in nodes section!");
+                continue;
+            }
 
-                var type = nodePos[0].ToString()!;
+            var data = SavedNode.FromEntry(nodePos);
 
-                if (type.Equals("comment", StringComparison.OrdinalIgnoreCase))
-                {
-                    var name = nodePos[1].ToString()!;
-                    var pos = new Vector2(nodePos[2].ToSingle(), nodePos[3].ToSingle());
-                    var comment = new CommentNode()
-                    {
-                        BlockName = CommentEscaping.Unescape(name)
-                    };
-                    nodes.Add(comment);
-                    nodeRelocationQueue.Enqueue((comment.Id, pos));
-                    if (nodePos.Count > 4)
-                    {
-                        comment.SetGroupSize(new(nodePos[4].ToSingle(), nodePos[5].ToSingle()));
-                    }
-                    continue;
-                }
-
-                var triggerNickname = nodePos[1].ToString()!;
-                var xPos = nodePos[2].ToSingle();
-                var yPos = nodePos[3].ToSingle();
-
-                var trigger = nodes.OfType<NodeMissionTrigger>().FirstOrDefault(x => x.Data.Nickname == triggerNickname);
+            if (data.IsTrigger)
+            {
+                var trigger = nodes.OfType<NodeMissionTrigger>().FirstOrDefault(x => x.Data.Nickname == data.Name);
                 if (trigger is null)
                 {
-                    FLLog.Warning("MissionScriptEditor", $"Trigger from {type} node in the nodes section was not found.");
+                    FLLog.Warning("MissionScriptEditor", $"Trigger '{data.Name}' in the nodes section was not found.");
                     continue;
                 }
 
-                if (type.Equals("trigger", StringComparison.OrdinalIgnoreCase))
-                {
-                    nodeRelocationQueue.Enqueue((trigger.Id, new Vector2(xPos, yPos)));
-                    count++;
-                }
+                nodeRelocationQueue.Enqueue((trigger.Id, data.Position));
+                count++;
             }
-            return count > 0;
+            else
+            {
+                var comment = new CommentNode() { BlockName = data.Name };
+                nodes.Add(comment);
+                nodeRelocationQueue.Enqueue((comment.Id, data.Position));
+                comment.SetGroupSize(data.Size);
+            }
         }
-        else
-        {
-            return false;
-        }
+
+        return count > 0;
     }
 
     void AutoPositionNodes(
@@ -213,9 +183,10 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         void IterateChildren(NodeMissionTrigger triggerNode, int index)
         {
-            while(columns.Count <= index)
+            while (columns.Count <= index)
                 columns.Add(new List<NodeMissionTrigger>());
-            foreach (var c in triggerNode.Actions) {
+            foreach (var c in triggerNode.Actions)
+            {
                 if (c is ActActivateNodeTrigger or ActDeactivateNodeTrigger or ActSave)
                 {
                     var triggerTarget = c switch
@@ -284,11 +255,9 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             return;
         }
 
-        CheckIndexes();
-
-        ImGui.TableSetupColumn("ME Left Sidebar", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("ME Left Sidebar", ImGuiTableColumnFlags.WidthFixed, 300f * ImGuiHelper.Scale);
         ImGui.TableSetupColumn("ME Node Editor", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("ME Right Sidebar", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("ME Right Sidebar", ImGuiTableColumnFlags.WidthFixed, 300f * ImGuiHelper.Scale);
         ImGui.TableNextRow();
 
         ImGui.TableNextColumn();
@@ -303,42 +272,10 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         ImGui.EndTable();
 
         popup.Run();
-        if(renderHistory)
+        if (renderHistory)
             undoBuffer.DisplayStack();
     }
 
-    private void CheckIndexes()
-    {
-        if (selectedShipIndex is -1 && missionIni.Ships.Count is not 0)
-        {
-            selectedShipIndex = 0;
-        }
-
-        if (selectedArchIndex is -1 && (missionIni.ShipIni?.ShipArches?.Count ?? 0) is not 0)
-        {
-            selectedArchIndex = 0;
-        }
-
-        if (selectedNpcIndex is -1 && missionIni.NPCs.Count is not 0)
-        {
-            selectedNpcIndex = 0;
-        }
-
-        if (selectedSolarIndex is -1 && missionIni.Solars.Count is not 0)
-        {
-            selectedSolarIndex = 0;
-        }
-
-        if (selectedFormationIndex is -1 && missionIni.Formations.Count is not 0)
-        {
-            selectedFormationIndex = 0;
-        }
-
-        if (selectedLootIndex is -1 && missionIni.Loots.Count is not 0)
-        {
-            selectedLootIndex = 0;
-        }
-    }
 
     public void OnRenameTrigger(NodeMissionTrigger node, string oldName, string newName) =>
         undoBuffer.Commit(new RenameTriggerAction(node, this, oldName, newName));
@@ -347,6 +284,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
 
     private NodeMissionTrigger jumpToNode = null;
+
     private void RenderNodeEditor()
     {
         NodeEditor.SetCurrentEditor(context);
@@ -368,7 +306,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         var lookups = new NodeLookups() { MissionIni = missionIni };
         foreach (var node in nodes)
         {
-            var isFiltered = NodeFilter is not "" && node.InternalId.IndexOf(NodeFilter, StringComparison.OrdinalIgnoreCase) == -1;
+            var isFiltered = NodeFilter is not "" &&
+                             node.InternalId.IndexOf(NodeFilter, StringComparison.OrdinalIgnoreCase) == -1;
 
             if (isFiltered)
             {
@@ -450,8 +389,10 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             undoBuffer.Push(EditorAggregateAction.Create(nodeMouseActions.ToArray()));
             nodeMouseActions = new();
         }
+
         // Works around rare assert
-        ImGui.Dummy(new Vector2(1, 1));
+        ImGui.SameLine();
+        ImGui.Dummy(new Vector2(0));
     }
 
     private List<EditorAction> nodeMouseActions = new();
@@ -468,6 +409,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         {
             nodeMouseActions.Add(new MoveNodeAction(nodeId, data.StartPosition, data.EndPosition, this));
         }
+
         if (data.StartGroupSize != data.EndGroupSize)
         {
             var act = new SetNodeGroupSize(nodeId, data.StartGroupSize, data.EndGroupSize, this);
@@ -498,7 +440,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
     List<(Node Start, Node End, LinkType LinkType, LinkId LinkId)> GetLinks(Node node)
     {
-        var allLinks =  new List<(Node Start, Node End, LinkType LinkType, LinkId LinkId)>();
+        var allLinks = new List<(Node Start, Node End, LinkType LinkType, LinkId LinkId)>();
         foreach (var l in node.Outputs)
         {
             foreach (var link in l.Links)
@@ -506,6 +448,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 allLinks.Add((node, link.EndPin.OwnerNode, l.LinkType, link.Id));
             }
         }
+
         foreach (var i in node.Inputs)
         {
             foreach (var link in i.Links)
@@ -513,6 +456,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 allLinks.Add((link.StartPin.OwnerNode, node, i.LinkType, link.Id));
             }
         }
+
         return allLinks;
     }
 
@@ -647,6 +591,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             {
                 continue;
             }
+
             undoBuffer.Commit(new DeleteNodeAction(nodes[nodeIdx].Id, node, this));
         }
 
@@ -675,6 +620,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                 if (r is not null)
                     return r;
             }
+
             foreach (var act in trigger.Actions)
             {
                 var r = FindIn(id, act);
@@ -682,6 +628,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                     return r;
             }
         }
+
         return null;
     }
 
@@ -719,6 +666,102 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         base.Dispose();
     }
 
+    static void InputItemNickname<T>(string label,
+        EditorUndoBuffer buffer,
+        SortedDictionary<string, T> list,
+        T value,
+        float width = 0.0f) where T : NicknameItem
+    {
+        ImGui.PushID(label);
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text(label);
+        ImGui.SameLine();
+        if (width != 0.0f)
+        {
+            ImGui.SetNextItemWidth(width);
+        }
+
+        if (ImGuiExt.InputTextLogged("##input",
+                ref value.Nickname,
+                250,
+                OnChanged,
+                true))
+        {
+            if (string.IsNullOrEmpty(value.Nickname))
+            {
+                ImGui.TextColored(Color4.Red, "Nickname cannot be empty");
+            }
+            else if (list.TryGetValue(value.Nickname, out var item) &&
+                     item != value)
+            {
+                ImGui.TextColored(Color4.Red, $"Item '{value.Nickname}' already exists");
+            }
+        }
+
+        void OnChanged(string old, string updated)
+        {
+            if (string.IsNullOrWhiteSpace(updated) ||
+                list.TryGetValue(updated, out var item) &&
+                item != value)
+            {
+                value.Nickname = old; // Unable to set. Reset
+            }
+            else
+            {
+                buffer.Commit(new ItemRename<T>(old, updated, list, value));
+            }
+        }
+
+        ImGui.PopID();
+    }
+
+    void ItemList<T>(string itemName,
+        SortedDictionary<string, T> items,
+        FieldAccessor<T> selected,
+        Func<DictionaryRemove<T>> getDeleter) where T : NicknameItem, new()
+    {
+        ref var selection = ref selected();
+        ImGui.PushID(itemName);
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - ImGui.GetFrameHeightWithSpacing() * 3);
+        if (ImGui.BeginCombo($"##{itemName}", selection is not null ? selection.Nickname : ""))
+        {
+            foreach (var kv in items)
+            {
+                if (ImGui.Selectable(kv.Key, selection == kv.Value))
+                {
+                    selection = kv.Value;
+                }
+            }
+
+            ImGui.EndCombo();
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button(Icons.PlusCircle))
+        {
+            popup.OpenPopup(new NameInputPopup(
+                NameInputConfig.Nickname(itemName, items.ContainsKey),
+                "",
+                x =>
+                {
+                    undoBuffer.Commit(new DictionaryAdd<T>(itemName, items, new T() { Nickname = x }, selected));
+                }));
+        }
+
+        ImGui.SetItemTooltip($"Create New {itemName}");
+        ImGui.SameLine();
+        ImGui.BeginDisabled(selection == null);
+        if (ImGui.Button(Icons.TrashAlt))
+        {
+            win.Confirm($"Are you sure you want to delete '{selection!.Nickname}'?",
+                () => { undoBuffer.Commit(getDeleter()); });
+        }
+
+        ImGui.SetItemTooltip($"Delete {itemName}");
+        ImGui.EndDisabled();
+        ImGui.PopID();
+    }
+
     internal EditResult<bool> SaveMission(string savePath = null)
     {
         if (savePath != null)
@@ -726,77 +769,22 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             FileSaveLocation = savePath;
         }
 
-        IniBuilder ini = new();
-
-        ini.Section("Mission")
-            .Entry("mission_title", missionIni.Info.MissionTitle)
-            .Entry("mission_offer", missionIni.Info.MissionOffer)
-            .OptionalEntry("reward", missionIni.Info.Reward)
-            .Entry("npc_ship_file", missionIni.Info.NpcShipFile);
-
-        foreach (var npc in missionIni.NPCs)
-        {
-            IniSerializer.SerializeMissionNpc(npc, ini);
-        }
-
-        foreach (var objective in missionIni.Objectives)
-        {
-            IniSerializer.SerializeMissionObjective(objective, ini);
-        }
-
-        foreach (var loot in missionIni.Loots)
-        {
-            IniSerializer.SerializeMissionLoot(loot, ini);
-        }
-
-        foreach (var dialog in missionIni.Dialogs)
-        {
-            IniSerializer.SerializeMissionDialog(dialog, ini);
-        }
-
-        foreach (var objectiveList in objLists)
-        {
-            IniSerializer.SerializeMissionObjectiveList(objectiveList, ini);
-        }
-
-        foreach (var solar in missionIni.Solars)
-        {
-            IniSerializer.SerializeMissionSolar(solar, ini);
-        }
-
-        foreach (var ship in missionIni.Ships)
-        {
-            IniSerializer.SerializeMissionShip(ship, ini);
-        }
-
-        foreach (var formation in missionIni.Formations)
-        {
-            IniSerializer.SerializeMissionFormation(formation, ini);
-        }
-
-        // Save nodes
-        foreach (var tr in nodes.OfType<NodeMissionTrigger>())
-        {
-            tr.WriteNode(this, ini);
-        }
-
-        // Store the locations of our nodes
-        var s = ini.Section("Nodes");
-
+        // Fetch locations from node editor state
+        var savedNodes = new List<SavedNode>();
         NodeEditor.SetCurrentEditor(context);
         foreach (var trigger in nodes.OfType<NodeMissionTrigger>())
         {
-            var pos = NodeEditor.GetNodePosition(trigger.Id);
-            s.Entry("node", "Trigger", trigger.Data.Nickname, pos.X, pos.Y);
+            savedNodes.Add(SavedNode.FromTrigger(NodeEditor.GetNodePosition(trigger.Id), trigger));
         }
+
         foreach (var node in nodes.OfType<CommentNode>())
         {
-            var pos = NodeEditor.GetNodePosition(node.Id);
-            s.Entry("node", "Comment", CommentEscaping.Escape(node.BlockName), pos.X, pos.Y, node.Size.X, node.Size.Y);
+            savedNodes.Add(SavedNode.FromComment(NodeEditor.GetNodePosition(node.Id), node));
         }
 
         NodeEditor.SetCurrentEditor(null);
-        IniWriter.WriteIniFile(FileSaveLocation, ini.Sections);
+
+        missionIni.Save(FileSaveLocation, gameData, this, nodes.OfType<NodeMissionTrigger>(), savedNodes);
 
         return new EditResult<bool>(true);
     }

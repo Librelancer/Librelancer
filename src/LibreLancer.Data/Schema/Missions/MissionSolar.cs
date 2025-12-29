@@ -33,7 +33,7 @@ namespace LibreLancer.Data.Schema.Missions
         [Entry("voice")]
         public string Voice;
         [Entry("costume")]
-        public string[] Costume = ["", "", ""];
+        public string[] Costume;
         [Entry("loadout")]
         public string Loadout;
         [Entry("string_id")]

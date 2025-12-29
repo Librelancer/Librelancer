@@ -23,22 +23,10 @@ namespace LibreLancer.Data.Schema.Missions
         [Entry("ship", Multiline = true)]
         public List<string> Ships = new List<string>();
 
-        public MissionFormationRelativePosition RelativePosition = new();
+
+        public MissionRelativePosition RelativePosition = new();
 
         [EntryHandler("rel_pos", MinComponents = 3)]
-        void HandleRelativePosition(Entry entry)
-        {
-            RelativePosition = new MissionFormationRelativePosition();
-            _ = float.TryParse(entry[0].ToString(), out RelativePosition.MinRange);
-            RelativePosition.ObjectName = entry[1].ToString();
-            _ = float.TryParse(entry[2].ToString(), out RelativePosition.MaxRange);
-        }
-    }
-
-    public class MissionFormationRelativePosition
-    {
-        public float MinRange;
-        public string ObjectName;
-        public float MaxRange;
+        private void ParseRelativePosition(Entry entry) => RelativePosition = MissionRelativePosition.FromEntry(entry);
     }
 }

@@ -68,7 +68,7 @@ public static class Controls
     }
 
     public static void CheckboxUndo(string label, EditorUndoBuffer buffer,
-        EditorPropertyModification<bool>.Accessor value)
+        FieldAccessor<bool> value)
     {
         var v = value();
         if (ImGui.Checkbox(label, ref v))
@@ -77,9 +77,10 @@ public static class Controls
         }
     }
 
+
     public static void InputTextIdUndo(string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<string>.Accessor value,
+        FieldAccessor<string> value,
         float width = 0.0f)
     {
         ImGui.PushID(label);
@@ -103,7 +104,7 @@ public static class Controls
     public static void InputIntUndo(
         string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<int>.Accessor value,
+        FieldAccessor<int> value,
         int step = 1,
         int step_fast = 100,
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
@@ -137,7 +138,7 @@ public static class Controls
     public static void SliderFloatUndo(
         string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<float>.Accessor value,
+        FieldAccessor<float> value,
         float v_min,
         float v_max,
         string format = "%.3f",
@@ -164,7 +165,7 @@ public static class Controls
     public static void InputFloatUndo(
         string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<float>.Accessor value,
+        FieldAccessor<float> value,
         int step = 0,
         int step_fast = 0,
         string format = "%.3f",
@@ -193,7 +194,7 @@ public static class Controls
 
     public static void InputQuaternionUndo(string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<Quaternion>.Accessor value)
+        FieldAccessor<Quaternion> value)
     {
         ImGui.PushID(label);
         ImGui.AlignTextToFramePadding();
@@ -218,7 +219,7 @@ public static class Controls
     public static void InputFloat3Undo(
         string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<Vector3>.Accessor value,
+        FieldAccessor<Vector3> value,
         string format = "%.3f",
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None
     )
@@ -383,7 +384,7 @@ public static class Controls
 
     public static void InputOptionalVector3Undo(string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<OptionalArgument<Vector3>>.Accessor accessor)
+        FieldAccessor<OptionalArgument<Vector3>> accessor)
     {
         ref OptionalArgument<Vector3> value = ref accessor();
         if (!value.Present)
@@ -411,7 +412,7 @@ public static class Controls
 
     public static void InputOptionalFloatUndo(string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<OptionalArgument<float>>.Accessor accessor)
+        FieldAccessor<OptionalArgument<float>> accessor)
     {
         ref OptionalArgument<float> value = ref accessor();
         if (!value.Present)
@@ -439,7 +440,7 @@ public static class Controls
 
     public static void InputOptionalQuaternionUndo(string label,
         EditorUndoBuffer buffer,
-        EditorPropertyModification<OptionalArgument<Quaternion>>.Accessor accessor)
+        FieldAccessor<OptionalArgument<Quaternion>> accessor)
     {
         ref OptionalArgument<Quaternion> value = ref accessor();
         if (!value.Present)
@@ -558,7 +559,7 @@ public static class Controls
     }
 
     public static void IdsInputStringUndo(string label, GameDataContext gameData, PopupManager popup,
-        EditorUndoBuffer undoBuffer, EditorPropertyModification<int>.Accessor accessor,
+        EditorUndoBuffer undoBuffer, FieldAccessor<int> accessor,
         bool showTooltipOnHover = true, float inputWidth = 100f)
     {
         int ids = accessor();

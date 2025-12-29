@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.Schema.Missions;
 
@@ -5,7 +6,7 @@ namespace LancerEdit.GameContent.MissionEditor;
 
 public ref struct NodeLookups
 {
-    public MissionIni MissionIni;
+    public MissionScriptDocument MissionIni;
 
     private string[] _ships;
 
@@ -15,7 +16,7 @@ public ref struct NodeLookups
         {
             if (_ships == null)
             {
-                _ships = MissionIni.Ships.Select(x => x.Nickname).Order().ToArray();
+                _ships = MissionIni.Ships.Keys.ToArray();
             }
             return _ships;
         }
@@ -29,7 +30,7 @@ public ref struct NodeLookups
         {
             if (_solars == null)
             {
-                _solars = MissionIni.Solars.Select(x => x.Nickname).Order().ToArray();
+                _solars = MissionIni.Solars.Keys.ToArray();
             }
             return _solars;
         }
@@ -44,8 +45,8 @@ public ref struct NodeLookups
         {
             if (_shipsAndSolars == null)
             {
-                _shipsAndSolars = MissionIni.Ships.Select(x => x.Nickname)
-                    .Concat(MissionIni.Solars.Select(x => x.Nickname)).Order().ToArray();
+                _shipsAndSolars = MissionIni.Ships.Keys
+                    .Concat(MissionIni.Solars.Keys).Order().ToArray();
             }
             return _shipsAndSolars;
         }
@@ -59,7 +60,7 @@ public ref struct NodeLookups
         {
             if (_labels == null)
             {
-                _labels = MissionIni.Ships.SelectMany(x => x.Labels).ToArray();
+                _labels = MissionIni.Ships.Values.SelectMany(x => x.Labels).ToArray();
             }
             return _labels;
         }
@@ -87,7 +88,7 @@ public ref struct NodeLookups
         {
             if (_objectives == null)
             {
-                _objectives = MissionIni.Objectives.Select(x => x.Nickname).Order().ToArray();
+                _objectives = MissionIni.Objectives.Keys.ToArray();
             }
             return _objectives;
         }
@@ -101,7 +102,7 @@ public ref struct NodeLookups
         {
             if (_formations == null)
             {
-                _formations = MissionIni.Formations.Select(x => x.Nickname).Order().ToArray();
+                _formations = MissionIni.Formations.Keys.ToArray();
             }
             return _formations;
         }
@@ -115,7 +116,7 @@ public ref struct NodeLookups
         {
             if (_loots == null)
             {
-                _loots = MissionIni.Loots.Select(x => x.Nickname).Order().ToArray();
+                _loots = MissionIni.Loots.Keys.ToArray();
             }
 
             return _loots;
@@ -130,7 +131,7 @@ public ref struct NodeLookups
         {
             if (_objLists == null)
             {
-                _objLists = MissionIni.ObjLists.Select(x => x.Nickname).Order().ToArray();
+                _objLists = MissionIni.ObjLists.Keys.ToArray();
             }
             return _objLists;
         }
@@ -144,7 +145,7 @@ public ref struct NodeLookups
         {
             if (_dialogs == null)
             {
-                _dialogs = MissionIni.Dialogs.Select(x => x.Nickname).Order().ToArray();
+                _dialogs = MissionIni.Dialogs.Keys.ToArray();
             }
             return _dialogs;
         }

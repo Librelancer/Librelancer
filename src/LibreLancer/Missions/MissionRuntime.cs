@@ -5,10 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
-using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Data.Schema.Save;
 using LibreLancer.Missions.Conditions;
 using LibreLancer.Missions.Events;
@@ -21,21 +19,19 @@ namespace LibreLancer.Missions
     public class MissionRuntime
     {
         public Player Player;
-        MissionIni msn;
         object _msnLock = new object();
 
         public MissionScript Script;
         public Random Random = new();
 
         public Dictionary<string, MissionLabel> Labels = new(StringComparer.OrdinalIgnoreCase);
-        public MissionRuntime(MissionIni msn, Player player, uint[] triggerSave)
+        public MissionRuntime(MissionScript script, Player player, uint[] triggerSave)
         {
-            Script = new MissionScript(msn);
+            Script = script;
             foreach (var lbl in Script.GetLabels())
             {
                 Labels[lbl.Name] = lbl;
             }
-            this.msn = msn;
             this.Player = player;
             bool doInit = true;
             {

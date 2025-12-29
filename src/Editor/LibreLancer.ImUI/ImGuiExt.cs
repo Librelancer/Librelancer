@@ -295,6 +295,7 @@ namespace LibreLancer.ImUI
         private static IntPtr ogStringPtr;
         static unsafe int FetchString(ImGuiInputTextCallbackData* data)
         {
+            callbackCalled = true;
             ogStringPtr = ImGuiEx_GetOriginalInputTextString();
             if (data->EventFlag == ImGuiInputTextFlags.CallbackCharFilter)
             {
@@ -316,9 +317,11 @@ namespace LibreLancer.ImUI
             return 0;
         }
         private static ImGuiInputTextCallback undoCb = FetchString;
+        private static bool callbackCalled = false;
 
-        public static void InputTextLogged(string id, ref string buf, int bufSize, Action<string,string> onChanged, bool inputId = false)
+        public static bool InputTextLogged(string id, ref string buf, int bufSize, Action<string,string> onChanged, bool inputId = false)
         {
+            callbackCalled = false;
             ogStringPtr = IntPtr.Zero;
             var flags = ImGuiInputTextFlags.CallbackAlways;
             if (inputId)
@@ -335,7 +338,9 @@ namespace LibreLancer.ImUI
             {
                 onChanged(originalString, buf);
             }
+            return callbackCalled;
         }
+
 
         public static void CenterText(string text)
         {

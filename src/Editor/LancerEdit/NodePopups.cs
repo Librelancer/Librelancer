@@ -73,7 +73,7 @@ public struct NodePopups
         );
     }
 
-    public void StringCombo(string title, EditorUndoBuffer undoBuffer, EditorPropertyModification<string>.Accessor accessor, string[] values, bool allowEmpty = false)
+    public void StringCombo(string title, EditorUndoBuffer undoBuffer, FieldAccessor<string> accessor, string[] values, bool allowEmpty = false)
     {
         ImGui.AlignTextToFramePadding();
         ImGui.Text(title);
@@ -100,7 +100,7 @@ public struct NodePopups
     }
 
     private static readonly Dictionary<Type, string[]> _nullables = new();
-    public void Combo<T>(string title, EditorUndoBuffer buffer, EditorPropertyModification<T?>.Accessor accessor) where T : struct, Enum
+    public void Combo<T>(string title, EditorUndoBuffer buffer, FieldAccessor<T?> accessor) where T : struct, Enum
     {
         T? FromInt(int r)
         {
@@ -129,7 +129,7 @@ public struct NodePopups
 
 
     private static readonly Dictionary<Type, string[]> _enums = new();
-    public void Combo<T>(string title, EditorUndoBuffer buffer, EditorPropertyModification<T>.Accessor accessor) where T : struct, Enum
+    public void Combo<T>(string title, EditorUndoBuffer buffer, FieldAccessor<T> accessor) where T : struct, Enum
     {
         if (!_enums.TryGetValue(typeof(T), out var values)) {
             values = Enum.GetNames<T>();

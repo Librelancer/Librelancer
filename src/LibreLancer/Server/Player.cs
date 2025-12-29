@@ -426,7 +426,7 @@ namespace LibreLancer.Server
 
                 // Load the mission script
                 var missionIni = Game.GameData.Items.Ini.LoadMissionIni(Story.CurrentMission);
-                msnRuntime = new MissionRuntime(missionIni, this, loadTriggers);
+                msnRuntime = new MissionRuntime(new(missionIni, Game.GameData.Items), this, loadTriggers);
                 msnPreload = msnRuntime.Script.CalculatePreloads(Game.GameData);
                 //rpcClient.SetPreloads(msnPreload); // TODO: Re-implement
 

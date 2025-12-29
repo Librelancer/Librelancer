@@ -1,11 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
-using LibreLancer;
+using LancerEdit.GameContent.Lookups;
+using LancerEdit.GameContent.Popups;
 using LibreLancer.Data;
-using LibreLancer.Data.Ini;
+using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
@@ -73,65 +73,25 @@ public sealed partial class MissionScriptEditorTab
         ImGui.EndChild();
     }
 
-    private int selectedDialogIndex = -1;
+    private ScriptDialog selectedDialog;
 
     private void RenderDialogManager()
     {
-        if (ImGui.Button("Create New Dialog"))
+        DictionaryRemove<ScriptDialog> Delete()
         {
-            selectedDialogIndex = missionIni.Dialogs.Count;
-            undoBuffer.Commit(new ListAdd<MissionDialog>("Dialog", missionIni.Dialogs, new()));
+            return new(
+                "Dialog",
+                missionIni.Dialogs, selectedDialog,
+                () => ref selectedDialog);
         }
-
-        ImGui.BeginDisabled(selectedDialogIndex == -1);
-
-        if (ImGui.Button("Delete Dialog"))
-        {
-            win.Confirm("Are you sure you want to delete this dialog?",
-                () =>
-                {
-                    undoBuffer.Commit(new ListRemove<MissionDialog>("Dialog", missionIni.Dialogs,
-                        selectedDialogIndex,
-                        missionIni.Dialogs[selectedDialogIndex]));
-                    selectedDialogIndex--;
-                });
-        }
-
-        ImGui.EndDisabled();
-
-        if (selectedDialogIndex >= missionIni.Dialogs.Count)
-            selectedDialogIndex = -1;
-
-        var selectedDialog = selectedDialogIndex != -1 ? missionIni.Dialogs[selectedDialogIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-
-        if (ImGui.BeginCombo("Dialogs", selectedDialog is not null ? selectedDialog.Nickname : ""))
-        {
-            for (var index = 0; index < missionIni.Dialogs.Count; index++)
-            {
-                var arch = missionIni.Dialogs[index];
-                var selected = arch == selectedDialog;
-
-                if (!ImGui.Selectable(arch?.Nickname, selected))
-                {
-                    continue;
-                }
-
-                selectedDialogIndex = index;
-                selectedDialog = arch;
-            }
-
-            ImGui.EndCombo();
-        }
+        ItemList("Dialog", missionIni.Dialogs, () => ref selectedDialog, Delete);
 
         if (selectedDialog is null)
         {
             return;
         }
 
-        ImGui.PushID(selectedDialogIndex);
-
-        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedDialog.Nickname, 150f);
+        InputItemNickname("Nickname", undoBuffer, missionIni.Dialogs, selectedDialog);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedDialog.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedDialog.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
@@ -148,28 +108,14 @@ public sealed partial class MissionScriptEditorTab
 
             if (ImGui.Button(Icons.Play))
             {
-                var src = missionIni.Ships.FirstOrDefault(x =>
-                    x.Nickname.Equals(line.Source, StringComparison.OrdinalIgnoreCase));
-
-                if (src is not null)
+                if (missionIni.Ships.TryGetValue(line.Source, out var src))
                 {
-                    var npc = missionIni.NPCs.FirstOrDefault(x =>
-                        x.Nickname.Equals(src.NPC, StringComparison.OrdinalIgnoreCase));
+                    gameData.Sounds.PlayVoiceLine(src.NPC.Voice, FLHash.CreateID(line.Line));
 
-                    if (npc is not null)
-                    {
-                        gameData.Sounds.PlayVoiceLine(npc.Voice, FLHash.CreateID(line.Line));
-                    }
                 }
-                else
+                else if (missionIni.Solars.TryGetValue(line.Source, out var src2))
                 {
-                    var source2 = missionIni.Solars.FirstOrDefault(x =>
-                        x.Nickname.Equals(line.Source, StringComparison.OrdinalIgnoreCase));
-
-                    if (source2 != null)
-                    {
-                        gameData.Sounds.PlayVoiceLine(source2.Voice, FLHash.CreateID(line.Line));
-                    }
+                    gameData.Sounds.PlayVoiceLine(src2.Voice, FLHash.CreateID(line.Line));
                 }
             }
 
@@ -182,70 +128,45 @@ public sealed partial class MissionScriptEditorTab
         }
 
         MissionEditorHelpers.AddRemoveListButtons(selectedDialog.Lines, undoBuffer);
-
-        ImGui.PopID();
     }
 
-    private int selectedLootIndex = -1;
+    private ScriptLoot selectedLoot;
+    private ScriptLoot lookupLoot;
+    private EquipmentLookup lootArch;
+
+    // TODO
+    bool ValidLoot(Equipment eq) => true;
 
     private void RenderLootManager()
     {
-        if (ImGui.Button("Create New Loot"))
+        DictionaryRemove<ScriptLoot> Delete()
         {
-            selectedLootIndex = missionIni.Loots.Count;
-            undoBuffer.Commit(new ListAdd<MissionLoot>("Loot", missionIni.Loots, new()));
+            return new(
+                "Loot",
+                missionIni.Loots, selectedLoot,
+                () => ref selectedLoot);
         }
-
-        ImGui.BeginDisabled(selectedLootIndex == -1);
-
-        if (ImGui.Button("Delete Loot"))
-        {
-            win.Confirm("Are you sure you want to delete this loot?",
-                () =>
-                {
-                    undoBuffer.Commit(new ListRemove<MissionLoot>("Loot", missionIni.Loots,
-                        selectedLootIndex,
-                        missionIni.Loots[selectedLootIndex]));
-                    selectedLootIndex--;
-                });
-        }
-
-        ImGui.EndDisabled();
-
-        if(selectedLootIndex >= missionIni.Loots.Count)
-            selectedLootIndex = -1;
-
-        var selectedLoot = selectedLootIndex != -1 ? missionIni.Loots[selectedLootIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-
-        if (ImGui.BeginCombo("Loots", selectedLoot is not null ? selectedLoot.Nickname : ""))
-        {
-            for (var index = 0; index < missionIni.Loots.Count; index++)
-            {
-                var arch = missionIni.Loots[index];
-                var selected = arch == selectedLoot;
-
-                if (!ImGui.Selectable(arch?.Nickname, selected))
-                {
-                    continue;
-                }
-
-                selectedLootIndex = index;
-                selectedLoot = arch;
-            }
-
-            ImGui.EndCombo();
-        }
+        ItemList("Loot", missionIni.Loots, () => ref selectedLoot, Delete);
 
         if (selectedLoot is null)
         {
             return;
         }
 
-        ImGui.PushID(selectedLootIndex);
+        if (lookupLoot != selectedLoot)
+        {
+            lootArch = new EquipmentLookup("##equip", gameData,
+                selectedLoot.Archetype, ValidLoot);
+            lootArch.OnSelected = x =>
+                undoBuffer.Set("Archetype", () => ref selectedLoot.Archetype, x);
+            lookupLoot = selectedLoot;
+        }
 
-        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedLoot.Nickname, 150f);
-        Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedLoot.Archetype, 150f);
+        InputItemNickname("Nickname", undoBuffer, missionIni.Loots, selectedLoot);
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Archetype");
+        ImGui.SameLine();
+        lootArch.Draw();
         Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer,
             () => ref selectedLoot.StringId,
             inputWidth: 150f);
@@ -274,84 +195,63 @@ public sealed partial class MissionScriptEditorTab
 
         Controls.CheckboxUndo("Can Jettison", undoBuffer, () => ref selectedLoot.CanJettison);
 
-        ImGui.PopID();
     }
 
-    private int selectedSolarIndex = -1;
+    private ScriptSolar selectedSolar = null;
+    private ScriptSolar lookupSolar = null;
+    private FactionLookup solarFaction;
+    private CostumeLookup solarCostume;
 
     private void RenderMissionSolarManager()
     {
-        if (ImGui.Button("Create New Solar"))
+        DictionaryRemove<ScriptSolar> Delete()
         {
-            selectedSolarIndex = missionIni.Solars.Count;
-            undoBuffer.Commit(new ListAdd<MissionSolar>("Solar", missionIni.Solars, new()));
+            return new(
+                "Solar",
+                missionIni.Solars, selectedSolar,
+                () => ref selectedSolar);
         }
-
-        ImGui.BeginDisabled(selectedSolarIndex == -1);
-
-        if (ImGui.Button("Delete Solar"))
-        {
-            win.Confirm("Are you sure you want to delete this solar?",
-                () =>
-                {
-                    undoBuffer.Commit(new ListRemove<MissionSolar>("Solar", missionIni.Solars,
-                        selectedSolarIndex,
-                        missionIni.Solars[selectedSolarIndex]));
-                    selectedSolarIndex--;
-                });
-        }
-
-        ImGui.EndDisabled();
-
-        if (selectedSolarIndex >= missionIni.Solars.Count)
-            selectedSolarIndex = -1;
-        var selectedSolar = selectedSolarIndex != -1 ? missionIni.Solars[selectedSolarIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-
-        if (ImGui.BeginCombo("Solars", selectedSolar is not null ? selectedSolar.Nickname : ""))
-        {
-            for (var index = 0; index < missionIni.Solars.Count; index++)
-            {
-                var arch = missionIni.Solars[index];
-                var selected = arch == selectedSolar;
-
-                if (!ImGui.Selectable(arch?.Nickname, selected))
-                {
-                    continue;
-                }
-
-                selectedSolarIndex = index;
-                selectedSolar = arch;
-            }
-
-            ImGui.EndCombo();
-        }
+        ItemList("Solar", missionIni.Solars, () => ref selectedSolar, Delete);
 
         if (selectedSolar is null)
         {
             return;
         }
 
-        ImGui.PushID(selectedSolarIndex);
+        if (lookupSolar != selectedSolar)
+        {
+            solarFaction = new("##solarFaction", gameData, selectedSolar.Faction);
+            solarFaction.OnSelected = n => undoBuffer.Set("Faction", () => ref selectedSolar.Faction, n);
+            solarCostume = new CostumeLookup("##solarCostume", gameData,  selectedSolar.Costume);
+            solarCostume.Head.OnSelected = n =>
+                undoBuffer.Set("Head", () => ref selectedSolar.Costume.Head, n);
+            solarCostume.Body.OnSelected = n =>
+                undoBuffer.Set("Body", () => ref selectedSolar.Costume.Body, n);
+            solarCostume.Accessory.OnSelected = n =>
+                undoBuffer.Set("Accessory", () => ref selectedSolar.Costume.Accessory, n);
+            lookupSolar = selectedSolar;
+        }
 
-        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedSolar.Nickname, 150f);
+        InputItemNickname("Nickname", undoBuffer, missionIni.Solars, selectedSolar);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedSolar.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.System,
                                                              StringComparison.InvariantCultureIgnoreCase)));
 
-        Controls.InputTextIdUndo("Faction", undoBuffer, () => ref selectedSolar.Faction, 150f);
-        MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Faction.Length is 0 ||
-                                                     gameData.GameData.Items.Factions.Any(x =>
-                                                         x.Nickname.Equals(selectedSolar.Faction,
-                                                             StringComparison.InvariantCultureIgnoreCase)));
+        ImGui.AlignTextToFramePadding();
+        ImGui.Text("Faction");
+        ImGui.SameLine();
+        solarFaction.Draw();
 
-        Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedSolar.Archetype, 150f);
-        MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Archetype.Length is 0 ||
-                                                     gameData.GameData.Items.Archetypes.Any(x =>
-                                                         x.Nickname.Equals(selectedSolar.Archetype,
-                                                             StringComparison.InvariantCultureIgnoreCase)));
+        Controls.DisabledInputTextId("Archetype", selectedSolar.Archetype?.Nickname ?? "(none)");
+        if (ImGui.Button("Select Archetype"))
+        {
+            popup.OpenPopup(new ArchetypeSelection(
+                x => undoBuffer.Set("Archetype", () => ref selectedSolar.Archetype, x),
+                selectedSolar.Archetype,
+                gameData));
+        }
 
         Controls.InputTextIdUndo("Base", undoBuffer, () => ref selectedSolar.Base, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.Base.Length is 0 ||
@@ -367,13 +267,11 @@ public sealed partial class MissionScriptEditorTab
 
         Controls.InputTextIdUndo("Voice", undoBuffer, () => ref selectedSolar.Voice, 150f);
         Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedSolar.Pilot, 150f);
-        Controls.InputTextIdUndo("Costume Head", undoBuffer, () => ref selectedSolar.Costume[0], 150f);
-        Controls.InputTextIdUndo("Costume Body", undoBuffer, () => ref selectedSolar.Costume[1], 150f);
-        Controls.InputTextIdUndo("Costume Accessory", undoBuffer, () => ref selectedSolar.Costume[2], 150f);
+        solarCostume.Draw();
         Controls.InputTextIdUndo("Visit", undoBuffer, () => ref selectedSolar.Visit, 150f);
 
         ImGui.SetNextItemWidth(100f);
-        Controls.IdsInputStringUndo("String ID", gameData, popup, undoBuffer, () => ref selectedSolar.StringId);
+        Controls.IdsInputStringUndo("String ID", gameData, popup, undoBuffer, () => ref selectedSolar.IdsName);
 
         ImGui.SetNextItemWidth(100f);
         Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedSolar.Radius);
@@ -387,69 +285,27 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.SetNextItemWidth(200f);
         Controls.InputQuaternionUndo("Orientation", undoBuffer, () => ref selectedSolar.Orientation);
-
-        ImGui.PopID();
     }
 
-    private int selectedShipIndex = -1;
+    private ScriptShip selectedShip;
 
     private void RenderMissionShipManager()
     {
-        if (ImGui.Button("Create New Ship"))
+        DictionaryRemove<ScriptShip> Delete()
         {
-            selectedShipIndex = missionIni.Ships.Count;
-            undoBuffer.Commit(new ListAdd<MissionShip>("Ship", missionIni.Ships, new()));
+            return new(
+                "Ship",
+                missionIni.Ships, selectedShip,
+                () => ref selectedShip);
         }
-
-        ImGui.BeginDisabled(selectedShipIndex == -1);
-
-        if (ImGui.Button("Delete Ship"))
-        {
-            win.Confirm("Are you sure you want to delete this ship?",
-                () =>
-                {
-                    undoBuffer.Commit(new ListRemove<MissionShip>("Ship", missionIni.Ships,
-                        selectedShipIndex,
-                        missionIni.Ships[selectedShipIndex]));
-                    selectedShipIndex--;
-                });
-        }
-
-        ImGui.EndDisabled();
-
-        if (selectedShipIndex >= missionIni.Ships.Count)
-            selectedShipIndex = -1;
-
-        var selectedShip = selectedShipIndex != -1 ? missionIni.Ships[selectedShipIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-
-        if (ImGui.BeginCombo("Ships", selectedShip is not null ? selectedShip.Nickname : ""))
-        {
-            for (var index = 0; index < missionIni.Ships.Count; index++)
-            {
-                var arch = missionIni.Ships[index];
-                var selected = arch == selectedShip;
-
-                if (!ImGui.Selectable(arch?.Nickname, selected))
-                {
-                    continue;
-                }
-
-                selectedShipIndex = index;
-                selectedShip = arch;
-            }
-
-            ImGui.EndCombo();
-        }
+        ItemList("Ship", missionIni.Ships, () => ref selectedShip, Delete);
 
         if (selectedShip is null)
         {
             return;
         }
 
-        ImGui.PushID(selectedShipIndex);
-
-        Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref selectedShip.Nickname, 150f);
+        InputItemNickname("Nickname", undoBuffer, missionIni.Ships, selectedShip);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedShip.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedShip.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
@@ -457,19 +313,18 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.SetNextItemWidth(150f);
 
-        if (ImGui.BeginCombo("NPC", selectedShip.NPC ?? ""))
+        if (ImGui.BeginCombo("NPC", selectedShip.NPC?.Nickname ?? $"{Icons.Warning} None"))
         {
-            foreach (var npc in missionIni.NPCs
-                         .Select(x => x.Nickname)
-                         .Where(x => ImGui.Selectable(x ?? "", selectedShip.NPC == x)))
+            foreach (var npc in missionIni.Npcs)
             {
-                undoBuffer.Set("NPC", () => ref selectedShip.NPC, npc);
+                if (ImGui.Selectable(npc.Key, selectedShip.NPC == npc.Value)
+                    && selectedShip.NPC != npc.Value)
+                {
+                    undoBuffer.Set("NPC", () => ref selectedShip.NPC, npc.Value);
+                }
             }
-
             ImGui.EndCombo();
         }
-
-        MissionEditorHelpers.AlertIfInvalidRef(() => missionIni.NPCs.Any(x => x.Nickname == selectedShip.NPC));
 
         ImGui.NewLine();
 
@@ -515,8 +370,7 @@ public sealed partial class MissionScriptEditorTab
                 undoBuffer.Set("InitObjectives", () => ref selectedShip.InitObjectives, "no_op");
             }
 
-            foreach (var npc in missionIni.ObjLists
-                         .Select(x => x.Nickname)
+            foreach (var npc in missionIni.ObjLists.Keys
                          .Where(x => ImGui.Selectable(x ?? "", selectedShip.InitObjectives == x)))
             {
                 undoBuffer.Set("InitObjectives", () => ref selectedShip.InitObjectives, npc);
@@ -528,8 +382,7 @@ public sealed partial class MissionScriptEditorTab
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedShip.InitObjectives is null ||
                                                      selectedShip.InitObjectives.Length is 0 ||
                                                      selectedShip.InitObjectives == "no_op" ||
-                                                     missionIni.ObjLists.Any(x =>
-                                                         x.Nickname == selectedShip.InitObjectives));
+                                                     missionIni.ObjLists.ContainsKey(selectedShip.InitObjectives));
 
         ImGui.Text("Cargo");
 
@@ -553,80 +406,27 @@ public sealed partial class MissionScriptEditorTab
                 }
 
                 ImGui.PopID();
-                selectedShip.Cargo[i] = cargo;
             }
         }
 
         MissionEditorHelpers.AddRemoveListButtons(selectedShip.Cargo, undoBuffer);
-
-        ImGui.PopID();
     }
 
-    private int objectiveListIndex = -1;
+    private ScriptAiCommands selectedObjList;
 
     private void RenderObjectiveListManager()
     {
-        if (ImGui.Button("New Objective List"))
+        DictionaryRemove<ScriptAiCommands> Delete()
         {
-            popup.OpenPopup(new NameInputPopup(
-                NameInputConfig.Nickname("New Objective List",
-                    x => objLists.Any(y => y.Nickname.Equals(x, StringComparison.OrdinalIgnoreCase))
-                ), "", newName =>
-                {
-                    undoBuffer.Commit(new ListAdd<ScriptAiCommands>("Objective List", objLists, new(newName)));
-                    objectiveListIndex = objLists.Count;
-                }));
+            return new(
+                "Objective List",
+                missionIni.ObjLists, selectedObjList,
+                () => ref selectedObjList);
         }
-
-        ImGui.BeginDisabled(objectiveListIndex == -1);
-
-        if (ImGui.Button("Delete Objective List"))
-        {
-            win.Confirm("Are you sure you want to delete this ObjList?",
-                () =>
-                {
-                    undoBuffer.Commit(new ListRemove<ScriptAiCommands>(
-                        "Objective List",
-                        objLists,
-                        objectiveListIndex,
-                        objLists[objectiveListIndex]));
-                    objectiveListIndex--;
-                });
-        }
-
-        ImGui.EndDisabled();
-
-        if (objectiveListIndex >= objLists.Count)
-            objectiveListIndex = -1;
-
-        ImGui.PushID(objectiveListIndex);
-        var selectedObjList = objectiveListIndex != -1 ? objLists[objectiveListIndex] : null;
-        ImGui.SetNextItemWidth(150f);
-
-
-
-        if (ImGui.BeginCombo("Objective Lists", selectedObjList is not null ? selectedObjList.Nickname : ""))
-        {
-            for (var index = 0; index < objLists.Count; index++)
-            {
-                var arch = objLists[index];
-                var selected = arch == selectedObjList;
-
-                if (!ImGui.Selectable(arch?.Nickname, selected))
-                {
-                    continue;
-                }
-
-                objectiveListIndex = index;
-                selectedObjList = arch;
-            }
-
-            ImGui.EndCombo();
-        }
+        ItemList("Objective List", missionIni.ObjLists, () => ref selectedObjList, Delete);
 
         if (selectedObjList is null)
         {
-            ImGui.PopID();
             return;
         }
 
@@ -662,7 +462,6 @@ public sealed partial class MissionScriptEditorTab
             undoBuffer.Commit(new ListAdd<MissionDirective>("Command", selectedObjList.Directives, new BreakFormationDirective()));
         }
 
-        ImGui.PopID();
         return;
 
         bool DrawDirective(int id, MissionDirective cmd)

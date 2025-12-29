@@ -47,12 +47,12 @@ public class EditorUndoBuffer
         Hook?.Invoke();
     }
 
-    public void Set<T>(string name, EditorPropertyModification<T>.Accessor accessor, T newValue)
+    public void Set<T>(string name, FieldAccessor<T> accessor, T newValue)
     {
         Commit(EditorPropertyModification<T>.Create(name, accessor, newValue));
     }
 
-    public void Set<T>(string name, EditorPropertyModification<T>.Accessor accessor, T oldValue, T newValue)
+    public void Set<T>(string name, FieldAccessor<T> accessor, T oldValue, T newValue)
     {
         Commit(EditorPropertyModification<T>.Create(name, accessor, oldValue, newValue));
     }
@@ -177,14 +177,15 @@ public abstract class EditorFlagModification<T, TFlag>(TFlag flag, bool newValue
     }
 }
 
+public delegate ref T FieldAccessor<T>();
+
+
 public class EditorPropertyModification<T> : EditorModification<T>
 {
-    public delegate ref T Accessor();
-
     private string name;
-    private Accessor accessor;
+    private FieldAccessor<T> accessor;
 
-    private EditorPropertyModification(string name, T old, T updated, Accessor accessor)
+    private EditorPropertyModification(string name, T old, T updated, FieldAccessor<T> accessor)
         : base(old, updated)
     {
         this.name = name;
@@ -201,10 +202,10 @@ public class EditorPropertyModification<T> : EditorModification<T>
 
     public override string ToString() => $"{name}\nOld: {Print(Old)}\nUpdated: {Print(Updated)}";
 
-    public static EditorPropertyModification<T> Create(string name, Accessor accessor, T updated)
+    public static EditorPropertyModification<T> Create(string name, FieldAccessor<T> accessor, T updated)
         => new(name, accessor(), updated, accessor);
 
-    public static EditorPropertyModification<T> Create(string name, Accessor accessor, T old, T updated)
+    public static EditorPropertyModification<T> Create(string name, FieldAccessor<T> accessor, T old, T updated)
         => new(name, old, updated, accessor);
 }
 
