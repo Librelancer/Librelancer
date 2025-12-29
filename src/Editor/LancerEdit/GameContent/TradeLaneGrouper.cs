@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Solar;
 using LibreLancer.World;
 
 namespace LancerEdit.GameContent;
@@ -12,7 +13,7 @@ public static class TradeLaneGrouper
     public static List<TradeLaneGroup> Build(IEnumerable<GameObject> items)
     {
         var all = items
-            .Where(IsGroupable)
+            .Where(IsTradeLane)
             .ToDictionary(GetKey);
 
         var visited = new HashSet<string>();
@@ -33,16 +34,16 @@ public static class TradeLaneGrouper
 
         return groups;
     }
+    public static bool IsTradeLane(GameObject obj)
+    {
+        var arch = obj.SystemObject.Archetype;
+        return arch != null &&
+               arch.Type == ArchetypeType.tradelane_ring && 
+               obj.SystemObject?.Dock?.Kind == DockKinds.Tradelane;
+    }
 
     static string GetKey(GameObject obj)
         => obj.Nickname;
-    static bool IsGroupable(GameObject obj)
-    {
-        var arch = obj.SystemObject.Archetype?.Nickname;
-        return arch != null &&
-               arch.Contains("trade_lane", StringComparison.OrdinalIgnoreCase) &&
-               obj.SystemObject.Dock.Kind == DockKinds.Tradelane;
-    }
     static bool TryFollow(string target,IReadOnlyDictionary<string, GameObject> all,out GameObject obj)
     {
         obj = null;

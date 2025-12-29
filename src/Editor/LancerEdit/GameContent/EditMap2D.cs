@@ -349,7 +349,7 @@ public class EditMap2D
         // ---- Build clusters ----
         foreach (var obj in tab.ObjectsList.Objects)
         {
-            if (IsTradeLaneRing(obj))
+            if (TradeLaneGrouper.IsTradeLane(obj))
                 continue;
 
             Vector2 screen = WorldToScreen(
@@ -404,7 +404,7 @@ public class EditMap2D
             bool clicked;
 
             var obj = cluster.Objects[0];
-            bool isTradelane = IsTradeLaneRing(obj);
+            bool isTradelane = TradeLaneGrouper.IsTradeLane(obj);
 
             // Cluster
             if (cluster.Objects.Count > 1)
@@ -767,13 +767,6 @@ public class EditMap2D
         return new Vector2(cx * inv, cy * inv);
     }
 
-    static bool IsTradeLaneRing(GameObject obj)
-    {
-        var arch = obj.SystemObject.Archetype?.Nickname;
-        return arch != null &&
-               arch.Contains("trade_lane", StringComparison.OrdinalIgnoreCase)
-               && obj.SystemObject.Dock.Kind == DockKinds.Tradelane;
-    }
     void BeginTradeLaneGroupDrag(TradeLaneGroup group)
     {
 
