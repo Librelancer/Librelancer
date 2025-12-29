@@ -1,25 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using LancerEdit.GameContent.Groups;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.World;
 
-namespace LancerEdit.GameContent.Groups;
+namespace LancerEdit.GameContent;
 
-public class TradeLaneGroup : SystemObjectGroup<GameObject>
+public class TradeLaneGroup 
 {
-    public Vector3 GetAveragePosition()
-    {
-        if (Members.Count == 0)
-            return Vector3.Zero;
-
-        Vector3 sum = Vector3.Zero;
-        foreach (var m in Members)
-            sum += m.LocalTransform.Position;
-
-        return sum / Members.Count;
-    }
+    public readonly List<GameObject> Members = new();
 
     public (GameObject start, GameObject end) GetEndpoints()
     {
@@ -59,5 +49,9 @@ public class TradeLaneGroup : SystemObjectGroup<GameObject>
 
         return left && right;
     }
-
+    public void Add(GameObject obj)
+    {
+        if (!Members.Contains(obj))
+            Members.Add(obj);
+    }
 }

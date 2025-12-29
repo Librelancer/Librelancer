@@ -2,13 +2,9 @@ using System;
 using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.Drawing;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Numerics;
 using ImGuiNET;
-using LancerEdit.GameContent.Groups;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.Data.GameData.World;
@@ -64,8 +60,7 @@ public class EditMap2D
 
     public void Draw(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, RenderContext renderContext)
     {
-        groupedTradelanes = new TradeLaneGrouper()
-            .Build(tab.ObjectsList.Objects);
+        groupedTradelanes = TradeLaneGrouper.Build(tab.ObjectsList.Objects);
 
         // Reserve stable layout space (CRITICAL: prevents scrolling bug)
         Vector2 canvasPos = ImGui.GetCursorScreenPos();
