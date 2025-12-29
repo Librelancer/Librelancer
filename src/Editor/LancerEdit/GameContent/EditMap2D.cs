@@ -170,14 +170,6 @@ public class EditMap2D
         }
     }
 
-    static bool IsTradeLaneRing(GameObject obj)
-    {
-        var arch = obj.SystemObject.Archetype?.Nickname;
-        return arch != null &&
-               arch.Contains("trade_lane", StringComparison.OrdinalIgnoreCase)
-               && obj.SystemObject.Dock.Kind == DockKinds.Tradelane;
-    }
-
     void DrawGridAndLabelsViewportAware(ImDrawListPtr drawList, Vector2 viewportPos, Vector2 viewportSize, Vector2 mapTopLeft, float mapSize)
     {
         Vector2 viewportMin = viewportPos;
@@ -299,25 +291,21 @@ public class EditMap2D
                     }
                 }
 
-                if (!added)
-                {
+                if (added) continue;
+
                     clusters.Add(new ObjectCluster
                     {
                         ScreenPos = screen,
                         Objects = { obj }
                     });
-                }
-            }
-            else
-            {
-                // no clustering -> always its own cluster
-                clusters.Add(new ObjectCluster
-                {
-                    ScreenPos = screen,
-                    Objects = { obj }
-                });
             }
 
+            // no clustering -> always its own cluster
+            clusters.Add(new ObjectCluster
+            {
+                ScreenPos = screen,
+                Objects = { obj }
+            });
         }
 
         // ---- Render clusters / objects ----
@@ -384,12 +372,12 @@ public class EditMap2D
 
                 drawList.AddText(TextPos, COLOUR_WHITE, cluster.Objects[0].Nickname);
 
-                drawList.AddImage(icon,min,max,
+                drawList.AddImage(icon, min, max,
                     new Vector2(0, 1), // UV top-left
                     new Vector2(1, 0)  // UV bottom-right (flipped V)
                 );
 
-                drawList.AddRect(min,max,COLOUR_WHITE,2);
+                drawList.AddRect(min, max, COLOUR_WHITE, 2);
 
                 drawList.AddRect(min, max,
                     selected ? SELECTED_COLOUR : TRADELANE_DESELECTED_COLOUR,
@@ -607,6 +595,7 @@ public class EditMap2D
         }
     }
 
+    // coord helpers
     Vector2 WorldToScreen(Vector3 worldPos, SystemEditData system, Vector2 mapTopLeft, float mapSize)
     {
         float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
@@ -648,6 +637,14 @@ public class EditMap2D
             0,
             map01.Y * scale
         );
+    }
+
+    static bool IsTradeLaneRing(GameObject obj)
+    {
+        var arch = obj.SystemObject.Archetype?.Nickname;
+        return arch != null &&
+               arch.Contains("trade_lane", StringComparison.OrdinalIgnoreCase)
+               && obj.SystemObject.Dock.Kind == DockKinds.Tradelane;
     }
 }
 
