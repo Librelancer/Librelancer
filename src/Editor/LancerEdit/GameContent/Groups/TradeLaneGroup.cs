@@ -54,15 +54,10 @@ public class TradeLaneGroup : SystemObjectGroup<GameObject>
         if (dock == null) return true;
         if (dock.Kind != DockKinds.Tradelane) return true;
 
-        bool left = IsTradeLaneName(dock.TargetLeft);
-        bool right = IsTradeLaneName(dock.Target);
+        bool left = string.IsNullOrWhiteSpace(dock.TargetLeft);
+        bool right = string.IsNullOrWhiteSpace(dock.Target);
 
-        return !(left && right);
+        return left && right;
     }
 
-    private static bool IsTradeLaneName(string s)
-    {
-        if (string.IsNullOrEmpty(s)) return false;
-        return s.Contains("trade_lane", StringComparison.OrdinalIgnoreCase);
-    }
 }
