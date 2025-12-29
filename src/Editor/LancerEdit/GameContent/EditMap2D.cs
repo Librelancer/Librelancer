@@ -328,7 +328,9 @@ public class EditMap2D
                 1f
             );
 
-            Vector2 center = PolygonCentroid(verts.AsSpan(0, mesh.Length));
+            var local = z.Current.ZoneCenter;
+            var worldCenter = z.Current.Position + new Vector3(local.X, 0, local.Y);
+            Vector2 center = WorldToScreen(worldCenter, system, mapTopLeft, mapSize);
 
             string label = z.Current.Nickname; // or DisplayName
             Vector2 textSize = ImGui.CalcTextSize(label);
