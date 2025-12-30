@@ -56,15 +56,15 @@ public class RunningServerScreen(
 
         if (win.Server == null || (!win.IsRunning && !isStarting))
         {
-            ImGuiExt.CenterText(config.ServerName, Theme.ERROR_TEXT_COLOUR);
+            ImGuiExt.CenterText(config.ServerName, Theme.ErrorTextColour);
         }
         else if (isStarting)
         {
-            ImGuiExt.CenterText(config.ServerName, Theme.WARN_TEXT_COLOUR);
+            ImGuiExt.CenterText(config.ServerName, Theme.WarnTextColour);
         }
         else
         {
-            ImGuiExt.CenterText(config.ServerName, Theme.SUCCESS_TEXT_COLOUR);
+            ImGuiExt.CenterText(config.ServerName, Theme.SuccessTextColour);
         }
 
         ImGui.PopFont();
@@ -128,42 +128,42 @@ public class RunningServerScreen(
     private void DrawServerStats()
     {
         ImGui.Text("Status:");
-        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
+        ImGui.SameLine(Theme.LabelWidthMedium * ImGuiHelper.Scale);
         if (win.Server == null || (!win.IsRunning && !isStarting))
         {
-            ImGui.TextColored(Theme.ERROR_TEXT_COLOUR, "Not running");
+            ImGui.TextColored(Theme.ErrorTextColour, "Not running");
         }
         else if (isStarting)
         {
-            ImGui.TextColored(Theme.WARN_TEXT_COLOUR, "Starting");
+            ImGui.TextColored(Theme.WarnTextColour, "Starting");
         }
         else
         {
-            ImGui.TextColored(Theme.SUCCESS_TEXT_COLOUR, "Running");
+            ImGui.TextColored(Theme.SuccessTextColour, "Running");
         }
 
         ImGui.Text("Listening Port:");
-        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
+        ImGui.SameLine(Theme.LabelWidthMedium * ImGuiHelper.Scale);
         ImGui.Text(win.Server?.Server?.Listener?.Port.ToString() ?? "-");
 
         ImGui.Separator();
 
         ImGui.Text("Players in Lobby");
-        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
+        ImGui.SameLine(Theme.LabelWidthMedium * ImGuiHelper.Scale);
         ImGui.Text(lobbyPlayers.Count().ToString());
 
         ImGui.Text("Players in Game");
-        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
+        ImGui.SameLine(Theme.LabelWidthMedium * ImGuiHelper.Scale);
         ImGui.Text(universePlayers.Count().ToString());
 
         ImGui.Text("Admins in Game");
-        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
+        ImGui.SameLine(Theme.LabelWidthMedium * ImGuiHelper.Scale);
         ImGui.Text(universePlayers.Count(p =>
             p.Character != null && admins != null &&
             admins.Any(a => a.Name == p.Character.Name)).ToString());
 
         ImGui.Text("Banned Players");
-        ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM * ImGuiHelper.Scale);
+        ImGui.SameLine(Theme.LabelWidthMedium * ImGuiHelper.Scale);
         ImGui.Text(bannedPlayers?.Count().ToString() ?? "-");
 
         if (ImGui.Button("Stop Server", new Vector2(-1, ImGui.GetFrameHeight() * 2 * ImGuiHelper.Scale)))
@@ -291,7 +291,7 @@ public class RunningServerScreen(
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
                     var icon = isAdmin ? Icons.Check : Icons.X;
-                    var colour = isAdmin ? Theme.SUCCESS_TEXT_COLOUR : Theme.ERROR_TEXT_COLOUR;
+                    var colour = isAdmin ? Theme.SuccessTextColour : Theme.ErrorTextColour;
                     ImGui.TextColored(colour, icon.ToString());
 
                     ImGui.TableNextColumn();
@@ -355,7 +355,7 @@ public class RunningServerScreen(
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
                     var icon = isAdmin ? Icons.Check : Icons.X;
-                    var colour = isAdmin ? Theme.SUCCESS_TEXT_COLOUR : Theme.ERROR_TEXT_COLOUR;
+                    var colour = isAdmin ? Theme.SuccessTextColour : Theme.ErrorTextColour;
                     ImGui.TextColored(colour, icon.ToString());
 
                     ImGui.TableNextColumn();
@@ -582,7 +582,7 @@ public class RunningServerScreen(
                     ImGui.AlignTextToFramePadding();
                     var isOnline = win.Server?.Server.AllPlayers.Any(p => p.Name == admin.Name) ?? false;
                     var icon = isOnline ? Icons.Check : Icons.X;
-                    var color = isOnline ? Theme.SUCCESS_TEXT_COLOUR : Theme.ERROR_TEXT_COLOUR;
+                    var color = isOnline ? Theme.SuccessTextColour : Theme.ErrorTextColour;
                     ImGui.TextColored(color, icon.ToString());
 
 

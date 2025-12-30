@@ -5,9 +5,9 @@ using LibreLancer.ImUI;
 
 namespace LLServer;
 
-public class BanPopup : PopupWindow
+public sealed class BanPopup : PopupWindow
 {
-    public override string Title { get; set; } = "Confirm Ban Expiry";
+    public override string Title { get; set; }
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.NoCollapse;
     public override bool NoClose => true;
     public override Vector2 InitSize => new Vector2(400, 300);
@@ -29,7 +29,7 @@ public class BanPopup : PopupWindow
     {
         ImGui.Text("Are you sure you want to ban:");
         ImGui.Spacing();
-        ImGui.TextColored(Theme.SUCCESS_TEXT_COLOUR, playerName);
+        ImGui.TextColored(Theme.SuccessTextColour, playerName);
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
@@ -42,7 +42,7 @@ public class BanPopup : PopupWindow
 
         if (ImGui.Button("Confirm Ban", new Vector2(120 * ImGuiHelper.Scale, 0)))
         {
-            callback?.Invoke(expiryUtc);
+            callback.Invoke(expiryUtc);
             ImGui.CloseCurrentPopup();
         }
 
@@ -50,7 +50,7 @@ public class BanPopup : PopupWindow
 
         if (ImGui.Button("Cancel", new Vector2(120 * ImGuiHelper.Scale, 0)))
         {
-            callback?.Invoke(null);
+            callback.Invoke(null);
             ImGui.CloseCurrentPopup();
         }
     }

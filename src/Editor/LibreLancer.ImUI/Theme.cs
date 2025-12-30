@@ -2,13 +2,9 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Numerics;
-using System.Linq;
-using LibreLancer.ImageLib;
 using ImGuiNET;
+
 namespace LibreLancer.ImUI
 {
     public static class Theme
@@ -18,41 +14,39 @@ namespace LibreLancer.ImUI
             ImGui.GetStyle().Colors[(int)col] = rgba;
         }
 
-        public static Vector4 VTabInactive = RGBA(56, 56, 56, 255);
-        public static Vector4 VTabActive = RGBA(95, 97, 98, 255);
-        public static Vector4 WorkspaceBackground = RGBA(34, 34, 34, 255);
+        public static Vector4 VTabInactive = Rgba(56, 56, 56, 255);
+        public static Vector4 VTabActive = Rgba(95, 97, 98, 255);
+        public static Vector4 WorkspaceBackground = Rgba(34, 34, 34, 255);
 
-        public static readonly Vector4 ERROR_TEXT_COLOUR = new(1f, 0.3f, 0.3f, 1f);
-        public static readonly Vector4 WARN_TEXT_COLOUR = new(1f, 0.86f, 0.25f, 1f);
-        public static readonly Vector4 SUCCESS_TEXT_COLOUR = new(0f, 0.8f, 0.2f, 1f);
+        public static readonly Vector4 ErrorTextColour = new(1f, 0.3f, 0.3f, 1f);
+        public static readonly Vector4 WarnTextColour = new(1f, 0.86f, 0.25f, 1f);
+        public static readonly Vector4 SuccessTextColour = new(0f, 0.8f, 0.2f, 1f);
 
-        public static readonly Vector4 ERROR_INPUT_COLOUR = new Vector4(0.4f, 0.05f, 0.05f, 1f);
-        public static readonly Vector4 ERROR_INPUT_HOVER_COLOUR = new Vector4(0.6f, 0.1f, 0.1f, 1f);
-        public static readonly Vector4 ERROR_INPUT_ACTIVE_COLOUR = new Vector4(0.7f, 0.1f, 0.1f, 1f);
+        public static readonly Vector4 ErrorInputColour = new Vector4(0.4f, 0.05f, 0.05f, 1f);
+        public static readonly Vector4 ErrorInputHoverColour = new Vector4(0.6f, 0.1f, 0.1f, 1f);
+        public static readonly Vector4 ErrorInputActiveColour = new Vector4(0.7f, 0.1f, 0.1f, 1f);
 
-        public static readonly float LABEL_WIDTH = 100f;
-        public static readonly float LABEL_WIDTH_MEDIUM = 125f;
-        public static readonly float LABEL_WIDTH_LONG = 135f;
-
-        public static readonly float BUTTON_WIDTH = 110f;
-        public static readonly float BUTTON_WIDTH_MEDIUM = 120f;
-        public static readonly float BUTTON_WIDTH_LONG = 180f;
-
-        public static readonly float SQAURE_BUTTON_WIDTH = 30;
-        public static readonly float BUTTON_PADDING = 16;
+        public static float LabelWidth => 100f * ImGuiHelper.Scale;
+        public static float LabelWidthMedium => 125f * ImGuiHelper.Scale;
+        public static float LabelWidthLong => 135f * ImGuiHelper.Scale;
+        public static float ButtonWidth => 110f * ImGuiHelper.Scale;
+        public static float ButtonWidthMedium => 120f * ImGuiHelper.Scale;
+        public static float ButtonWidthLong => 180f * ImGuiHelper.Scale;
+        public static float SquareButtonWidth => 30 * ImGuiHelper.Scale;
+        public static float ButtonPadding => 16 * ImGuiHelper.Scale;
 
 
-        private static float currentScale = -1;
-        private static ImGuiStyle savedStyle;
-        private static bool inited = false;
+        private static float _currentScale = -1;
+        private static ImGuiStyle _savedStyle;
+        private static bool _inited = false;
 
         public const float FontSizeBase = 15f;
 
         static unsafe void Init()
         {
-            if (inited)
+            if (_inited)
                 return;
-            inited = true;
+            _inited = true;
             var s = ImGui.GetStyle();
             //Settings
             s.TreeLinesFlags = ImGuiTreeNodeFlags.DrawLinesToNodes;
@@ -62,37 +56,37 @@ namespace LibreLancer.ImUI
             s.FrameBorderSize = 1f;
             s.Alpha = 1;
             //Colours
-            SetColor(ImGuiCol.WindowBg, RGBA(41, 41, 42, 210));
-            SetColor(ImGuiCol.ChildBg, RGBA(0, 0, 0, 0));
-            SetColor(ImGuiCol.Border, RGBA(83, 83, 83, 255));
-            SetColor(ImGuiCol.BorderShadow, RGBA(0, 0, 0, 0));
-            SetColor(ImGuiCol.FrameBg, RGBA(48, 48, 48, 255));
-            SetColor(ImGuiCol.PopupBg, RGBA(48, 48, 48, 255));
-            SetColor(ImGuiCol.FrameBgHovered, RGBA(66, 133, 190, 255));
-            SetColor(ImGuiCol.Header, RGBA(88, 178, 255, 132));
-            SetColor(ImGuiCol.HeaderActive, RGBA(88, 178, 255, 164));
+            SetColor(ImGuiCol.WindowBg, Rgba(41, 41, 42, 210));
+            SetColor(ImGuiCol.ChildBg, Rgba(0, 0, 0, 0));
+            SetColor(ImGuiCol.Border, Rgba(83, 83, 83, 255));
+            SetColor(ImGuiCol.BorderShadow, Rgba(0, 0, 0, 0));
+            SetColor(ImGuiCol.FrameBg, Rgba(48, 48, 48, 255));
+            SetColor(ImGuiCol.PopupBg, Rgba(48, 48, 48, 255));
+            SetColor(ImGuiCol.FrameBgHovered, Rgba(66, 133, 190, 255));
+            SetColor(ImGuiCol.Header, Rgba(88, 178, 255, 132));
+            SetColor(ImGuiCol.HeaderActive, Rgba(88, 178, 255, 164));
             SetColor(ImGuiCol.FrameBgActive, VTabActive);
-            SetColor(ImGuiCol.MenuBarBg, RGBA(66, 67, 69, 255));
-            SetColor(ImGuiCol.ScrollbarBg, RGBA(51, 64, 77, 153));
-            SetColor(ImGuiCol.Button, RGBA(66, 66, 66, 255));
-            SetColor(ImGuiCol.TabSelected, RGBA(95, 97, 98, 255));
-            SetColor(ImGuiCol.TabHovered, RGBA(66, 133, 190, 255));
-            SetColor(ImGuiCol.Tab, RGBA(56, 57, 58, 255));
+            SetColor(ImGuiCol.MenuBarBg, Rgba(66, 67, 69, 255));
+            SetColor(ImGuiCol.ScrollbarBg, Rgba(51, 64, 77, 153));
+            SetColor(ImGuiCol.Button, Rgba(66, 66, 66, 255));
+            SetColor(ImGuiCol.TabSelected, Rgba(95, 97, 98, 255));
+            SetColor(ImGuiCol.TabHovered, Rgba(66, 133, 190, 255));
+            SetColor(ImGuiCol.Tab, Rgba(56, 57, 58, 255));
 
-            savedStyle = *s.Handle;
+            _savedStyle = *s.Handle;
         }
         public static unsafe void Apply(float scale)
         {
             Init();
             // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if (currentScale != scale)
+            if (_currentScale != scale)
             {
                 var s = ImGui.GetStyle();
-                *s.Handle = savedStyle;
+                *s.Handle = _savedStyle;
                 s.ScaleAllSizes(scale);
                 s.FontScaleDpi = scale;
                 s.FontSizeBase = FontSizeBase;
-                currentScale = scale;
+                _currentScale = scale;
             }
         }
 
@@ -119,7 +113,7 @@ namespace LibreLancer.ImUI
 
         public static bool BeginIconMenu(char icon, string text) => ImGui.BeginMenu($"{icon}   {text}");
 
-        static Vector4 RGBA(int r, int g, int b, int a)
+        static Vector4 Rgba(int r, int g, int b, int a)
         {
             return new Vector4(r / 255f, g / 255f, b / 255f, a / 255f);
         }
