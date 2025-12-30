@@ -194,7 +194,7 @@ public class ServerConfigurationScreen(
 
         ImGui.Dummy(new Vector2(0, ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() - 5 * ImGuiHelper.Scale));
         ImGui.BeginChild("startupError", new Vector2(0, ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale), ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar);
-        ImGuiExt.CenterText("Server Startup Error", Theme.ErrorTextColour);
+        ImGuiExt.CenterText("Server Startup Error", Theme.ErrorTextColor);
         ImGui.EndChild();
 
     }

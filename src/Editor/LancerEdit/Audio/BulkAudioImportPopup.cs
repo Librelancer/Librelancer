@@ -166,9 +166,9 @@ public class BulkAudioImportPopup : PopupWindow
 
         if (state.ErrorType == ErrorTypes.NoInputs)
         {
-            ImGui.PushStyleColor(ImGuiCol.Button, Theme.ErrorInputColour);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.ErrorInputHoverColour);
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, Theme.ErrorInputActiveColour);
+            ImGui.PushStyleColor(ImGuiCol.Button, Theme.ErrorInputColor);
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.ErrorInputHoverColor);
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, Theme.ErrorInputActiveColor);
         }
         if (ImGui.Button("Select Files", new Vector2(Theme.ButtonWidth, 0)))
         {
@@ -206,9 +206,9 @@ public class BulkAudioImportPopup : PopupWindow
 
         if (state.ErrorType == ErrorTypes.NoOutput)
         {
-            ImGui.PushStyleColor(ImGuiCol.Button, Theme.ErrorInputColour);
-            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.ErrorInputHoverColour);
-            ImGui.PushStyleColor(ImGuiCol.ButtonActive, Theme.ErrorInputActiveColour);
+            ImGui.PushStyleColor(ImGuiCol.Button, Theme.ErrorInputColor);
+            ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Theme.ErrorInputHoverColor);
+            ImGui.PushStyleColor(ImGuiCol.ButtonActive, Theme.ErrorInputActiveColor);
         }
 
         if (ImGui.Button("Choose", new Vector2(Theme.ButtonWidth, 0)))
@@ -227,9 +227,9 @@ public class BulkAudioImportPopup : PopupWindow
 
         if (state.ErrorType == ErrorTypes.NoOutput)
         {
-            ImGui.PushStyleColor(ImGuiCol.FrameBg, Theme.ErrorInputColour);  // dark red
-            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, Theme.ErrorInputHoverColour);
-            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, Theme.ErrorInputActiveColour);
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, Theme.ErrorInputColor);  // dark red
+            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, Theme.ErrorInputHoverColor);
+            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, Theme.ErrorInputActiveColor);
 
         }
 
@@ -559,9 +559,9 @@ public class BulkAudioImportPopup : PopupWindow
         // Node name
         if (state.ErrorType == ErrorTypes.NodeNameInvalid && string.IsNullOrWhiteSpace(e.NodeName))
         {
-            ImGui.PushStyleColor(ImGuiCol.FrameBg, Theme.ErrorInputColour);  // dark red
-            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, Theme.ErrorInputHoverColour);
-            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, Theme.ErrorInputActiveColour);
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, Theme.ErrorInputColor);  // dark red
+            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, Theme.ErrorInputHoverColor);
+            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, Theme.ErrorInputActiveColor);
 
         }
         ImGui.TableNextColumn();
@@ -838,7 +838,7 @@ public class BulkAudioImportPopup : PopupWindow
     void DrawStatusBar()
     {
         ImGui.BeginChild("status", new Vector2(0, 30), ImGuiChildFlags.Borders, ImGuiWindowFlags.NoScrollbar);
-        ImGui.TextColored(state.IsError ? Theme.ErrorTextColour : Theme.SuccessTextColour, state.StatusMessage ?? "");
+        ImGui.TextColored(state.IsError ? Theme.ErrorTextColor : Theme.SuccessTextColor, state.StatusMessage ?? "");
         ImGui.EndChild();
     }
 

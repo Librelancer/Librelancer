@@ -18,13 +18,13 @@ namespace LibreLancer.ImUI
         public static Vector4 VTabActive = Rgba(95, 97, 98, 255);
         public static Vector4 WorkspaceBackground = Rgba(34, 34, 34, 255);
 
-        public static readonly Vector4 ErrorTextColour = new(1f, 0.3f, 0.3f, 1f);
-        public static readonly Vector4 WarnTextColour = new(1f, 0.86f, 0.25f, 1f);
-        public static readonly Vector4 SuccessTextColour = new(0f, 0.8f, 0.2f, 1f);
+        public static readonly Vector4 ErrorTextColor = new(1f, 0.3f, 0.3f, 1f);
+        public static readonly Vector4 WarnTextColor = new(1f, 0.86f, 0.25f, 1f);
+        public static readonly Vector4 SuccessTextColor = new(0f, 0.8f, 0.2f, 1f);
 
-        public static readonly Vector4 ErrorInputColour = new Vector4(0.4f, 0.05f, 0.05f, 1f);
-        public static readonly Vector4 ErrorInputHoverColour = new Vector4(0.6f, 0.1f, 0.1f, 1f);
-        public static readonly Vector4 ErrorInputActiveColour = new Vector4(0.7f, 0.1f, 0.1f, 1f);
+        public static readonly Vector4 ErrorInputColor = new Vector4(0.4f, 0.05f, 0.05f, 1f);
+        public static readonly Vector4 ErrorInputHoverColor = new Vector4(0.6f, 0.1f, 0.1f, 1f);
+        public static readonly Vector4 ErrorInputActiveColor = new Vector4(0.7f, 0.1f, 0.1f, 1f);
 
         public static float LabelWidth => 100f * ImGuiHelper.Scale;
         public static float LabelWidthMedium => 125f * ImGuiHelper.Scale;

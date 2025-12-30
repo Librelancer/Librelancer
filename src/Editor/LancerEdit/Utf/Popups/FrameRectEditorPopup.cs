@@ -72,13 +72,13 @@ namespace LancerEdit.Utf.Popups
         {
             ImGui.Spacing();
             ImGui.PushFont(ImGuiHelper.Roboto, 22);
-            ImGuiExt.CenterText(sourceDataErrorMessage, Theme.ErrorTextColour);
+            ImGuiExt.CenterText(sourceDataErrorMessage, Theme.ErrorTextColor);
             ImGui.PopFont();
             ImGui.Spacing();
             ImGui.Separator();
             ImGui.Spacing();
             ImGuiExt.CenterText("New frame rect data needs to be generated.");
-            ImGuiExt.CenterText("This will delete any existing data on the selected node.", Theme.WarnTextColour);
+            ImGuiExt.CenterText("This will delete any existing data on the selected node.", Theme.WarnTextColor);
             ImGui.NewLine();
             ImGuiExt.CenterText("Do you want to continue?");
 

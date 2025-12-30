@@ -367,7 +367,7 @@ public class MainWindow() : Game(600, 600, true)
 
         if (StartupError)
         {
-            ImGui.SameLine(); ImGui.TextColored(Theme.ErrorTextColour, "Server Startup Error");
+            ImGui.SameLine(); ImGui.TextColored(Theme.ErrorTextColor, "Server Startup Error");
         }
         ImGui.End();
     }
