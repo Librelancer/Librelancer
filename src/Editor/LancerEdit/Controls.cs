@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using ImGuiNET;
 using LancerEdit.GameContent;
 using LancerEdit.GameContent.Popups;
@@ -70,10 +71,44 @@ public static class Controls
     public static void CheckboxUndo(string label, EditorUndoBuffer buffer,
         FieldAccessor<bool> value)
     {
-        var v = value();
-        if (ImGui.Checkbox(label, ref v))
+        if (InEditorTable)
         {
-            buffer.Set(label, value, v);
+            EditControlSetup(label, 0);
+            ImGui.PushID(label);
+            var v = value();
+            if (ImGui.Checkbox("##value", ref v))
+                buffer.Set(label, value, v);
+            ImGui.PopID();
+        }
+        else
+        {
+            var v = value();
+            if (ImGui.Checkbox(label, ref v))
+                buffer.Set(label, value, v);
+        }
+    }
+
+    public static void EditControlSetup(string label, float width, float tableWidth = -1)
+    {
+        if (InEditorTable)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+        }
+        ImGui.AlignTextToFramePadding();
+        Label(label);
+        if (InEditorTable)
+        {
+            ImGui.TableNextColumn();
+            ImGui.SetNextItemWidth(tableWidth);
+        }
+        else
+        {
+            ImGui.SameLine();
+            if (width > 0.0f)
+            {
+                ImGui.SetNextItemWidth(width);
+            }
         }
     }
 
@@ -84,13 +119,7 @@ public static class Controls
         float width = 0.0f)
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
-        if (width != 0.0f)
-        {
-            ImGui.SetNextItemWidth(width);
-        }
+        EditControlSetup(label, width);
         ImGuiExt.InputTextLogged("##input",
             ref value(),
             250,
@@ -112,9 +141,7 @@ public static class Controls
     )
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
+        EditControlSetup(label, 0);
         ref int v = ref value();
         int oldCopy = v;
         ImGui.InputInt("##input", ref v, step, step_fast, flags);
@@ -145,9 +172,7 @@ public static class Controls
         ImGuiSliderFlags flags = ImGuiSliderFlags.None)
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
+        EditControlSetup(label, 0);
         ref float v = ref value();
         float oldCopy = v;
         ImGui.SliderFloat(label, ref v, v_min, v_max, format, flags);
@@ -173,9 +198,7 @@ public static class Controls
     )
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
+        EditControlSetup(label, 0);
         ref float v = ref value();
         float oldCopy = v;
         ImGui.InputFloat("##input", ref v, step, step_fast, format, flags);
@@ -197,9 +220,7 @@ public static class Controls
         FieldAccessor<Quaternion> value)
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
+        EditControlSetup(label, 0);
         ref Quaternion q = ref value();
         Quaternion oldCopy = q;
         ImGui.InputFloat4("##input", ref Unsafe.As<Quaternion, Vector4>(ref q));
@@ -225,9 +246,7 @@ public static class Controls
     )
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
+        EditControlSetup(label, 0);
         ref Vector3 v = ref value();
         Vector3 oldCopy = v;
         ImGui.InputFloat3("##input", ref v, format, flags);
@@ -244,21 +263,24 @@ public static class Controls
 
     public static void DisabledInputTextId(string label, string value, float width = 0.0f)
     {
-        ImGui.BeginDisabled(true);
-        InputTextIdDirect(label, ref value, width);
+        EditControlSetup(label, width);
+        ImGui.PushID(label);
+        value ??= "";
+        ImGui.BeginDisabled();
+        ImGui.InputText("##input", ref value, 250, ImGuiInputTextFlags.ReadOnly);
         ImGui.EndDisabled();
+        ImGui.PopID();
     }
 
     public static bool InputTextIdDirect(string label, ref string value, float width = 0.0f)
     {
-        if (width != 0.0f)
-        {
-            ImGui.SetNextItemWidth(width);
-        }
-
+        EditControlSetup(label, width);
+        ImGui.PushID(label);
         value ??= "";
-        return ImGui.InputText(label, ref value, 250,
+        var ret = ImGui.InputText("##input", ref value, 250,
             ImGuiInputTextFlags.CallbackCharFilter | ImGuiInputTextFlags.EnterReturnsTrue, callback);
+        ImGui.PopID();
+        return ret;
     }
 
     public static bool SmallButton(string text)
@@ -380,6 +402,54 @@ public static class Controls
         ImGui.EndTable();
     }
 
+    public static bool InEditorTable;
+    public static bool BeginEditorTable(string id)
+    {
+        ImGui.PushID(id);
+        if (!ImGui.BeginTable("##editortable", 2))
+        {
+            ImGui.PopID();
+            return false;
+        }
+        ImGui.TableSetupColumn("##labels", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##values", ImGuiTableColumnFlags.WidthStretch);
+        InEditorTable = true;
+        return true;
+    }
+
+    public static void TableSeparator()
+    {
+        ImGui.EndTable();
+        ImGui.Separator();
+        ImGui.BeginTable("##editortable", 2);
+        ImGui.TableSetupColumn("##labels", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##values", ImGuiTableColumnFlags.WidthStretch);
+    }
+
+    [DllImport("cimgui")]
+    static extern void igTableFullRowBegin();
+    [DllImport("cimgui")]
+    static extern void igTableFullRowEnd();
+
+    public static void TableSeparatorText(string heading)
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.SeparatorTextBorderSize, 1);
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        igTableFullRowBegin();
+        ImGui.SeparatorText(heading);
+        igTableFullRowEnd();
+        ImGui.PopStyleVar();
+    }
+
+
+    public static void EndEditorTable()
+    {
+        InEditorTable = false;
+        ImGui.EndTable();
+        ImGui.PopID();
+    }
+
 
 
     public static void InputOptionalVector3Undo(string label,
@@ -469,9 +539,7 @@ public static class Controls
     public static void InputStringList(string id, EditorUndoBuffer undoBuffer, List<string> list, bool rmButtonOnEveryElement = true)
     {
         ImGui.PushID(id);
-        ImGui.AlignTextToFramePadding();
-        Label(id);
-
+        EditControlSetup(id,0);
         if (list.Count is 0)
         {
             AddListControls();
@@ -534,6 +602,9 @@ public static class Controls
         }
     }
 
+
+
+
     private static void IdsInput(string label, string infocard, int ids, bool showTooltipOnHover)
     {
         ImGui.InputInt(label, ref ids, 0, 0, ImGuiInputTextFlags.ReadOnly);
@@ -558,18 +629,24 @@ public static class Controls
         }
     }
 
+    static float ButtonWidth(string text)
+    {
+        var s = ImGui.GetStyle();
+        return 2 * s.FramePadding.X + s.FrameBorderSize +
+               s.ItemSpacing.X + ImGui.CalcTextSize(text).X;
+    }
+
     public static void IdsInputStringUndo(string label, GameDataContext gameData, PopupManager popup,
         EditorUndoBuffer undoBuffer, FieldAccessor<int> accessor,
         bool showTooltipOnHover = true, float inputWidth = 100f)
     {
+        ImGui.PushID(label);
+        EditControlSetup(label, inputWidth, -ButtonWidth("Browse"));
         int ids = accessor();
         var infocard = gameData.Infocards.GetStringResource(ids);
-        ImGui.PushItemWidth(inputWidth);
-        IdsInput(label, infocard, ids, showTooltipOnHover);
-        ImGui.PopItemWidth();
-        ImGui.PushID(label);
+        IdsInput("##idsinput", infocard, ids, showTooltipOnHover);
         ImGui.SameLine();
-        if (ImGui.Button("Browse Ids"))
+        if (ImGui.Button("Browse"))
         {
             popup.OpenPopup(new StringSelection(accessor(), gameData.Infocards,
                 n => undoBuffer.Set(label, accessor, n)));

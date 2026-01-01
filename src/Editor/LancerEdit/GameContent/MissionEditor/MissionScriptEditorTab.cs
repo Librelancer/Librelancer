@@ -673,14 +673,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         float width = 0.0f) where T : NicknameItem
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text(label);
-        ImGui.SameLine();
-        if (width != 0.0f)
-        {
-            ImGui.SetNextItemWidth(width);
-        }
-
+        Controls.EditControlSetup(label, width);
         if (ImGuiExt.InputTextLogged("##input",
                 ref value.Nickname,
                 250,

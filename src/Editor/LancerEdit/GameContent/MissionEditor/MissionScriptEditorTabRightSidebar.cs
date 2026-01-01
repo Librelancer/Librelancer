@@ -162,17 +162,15 @@ public sealed partial class MissionScriptEditorTab
             lookupLoot = selectedLoot;
         }
 
+        if (!Controls.BeginEditorTable("loot"))
+            return;
         InputItemNickname("Nickname", undoBuffer, missionIni.Loots, selectedLoot);
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Archetype");
-        ImGui.SameLine();
-        lootArch.Draw();
+        lootArch.Draw("Archetype");
         Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer,
             () => ref selectedLoot.StringId,
             inputWidth: 150f);
 
         ImGui.BeginDisabled(!string.IsNullOrEmpty(selectedLoot.RelPosObj) && selectedLoot.RelPosOffset != Vector3.Zero);
-        ImGui.SetNextItemWidth(200f);
         Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedLoot.Position);
         ImGui.EndDisabled();
 
@@ -181,20 +179,19 @@ public sealed partial class MissionScriptEditorTab
 
         Controls.InputTextIdUndo("Object", undoBuffer, () => ref selectedLoot.RelPosObj, 150f);
 
-        ImGui.SetNextItemWidth(200f);
         Controls.InputFloat3Undo("Offset", undoBuffer, () => ref selectedLoot.RelPosOffset);
 
         ImGui.EndDisabled();
 
-        ImGui.NewLine();
-        ImGui.SetNextItemWidth(200f);
+        Controls.TableSeparator();
+
         Controls.InputIntUndo("Equip Amount", undoBuffer, () => ref selectedLoot.EquipAmount);
 
-        ImGui.SetNextItemWidth(200f);
         Controls.SliderFloatUndo("Health", undoBuffer, () => ref selectedLoot.Health, 0f, 1f);
 
         Controls.CheckboxUndo("Can Jettison", undoBuffer, () => ref selectedLoot.CanJettison);
 
+        Controls.EndEditorTable();
     }
 
     private ScriptSolar selectedSolar = null;
@@ -232,19 +229,22 @@ public sealed partial class MissionScriptEditorTab
             lookupSolar = selectedSolar;
         }
 
+
+        if (!Controls.BeginEditorTable("Solar"))
+            return;
+
         InputItemNickname("Nickname", undoBuffer, missionIni.Solars, selectedSolar);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedSolar.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.System,
                                                              StringComparison.InvariantCultureIgnoreCase)));
-
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Faction");
-        ImGui.SameLine();
-        solarFaction.Draw();
-
+        solarFaction.Draw("Faction");
         Controls.DisabledInputTextId("Archetype", selectedSolar.Archetype?.Nickname ?? "(none)");
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        // empty
+        ImGui.TableNextColumn();
         if (ImGui.Button("Select Archetype"))
         {
             popup.OpenPopup(new ArchetypeSelection(
@@ -264,27 +264,23 @@ public sealed partial class MissionScriptEditorTab
                                                      gameData.GameData.Items.Loadouts.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.Loadout,
                                                              StringComparison.InvariantCultureIgnoreCase)));
-
-        Controls.InputTextIdUndo("Voice", undoBuffer, () => ref selectedSolar.Voice, 150f);
-        Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedSolar.Pilot, 150f);
+        Controls.TableSeparator();
+        Controls.InputTextIdUndo("Voice", undoBuffer, () => ref selectedSolar.Voice);
+        Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedSolar.Pilot);
+        Controls.TableSeparatorText("Costume");
         solarCostume.Draw();
-        Controls.InputTextIdUndo("Visit", undoBuffer, () => ref selectedSolar.Visit, 150f);
+        Controls.TableSeparator();
+        Controls.InputTextIdUndo("Visit", undoBuffer, () => ref selectedSolar.Visit);
 
-        ImGui.SetNextItemWidth(100f);
         Controls.IdsInputStringUndo("String ID", gameData, popup, undoBuffer, () => ref selectedSolar.IdsName);
-
-        ImGui.SetNextItemWidth(100f);
         Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedSolar.Radius);
-
-        ImGui.NewLine();
-
+        Controls.TableSeparator();
         Controls.InputStringList("Labels", undoBuffer, selectedSolar.Labels);
-
-        ImGui.SetNextItemWidth(200f);
+        Controls.TableSeparator();
         Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedSolar.Position);
-
-        ImGui.SetNextItemWidth(200f);
         Controls.InputQuaternionUndo("Orientation", undoBuffer, () => ref selectedSolar.Orientation);
+
+        Controls.EndEditorTable();
     }
 
     private ScriptShip selectedShip;
@@ -305,15 +301,17 @@ public sealed partial class MissionScriptEditorTab
             return;
         }
 
+        if (!Controls.BeginEditorTable("Ship"))
+            return;
+
         InputItemNickname("Nickname", undoBuffer, missionIni.Ships, selectedShip);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedShip.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedShip.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
                                                          x.Nickname == selectedShip.System));
 
-        ImGui.SetNextItemWidth(150f);
-
-        if (ImGui.BeginCombo("NPC", selectedShip.NPC?.Nickname ?? $"{Icons.Warning} None"))
+        Controls.EditControlSetup("NPC", 0);
+        if (ImGui.BeginCombo("##npc", selectedShip.NPC?.Nickname ?? $"{Icons.Warning} None"))
         {
             foreach (var npc in missionIni.Npcs)
             {
@@ -326,44 +324,37 @@ public sealed partial class MissionScriptEditorTab
             ImGui.EndCombo();
         }
 
-        ImGui.NewLine();
 
         Controls.InputStringList("Labels", undoBuffer, selectedShip.Labels);
 
+        Controls.TableSeparatorText("Absolute Position");
+
         Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedShip.Position);
 
-        ImGui.NewLine();
 
-        ImGui.Text("Relative Position:");
+        Controls.TableSeparatorText("Relative Position");
 
         // Disable relative data if absolute data is provided
         ImGui.BeginDisabled(selectedShip.Position.Length() is not 0f);
-
         Controls.InputTextIdUndo("Obj", undoBuffer, () => ref selectedShip.RelativePosition.ObjectName, 150f);
         // Don't think it's possible to validate this one, as it could refer to any solar object in any system
-
-        ImGui.SetNextItemWidth(150f);
         Controls.InputFloatUndo("Min Range", undoBuffer, () => ref selectedShip.RelativePosition.MinRange);
-
-        ImGui.SetNextItemWidth(150f);
         Controls.InputFloatUndo("Max Range", undoBuffer, () => ref selectedShip.RelativePosition.MaxRange);
 
         ImGui.EndDisabled();
 
-        ImGui.NewLine();
-        ImGui.SetNextItemWidth(200f);
+        Controls.TableSeparator();
         Controls.InputQuaternionUndo("Orientation", undoBuffer, () => ref selectedShip.Orientation);
         Controls.CheckboxUndo("Random Name", undoBuffer, () => ref selectedShip.RandomName);
         Controls.CheckboxUndo("Jumper", undoBuffer, () => ref selectedShip.Jumper);
-        ImGui.SetNextItemWidth(100f);
         Controls.InputFloatUndo("Radius", undoBuffer, () => ref selectedShip.Radius);
         Controls.InputTextIdUndo("Arrival Object", undoBuffer, () => ref selectedShip.ArrivalObj.Object, 150f);
         ImGui.BeginDisabled(string.IsNullOrEmpty(selectedShip.ArrivalObj.Object));
         Controls.InputIntUndo("Undock Index", undoBuffer, () => ref selectedShip.ArrivalObj.Index);
         ImGui.EndDisabled();
-        ImGui.SetNextItemWidth(150f);
 
-        if (ImGui.BeginCombo("Initial Objectives", selectedShip.InitObjectives ?? ""))
+        Controls.EditControlSetup("Initial Objectives", 0);
+        if (ImGui.BeginCombo("##objs", selectedShip.InitObjectives ?? ""))
         {
             if (ImGui.Selectable("no_op", selectedShip.InitObjectives == "no_op"))
             {
@@ -384,8 +375,7 @@ public sealed partial class MissionScriptEditorTab
                                                      selectedShip.InitObjectives == "no_op" ||
                                                      missionIni.ObjLists.ContainsKey(selectedShip.InitObjectives));
 
-        ImGui.Text("Cargo");
-
+        Controls.EditControlSetup("Cargo", 0);
         if (selectedShip.Cargo.Count is not 0)
         {
             for (var i = 0; i < selectedShip.Cargo.Count; i++)
@@ -410,6 +400,8 @@ public sealed partial class MissionScriptEditorTab
         }
 
         MissionEditorHelpers.AddRemoveListButtons(selectedShip.Cargo, undoBuffer);
+
+        Controls.EndEditorTable();
     }
 
     private ScriptAiCommands selectedObjList;

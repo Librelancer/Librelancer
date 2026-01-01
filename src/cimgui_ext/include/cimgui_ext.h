@@ -58,6 +58,10 @@ CIMGUI_API int igExtInputInt3(const char* label, int v[3], int flags);
 CIMGUI_API int igExtInputInt4(const char* label, int v[4], int flags);
 CIMGUI_API int igExtInputDouble(const char* label, double* v, double step, double step_fast, const char* format, int flags);
 
+//layout hack
+CIMGUI_API void igTableFullRowBegin();
+CIMGUI_API void igTableFullRowEnd();
+
 //text editor
 typedef void *texteditor_t;
 typedef enum texteditor_mode {

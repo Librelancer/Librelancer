@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImGuiNET;
 
 namespace LancerEdit.GameContent.Lookups;
 
@@ -42,8 +43,23 @@ public abstract class ObjectLookup<T> where T : class
         dropdown.SetSelected(sel);
     }
 
-    public void Draw()
+    public void Draw(string label = null)
     {
+        if (Controls.InEditorTable)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+        }
+        if (label != null)
+        {
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(label);
+        }
+        if (Controls.InEditorTable)
+        {
+            ImGui.TableNextColumn();
+            ImGui.SetNextItemWidth(-1);
+        }
         dropdown.Draw();
     }
 }

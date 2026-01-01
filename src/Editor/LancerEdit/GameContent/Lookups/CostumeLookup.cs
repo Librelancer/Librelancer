@@ -18,17 +18,8 @@ public class CostumeLookup
 
     public void Draw()
     {
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Costume Head");
-        ImGui.SameLine();
-        Head.Draw();
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Costume Body");
-        ImGui.SameLine();
-        Body.Draw();
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Costume Accessory");
-        ImGui.SameLine();
-        Accessory.Draw();
+        Head.Draw("Head");
+        Body.Draw("Body");
+        Accessory.Draw("Accessory");
     }
 }

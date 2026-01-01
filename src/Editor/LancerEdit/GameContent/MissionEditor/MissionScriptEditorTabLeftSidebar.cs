@@ -96,29 +96,29 @@ public sealed partial class MissionScriptEditorTab
             return;
         }
 
+        if (!Controls.BeginEditorTable("formation"))
+            return;
+
         InputItemNickname("Nickname", undoBuffer, missionIni.Formations, selectedFormation);
 
-        ImGui.SetNextItemWidth(200f);
+        Controls.TableSeparatorText("Absolute Position");
         Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedFormation.Position);
 
-        ImGui.Text("Relative Position:");
+        Controls.TableSeparatorText("Relative Position");
         // Disable relative data if absolute data is provided
         ImGui.BeginDisabled(selectedFormation.Position.Length() is not 0f);
 
-        Controls.InputTextIdUndo("Obj", undoBuffer, () => ref selectedFormation.RelativePosition.ObjectName, 150f);
-
-        ImGui.SetNextItemWidth(150f);
+        Controls.InputTextIdUndo("Obj", undoBuffer, () => ref selectedFormation.RelativePosition.ObjectName);
         Controls.InputFloatUndo("Min Range", undoBuffer, () => ref selectedFormation.RelativePosition.MinRange);
-
-        ImGui.SetNextItemWidth(150f);
         Controls.InputFloatUndo("Max Range", undoBuffer, () => ref selectedFormation.RelativePosition.MaxRange);
 
         ImGui.EndDisabled();
 
-        ImGui.SetNextItemWidth(200f);
+        Controls.TableSeparator();
         Controls.InputQuaternionUndo("Orientation", undoBuffer, () => ref selectedFormation.Orientation);
+        Controls.TableSeparator();
 
-        ImGui.Text("Ships");
+        Controls.EditControlSetup("Ships", 0);
         for (var index = 0; index < selectedFormation.Ships.Count; index++)
         {
             var str = selectedFormation.Ships[index];
@@ -162,7 +162,7 @@ public sealed partial class MissionScriptEditorTab
             ImGuiExt.Button("Add New Ship", false);
             ImGui.SetItemTooltip("Cannot add a ship. No ships are setup.  " + Icons.Warning);
         }
-
+        Controls.EndEditorTable();
     }
 
     private ScriptNPC selectedNpc;
@@ -200,20 +200,23 @@ public sealed partial class MissionScriptEditorTab
             lookupNpc = selectedNpc;
         }
 
+        if (!Controls.BeginEditorTable("npc"))
+            return;
+
         InputItemNickname("Nickname", undoBuffer, missionIni.Npcs, selectedNpc);
-        Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedNpc.NpcShipArch, 150f);
+        Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedNpc.NpcShipArch);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
-            missionIni.NpcShips.ContainsKey(selectedNpc.Nickname)
-            || gameData.GameData.Items.NpcShips.Contains(selectedNpc.Nickname));
+            missionIni.NpcShips.ContainsKey(selectedNpc.NpcShipArch)
+            || gameData.GameData.Items.NpcShips.Contains(selectedNpc.NpcShipArch));
 
         Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer,
             () => ref selectedNpc.IndividualName,
             inputWidth: 150f);
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Affiliation");
-        ImGui.SameLine();
-        npcFaction.Draw();
+        npcFaction.Draw("Affiliation");
+        Controls.TableSeparatorText("Costume");
         npcCostume.Draw();
+
+        Controls.EndEditorTable();
     }
 
     private ShipArch selectedArch;
@@ -249,11 +252,11 @@ public sealed partial class MissionScriptEditorTab
             lookupArch = selectedArch;
         }
 
+        if (!Controls.BeginEditorTable("shiparch"))
+            return;
+
         InputItemNickname("Nickname", undoBuffer, missionIni.NpcShips, selectedArch);
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Ship");
-        ImGui.SameLine();
-        archShip.Draw();
+        archShip.Draw("Ship");
         Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedArch.Loadout, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             gameData.GameData.Items.Loadouts.Any(x => x.Nickname == selectedArch.Loadout));
@@ -272,15 +275,15 @@ public sealed partial class MissionScriptEditorTab
             currentStateGraphIndex = 0;
         }
 
-        ImGui.SetNextItemWidth(150f);
-        ImGui.Combo("State Graph", ref currentStateGraphIndex, stateGraphs, stateGraphs.Length);
+        Controls.EditControlSetup("State Graph", 0);
+
+        ImGui.Combo("##stategraph", ref currentStateGraphIndex, stateGraphs, stateGraphs.Length);
         if (selectedArch.StateGraph != stateGraphs[currentStateGraphIndex])
         {
             undoBuffer.Set("State Graph", () => ref selectedArch.StateGraph, stateGraphs[currentStateGraphIndex]);
         }
 
-        ImGui.NewLine();
-        ImGui.Text("NPC Classes");
+        Controls.EditControlSetup("NPC Classes", 0);
 
         if (selectedArch.NpcClass.Count is not 0)
         {
@@ -298,6 +301,8 @@ public sealed partial class MissionScriptEditorTab
         }
 
         MissionEditorHelpers.AddRemoveListButtons(selectedArch.NpcClass, undoBuffer);
+
+        Controls.EndEditorTable();
     }
 
     private int selectedArchIndex = -1;
@@ -305,15 +310,15 @@ public sealed partial class MissionScriptEditorTab
     private void RenderMissionInformation()
     {
         var info = missionIni.Info;
+        if (!Controls.BeginEditorTable("info"))
+            return;
         Controls.IdsInputStringUndo("Title IDS", gameData, popup, undoBuffer, () => ref info.MissionTitle);
         Controls.IdsInputStringUndo("Offer IDS", gameData, popup, undoBuffer, () => ref info.MissionOffer);
 
-        ImGui.PushItemWidth(150f);
 
         Controls.InputIntUndo("Reward", undoBuffer, () => ref info.Reward);
-        ImGui.InputText("NPC Ship File", ref info.NpcShipFile, 255, ImGuiInputTextFlags.ReadOnly);
+        Controls.DisabledInputTextId("NPC Ship File", info.NpcShipFile);
 
-        ImGui.PopItemWidth();
 
         if (ImGuiExt.Button("Set Ship File", string.IsNullOrWhiteSpace(info.NpcShipFile)))
         {
@@ -327,5 +332,6 @@ public sealed partial class MissionScriptEditorTab
                         this));
                 }, VfsFileSelector.MakeFilter(".ini")));
         }
+        Controls.EndEditorTable();
     }
 }
