@@ -553,7 +553,7 @@ namespace LancerEdit
                     }
                     if (ImGui.MenuItem("Animated .txm", true))
                     {
-                        Popups.OpenPopup(new NewTxmPopup(this, action => { 
+                        Popups.OpenPopup(new NewTxmPopup(this, action => {
                             var t = new UtfTab(this, action.utf, action.name);
                             AddTab(t);
                         }));
@@ -815,7 +815,7 @@ namespace LancerEdit
                 CenterText($"ImGui version: {ImGuiExt.Version}");
                 CenterText("Callum McGing");
                 CenterText("Librelancer Contributors");
-                CenterText("2018-2025");
+                CenterText("2018-2026");
                 ImGui.Separator();
                 var btnW = ImGui.CalcTextSize("OK").X + ImGui.GetStyle().FramePadding.X * 2;
                 ImGui.Dummy(Vector2.One);
