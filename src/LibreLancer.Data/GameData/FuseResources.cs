@@ -5,11 +5,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace LibreLancer.Data.GameData
+namespace LibreLancer.Data.GameData;
+
+public class FuseResources : IdentifiableItem
 {
-    public class FuseResources : IdentifiableItem
-    {
-        public Dictionary<string, ResolvedFx> Fx = new Dictionary<string, ResolvedFx>(StringComparer.OrdinalIgnoreCase);
-        public Schema.Fuses.Fuse Fuse;
-    }
+    public Dictionary<string, ResolvedFx> Fx = new(StringComparer.OrdinalIgnoreCase);
+    public required Schema.Fuses.Fuse Fuse;
 }

@@ -4,12 +4,11 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class Commodity : AbstractEquipment
 {
-    [ParsedSection]
-    public partial class Commodity : AbstractEquipment
-    {
-        [Entry("pod_appearance")] public string PodAppearance;
-        [Entry("decay_per_second")] public int DecayPerSecond;
-    }
+    [Entry("pod_appearance")] public string? PodAppearance;
+    [Entry("decay_per_second")] public int DecayPerSecond;
 }

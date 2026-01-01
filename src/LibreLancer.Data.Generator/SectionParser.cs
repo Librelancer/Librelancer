@@ -488,12 +488,12 @@ public static class SectionParser
         {
             tw.AppendEditorHiddenLine()
                 .AppendLine(
-                    $"protected {mod}void _BaseRequiredError(Span<ulong> requireds, int index, ref bool isError)");
+                    $"protected {mod}void _BaseRequiredError(Section section, Span<ulong> requireds, int index, ref bool isError)");
             using (tw.Block())
             {
                 if (section.HasBaseSection)
                 {
-                    tw.AppendLine("base._BaseRequiredError(requireds, index + 1, ref isError);");
+                    tw.AppendLine("base._BaseRequiredError(section, requireds, index + 1, ref isError);");
                 }
                 if (required > 0)
                 {
@@ -537,7 +537,14 @@ public static class SectionParser
                     $"if(hash == 0x{h:X} && {ToLiteral(child.SectionName)}.Equals(sectionName, StringComparison.OrdinalIgnoreCase))");
                 using (tw.Block())
                 {
-                    tw.AppendLine($"if (parsedChild is {child.FieldType} child)");
+                    var field = child.FieldType;
+                    // If nullable, need to remove the marker
+                    if (field.EndsWith("?"))
+                    {
+                        field.Remove(field.Length - 1);
+                    }
+
+                    tw.AppendLine($"if (parsedChild is {field} child)");
                     using (tw.Block())
                     {
                         if (child.List)
@@ -699,7 +706,7 @@ public static class SectionParser
             if (section.HasBaseSection)
             {
                 tw.AppendLine("bool _isError = false;");
-                tw.AppendLine("result._BaseRequiredError(baseRequireds, 0, ref _isError);");
+                tw.AppendLine("result._BaseRequiredError(section, baseRequireds, 0, ref _isError);");
                 tw.AppendLine("if(_isError)");
                 using(tw.Block())
                 {
@@ -714,7 +721,7 @@ public static class SectionParser
                 {
                     if (section.OnParseDependent != null)
                     {
-                        tw.AppendLine("result.OnParseDependent(stringPool, properties);");
+                        tw.AppendLine($"result.{section.OnParseDependent}(stringPool!, properties);");
                     }
                     tw.AppendLine("instance = result;");
                     tw.AppendLine("return true;");
@@ -742,7 +749,7 @@ public static class SectionParser
             {
                 if (section.OnParseDependent != null)
                 {
-                    tw.AppendLine($"result.{section.OnParseDependent}(stringPool, properties);");
+                    tw.AppendLine($"result.{section.OnParseDependent}(stringPool!, properties);");
                 }
                 tw.AppendLine("instance = result;");
                 tw.AppendLine("return true;");

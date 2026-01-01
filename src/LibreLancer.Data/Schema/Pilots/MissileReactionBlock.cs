@@ -6,17 +6,16 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Pilots
+namespace LibreLancer.Data.Schema.Pilots;
+
+[ParsedSection]
+public partial class MissileReactionBlock : PilotBlock
 {
-    [ParsedSection]
-    public partial class MissileReactionBlock : PilotBlock
-    {
-        [Entry("evade_missile_distance")] public float EvadeMissileDistance;
-        [Entry("evade_break_missile_reaction_time")]
-        public float EvadeBreakMissileReactionTime;
-        [Entry("evade_slide_missile_reaction_time")]
-        public float EvadeSlideMissileReactionTime;
-        [Entry("evade_afterburn_missile_reaction_time")]
-        public float EvadeAfterburnMissileReactionTime;
-    }
+    [Entry("evade_missile_distance")] public float EvadeMissileDistance;
+    [Entry("evade_break_missile_reaction_time")]
+    public float EvadeBreakMissileReactionTime;
+    [Entry("evade_slide_missile_reaction_time")]
+    public float EvadeSlideMissileReactionTime;
+    [Entry("evade_afterburn_missile_reaction_time")]
+    public float EvadeAfterburnMissileReactionTime;
 }

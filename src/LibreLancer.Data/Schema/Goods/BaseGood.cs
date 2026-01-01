@@ -6,18 +6,17 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Goods
+namespace LibreLancer.Data.Schema.Goods;
+
+[ParsedSection]
+public partial class BaseGood
 {
-    [ParsedSection]
-    public partial class BaseGood
-    {
-        [Entry("base", Required = true)]
-        public string Base;
+    [Entry("base", Required = true)]
+    public string? Base = null!;
 
-        public List<MarketGood> MarketGoods = new List<MarketGood>();
+    public List<MarketGood> MarketGoods = [];
 
-        [EntryHandler("marketgood", MinComponents = 7, Multiline = true)]
-        void HandleMarketGood(Entry e) => MarketGoods.Add(new MarketGood(e));
+    [EntryHandler("marketgood", MinComponents = 7, Multiline = true)]
+    private void HandleMarketGood(Entry e) => MarketGoods.Add(new MarketGood(e));
 
-    }
 }

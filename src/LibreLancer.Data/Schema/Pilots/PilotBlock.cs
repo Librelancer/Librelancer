@@ -1,9 +1,8 @@
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Pilots
+namespace LibreLancer.Data.Schema.Pilots;
+
+public abstract class PilotBlock
 {
-    public abstract class PilotBlock
-    {
-        [Entry("nickname", Required = true)] public string Nickname;
-    }
+    [Entry("nickname", Required = true)] public string Nickname = null!;
 }

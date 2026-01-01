@@ -4,21 +4,27 @@ using System.Text;
 
 namespace LibreLancer.Data;
 
-public class CommentEscaping
+public static class CommentEscaping
 {
     public static string Unescape(string comment)
     {
-        if (comment == null) return null;
         if (comment.Length < 1 || comment[0] != '@')
+        {
             return comment;
+        }
+
         var sb = new StringBuilder();
-        for (int i = 1; i < comment.Length; i++) {
-            if (comment[i] == '\\') {
-                if (i + 1 >= comment.Length) {
+        for (var i = 1; i < comment.Length; i++)
+        {
+            if (comment[i] == '\\')
+            {
+                if (i + 1 >= comment.Length)
+                {
                     sb.Append('\\');
                     continue;
                 }
-                switch (comment[i + 1]) {
+                switch (comment[i + 1])
+                {
                     case 'E':
                         sb.Append('=');
                         i++;
@@ -44,9 +50,7 @@ public class CommentEscaping
                         i++;
                         break;
                     case 'x' when i + 3 < comment.Length:
-                        if (int.TryParse(
-                                comment.AsSpan().Slice(i + 2, 2),
-                                NumberStyles.HexNumber, null, out int uchar))
+                        if (int.TryParse(comment.AsSpan().Slice(i + 2, 2), NumberStyles.HexNumber, null, out var uchar))
                         {
                             sb.Append((char) uchar);
                             i += 3;
@@ -55,13 +59,15 @@ public class CommentEscaping
                         {
                             sb.Append("\\");
                         }
+
                         continue;
                     default:
                         sb.Append('\\');
                         break;
                 }
             }
-            else {
+            else
+            {
                 sb.Append(comment[i]);
             }
         }
@@ -70,12 +76,15 @@ public class CommentEscaping
 
     public static string Escape(string comment)
     {
-        if (comment == null) return null;
-        if (string.IsNullOrWhiteSpace(comment)) return "";
-        bool needsEscape = comment.AsSpan().Trim().Length != comment.Length;
-        for (int i = 0; i < comment.Length; i++)
+        if (string.IsNullOrWhiteSpace(comment))
         {
-            switch (comment[i])
+            return "";
+        }
+
+        var needsEscape = comment.AsSpan().Trim().Length != comment.Length;
+        foreach (var c in comment)
+        {
+            switch (c)
             {
                 case '\\':
                 case '=':
@@ -83,17 +92,23 @@ public class CommentEscaping
                 case '\n':
                 case '\t':
                 case ',':
-                case var c when c < 32 || c > 126:
+                case var _ when c < 32 || c > 126:
                     needsEscape = true;
                     break;
             }
-            if (needsEscape) break;
+
+            if (needsEscape)
+            {
+                break;
+            }
         }
+
         if (comment[0] != '@' && !needsEscape) return comment;
         var sb = new StringBuilder();
         sb.Append("@");
-        for (int i = 0; i < comment.Length; i++) {
-            switch (comment[i])
+        foreach (var c in comment)
+        {
+            switch (c)
             {
                 case '\\':
                     sb.Append("\\\\");
@@ -113,15 +128,16 @@ public class CommentEscaping
                 case ',':
                     sb.Append("\\C");
                     break;
-                case var c when c >= 32 && c <= 126:
+                case var _ when c >= 32 && c <= 126:
                     sb.Append(c);
                     break;
-                case var c when c < 32 || c > 126:
+                case var _ when c < 32 || c > 126:
                     sb.Append("\\x");
                     sb.Append(((uint) c).ToString("X2"));
                     break;
             }
         }
+
         return sb.ToString();
     }
 }

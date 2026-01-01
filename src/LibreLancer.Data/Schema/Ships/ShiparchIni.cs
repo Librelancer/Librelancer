@@ -8,22 +8,20 @@ using System.Linq;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema.Solar;
 
-namespace LibreLancer.Data.Schema.Ships
+namespace LibreLancer.Data.Schema.Ships;
+
+[ParsedIni]
+public partial class ShiparchIni
 {
-    [ParsedIni]
-	public partial class ShiparchIni
+    [Section("ship")]
+    [Section("collisiongroup", Type = typeof(CollisionGroup), Child = true)]
+    public List<Ship>? Ships = [];
+
+    [Section("simple")]
+    public List<Simple>? Simples = [];
+
+    public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata, IniStringPool? stringPool = null)
     {
-        [Section("ship")]
-        [Section("collisiongroup", Type = typeof(CollisionGroup), Child = true)]
-        public List<Ship> Ships = new();
-
-        [Section("simple")]
-        public List<Simple> Simples = new();
-
-        public void ParseAllInis(IEnumerable<string> paths, FreelancerData fldata, IniStringPool stringPool = null)
-        {
-            ParseInis(paths, fldata.VFS, stringPool);
-        }
+        ParseInis(paths, fldata.VFS, stringPool);
     }
 }
-

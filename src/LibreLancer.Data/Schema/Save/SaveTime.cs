@@ -6,18 +6,17 @@ using System;
 using System.Text;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Save
-{
-    [ParsedSection]
-    public partial class SaveTime : IWriteSection
-    {
-        [Entry("seconds")]
-        public float Seconds;
+namespace LibreLancer.Data.Schema.Save;
 
-        public void WriteTo(IniBuilder builder)
-        {
-            builder.Section("Time")
-                .Entry("seconds", Seconds);
-        }
+[ParsedSection]
+public partial class SaveTime : IWriteSection
+{
+    [Entry("seconds")]
+    public float Seconds;
+
+    public void WriteTo(IniBuilder builder)
+    {
+        builder.Section("Time")
+            .Entry("seconds", Seconds);
     }
 }

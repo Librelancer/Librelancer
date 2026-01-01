@@ -4,17 +4,16 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+public abstract class ZoneReference
 {
-	public abstract class ZoneReference
-	{
-        [Entry("file")]
-		public string IniFile;
-        [Entry("zone")]
-		public string ZoneName;
-        [Section("texturepanels")]
-        public TexturePanelsRef TexturePanels;
-        [Section("properties")]
-        public ObjectProperties Properties;
-    }
+    [Entry("file", Required = true)]
+    public string IniFile = null!;
+    [Entry("zone", Required = true)]
+    public string ZoneName = null!;
+    [Section("texturepanels")]
+    public TexturePanelsRef TexturePanels = new();
+    [Section("properties")]
+    public ObjectProperties Properties = new();
 }

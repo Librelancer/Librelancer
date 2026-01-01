@@ -14,8 +14,8 @@ public partial class AsteroidCube
     [Entry("zaxis_rotation")]
     public Vector4? RotationZ;
 
-    public List<CubeAsteroid> Cube = new List<CubeAsteroid>();
+    public List<CubeAsteroid> Cube = [];
 
     [EntryHandler("asteroid", Multiline = true, MinComponents = 7)]
-    void HandleAsteroid(Entry e) => Cube.Add(new CubeAsteroid(e));
+    private void HandleAsteroid(Entry e) => Cube.Add(new CubeAsteroid(e));
 }

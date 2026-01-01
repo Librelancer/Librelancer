@@ -6,9 +6,9 @@ namespace LibreLancer.Data.Schema.Universe;
 public partial class SystemBackground
 {
     [Entry("basic_stars")]
-    public string BasicStarsPath;
+    public string? BasicStarsPath;
     [Entry("complex_stars")]
-    public string ComplexStarsPath;
+    public string? ComplexStarsPath;
     [Entry("nebulae")]
-    public string NebulaePath;
+    public string? NebulaePath;
 }

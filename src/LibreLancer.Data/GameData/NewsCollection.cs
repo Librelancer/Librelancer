@@ -8,7 +8,7 @@ public class NewsCollection
 {
     private Dictionary<Base, List<NewsItem>> newsByBase = new();
     private Dictionary<NewsItem, List<Base>> basesByNews = new();
-    private List<NewsItem> allNews = new();
+    private List<NewsItem> allNews = [];
 
     public void AddNewsItem(NewsItem item, int index = -1)
     {
@@ -37,67 +37,55 @@ public class NewsCollection
         }
         var pos = allNews.IndexOf(item);
         if(pos != -1)
+        {
             allNews.RemoveAt(pos);
+        }
+
         return pos;
     }
 
     public void AddToBase(NewsItem item, Base b)
     {
-        if (!newsByBase.TryGetValue(b, out List<NewsItem> newsList))
+        if (!newsByBase.TryGetValue(b, out List<NewsItem>? newsList))
         {
-            newsByBase[b] = newsList = new();
+            newsByBase[b] = newsList = [];
         }
-        newsList.Add(item);
 
+        newsList.Add(item);
         if (!basesByNews.TryGetValue(item, out var baseList))
         {
-            basesByNews[item] = baseList = new();
+            basesByNews[item] = baseList = [];
         }
+
         baseList.Add(b);
     }
 
     public void RemoveFromBase(NewsItem item, Base b)
     {
         if (!newsByBase.TryGetValue(b, out var newsList))
+        {
             return;
+        }
+
         newsList.Remove(item);
         if (!basesByNews.TryGetValue(item, out var baseList))
+        {
             return;
+        }
+
         baseList.Remove(b);
     }
 
-    public Base[] GetBases(NewsItem item)
-    {
-        if (basesByNews.TryGetValue(item, out var baseList))
-            return baseList.ToArray();
-        return [];
-    }
+    public Base[] GetBases(NewsItem item) => basesByNews.TryGetValue(item, out var baseList) ? baseList.ToArray() : [];
+    public NewsItem[] GetNewsForBase(Base loc) => newsByBase.TryGetValue(loc, out var list) ? list.ToArray() : [];
+    public bool BaseHasNews(Base loc, NewsItem item) => newsByBase.TryGetValue(loc, out var list) && list.Contains(item);
 
-    public NewsItem[] GetNewsForBase(Base loc)
-    {
-        if (newsByBase.TryGetValue(loc, out var list))
-            return list.ToArray();
-        return [];
-    }
-
-    public bool BaseHasNews(Base loc, NewsItem item)
-    {
-        if (!newsByBase.TryGetValue(loc, out var list))
-            return false;
-        return list.Contains(item);
-    }
-
-    public IEnumerable<NewsItem> QueryNews(Base loc, int missionNumber)
-    {
-        if (!newsByBase.TryGetValue(loc, out var newsList))
-            return [];
-        return newsList.Where(x => x.From.Index <=  missionNumber && x.To.Index >= missionNumber);
-    }
+    public IEnumerable<NewsItem> QueryNews(Base loc, int missionNumber) => !newsByBase.TryGetValue(loc, out var newsList)
+            ? []
+            : newsList.Where(x => x.From?.Index <= missionNumber && x.To?.Index >= missionNumber);
 
     public IEnumerable<NewsItem> AllNews => allNews;
-
-    public IEnumerable<(NewsItem, Base[])> AsCopy() =>
-        basesByNews.Select(x => (x.Key, x.Value.ToArray()));
+    public IEnumerable<(NewsItem, Base[])> AsCopy() => basesByNews.Select(x => (x.Key, x.Value.ToArray()));
 
     public NewsCollection Clone()
     {
@@ -111,6 +99,7 @@ public class NewsCollection
                 nc.AddToBase(article, b);
             }
         }
+
         return nc;
     }
 }

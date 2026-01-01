@@ -1,10 +1,10 @@
-﻿namespace LibreLancer.Data.GameData.Items
+﻿namespace LibreLancer.Data.GameData.Items;
+
+public class MunitionEquip : Equipment
 {
-    public class MunitionEquip : Equipment
-    {
-        public Schema.Equipment.Munition Def;
-        //Fx Stuff
-        public Schema.Effects.BeamSpear ConstEffect_Spear;
-        public Schema.Effects.BeamBolt ConstEffect_Bolt;
-    }
+    public required Schema.Equipment.Munition Def;
+
+    //Fx Stuff
+    public Schema.Effects.BeamSpear? ConstEffect_Spear;
+    public Schema.Effects.BeamBolt? ConstEffect_Bolt;
 }

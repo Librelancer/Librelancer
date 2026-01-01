@@ -6,18 +6,17 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Effects
+namespace LibreLancer.Data.Schema.Effects;
+
+[ParsedSection]
+public partial class EffectLOD
 {
-    [ParsedSection]
-    public partial class EffectLOD
-    {
-        [Entry("type", Required = true)]
-        public string Type;
-        [Entry("max_lod_screen_size")]
-        public float MaxLodScreenSize;
-        [Entry("min_lod_screen_size")]
-        public float MinLodScreenSize;
-        [Entry("min_screen_size")]
-        public float MinScreenSize;
-    }
+    [Entry("type", Required = true)]
+    public string Type = null!;
+    [Entry("max_lod_screen_size")]
+    public float MaxLodScreenSize;
+    [Entry("min_lod_screen_size")]
+    public float MinLodScreenSize;
+    [Entry("min_screen_size")]
+    public float MinScreenSize;
 }

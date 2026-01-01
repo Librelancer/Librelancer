@@ -11,11 +11,11 @@ namespace LibreLancer.Data.Schema.PetalDb;
 
 public class PetalDbIni
 {
-    public Dictionary<string, string> Rooms = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-    public Dictionary<string, string> Props = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-    public Dictionary<string, string> Carts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> Rooms = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> Props = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> Carts = new(StringComparer.OrdinalIgnoreCase);
 
-    public void AddFile(string path, FileSystem vfs, IniStringPool stringPool = null)
+    public void AddFile(string path, FileSystem vfs, IniStringPool? stringPool = null)
     {
         foreach (var section in IniFile.ParseFile(path, vfs, false, stringPool))
         {
@@ -26,9 +26,9 @@ public class PetalDbIni
                 switch (e.Name.ToLowerInvariant())
                 {
                     case "room":
-                        if (!Rooms.ContainsKey(e[0].ToString()))
+                        if (!Rooms.ContainsKey(e[0].ToString()!))
                         {
-                            Rooms.Add(e[0].ToString(), e[1].ToString());
+                            Rooms.Add(e[0].ToString()!, e[1].ToString()!);
                         }
                         else
                         {
@@ -37,9 +37,9 @@ public class PetalDbIni
 
                         break;
                     case "prop":
-                        if (!Props.ContainsKey(e[0].ToString()))
+                        if (!Props.ContainsKey(e[0].ToString()!))
                         {
-                            Props.Add(e[0].ToString(), e[1].ToString());
+                            Props.Add(e[0].ToString()!, e[1].ToString()!);
                         }
                         else
                         {
@@ -48,9 +48,9 @@ public class PetalDbIni
 
                         break;
                     case "cart":
-                        if (!Carts.ContainsKey(e[0].ToString()))
+                        if (!Carts.ContainsKey(e[0].ToString()!))
                         {
-                            Carts.Add(e[0].ToString(), e[1].ToString());
+                            Carts.Add(e[0].ToString()!, e[1].ToString()!);
                         }
                         else
                         {

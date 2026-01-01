@@ -7,28 +7,27 @@ using System.Numerics;
 using LibreLancer.Data.Ini;
 
 // ReSharper disable InconsistentNaming
-namespace LibreLancer.Data.Schema.Missions
+namespace LibreLancer.Data.Schema.Missions;
+
+[ParsedSection]
+public partial class NNObjective
 {
-    [ParsedSection]
-    public partial class NNObjective
-    {
-        [Entry("nickname")]
-        public string Nickname;
-        [Entry("state")]
-        public string State;
-        [Entry("type")]
-        public string[] Type;
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("state")]
+    public string? State;
+    [Entry("type")]
+    public string[]? Type;
 
-        public NNObjectiveType TypeData;
-    }
+    public NNObjectiveType? TypeData;
+}
 
-    public class NNObjectiveType
-    {
-        public string Type;
-        public string System;
-        public int NameIds;
-        public int ExplanationIds;
-        public Vector3 Position;
-        public string SolarNickname;
-    }
+public class NNObjectiveType
+{
+    public string? Type;
+    public string? System;
+    public int NameIds;
+    public int ExplanationIds;
+    public Vector3 Position;
+    public string? SolarNickname;
 }

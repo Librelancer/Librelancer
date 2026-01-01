@@ -5,18 +5,17 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Characters
+namespace LibreLancer.Data.Schema.Characters;
+
+[ParsedSection]
+public partial class Accessory
 {
-    [ParsedSection]
-	public partial class Accessory
-	{
-        [Entry("nickname", Required = true)]
-        public string Nickname;
-        [Entry("mesh")]
-        public string Mesh;
-        [Entry("hardpoint")]
-        public string Hardpoint;
-        [Entry("body_hardpoint")]
-        public string BodyHardpoint;
-	}
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("mesh")]
+    public string? Mesh;
+    [Entry("hardpoint")]
+    public string? Hardpoint;
+    [Entry("body_hardpoint")]
+    public string? BodyHardpoint;
 }

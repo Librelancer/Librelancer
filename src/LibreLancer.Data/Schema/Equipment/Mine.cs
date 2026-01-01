@@ -4,15 +4,14 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class Mine : Munition
 {
-    [ParsedSection]
-    public partial class Mine : Munition
-    {
-        [Entry("acceleration")] public float Acceleration;
-        [Entry("top_speed")] public float TopSpeed;
-        [Entry("owner_safe_time")] public float OwnerSafeTime;
-        [Entry("linear_drag")] public float LinearDrag;
-        [Entry("seek_dist")] public float SeekDist;
-    }
+    [Entry("acceleration")] public float Acceleration;
+    [Entry("top_speed")] public float TopSpeed;
+    [Entry("owner_safe_time")] public float OwnerSafeTime;
+    [Entry("linear_drag")] public float LinearDrag;
+    [Entry("seek_dist")] public float SeekDist;
 }

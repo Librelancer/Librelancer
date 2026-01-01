@@ -4,15 +4,13 @@
 
 using System;
 
-namespace LibreLancer.Data.Schema.Universe
-{
-	public enum ZoneShape
-	{
-		SPHERE,
-		ELLIPSOID,
-		BOX,
-		CYLINDER,
-		RING
-	}
-}
+namespace LibreLancer.Data.Schema.Universe;
 
+public enum ZoneShape
+{
+    SPHERE,
+    ELLIPSOID,
+    BOX,
+    CYLINDER,
+    RING
+}

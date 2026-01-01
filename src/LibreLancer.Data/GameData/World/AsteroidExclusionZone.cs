@@ -4,7 +4,7 @@ namespace LibreLancer.Data.GameData.World;
 
 public class AsteroidExclusionZone : IDataEquatable<AsteroidExclusionZone>
 {
-    public Zone Zone;
+    public Zone? Zone;
     public bool ExcludeBillboards;
     public bool ExcludeDynamicAsteroids;
     public float? EmptyCubeFrequency;
@@ -15,7 +15,7 @@ public class AsteroidExclusionZone : IDataEquatable<AsteroidExclusionZone>
         var o = (AsteroidExclusionZone)MemberwiseClone();
         o.Zone = Zone == null
             ? null
-            : newZones.GetValueOrDefault(Zone.Nickname);
+            : newZones!.GetValueOrDefault(Zone.Nickname);
         return o;
     }
 

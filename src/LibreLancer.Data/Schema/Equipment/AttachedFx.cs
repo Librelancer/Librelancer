@@ -5,14 +5,13 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class AttachedFx : AbstractEquipment
 {
-    [ParsedSection]
-	public partial class AttachedFx : AbstractEquipment
-	{
-        [Entry("particles")]
-		public string Particles;
-        [Entry("use_throttle")]
-        public bool UseThrottle;
-	}
+    [Entry("particles")]
+    public string? Particles;
+    [Entry("use_throttle")]
+    public bool UseThrottle;
 }

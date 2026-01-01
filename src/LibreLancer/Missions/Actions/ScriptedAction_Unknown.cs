@@ -965,7 +965,7 @@ public class Act_DebugMsg : ScriptedAction
 
     public Act_DebugMsg(MissionAction act) : base(act)
     {
-        Message = CommentEscaping.Unescape(act.Entry[0].ToString());
+        Message = CommentEscaping.Unescape(act.Entry[0].ToString() ?? "");
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
