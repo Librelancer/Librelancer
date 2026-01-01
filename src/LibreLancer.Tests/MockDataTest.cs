@@ -46,7 +46,12 @@ public class MockDataTest
         // Will fail on model loads etc., use for nickname/CRC lookups only
         // Each collection used must be inited manually
         gdm.Items.Equipment = new GameItemCollection<Equipment>();
-        HashAndAdd(new GunEquipment() { Nickname = "gun01"}, gdm.Items.Equipment);
+        HashAndAdd(new GunEquipment
+        {
+            Nickname = "gun01",
+            Def = null!,
+            Munition = null!
+        }, gdm.Items.Equipment);
 
         return gdm;
     }
