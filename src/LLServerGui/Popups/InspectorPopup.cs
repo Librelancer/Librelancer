@@ -5,7 +5,7 @@ using LibreLancer.Server;
 
 namespace LLServer;
 
-public class InspectorPopup(Player player) : PopupWindow
+public class InspectorPopup(Player? player) : PopupWindow
 {
     public override string Title { get; set; } = "Player Inspector";
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.NoCollapse;
@@ -68,8 +68,12 @@ public class InspectorPopup(Player player) : PopupWindow
             return;
 
         BeginKeyValueTable();
-        Row("Position", FormatVector3(player.Position));
-        Row("Orientation", FormatQuaternion(player.Orientation));
+        if (player != null)
+        {
+            Row("Position", FormatVector3(player.Position));
+            Row("Orientation", FormatQuaternion(player.Orientation));
+        }
+
         EndKeyValueTable();
     }
 

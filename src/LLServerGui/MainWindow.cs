@@ -37,7 +37,6 @@ public class MainWindow() : Game(600, 600, true)
 
     private static readonly float STATUS_BAR_HEIGHT = 30f;
     private static readonly float LOGS_MIN_HEIGHT = 100f;
-    private static readonly Vector4 ERROR_TEXT_COLOUR = new(1f, 0.3f, 0.3f, 1f);
 
     private static readonly FileDialogFilters saveAsFilter = new(
         new FileFilter("json")
@@ -368,7 +367,7 @@ public class MainWindow() : Game(600, 600, true)
 
         if (StartupError)
         {
-            ImGui.SameLine(); ImGui.TextColored(ERROR_TEXT_COLOUR, "Server Startup Error");
+            ImGui.SameLine(); ImGui.TextColored(Theme.ErrorTextColor, "Server Startup Error");
         }
         ImGui.End();
     }
