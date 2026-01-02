@@ -5,14 +5,13 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class InternalFx : AbstractEquipment
 {
-    [ParsedSection]
-	public partial class InternalFx : AbstractEquipment
-	{
-        [Entry("use_animation")]
-		public string UseAnimation;
-        [Entry("use_sound")]
-		public string UseSound;
-	}
+    [Entry("use_animation")]
+    public string? UseAnimation;
+    [Entry("use_sound")]
+    public string? UseSound;
 }

@@ -6,12 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace LibreLancer.Data.Schema
-{
-	public class FloatGraph
-	{
-		public string Name;
-		public List<Vector2> Points = new List<Vector2>();
-	}
-}
+namespace LibreLancer.Data.Schema;
 
+public class FloatGraph
+{
+    public string? Name;
+    public List<Vector2> Points = [];
+}

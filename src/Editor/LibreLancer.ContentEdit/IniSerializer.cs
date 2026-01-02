@@ -609,7 +609,7 @@ public static class IniSerializer
                 .Entry("logo", article.Logo)
                 .Entry("headline", article.Headline)
                 .Entry("text", article.Text)
-                .OptionalEntry("autoselect", article.Autoselect)
+                .OptionalEntry("autoselect", article.AutoSelect)
                 .OptionalEntry("audio", article.Audio);
 
             foreach (var b in bases)

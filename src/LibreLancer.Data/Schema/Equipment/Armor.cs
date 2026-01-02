@@ -4,11 +4,10 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class Armor : AbstractEquipment
 {
-    [ParsedSection]
-    public partial class Armor : AbstractEquipment
-    {
-        [Entry("hit_pts_scale")] public float HitPtsScale;
-    }
+    [Entry("hit_pts_scale")] public float HitPtsScale;
 }

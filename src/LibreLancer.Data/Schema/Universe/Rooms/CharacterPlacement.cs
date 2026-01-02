@@ -5,8 +5,8 @@ namespace LibreLancer.Data.Schema.Universe.Rooms;
 [ParsedSection]
 public partial class CharacterPlacement
 {
-    [Entry("name")]
-    public string Name;
+    [Entry("name", Required = true)]
+    public string Name = null!;
     [Entry("start_script")]
-    public string StartScript;
+    public string? StartScript;
 }

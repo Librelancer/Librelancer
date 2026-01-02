@@ -13,16 +13,16 @@ public partial class KeyGroup
     [Entry("name")]
     public int Name; //Undo
 
-    public List<string> Keys = new List<string>();
+    public List<string> Keys = [];
 }
 
 public class KeyListIni
 {
-    public List<KeyGroup> Groups = new List<KeyGroup>();
-    public KeyListIni(string path, FileSystem VFS, IniStringPool stringPool = null)
+    public List<KeyGroup> Groups = [];
+    public KeyListIni(string path, FileSystem vfs, IniStringPool? stringPool = null)
     {
-        KeyGroup currentGroup = null;
-        foreach (var section in IniFile.ParseFile(path, VFS, false, stringPool))
+        KeyGroup? currentGroup = null;
+        foreach (var section in IniFile.ParseFile(path, vfs, false, stringPool))
         {
             if (section.Name.Equals("group", StringComparison.OrdinalIgnoreCase))
             {
@@ -34,7 +34,7 @@ public class KeyListIni
                 foreach (var entry in section)
                 {
                     if(entry.Count > 0 && entry.Name.Equals("id", StringComparison.OrdinalIgnoreCase))
-                        currentGroup?.Keys.Add(entry[0].ToString());
+                        currentGroup?.Keys.Add(entry[0].ToString()!);
                 }
             }
         }

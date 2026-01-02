@@ -5,19 +5,18 @@ using System;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class Explosion
 {
-    [ParsedSection]
-    public partial class Explosion
-    {
-        [Entry("nickname")] public string Nickname;
-        [Entry("effect")] public string Effect;
-        [Entry("lifetime")] public Vector2 Lifetime;
-        [Entry("process")] public string Process;
-        [Entry("strength")] public float Strength;
-        [Entry("radius")] public float Radius;
-        [Entry("hull_damage")] public float HullDamage;
-        [Entry("energy_damage")] public float EnergyDamage;
-        [Entry("impulse")] public float Impulse;
-    }
+    [Entry("nickname", Required = true)] public string Nickname = null!;
+    [Entry("effect")] public string? Effect;
+    [Entry("lifetime")] public Vector2 Lifetime;
+    [Entry("process")] public string? Process;
+    [Entry("strength")] public float Strength;
+    [Entry("radius")] public float Radius;
+    [Entry("hull_damage")] public float HullDamage;
+    [Entry("energy_damage")] public float EnergyDamage;
+    [Entry("impulse")] public float Impulse;
 }

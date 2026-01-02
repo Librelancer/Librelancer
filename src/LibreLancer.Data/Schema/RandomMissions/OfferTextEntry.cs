@@ -21,40 +21,42 @@ public class OfferTextItem
 {
     public OfferTextType Type;
     public int Ids;
-    public string[] Args;
+    public string[] Args = [];
 }
 
 public class OfferTextEntry
 {
     public OfferTextOp Op;
-    public OfferTextItem[] Items;
+    public OfferTextItem[] Items = [];
 
     public static OfferTextEntry FromEntry(Entry e)
     {
         var ot = new OfferTextEntry();
         var itemList = new List<OfferTextItem>();
-        ot.Op = Enum.Parse<OfferTextOp>(e[0].ToString());
+        ot.Op = Enum.Parse<OfferTextOp>(e[0].ToString()!);
         for (int i = 1; i < e.Count; i++)
         {
             var item = new OfferTextItem();
-            var opOrIds = e[i].ToString().ToLowerInvariant();
-            if (opOrIds == "singular")
+            var opOrIds = e[i].ToString()!.ToLowerInvariant();
+            switch (opOrIds)
             {
-                item.Type = OfferTextType.singular;
-                i++;
+                case "singular":
+                    item.Type = OfferTextType.singular;
+                    i++;
+                    break;
+                case "plural":
+                    item.Type = OfferTextType.plural;
+                    i++;
+                    break;
             }
-            if (opOrIds == "plural")
-            {
-                item.Type = OfferTextType.plural;
-                i++;
-            }
+
             item.Ids = e[i].ToInt32();
             var args = new List<string>();
             while (i + 1 < e.Count)
             {
                 if (e[i + 1].TryToInt32(out _))
                     break;
-                var op = e[i + 1].ToString();
+                var op = e[i + 1].ToString()!;
                 if (op.Equals("singular", StringComparison.OrdinalIgnoreCase) ||
                     op.Equals("plural", StringComparison.OrdinalIgnoreCase))
                     break;

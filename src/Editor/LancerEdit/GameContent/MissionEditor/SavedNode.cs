@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
+using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
 
@@ -30,11 +31,17 @@ public sealed class SavedNode
 
     public static SavedNode FromEntry(Entry e)
     {
-        var isTrigger = e[0].ToString().Equals("Trigger", StringComparison.OrdinalIgnoreCase);
+        if (e.Count is < 2)
+        {
+            FLLog.Error("MissionScriptEditor", "Entry does not have enough values");
+            throw new InvalidOperationException("Cannot create saved node, was given invalid data.");
+        }
+
+        var isTrigger = e[0].ToString()!.Equals("Trigger", StringComparison.OrdinalIgnoreCase);
         return new SavedNode()
         {
             IsTrigger = isTrigger,
-            Name = isTrigger ? e[1].ToString() : CommentEscaping.Unescape(e[1].ToString()),
+            Name = isTrigger ? e[1].ToString() : CommentEscaping.Unescape(e[1].ToString() ?? ""),
             Position = new(e[2].ToSingle(), e[3].ToSingle()),
             Size = isTrigger || e.Count <= 4 ? new(100) : new(e[4].ToSingle(), e[5].ToSingle())
         };

@@ -4,28 +4,27 @@
 
 using System;
 
-namespace LibreLancer.Data.Ini
-{
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-    public class EntryAttribute : Attribute
-    {
-        public string Name;
-        public bool MinMax = false;
-        public bool Multiline = false;
-        public bool Presence = false;
-        public bool Required = false;
-        public bool FloatColor = false;
-        public Vec3Mode Mode = Vec3Mode.None;
-        public EntryAttribute(string name)
-        {
-            Name = name;
-        }
-    }
+namespace LibreLancer.Data.Ini;
 
-    public enum Vec3Mode
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+public class EntryAttribute : Attribute
+{
+    public string Name;
+    public bool MinMax = false;
+    public bool Multiline = false;
+    public bool Presence = false;
+    public bool Required = false;
+    public bool FloatColor = false;
+    public Vec3Mode Mode = Vec3Mode.None;
+    public EntryAttribute(string name)
     {
-        None = 0,
-        Size = 1,
-        OptionalComponents = 2
+        Name = name;
     }
+}
+
+public enum Vec3Mode
+{
+    None = 0,
+    Size = 1,
+    OptionalComponents = 2
 }

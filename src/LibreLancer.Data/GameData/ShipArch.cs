@@ -5,12 +5,12 @@ namespace LibreLancer.Data.GameData;
 
 public class ShipArch : IdentifiableItem
 {
-    public Ship Ship;
-    public string Loadout;
-    public string Pilot;
-    public string StateGraph;
+    public Ship? Ship;
+    public string? Loadout;
+    public string? Pilot;
+    public string? StateGraph;
     public int Level;
-    public List<string> NpcClass = new();
+    public List<string> NpcClass = [];
 
     public static ShipArch FromIni(
         NPCShipArch ini,

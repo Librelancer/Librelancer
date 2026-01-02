@@ -9,30 +9,31 @@ namespace LibreLancer.Data.GameData;
 public static class ShortestPaths
 {
     [Flags]
-    enum ConnectionKind
+    private enum ConnectionKind
     {
         Legal = (1 << 0),
         Illegal = (1 << 1)
     }
 
-    record Connection(ConnectionKind Kind, SystemPaths Target);
+    private record Connection(ConnectionKind Kind, SystemPaths Target);
 
-    class SystemPaths(StarSystem System)
+    private class SystemPaths(StarSystem system)
     {
-        public readonly StarSystem System = System;
-        public readonly HashSet<Connection> Connections = new();
-        public SystemPaths Parent = null;
+        public readonly StarSystem System = system;
+        public readonly HashSet<Connection> Connections = [];
+        public SystemPaths? Parent;
 
         public List<StarSystem> GetPath()
         {
             var ls = new List<StarSystem>();
-            SystemPaths p = this;
-            int i = 0;
+            SystemPaths? p = this;
+
             do
             {
                 ls.Add(p.System);
                 p = p.Parent;
             } while (p != null);
+
             ls.Reverse();
             return ls;
         }
@@ -50,7 +51,7 @@ public static class ShortestPaths
     }
 
 
-    static Dictionary<StarSystem, List<StarSystem>> CalculateSystem(SystemPaths src, ConnectionKind kind)
+    private static Dictionary<StarSystem, List<StarSystem>> CalculateSystem(SystemPaths src, ConnectionKind kind)
     {
         var q = new Queue<SystemPaths>();
         var visited = new HashSet<SystemPaths>();
@@ -77,7 +78,7 @@ public static class ShortestPaths
         return paths;
     }
 
-    static SystemPaths[] BuildConnections(GameItemDb gameData)
+    private static SystemPaths[] BuildConnections(GameItemDb gameData)
     {
         var all = gameData.Systems.Select(x => new SystemPaths(x)).ToArray();
         var lookups = new Dictionary<string, SystemPaths>(StringComparer.OrdinalIgnoreCase);
@@ -85,17 +86,21 @@ public static class ShortestPaths
             lookups[a.System.Nickname] = a;
 
         foreach (var sys in all) {
-            foreach (var obj in sys.System.Objects) {
-                if(obj.Dock?.Kind == DockKinds.Jump &&
-                   !obj.Dock.Target.Equals(sys.System.Nickname, StringComparison.OrdinalIgnoreCase))
+            foreach (var obj in sys.System.Objects)
+            {
+                if (obj.Dock?.Kind != DockKinds.Jump ||
+                    (!(!obj.Dock.Target?.Equals(sys.System.Nickname, StringComparison.OrdinalIgnoreCase) ?? false)))
                 {
-                    var kind = obj.Archetype.Type == ArchetypeType.jump_gate
-                        ? ConnectionKind.Legal
-                        : ConnectionKind.Illegal;
-                    if (!lookups.TryGetValue(obj.Dock.Target, out var tgt))
-                        continue;
-                    sys.Connections.Add(new(kind, tgt));
+                    continue;
                 }
+
+                var kind = obj.Archetype?.Type == ArchetypeType.jump_gate
+                    ? ConnectionKind.Legal
+                    : ConnectionKind.Illegal;
+
+                if (!lookups.TryGetValue(obj.Dock.Target, out var tgt))
+                    continue;
+                sys.Connections.Add(new(kind, tgt));
             }
         }
 

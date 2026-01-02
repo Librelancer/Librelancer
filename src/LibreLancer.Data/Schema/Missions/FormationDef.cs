@@ -8,7 +8,7 @@ namespace LibreLancer.Data.Schema.Missions;
 [ParsedSection]
 public partial class FormationDef
 {
-    [Entry("nickname", Required = true)] public string Nickname;
-    [Entry("pos", Multiline = true)] public List<Vector3> Positions = new List<Vector3>();
+    [Entry("nickname", Required = true)] public string Nickname = null!;
+    [Entry("pos", Multiline = true)] public List<Vector3> Positions = [];
     [Entry("pl_pos")] public Vector3? PlayerPosition;
 }

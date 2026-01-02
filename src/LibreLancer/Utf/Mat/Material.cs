@@ -516,7 +516,7 @@ namespace LibreLancer.Utf.Mat
 						dm.Ac = Ac;
 						dm.FlipU = FlipU;
 						dm.FlipV = FlipV;
-						dm.TileRate = TileRate;;
+						dm.TileRate = TileRate;
 						dm.DmSampler = DmName;
 						dm.DmFlags = (SamplerFlags)DmFlags;
 						dm.DtSampler = DtName;

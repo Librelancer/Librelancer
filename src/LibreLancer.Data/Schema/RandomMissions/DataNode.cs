@@ -8,9 +8,9 @@ namespace LibreLancer.Data.Schema.RandomMissions;
 public partial class DataNode : VignetteNode
 {
     [Entry("offer_group")]
-    public string[] OfferGroup;
+    public string[]? OfferGroup;
     [Entry("hostile_group")]
-    public string[] HostileGroup;
+    public string[]? HostileGroup;
 
     [Entry("difficulty")]
     public Vector2? Difficulty;
@@ -19,32 +19,32 @@ public partial class DataNode : VignetteNode
     public int? Weight;
 
     [Entry("allowable_zone_types")]
-    public string[] AllowableZoneTypes;
+    public string[]? AllowableZoneTypes;
 
     [Entry("Implemented")]
     public bool Implemented = true;
 
     public VignetteString FailureText;
     public VignetteString RewardText;
-    public List<VignetteString> ObjectiveTexts = new();
-    public List<OfferTextEntry> OfferTexts = new();
-    public List<CommSequence> CommSequences = new();
+    public List<VignetteString> ObjectiveTexts = [];
+    public List<OfferTextEntry> OfferTexts = [];
+    public List<CommSequence> CommSequences = [];
 
     [EntryHandler("failure_text", MinComponents = 2)]
-    void HandleFailureText(Entry e) => VignetteString.TryParse(true, e, out FailureText);
+    private void HandleFailureText(Entry e) => VignetteString.TryParse(true, e, out FailureText);
     [EntryHandler("reward_text", MinComponents = 2)]
-    void HandleRewardText(Entry e) => VignetteString.TryParse(true, e, out RewardText);
+    private void HandleRewardText(Entry e) => VignetteString.TryParse(true, e, out RewardText);
 
     [EntryHandler("objective_text", MinComponents = 2, Multiline = true)]
-    void HandleObjectiveText(Entry e)
+    private void HandleObjectiveText(Entry e)
     {
         if(VignetteString.TryParse(false, e, out var ot))
             ObjectiveTexts.Add(ot);
     }
 
     [EntryHandler("offer_text", MinComponents = 2, Multiline = true)]
-    void HandleOfferText(Entry e) => OfferTexts.Add(OfferTextEntry.FromEntry(e));
+    private void HandleOfferText(Entry e) => OfferTexts.Add(OfferTextEntry.FromEntry(e));
 
     [EntryHandler("comm_sequence", MinComponents = 7, Multiline = true)]
-    void HandleCommSequence(Entry e) => CommSequences.Add(CommSequence.FromEntry(e));
+    private void HandleCommSequence(Entry e) => CommSequences.Add(CommSequence.FromEntry(e));
 }

@@ -77,12 +77,12 @@ namespace LancerEdit
 
         public string AutoLoadPath = "";
 
-        public List<CameraPreset> CameraPresets = new List<CameraPreset>();
+        public List<CameraPreset> CameraPresets = [];
 
         [EntryHandler("camera_preset", MinComponents = 2)]
         void HandleCameraPreset(Entry entry)
         {
-            CameraPresets.Add(new(CommentEscaping.Unescape(entry[0].ToString()), entry[1].ToString()));
+            CameraPresets.Add(new(CommentEscaping.Unescape(entry[0].ToString()!), entry[1].ToString()));
         }
 
         [EntryHandler("auto_load_path", MinComponents = 1)]

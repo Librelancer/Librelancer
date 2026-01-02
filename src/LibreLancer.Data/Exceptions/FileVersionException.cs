@@ -5,42 +5,28 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace LibreLancer
+namespace LibreLancer;
+
+[Serializable]
+public class FileVersionException : FileException
 {
-    [Serializable]
-    public class FileVersionException : FileException
+    private string? format;
+    private int actualVersion, expectedVersion;
+
+    public FileVersionException() : base() { }
+
+    public FileVersionException(string? path) : base(path) { }
+
+    public FileVersionException(string message, Exception innerException) : base(message, innerException) { }
+
+    public FileVersionException(string? path, string format, int actualVersion, int expectedVersion)
+        : base(path)
     {
-        private string format;
-        private int actualVersion, expectedVersion;
-
-        public FileVersionException() : base() { }
-
-        public FileVersionException(string path) : base(path) { }
-
-        public FileVersionException(string message, Exception innerException) : base(message, innerException) { }
-
-        public FileVersionException(string path, string format, int actualVersion, int expectedVersion)
-            : base(path)
-        {
-            this.format = format;
-            this.actualVersion = actualVersion;
-            this.expectedVersion = expectedVersion;
-        }
-
-        protected FileVersionException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-
-        public override string Message
-        {
-            get
-            {
-                return base.Message + "\r\nA " + format + " file of version " + expectedVersion + " was expected but a vesion " + actualVersion + " file was found";
-            }
-        }
-
-        public override void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            //TODO:
-            base.GetObjectData(info, context);
-        }
+        this.format = format;
+        this.actualVersion = actualVersion;
+        this.expectedVersion = expectedVersion;
     }
+
+    public override string Message =>
+        $"{base.Message}\r\nA {format ?? "unknown"} file of version {expectedVersion} was expected but a vesion {actualVersion} file was found";
 }

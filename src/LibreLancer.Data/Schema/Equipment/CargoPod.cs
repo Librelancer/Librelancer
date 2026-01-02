@@ -4,11 +4,10 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class CargoPod : AbstractEquipment
 {
-    [ParsedSection]
-    public partial class CargoPod : AbstractEquipment
-    {
-        [Entry("explosion_arch")] public string ExplosionArch;
-    }
+    [Entry("explosion_arch")] public string? ExplosionArch;
 }

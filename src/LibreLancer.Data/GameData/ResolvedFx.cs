@@ -5,15 +5,14 @@
 using LibreLancer.Data.Schema.Audio;
 using LibreLancer.Data.Schema.Effects;
 
-namespace LibreLancer.Data.GameData
+namespace LibreLancer.Data.GameData;
+
+public class ResolvedFx : IdentifiableItem
 {
-    public class ResolvedFx : IdentifiableItem
-    {
-        public string[] LibraryFiles;
-        public uint VisFxCrc;
-        public string AlePath;
-        public BeamSpear Spear;
-        public BeamBolt Bolt;
-        public AudioEntry Sound;
-    }
+    public required string[] LibraryFiles;
+    public uint VisFxCrc;
+    public string? AlePath;
+    public BeamSpear? Spear;
+    public BeamBolt? Bolt;
+    public AudioEntry? Sound;
 }

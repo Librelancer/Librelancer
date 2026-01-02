@@ -8,21 +8,20 @@ using System.Linq;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Data.Schema.MBases
-{
-    [ParsedIni]
-	public partial class MBasesIni
-    {
-        [Section("mbase")]
-        [Section("mvendor", Type = typeof(MVendor), Child = true)]
-        [Section("mroom", Type = typeof(MRoom), Child = true)]
-        [Section("gf_npc", Type = typeof(GfNpc), Child = true)]
-        [Section("basefaction", Type = typeof(BaseFaction), Child = true)]
-        public List<MBase> MBases = new();
+namespace LibreLancer.Data.Schema.MBases;
 
-        public void AddFile(string path, FileSystem vfs, IniStringPool stringPool = null)
-        {
-            ParseIni(path, vfs, stringPool);
-        }
-	}
+[ParsedIni]
+public partial class MBasesIni
+{
+    [Section("mbase")]
+    [Section("mvendor", Type = typeof(MVendor), Child = true)]
+    [Section("mroom", Type = typeof(MRoom), Child = true)]
+    [Section("gf_npc", Type = typeof(GfNpc), Child = true)]
+    [Section("basefaction", Type = typeof(BaseFaction), Child = true)]
+    public List<MBase> MBases = [];
+
+    public void AddFile(string path, FileSystem vfs, IniStringPool? stringPool = null)
+    {
+        ParseIni(path, vfs, stringPool);
+    }
 }

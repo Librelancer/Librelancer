@@ -7,26 +7,25 @@ using System.Collections.Generic;
 using System.Text;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Save
+namespace LibreLancer.Data.Schema.Save;
+
+[ParsedSection]
+public partial class LockedGates : IWriteSection
 {
-    [ParsedSection]
-    public partial class LockedGates : IWriteSection
+    [Entry("npc_locked_gate", Multiline = true)]
+    public List<int> NpcLockedGates = [];
+
+    [Entry("locked_gate", Multiline = true)]
+    public List<int> PlayerLockedGates = [];
+
+
+    public void WriteTo(IniBuilder builder)
     {
-        [Entry("npc_locked_gate", Multiline = true)]
-        public List<int> NpcLockedGates = new List<int>();
-
-        [Entry("locked_gate", Multiline = true)]
-        public List<int> PlayerLockedGates = new List<int>();
-
-
-        public void WriteTo(IniBuilder builder)
-        {
-            var sec = builder.Section("locked_gates");
-            foreach (var g in NpcLockedGates)
-                sec.Entry("npc_locked_gate", (uint) g);
-            foreach (var g in PlayerLockedGates)
-                sec.Entry("locked_gate", (uint) g);
-            sec.RemoveIfEmpty();
-        }
+        var sec = builder.Section("locked_gates");
+        foreach (var g in NpcLockedGates)
+            sec.Entry("npc_locked_gate", (uint) g);
+        foreach (var g in PlayerLockedGates)
+            sec.Entry("locked_gate", (uint) g);
+        sec.RemoveIfEmpty();
     }
 }

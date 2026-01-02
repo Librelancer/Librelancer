@@ -4,16 +4,15 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Fonts
+namespace LibreLancer.Data.Schema.Fonts;
+
+[ParsedSection]
+public partial class UIFont
 {
-    [ParsedSection]
-    public partial class UIFont
-    {
-        [Entry("nickname")]
-        public string Nickname;
-        [Entry("font")]
-        public string Font;
-        [Entry("fixed_height")]
-        public float FixedHeight;
-    }
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("font", Required = true)]
+    public string Font = null!;
+    [Entry("fixed_height")]
+    public float FixedHeight;
 }

@@ -3,15 +3,13 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LibreLancer.Data.Schema.Audio
-{
-	public enum AudioType
-	{
-		Normal,
-		Music,
-		Ambience,
-		Interface,
-		Voice
-	}
-}
+namespace LibreLancer.Data.Schema.Audio;
 
+public enum AudioType
+{
+    Normal,
+    Music,
+    Ambience,
+    Interface,
+    Voice
+}

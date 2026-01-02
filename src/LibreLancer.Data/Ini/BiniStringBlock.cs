@@ -5,36 +5,33 @@
 using System;
 using System.Collections.Generic;
 
-namespace LibreLancer.Data.Ini
+namespace LibreLancer.Data.Ini;
+
+//Avoid repeated allocations in BINI loading
+public class BiniStringBlock
 {
-    //Avoid repeated allocations in BINI loading
-    public class BiniStringBlock
+    private readonly string block;
+    private readonly Dictionary<int,string> strings = new();
+    private readonly IniStringPool? stringPool;
+
+    public BiniStringBlock(string block, IniStringPool? stringPool = null)
     {
-        private string block;
-        Dictionary<int,string> strings = new Dictionary<int, string>();
-        private IniStringPool stringPool = null;
+        this.block = block;
+        this.stringPool = stringPool;
+    }
 
-        public BiniStringBlock(string block, IniStringPool stringPool = null)
+    public string Get(int strOffset)
+    {
+        if (strings.TryGetValue(strOffset, out var s))
         {
-            this.block = block;
-            this.stringPool = stringPool;
-        }
-
-        public string Get(int strOffset)
-        {
-            if (!strings.TryGetValue(strOffset, out string s))
-            {
-                if (stringPool != null)
-                {
-                    s = stringPool.FromSpan(block.AsSpan(strOffset, block.IndexOf('\0', strOffset) - strOffset));
-                }
-                else
-                {
-                    s = block.Substring(strOffset, block.IndexOf('\0', strOffset) - strOffset);
-                }
-                strings.Add(strOffset, s);
-            }
             return s;
         }
+
+        s = stringPool != null
+            ? stringPool.FromSpan(block.AsSpan(strOffset, block.IndexOf('\0', strOffset) - strOffset))
+            : block.Substring(strOffset, block.IndexOf('\0', strOffset) - strOffset);
+
+        strings.Add(strOffset, s);
+        return s;
     }
 }

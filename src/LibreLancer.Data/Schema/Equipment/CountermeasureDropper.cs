@@ -4,12 +4,11 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class CountermeasureDropper : Gun
 {
-    [ParsedSection]
-    public partial class CountermeasureDropper : Gun
-    {
-        [Entry("ai_range")]
-        public float AiRange;
-    }
+    [Entry("ai_range")]
+    public float AiRange;
 }

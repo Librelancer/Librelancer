@@ -6,36 +6,42 @@ namespace LibreLancer.Data;
 
 public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
 {
-    private Dictionary<string, T> nicknameCollection = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
-    private Dictionary<uint, T> crcCollection = new Dictionary<uint, T>();
+    private Dictionary<string, T> nicknameCollection = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<uint, T> crcCollection = new();
 
     public IEnumerable<uint> Crcs => crcCollection.Keys;
 
-    public bool TryGetValue(string nickname, out T value)
+    public bool TryGetValue(string? nickname, out T? value)
     {
-        if (string.IsNullOrEmpty(nickname)) {
-            value = null;
-            return false;
+        if (!string.IsNullOrEmpty(nickname))
+        {
+            return nicknameCollection.TryGetValue(nickname, out value);
         }
-        return nicknameCollection.TryGetValue(nickname, out value);
+
+        value = null;
+        return false;
     }
 
-    public bool TryGetValue(uint crc, out T value) => crcCollection.TryGetValue(crc, out value);
+    public bool TryGetValue(uint crc, out T? value) => crcCollection.TryGetValue(crc, out value);
 
-    public T Get(string nickname)
+    public T? Get(string? nickname)
     {
-        if (string.IsNullOrEmpty(nickname)) return null;
+        if (string.IsNullOrEmpty(nickname))
+        {
+            return null;
+        }
+
         nicknameCollection.TryGetValue(nickname, out var result);
         return result;
     }
 
-    public T Get(uint crc)
+    public T? Get(uint crc)
     {
         crcCollection.TryGetValue(crc, out var result);
         return result;
     }
 
-    public T Get(int crc) => Get((uint) crc);
+    public T? Get(int crc) => Get((uint) crc);
 
     public bool Contains(string nickname) => nicknameCollection.ContainsKey(nickname);
 
@@ -44,13 +50,16 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
     public void Add(T item)
     {
         if (string.IsNullOrEmpty(item.Nickname) || item.CRC == 0)
+        {
             throw new ArgumentNullException();
-        if (crcCollection.ContainsKey(item.CRC) &&
-            !nicknameCollection.ContainsKey(item.Nickname))
+        }
+
+        if (crcCollection.ContainsKey(item.CRC) && !nicknameCollection.ContainsKey(item.Nickname))
         {
             throw new ArgumentException(
                 $"CRC collision between '{item.Nickname}' and {crcCollection[item.CRC].Nickname}");
         }
+
         nicknameCollection[item.Nickname] = item;
         crcCollection[item.CRC] = item;
     }

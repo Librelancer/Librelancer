@@ -4,24 +4,23 @@
 
 using System;
 using System.IO;
-namespace LibreLancer.Data
-{
-    //Quick place to check content DLL hacks
-    public class ContentDll
-    {
-        public bool AlwaysMission13;
+namespace LibreLancer.Data;
 
-        static bool check(byte[] dll, int offset, params byte[] bytes)
-        {
-            for(int i = 0; i < bytes.Length; i++) {
-                if (dll[offset + i] != bytes[i]) return false;
-            }
-            return true;
+//Quick place to check content DLL hacks
+public class ContentDll
+{
+    public bool AlwaysMission13;
+
+    private static bool check(byte[] dll, int offset, params byte[] bytes)
+    {
+        for(int i = 0; i < bytes.Length; i++) {
+            if (dll[offset + i] != bytes[i]) return false;
         }
-        public void Load(byte[] dll)
-        {
-            //Check DLL hacks
-            AlwaysMission13 = check(dll, 0x04EE3A, 0xA2, 0x6A);
-        }
+        return true;
+    }
+    public void Load(byte[] dll)
+    {
+        //Check DLL hacks
+        AlwaysMission13 = check(dll, 0x04EE3A, 0xA2, 0x6A);
     }
 }

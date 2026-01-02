@@ -5,7 +5,7 @@ namespace LibreLancer.Data.Schema;
 
 public class ObjectFuse
 {
-    public string Fuse;
+    public string? Fuse;
     public float DelayUNKNOWN;
     public float Threshold;
 

@@ -5,17 +5,15 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Characters
+namespace LibreLancer.Data.Schema.Characters;
+
+[ParsedSection]
+public partial class Bodypart
 {
-    [ParsedSection]
-	public partial class Bodypart
-    {
-        [Entry("nickname", Required = true)]
-        public string Nickname;
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
 
-        [Entry("mesh")]
-        public string Mesh;
-
-        public string Sex;
-    }
+    [Entry("mesh")]
+    public string? Mesh;
+    public string? Sex;
 }

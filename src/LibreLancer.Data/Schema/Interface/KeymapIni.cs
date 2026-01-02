@@ -7,11 +7,11 @@ namespace LibreLancer.Data.Schema.Interface;
 [ParsedSection]
 public partial class KeyCmd
 {
-    [Entry("nickname")] public string Nickname;
+    [Entry("nickname", Required = true)] public string Nickname = null!;
     [Entry("ids_name")] public int IdsName;
     [Entry("ids_info")] public int IdsInfo;
-    [Entry("state")] public string[] State;
-    [Entry("key")] public List<string[]> Keys = new List<string[]>();
+    [Entry("state")] public string[] State = [];
+    [Entry("key")] public List<string[]> Keys = [];
 }
 
 [IgnoreSection("keymap=1.1")]
@@ -20,9 +20,9 @@ public partial class KeyCmd
 public partial class KeymapIni
 {
     [Section("KeyCmd")]
-    public List<KeyCmd> KeyCmd = new List<KeyCmd>();
+    public List<KeyCmd> KeyCmd = [];
 
-    public KeymapIni(string path, FileSystem vfs, IniStringPool stringPool = null)
+    public KeymapIni(string path, FileSystem vfs, IniStringPool? stringPool = null)
     {
         ParseIni(path, vfs, stringPool);
     }

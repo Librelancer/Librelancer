@@ -12,7 +12,7 @@ public struct MissionRelativePosition
     {
         var p = new MissionRelativePosition();
         _ = float.TryParse(entry[0].ToString(), out p.MinRange);
-        p.ObjectName = entry[1].ToString();
+        p.ObjectName = entry[1].ToString()!;
         _ = float.TryParse(entry[2].ToString(), out p.MaxRange);
         return p;
     }
