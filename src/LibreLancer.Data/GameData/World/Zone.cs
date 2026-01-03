@@ -97,6 +97,7 @@ namespace LibreLancer.Data.GameData.World
             {
                 topDown = null;
                 outline = null;
+                zoneCenter = null;
             }
         }
 
@@ -283,7 +284,16 @@ namespace LibreLancer.Data.GameData.World
 
         private Vector2[] topDown = null;
         private Vector2[] outline = null;
-
+        private Vector2? zoneCenter = null;
+        public Vector2 ZoneCenter
+        {
+            get
+            {
+                if (zoneCenter == null)
+                    OutlineMesh(); // ensures it is built
+                return zoneCenter.Value;
+            }
+        }
         private static readonly Vector3[] _cubeVertices =
         {
             new(-0.5f, -0.5f, -0.5f),
@@ -400,9 +410,31 @@ namespace LibreLancer.Data.GameData.World
                 }
                 outline = Outline2D(points);
             }
+            zoneCenter = GetPolygonCenter(outline);
             return outline;
         }
+        static Vector2 GetPolygonCenter(ReadOnlySpan<Vector2> poly)
+        {
+            float area = 0f;
+            float cx = 0f;
+            float cy = 0f;
 
+            for (int i = 0, j = poly.Length - 1; i < poly.Length; j = i++)
+            {
+                float cross = poly[j].X * poly[i].Y - poly[i].X * poly[j].Y;
+                area += cross;
+                cx += (poly[j].X + poly[i].X) * cross;
+                cy += (poly[j].Y + poly[i].Y) * cross;
+            }
+
+            area *= 0.5f;
+
+            if (MathF.Abs(area) < 0.0001f)
+                return poly[0];
+
+            float inv = 1f / (6f * area);
+            return new Vector2(cx * inv, cy * inv);
+        }
         static Vector2[] Outline2D(List<Vector2> points)
         {
             if (points == null || points.Count <= 1)
