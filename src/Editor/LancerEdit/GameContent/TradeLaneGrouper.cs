@@ -12,21 +12,36 @@ public static class TradeLaneGrouper
 {
     public static List<TradeLaneGroup> Build(IEnumerable<GameObject> items)
     {
-        var all = items
+        // Filter once to concrete tradelane rings
+        var tradeLanes = items
             .Where(IsTradeLane)
-            .ToDictionary(GetKey);
+            .ToList();
 
-        var visited = new HashSet<string>();
+        // Start points: tradelanes with a forward target but no backward link
+        var starts = tradeLanes.Where(t =>
+        {
+            var dock = t.SystemObject.Dock;
+            return !string.IsNullOrEmpty(dock.Target) &&
+                   string.IsNullOrEmpty(dock.TargetLeft);
+        });
+
         var groups = new List<TradeLaneGroup>();
 
-        foreach (var item in all.Values)
+        foreach (var start in starts)
         {
-            var key = GetKey(item);
-            if (visited.Contains(key))
-                continue;
-
             var group = new TradeLaneGroup();
-            Expand(item, all, visited, group);
+            var current = start;
+
+            while (current != null)
+            {
+                group.Add(current);
+
+                var dock = current.SystemObject.Dock;
+                if (string.IsNullOrEmpty(dock.Target))
+                    break;
+
+                current = tradeLanes.FirstOrDefault(t => t.Nickname == dock.Target);
+            }
 
             if (group.Members.Count > 0)
                 groups.Add(group);
@@ -37,54 +52,7 @@ public static class TradeLaneGrouper
     public static bool IsTradeLane(GameObject obj)
     {
         var arch = obj.SystemObject.Archetype;
-        return arch != null &&
-               arch.Type == ArchetypeType.tradelane_ring && 
+        return arch is { Type: ArchetypeType.tradelane_ring } &&
                obj.SystemObject?.Dock?.Kind == DockKinds.Tradelane;
-    }
-
-    static string GetKey(GameObject obj)
-        => obj.Nickname;
-    static bool TryFollow(string target,IReadOnlyDictionary<string, GameObject> all,out GameObject obj)
-    {
-        obj = null;
-
-        if (string.IsNullOrEmpty(target))
-            return false;
-
-        if (!target.Contains("trade_lane", StringComparison.OrdinalIgnoreCase))
-            return false;
-
-        return all.TryGetValue(target, out obj);
-    }
-    static IEnumerable<GameObject> GetLinkedItems(GameObject obj,IReadOnlyDictionary<string, GameObject> all)
-    {
-        var dock = obj.SystemObject.Dock;
-        if (dock == null || dock.Kind != DockKinds.Tradelane)
-            yield break;
-
-        if (TryFollow(dock.Target, all, out var t1))
-            yield return t1;
-
-        if (TryFollow(dock.TargetLeft, all, out var t2))
-            yield return t2;
-    }
-    static void Expand(GameObject start,Dictionary<string, GameObject> all,HashSet<string> visited,TradeLaneGroup group)
-    {
-        var stack = new Stack<GameObject>();
-        stack.Push(start);
-
-        while (stack.Count > 0)
-        {
-            var item = stack.Pop();
-            var key = GetKey(item);
-
-            if (!visited.Add(key))
-                continue;
-
-            group.Add(item);
-
-            foreach (var linked in GetLinkedItems(item, all))
-                stack.Push(linked);
-        }
     }
 }
