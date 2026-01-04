@@ -15,22 +15,17 @@ public class ServerConfigurationScreen(
     LLServerGuiConfig guiConfig)
     : Screen(sm, pm)
 {
-    private static readonly FileDialogFilters dbInputFilters = new FileDialogFilters(
+    private static readonly FileDialogFilters _dbInputFilters = new FileDialogFilters(
         new FileFilter("Database File", "db")
         );
 
-    private static readonly FileDialogFilters inputFilters = new FileDialogFilters(
+    private static readonly FileDialogFilters _inputFilters = new FileDialogFilters(
         new FileFilter("Config File", "json")
         );
 
-    private static readonly FileDialogFilters lrpkFilter = new FileDialogFilters(
+    private static readonly FileDialogFilters _lrpkFilter = new FileDialogFilters(
         new FileFilter("Lancer Pack File", "lrpk")
         );
-
-    private static readonly float LABEL_WIDTH = 135f;
-    private static readonly float BUTTON_WIDTH = 110f;
-    private readonly Vector4 ERROR_TEXT_COLOUR = new Vector4(1f, 0.3f, 0.3f, 1f);
-    private readonly Vector4 SUCCESS_TEXT_COLOUR = new Vector4(0f, 0.8f, 0.2f, 1f);
 
     private string? portInputBuffer;
 
@@ -54,26 +49,26 @@ public class ServerConfigurationScreen(
         ImGui.NewLine();
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Server Name"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Server Name"); ImGui.SameLine(Theme.LabelWidthMedium);
         ImGui.PushItemWidth(-1); ImGui.InputText("##serverName", ref config.ServerName, 4096);
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Server Description"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Server Description"); ImGui.SameLine(Theme.LabelWidthMedium);
         ImGui.PushItemWidth(-1);
         ImGui.InputTextMultiline(
             "##description",
             ref config.ServerDescription,
             4096,
-            new Vector2(0, ImGui.GetFrameHeight() * 4 * ImGuiHelper.Scale)
+            new Vector2(0, ImGui.GetFrameHeight() * 4)
         );
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Login URL"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Login URL"); ImGui.SameLine(Theme.LabelWidthMedium);
         ImGui.PushItemWidth(-1); ImGui.InputText("##loginUrl", ref config.LoginUrl, 4096);
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Listening Port"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        ImGui.PushItemWidth(BUTTON_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Listening Port"); ImGui.SameLine(Theme.LabelWidthMedium);
+        ImGui.PushItemWidth(Theme.ButtonWidth);
         ref string portInput = ref portInputBuffer;
         portInput ??= config.Port.ToString();
         if (ImGui.InputText("##serverPort", ref portInput, 6, ImGuiInputTextFlags.CharsDecimal))
@@ -89,8 +84,8 @@ public class ServerConfigurationScreen(
 
         // TODO: add this back in when lrpk support is ready
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Freelancer Path"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        if (ImGui.Button("Choose Folder", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        ImGui.Text("Freelancer Path"); ImGui.SameLine(Theme.LabelWidthMedium);
+        if (ImGui.Button("Choose Folder", new Vector2(Theme.ButtonWidth, 0)))
         {
             win.QueueUIThread(() =>
             {
@@ -108,8 +103,8 @@ public class ServerConfigurationScreen(
         /* LRPK UI - to be enabled at a later date
         ImGui.SameLine();
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Freelancer .lrpk Path"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        if (ImGui.Button("Choose .lrpk", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        ImGui.Text("Freelancer .lrpk Path"); ImGui.SameLine(Theme.LABEL_WIDTH_MEDIUM);
+        if (ImGui.Button("Choose .lrpk", new Vector2(Theme.BUTTON_WIDTH, 0)))
         {
             win.QueueUIThread(() =>
             {
@@ -128,8 +123,8 @@ public class ServerConfigurationScreen(
 
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Database File"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
-        if (ImGui.Button("Select File##db", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        ImGui.Text("Database File"); ImGui.SameLine(Theme.LabelWidthMedium);
+        if (ImGui.Button("Select File##db", new Vector2(Theme.ButtonWidth, 0)))
         {
             win.QueueUIThread(() =>
             {
@@ -142,24 +137,24 @@ public class ServerConfigurationScreen(
                     config.DatabasePath = filepath;
 
                 },
-                dbInputFilters);
+                _dbInputFilters);
             });
         }
         ImGui.SameLine(); ImGui.PushItemWidth(-1); ImGui.InputText("##dbfile", ref config.DatabasePath, 4096);
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Configuration File"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Configuration File"); ImGui.SameLine(Theme.LabelWidthMedium);
         ImGui.PushItemWidth(-1); ImGui.InputText("##configfile", ref win.ServerGuiConfig.LastConfigPath, 4096, ImGuiInputTextFlags.ReadOnly);
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Auto Start Server"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
+        ImGui.Text("Auto Start Server"); ImGui.SameLine(Theme.LabelWidthMedium);
         ImGui.Checkbox("##autoStart", ref guiConfig.AutoStartServer);
 
         ImGui.NewLine();
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
-        if (ImGui.Button("Load Config", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        if (ImGui.Button("Load Config", new Vector2(Theme.ButtonWidth, 0)))
         {
             win.QueueUIThread(() =>
             {
@@ -177,13 +172,13 @@ public class ServerConfigurationScreen(
                     var newConfig = win.GetServerConfigFromFileOrDefault(filepath);
                     config.CopyFrom(newConfig);
                 },
-                inputFilters);
+                _inputFilters);
             });
         }
         ImGui.SameLine();
-        ImGui.Dummy(new Vector2(ImGui.GetContentRegionAvail().X - BUTTON_WIDTH - 10 * ImGuiHelper.Scale, ImGui.GetFrameHeight()));
+        ImGui.Dummy(new Vector2(ImGui.GetContentRegionAvail().X - Theme.ButtonWidth - 10 * ImGuiHelper.Scale, ImGui.GetFrameHeight()));
         ImGui.SameLine();
-        if (ImGui.Button("Launch Server", new Vector2(BUTTON_WIDTH * ImGuiHelper.Scale, 0)))
+        if (ImGui.Button("Launch Server", new Vector2(Theme.ButtonWidth, 0)))
         {
             win.QueueUIThread(LaunchServer);
         }
@@ -199,7 +194,7 @@ public class ServerConfigurationScreen(
 
         ImGui.Dummy(new Vector2(0, ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() - 5 * ImGuiHelper.Scale));
         ImGui.BeginChild("startupError", new Vector2(0, ImGui.GetFrameHeightWithSpacing() * ImGuiHelper.Scale), ImGuiChildFlags.None, ImGuiWindowFlags.NoScrollbar);
-        ImGuiExt.CenterText("Server Startup Error", ERROR_TEXT_COLOUR);
+        ImGuiExt.CenterText("Server Startup Error", Theme.ErrorTextColor);
         ImGui.EndChild();
 
     }
