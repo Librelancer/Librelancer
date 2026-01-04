@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.World;

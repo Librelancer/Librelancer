@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -7,7 +6,7 @@ using LibreLancer.World;
 
 namespace LancerEdit.GameContent;
 
-public class TradeLaneGroup 
+public class TradeLaneGroup
 {
     public readonly List<GameObject> Members = new();
 
@@ -38,7 +37,7 @@ public class TradeLaneGroup
         return (a, b);
     }
 
-    public bool IsTerminal(GameObject obj)
+    private bool IsTerminal(GameObject obj)
     {
         var dock = obj.SystemObject.Dock;
         if (dock == null) return true;

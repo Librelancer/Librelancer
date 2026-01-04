@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -8,52 +7,47 @@ using ImGuiNET;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.Data.GameData.World;
-using LibreLancer.Data.Schema.Equipment;
-using LibreLancer.Data.Schema.Universe;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
-using LibreLancer.Interface;
 using LibreLancer.World;
 
 namespace LancerEdit.GameContent;
 
 public class EditMap2D
 {
-    public static int MarginH = (int)(40 * ImGuiHelper.Scale);
-    public static int MarginW = (int)(15 * ImGuiHelper.Scale);
+    private static readonly int _marginH = (int)(40 * ImGuiHelper.Scale);
+    private static readonly int _marginW = (int)(15 * ImGuiHelper.Scale);
 
-    private const float GridSizeDefault = 240000;
-    private static readonly string[] GRIDNUMBERS = { "1", "2", "3", "4", "5", "6", "7", "8" };
-    private static readonly string[] GRIDLETTERS = { "A", "B", "C", "D", "E", "F", "G", "H" };
-    private static readonly int GRID_DIVISIONS = 8;
+    private const float _gridSizeDefault = 240000f;
+    private static readonly string[] _gridnumbers = ["1", "2", "3", "4", "5", "6", "7", "8"];
+    private static readonly string[] _gridletters = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    private const int _gridDivisions = 8;
 
-    private static readonly uint MAP_BG_COLOUR = 0xFF1C0812;
-    private static readonly uint CLUSTER_BG_COLOUR = 0xFF8888FF;
-    private static readonly uint TRADELANE_DESELECTED_COLOUR = 0xFF454770;
-    private static readonly uint SELECTED_COLOUR = 0xFFFFB366;
-    private static readonly uint COLOUR_WHITE = 0xFFFFFFFF;
+    private const uint _mapBgColour = 0xFF1C0812;
+    private const uint _clusterBgColour = 0xFF8888FF;
+    private const uint _tradelaneDeselectedColour = 0xFF454770;
+    private const uint _selectedColour = 0xFFFFB366;
+    private const uint _colourWhite = 0xFFFFFFFF;
 
-    private static readonly float ZOOM_SPEED = 0.15f;
-    private static readonly float MIN_ZOOM = 1f;
-    private static readonly float MAX_ZOOM = 100f;
-    private Vector2 CameraCenter = new(0.5f, 0.5f); // normalized (0..1)
+    private const float _zoomSpeed = 0.15f;
+    private const float _minZoom = 1f;
+    private const float _maxZoom = 100f;
+    private Vector2 cameraCenter = new(0.5f, 0.5f); // normalized (0..1)
 
     public float Zoom = 1;
-    private float lastZoom = 1f;
 
     private enum MapLod { Minimal, Reduced, Detailed }
 
-    GameObject dragTarget;
-    Transform3D dragOriginalTransform;
-    RenderContext renderContext;
-    List<ObjectCluster> clusters = new();
-    List<GameObject> currentClusterObjects;
-    List<TradeLaneGroup> groupedTradelanes = new();
-    TradeLaneGroup selectedTradeLaneGroup = new();
+    private GameObject dragTarget;
+    private Transform3D dragOriginalTransform;
+    private readonly List<ObjectCluster> clusters = new();
+    private List<GameObject> currentClusterObjects;
+    private List<TradeLaneGroup> groupedTradelanes = new();
+    private TradeLaneGroup selectedTradeLaneGroup = new();
 
-    TradeLaneGroup draggingTradeLaneGroup;
-    Dictionary<GameObject, Transform3D> tradeLaneDragStartTransforms;
-    Vector2 tradeLaneDragStartMouse;
+    private TradeLaneGroup draggingTradeLaneGroup;
+    private Dictionary<GameObject, Transform3D> tradeLaneDragStartTransforms;
+    private Vector2 tradeLaneDragStartMouse;
 
     // Creation tools (patrols, zones)
     public Map2DCreationTools CreationTools { get; } = new();
@@ -65,8 +59,8 @@ public class EditMap2D
         // Reserve stable layout space (CRITICAL: prevents scrolling bug)
         Vector2 canvasPos = ImGui.GetCursorScreenPos();
         Vector2 canvasSize = new(
-            Math.Max(120, ImGui.GetWindowWidth() - MarginW),
-            Math.Max(120, ImGui.GetWindowHeight() - MarginH)
+            Math.Max(120, ImGui.GetWindowWidth() - _marginW),
+            Math.Max(120, ImGui.GetWindowHeight() - _marginH)
         );
 
         ImGui.Dummy(canvasSize);
@@ -83,22 +77,22 @@ public class EditMap2D
         if (Zoom <= 1.0f)
         {
             Zoom = 1.0f;
-            CameraCenter = new Vector2(0.5f, 0.5f);
+            cameraCenter = new Vector2(0.5f, 0.5f);
         }
 
         float baseMapSize = Math.Min(canvasSize.X, canvasSize.Y);
         float mapSize = baseMapSize * Zoom;
 
         float halfVisible = 0.5f / Zoom;
-        CameraCenter.X = Math.Clamp(CameraCenter.X, halfVisible, 1f - halfVisible);
-        CameraCenter.Y = Math.Clamp(CameraCenter.Y, halfVisible, 1f - halfVisible);
+        cameraCenter.X = Math.Clamp(cameraCenter.X, halfVisible, 1f - halfVisible);
+        cameraCenter.Y = Math.Clamp(cameraCenter.Y, halfVisible, 1f - halfVisible);
 
-        Vector2 mapTopLeft = viewportCenter - (CameraCenter * mapSize);
+        Vector2 mapTopLeft = viewportCenter - (cameraCenter * mapSize);
 
         // Background
-        drawList.AddRectFilled(mapTopLeft, mapTopLeft + new Vector2(mapSize), MAP_BG_COLOUR);
+        drawList.AddRectFilled(mapTopLeft, mapTopLeft + new Vector2(mapSize), _mapBgColour);
 
-        drawList.AddRect(mapTopLeft, mapTopLeft + new Vector2(mapSize), COLOUR_WHITE, 0, ImDrawFlags.None, 2f);
+        drawList.AddRect(mapTopLeft, mapTopLeft + new Vector2(mapSize), _colourWhite, 0, ImDrawFlags.None, 2f);
 
         // Grid + labels
         DrawGridAndLabelsViewportAware(drawList, canvasMin, canvasSize, mapTopLeft, mapSize);
@@ -108,17 +102,17 @@ public class EditMap2D
             Zoom < 4f ? MapLod.Minimal :
             Zoom < 10f ? MapLod.Reduced :
                         MapLod.Detailed;
-        DrawZones(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
-        DrawTradeLaneLinesLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
-        DrawTradeLaneIconsLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
-        DrawObjectsLOD(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
+        DrawZones(system, tab, mapTopLeft, mapSize, drawList);
+        DrawTradeLaneLinesLod(system, mapTopLeft, mapSize, drawList, lod);
+        DrawTradeLaneIconsLod(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
+        DrawObjectsLod(system, tab, ctx, mapTopLeft, mapSize, drawList, lod);
         UpdateTradeLaneGroupDrag(system, mapSize, tab);
 
         // Pan
         if (ImGui.IsWindowHovered() && ImGui.IsMouseDragging(ImGuiMouseButton.Middle))
         {
             Vector2 delta = ImGui.GetIO().MouseDelta;
-            CameraCenter -= delta / mapSize;
+            cameraCenter -= delta / mapSize;
         }
         // Zoom
         else if (ImGui.IsWindowHovered() && ImGui.GetIO().MouseWheel != 0f)
@@ -126,10 +120,11 @@ public class EditMap2D
             float wheel = ImGui.GetIO().MouseWheel;
             float oldZoom = Zoom;
 
-            Zoom *= MathF.Exp(wheel * ZOOM_SPEED);
-            Zoom = Math.Clamp(Zoom, MIN_ZOOM, MAX_ZOOM);
+            Zoom *= MathF.Exp(wheel * _zoomSpeed);
+            Zoom = Math.Clamp(Zoom, _minZoom, _maxZoom);
 
-            if (Zoom != oldZoom)
+            var zoomTolerance = 0.01f;
+            if (Math.Abs(Zoom - oldZoom) > zoomTolerance)
             {
                 Vector2 mouseScreen = ImGui.GetIO().MousePos;
 
@@ -139,9 +134,9 @@ public class EditMap2D
                 float newMapSize = baseMapSize * Zoom;
 
                 Vector2 mouseMapAfter =
-                    (mouseScreen - viewportCenter) / newMapSize + CameraCenter;
+                    (mouseScreen - viewportCenter) / newMapSize + cameraCenter;
 
-                CameraCenter += (mouseMapBefore - mouseMapAfter);
+                cameraCenter += (mouseMapBefore - mouseMapAfter);
             }
         }
 
@@ -155,12 +150,12 @@ public class EditMap2D
             drawList,
             mapTopLeft,
             mapSize,
-            world => WorldToMap_Local(world, system, mapSize),
+            worldPos => WorldToMap_Local(worldPos, system, mapSize),
             map => MapToWorld_Local(map, system, mapSize),
             tab
         );
         var pos = canvasPos + new Vector2(30f * ImGuiHelper.Scale);
-        drawList.AddText(pos, COLOUR_WHITE, helpText);
+        drawList.AddText(pos, _colourWhite, helpText);
 
         // Cluster popup
         if (ImGui.BeginPopup("##clusterPopup"))
@@ -180,7 +175,7 @@ public class EditMap2D
         }
     }
 
-    void DrawGridAndLabelsViewportAware(ImDrawListPtr drawList, Vector2 viewportPos, Vector2 viewportSize, Vector2 mapTopLeft, float mapSize)
+    private void DrawGridAndLabelsViewportAware(ImDrawListPtr drawList, Vector2 viewportPos, Vector2 viewportSize, Vector2 mapTopLeft, float mapSize)
     {
         Vector2 viewportMin = viewportPos;
         Vector2 viewportMax = viewportPos + viewportSize;
@@ -192,31 +187,29 @@ public class EditMap2D
         mapMin = Vector2.Clamp(mapMin, Vector2.Zero, Vector2.One);
         mapMax = Vector2.Clamp(mapMax, Vector2.Zero, Vector2.One);
 
-        int colMin = Math.Clamp((int)Math.Floor(mapMin.X * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
-        int colMax = Math.Clamp((int)Math.Floor(mapMax.X * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
-        int rowMin = Math.Clamp((int)Math.Floor(mapMin.Y * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
-        int rowMax = Math.Clamp((int)Math.Floor(mapMax.Y * GRID_DIVISIONS), 0, GRID_DIVISIONS - 1);
+        int colMin = Math.Clamp((int)Math.Floor(mapMin.X * _gridDivisions), 0, _gridDivisions - 1);
+        int colMax = Math.Clamp((int)Math.Floor(mapMax.X * _gridDivisions), 0, _gridDivisions - 1);
+        int rowMin = Math.Clamp((int)Math.Floor(mapMin.Y * _gridDivisions), 0, _gridDivisions - 1);
+        int rowMax = Math.Clamp((int)Math.Floor(mapMax.Y * _gridDivisions), 0, _gridDivisions - 1);
 
-        float cellSize = mapSize / GRID_DIVISIONS;
+        float cellSize = mapSize / _gridDivisions;
         uint gridColor = ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 0.4f));
 
         // ---- Grid lines (map space) ----
-        for (int i = 1; i < GRID_DIVISIONS; i++)
+        for (int i = 1; i < _gridDivisions; i++)
         {
             float p = i * cellSize;
 
             drawList.AddLine(
                 mapTopLeft + new Vector2(p, 0),
                 mapTopLeft + new Vector2(p, mapSize),
-                gridColor,
-                1f
+                gridColor
             );
 
             drawList.AddLine(
                 mapTopLeft + new Vector2(0, p),
                 mapTopLeft + new Vector2(mapSize, p),
-                gridColor,
-                1f
+                gridColor
             );
         }
 
@@ -226,13 +219,13 @@ public class EditMap2D
         // Column labels (top)
         for (int col = colMin; col <= colMax; col++)
         {
-            float mapX = (col + 0.5f) / GRID_DIVISIONS;
+            float mapX = (col + 0.5f) / _gridDivisions;
             float screenX = mapTopLeft.X + mapX * mapSize;
 
             if (screenX < viewportMin.X || screenX > viewportMax.X)
                 continue;
 
-            string label = GRIDLETTERS[col];
+            string label = _gridletters[col];
             Vector2 size = ImGui.CalcTextSize(label);
 
             drawList.AddText(
@@ -245,13 +238,13 @@ public class EditMap2D
         // Row labels (left)
         for (int row = rowMin; row <= rowMax; row++)
         {
-            float mapY = (row + 0.5f) / GRID_DIVISIONS;
+            float mapY = (row + 0.5f) / _gridDivisions;
             float screenY = mapTopLeft.Y + mapY * mapSize;
 
             if (screenY < viewportMin.Y || screenY > viewportMax.Y)
                 continue;
 
-            string label = GRIDNUMBERS[row];
+            string label = _gridnumbers[row];
             Vector2 size = ImGui.CalcTextSize(label);
 
             float labelX = Math.Max(viewportMin.X, mapTopLeft.X) + 4;
@@ -265,31 +258,19 @@ public class EditMap2D
 
         ImGui.PopFont();
     }
-    void DrawZones(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
-    {
-        foreach (var z in tab.ZoneList.Zones)
-        {
-            if (!z.Visible)
-                continue;
 
-            VertexDiffuse col = new VertexDiffuse();
-            switch (tab.ZoneList.GetZoneType(z.Current.Nickname))
+    private void DrawZones(SystemEditData system, SystemEditorTab tab, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList)
+    {
+        foreach (var z in tab.ZoneList.Zones.Where(z => z.Visible))
+        {
+            VertexDiffuse col = tab.ZoneList.GetZoneType(z.Current.Nickname) switch
             {
-                case ZoneDisplayKind.Normal:
-                    col = (VertexDiffuse)Color4.Pink.ChangeAlpha(0.33f);
-                    break;
-                case ZoneDisplayKind.ExclusionZone:
-                    col = (VertexDiffuse)Color4.Red.ChangeAlpha(0.33f);
-                    break;
-                case ZoneDisplayKind.AsteroidField:
-                    col = (VertexDiffuse)Color4.Orange.ChangeAlpha(0.33f);
-                    break;
-                case ZoneDisplayKind.Nebula:
-                    col = (VertexDiffuse)Color4.LightGreen.ChangeAlpha(0.33f);
-                    break;
-                default:
-                    break;
-            }
+                ZoneDisplayKind.Normal => (VertexDiffuse)Color4.Pink.ChangeAlpha(0.33f),
+                ZoneDisplayKind.ExclusionZone => (VertexDiffuse)Color4.Red.ChangeAlpha(0.33f),
+                ZoneDisplayKind.AsteroidField => (VertexDiffuse)Color4.Orange.ChangeAlpha(0.33f),
+                ZoneDisplayKind.Nebula => (VertexDiffuse)Color4.LightGreen.ChangeAlpha(0.33f),
+                _ => (VertexDiffuse)Color4.BlanchedAlmond.ChangeAlpha(0.33f)
+            };
 
             // ----- Filled mesh -----
             var mesh = z.Current.TopDownMesh();
@@ -338,7 +319,8 @@ public class EditMap2D
             ArrayPool<Vector2>.Shared.Return(verts);
         }
     }
-    void DrawObjectsLOD(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
+
+    private void DrawObjectsLod(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
     {
         float clusterRadius = lod == MapLod.Minimal
             ? 30f : lod == MapLod.Reduced
@@ -404,7 +386,6 @@ public class EditMap2D
             bool clicked;
 
             var obj = cluster.Objects[0];
-            bool isTradelane = TradeLaneGrouper.IsTradeLane(obj);
 
             // Cluster
             if (cluster.Objects.Count > 1)
@@ -424,7 +405,7 @@ public class EditMap2D
                 var offset = cluster.Objects.Count > 9 ? 8 : 4;
 
                 drawList.AddCircleFilled(cluster.ScreenPos, clusterIconSize,
-                    selected ? SELECTED_COLOUR : CLUSTER_BG_COLOUR);
+                    selected ? _selectedColour : _clusterBgColour);
                 drawList.AddText(
                     cluster.ScreenPos - new Vector2(offset, offset),
                     0xFFFFFFFF,
@@ -441,10 +422,10 @@ public class EditMap2D
             {
                 bool selected = tab.ObjectsList.Selection.Contains(obj);
 
-                var objectIconSize = 64;
+                var objectIconSize = 64f;
 
-                min = cluster.ScreenPos - new Vector2(objectIconSize / 2);
-                max = cluster.ScreenPos + new Vector2(objectIconSize / 2);
+                min = cluster.ScreenPos - new Vector2(objectIconSize / 2f);
+                max = cluster.ScreenPos + new Vector2(objectIconSize / 2f);
                 hovered = ImGui.IsMouseHoveringRect(min, max);
                 clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
 
@@ -452,22 +433,22 @@ public class EditMap2D
                 Vector2 imageSize = new Vector2(objectIconSize) * ImGuiHelper.Scale;
 
                 var text = cluster.Objects[0].Nickname;
-                var TextPos = new Vector2(
+                var textPos = new Vector2(
                     cluster.ScreenPos.X - (text.Length * 3),
                     cluster.ScreenPos.Y + imageSize.Y / 2
                 );
 
-                drawList.AddText(TextPos, COLOUR_WHITE, cluster.Objects[0].Nickname);
+                drawList.AddText(textPos, _colourWhite, cluster.Objects[0].Nickname);
 
                 drawList.AddImage(icon,min,max,
                     new Vector2(0, 1), // UV top-left
                     new Vector2(1, 0)  // UV bottom-right (flipped V)
                 );
 
-                drawList.AddRect(min,max,COLOUR_WHITE,2);
+                drawList.AddRect(min,max,_colourWhite,2);
 
                 drawList.AddRect(min, max,
-                    selected ? SELECTED_COLOUR : TRADELANE_DESELECTED_COLOUR,
+                    selected ? _selectedColour : _tradelaneDeselectedColour,
                     2
                 );
 
@@ -499,7 +480,7 @@ public class EditMap2D
                     {
                         Vector2 delta = ImGui.GetIO().MouseDelta;
 
-                        float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+                        float scale = _gridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
                         Vector3 worldDelta = new Vector3(
                             delta.X / mapSize * scale,
                             0,
@@ -530,7 +511,8 @@ public class EditMap2D
             }
         }
     }
-    void DrawTradeLaneLinesLOD(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
+
+    private void DrawTradeLaneLinesLod(SystemEditData system, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
     {
         // Do not interfere while creating lanes
         if (CreationTools.Tradelane.IsActive)
@@ -555,11 +537,12 @@ public class EditMap2D
             Vector2 end = WorldToScreen(endObj.LocalTransform.Position, system, mapTopLeft, mapSize);
 
             // draw line
-            var col = selected ? SELECTED_COLOUR : TRADELANE_DESELECTED_COLOUR;
+            var col = selected ? _selectedColour : _tradelaneDeselectedColour;
             drawList.AddLine(start, end, col, size);
         }
     }
-    void DrawTradeLaneIconsLOD(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
+
+    private void DrawTradeLaneIconsLod(SystemEditData system, SystemEditorTab tab, GameDataContext ctx, Vector2 mapTopLeft, float mapSize, ImDrawListPtr drawList, MapLod lod)
     {
 
         if (groupedTradelanes.Count == 0)
@@ -586,15 +569,12 @@ public class EditMap2D
                 // REDUCED: draw squares for each ring
                 if (lod is MapLod.Reduced or MapLod.Minimal)
                 {
-                    Vector2 half = new(size * 0.5f);
-
                     drawList.AddRectFilled(min, max,
-                        selected ? SELECTED_COLOUR : TRADELANE_DESELECTED_COLOUR);
+                        selected ? _selectedColour : _tradelaneDeselectedColour);
                 }
                 else // draw icon
                 {
                     var icon = ctx.GetArchetypePreview(ring.SystemObject.Archetype);
-                    Vector2 imageSize = new Vector2(size) * ImGuiHelper.Scale;
 
                     drawList.AddImage(
                         icon,
@@ -603,7 +583,7 @@ public class EditMap2D
                     );
 
                     drawList.AddRect(min, max,
-                        selected ? SELECTED_COLOUR : TRADELANE_DESELECTED_COLOUR,
+                        selected ? _selectedColour : _tradelaneDeselectedColour,
                         2
                     );
                 }
@@ -638,7 +618,8 @@ public class EditMap2D
             }
         }
     }
-    void DrawContextMenu(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, float mapSize, Vector2 mapTopLeft)
+
+    private void DrawContextMenu(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, float mapSize, Vector2 mapTopLeft)
     {
         ImGui.SetNextItemAllowOverlap();
         if (ImGui.BeginPopupContextItem("##mapContext"))
@@ -695,9 +676,9 @@ public class EditMap2D
     }
 
     // coord helpers
-    Vector2 WorldToScreen(Vector3 worldPos, SystemEditData system, Vector2 mapTopLeft, float mapSize)
+    private Vector2 WorldToScreen(Vector3 worldPos, SystemEditData system, Vector2 mapTopLeft, float mapSize)
     {
-        float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+        float scale = _gridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
 
         Vector2 mapPos = new(
             (worldPos.X / scale) + 0.5f,
@@ -706,17 +687,19 @@ public class EditMap2D
 
         return mapTopLeft + mapPos * mapSize;
     }
-    static Vector3 MapToWorld(Vector2 mapPos, SystemEditData system, float mapSize)
+
+    private static Vector3 MapToWorld(Vector2 mapPos, SystemEditData system, float mapSize)
     {
-        float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+        float scale = _gridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
 
         Vector2 rel = (mapPos / mapSize) - new Vector2(0.5f);
         return new Vector3(rel.X * scale, 0, rel.Y * scale);
     }
-    static Vector2 WorldToMap_Local(Vector3 world, SystemEditData system, float mapSize)
+
+    private static Vector2 WorldToMap_Local(Vector3 world, SystemEditData system, float mapSize)
     {
         // returns MAP-LOCAL coordinates (0..mapSize)
-        float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+        float scale = _gridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
 
         Vector2 map01 = new(
             (world.X / scale) + 0.5f,
@@ -725,9 +708,10 @@ public class EditMap2D
 
         return map01 * mapSize;
     }
-    static Vector3 MapToWorld_Local(Vector2 mapLocal, SystemEditData system, float mapSize)
+
+    private static Vector3 MapToWorld_Local(Vector2 mapLocal, SystemEditData system, float mapSize)
     {
-        float scale = GridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
+        float scale = _gridSizeDefault / (system.NavMapScale == 0 ? 1 : system.NavMapScale);
 
         Vector2 map01 = mapLocal / mapSize - new Vector2(0.5f);
 
@@ -737,30 +721,8 @@ public class EditMap2D
             map01.Y * scale
         );
     }
-    static Vector2 PolygonCentroid(ReadOnlySpan<Vector2> poly)
-    {
-        float area = 0f;
-        float cx = 0f;
-        float cy = 0f;
 
-        for (int i = 0, j = poly.Length - 1; i < poly.Length; j = i++)
-        {
-            float cross = poly[j].X * poly[i].Y - poly[i].X * poly[j].Y;
-            area += cross;
-            cx += (poly[j].X + poly[i].X) * cross;
-            cy += (poly[j].Y + poly[i].Y) * cross;
-        }
-
-        area *= 0.5f;
-
-        if (MathF.Abs(area) < 0.0001f)
-            return poly[0]; // fallback
-
-        float inv = 1f / (6f * area);
-        return new Vector2(cx * inv, cy * inv);
-    }
-
-    void BeginTradeLaneGroupDrag(TradeLaneGroup group)
+    private void BeginTradeLaneGroupDrag(TradeLaneGroup group)
     {
 
         draggingTradeLaneGroup = group;
@@ -773,7 +735,8 @@ public class EditMap2D
             tradeLaneDragStartTransforms[obj] = obj.LocalTransform;
         }
     }
-    void UpdateTradeLaneGroupDrag(SystemEditData system, float mapSize, SystemEditorTab tab)
+
+    private void UpdateTradeLaneGroupDrag(SystemEditData system, float mapSize, SystemEditorTab tab)
     {
         if (draggingTradeLaneGroup == null)
             return;
@@ -783,7 +746,7 @@ public class EditMap2D
             Vector2 mouseNow = ImGui.GetIO().MousePos;
             Vector2 mouseDelta = mouseNow - tradeLaneDragStartMouse;
 
-            float scale = GridSizeDefault /
+            float scale = _gridSizeDefault /
                 (system.NavMapScale == 0 ? 1 : system.NavMapScale);
 
             Vector3 worldDelta = new(
@@ -811,7 +774,7 @@ public class EditMap2D
         }
     }
 
-    void CommitTradeLaneGroupDrag(SystemEditorTab tab)
+    private void CommitTradeLaneGroupDrag(SystemEditorTab tab)
     {
         foreach (var kvp in tradeLaneDragStartTransforms)
         {
@@ -831,11 +794,11 @@ public class EditMap2D
 
     public void ClearSelectedTradelaneGroup()
     {
-        if (selectedTradeLaneGroup != null) selectedTradeLaneGroup = null;
+        selectedTradeLaneGroup = null;
     }
 }
 
-class ObjectCluster
+internal class ObjectCluster
 {
     public Vector2 ScreenPos;
     public readonly List<GameObject> Objects = new();
