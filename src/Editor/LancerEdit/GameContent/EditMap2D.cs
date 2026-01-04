@@ -602,15 +602,10 @@ public class EditMap2D
                         max
                     );
 
-                    if (selected)
-                    {
-                        drawList.AddRect(
-                            min,
-                            max,
-                            SELECTED_COLOUR,
-                            2
-                        );
-                    }
+                    drawList.AddRect(min, max,
+                        selected ? SELECTED_COLOUR : TRADELANE_DESELECTED_COLOUR,
+                        2
+                    );
                 }
 
                 if (hovered)
@@ -619,8 +614,6 @@ public class EditMap2D
                     ImGui.Text(ring.Nickname);
                     ImGui.EndTooltip();
                 }
-
-
 
                 if (clicked)
                 {
