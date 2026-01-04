@@ -12,15 +12,17 @@ namespace LLServer
 {
     public class SqlDesignTimeFactory : IDesignTimeDbContextFactory<LibreLancerContext>
     {
-        private string databasePath;
+        private readonly string databasePath;
         public SqlDesignTimeFactory(string dbpath)
         {
             databasePath =  Path.GetFullPath(dbpath, Platform.GetBasePath());
         }
+
         public SqlDesignTimeFactory()
         {
             databasePath =  Path.Combine(Path.GetTempPath(), "librelancer.ef.database.db");
         }
+
         public LibreLancerContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<LibreLancerContext>();

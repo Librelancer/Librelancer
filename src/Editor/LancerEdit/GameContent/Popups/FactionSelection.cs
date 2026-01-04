@@ -12,29 +12,25 @@ public class FactionSelection : PopupWindow
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
 
     private Action<Faction> onSelect;
-    private FactionLookup lookup;
+    private ObjectLookup<Faction> lookup;
+    private Faction selected;
 
     public FactionSelection(Action<Faction> onSelect, string title, Faction initial, GameDataContext gd)
     {
         this.onSelect = onSelect;
-        lookup = new FactionLookup("##factions", gd, initial);
+        lookup = gd.Factions;
         Title = title;
+        selected = initial;
     }
 
     public override void Draw(bool appearing)
     {
         ImGui.PushItemWidth(300 * ImGuiHelper.Scale);
-        lookup.Draw();
+        lookup.Draw("##faction", ref selected, null, true);
         ImGui.PopItemWidth();
         if (ImGui.Button("Ok"))
         {
-            onSelect(lookup.Selected);
-            ImGui.CloseCurrentPopup();
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("Clear"))
-        {
-            onSelect(null);
+            onSelect(selected);
             ImGui.CloseCurrentPopup();
         }
         ImGui.SameLine();

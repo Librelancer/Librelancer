@@ -1,9 +1,6 @@
 namespace LibreLancer.Data;
 
-public abstract class IdentifiableItem
+public abstract class IdentifiableItem : NicknameItem
 {
-    public string Nickname;
     public uint CRC;
-
-    public override string ToString() => Nickname ?? "(null nickname)";
 }

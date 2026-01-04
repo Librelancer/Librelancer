@@ -13,7 +13,7 @@ public static class TGA
 {
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct TGAHeader
+    private struct TGAHeader
     {
         public byte Offset;
         public byte Indexed;
@@ -29,7 +29,7 @@ public static class TGA
         public byte Inverted;
     }
 
-    static int BytesPerPixel(int bpp)
+    private static int BytesPerPixel(int bpp)
     {
         return bpp switch
         {
@@ -46,16 +46,22 @@ public static class TGA
     private const int RGB = 2;
     private const int BW = 3;
 
-    public static Texture2D TextureFromStream(RenderContext context, Stream stream, bool hasMipMaps = false,
-        Texture2D target = null,
+    public static Texture2D? TextureFromStream(RenderContext context, Stream stream, bool hasMipMaps = false,
+        Texture2D? target = null,
         int mipLevel = -1)
     {
         var channels = 0;
         if (target != null)
+        {
             channels = target.Format == SurfaceFormat.Bgra5551 ? 2 : 4;
+        }
+
         var image = ImageFromStream(stream, channels);
         if (image == null)
+        {
             return null;
+        }
+
         if (target == null)
         {
             var tex = new Texture2D(context, image.Width, image.Height, hasMipMaps, image.Format);
@@ -68,7 +74,7 @@ public static class TGA
         return null;
     }
 
-    public static Image ImageFromStream(Stream stream, int channels = 0)
+    public static Image? ImageFromStream(Stream stream, int channels = 0)
     {
         var reader = new BinaryReader(stream);
         var header = reader.ReadStruct<TGAHeader>();
@@ -115,7 +121,7 @@ public static class TGA
         }
         else
         {
-            byte[] colorMap = null;
+            byte[]? colorMap = null;
             if (header.Indexed == 1)
             {
                 reader.BaseStream.Seek(header.PaletteStart, SeekOrigin.Current);
@@ -171,7 +177,7 @@ public static class TGA
                 else
                 {
                     dataSpan.Slice((i - 1) * bytesPerPixel, bytesPerPixel)
-                        .CopyTo(dataSpan.Slice(i * bytesPerPixel));
+                        .CopyTo(dataSpan[(i * bytesPerPixel)..]);
                 }
                 rleCount--;
             }

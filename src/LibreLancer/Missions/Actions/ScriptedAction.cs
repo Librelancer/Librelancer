@@ -788,7 +788,7 @@ namespace LibreLancer.Missions.Actions
             {
                 foreach (var s in formation.Ships)
                 {
-                    runtime.Player.Space.World.NPCs.NpcDoAction(s,
+                    runtime.Player.Space.World.NPCs.NpcDoAction(s.Nickname,
                             (npc) => { GiveObjList(npc, ol); });
                 }
             }

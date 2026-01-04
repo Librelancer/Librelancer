@@ -610,20 +610,18 @@ namespace LibreLancer.Server
         List<GameObject> updatingObjects = new List<GameObject>();
         List<GameObject> spawnedObjects = new List<GameObject>();
 
-        public GameObject SpawnSolar(string nickname, string archetype, string loadout, string rep, Vector3 position,
+        public GameObject SpawnSolar(string nickname, Archetype arch, string loadout, Faction rep, Vector3 position,
             Quaternion orientation, int idsName = 0, string? dockWith = null)
         {
-            var arch = Server.GameData.Items.Archetypes.Get(archetype);
             var gameobj = new GameObject(arch, null, Server.Resources, false);
-            gameobj.ArchetypeName = archetype;
+            gameobj.ArchetypeName = arch.Nickname;
             gameobj.NetID = IdGenerator.Allocate();
             if (idsName != 0)
                 gameobj.Name = new ObjectName(idsName);
             gameobj.SetLocalTransform(new Transform3D(position, orientation));
             gameobj.Nickname = nickname;
             gameobj.World = GameWorld;
-            var faction = Server.GameData.Items.Factions.Get(rep);
-            gameobj.AddComponent(new SSolarComponent(gameobj) { Faction = faction });
+            gameobj.AddComponent(new SSolarComponent(gameobj) { Faction = rep });
             if (!string.IsNullOrWhiteSpace(dockWith))
             {
                 var act = new DockAction() { Kind = DockKinds.Base, Target = dockWith };

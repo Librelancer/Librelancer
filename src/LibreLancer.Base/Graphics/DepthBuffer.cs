@@ -5,19 +5,17 @@
 using System;
 using LibreLancer.Graphics.Backends;
 
-namespace LibreLancer.Graphics
-{
-	public class DepthBuffer : IDisposable
-    {
-        internal IDepthBuffer Backing;
-		public DepthBuffer(RenderContext context, int width, int height)
-        {
-            Backing = context.Backend.CreateDepthBuffer(width, height);
-		}
-		public void Dispose()
-        {
-            Backing.Dispose();
-        }
-	}
-}
+namespace LibreLancer.Graphics;
 
+public class DepthBuffer : IDisposable
+{
+    internal IDepthBuffer Backing;
+    public DepthBuffer(RenderContext context, int width, int height)
+    {
+        Backing = context.Backend.CreateDepthBuffer(width, height);
+    }
+    public void Dispose()
+    {
+        Backing.Dispose();
+    }
+}

@@ -11,18 +11,20 @@ using LibreLancer.Options;
 
 namespace LLServer
 {
-    class MainClass
+    internal class MainClass
 	{
         public static async Task<int> Main(string[] args)
         {
             bool printHelp = false;
             bool printVersion = false;
-            bool runConsole = false;
-            string configPath = null;
-            var os = new OptionSet();
-            os.Add("h|?|help", "shows this message and exits", x => printHelp = x != null);
-            os.Add("v|version", "shows the version and exits", x => printVersion = x != null);
-            os.Add("c|config=", "set path for the configuration file", x => configPath = x);
+            string? configPath = null;
+            var os = new OptionSet
+            {
+                { "h|?|help", "shows this message and exits", x => printHelp = x != null },
+                { "v|version", "shows the version and exits", x => printVersion = x != null },
+                { "c|config=", "set path for the configuration file", x => configPath = x }
+            };
+
             var extra = os.Parse(args);
             if (printHelp)
             {
@@ -31,11 +33,13 @@ namespace LLServer
                 Console.WriteLine("Run with makeconfig to generate a config file.");
                 return 0;
             }
+
             if (printVersion)
             {
                 Console.WriteLine(Platform.GetInformationalVersion<MainClass>());
                 return 0;
             }
+
             AppHandler.ConsoleInit();
             configPath ??= Path.Combine(Platform.GetBasePath(), "llserver.json");
             if (extra.Count > 0 && extra[0] == "makeconfig")
@@ -43,20 +47,24 @@ namespace LLServer
                 MakeConfig(configPath);
 				return 0;
 			}
+
             if (!File.Exists(configPath))
             {
-                Console.Error.WriteLine($"Can't find {configPath}. Use the --config option to specify a file or run LLServer makeconfig");
+                await Console.Error.WriteLineAsync($"Can't find {configPath}. Use the --config option to specify a file or run LLServer makeconfig");
                 return 2;
             }
-			var config = JSON.Deserialize<ServerConfig>(File.ReadAllText(configPath));
+
+			var config = JSON.Deserialize<ServerConfig>(await File.ReadAllTextAsync(configPath));
             config.DatabasePath = Path.GetFullPath(config.DatabasePath, Platform.GetBasePath());
 
             var app = new ServerApp(config);
-            if (!app.StartServer()) {
-                Console.Error.WriteLine("Server failed to start");
+            if (!app.StartServer())
+            {
+                await Console.Error.WriteLineAsync("Server failed to start");
                 return 1;
             }
-            bool running = true;
+
+            var running = true;
 			while (running)
             {
                 var (cmd, cmdargs) = GetCommand(Console.ReadLine()?.Trim() ?? "");
@@ -75,12 +83,12 @@ namespace LLServer
                             if (Guid.TryParse(cmdargs, out var v))
                                 g = v;
                             else
-                                g = await app.Server.Database.FindAccount(cmdargs);
+                                g = await app.Server?.Database.FindAccount(cmdargs)!;
                         }
                         if (g.HasValue)
                         {
                             FLLog.Info("Server", $"Banning account {g} for 30 days");
-                            await app.Server.Database.BanAccount(g.Value, DateTime.UtcNow.AddDays(30));
+                            await app.Server?.Database.BanAccount(g.Value, DateTime.UtcNow.AddDays(30))!;
                         }
                         break;
                     }
@@ -92,12 +100,12 @@ namespace LLServer
                             if (Guid.TryParse(cmdargs, out var v))
                                 g = v;
                             else
-                                g = await app.Server.Database.FindAccount(cmdargs);
+                                g = await app.Server?.Database.FindAccount(cmdargs)!;
                         }
                         if (g.HasValue)
                         {
                             FLLog.Info("Server", $"Unbanning account {g}");
-                            await app.Server.Database.UnbanAccount(g.Value);
+                            await app.Server?.Database.UnbanAccount(g.Value)!;
                         }
                         break;
                     }
@@ -105,11 +113,11 @@ namespace LLServer
                     {
                         long? id = null;
                         if (cmdargs.Length > 0)
-                            id = await app.Server.Database.FindCharacter(cmdargs);
+                            id = await app.Server?.Database.FindCharacter(cmdargs)!;
                         if (id.HasValue)
                         {
                             FLLog.Info("Server", $"Making '{cmdargs}' admin");
-                            await app.Server.Database.AdminCharacter(id.Value);
+                            await app.Server?.Database.AdminCharacter(id.Value)!;
                             app.Server.AdminChanged(id.Value, true);
                         }
                         break;
@@ -118,23 +126,24 @@ namespace LLServer
                     {
                         long? id = null;
                         if (cmdargs.Length > 0)
-                            id = await app.Server.Database.FindCharacter(cmdargs);
+                            id = await app.Server?.Database.FindCharacter(cmdargs)!;
                         if (id.HasValue)
                         {
                             FLLog.Info("Server", $"Removing '{cmdargs}' admin");
-                            await app.Server.Database.DeadminCharacter(id.Value);
+                            await app.Server?.Database.DeadminCharacter(id.Value)!;
                             app.Server.AdminChanged(id.Value, false);
                         }
                         break;
                     }
                 }
             }
+
             Console.WriteLine("Server shutting down");
 			app.StopServer();
 			return 0;
 		}
 
-        static (string cmd, string args) GetCommand(string commandString)
+        private static (string cmd, string args) GetCommand(string commandString)
         {
             var firstSpace = commandString.IndexOf(' ');
             string cmd;
@@ -151,7 +160,7 @@ namespace LLServer
             return (cmd, args);
         }
 
-		static void MakeConfig(string configPath)
+        private static void MakeConfig(string configPath)
 		{
 			ServerConfig config = new ServerConfig();
 

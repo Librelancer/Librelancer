@@ -39,5 +39,7 @@ namespace LibreLancer.Data.Schema.Missions
         public string Line;
         public OptionalArgument<int> Unknown1;
         public OptionalArgument<int> Unknown2;
+
+        public DialogLine Clone() => (DialogLine)MemberwiseClone();
     }
 }

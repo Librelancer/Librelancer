@@ -51,30 +51,21 @@ namespace LibreLancer.Data.Schema.Missions
             ArrivalObj = new(e[0].ToString(), index);
         }
 
-
-        public MissionShipRelativePosition RelativePosition = new();
+        public MissionRelativePosition RelativePosition = new();
 
         [EntryHandler("rel_pos", MinComponents = 3)]
-        private void ParseRelativePosition(Entry entry)
-        {
-            RelativePosition = new MissionShipRelativePosition();
-            _ = float.TryParse(entry[0].ToString(), out RelativePosition.MinRange);
-            RelativePosition.ObjectName = entry[1].ToString();
-            _ = float.TryParse(entry[2].ToString(), out RelativePosition.MaxRange);
-        }
+        private void ParseRelativePosition(Entry entry) => RelativePosition = MissionRelativePosition.FromEntry(entry);
     }
 
-    public class MissionShipRelativePosition
-    {
-        public float MinRange;
-        public string ObjectName;
-        public float MaxRange;
-    }
 
+
+    // Must be a class for editor purposes
     public class MissionShipCargo
     {
         public string Cargo;
         public int Count;
+
+        public MissionShipCargo Clone() => (MissionShipCargo)MemberwiseClone();
     }
 
     public struct ArrivalObj(string obj, int index)

@@ -37,23 +37,17 @@ public sealed class ActSendComm : NodeTriggerEntry
             return;
         }
 
-        var source = lookups.MissionIni.Ships.FirstOrDefault(x => x.Nickname.Equals(Data.Source, StringComparison.OrdinalIgnoreCase));
-
-        if (source is not null)
+        if (!string.IsNullOrWhiteSpace(Data.Source) &&
+            lookups.MissionIni.Ships.TryGetValue(Data.Source, out var source)
+            && !string.IsNullOrWhiteSpace(source?.NPC?.Voice))
         {
-            var npc = lookups.MissionIni.NPCs.FirstOrDefault(x => x.Nickname.Equals(source.NPC, StringComparison.OrdinalIgnoreCase));
-
-            if (npc is not null)
-            {
-                gameData.Sounds.PlayVoiceLine(npc.Voice, FLHash.CreateID(Data.Line));
-            }
-
+            gameData.Sounds.PlayVoiceLine(source.NPC.Voice, FLHash.CreateID(Data.Line));
             return;
         }
 
-        var source2 = lookups.MissionIni.Solars.FirstOrDefault(x => x.Nickname.Equals(Data.Source, StringComparison.OrdinalIgnoreCase));
-
-        if (source2 != null)
+        if (!string.IsNullOrWhiteSpace(Data.Source) &&
+            lookups.MissionIni.Solars.TryGetValue(Data.Source, out var source2) &&
+            !string.IsNullOrWhiteSpace(source2.Voice))
         {
             gameData.Sounds.PlayVoiceLine(source2.Voice, FLHash.CreateID(Data.Line));
         }

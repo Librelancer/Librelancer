@@ -14,7 +14,8 @@ public static class MissionEditorHelpers
             return;
         }
 
-        ImGui.SameLine();
+        if(!Controls.InEditorTable)
+            ImGui.SameLine();
         ImGui.Text(Icons.Warning.ToString());
         if (ImGui.IsItemHovered())
         {

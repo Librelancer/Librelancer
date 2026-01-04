@@ -63,7 +63,7 @@ public static class ReadWriteExtensions
         }
     }
 
-    public static string ReadStringUTF8(this BinaryReader reader)
+    public static string? ReadStringUTF8(this BinaryReader reader)
     {
         var len = ReadVarUInt32(reader);
         if (len == 0)

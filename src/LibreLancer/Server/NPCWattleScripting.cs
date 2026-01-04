@@ -102,7 +102,7 @@ namespace LibreLancer.Server
             if (pilot != null)
                 p = manager.World.Server.GameData.Items.GetPilot(pilot);
             var position = new Vector3(x, y, z);
-            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null,  "FIGHTER", null, null, null, resolved, p, position, Quaternion.Identity, arrivalObj, 0);
+            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null,  "FIGHTER", null, resolved, p, position, Quaternion.Identity, arrivalObj, 0);
             return new NPCWattleInstance(obj, this);
         }
     }

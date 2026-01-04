@@ -2,13 +2,76 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
+using LibreLancer.Data;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI.NodeEditor;
+using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor;
 
 partial class MissionScriptEditorTab
 {
+    class DictionaryAdd<T>(string Name, SortedDictionary<string, T> Collection, T Value,
+        FieldAccessor<T> selected)
+        : EditorAction where T : NicknameItem
+    {
+        public override void Commit()
+        {
+            selected() = Value;
+            Collection.Add(Value.Nickname, Value);
+        }
+
+        public override void Undo()
+        {
+            if (selected() == Value)
+                selected() = null;
+            Collection.Remove(Value.Nickname);
+        }
+
+        public override string ToString() => $"{Name} Add Item";
+    }
+
+    class DictionaryRemove<T>(string Name, SortedDictionary<string, T> Collection, T Value,
+        FieldAccessor<T> selected)
+        : EditorAction where T : NicknameItem
+    {
+        public override void Commit()
+        {
+            if (selected() == Value)
+                selected() = null;
+            Collection.Remove(Value.Nickname);
+        }
+
+        public override void Undo()
+        {
+            if (selected() == null)
+                selected() = Value;
+            Collection.Add(Value.Nickname, Value);
+        }
+
+        public override string ToString() => $"{Name} Delete Item";
+    }
+
+    class ItemRename<T>(string Old, string Updated, SortedDictionary<string, T> Collection, T Value)
+        : EditorAction where T : NicknameItem
+    {
+        public override void Commit()
+        {
+            Collection.Remove(Old);
+            Value.Nickname = Updated;
+            Collection.Add(Updated, Value);
+        }
+
+        public override void Undo()
+        {
+            Value.Nickname = Old;
+            Collection.Remove(Updated);
+            Collection.Add(Old, Value);
+        }
+
+        public override string ToString() => $"Rename '{Old}'->'{Updated}'";
+    }
+
     class NewTriggerAction(Vector2 position, MissionScriptEditorTab tab) : EditorAction
     {
         private NodeMissionTrigger trigger = new(null, tab);
@@ -125,7 +188,6 @@ partial class MissionScriptEditorTab
         public override void Set(string value)
         {
             tab.missionIni.Info.NpcShipFile = value;
-            tab.missionIni.ShipIni = new NPCShipIni(tab.missionIni.Info.NpcShipFile, tab.gameData.GameData.VFS);
         }
     }
 

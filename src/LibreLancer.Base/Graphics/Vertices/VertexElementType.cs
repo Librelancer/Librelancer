@@ -4,14 +4,12 @@
 
 using LibreLancer.Graphics.Backends.OpenGL;
 
-namespace LibreLancer.Graphics.Vertices
-{
-	public enum VertexElementType
-	{
-		Float = GL.GL_FLOAT,
-		UnsignedShort = GL.GL_UNSIGNED_SHORT,
-        UnsignedByte = GL.GL_UNSIGNED_BYTE,
-        Short = GL.GL_SHORT,
-    }
-}
+namespace LibreLancer.Graphics.Vertices;
 
+public enum VertexElementType
+{
+    Float = GL.GL_FLOAT,
+    UnsignedShort = GL.GL_UNSIGNED_SHORT,
+    UnsignedByte = GL.GL_UNSIGNED_BYTE,
+    Short = GL.GL_SHORT,
+}

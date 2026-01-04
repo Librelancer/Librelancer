@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,15 +11,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LLServer;
 
-public class ServerApp
+public class ServerApp(ServerConfig config)
 {
-    public GameServer Server;
-    public ServerConfig Config;
-
-    public ServerApp(ServerConfig config)
-    {
-        Config = config;
-    }
+    public GameServer? Server;
+    private readonly ServerConfig Config = config;
 
     public bool StartServer()
     {
@@ -34,7 +30,7 @@ public class ServerApp
             return false;
         }
         var ctxFactory = new SqlDesignTimeFactory(Config.DatabasePath);
-        using (var ctx = ctxFactory.CreateDbContext(new string[0]))
+        using (var ctx = ctxFactory.CreateDbContext([]))
         {
             if (ctx.Database.GetPendingMigrations().Any())
             {
@@ -42,21 +38,28 @@ public class ServerApp
                 ctx.Database.Migrate();
             }
         }
-        Server = new GameServer(FileSystem.FromPath(Config.FreelancerPath));
-        Server.DbContextFactory = ctxFactory;
-        Server.ServerName = Config.ServerName;
-        Server.ServerDescription = Config.ServerDescription;
-        Server.ScriptsFolder = Path.Combine(GetBasePath(), "scripts");
-        Server.LoginUrl = Config.LoginUrl;
-        Server.Listener.Port = Config.Port > 0 ? Config.Port : LNetConst.DEFAULT_PORT;
+
+        Server = new GameServer(FileSystem.FromPath(Config.FreelancerPath))
+        {
+            DbContextFactory = ctxFactory,
+            ServerName = Config.ServerName,
+            ServerDescription = Config.ServerDescription,
+            ScriptsFolder = Path.Combine(GetBasePath(), "scripts"),
+            LoginUrl = Config.LoginUrl,
+            Listener =
+            {
+                Port = Config.Port > 0 ? Config.Port : LNetConst.DEFAULT_PORT
+            }
+        };
+
         Server.Start();
         return true;
     }
 
-    private string GetBasePath()
+    private static string GetBasePath()
     {
         using var processModule = Process.GetCurrentProcess().MainModule;
-        return Path.GetDirectoryName(processModule?.FileName);
+        return Path.GetDirectoryName(processModule?.FileName) ?? AppDomain.CurrentDomain.BaseDirectory;
     }
 
     public void StopServer()

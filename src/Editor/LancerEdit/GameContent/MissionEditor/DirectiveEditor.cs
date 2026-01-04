@@ -172,7 +172,7 @@ public static class DirectiveEditor
         Controls.CheckboxUndo("Unknown", undoBuffer, () => ref directive.Unknown);
     }
 
-    static void GotoKindUndo(EditorPropertyModification<GotoKind>.Accessor accessor, EditorUndoBuffer undoBuffer)
+    static void GotoKindUndo(FieldAccessor<GotoKind> accessor, EditorUndoBuffer undoBuffer)
     {
         var gotoKind = accessor();
         ImGui.AlignTextToFramePadding();

@@ -1,6 +1,7 @@
+
 namespace LibreLancer.Graphics.Backends.Null;
 
-class NullMultisampleTarget : IMultisampleTarget
+internal class NullMultisampleTarget : IMultisampleTarget
 {
     public NullMultisampleTarget(int width, int height)
     {

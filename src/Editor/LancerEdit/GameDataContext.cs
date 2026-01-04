@@ -11,11 +11,14 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using ImGuiNET;
+using LancerEdit.GameContent.Lookups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.Data;
 using LibreLancer.Data.Schema.Audio;
 using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
 using LibreLancer.Data.IO;
@@ -85,13 +88,48 @@ public class GameDataContext : IDisposable
 
     public void RefreshLists()
     {
-        SystemsByName = GameData.Items.Systems.Select(x => x.Nickname).Order().ToArray();
-        BasesByName = GameData.Items.Bases.Select(x => x.Nickname).Order().ToArray();
-        FactionsByName = GameData.Items.Factions.Select(x => x.Nickname).Order().ToArray();
-        LoadoutsByName = GameData.Items.Loadouts.Select(x => x.Nickname).Order().ToArray();
-        GoodsByName = GameData.Items.Goods.Select(x => x.Nickname).Order().ToArray();
+        var db = GameData.Items;
+
+        SystemsByName = db.Systems.Select(x => x.Nickname).Order().ToArray();
+        BasesByName = db.Bases.Select(x => x.Nickname).Order().ToArray();
+        FactionsByName = db.Factions.Select(x => x.Nickname).Order().ToArray();
+        LoadoutsByName = db.Loadouts.Select(x => x.Nickname).Order().ToArray();
+        GoodsByName = db.Goods.Select(x => x.Nickname).Order().ToArray();
         MusicByName = GameData.AllSounds.Where(x => x.Type == AudioType.Music).Select(x => x.Nickname).Order().ToArray();
+
+        Factions = new(
+            db.Factions.OrderBy(x => x.Nickname),
+            x => x == null ? "(none)" : $"{x.Nickname} ({GameData.GetString(x.IdsName)})"
+        );
+        Ships = new(
+            db.Ships.OrderBy(x => x.Nickname),
+            x => x == null ? "(none)" : $"{x.Nickname} ({GameData.GetString(x.IdsName)})"
+        );
+        Equipment = new(
+            db.Equipment.OrderBy(x => x.Nickname),
+            x => x == null ? "(none)" : $"{x.Nickname} ({GameData.GetString(x.IdsName)})"
+        );
+        Bodyparts = new(db.Bodyparts.OrderBy(x => x.Nickname));
+        Accessories = new(db.Accessories.OrderBy(x => x.Nickname));
+        Costumes = new (Bodyparts, Accessories);
+        StoryIndices = new(db.Story.Where(x => !x.Item.HideGui), x => x.Item.Nickname);
+        Systems = new(
+            db.Systems.OrderBy(x => x.Nickname),
+            x => x == null ? "(none)" : $"{x.Nickname} ({GameData.GetString(x.IdsName)})"
+        );
+        Encounters = new(this);
     }
+
+    public ObjectLookup<Base> Bases;
+    public EncounterLookup Encounters;
+    public ObjectLookup<Faction> Factions;
+    public ObjectLookup<Ship> Ships;
+    public ObjectLookup<Equipment> Equipment;
+    public ObjectLookup<Bodypart> Bodyparts;
+    public ObjectLookup<Accessory> Accessories;
+    public CostumeLookup Costumes;
+    public ObjectLookup<StoryIndex> StoryIndices;
+    public ObjectLookup<StarSystem> Systems;
 
     public void Load(MainWindow win, string folder, string cache, Action onComplete, Action<Exception> onError)
     {

@@ -3,18 +3,17 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LibreLancer
+namespace LibreLancer;
+
+public enum CursorKind
 {
-    public enum CursorKind
-    {
-        Arrow,
-        TextInput,
-        Move,
-        ResizeNS,
-        ResizeEW,
-        ResizeNESW,
-        ResizeNWSE,
-        NotAllowed,
-        None
-    }
+    Arrow,
+    TextInput,
+    Move,
+    ResizeNS,
+    ResizeEW,
+    ResizeNESW,
+    ResizeNWSE,
+    NotAllowed,
+    None
 }

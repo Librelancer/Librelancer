@@ -2,7 +2,7 @@ using System;
 
 namespace LibreLancer.Graphics.Backends;
 
-interface IStorageBuffer : IDisposable
+internal interface IStorageBuffer : IDisposable
 {
     int GetAlignedIndex(int input);
     void SetData<T>(T[] array, int start = 0, int length = -1) where T : unmanaged;

@@ -13,5 +13,5 @@ public struct StructEnumerable<T,TEnumerator> : IEnumerable<T> where TEnumerator
 
     IEnumerator IEnumerable.GetEnumerator() => Enumerator;
 
-    public StructEnumerable(TEnumerator enumerator) => this.Enumerator = enumerator;
+    public StructEnumerable(TEnumerator enumerator) => Enumerator = enumerator;
 }

@@ -1,6 +1,7 @@
+
 namespace LibreLancer.Graphics.Backends.Null;
 
-class NullTextureCube : NullTexture, ITextureCube
+internal class NullTextureCube : NullTexture, ITextureCube
 {
     public NullTextureCube(int size, SurfaceFormat format, int levelCount, int estimatedTextureMemory) : base(format, levelCount, estimatedTextureMemory)
     {

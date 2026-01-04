@@ -7,7 +7,6 @@ using LancerEdit.GameContent.Lookups;
 using StarSystem = LibreLancer.Data.GameData.World.StarSystem;
 using System.Linq;
 using LibreLancer.Data.GameData;
-using LibreLancer.Data.Schema.Universe;
 
 namespace LancerEdit.GameContent.Popups;
 
@@ -30,7 +29,6 @@ public class PatrolRouteDialog : PopupWindow
     private Action onCancel;
     private List<Vector3> routePoints;
     private List<PatrolEncounter> encounters = new();
-    private FactionLookup factionLookup;
     private EncounterLookup encounterLookup;
     private GameDataContext gameData;
     private StarSystem system;
@@ -47,19 +45,13 @@ public class PatrolRouteDialog : PopupWindow
         // Generate default path label using the current system's nickname
         pathLabel = $"{system.Nickname.ToLowerInvariant()}_patrol";
 
-        // Initialize faction lookup with first available faction
-        var defaultFaction = gameData.GameData.Items.Factions.FirstOrDefault();
-        factionLookup = new FactionLookup("##faction", gameData, defaultFaction);
-
         // Add a default encounter
         var defaultEncounter = new PatrolEncounter();
-        defaultEncounter.EncounterLookup = new EncounterLookup("##encounter_0", gameData, null);
-        defaultEncounter.SetDefaultArchetype();
-        var defaultFactionInfo = defaultFaction;
+        defaultEncounter.SetDefaultArchetype(gameData);
+        var defaultFactionInfo = gameData.GameData.Items.Factions.FirstOrDefault();
         var defaultPatrolFaction = new PatrolFaction
         {
             Faction = defaultFactionInfo,
-            FactionLookup = new FactionLookup("##faction_0_0", gameData, defaultFactionInfo)
         };
         defaultEncounter.Factions.Add(defaultPatrolFaction);
         encounters.Add(defaultEncounter);
@@ -155,11 +147,9 @@ public class PatrolRouteDialog : PopupWindow
         if (ImGui.Button("Add Encounter"))
         {
             var newEncounter = new PatrolEncounter();
-            newEncounter.EncounterLookup = new EncounterLookup($"##encounter_{encounters.Count}", gameData, null);
-            newEncounter.SetDefaultArchetype();
+            newEncounter.SetDefaultArchetype(gameData);
             var newFaction = new PatrolFaction();
             newFaction.Faction = gameData.GameData.Items.Factions.FirstOrDefault();
-            newFaction.FactionLookup = new FactionLookup($"##faction_{encounters.Count}_0", gameData, newFaction.Faction);
             newEncounter.Factions.Add(newFaction);
             encounters.Add(newEncounter);
         }
@@ -184,8 +174,7 @@ public class PatrolRouteDialog : PopupWindow
                     ImGui.Text("Archetype");
                     ImGui.TableNextColumn();
                     ImGui.PushItemWidth(-1);
-                    encounter.EncounterLookup.Draw();
-                    encounter.Archetype = encounter.EncounterLookup.Selected;
+                    gameData.Encounters.Draw("##archetype", ref encounter.Archetype);
                     ImGui.PopItemWidth();
 
                     ImGui.TableNextRow();
@@ -224,8 +213,7 @@ public class PatrolRouteDialog : PopupWindow
                         ImGui.SameLine();
                         ImGui.Text($"Faction #{j + 1}");
                         ImGui.TableNextColumn();
-                        faction.FactionLookup.Draw();
-                        faction.Faction = faction.FactionLookup.Selected;
+                        gameData.Factions.Draw("##fac", ref faction.Faction);
                         ImGui.SameLine();
                         ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X);
                         var factionChance = faction.Chance;
@@ -244,7 +232,6 @@ public class PatrolRouteDialog : PopupWindow
                     {
                         var newFaction = new PatrolFaction();
                         newFaction.Faction = gameData.GameData.Items.Factions.FirstOrDefault();
-                        newFaction.FactionLookup = new FactionLookup($"##faction_{i}_{encounter.Factions.Count}", gameData, newFaction.Faction);
                         encounter.Factions.Add(newFaction);
                     }
                     ImGui.EndTable();
@@ -298,23 +285,21 @@ public class PatrolRouteDialog : PopupWindow
 
 public class PatrolEncounter
 {
-    public string Archetype { get; set; }
+    public string Archetype;
     public int Difficulty { get; set; } = 2;
     public int Chance { get; set; } = 1;
     public List<PatrolFaction> Factions { get; set; } = new();
-    public EncounterLookup EncounterLookup { get; set; }
 
-    public void SetDefaultArchetype()
+    public void SetDefaultArchetype(GameDataContext gd)
     {
-        Archetype = EncounterLookup?.Archetypes?.FirstOrDefault();
+        Archetype = gd.Encounters.Archetypes[0];
     }
 }
 
 public class PatrolFaction
 {
-    public Faction Faction { get; set; }
+    public Faction Faction;
     public int Chance { get; set; } = 1;
-    public FactionLookup FactionLookup { get; set; }
 }
 
 public class PatrolRouteConfig

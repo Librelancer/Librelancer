@@ -6,28 +6,30 @@ using System;
 using System.Diagnostics;
 using LibreLancer;
 
-namespace Launcher
+namespace Launcher;
+
+internal static class Program
 {
-    static class Program
+    public static string? StartPath = null;
+
+    /// <summary>
+    /// The main entry point for the application.
+    /// </summary>
+    [STAThread]
+    private static void Main(string[] args)
     {
-        public static string startPath = null;
-        
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main(string[] args)
+        AppHandler.Run(() =>
         {
-            AppHandler.Run(() =>
+            new MainWindow().Run();
+            if (StartPath == null)
             {
-                new MainWindow().Run();
-                if (startPath == null)
-                    return;
-                using Process process = new Process();
-                process.StartInfo.FileName = startPath;
-                process.Start();
-                process.WaitForExit();
-            });
-        }
+                return;
+            }
+
+            using Process process = new Process();
+            process.StartInfo.FileName = StartPath;
+            process.Start();
+            process.WaitForExit();
+        });
     }
 }

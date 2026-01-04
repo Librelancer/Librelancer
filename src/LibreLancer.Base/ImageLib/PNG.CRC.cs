@@ -8,7 +8,7 @@ namespace LibreLancer.ImageLib;
 
 public static partial class PNG
 {
-    private static uint[] crcTable;
+    private static uint[]? crcTable;
     private static void BuildCrcTable()
     {
         crcTable = new uint[256];
@@ -34,18 +34,20 @@ public static partial class PNG
             crcTable[n] = c;
         }
     }
-    static uint Crc(Span<byte> bytesA, Span<byte> bytesB)
+
+    private static uint Crc(Span<byte> bytesA, Span<byte> bytesB)
     {
         if (crcTable == null)
             BuildCrcTable();
+
         var crc = 0xffffffff;
         for (var i = 0; i < bytesA.Length; i++)
         {
-            crc = crcTable[(crc ^ bytesA[i]) & 0xff] ^ (crc >> 8);
+            crc = crcTable![(crc ^ bytesA[i]) & 0xff] ^ (crc >> 8);
         }
         for (var i = 0; i < bytesB.Length; i++)
         {
-            crc = crcTable[(crc ^ bytesB[i]) & 0xff] ^ (crc >> 8);
+            crc = crcTable![(crc ^ bytesB[i]) & 0xff] ^ (crc >> 8);
         }
         return crc ^ 0xffffffff;
     }

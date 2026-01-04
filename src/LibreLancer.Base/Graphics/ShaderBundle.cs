@@ -28,7 +28,7 @@ public sealed class ShaderBundle
 
     public static ShaderBundle FromResource<T>(RenderContext context, string resourceName)
     {
-        using var stream = typeof(T).Assembly.GetManifestResourceStream(resourceName);
+        using var stream = typeof(T).Assembly.GetManifestResourceStream(resourceName) ?? throw new FileNotFoundException(resourceName);
         return FromStream(context, stream);
     }
 

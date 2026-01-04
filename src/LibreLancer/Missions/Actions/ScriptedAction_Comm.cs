@@ -40,8 +40,7 @@ namespace LibreLancer.Missions.Actions
                 if (!d.Source.Equals("Player", StringComparison.OrdinalIgnoreCase))
                 {
                     var src = script.Ships[d.Source];
-                    var npc = script.NPCs[src.NPC];
-                    voice = npc.Voice;
+                    voice = src.NPC.Voice;
                     var o = runtime.Player.Space.World.GameWorld.GetObject(d.Source);
                     sourceId = o?.NetID ?? 0;
                 }
@@ -84,8 +83,7 @@ namespace LibreLancer.Missions.Actions
         {
             var netdlg = new NetDlgLine[1];
             var src = script.Ships[Source];
-            var npc = script.NPCs[src.NPC];
-            var voice = npc.Voice;
+            var voice = src.NPC.Voice;
             var hash = FLHash.CreateID(Line);
             runtime.EnqueueLine(hash, Line);
             int sourceId = 0;

@@ -2,6 +2,7 @@ using System.Text.Json;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Pilots;
+using LibreLancer.Missions;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
@@ -18,9 +19,7 @@ public class JumperNpc
 
     public uint[] DestroyedParts;
     public SpawnedEffect[] Effects;
-    public Bodypart CommHead;
-    public Bodypart CommBody;
-    public Accessory CommHelmet;
+    public CostumeEntry SpaceCostume;
     public float Health;
     public ObjectLoadout Loadout;
     public Pilot Pilot;
@@ -31,6 +30,7 @@ public class JumperNpc
         var npc = new JumperNpc();
         npc.Nickname = go.Nickname;
         npc.Name = go.Name;
+        npc.SpaceCostume = new();
 
         var ld = new ObjectLoadout();
         ld.Archetype = go.GetComponent<ShipComponent>().Ship.Nickname;
@@ -43,9 +43,9 @@ public class JumperNpc
         {
             npc.Pilot = snpc.Pilot;
             npc.StateGraph = snpc.StateGraph;
-            npc.CommHead = snpc.CommHead;
-            npc.CommBody = snpc.CommBody;
-            npc.CommHelmet = snpc.CommHelmet;
+            npc.SpaceCostume.Head = snpc.CommHead;
+            npc.SpaceCostume.Body = snpc.CommBody;
+            npc.SpaceCostume.Accessory = snpc.CommHelmet;
         }
         if (go.TryGetComponent<SHealthComponent>(out var health))
         {

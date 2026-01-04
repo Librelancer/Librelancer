@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace LibreLancer;
 
-public class ConcurrentHashSet<T> : ICollection<T>, IReadOnlyCollection<T>
+public class ConcurrentHashSet<T> : ICollection<T>, IReadOnlyCollection<T> where T : notnull
 {
     private readonly ConcurrentDictionary<T, byte> dictionary;
 
@@ -20,7 +20,7 @@ public class ConcurrentHashSet<T> : ICollection<T>, IReadOnlyCollection<T>
     }
 
     public bool Add(T item) => dictionary.TryAdd(item, 0);
-    
+
     public int Count => dictionary.Count;
     public void Clear() => dictionary.Clear();
     public bool Remove(T item) => dictionary.TryRemove(item, out _);
@@ -30,12 +30,12 @@ public class ConcurrentHashSet<T> : ICollection<T>, IReadOnlyCollection<T>
     public IEnumerator<T> GetEnumerator() => dictionary.Keys.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    
+
     void ICollection<T>.Add(T item) => ((IDictionary<T, byte>) dictionary).Add(item, 0);
 
-    public void CopyTo(T[] array, int arrayIndex) => 
+    public void CopyTo(T[] array, int arrayIndex) =>
         dictionary.Keys.ToArray().CopyTo(array, arrayIndex);
-    
+
 
     public bool IsReadOnly => false;
 }

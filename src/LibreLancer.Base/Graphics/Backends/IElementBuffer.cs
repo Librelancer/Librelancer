@@ -2,7 +2,7 @@ using System;
 
 namespace LibreLancer.Graphics.Backends;
 
-interface IElementBuffer : IDisposable
+internal interface IElementBuffer : IDisposable
 {
     int IndexCount { get; }
     void SetData(short[] data);

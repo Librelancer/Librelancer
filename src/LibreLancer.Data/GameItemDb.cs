@@ -68,6 +68,7 @@ namespace LibreLancer.Data
         public List<IntroScene> IntroScenes;
         public IEnumerable<ObjectLoadout> Loadouts => _loadouts.Values;
         public NewsCollection News;
+        public GameItemCollection<ShipArch> NpcShips = new();
         public GameItemCollection<Ship> Ships = new();
         public GameItemCollection<SimpleObject> SimpleObjects = new();
         public List<StoryIndex> Story;
@@ -632,6 +633,7 @@ namespace LibreLancer.Data
             var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask);
             var starsTask = tasks.Begin(InitStars);
             var astsTask = tasks.Begin(InitAsteroids);
+            tasks.Begin(InitNpcShips, shipsTask, loadoutsTask);
             tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
             tasks.Begin(InitBodyParts);
             tasks.Begin(InitNews, baseTask);
@@ -1765,6 +1767,16 @@ namespace LibreLancer.Data
             }
 
             flData.Ships = null; //free memory
+        }
+
+        void InitNpcShips()
+        {
+            foreach (var s in flData.NPCShips.ShipArches)
+            {
+                var c = ShipArch.FromIni(s, this);
+                NpcShips.Add(c);
+            }
+            flData.NPCShips = null;
         }
 
         void InitAsteroids()

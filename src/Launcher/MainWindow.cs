@@ -12,87 +12,92 @@ using LibreLancer.ImUI;
 using Microsoft.Win32;
 using Launcher.Screens;
 
-namespace Launcher
+namespace Launcher;
+
+public class MainWindow() : Game(640, 350, true)
 {
-    public class MainWindow : Game
+    private ImGuiHelper imGui = null!;
+    private GameConfig config = null!;
+    private readonly PopupManager pm = new();
+    private readonly ScreenManager sm = new();
+
+    protected override void Load()
     {
-        ImGuiHelper imGui;
-        public MainWindow() : base(640, 350, true)
+        Title = "Librelancer Launcher";
+        imGui = new ImGuiHelper(this, 1);
+        RenderContext.PushViewport(0, 0, Width, Height);
+
+        config = GameConfig.Create();
+
+        sm.SetScreen(new LauncherScreen(this, config, sm, pm));
+
+        if (!string.IsNullOrEmpty(config.FreelancerPath) || Platform.RunningOS != OS.Windows)
         {
-
-        }
-        public GameConfig config;
-
-        PopupManager pm = new PopupManager();
-        ScreenManager sm = new ScreenManager();
-
-        protected override void Load()
-        {
-            Title = "Librelancer Launcher";
-            imGui = new ImGuiHelper(this, 1);
-            RenderContext.PushViewport(0, 0, Width, Height);
-
-            config = GameConfig.Create();
-
-            sm.SetScreen(new LauncherScreen(this, config, sm, pm));
-
-            if (string.IsNullOrEmpty(config.FreelancerPath))
-            {
-                if (Platform.RunningOS == OS.Windows)
-                {
-                    var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "\\Microsoft Games\\Freelancer");
-                    string flPathRegistry = IntPtr.Size == 8
-                        ? "HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\Microsoft\\Microsoft Games\\Freelancer\\1.0"
-                        : "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft Games\\Freelancer\\1.0";
-                    var actualPath = (string)Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
-                    if (!string.IsNullOrEmpty(actualPath)) config.FreelancerPath=(actualPath);
-                }
-            }
-
+            return;
         }
 
-        bool fullscreen;
+        var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"\Microsoft Games\Freelancer");
+        var flPathRegistry = IntPtr.Size == 8
+            ? @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft Games\Freelancer\1.0"
+            : @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft Games\Freelancer\1.0";
+        var actualPath = (string?)Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
 
-
-        protected override void Draw(double elapsed)
+        if (!string.IsNullOrEmpty(actualPath))
         {
-            imGui.NewFrame(elapsed);
-            RenderContext.ReplaceViewport(0, 0, Width, Height);
-            RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
-            RenderContext.ClearAll();
-            ImGui.PushFont(ImGuiHelper.Roboto, 0);
-            var size = (Vector2)ImGui.GetIO().DisplaySize;
-
-            ImGui.SetNextWindowSize(new Vector2(size.X, size.Y), ImGuiCond.Always);
-            ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always, Vector2.Zero);
-
-            bool childopened = true;
-            ImGui.Begin("screen", ref childopened,
-                ImGuiWindowFlags.NoTitleBar |
-                ImGuiWindowFlags.NoSavedSettings |
-                ImGuiWindowFlags.NoBringToFrontOnFocus |
-                ImGuiWindowFlags.NoMove |
-                ImGuiWindowFlags.NoResize |
-                ImGuiWindowFlags.NoBackground);
-
-            sm.Draw(elapsed);
-            
-            ImGui.End();
-            ImGui.PopFont();
-            imGui.Render(RenderContext);
-        }
-        
-        public void StartGame()
-        {
-            
-            Program.startPath = Path.Combine(GetBasePath(), "lancer");
-            Exit();
+            config.FreelancerPath=(actualPath);
         }
 
-        private string GetBasePath()
+    }
+
+    protected override void Draw(double elapsed)
+    {
+        var process = imGui.DoRender(elapsed);
+        switch (process)
         {
-            using var processModule = Process.GetCurrentProcess().MainModule;
-            return Path.GetDirectoryName(processModule?.FileName);
+            case ImGuiProcessing.Sleep:
+                WaitForEvent(2000);
+                break;
+            case ImGuiProcessing.Slow:
+                WaitForEvent(50);
+                break;
         }
+
+        imGui.NewFrame(elapsed);
+        RenderContext.ReplaceViewport(0, 0, Width, Height);
+        RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
+        RenderContext.ClearAll();
+        ImGui.PushFont(ImGuiHelper.Roboto, 0);
+        var size = (Vector2)ImGui.GetIO().DisplaySize;
+
+        ImGui.SetNextWindowSize(new Vector2(size.X, size.Y), ImGuiCond.Always);
+        ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always, Vector2.Zero);
+
+        var childOpened = true;
+        ImGui.Begin("screen", ref childOpened,
+            ImGuiWindowFlags.NoTitleBar |
+            ImGuiWindowFlags.NoSavedSettings |
+            ImGuiWindowFlags.NoBringToFrontOnFocus |
+            ImGuiWindowFlags.NoMove |
+            ImGuiWindowFlags.NoResize |
+            ImGuiWindowFlags.NoBackground);
+
+        sm.Draw(elapsed);
+
+        ImGui.End();
+        ImGui.PopFont();
+        imGui.Render(RenderContext);
+    }
+
+    public void StartGame()
+    {
+
+        Program.StartPath = Path.Combine(GetBasePath(), "lancer");
+        Exit();
+    }
+
+    private static string GetBasePath()
+    {
+        using var processModule = Process.GetCurrentProcess().MainModule;
+        return Path.GetDirectoryName(processModule?.FileName) ?? AppDomain.CurrentDomain.BaseDirectory;
     }
 }

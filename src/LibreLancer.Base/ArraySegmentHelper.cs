@@ -4,19 +4,16 @@
 using System;
 using System.IO;
 
-namespace LibreLancer
-{
-    public static class ArraySegmentHelper
-    {
-        public static MemoryStream GetReadStream(this ArraySegment<byte> segment)
-        {
-            return new MemoryStream(segment.Array, segment.Offset, segment.Count, false);
-        }
+namespace LibreLancer;
 
-        public static T AtIndex<T>(this ArraySegment<T> segment, int index)
-        {
-            if(index < 0 || index >= segment.Count) throw new IndexOutOfRangeException();
-            return segment.Array[segment.Offset + index];
-        }
+public static class ArraySegmentHelper
+{
+    public static MemoryStream GetReadStream(this ArraySegment<byte> segment) => new(segment.Array ?? throw new InvalidOperationException("Segment array cannot be null"), segment.Offset, segment.Count, false);
+
+    public static T AtIndex<T>(this ArraySegment<T> segment, int index)
+    {
+        return index < 0 || index >= segment.Count
+            ? throw new IndexOutOfRangeException()
+            : segment.Array![segment.Offset + index];
     }
 }

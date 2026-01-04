@@ -29,7 +29,7 @@ namespace LibreLancer.Data.Schema.Missions
         [Entry("ship_archetype")] public string ShipArchetype;
         [Entry("pilot")] public string Pilot;
         [Entry("state_graph")] public string StateGraph;
-        [Entry("npc_class")] public List<string> NpcClass = new List<string>();
+        [Entry("npc_class")] public string[] NpcClass;
 
         [EntryHandler("level", MinComponents = 1)]
         private void LevelEntry(Entry e)

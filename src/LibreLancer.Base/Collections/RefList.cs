@@ -83,7 +83,7 @@ public class RefList<T> : IList<T>
         backing[count++] = item;
     }
 
-    void Grow()
+    private void Grow()
     {
         if (count + 1 > backing.Length)
         {

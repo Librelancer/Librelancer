@@ -5,6 +5,7 @@ using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Ini;
+using LibreLancer.Data.Schema.Characters;
 using LibreLancer.Render;
 using AsteroidField = LibreLancer.Data.GameData.World.AsteroidField;
 using Base = LibreLancer.Data.GameData.World.Base;
@@ -620,12 +621,25 @@ public static class IniSerializer
         return ib.Sections;
     }
 
-    public static void SerializeMissionShip(MissionShip ship, IniBuilder builder)
+    public static void SerializeShipArch(ShipArch arch, IniBuilder builder)
+    {
+        var s = builder.Section("NPCShipArch");
+        s.Entry("nickname", arch.Nickname)
+            .OptionalEntry("loadout", arch.Loadout)
+            .OptionalEntry("ship_archetype", arch.Ship?.Nickname)
+            .Entry("level", $"d{arch.Level}")
+            .OptionalEntry("pilot", arch.Pilot)
+            .OptionalEntry("state_graph", arch.StateGraph);
+        if (arch.NpcClass is { Count: > 0 })
+            s.Entry("npc_class", arch.NpcClass.Select(x => (ValueBase)x).ToArray());
+    }
+
+    public static void SerializeScriptShip(ScriptShip ship, IniBuilder builder)
     {
         var s = builder.Section("MsnShip");
 
         s.Entry("nickname", ship.Nickname)
-            .Entry("NPC", ship.NPC)
+            .Entry("NPC", ship.NPC.Nickname)
             .OptionalEntry("random_name", ship.RandomName)
             .OptionalEntry("system", ship.System)
             .OptionalEntry("radius", ship.Radius)
@@ -663,19 +677,15 @@ public static class IniSerializer
         }
     }
 
-    public static void SerializeMissionNpc(MissionNPC npc, IniBuilder ini)
+    public static void SerializeScriptNpc(ScriptNPC npc, IniBuilder ini)
     {
         var s = ini.Section("NPC");
         s.Entry("nickname", npc.Nickname)
             .Entry("npc_ship_arch", npc.NpcShipArch)
-            .Entry("affiliation", npc.Affiliation)
+            .OptionalEntry("affiliation", npc.Affiliation?.Nickname)
             .Entry("individual_name", npc.IndividualName)
             .OptionalEntry("voice", npc.Voice);
-
-        if (npc.SpaceCostume.All(x => x != null))
-        {
-            s.OptionalEntry("space_costume", npc.SpaceCostume);
-        }
+        SerializeCostume(s, "space_costume", npc.SpaceCostume);
     }
 
     public static void SerializeMissionObjective(NNObjective objective, IniBuilder ini)
@@ -686,7 +696,7 @@ public static class IniSerializer
             .Entry("type", objective.Type);
     }
 
-    public static void SerializeMissionFormation(MissionFormation formation, IniBuilder ini)
+    public static void SerializeScriptFormation(ScriptFormation formation, IniBuilder ini)
     {
         var s = ini.Section("MsnFormation");
         s.Entry("nickname", formation.Nickname)
@@ -694,7 +704,7 @@ public static class IniSerializer
             .Entry("formation", formation.Formation);
         foreach (var ship in formation.Ships)
         {
-            s.Entry("ship", ship);
+            s.Entry("ship", ship.Nickname);
         }
 
         if (formation.Position.Length() is 0f && formation.RelativePosition.MinRange > 0f &&
@@ -710,37 +720,53 @@ public static class IniSerializer
         }
     }
 
-    public static void SerializeMissionSolar(MissionSolar solar, IniBuilder ini)
+    static void SerializeCostume(IniBuilder.IniSectionBuilder section, string label, CostumeEntry costume)
+    {
+        if (costume == null)
+            return;
+        if (costume.Head == null &&
+            costume.Body == null &&
+            costume.Accessory == null)
+            return;
+        var entries = new List<ValueBase>();
+        if(costume.Head == null)
+            entries.Add("no_head");
+        else
+            entries.Add(costume.Head.Nickname);
+        entries.Add(costume.Body!.Nickname);
+        if(costume.Accessory != null)
+            entries.Add(costume.Accessory.Nickname);
+        section.Entry(label, entries.ToArray());
+    }
+
+    public static void SerializeScriptSolar(ScriptSolar solar, IniBuilder ini)
     {
         var s = ini.Section("MsnSolar");
         s.Entry("nickname", solar.Nickname)
-            .Entry("faction", solar.Faction)
+            .OptionalEntry("faction", solar.Faction?.Nickname)
             .Entry("system", solar.System)
             .Entry("position", solar.Position)
             .Entry("orientation", solar.Orientation)
-            .Entry("archetype", solar.Archetype)
+            .Entry("archetype", solar.Archetype.Nickname)
             .Entry("radius", solar.Radius);
-        if (solar.Costume is { Length: 3 } && solar.Costume.Any(x => !string.IsNullOrWhiteSpace(x)))
-        {
-            s.Entry("costume", solar.Costume);
-        }
+        SerializeCostume(s, "costume", solar.Costume);
         foreach (var label in solar.Labels)
         {
             s.Entry("label", label);
         }
         s.OptionalEntry("voice", solar.Voice)
             .OptionalEntry("loadout", solar.Loadout)
-            .OptionalEntry("string_id", solar.StringId)
+            .OptionalEntry("string_id", solar.IdsName)
             .OptionalEntry("pilot", solar.Pilot)
             .OptionalEntry("visit", solar.Visit);
     }
 
-    public static void SerializeMissionLoot(MissionLoot loot, IniBuilder ini)
+    public static void SerializeScriptLoot(ScriptLoot loot, IniBuilder ini)
     {
         var s = ini.Section("MsnLoot");
 
         s.Entry("nickname", loot.Nickname)
-            .Entry("archetype", loot.Archetype)
+            .Entry("archetype", loot.Archetype.Nickname)
             .Entry("string_id", loot.StringId)
             .Entry("velocity", loot.Velocity)
             .Entry("equip_amount", loot.EquipAmount)
@@ -759,7 +785,7 @@ public static class IniSerializer
         }
     }
 
-    public static void SerializeMissionDialog(MissionDialog dialog, IniBuilder ini)
+    public static void SerializeScriptDialog(ScriptDialog dialog, IniBuilder ini)
     {
         var s = ini.Section("Dialog");
         s.Entry("nickname", dialog.Nickname)
@@ -776,7 +802,7 @@ public static class IniSerializer
         }
     }
 
-    public static void SerializeMissionObjectiveList(ScriptAiCommands objectiveList, IniBuilder ini)
+    public static void SerializeScriptObjectiveList(ScriptAiCommands objectiveList, IniBuilder ini)
     {
         var s = ini.Section("ObjList");
         s.Entry("nickname", objectiveList.Nickname)

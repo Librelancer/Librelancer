@@ -11,6 +11,7 @@
         <GenerateDependencyFile>true</GenerateDependencyFile>
         <!-- App Icon Test - Jamez -->
         <ApplicationIcon>..\Editor\LancerEdit\reactor.ico</ApplicationIcon>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

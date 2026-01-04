@@ -18,15 +18,13 @@ public class MusicSelection : PopupWindow
     private MainWindow win;
 
     private string selection;
-
-    private SearchDropdown<string> dropdown;
+    private string[] options;
 
     public MusicSelection(Action<string> onSelect, string title, string initial, GameDataContext gd, MainWindow win)
     {
-        dropdown = new SearchDropdown<string>("##music", x => x ?? "(none)", x => selection = x, initial,
-            gd.GameData.AllSounds.Where(x => x.Type == AudioType.Music)
-                .OrderBy(x => x.Nickname)
-                .Select(x => x.Nickname).ToArray());
+        options = gd.GameData.AllSounds.Where(x => x.Type == AudioType.Music)
+            .OrderBy(x => x.Nickname)
+            .Select(x => x.Nickname).ToArray();
         this.onSelect = onSelect;
         this.selection = initial;
         Title = title;
@@ -37,7 +35,7 @@ public class MusicSelection : PopupWindow
     public override void Draw(bool appearing)
     {
         ImGui.PushItemWidth(200 * ImGuiHelper.Scale);
-        dropdown.Draw();
+        SearchDropdown<string>.Draw("##music", ref selection, options, x => x ?? "(none)");
         ImGui.PopItemWidth();
         ImGui.SameLine();
         if(Controls.Music("music", win, selection != null))

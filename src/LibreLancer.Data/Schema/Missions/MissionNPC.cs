@@ -13,7 +13,7 @@ namespace LibreLancer.Data.Schema.Missions
         [Entry("nickname")]
         public string Nickname;
         [Entry("space_costume")]
-        public string[] SpaceCostume = new string[3];
+        public string[] SpaceCostume;
         [Entry("affiliation")]
         public string Affiliation;
         [Entry("npc_ship_arch")]

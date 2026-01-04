@@ -1,6 +1,7 @@
+
 namespace LibreLancer.Graphics.Backends;
 
-interface IMultisampleTarget : IRenderTarget
+internal interface IMultisampleTarget : IRenderTarget
 {
     int Width { get; }
     int Height { get; }

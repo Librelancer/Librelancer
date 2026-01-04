@@ -3,7 +3,7 @@ using LibreLancer;
 
 namespace LLServer;
 
-class MainClass
+internal static class MainClass
 {
     [STAThread]
     public static void Main(string[] args)

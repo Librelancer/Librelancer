@@ -15,18 +15,18 @@ namespace LibreLancer.Missions
 {
     public class MissionScript
     {
-        public MissionIni Ini;
+        public MissionInfo Info;
 
-        public readonly Dictionary<string, NPCShipArch> NpcShips = new(StringComparer.OrdinalIgnoreCase);
-        public readonly Dictionary<string, MissionShip> Ships = new(StringComparer.OrdinalIgnoreCase);
-        public readonly Dictionary<string, MissionSolar> Solars = new(StringComparer.OrdinalIgnoreCase);
-        public readonly Dictionary<string, MissionNPC> NPCs = new(StringComparer.OrdinalIgnoreCase);
-        public readonly Dictionary<string, MissionFormation> Formations = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, ShipArch> NpcShips = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, ScriptShip> Ships = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, ScriptSolar> Solars = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, ScriptNPC> NPCs = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, ScriptFormation> Formations = new(StringComparer.OrdinalIgnoreCase);
         public readonly Dictionary<string, ScriptedTrigger> AvailableTriggers = new(StringComparer.OrdinalIgnoreCase);
         public readonly Dictionary<string, ScriptAiCommands> ObjLists = new(StringComparer.OrdinalIgnoreCase);
-        public readonly Dictionary<string, MissionDialog> Dialogs = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, ScriptDialog> Dialogs = new(StringComparer.OrdinalIgnoreCase);
         public readonly Dictionary<string, NNObjective> Objectives = new(StringComparer.OrdinalIgnoreCase);
-        public readonly Dictionary<string, MissionLoot> Loot = new(StringComparer.OrdinalIgnoreCase);
+        public readonly Dictionary<string, ScriptLoot> Loot = new(StringComparer.OrdinalIgnoreCase);
 
         public readonly List<string> InitTriggers = new();
 
@@ -36,13 +36,13 @@ namespace LibreLancer.Missions
             HashSet<string> equipment = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var sh in Ships.Values)
             {
-                NPCs.TryGetValue(sh.NPC, out var npc);
+                var npc = sh.NPC;
                 if (npc == null)
                     continue;
-                NpcShips.TryGetValue(npc.NpcShipArch, out var shipArch);
-                if (shipArch == null)
-                    shipArch = gameData.Items.Ini.NPCShips.ShipArches.FirstOrDefault(x =>
-                        x.Nickname.Equals(npc.NpcShipArch, StringComparison.OrdinalIgnoreCase));
+                if (!NpcShips.TryGetValue(npc.NpcShipArch, out var shipArch))
+                {
+                    shipArch = gameData.Items.NpcShips.Get(npc.NpcShipArch);
+                }
                 if (shipArch == null)
                     continue;
                 gameData.Items.TryGetLoadout(shipArch.Loadout, out var ld);
@@ -101,28 +101,28 @@ namespace LibreLancer.Missions
             return allLabels.Select(x => new MissionLabel(x.Key, x.Value));
         }
 
-        public MissionScript(MissionIni ini)
+        public MissionScript(MissionIni ini, GameItemDb db)
         {
-            Ini = ini;
+            Info = ini.Info;
 
             foreach (var s in ini.Solars)
             {
-                Set(Solars, s.Nickname, s);
-            }
-
-            foreach (var s in ini.Ships)
-            {
-                Set(Ships, s.Nickname, s);
+                Set(Solars, s.Nickname, ScriptSolar.FromIni(s, db));
             }
 
             foreach (var n in ini.NPCs)
             {
-                Set(NPCs, n.Nickname, n);
+                Set(NPCs, n.Nickname, ScriptNPC.FromIni(n, db));
+            }
+
+            foreach (var s in ini.Ships)
+            {
+                Set(Ships, s.Nickname, ScriptShip.FromIni(s, db, NPCs));
             }
 
             foreach (var f in ini.Formations)
             {
-                Set(Formations, f.Nickname, f);
+                Set(Formations, f.Nickname, ScriptFormation.FromIni(f, db, Ships));
             }
 
             foreach(var o in ini.Objectives)
@@ -137,19 +137,19 @@ namespace LibreLancer.Missions
 
             foreach (var dlg in ini.Dialogs)
             {
-                Set(Dialogs, dlg.Nickname, dlg);
+                Set(Dialogs, dlg.Nickname, ScriptDialog.FromIni(dlg));
             }
 
             foreach (var loot in ini.Loots)
             {
-                Set(Loot, loot.Nickname, loot);
+                Set(Loot, loot.Nickname, ScriptLoot.FromIni(loot, db));
             }
 
             if (ini.ShipIni != null)
             {
                 foreach (var s in ini.ShipIni.ShipArches)
                 {
-                    NpcShips[s.Nickname] = s;
+                    Set(NpcShips, s.Nickname, ShipArch.FromIni(s, db));
                 }
             }
 
@@ -164,16 +164,13 @@ namespace LibreLancer.Missions
                 if(tr.InitState == TriggerInitState.ACTIVE)
                     InitTriggers.Add(tr.Nickname);
             }
-
-            Console.WriteLine();
         }
     }
 
-    public class ScriptAiCommands
+    public class ScriptAiCommands : NicknameItem
     {
-        public string Nickname;
         public string System = "";
-        public readonly List<MissionDirective> Directives;
+        public readonly List<MissionDirective> Directives = new();
 
         public ScriptAiCommands(ObjList ini)
         {
@@ -186,6 +183,10 @@ namespace LibreLancer.Missions
         {
             Nickname = nickname;
             Directives = new();
+        }
+
+        public ScriptAiCommands()
+        {
         }
     }
 

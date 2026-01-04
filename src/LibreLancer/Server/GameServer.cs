@@ -148,7 +148,7 @@ namespace LibreLancer.Server
 
         public void AdminChanged(long id, bool isAdmin)
         {
-            foreach (var p in GetPlayers())
+            foreach (var p in GetConnectedPlayers())
             {
                 if (p.Character?.ID == id)
                 {
@@ -162,7 +162,8 @@ namespace LibreLancer.Server
         Dictionary<StarSystem, ServerWorld> worlds = new Dictionary<StarSystem, ServerWorld>();
         ConcurrentQueue<Action> worldRequests = new ConcurrentQueue<Action>();
         ConcurrentQueue<IPacket> localPackets = new ConcurrentQueue<IPacket>();
-
+        public readonly ConcurrentQueue<ServerEvent> ServerEvents = new ConcurrentQueue<ServerEvent>();
+        
         public void OnLocalPacket(IPacket pkt)
         {
             localPackets.Enqueue(pkt);
@@ -203,14 +204,14 @@ namespace LibreLancer.Server
         public void SystemChatMessage(Player source, BinaryChatMessage message)
         {
             var s = source.System;
-            foreach (var p in GetPlayers())
+            foreach (var p in GetConnectedPlayers())
             {
                 if (p.System.Equals(s, StringComparison.OrdinalIgnoreCase))
                     p.RpcClient.ReceiveChatMessage(ChatCategory.System, BinaryChatMessage.PlainText(source.Name+ ": "), message);
             }
         }
 
-        IEnumerable<Player> GetPlayers()
+        IEnumerable<Player> GetConnectedPlayers()
         {
             lock (ConnectedPlayers)
             {
@@ -218,10 +219,10 @@ namespace LibreLancer.Server
             }
         }
 
-        public IEnumerable<Player> AllPlayers => GetPlayers();
+        public IEnumerable<Player> AllPlayers => GetConnectedPlayers();
 
         public Player GetConnectedPlayer(string name) =>
-            GetPlayers().FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            GetConnectedPlayers().FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
         public void LoadSaveGame(SaveGame sg) => worldRequests.Enqueue(() =>
         {
