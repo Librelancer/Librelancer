@@ -17,7 +17,9 @@ public static unsafe class SearchDropdown<T>
 
     private static string GetName(T value, Func<T, string> displayName)
     {
-        return displayName == null ? value.ToString() : displayName(value);
+        return displayName == null
+            ? (value?.ToString() ?? "(none)")
+            : displayName(value);
     }
 
     private static int TextCallback(ImGuiInputTextCallbackData* cb)
@@ -40,6 +42,18 @@ public static unsafe class SearchDropdown<T>
         }
 
         return 0;
+    }
+
+    public static bool DrawUndo(string name,
+        EditorUndoBuffer undoBuffer,
+        FieldAccessor<T> accessor,
+        T[] choices,
+        Func<T, string> displayName = null,
+        bool allowNull = false)
+    {
+        ref var sel = ref accessor();
+        return Draw(name, ref sel, choices, displayName,
+            (o, u) => undoBuffer.Set(name, accessor, o, u));
     }
 
     public static bool Draw(
