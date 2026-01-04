@@ -15,23 +15,22 @@ public sealed class ParentSelectPopup : PopupWindow
 
     private SystemObjectLookup selection;
     private Action<GameObject> onSelect;
+    private GameObject selected;
 
     public ParentSelectPopup(IEnumerable<GameObject> objects, GameDataContext ctx, GameObject initial,
         Action<GameObject> onSelect)
     {
-        selection = new SystemObjectLookup("Parent", objects, ctx, initial);
+        selection = new SystemObjectLookup(objects, ctx);
+        selected = initial;
         this.onSelect = onSelect;
     }
 
     public override void Draw(bool appearing)
     {
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Parent: ");
-        ImGui.SameLine();
-        selection.Draw();
+        selection.Draw("Parent: ", ref selected, null, true);
         if (ImGui.Button("Ok"))
         {
-            onSelect(selection.Selected);
+            onSelect(selected);
             ImGui.CloseCurrentPopup();
         }
         ImGui.SameLine();

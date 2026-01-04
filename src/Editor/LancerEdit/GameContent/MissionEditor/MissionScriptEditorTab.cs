@@ -336,7 +336,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             NodeEditor.SelectNode(jumpToNode.Id);
             NodeEditor.NavigateToSelection(true);
             jumpToNode = null;
-            jumpLookup.SetSelected(null);
         }
 
         ImGui.SetCursorScreenPos(cursorTopLeft);
@@ -673,14 +672,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         float width = 0.0f) where T : NicknameItem
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text(label);
-        ImGui.SameLine();
-        if (width != 0.0f)
-        {
-            ImGui.SetNextItemWidth(width);
-        }
-
+        Controls.EditControlSetup(label, width);
         if (ImGuiExt.InputTextLogged("##input",
                 ref value.Nickname,
                 250,
@@ -713,6 +705,14 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         ImGui.PopID();
+    }
+
+    static bool SidebarHeader(string id)
+    {
+        ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
+        var r = ImGui.CollapsingHeader(id, ImGuiTreeNodeFlags.DefaultOpen);
+        ImGui.PopStyleColor();
+        return r;
     }
 
     void ItemList<T>(string itemName,

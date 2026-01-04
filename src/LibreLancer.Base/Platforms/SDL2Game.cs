@@ -388,7 +388,7 @@ internal class SDL2Game : IGame
 
         Renderer = renderBackend.GetRenderer();
         FLLog.Info("Graphics", $"Renderer: {Renderer}");
-        //SetVSync(true); - bruh
+        SetVSync(true);
         //Init game state
         RenderContext = new RenderContext(renderBackend);
         FLLog.Info("Graphics", $"Max Anisotropy: {RenderContext.MaxAnisotropy}");

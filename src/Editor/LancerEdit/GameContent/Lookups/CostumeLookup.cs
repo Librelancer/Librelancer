@@ -1,34 +1,32 @@
+using System;
+using BepuPhysics.Constraints;
 using ImGuiNET;
-using LibreLancer.Missions;
+using LibreLancer.Data.GameData;
 
 namespace LancerEdit.GameContent.Lookups;
 
 public class CostumeLookup
 {
-    public BodypartLookup Head;
-    public BodypartLookup Body;
-    public AccessoryLookup Accessory;
+    public ObjectLookup<Bodypart> Bodyparts;
+    public ObjectLookup<Accessory> Accessories;
 
-    public CostumeLookup(string id, GameDataContext gd, CostumeEntry initial)
+    public CostumeLookup(ObjectLookup<Bodypart> bodyparts, ObjectLookup<Accessory> accessories)
     {
-        Head = new($"{id}.HEAD", gd, initial?.Head);
-        Body = new($"{id}.BODY", gd, initial?.Body);
-        Accessory = new($"{id}.ACC", gd, initial?.Accessory);
+        Bodyparts = bodyparts;
+        Accessories = accessories;
     }
 
-    public void Draw()
+    public void Draw(
+        string id,
+        EditorUndoBuffer undo,
+        FieldAccessor<Bodypart> head,
+        FieldAccessor<Bodypart> body,
+        FieldAccessor<Accessory> accessory)
     {
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Costume Head");
-        ImGui.SameLine();
-        Head.Draw();
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Costume Body");
-        ImGui.SameLine();
-        Body.Draw();
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Costume Accessory");
-        ImGui.SameLine();
-        Accessory.Draw();
+        ImGui.PushID(id);
+        Bodyparts.DrawUndo("Head", undo, head, true);
+        Bodyparts.DrawUndo("Body", undo, body, true);
+        Accessories.DrawUndo("Accessory", undo, accessory, true);
+        ImGui.PopID();
     }
 }

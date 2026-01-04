@@ -30,8 +30,11 @@ public class TradelaneAddPopup : PopupWindow
     private Vector3 end;
     private ArchetypeList archetypes;
     private SystemObjectLookup idsLeft;
+    private GameObject leftObject;
     private SystemObjectLookup idsRight;
-    private FactionLookup rep;
+    private GameObject rightObject;
+    private Faction selectedFaction;
+    private GameDataContext gd;
 
     static bool ValidName(GameObject obj) => obj.Name is not null and not TradelaneName;
 
@@ -53,21 +56,21 @@ public class TradelaneAddPopup : PopupWindow
     {
         this.start = start;
         this.end = end;
+        this.gd = dc;
         var allowed = dc.GameData.Items.Archetypes.Where(x => x.Type == ArchetypeType.tradelane_ring);
         archetypes = new(dc, null, allowed.ToArray());
 
         var orderRight = gameObjects
             .Where(ValidName)
             .OrderBy(x => Vector3.Distance(start, x.LocalTransform.Position)).ToArray();
-        idsRight = new SystemObjectLookup("##idsRight", orderRight, dc, orderRight.Length > 0 ? orderRight[0] : null);
+        idsRight = new SystemObjectLookup(orderRight, dc);
+        rightObject = orderRight.Length > 0 ? orderRight[0] : null;
 
         var orderLeft = gameObjects
             .Where(ValidName)
             .OrderBy(x => Vector3.Distance(end, x.LocalTransform.Position)).ToArray();
-        idsLeft = new("##idsLeft", orderLeft,
-            dc, orderLeft.Length > 0 ? orderLeft[0] : null);
-
-        rep = new FactionLookup("##factions", dc, null);
+        idsLeft = new(orderLeft, dc);
+        leftObject = orderLeft.Length > 0 ? orderLeft[0] : null;
 
         tradelaneCount = 1 + (int)(Math.Floor(((end - start).Length()) / TRADELANE_DISTANCE));
         if (tradelaneCount < 2)
@@ -92,25 +95,25 @@ public class TradelaneAddPopup : PopupWindow
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Start Object:");
         ImGui.SameLine();
-        idsRight.Draw();
+        idsRight.Draw("##right", ref rightObject);
         ImGui.AlignTextToFramePadding();
         ImGui.Text("End Object:");
         ImGui.SameLine();
-        idsLeft.Draw();
+        idsLeft.Draw("##left", ref leftObject);
         ImGui.AlignTextToFramePadding();
         ImGui.Text($"Reputation (required for name display):");
         ImGui.SameLine();
-        ImGui.PushItemWidth(225);
-        rep.Draw();
+        ImGui.PushItemWidth(225 * ImGuiHelper.Scale);
+        gd.Factions.Draw("##rep", ref selectedFaction);
         ImGui.PopItemWidth();
         ImGui.Text($"Archetype:");
         archetypes.Draw("##archetype");
         if (ImGuiExt.Button("Ok", archetypes.Selected != null))
         {
             onAdd(new(start, end,
-                idsLeft.Selected?.SystemObject?.IdsName ?? 0,
-                idsRight.Selected?.SystemObject?.IdsName ?? 0,
-                rep.Selected,
+                leftObject?.SystemObject?.IdsName ?? 0,
+                rightObject?.SystemObject?.IdsName ?? 0,
+                selectedFaction,
                 tradelaneCount,
                 archetypes.Selected
             ));

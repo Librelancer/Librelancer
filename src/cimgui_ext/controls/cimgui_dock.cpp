@@ -128,3 +128,39 @@ CIMGUI_API void igExtUseTitlebar(float *restoreX, float *restoreY)
     *restoreY = cursorPos.y;
     ImGui::PushClipRect( titleBarRect.Min, titleBarRect.Max, false);
 }
+
+static float restore_x = 0.0f;
+static float restore_max = 0.0f;
+static bool inFullRow = false;
+
+CIMGUI_API void igTableFullRowBegin()
+{
+    ImGuiTable *table = ImGui::GetCurrentTable();
+    IM_ASSERT(table);
+    inFullRow = true;
+    for (ImGuiTableColumnIdx *clmn_idx = table->DisplayOrderToIndex.Data,
+         *end = table->DisplayOrderToIndex.DataEnd;
+         clmn_idx < end; ++clmn_idx)
+    {   
+        if (ImGui::TableSetColumnIndex(*clmn_idx)) 
+            break;   
+    }
+
+    ImRect *work_rect    = &ImGui::GetCurrentWindow()->WorkRect;
+    restore_x    = work_rect->Max.x;
+    restore_max = ImGui::GetCurrentWindow()->DC.CursorMaxPos.x;
+    ImRect  bg_clip_rect = table->BgClipRect; // NOTE: this accounts for header column & scrollbar
+
+    ImGui::PushClipRect(bg_clip_rect.Min, bg_clip_rect.Max, 0); // ensure that both our own drawing...
+    work_rect->Max.x = bg_clip_rect.Max.x;
+}
+
+CIMGUI_API void igTableFullRowEnd()
+{
+    IM_ASSERT(inFullRow);
+    inFullRow = false;
+    ImGui::GetCurrentWindow()->DC.CursorMaxPos.x = restore_max;
+    ImGui::GetCurrentWindow()->WorkRect.Max.x = restore_x;
+    ImGui::PopClipRect();
+}
+

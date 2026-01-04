@@ -23,39 +23,39 @@ public sealed class HardpointJoinPopup : PopupWindow
     static bool setParent = true;
 
     private HardpointLookup hpParent;
+    private Hardpoint selectedParent;
     private HardpointLookup hpChild;
-
+    private Hardpoint selectedChild;
     public delegate void JoinHardpointsHandler(Hardpoint parentHp, Hardpoint childHp, bool setParentProperty);
 
 
     public HardpointJoinPopup(GameObject parent, GameObject child, JoinHardpointsHandler onSet, Action<HpGizmoData[]> drawPreviews)
     {
         this.parent = parent;
-        hpParent = new HardpointLookup("Parent", parent);
+        hpParent = new HardpointLookup(parent);
         this.child = child;
-        hpChild = new HardpointLookup("Child", child);
+        hpChild = new HardpointLookup(child);
         this.onSet = onSet;
         this.drawPreviews = drawPreviews;
     }
 
     public override void Draw(bool appearing)
     {
-        var previewParent = hpParent.Selected;
-        var previewChild = hpChild.Selected;
+        var previewParent = selectedParent;
+        var previewChild = selectedChild;
 
         ImGui.Text($"Parent: {parent.Nickname}");
-        hpParent.Draw();
-        if (hpParent.IsOpen)
-            previewParent = hpParent.Hovered;
+
+        if (hpParent.Draw("##parent", ref selectedParent, out var pHover))
+            previewParent = pHover;
         ImGui.Text($"Child: {parent.Nickname}");
-        hpChild.Draw();
-        if(hpChild.IsOpen)
-            previewChild =  hpChild.Hovered;
+        if (hpChild.Draw("##child", ref selectedChild, out var cHover))
+            previewChild = cHover;
         ImGui.Checkbox("Set Parent", ref setParent);
         ImGui.SetItemTooltip("Check to set the child's parent property to the parent object");
-        if(ImGuiExt.Button("Ok", hpParent.Selected != null || hpChild.Selected != null))
+        if(ImGuiExt.Button("Ok", selectedParent != null || selectedChild != null))
         {
-            onSet(hpParent.Selected, hpChild.Selected, setParent);
+            onSet(selectedParent, selectedChild, setParent);
             ImGui.CloseCurrentPopup();
         }
         ImGui.SameLine();
