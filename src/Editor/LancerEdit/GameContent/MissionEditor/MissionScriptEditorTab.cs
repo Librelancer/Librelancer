@@ -336,7 +336,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             NodeEditor.SelectNode(jumpToNode.Id);
             NodeEditor.NavigateToSelection(true);
             jumpToNode = null;
-            jumpLookup.SetSelected(null);
         }
 
         ImGui.SetCursorScreenPos(cursorTopLeft);
@@ -706,6 +705,14 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         ImGui.PopID();
+    }
+
+    static bool SidebarHeader(string id)
+    {
+        ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
+        var r = ImGui.CollapsingHeader(id, ImGuiTreeNodeFlags.DefaultOpen);
+        ImGui.PopStyleColor();
+        return r;
     }
 
     void ItemList<T>(string itemName,

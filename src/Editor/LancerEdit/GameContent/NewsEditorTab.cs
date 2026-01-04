@@ -87,8 +87,6 @@ public class NewsEditorTab : GameContentTab
         popups.Run();
     }
 
-    private StoryIndexLookup fromLookup;
-    private StoryIndexLookup toLookup;
 
     private StringAutocomplete iconText;
     //Scroll state
@@ -99,10 +97,6 @@ public class NewsEditorTab : GameContentTab
         selectedItem = n;
         if (n == null)
             return;
-        fromLookup = new("##From", Data.GameData, n.From);
-        fromLookup.OnSelected = x => undoBuffer.Commit(new NewsSetFrom(selectedItem, selectedItem.From, x));
-        toLookup = new("##To", Data.GameData, n.To);
-        toLookup.OnSelected = x => undoBuffer.Commit(new NewsSetTo(selectedItem, selectedItem.To, x));
         iconText = new("##Icon", newsIcons, n.Icon, x =>
         {
             undoBuffer.Commit(new NewsSetIcon(selectedItem, selectedItem.Icon, x));
@@ -134,8 +128,6 @@ public class NewsEditorTab : GameContentTab
     {
         if (selectedItem != null)
         {
-            fromLookup.SetSelected(selectedItem.From);
-            toLookup.SetSelected(selectedItem.To);
             iconText.SetValue(selectedItem.Icon);
         }
     }
@@ -201,14 +193,10 @@ public class NewsEditorTab : GameContentTab
             ImGui.Separator();
             if (selectedItem != null)
             {
-                ImGui.AlignTextToFramePadding();
-                ImGui.Text("Visible From: ");
-                ImGui.SameLine();
-                fromLookup.Draw();
-                ImGui.AlignTextToFramePadding();
-                ImGui.Text("Visible To: ");
-                ImGui.SameLine();
-                toLookup.Draw();
+                Data.StoryIndices.DrawUndo("Visible From: ", undoBuffer,
+                    () => ref selectedItem.From);
+                Data.StoryIndices.DrawUndo("Visible To: ", undoBuffer,
+                    () => ref selectedItem.To);
                 if (selectedItem.From == null || selectedItem.To == null ||
                     selectedItem.From.Index > selectedItem.To.Index)
                 {

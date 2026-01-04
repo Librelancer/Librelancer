@@ -12,9 +12,10 @@ public class BaseSelection : PopupWindow
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.AlwaysAutoResize;
 
     private Action<Base> onSelect;
-    private BaseLookup lookup;
+    private ObjectLookup<Base> lookup;
     private string message;
     private bool needsValue;
+    private Base selected;
 
     public BaseSelection(Action<Base> onSelect,
         string title,
@@ -26,7 +27,10 @@ public class BaseSelection : PopupWindow
     {
         this.message = message;
         this.onSelect = onSelect;
-        lookup = new BaseLookup("##Bases", gd, initial, allow);
+        lookup = allow != null
+            ? gd.Bases.Filter(allow)
+            : gd.Bases;
+        initial = selected;
         Title = title;
         this.needsValue = needsValue;
     }
@@ -39,11 +43,11 @@ public class BaseSelection : PopupWindow
             width = Math.Max(width, ImGui.CalcTextSize(message).X);
         }
         ImGui.PushItemWidth(width);
-        lookup.Draw();
+        lookup.Draw("Base", ref selected, null, !needsValue);
         ImGui.PopItemWidth();
-        if (ImGuiExt.Button("Ok", !needsValue || lookup.Selected != null))
+        if (ImGuiExt.Button("Ok", !needsValue || selected != null))
         {
-            onSelect(lookup.Selected);
+            onSelect(selected);
             ImGui.CloseCurrentPopup();
         }
         if (!needsValue)

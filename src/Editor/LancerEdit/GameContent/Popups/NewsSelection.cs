@@ -13,6 +13,7 @@ public class NewsSelection : PopupWindow
 
     private Action<NewsItem> onSelect;
     private NewsItemLookup lookup;
+    private NewsItem selected;
 
     public NewsSelection(
         Action<NewsItem> onSelect,
@@ -21,18 +22,18 @@ public class NewsSelection : PopupWindow
         Func<NewsItem, bool> allow)
     {
         this.onSelect = onSelect;
-        lookup = new NewsItemLookup("##NewsItems", news, gd, allow);
+        lookup = new NewsItemLookup(news, gd, allow);
     }
 
     public override void Draw(bool appearing)
     {
         var width = 300 * ImGuiHelper.Scale;
         ImGui.PushItemWidth(width);
-        lookup.Draw();
+        lookup.Draw("##newsitem", ref selected);
         ImGui.PopItemWidth();
-        if (ImGuiExt.Button("Ok", lookup.Selected != null))
+        if (ImGuiExt.Button("Ok", selected != null))
         {
-            onSelect(lookup.Selected);
+            onSelect(selected);
             ImGui.CloseCurrentPopup();
         }
         ImGui.SameLine();

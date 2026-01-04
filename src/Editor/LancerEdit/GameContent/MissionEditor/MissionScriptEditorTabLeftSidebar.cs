@@ -12,15 +12,10 @@ namespace LancerEdit.GameContent.MissionEditor;
 
 public sealed partial class MissionScriptEditorTab
 {
-    private SearchDropdown<NodeMissionTrigger> jumpLookup;
-
+    private NodeMissionTrigger[] jumpOptions;
     void SetupJumpList()
     {
-        jumpLookup = new(
-            "JumpTo",
-            t => t?.InternalId ?? "",
-            x => { jumpToNode = x; }, null,
-            nodes.OfType<NodeMissionTrigger>().OrderBy(x => x.InternalId).ToArray());
+        jumpOptions = nodes.OfType<NodeMissionTrigger>().OrderBy(x => x.InternalId).ToArray();
     }
 
     private void RenderLeftSidebar()
@@ -39,42 +34,41 @@ public sealed partial class MissionScriptEditorTab
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Navigate To: ");
         ImGui.SameLine();
-        jumpLookup?.Draw();
+        SearchDropdown<NodeMissionTrigger>.Draw("JumpTo",
+            ref jumpToNode, jumpOptions, t => t?.InternalId ?? "");
         Controls.InputTextIdUndo("Node Filter", undoBuffer, () => ref NodeFilter);
 
-        ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
-        if (ImGui.CollapsingHeader("Mission Information", ImGuiTreeNodeFlags.DefaultOpen))
+        if (SidebarHeader("Mission Information"))
         {
             ImGui.PushID(1);
             RenderMissionInformation();
             ImGui.PopID();
         }
-
         ImGui.NewLine();
-        if (ImGui.CollapsingHeader("NPC Arch Management", ImGuiTreeNodeFlags.DefaultOpen))
+
+        if (SidebarHeader("NPC Arch Management"))
         {
             ImGui.PushID(2);
             RenderNpcArchManager();
             ImGui.PopID();
         }
-
         ImGui.NewLine();
-        if (ImGui.CollapsingHeader("NPC Management", ImGuiTreeNodeFlags.DefaultOpen))
+
+        if (SidebarHeader("NPC Management"))
         {
             ImGui.PushID(3);
             RenderNpcManagement();
             ImGui.PopID();
         }
-
         ImGui.NewLine();
-        if (ImGui.CollapsingHeader("Formation Management", ImGuiTreeNodeFlags.DefaultOpen))
+
+        if (SidebarHeader("Formation Management"))
         {
             ImGui.PushID(4);
             RenderFormationManagement();
             ImGui.PopID();
         }
 
-        ImGui.PopStyleColor();
         ImGui.EndChild();
     }
 
@@ -166,9 +160,6 @@ public sealed partial class MissionScriptEditorTab
     }
 
     private ScriptNPC selectedNpc;
-    private ScriptNPC lookupNpc;
-    private FactionLookup npcFaction;
-    private CostumeLookup npcCostume;
 
     private void RenderNpcManagement()
     {
@@ -186,20 +177,6 @@ public sealed partial class MissionScriptEditorTab
             return;
         }
 
-        if (lookupNpc != selectedNpc)
-        {
-            npcFaction = new("##npcFaction", gameData, selectedNpc.Affiliation);
-            npcFaction.OnSelected = n => undoBuffer.Set("Affiliation", () => ref selectedNpc.Affiliation, n);
-            npcCostume = new CostumeLookup("##npcCostume", gameData,  selectedNpc.SpaceCostume);
-            npcCostume.Head.OnSelected = n =>
-                undoBuffer.Set("Head", () => ref selectedNpc.SpaceCostume.Head, n);
-            npcCostume.Body.OnSelected = n =>
-                undoBuffer.Set("Body", () => ref selectedNpc.SpaceCostume.Body, n);
-            npcCostume.Accessory.OnSelected = n =>
-                undoBuffer.Set("Accessory", () => ref selectedNpc.SpaceCostume.Accessory, n);
-            lookupNpc = selectedNpc;
-        }
-
         if (!Controls.BeginEditorTable("npc"))
             return;
 
@@ -208,20 +185,19 @@ public sealed partial class MissionScriptEditorTab
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             missionIni.NpcShips.ContainsKey(selectedNpc.NpcShipArch)
             || gameData.GameData.Items.NpcShips.Contains(selectedNpc.NpcShipArch));
-
         Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer,
             () => ref selectedNpc.IndividualName,
             inputWidth: 150f);
-        npcFaction.Draw("Affiliation");
+        gameData.Factions.DrawUndo("Affiliation", undoBuffer, () => ref selectedNpc.Affiliation);
         Controls.TableSeparatorText("Costume");
-        npcCostume.Draw();
-
+        gameData.Costumes.Draw("Costume", undoBuffer,
+            () => ref selectedNpc.SpaceCostume.Head,
+            () => ref selectedNpc.SpaceCostume.Body,
+            () => ref selectedNpc.SpaceCostume.Accessory);
         Controls.EndEditorTable();
     }
 
     private ShipArch selectedArch;
-    private ShipArch lookupArch;
-    private ShipLookup archShip;
 
     private void RenderNpcArchManager()
     {
@@ -245,18 +221,11 @@ public sealed partial class MissionScriptEditorTab
             return;
         }
 
-        if (lookupArch != selectedArch)
-        {
-            archShip = new ShipLookup("npcship", gameData, selectedArch.Ship);
-            archShip.OnSelected += x => undoBuffer.Set("Ship", () => ref selectedArch.Ship, x);
-            lookupArch = selectedArch;
-        }
-
         if (!Controls.BeginEditorTable("shiparch"))
             return;
 
         InputItemNickname("Nickname", undoBuffer, missionIni.NpcShips, selectedArch);
-        archShip.Draw("Ship");
+        gameData.Ships.DrawUndo("Ship", undoBuffer, () => ref selectedArch.Ship);
         Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedArch.Loadout, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             gameData.GameData.Items.Loadouts.Any(x => x.Nickname == selectedArch.Loadout));

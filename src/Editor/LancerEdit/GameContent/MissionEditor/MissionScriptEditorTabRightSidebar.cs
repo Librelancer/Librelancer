@@ -23,9 +23,7 @@ public sealed partial class MissionScriptEditorTab
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoMove |
             ImGuiWindowFlags.NoCollapse);
 
-        ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
-
-        if (ImGui.CollapsingHeader("Ship Manager", ImGuiTreeNodeFlags.DefaultOpen))
+        if (SidebarHeader("Ship Manager"))
         {
             ImGui.PushID(1);
             RenderMissionShipManager();
@@ -34,7 +32,7 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.NewLine();
 
-        if (ImGui.CollapsingHeader("Solar Manager", ImGuiTreeNodeFlags.DefaultOpen))
+        if (SidebarHeader("Solar Manager"))
         {
             ImGui.PushID(2);
             RenderMissionSolarManager();
@@ -43,7 +41,7 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.NewLine();
 
-        if (ImGui.CollapsingHeader("Loot Manager", ImGuiTreeNodeFlags.DefaultOpen))
+        if (SidebarHeader("Loot Manager"))
         {
             ImGui.PushID(3);
             RenderLootManager();
@@ -52,7 +50,7 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.NewLine();
 
-        if (ImGui.CollapsingHeader("Dialog Manager", ImGuiTreeNodeFlags.DefaultOpen))
+        if (SidebarHeader("Dialog Manager"))
         {
             ImGui.PushID(4);
             RenderDialogManager();
@@ -61,14 +59,12 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.NewLine();
 
-        if (ImGui.CollapsingHeader("Objective List", ImGuiTreeNodeFlags.DefaultOpen))
+        if (SidebarHeader("Objective List"))
         {
             ImGui.PushID(5);
             RenderObjectiveListManager();
             ImGui.PopID();
         }
-
-        ImGui.PopStyleColor();
 
         ImGui.EndChild();
     }
@@ -131,8 +127,6 @@ public sealed partial class MissionScriptEditorTab
     }
 
     private ScriptLoot selectedLoot;
-    private ScriptLoot lookupLoot;
-    private EquipmentLookup lootArch;
 
     // TODO
     bool ValidLoot(Equipment eq) => true;
@@ -153,19 +147,12 @@ public sealed partial class MissionScriptEditorTab
             return;
         }
 
-        if (lookupLoot != selectedLoot)
-        {
-            lootArch = new EquipmentLookup("##equip", gameData,
-                selectedLoot.Archetype, ValidLoot);
-            lootArch.OnSelected = x =>
-                undoBuffer.Set("Archetype", () => ref selectedLoot.Archetype, x);
-            lookupLoot = selectedLoot;
-        }
 
         if (!Controls.BeginEditorTable("loot"))
             return;
         InputItemNickname("Nickname", undoBuffer, missionIni.Loots, selectedLoot);
-        lootArch.Draw("Archetype");
+        gameData.Equipment.DrawUndo("Archetype", undoBuffer,
+            () => ref selectedLoot.Archetype);
         Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer,
             () => ref selectedLoot.StringId,
             inputWidth: 150f);
@@ -196,8 +183,6 @@ public sealed partial class MissionScriptEditorTab
 
     private ScriptSolar selectedSolar = null;
     private ScriptSolar lookupSolar = null;
-    private FactionLookup solarFaction;
-    private CostumeLookup solarCostume;
 
     private void RenderMissionSolarManager()
     {
@@ -215,21 +200,6 @@ public sealed partial class MissionScriptEditorTab
             return;
         }
 
-        if (lookupSolar != selectedSolar)
-        {
-            solarFaction = new("##solarFaction", gameData, selectedSolar.Faction);
-            solarFaction.OnSelected = n => undoBuffer.Set("Faction", () => ref selectedSolar.Faction, n);
-            solarCostume = new CostumeLookup("##solarCostume", gameData,  selectedSolar.Costume);
-            solarCostume.Head.OnSelected = n =>
-                undoBuffer.Set("Head", () => ref selectedSolar.Costume.Head, n);
-            solarCostume.Body.OnSelected = n =>
-                undoBuffer.Set("Body", () => ref selectedSolar.Costume.Body, n);
-            solarCostume.Accessory.OnSelected = n =>
-                undoBuffer.Set("Accessory", () => ref selectedSolar.Costume.Accessory, n);
-            lookupSolar = selectedSolar;
-        }
-
-
         if (!Controls.BeginEditorTable("Solar"))
             return;
 
@@ -239,7 +209,7 @@ public sealed partial class MissionScriptEditorTab
                                                      gameData.GameData.Items.Systems.Any(x =>
                                                          x.Nickname.Equals(selectedSolar.System,
                                                              StringComparison.InvariantCultureIgnoreCase)));
-        solarFaction.Draw("Faction");
+        gameData.Factions.DrawUndo("Faction", undoBuffer, () => ref selectedSolar.Faction, true);
         Controls.DisabledInputTextId("Archetype", selectedSolar.Archetype?.Nickname ?? "(none)");
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
@@ -268,7 +238,10 @@ public sealed partial class MissionScriptEditorTab
         Controls.InputTextIdUndo("Voice", undoBuffer, () => ref selectedSolar.Voice);
         Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedSolar.Pilot);
         Controls.TableSeparatorText("Costume");
-        solarCostume.Draw();
+        gameData.Costumes.Draw("costume", undoBuffer,
+            () => ref selectedSolar.Costume.Head,
+            () =>  ref selectedSolar.Costume.Body,
+            () => ref selectedSolar.Costume.Accessory);
         Controls.TableSeparator();
         Controls.InputTextIdUndo("Visit", undoBuffer, () => ref selectedSolar.Visit);
 
