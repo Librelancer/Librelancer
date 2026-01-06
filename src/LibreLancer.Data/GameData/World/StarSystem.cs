@@ -6,63 +6,61 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace LibreLancer.Data.GameData.World
+namespace LibreLancer.Data.GameData.World;
+
+public class StarSystem : NamedItem
 {
-	public class StarSystem : NamedItem
-	{
-        //Comes from universe.ini
-        public Vector2 UniversePosition;
-        public string MsgIdPrefix;
-        public VisitFlags Visit;
-        public string SourceFile;
-        //System Info - is this used?
-        public Faction LocalFaction;
-		//Background
-		public Color4 BackgroundColor;
-		//Starsphere
-        public ResolvedModel StarsBasic;
-        public ResolvedModel StarsComplex;
-        public ResolvedModel StarsNebula;
-        //Encounter Parameters
-        public List<EncounterParameters> EncounterParameters = new List<EncounterParameters>();
-        //Texture Panels
-        public List<string> TexturePanelsFiles = new List<string>();
-		//Lighting
-        public Color3f AmbientColor = Color3f.Black;
-		public List<LightSource> LightSources = new List<LightSource>();
-		//Objects
-		public List<SystemObject> Objects = new List<SystemObject>();
-		//Nebulae
-		public List<Nebula> Nebulae = new List<Nebula>();
-		//Asteroid Fields
-		public List<AsteroidField> AsteroidFields = new List<AsteroidField>();
-		//Zones
-		public List<Zone> Zones = new List<Zone>();
-        public Dictionary<string, Zone> ZoneDict = new Dictionary<string, Zone>(StringComparer.OrdinalIgnoreCase);
-		//Music
-		public string MusicSpace;
-        public string MusicDanger;
-        public string MusicBattle;
-		//Clipping
-		public float FarClip;
-        //Navmap
-        public float NavMapScale;
-        //Dust
-        public string Spacedust;
-        public int SpacedustMaxParticles;
-        //Preloads
-        public PreloadObject[] Preloads;
-        //Resource files to load
-        public UniqueList<string> ResourceFiles = new UniqueList<string>();
+    //Comes from universe.ini
+    public Vector2 UniversePosition;
+    public string? MsgIdPrefix;
+    public VisitFlags Visit;
+    public required string SourceFile;
+    //System Info - is this used?
+    public Faction? LocalFaction;
+    //Background
+    public Color4 BackgroundColor;
+    //Starsphere
+    public ResolvedModel? StarsBasic;
+    public ResolvedModel? StarsComplex;
+    public ResolvedModel? StarsNebula;
+    //Encounter Parameters
+    public List<EncounterParameters> EncounterParameters = [];
+    //Texture Panels
+    public List<string> TexturePanelsFiles = [];
+    //Lighting
+    public Color3f AmbientColor = Color3f.Black;
+    public List<LightSource> LightSources = [];
+    //Objects
+    public List<SystemObject> Objects = [];
+    //Nebulae
+    public List<Nebula> Nebulae = [];
+    //Asteroid Fields
+    public List<AsteroidField> AsteroidFields = [];
+    //Zones
+    public List<Zone> Zones = [];
+    public Dictionary<string, Zone> ZoneDict = new(StringComparer.OrdinalIgnoreCase);
+    //Music
+    public string? MusicSpace;
+    public string? MusicDanger;
+    public string? MusicBattle;
+    //Clipping
+    public float FarClip;
+    //Navmap
+    public float NavMapScale;
+    //Dust
+    public string? Spacedust;
+    public int SpacedustMaxParticles;
+    //Preloads
+    public PreloadObject[]? Preloads;
+    //Resource files to load
+    public UniqueList<string> ResourceFiles = [];
 
-        //Calculated
-        public Dictionary<StarSystem, List<StarSystem>> ShortestPathsLegal = new();
-        public Dictionary<StarSystem, List<StarSystem>> ShortestPathsIllegal = new();
-        public Dictionary<StarSystem, List<StarSystem>> ShortestPathsAny = new();
+    //Calculated
+    public Dictionary<StarSystem, List<StarSystem>> ShortestPathsLegal = new();
+    public Dictionary<StarSystem, List<StarSystem>> ShortestPathsIllegal = new();
+    public Dictionary<StarSystem, List<StarSystem>> ShortestPathsAny = new();
 
-        public StarSystem ()
-		{
-        }
+    public StarSystem ()
+    {
     }
 }
-

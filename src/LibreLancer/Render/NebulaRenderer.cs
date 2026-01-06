@@ -198,7 +198,7 @@ namespace LibreLancer.Render
 			if (ex != null)
 			{
 				var factor = CalculateTransition(ex.Zone);
-				FogRange.Y = MathHelper.Lerp(FogRange.Y, ex.FogFar, factor);;
+				FogRange.Y = MathHelper.Lerp(FogRange.Y, ex.FogFar, factor);
 			}
 			lightning = null;
 			if (dynLightningActive)
@@ -396,13 +396,19 @@ namespace LibreLancer.Render
 		void GeneratePuffRing(float ypct, Random rn, List<VertexBillboardColor2> verts)
 		{
 			Vector3 sz = Vector3.Zero;
-			//Only render ellipsoid and sphere exteriors
-			if (Nebula.Zone.Shape == ShapeKind.Ellipsoid)
-				sz = Nebula.Zone.Size / 2; //we want radius instead of diameter
-			else if (Nebula.Zone.Shape == ShapeKind.Sphere)
-				sz = new Vector3(Nebula.Zone.Size.X);
-			else
-				return;
+            switch (Nebula.Zone?.Shape)
+            {
+                //Only render ellipsoid and sphere exteriors
+                case ShapeKind.Ellipsoid:
+                    sz = Nebula.Zone.Size / 2; //we want radius instead of diameter
+                    break;
+                case ShapeKind.Sphere:
+                    sz = new Vector3(Nebula.Zone.Size.X);
+                    break;
+                default:
+                    return;
+            }
+
 			var yval = ypct * sz.Y;
 			int puffcount = rn.Next(Nebula.ExteriorMinBits, Nebula.ExteriorMaxBits + 1);
 			double current_angle = 0;
@@ -420,7 +426,7 @@ namespace LibreLancer.Render
 					Nebula.ExteriorBitRadius * (1 + Nebula.ExteriorBitRandomVariation)
 				);
                 var puffSize = new Vector2(radius * 2);
-                var shape = sprites.GetShape(Nebula.ExteriorCloudShapes.GetNext(rn));
+                var shape = sprites.GetShape(Nebula.ExteriorCloudShapes?.GetNext(rn));
                 var angle = rn.NextFloat(-MathF.PI, MathF.PI);
                 AddPuffQuad(verts, puffPos, puffSize, Nebula.ExteriorColor, Nebula.FogColor, angle,
                     new Vector2(shape.Dimensions.X, shape.Dimensions.Y),

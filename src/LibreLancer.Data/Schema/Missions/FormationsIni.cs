@@ -7,9 +7,9 @@ namespace LibreLancer.Data.Schema.Missions;
 [ParsedIni]
 public partial class FormationsIni
 {
-    [Section("Formation")] public List<FormationDef> Formations = new List<FormationDef>();
+    [Section("Formation")] public List<FormationDef> Formations = [];
 
-    public void AddFile(string filename, FileSystem vfs, IniStringPool stringPool = null)
+    public void AddFile(string filename, FileSystem vfs, IniStringPool? stringPool = null)
     {
         ParseIni(filename, vfs, stringPool);
     }

@@ -5,17 +5,17 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Save
+namespace LibreLancer.Data.Schema.Save;
+
+public class SaveRep
 {
-    public class SaveRep
+    public float Reputation;
+    public string? Group;
+
+    public SaveRep() { }
+    public SaveRep(Entry e)
     {
-        public float Reputation;
-        public string Group;
-        public SaveRep() { }
-        public SaveRep(Entry e)
-        {
-            Reputation = e[0].ToSingle();
-            Group = e[1].ToString();
-        }
+        Reputation = e[0].ToSingle();
+        Group = e[1].ToString();
     }
 }

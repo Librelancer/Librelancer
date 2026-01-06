@@ -4,19 +4,17 @@
 
 using System;
 
-namespace LibreLancer.Data
-{
-	public struct TextureShape
-	{
-		public string Texture;
-		public string ShapeName;
-		public RectangleF Dimensions;
-		public TextureShape (string texname, string shapename, RectangleF dimensions)
-		{
-			Texture = texname;
-			ShapeName = shapename;
-			Dimensions = dimensions;
-		}
-	}
-}
+namespace LibreLancer.Data;
 
+public struct TextureShape
+{
+    public string Texture;
+    public string ShapeName;
+    public RectangleF Dimensions;
+    public TextureShape (string texname, string shapename, RectangleF dimensions)
+    {
+        Texture = texname;
+        ShapeName = shapename;
+        Dimensions = dimensions;
+    }
+}

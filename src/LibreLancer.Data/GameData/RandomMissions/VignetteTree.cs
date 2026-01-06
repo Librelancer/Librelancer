@@ -8,10 +8,10 @@ namespace LibreLancer.Data.GameData.RandomMissions;
 public class VignetteTree
 {
     public Dictionary<int, VignetteAst> Nodes = new();
-    public VignetteAst StartNode;
+    public VignetteAst? StartNode;
     private int _nextId = 3;
 
-    static bool EmptyArray<T>(T[] array) => array == null || array.Length == 0;
+    private static bool EmptyArray<T>(T[]? array) => array == null || array.Length == 0;
     public static bool IsEmptyData(AstData dat) =>
         dat.Data.Difficulty == null &&
         EmptyArray(dat.Data.OfferGroup) &&
@@ -28,7 +28,7 @@ public class VignetteTree
         // Construct tree from VignetteParamsIni
         var tree = new VignetteTree();
 
-        HashSet<int> unreferenced = new HashSet<int>();
+        HashSet<int> unreferenced = [];
         // Construct nodes
         int newId = 0;
         foreach (var n in vparams.Nodes) {
@@ -52,7 +52,7 @@ public class VignetteTree
         foreach (var kv in tree.Nodes)
         {
             var src = vparams.Nodes.First(x => x.NodeId == kv.Key);
-            kv.Value.Children = new List<VignetteAst>();
+            kv.Value.Children = [];
             for (int i = 0; i < src.ChildId.Count; i++)
             {
                 var child = src.ChildId[i];
@@ -92,7 +92,7 @@ public class VignetteTree
 
     public int NextId() => _nextId++;
 
-    public void FlattenEmptyNodes(VignetteAst startNode = null)
+    public void FlattenEmptyNodes(VignetteAst? startNode = null)
     {
         var optQueue = new Queue<int>();
         foreach (var k in Nodes.Where(x => x.Value != startNode)
@@ -150,7 +150,7 @@ public class VignetteTree
 public abstract class VignetteAst(int id)
 {
     public int Id = id;
-    public List<VignetteAst> Children = new List<VignetteAst>();
+    public List<VignetteAst> Children = [];
 }
 
 public enum DataNodeKind
@@ -167,15 +167,13 @@ public enum DataNodeKind
 
 public class AstData(int id, DataNode data) : VignetteAst(id)
 {
-    public DataNode Data = data;
+    public readonly DataNode Data = data;
 
     public DataNodeKind GetKind()
     {
         if (Children.Count > 0)
             return DataNodeKind.Closed;
-        if (data.RewardText.Target != null ||
-            data.FailureText.Target != null ||
-            data.ObjectiveTexts.Count > 0)
+        if (data.RewardText.Target != null || data.FailureText.Target != null || data.ObjectiveTexts.Count > 0)
             return DataNodeKind.Objective;
         if (data.Difficulty != null)
             return DataNodeKind.Difficulty;
@@ -210,13 +208,13 @@ public class AstDecision(int id, DecisionNode decision) : VignetteAst(id)
 {
     public DecisionNode Decision = decision;
 
-    public string[] GroupA;
-    public string[] GroupB;
+    public string[] GroupA = [];
+    public string[] GroupB = [];
 
     public override string ToString() => $"{id}: {Decision?.Nickname}";
 }
 
 public class AstIfElse(int id) : VignetteAst(id)
 {
-    public List<string> Conditions = new List<string>();
+    public List<string> Conditions = [];
 }

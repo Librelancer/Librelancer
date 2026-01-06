@@ -11,10 +11,10 @@ namespace LibreLancer.Data.Schema.Solar;
 
 public class AsteroidArchIni
 {
-    public List<Asteroid> Asteroids = new();
-    public List<DynamicAsteroid> DynamicAsteroids = new();
+    public List<Asteroid> Asteroids = [];
+    public List<DynamicAsteroid> DynamicAsteroids = [];
 
-    public void AddFile(string path, FileSystem vfs, IniStringPool stringPool = null)
+    public void AddFile(string path, FileSystem? vfs, IniStringPool? stringPool = null)
     {
         using var stream = vfs == null ? File.OpenRead(path) : vfs.Open(path);
         foreach (var s in IniFile.ParseFile(path, stream, true, false, stringPool))

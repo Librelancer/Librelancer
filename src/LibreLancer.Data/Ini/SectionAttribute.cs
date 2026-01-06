@@ -4,19 +4,18 @@
 
 using System;
 
-namespace LibreLancer.Data.Ini
+namespace LibreLancer.Data.Ini;
+
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+public class SectionAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-    public class SectionAttribute : Attribute
+    public string Name;
+    public string[]? Delimiters;
+    public Type? Type;
+    public bool Child;
+    public SectionAttribute(string name, Type? type = null)
     {
-        public string Name;
-        public string[] Delimiters;
-        public Type Type;
-        public bool Child;
-        public SectionAttribute(string name, Type type = null)
-        {
-            Name = name;
-            Type = type;
-        }
+        Name = name;
+        Type = type;
     }
 }

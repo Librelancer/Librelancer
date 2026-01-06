@@ -5,28 +5,27 @@
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Data.Schema.Cameras
+namespace LibreLancer.Data.Schema.Cameras;
+
+[ParsedIni]
+public partial class CameraIni
 {
-    [ParsedIni]
-    public partial class CameraIni
-    {
-        [Section("WinCamera")] public CameraProps WinCamera = new CameraProps() {FovX = 54.432f};
-        [Section("CockpitCamera")] public CameraProps CockpitCamera = new CameraProps();
-        [Section("ThirdPersonCamera")] public CameraProps ThirdPersonCamera = new CameraProps();
-        [Section("DeathCamera")] public CameraProps DeathCamera = new CameraProps();
-        [Section("TurretCamera")] public CameraProps TurretCamera = new CameraProps();
-        [Section("RearViewCamera")] public CameraProps RearViewCamera = new CameraProps();
+    [Section("WinCamera")] public CameraProps WinCamera = new() {FovX = 54.432f};
+    [Section("CockpitCamera")] public CameraProps CockpitCamera = new();
+    [Section("ThirdPersonCamera")] public CameraProps ThirdPersonCamera = new();
+    [Section("DeathCamera")] public CameraProps DeathCamera = new();
+    [Section("TurretCamera")] public CameraProps TurretCamera = new();
+    [Section("RearViewCamera")] public CameraProps RearViewCamera = new();
 
-        public CameraIni(string camerasPath, FileSystem vfs, IniStringPool stringPool = null)
-        {
-            ParseIni(camerasPath, vfs, stringPool);
-        }
-    }
-
-    [ParsedSection]
-    public partial class CameraProps
+    public CameraIni(string camerasPath, FileSystem vfs, IniStringPool? stringPool = null)
     {
-        [Entry("fovx")] public float FovX = 70;
-        [Entry("znear")] public float ZNear;
+        ParseIni(camerasPath, vfs, stringPool);
     }
+}
+
+[ParsedSection]
+public partial class CameraProps
+{
+    [Entry("fovx")] public float FovX = 70;
+    [Entry("znear")] public float ZNear;
 }

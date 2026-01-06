@@ -5,22 +5,21 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.NewCharDB
+namespace LibreLancer.Data.Schema.NewCharDB;
+
+[ParsedSection]
+public partial class NewCharPilot
 {
-    [ParsedSection]
-    public partial class NewCharPilot
-    {
-        [Entry("nickname")]
-        public string Nickname;
-        [Entry("body")]
-        public string Body;
-        [Entry("comm")]
-        public string Comm;
-        [Entry("voice")]
-        public string Voice;
-        [Entry("body.anim")]
-        public string BodyAnim;
-        [Entry("comm.anim")]
-        public string[] CommAnim;
-    }
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("body")]
+    public string? Body;
+    [Entry("comm")]
+    public string? Comm;
+    [Entry("voice")]
+    public string? Voice;
+    [Entry("body.anim")]
+    public string? BodyAnim;
+    [Entry("comm.anim")]
+    public string[]? CommAnim;
 }

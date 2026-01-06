@@ -1,7 +1,6 @@
-﻿namespace LibreLancer.Data.GameData.Items
+﻿namespace LibreLancer.Data.GameData.Items;
+
+public class TractorEquipment : Equipment
 {
-    public class TractorEquipment : Equipment
-    {
-        public Data.Schema.Equipment.Tractor Def;
-    }
+    public required Data.Schema.Equipment.Tractor Def;
 }

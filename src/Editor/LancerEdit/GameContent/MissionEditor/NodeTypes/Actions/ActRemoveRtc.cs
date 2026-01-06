@@ -14,7 +14,7 @@ public sealed class ActRemoveRtc : NodeTriggerEntry
     public readonly Act_RemoveRTC Data;
     public ActRemoveRtc(MissionAction action): base( NodeColours.Action)
     {
-        Data = action is null ? new() :  new Act_RemoveRTC(action);;
+        Data = action is null ? new() :  new Act_RemoveRTC(action);
 
         Inputs.Add(new NodePin(this, LinkType.Action, PinKind.Input));
     }

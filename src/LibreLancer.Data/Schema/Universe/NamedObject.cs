@@ -7,19 +7,18 @@ using System;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+public abstract class NamedObject
 {
-	public abstract class NamedObject
-	{
-        [Entry("nickname", Required = true)]
-        public string Nickname;
-        [Entry("pos")]
-        public Vector3? Pos;
-        [Entry("rotate")]
-        public Vector3? Rotate;
-        public override string ToString()
-		{
-			return Nickname;
-		}
-	}
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("pos")]
+    public Vector3? Pos;
+    [Entry("rotate")]
+    public Vector3? Rotate;
+    public override string ToString()
+    {
+        return Nickname;
+    }
 }

@@ -2,21 +2,20 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-namespace LibreLancer.Data.GameData.World
-{
-	public enum DockKinds
-	{
-		Base,
-		Jump,
-		Tradelane
-	}
+namespace LibreLancer.Data.GameData.World;
 
-	public class DockAction
-	{
-		public DockKinds Kind;
-		public string Target;
-		public string TargetLeft;
-		public string Exit;
-		public string Tunnel;
-	}
+public enum DockKinds
+{
+    Base,
+    Jump,
+    Tradelane
+}
+
+public class DockAction
+{
+    public required DockKinds Kind;
+    public required string? Target;
+    public string? TargetLeft;
+    public string? Exit;
+    public string? Tunnel;
 }

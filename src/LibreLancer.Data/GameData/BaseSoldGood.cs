@@ -4,14 +4,13 @@
 
 using LibreLancer.Data.GameData.Items;
 
-namespace LibreLancer.Data.GameData
+namespace LibreLancer.Data.GameData;
+
+public struct BaseSoldGood
 {
-    public struct BaseSoldGood
-    {
-        public int Rank;
-        public ResolvedGood Good;
-        public float Rep;
-        public ulong Price;
-        public bool ForSale;
-    }
+    public required int Rank;
+    public required ResolvedGood Good;
+    public required float Rep;
+    public required ulong Price;
+    public required bool ForSale;
 }

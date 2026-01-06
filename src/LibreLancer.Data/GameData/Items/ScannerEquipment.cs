@@ -1,7 +1,6 @@
-﻿namespace LibreLancer.Data.GameData.Items
+﻿namespace LibreLancer.Data.GameData.Items;
+
+public class ScannerEquipment : Equipment
 {
-    public class ScannerEquipment : Equipment
-    {
-        public Data.Schema.Equipment.Scanner Def;
-    }
+    public required Data.Schema.Equipment.Scanner Def;
 }

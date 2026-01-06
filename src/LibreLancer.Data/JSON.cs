@@ -6,27 +6,27 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace LibreLancer.Data
+namespace LibreLancer.Data;
+
+//Wrap around JsonSerializer
+public class JSON
 {
-	//Wrap around JsonSerializer
-	public class JSON
-	{
-		public static T Deserialize<T>(string str)
+    public static T Deserialize<T>(string str)
+    {
+        return JsonSerializer.Deserialize<T>(str, new JsonSerializerOptions()
         {
-            return JsonSerializer.Deserialize<T>(str, new JsonSerializerOptions()
-            {
-                IncludeFields = true,
-                NumberHandling = JsonNumberHandling.AllowReadingFromString
-            });
-        }
-		public static string Serialize<T>(T obj)
+            IncludeFields = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
+        })!;
+    }
+
+    public static string Serialize<T>(T obj)
+    {
+        return JsonSerializer.Serialize<T>(obj, new JsonSerializerOptions()
         {
-            return JsonSerializer.Serialize<T>(obj, new JsonSerializerOptions()
-            {
-                WriteIndented = true,
-                IncludeFields = true,
-                ReferenceHandler = ReferenceHandler.IgnoreCycles
-            });
-        }
-	}
+            WriteIndented = true,
+            IncludeFields = true,
+            ReferenceHandler = ReferenceHandler.IgnoreCycles
+        });
+    }
 }

@@ -4,11 +4,10 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class Shield : AbstractEquipment
 {
-    [ParsedSection]
-    public partial class Shield : AbstractEquipment
-    {
-        [Entry("hp_type")] public string HpType;
-    }
+    [Entry("hp_type")] public string? HpType;
 }

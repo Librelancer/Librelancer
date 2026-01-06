@@ -4,11 +4,10 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class Lod : AbstractEquipment
 {
-    [ParsedSection]
-    public partial class Lod : AbstractEquipment
-    {
-        [Entry("obj")] public string Obj;
-    }
+    [Entry("obj", Required = true)] public string Obj = null!;
 }

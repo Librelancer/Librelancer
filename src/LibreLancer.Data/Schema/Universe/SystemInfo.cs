@@ -8,7 +8,7 @@ public partial class SystemInfo
     [Entry("space_color")]
     public Color4 SpaceColor = Color4.Black;
     [Entry("local_faction")]
-    public string LocalFaction;
+    public string? LocalFaction;
     [Entry("rpop_solar_detection")]
     public bool? RpopSolarDetection;
     [Entry("space_farclip")]

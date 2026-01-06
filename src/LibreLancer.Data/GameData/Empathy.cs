@@ -1,23 +1,22 @@
-namespace LibreLancer.Data.GameData
+namespace LibreLancer.Data.GameData;
+
+public class Empathy
 {
-    public class Empathy
+    public Faction? Other;
+    public float Multiplier;
+
+    public Empathy()
     {
-        public Faction Other;
-        public float Multiplier;
+    }
 
-        public Empathy()
-        {
-        }
+    public Empathy(Faction other, float mult)
+    {
+        Other = other;
+        Multiplier = mult;
+    }
 
-        public Empathy(Faction other, float mult)
-        {
-            Other = other;
-            Multiplier = mult;
-        }
-
-        public override string ToString()
-        {
-            return $"{Other.Nickname}: {Multiplier}";
-        }
+    public override string ToString()
+    {
+        return $"{Other?.Nickname}: {Multiplier}";
     }
 }

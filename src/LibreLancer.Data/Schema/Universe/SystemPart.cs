@@ -8,26 +8,25 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+public abstract class SystemPart : NamedObject
 {
-	public abstract class SystemPart : NamedObject
-	{
-        [Entry("ids_name")]
-        public int IdsName;
+    [Entry("ids_name")]
+    public int IdsName;
 
-        [Entry("ids_info")]
-        public int IdsInfo;
+    [Entry("ids_info")]
+    public int IdsInfo;
 
-        [Entry("size", Mode = Vec3Mode.Size)]
-        public Vector3? Size;
+    [Entry("size", Mode = Vec3Mode.Size)]
+    public Vector3? Size;
 
-        [Entry("spin", Mode = Vec3Mode.OptionalComponents)]
-        public Vector3? Spin;
+    [Entry("spin", Mode = Vec3Mode.OptionalComponents)]
+    public Vector3? Spin;
 
-        [Entry("reputation")]
-        public string Reputation;
+    [Entry("reputation")]
+    public string? Reputation;
 
-        [Entry("visit")]
-        public int? Visit;
-    }
+    [Entry("visit")]
+    public int? Visit;
 }

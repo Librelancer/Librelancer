@@ -5,12 +5,11 @@
 using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+[ParsedSection]
+public partial class ObjectProperties
 {
-    [ParsedSection]
-    public partial class ObjectProperties
-    {
-        [Entry("flag", Multiline = true)]
-        public List<string> Flag = new List<string>();
-    }
+    [Entry("flag", Multiline = true)]
+    public List<string> Flag = [];
 }

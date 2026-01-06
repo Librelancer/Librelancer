@@ -7,21 +7,20 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Solar
+namespace LibreLancer.Data.Schema.Solar;
+
+[ParsedIni]
+public partial class SolararchIni
 {
-    [ParsedIni]
-    public partial class SolararchIni
+    [Section("solar")]
+    [Section("collisiongroup", Type = typeof(CollisionGroup), Child = true)]
+    public List<Archetype> Solars = [];
+
+    [Section("simple")]
+    public List<Simple>? Simples = [];
+
+    public void AddSolararchIni(string path, FreelancerData gameData, IniStringPool? stringPool = null)
     {
-        [Section("solar")]
-        [Section("collisiongroup", Type = typeof(CollisionGroup), Child = true)]
-        public List<Archetype> Solars = new();
-
-        [Section("simple")]
-        public List<Simple> Simples = new();
-
-        public void AddSolararchIni(string path, FreelancerData gameData, IniStringPool stringPool = null)
-        {
-            ParseIni(path, gameData.VFS, stringPool);
-        }
-	}
+        ParseIni(path, gameData.VFS, stringPool);
+    }
 }

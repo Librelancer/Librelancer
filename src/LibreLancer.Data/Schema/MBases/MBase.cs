@@ -8,27 +8,27 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.MBases
-{
-    [ParsedSection]
-	public partial class MBase
-	{
-        [Entry("nickname")]
-		public string Nickname;
-        [Entry("local_faction")]
-		public string LocalFaction;
-        [Entry("diff")]
-        public int Diff;
-        [Entry("msg_id_prefix")]
-        public string MsgIdPrefix;
+namespace LibreLancer.Data.Schema.MBases;
 
-        [Section("mvendor", Child = true)]
-        public MVendor MVendor;
-        [Section("mroom", Child = true)]
-		public List<MRoom> Rooms = new List<MRoom>();
-        [Section("gf_npc", Child = true)]
-		public List<GfNpc> Npcs = new List<GfNpc>();
-        [Section("basefaction", Child = true)]
-        public List<BaseFaction> Factions = new List<BaseFaction>();
-	}
+[ParsedSection]
+public partial class MBase
+{
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("local_faction", Required = true)]
+    public string LocalFaction = null!;
+
+    [Entry("diff")]
+    public int Diff;
+    [Entry("msg_id_prefix")]
+    public string? MsgIdPrefix;
+
+    [Section("mvendor", Child = true)]
+    public MVendor? MVendor;
+    [Section("mroom", Child = true)]
+    public List<MRoom> Rooms = [];
+    [Section("gf_npc", Child = true)]
+    public List<GfNpc> Npcs = [];
+    [Section("basefaction", Child = true)]
+    public List<BaseFaction> Factions = [];
 }

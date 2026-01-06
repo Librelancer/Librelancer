@@ -7,5 +7,5 @@ namespace LibreLancer.Data.Schema.Solar;
 public partial class TextureSection
 {
     [Entry("file", Multiline = true)]
-    public List<string> Files = new();
+    public List<string> Files = [];
 }

@@ -3,13 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LibreLancer.Data.Schema.Goods
+namespace LibreLancer.Data.Schema.Goods;
+
+public enum GoodCategory
 {
-    public enum GoodCategory
-    {
-        Equipment,
-        Commodity,
-        ShipHull,
-        Ship
-    }
+    Equipment,
+    Commodity,
+    ShipHull,
+    Ship
 }

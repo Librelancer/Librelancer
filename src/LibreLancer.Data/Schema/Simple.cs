@@ -7,13 +7,13 @@ namespace LibreLancer.Data.Schema;
 public partial class Simple
 {
     [Entry("nickname", Required = true)]
-    public string Nickname;
+    public string Nickname = null!;
     [Entry("DA_archetype", Required = true)]
-    public string DaArchetypeName;
+    public string DaArchetypeName = null!;
     [Entry("material_library", Multiline = true)]
-    public List<string> MaterialLibrary = new();
+    public List<string> MaterialLibrary = [];
     [Entry("mass")]
     public float Mass;
     [Entry("LODranges")]
-    public float[] LODranges;
+    public float[]? LODranges;
 }

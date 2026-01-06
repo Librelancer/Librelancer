@@ -1130,8 +1130,12 @@ public class SystemEditorTab : GameContentTab
                               Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
                     var dir = Vector3.Transform(-Vector3.UnitZ, rot);
                     var to = viewport.CameraOffset + (dir * 50);
-                    var lt = new LightSource();
-                    lt.Nickname = n;
+                    var lt = new LightSource
+                    {
+                        Nickname = n,
+                        AttenuationCurveName = null
+                    };
+
                     lt.Light.Attenuation = Vector3.UnitX;
                     lt.Light.Range = 5000;
                     lt.Light.Color = Color3f.White;

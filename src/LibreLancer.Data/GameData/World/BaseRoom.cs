@@ -5,53 +5,53 @@
 using System;
 using System.Collections.Generic;
 
-namespace LibreLancer.Data.GameData.World
-{
-    public record SceneScript(bool AllAmbient, bool TrafficPriority, ResolvedThn Thn);
-	public class BaseRoom : IdentifiableItem
-	{
-        //Populated from room ini
-        public string SourceFile;
-		public string Camera;
-        public ResolvedThn SetScript;
-		public List<SceneScript> SceneScripts;
-		public List<BaseHotspot> Hotspots;
-        public List<string> ForSaleShipPlacements;
-		public string Music;
-        public bool MusicOneShot;
-		public string PlayerShipPlacement;
-        public ResolvedThn StartScript;
-        public ResolvedThn LandScript;
-        public ResolvedThn LaunchScript;
-        public ResolvedThn GoodscartScript;
-        //Populated from mbases
-        public int MaxCharacters;
-        public List<BaseFixedNpc> FixedNpcs = new List<BaseFixedNpc>();
+namespace LibreLancer.Data.GameData.World;
 
-        internal Action InitAction;
-        public void InitForDisplay()
+public record SceneScript(bool AllAmbient, bool TrafficPriority, ResolvedThn Thn);
+public class BaseRoom : IdentifiableItem
+{
+    //Populated from room ini
+    public required string SourceFile;
+    public string? Camera;
+    public ResolvedThn? SetScript;
+    public List<SceneScript> SceneScripts = [];
+    public List<BaseHotspot> Hotspots = [];
+    public List<string> ForSaleShipPlacements = [];
+    public string? Music;
+    public bool MusicOneShot;
+    public string? PlayerShipPlacement;
+    public ResolvedThn? StartScript;
+    public ResolvedThn? LandScript;
+    public ResolvedThn? LaunchScript;
+    public ResolvedThn? GoodscartScript;
+
+    //Populated from mbases
+    public int MaxCharacters;
+    public List<BaseFixedNpc> FixedNpcs = [];
+
+    internal Action? InitAction;
+    public void InitForDisplay()
+    {
+        if (InitAction != null)
         {
-            if(InitAction != null)
-            {
-                InitAction();
-                InitAction = null;
-            }
+            InitAction();
+            InitAction = null;
         }
     }
-	public class BaseHotspot
-	{
-		public string Name;
-		public string Behavior;
-		public string Room;
-		public string SetVirtualRoom;
-        public string VirtualRoom;
-	}
+}
+public class BaseHotspot
+{
+    public required string Name;
+    public required string? Behavior;
+    public required string? Room;
+    public required string? SetVirtualRoom;
+    public required string? VirtualRoom;
+}
 
-    public class BaseFixedNpc
-    {
-        public BaseNpc Npc;
-        public string Placement;
-        public ResolvedThn FidgetScript;
-        public string Action;
-    }
+public class BaseFixedNpc
+{
+    public BaseNpc? Npc;
+    public required string Placement;
+    public required ResolvedThn FidgetScript;
+    public string? Action;
 }

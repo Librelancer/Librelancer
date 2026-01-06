@@ -9,45 +9,44 @@ using LibreLancer.Data.IO;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema.Universe.Rooms;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+[ParsedSection]
+[ParsedIni]
+public partial class Room
 {
-    [ParsedSection]
-    [ParsedIni]
-	public partial class Room
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("file", Required = true)]
+    public string File = null!;
+
+    [Section("Room_Info")]
+    public RoomInfo? RoomInfo;
+    [Section("CharacterPlacement")]
+    public CharacterPlacement? CharacterPlacement;
+    [Section("Room_Sound")]
+    public RoomSound? RoomSound;
+    [Section("ForSaleShipPlacement")]
+    public List<NameSection> ForSaleShipPlacements = [];
+    [Section("Camera")]
+    public NameSection? Camera;
+    [Section("Hotspot")]
+    public List<RoomHotspot> Hotspots = [];
+    [Section("PlayerShipPlacement")]
+    public PlayerShipPlacement? PlayerShipPlacement;
+    [Section("FlashlightSet")]
+    public List<FlashlightSet> FlashlightSets = [];
+    [Section("FlashlightLine")]
+    public List<FlashlightLine> FlashlightLines = [];
+    [Section("Spiels")]
+    public Spiels? Spiels;
+
+    [OnParseDependent]
+    private void ParseDependent(IniStringPool stringPool, IniParseProperties properties)
     {
-        [Entry("nickname")]
-        public string Nickname;
-        [Entry("file")]
-        public string File;
-
-        [Section("Room_Info")]
-        public RoomInfo RoomInfo;
-        [Section("CharacterPlacement")]
-        public CharacterPlacement CharacterPlacement;
-        [Section("Room_Sound")]
-        public RoomSound RoomSound;
-        [Section("ForSaleShipPlacement")]
-        public List<NameSection> ForSaleShipPlacements = new List<NameSection>();
-        [Section("Camera")]
-        public NameSection Camera;
-        [Section("Hotspot")]
-        public List<RoomHotspot> Hotspots = new List<RoomHotspot>();
-        [Section("PlayerShipPlacement")]
-        public PlayerShipPlacement PlayerShipPlacement;
-        [Section("FlashlightSet")]
-        public List<FlashlightSet> FlashlightSets = new List<FlashlightSet>();
-        [Section("FlashlightLine")]
-        public List<FlashlightLine> FlashlightLines = new List<FlashlightLine>();
-        [Section("Spiels")]
-        public Spiels Spiels;
-
-        [OnParseDependent]
-        void ParseDependent(IniStringPool stringPool, IniParseProperties properties)
-        {
-            if (string.IsNullOrWhiteSpace(File)) return;
-            if (properties["vfs"] is not FileSystem vfs) return;
-            if (properties["dataPath"] is not string dataPath) return;
-            ParseIni(dataPath + File, vfs, stringPool, properties);
-        }
-	}
+        if (string.IsNullOrWhiteSpace(File)) return;
+        if (properties["vfs"] is not FileSystem vfs) return;
+        if (properties["dataPath"] is not string dataPath) return;
+        ParseIni(dataPath + File, vfs, stringPool, properties);
+    }
 }

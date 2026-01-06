@@ -8,24 +8,23 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+[ParsedSection]
+public partial class DynamicAsteroids
 {
-    [ParsedSection]
-	public partial class DynamicAsteroids
-    {
-        [Entry("asteroid")]
-        public string Asteroid;
-        [Entry("count")]
-        public int Count;
-        [Entry("placement_radius")]
-        public int PlacementRadius;
-        [Entry("placement_offset")]
-        public int PlacementOffset;
-        [Entry("max_velocity")]
-        public int MaxVelocity;
-        [Entry("max_angular_velocity")]
-        public int MaxAngularVelocity;
-        [Entry("color_shift")]
-        public Vector3 ColorShift;
-	}
+    [Entry("asteroid", Required = true)]
+    public string Asteroid = null!;
+    [Entry("count")]
+    public int Count;
+    [Entry("placement_radius")]
+    public int PlacementRadius;
+    [Entry("placement_offset")]
+    public int PlacementOffset;
+    [Entry("max_velocity")]
+    public int MaxVelocity;
+    [Entry("max_angular_velocity")]
+    public int MaxAngularVelocity;
+    [Entry("color_shift")]
+    public Vector3 ColorShift;
 }

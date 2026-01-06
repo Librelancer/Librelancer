@@ -3,15 +3,14 @@
 // LICENSE, which is part of this source code package
 
 
-namespace LibreLancer.Data.GameData
+namespace LibreLancer.Data.GameData;
+
+public class ResolvedModel
 {
-    public class ResolvedModel
-    {
-        public string[] LibraryFiles;
-        public string ModelFile;
-        public string SourcePath;
+    public string[]? LibraryFiles;
+    public required string? ModelFile;
+    public required string SourcePath;
 
 
-        public override string ToString() => $"{ModelFile} ({LibraryFiles?.Length ?? 0} resources)";
-    }
+    public override string ToString() => $"{ModelFile} ({LibraryFiles?.Length ?? 0} resources)";
 }

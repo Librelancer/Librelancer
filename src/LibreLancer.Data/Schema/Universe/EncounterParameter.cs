@@ -8,12 +8,11 @@ using System.Linq;
 using System.Text;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+[ParsedSection]
+public partial class EncounterParameter
 {
-    [ParsedSection]
-	public partial class EncounterParameter
-    {
-        [Entry("nickname")] public string Nickname;
-        [Entry("filename")] public string Filename;
-    }
+    [Entry("nickname", Required = true)] public string Nickname = null!;
+    [Entry("filename", Required = true)] public string Filename = null!;
 }

@@ -119,7 +119,7 @@ public sealed class NewsSetAutoselect(NewsItem target, bool old, bool updated):
 {
     public override void Set(bool value)
     {
-        Target.Autoselect = value;
+        Target.AutoSelect = value;
     }
 }
 

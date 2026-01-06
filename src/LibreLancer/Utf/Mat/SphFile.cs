@@ -162,7 +162,7 @@ namespace LibreLancer.Utf.Mat
 
             var vmesh = new VisualMesh();
             vmesh.Radius = Radius;
-            vmesh.BoundingBox = BoundingBox.CreateFromSphere(new BoundingSphere(Vector3.Zero, Radius));;
+            vmesh.BoundingBox = BoundingBox.CreateFromSphere(new BoundingSphere(Vector3.Zero, Radius));
             if (drawable && SideMaterials.Length >= 6)
             {
                 var sphere = resources.GetQuadSphere(26);
