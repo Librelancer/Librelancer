@@ -1,8 +1,8 @@
 namespace LibreLancer.Data.GameData.World;
 
-public class LightSource
+public class LightSource : NicknameItem
 {
-    public string Nickname;
+    public bool Disabled; // Editor use only, not saved.
     public string AttenuationCurveName;
     public RenderLight Light;
 

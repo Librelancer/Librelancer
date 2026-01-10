@@ -1,3 +1,7 @@
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "cimgui_ext.h"
@@ -88,7 +92,7 @@ static bool igExtDataTypeApplyFromText(const char* buf, ImGuiDataType data_type,
     if (data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double)
         format = type_info->ScanFmt;
     else
-        format = ImParseFormatSanitizeForScanning(format, format_sanitized, IM_ARRAYSIZE(format_sanitized));    
+        format = ImParseFormatSanitizeForScanning(format, format_sanitized, IM_ARRAYSIZE(format_sanitized));
     // Add %n to the format so we can get the number of characters sscanf consumed
     ImSnprintf(format_with_n, 64, "%s%%n", format);
     int sN = 0;
@@ -317,4 +321,52 @@ CIMGUI_API int igExtInputInt4(const char* label, int v[4], int flags)
 CIMGUI_API int igExtInputDouble(const char* label, double* v, double step, double step_fast, const char* format, int flags)
 {
     return igExtInputScalar(label, ImGuiDataType_Double, (void*)v, (void*)(step > 0.0 ? &step : NULL), (void*)(step_fast > 0.0 ? &step_fast : NULL), format, (ImGuiInputTextFlags)flags) ? 1 : 0;
+}
+
+CIMGUI_API int igExtInputIntPreview(const char *label, const char *preview, int* v)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return 0;
+
+    ImGuiContext& g = *GImGui;
+    const ImGuiStyle& style = g.Style;
+    const ImGuiID id = window->GetID(label);
+    const float w = CalcItemWidth();
+
+    const ImVec2 label_size = CalcTextSize(label, NULL, true);
+    const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+    const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+
+    ItemSize(total_bb, style.FramePadding.y);
+    if (!ItemAdd(total_bb, id, &frame_bb, ImGuiItemFlags_Inputable))
+        return 0;
+
+    const bool hovered = ItemHoverable(frame_bb, id, g.LastItemData.ItemFlags);
+    bool temp_input_is_active = TempInputIsActive(id);
+    if (!temp_input_is_active)
+    {
+        const bool clicked = hovered && IsMouseClicked(0, ImGuiInputFlags_None, id);
+        const bool double_clicked = (hovered && g.IO.MouseClickedCount[0] == 2 && TestKeyOwner(ImGuiKey_MouseLeft, id));
+        const bool make_active = (clicked || double_clicked || g.NavActivateId == id);
+        if (make_active && (clicked || double_clicked))
+        {
+            SetKeyOwner(ImGuiKey_MouseLeft, id);
+            g.NavActivateId = id;
+            g.NavActivateFlags = ImGuiActivateFlags_PreferInput;
+            temp_input_is_active = true;
+        }
+    }
+
+    if (temp_input_is_active)
+    {
+        return TempInputScalar(frame_bb, id, label, ImGuiDataType_S32, (void*)v, "%d", NULL, NULL) ? 1 : 0;
+    }
+
+    // Draw frame
+    const ImU32 frame_col = GetColorU32(g.ActiveId == id ? ImGuiCol_FrameBgActive : hovered ? ImGuiCol_FrameBgHovered : ImGuiCol_FrameBg);
+    RenderNavCursor(frame_bb, id);
+    RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
+    RenderTextClipped(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding, preview, NULL, NULL, ImVec2(0.0f, 0.5f));
+    return 0;
 }

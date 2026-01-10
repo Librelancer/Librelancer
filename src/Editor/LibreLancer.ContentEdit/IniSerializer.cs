@@ -29,7 +29,7 @@ public static class IniSerializer
             .OptionalEntry("space_farclip", sys.FarClip, 20000);
 
         //Archetype
-        if (sys.Preloads.Length > 0)
+        if (sys.Preloads is { Length: > 0 })
         {
             var section = ib.Section("Archetype");
             foreach (var p in sys.Preloads)

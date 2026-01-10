@@ -10,10 +10,9 @@ namespace LancerEdit.GameContent;
 
 public class LightSourceList
 {
-    public List<LightSource> Sources = new List<LightSource>();
-    private LightSource[] originals;
-    public BitArray512 Visible = new BitArray512();
-
+    public SortedDictionary<string, LightSource> Sources = new(StringComparer.OrdinalIgnoreCase);
+    private SortedDictionary<string, LightSource> originals;
+    private HashSet<string> hidden = new(StringComparer.OrdinalIgnoreCase);
     public event Action<Vector3> OnSelectionChanged;
 
     public LightSource Selected;
@@ -26,44 +25,49 @@ public class LightSourceList
         this.tab = tab;
     }
 
-    public bool HasLight(string nickname) =>
-        Sources.Any(x => x.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase));
+    public bool HasLight(string nickname) => Sources.ContainsKey(nickname);
 
-    void Sort() => Sources.Sort((x,y) => string.Compare(x.Nickname, y.Nickname, StringComparison.Ordinal));
 
     public void SetLights(IEnumerable<LightSource> lights)
     {
-        Sources = lights.Select(x => x.Clone()).ToList();
-        Visible.SetAllTrue();
-        Sort();
-        originals = Sources.Select(x => x.Clone()).ToArray();
+        Sources = new SortedDictionary<string, LightSource>(StringComparer.OrdinalIgnoreCase);
+        foreach (var l in lights)
+        {
+            Sources[l.Nickname] = l.Clone();
+        }
+        hidden = new(StringComparer.OrdinalIgnoreCase);
+        originals = new(StringComparer.OrdinalIgnoreCase);
+        foreach (var l in Sources)
+            originals[l.Key] = l.Value.Clone();
     }
 
     public void SaveAndApply(StarSystem system)
     {
         Dirty = false;
-        originals = Sources.Select(x => x.Clone()).ToArray();
-        system.LightSources = originals.ToList();
+        originals = new(StringComparer.OrdinalIgnoreCase);
+        foreach (var l in Sources)
+            originals[l.Key] = l.Value.Clone();
+        system.LightSources = originals.Values.ToList();
     }
 
     public void CheckDirty()
     {
         Dirty = false;
-        if (originals.Length != Sources.Count)
+        if (originals.Count != Sources.Count)
         {
             Dirty = true;
             return;
         }
-
-        for (int i = 0; i < Sources.Count; i++)
+        foreach (var s in Sources)
         {
-            if (Sources[i].Nickname != originals[i].Nickname ||
-                Sources[i].AttenuationCurveName != originals[i].AttenuationCurveName)
+            if (!originals.TryGetValue(s.Key, out var original))
             {
                 Dirty = true;
                 return;
             }
-            if (!Sources[i].Light.Equals(ref originals[i].Light))
+
+            if (s.Value.AttenuationCurveName != original.AttenuationCurveName ||
+                !s.Value.Light.Equals(ref original.Light))
             {
                 Dirty = true;
                 return;
@@ -75,15 +79,17 @@ public class LightSourceList
     {
         ImGui.BeginChild("##lightlist");
         var actions = new List<EditorAction>();
-        for(int i = 0; i < Sources.Count; i++)
+        int i = 0;
+        foreach(var light in Sources)
         {
-            var lt = Sources[i];
-            ImGui.PushID(i);
-            bool visible = Visible[i];
-            Controls.VisibleButton("##ltvis", ref visible);
-            Visible[i] = visible;
+            // Use light.Key to not display temporary editing value
+            var lt = light.Value;
+            ImGui.PushID(light.Key);
+            bool vis = !lt.Disabled;
+            Controls.VisibleButton("##ltvis", ref vis);
+            lt.Disabled = !vis;
             ImGui.SameLine();
-            if (ImGui.Selectable(lt.Nickname, Selected == lt, ImGuiSelectableFlags.AllowDoubleClick))
+            if (ImGui.Selectable(light.Key, Selected == lt, ImGuiSelectableFlags.AllowDoubleClick))
             {
                 Selected = lt;
                 if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
@@ -93,11 +99,10 @@ public class LightSourceList
             {
                 if (ImGui.MenuItem("Delete"))
                 {
-                    actions.Add(new SysLightRemove(lt, this));
+                    actions.Add(new DictionaryRemove<LightSource>("Light", Sources, lt, () => ref Selected));
                 }
                 ImGui.EndPopup();
             }
-
             ImGui.PopID();
         }
         foreach(var x in actions)

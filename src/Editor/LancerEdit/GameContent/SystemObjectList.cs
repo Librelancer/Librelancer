@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
@@ -59,48 +58,45 @@ public class SystemObjectList
         ScrollToSelection();
     }
 
-    public List<SystemObject> DeletedObjects = new();
-
     public void SaveAndApply(StarSystem system)
     {
-        foreach (var item in allObjects)
-        {
-            if (item.TryGetComponent<ObjectEditData>(out var dat))
-            {
-                dat.Apply();
-                if (dat.IsNewObject)
-                {
-                    system.Objects.Add(item.SystemObject);
-                }
-                item.RemoveComponent(dat);
-            }
-        }
-        foreach (var o in DeletedObjects)
-            system.Objects.Remove(o);
-        OriginalCount = allObjects.Length;
-        DeletedObjects = new List<SystemObject>();
-
-        CheckDirty();
-        Debug.Assert(!Dirty);
+        system.Objects = allObjects.Select(x => x.SystemObject.Clone()).ToList();
+        Dirty = false;
     }
 
-    public void CheckDirty()
+    bool ObjectsChanged(SystemObject og, SystemObject up) =>
+        og.Nickname != up.Nickname ||
+        og.Position != up.Position ||
+        MathHelper.QuatError(og.Rotation, up.Rotation) > 0.0001f ||
+        og.IdsName != up.IdsName ||
+        og.IdsInfo != up.IdsInfo ||
+        og.Archetype != up.Archetype ||
+        og.Star != up.Star ||
+        og.Loadout != up.Loadout ||
+        og.Visit != up.Visit ||
+        og.Reputation != up.Reputation ||
+        og.Base != up.Base ||
+        og.Dock != up.Dock ||
+        og.Parent != up.Parent ||
+        og.Comment != up.Comment;
+
+    public void CheckDirty(List<SystemObject> originalSystem)
     {
         Dirty = false;
-        if (allObjects.Length != OriginalCount ||
-            DeletedObjects.Count > 0)
+        if (allObjects.Length != originalSystem.Count)
         {
             Dirty = true;
             return;
         }
-        foreach (var o in allObjects)
+
+        for (int i = 0; i < allObjects.Length; i++)
         {
-            if (o.TryGetComponent<ObjectEditData>(out var editData)) {
-                if (editData.IsNewObject || editData.CheckDirty())
-                {
-                    Dirty = true;
-                    break;
-                }
+            var og = originalSystem[i];
+            var up = allObjects[i].SystemObject;
+            if (ObjectsChanged(og, up))
+            {
+                Dirty = true;
+                return;
             }
         }
     }

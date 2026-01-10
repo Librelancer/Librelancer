@@ -93,7 +93,7 @@ public sealed partial class MissionScriptEditorTab
         if (!Controls.BeginEditorTable("formation"))
             return;
 
-        InputItemNickname("Nickname", undoBuffer, missionIni.Formations, selectedFormation);
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.Formations, selectedFormation);
 
         Controls.TableSeparatorText("Absolute Position");
         Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedFormation.Position);
@@ -180,7 +180,7 @@ public sealed partial class MissionScriptEditorTab
         if (!Controls.BeginEditorTable("npc"))
             return;
 
-        InputItemNickname("Nickname", undoBuffer, missionIni.Npcs, selectedNpc);
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.Npcs, selectedNpc);
         Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedNpc.NpcShipArch);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             missionIni.NpcShips.ContainsKey(selectedNpc.NpcShipArch)
@@ -224,7 +224,7 @@ public sealed partial class MissionScriptEditorTab
         if (!Controls.BeginEditorTable("shiparch"))
             return;
 
-        InputItemNickname("Nickname", undoBuffer, missionIni.NpcShips, selectedArch);
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.NpcShips, selectedArch);
         gameData.Ships.DrawUndo("Ship", undoBuffer, () => ref selectedArch.Ship);
         Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedArch.Loadout, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>

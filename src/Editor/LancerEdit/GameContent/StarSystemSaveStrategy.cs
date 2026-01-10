@@ -81,13 +81,15 @@ public class StarSystemSaveStrategy : ISaveStrategy
 
     public void Save()
     {
-        bool writeUniverse = tab.SystemData.IsUniverseDirty();
-        tab.SystemData.Apply();
-        var paths = WriteShortestPaths();
+        bool writeUniverse = tab.IsUniverseDirty();
 
         tab.ObjectsList.SaveAndApply(tab.CurrentSystem);
         tab.LightsList.SaveAndApply(tab.CurrentSystem);
         tab.ZoneList.SaveAndApply(tab.CurrentSystem, tab.Data.GameData);
+
+        tab.CurrentSystem.CopyTo(tab.OriginalSystem);
+        tab.ResetOriginalObjects();
+        var paths = WriteShortestPaths();
 
         var resolved = tab.Data.GameData.VFS.GetBackingFileName(tab.Data.UniverseVfsFolder + tab.CurrentSystem.SourceFile);
         IniWriter.WriteIniFile(resolved, IniSerializer.SerializeStarSystem(tab.CurrentSystem));
@@ -103,7 +105,7 @@ public class StarSystemSaveStrategy : ISaveStrategy
     }
 
     public bool ShouldSave =>
-        tab.ObjectsList.Dirty || tab.SystemData.IsDirty() || tab.ZoneList.Dirty || tab.LightsList.Dirty;
+        tab.ObjectsList.Dirty || tab.IsSystemDirty || tab.ZoneList.Dirty || tab.LightsList.Dirty;
 
     public void DrawMenuOptions()
     {

@@ -17,7 +17,7 @@ namespace LibreLancer.Data.GameData.World
     // Ellipsoid: XYZ = size
     // Cylinder: X = radius, Y = height
     // Ring: X = outer radius, Y = height, Z = inner radius
-	public class Zone
+	public class Zone : NicknameItem
 	{
         //Used for fast comparisons
         struct ZoneData
@@ -237,7 +237,6 @@ namespace LibreLancer.Data.GameData.World
             return a.AsSpan().SequenceEqual(b);
         }
 
-		public string Nickname;
         public ref int IdsName => ref data.IdsName;
         public ref int IdsInfo => ref data.IdsInfo;
 

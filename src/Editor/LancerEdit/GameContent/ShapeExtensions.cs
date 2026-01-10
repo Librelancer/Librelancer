@@ -9,6 +9,8 @@ public static class ShapeExtensions
 {
     public static void ChangeShape(this Zone zone, ShapeKind target, SystemEditorTab tab)
     {
+        if (target == zone.Shape)
+            return;
         Vector3 newSize = zone.Size;
         if (target == ShapeKind.Cylinder)
         {

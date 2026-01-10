@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.ContentEdit;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.World;
 
@@ -18,21 +19,21 @@ public class GameObjectFilters : ObjectFiltering<GameObject>
     }
 
     static IEnumerable<GameObject> FilterBase(string text, IEnumerable<GameObject> source)
-        => source.Where(x => NicknameContains(x.Content().Base, text));
+        => source.Where(x => NicknameContains(x.SystemObject.Base, text));
 
 
     static IEnumerable<GameObject> FilterArchetype(string text, IEnumerable<GameObject> source)
-        => source.Where(x => NicknameContains(x.Content().Archetype, text));
+        => source.Where(x => NicknameContains(x.SystemObject.Archetype, text));
 
     static IEnumerable<GameObject> FilterLoadout(string text, IEnumerable<GameObject> source) =>
-        source.Where(x => NicknameContains(x.Content().Loadout, text));
+        source.Where(x => NicknameContains(x.SystemObject.Loadout, text));
 
     static IEnumerable<GameObject> FilterReputation(string text, IEnumerable<GameObject> source) =>
-        source.Where(x => NicknameContains(x.Content().Reputation, text));
+        source.Where(x => NicknameContains(x.SystemObject.Reputation, text));
 
     static IEnumerable<GameObject> FilterGoto(string text, IEnumerable<GameObject> source) =>
-        source.Where(x => x.Content().Dock?.Kind == DockKinds.Jump &&
-                          (x.Content().Dock?.Target?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false));
+        source.Where(x => x.SystemObject.Dock?.Kind == DockKinds.Jump &&
+                          (x.SystemObject.Dock?.Target?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false));
 
     protected override IEnumerable<GameObject> DefaultFilter(string text, IEnumerable<GameObject> source)
     {

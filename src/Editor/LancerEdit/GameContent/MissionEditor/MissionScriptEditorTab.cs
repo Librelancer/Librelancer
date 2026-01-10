@@ -665,47 +665,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         base.Dispose();
     }
 
-    static void InputItemNickname<T>(string label,
-        EditorUndoBuffer buffer,
-        SortedDictionary<string, T> list,
-        T value,
-        float width = 0.0f) where T : NicknameItem
-    {
-        ImGui.PushID(label);
-        Controls.EditControlSetup(label, width);
-        if (ImGuiExt.InputTextLogged("##input",
-                ref value.Nickname,
-                250,
-                OnChanged,
-                true))
-        {
-            if (string.IsNullOrEmpty(value.Nickname))
-            {
-                ImGui.TextColored(Color4.Red, "Nickname cannot be empty");
-            }
-            else if (list.TryGetValue(value.Nickname, out var item) &&
-                     item != value)
-            {
-                ImGui.TextColored(Color4.Red, $"Item '{value.Nickname}' already exists");
-            }
-        }
-
-        void OnChanged(string old, string updated)
-        {
-            if (string.IsNullOrWhiteSpace(updated) ||
-                list.TryGetValue(updated, out var item) &&
-                item != value)
-            {
-                value.Nickname = old; // Unable to set. Reset
-            }
-            else
-            {
-                buffer.Commit(new ItemRename<T>(old, updated, list, value));
-            }
-        }
-
-        ImGui.PopID();
-    }
 
     static bool SidebarHeader(string id)
     {

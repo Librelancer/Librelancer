@@ -37,7 +37,7 @@ public class EditMap2D
  // Creation tools (patrols, zones)
     public Map2DCreationTools CreationTools { get; } = new();
 
-    public void Draw(SystemEditData system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, RenderContext renderContext)
+    public void Draw(StarSystem system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, RenderContext renderContext)
     {
         var renderWidth = Math.Max(120, ImGui.GetWindowWidth() - MarginW);
         var renderHeight = Math.Max(120, ImGui.GetWindowHeight() - MarginH);
@@ -177,10 +177,7 @@ public class EditMap2D
                 {
                     ImGui.Text(obj.Nickname);
 
-                    var ed = obj.GetEditData(false);
-                    var arch = (ed == null) ? obj.SystemObject.Archetype : ed.Archetype;
-                    var star = (ed == null) ? obj.SystemObject.Star : ed.Star;
-                    if (star != null)
+                    if (obj.SystemObject.Star != null)
                     {
                         ImGui.InvisibleButton("##dummy", new Vector2(80) * ImGuiHelper.Scale);
                         var min = ImGui.GetItemRectMin();
@@ -192,12 +189,12 @@ public class EditMap2D
                             dl.AddCallback((_, cmd) =>
                             {
                                 renderContext.PushScissor(ImGuiHelper.GetClipRect(cmd), false);
-                                tab.SunPreview.Render(star,  (Color4)(VertexDiffuse)ImGui.GetColorU32(ImGuiCol.FrameBg), renderContext, r);
+                                tab.SunPreview.Render(obj.SystemObject.Star,  (Color4)(VertexDiffuse)ImGui.GetColorU32(ImGuiCol.FrameBg), renderContext, r);
                                 renderContext.PopScissor();
                             }, IntPtr.Zero);
                         }
                     }
-                    else if (arch != null)
+                    else if (obj.SystemObject.Archetype != null)
                     {
                         var img = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
                         ImGui.Image(img, new Vector2(80) * ImGuiHelper.Scale, new Vector2(0, 1),
@@ -215,7 +212,7 @@ public class EditMap2D
         }
 
         var windowPos = ImGui.GetWindowPos();
-        foreach (var lt in tab.LightsList.Sources)
+        foreach (var lt in tab.LightsList.Sources.Values)
         {
             ImGui.SetCursorPos(WorldToWindow(lt.Light.Position) - new Vector2(buttonSize * 0.5f));
             var id = $"##{lt.Nickname}";

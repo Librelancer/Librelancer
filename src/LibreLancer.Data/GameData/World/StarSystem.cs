@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace LibreLancer.Data.GameData.World
@@ -59,6 +60,65 @@ namespace LibreLancer.Data.GameData.World
         public Dictionary<StarSystem, List<StarSystem>> ShortestPathsLegal = new();
         public Dictionary<StarSystem, List<StarSystem>> ShortestPathsIllegal = new();
         public Dictionary<StarSystem, List<StarSystem>> ShortestPathsAny = new();
+
+        public void CopyTo(StarSystem other)
+        {
+            other.Nickname = Nickname;
+            other.IdsName = IdsName;
+            other.IdsInfo = IdsInfo;
+            other.UniversePosition = UniversePosition;
+            other.MsgIdPrefix = MsgIdPrefix;
+            other.Visit = Visit;
+            other.SourceFile = SourceFile;
+            other.LocalFaction = LocalFaction;
+            other.BackgroundColor = BackgroundColor;
+            other.StarsBasic = StarsBasic;
+            other.StarsComplex = StarsComplex;
+            other.StarsNebula = StarsNebula;
+            other.AmbientColor = AmbientColor;
+            other.MusicSpace = MusicSpace;
+            other.MusicDanger = MusicDanger;
+            other.MusicBattle = MusicBattle;
+            other.FarClip = FarClip;
+            other.NavMapScale = NavMapScale;
+            other.Spacedust = Spacedust;
+            other.SpacedustMaxParticles = SpacedustMaxParticles;
+            foreach (var z in Zones)
+            {
+                var cloned = z.Clone();
+                other.Zones.Add(cloned);
+                other.ZoneDict[cloned.Nickname] = cloned;
+            }
+            foreach (var a in AsteroidFields)
+            {
+                other.AsteroidFields.Add(a.Clone(other.ZoneDict));
+            }
+            foreach (var n in Nebulae)
+            {
+                other.Nebulae.Add(n.Clone(other.ZoneDict));
+            }
+            foreach (var o in Objects)
+            {
+                other.Objects.Add(o.Clone());
+            }
+            foreach (var lt in LightSources)
+            {
+                other.LightSources.Add(lt.Clone());
+            }
+            other.TexturePanelsFiles = TexturePanelsFiles.ToList();
+            foreach (var rf in ResourceFiles)
+                other.ResourceFiles.Add(rf);
+            if (Preloads is { Length: > 0 })
+                other.Preloads = Preloads.ToArray();
+        }
+
+        public StarSystem Clone()
+        {
+            var s = new StarSystem();
+            CopyTo(s);
+            return s;
+        }
+
 
         public StarSystem ()
 		{

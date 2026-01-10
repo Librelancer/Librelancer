@@ -256,7 +256,7 @@ public class AsteroidFieldEdit
             ImGui.TableNextColumn();
             ImGui.TextWrapped("Ambient = (System Ambient + Ambient Increase) * Ambient Color");
             ImGui.Text("Final Ambient: ");
-            ImGui.ColorButton("##famb", (new Color4(parent.SystemData.Ambient, 1) + Field.AmbientIncrease) * Field.AmbientColor,
+            ImGui.ColorButton("##famb", (new Color4(parent.CurrentSystem.AmbientColor, 1) + Field.AmbientIncrease) * Field.AmbientColor,
                 ImGuiColorEditFlags.NoAlpha);
             ImGui.EndTable();
         }
@@ -315,7 +315,7 @@ public class AsteroidFieldEdit
         ImGuiHelper.AnimatingElement();
         var vpSize = ImGui.GetColumnWidth() - 15 * ImGuiHelper.Scale;
         //Set ambient color
-        renderer.SystemLighting.Ambient = (new Color4(parent.SystemData.Ambient, 1) + Field.AmbientIncrease)* Field.AmbientColor;
+        renderer.SystemLighting.Ambient = (new Color4(parent.CurrentSystem.AmbientColor, 1) + Field.AmbientIncrease)* Field.AmbientColor;
         viewport.Draw((int)vpSize, (int)(fl_h1 - 15 * ImGuiHelper.Scale));
         ImGui.EndChild();
         ImGui.BeginChild("2", new Vector2(-1, fl_h2));
