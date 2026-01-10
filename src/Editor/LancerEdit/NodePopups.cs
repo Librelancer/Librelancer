@@ -62,13 +62,13 @@ public struct NodePopups
 
         // Hidden ID
         ImGuiExt.ComboButton($"##{title}", values[selectedValue]);
-
+        var id = ImGui.GetItemID();
         bool activated = ImGui.IsItemActivated();
 
         combos[comboIndex++] = new ComboData(
             activated,
             set,
-            title,
+            $"{title}##{id}",
             values
         );
     }
@@ -88,12 +88,14 @@ public struct NodePopups
         }
 
         bool clicked = ImGuiExt.ComboButton($"##{title}", display);
+        var id = ImGui.GetItemID();
         bool activated = ImGui.IsItemActivated();
+
 
         strCombos[strComboIndex++] = new StringComboData(
             activated,  // NOT clicked/open
             updated => undoBuffer.Set(title, accessor, updated),
-            title,
+            $"{title}##{id}",
             values,
             allowEmpty
         );

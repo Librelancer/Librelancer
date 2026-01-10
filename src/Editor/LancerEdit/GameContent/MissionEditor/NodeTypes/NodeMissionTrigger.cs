@@ -129,9 +129,11 @@ public class NodeMissionTrigger : Node
                 bool c = StartChild(e, out var remove);
                 if (c)
                 {
+                    ImGui.PushID(i);
                     ImGui.Dummy(new Vector2(1, 4)); //pad
                     e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
                     ImGui.Dummy(new Vector2(1, 4)); //pad
+                    ImGui.PopID();
                 }
 
                 EndChild(c);
@@ -187,9 +189,11 @@ public class NodeMissionTrigger : Node
                 var c = StartChild(e, out var remove);
                 if (c)
                 {
+                    ImGui.PushID(i);
                     ImGui.Dummy(new Vector2(1, 4) ); //pad
                     e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
                     ImGui.Dummy(new Vector2(1, 4)); //pad
+                    ImGui.PopID();
                 }
                 EndChild(c);
                 if (remove)

@@ -464,7 +464,7 @@ public static class Controls
         {
             if (ImGui.Button($"Set {label}"))
             {
-                value = Vector3.Zero;
+                buffer.Set(label, accessor, Vector3.Zero);
             }
         }
         else
@@ -477,9 +477,7 @@ public static class Controls
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (!value.Present) return;
 
-            var v = value.Value;
             InputFloat3Undo(label, buffer, () => ref accessor().Value);
-            value = v;
         }
     }
 
@@ -505,9 +503,7 @@ public static class Controls
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (!value.Present) return;
 
-            var v = value.Value;
             InputFloatUndo(label, buffer, () => ref accessor().Value);
-            value = v;
         }
     }
 
@@ -533,9 +529,7 @@ public static class Controls
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (!value.Present) return;
 
-            var v = value.Value;
             InputQuaternionUndo(label, buffer, () => ref accessor().Value);
-            value = v;
         }
     }
 
