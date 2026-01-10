@@ -1610,7 +1610,7 @@ public class SystemEditorTab : GameContentTab
             {
                 var actions = originalObjTransforms.Select(x => (EditorAction)new
                     ObjectSetTransform(x.Object, ObjectsList, x.Transform, x.Object.LocalTransform)).ToArray();
-                UndoBuffer.Push(EditorAggregateAction.Create(actions));
+                UndoBuffer.Commit(EditorAggregateAction.Create(actions)); // Need commit to set SystemObject fields
                 manipulatingObjects = false;
                 originalObjTransforms = new();
             }
