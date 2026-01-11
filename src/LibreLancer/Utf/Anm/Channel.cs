@@ -201,6 +201,7 @@ namespace LibreLancer.Utf.Anm
         {
             get
             {
+                if (FrameCount == 0) return 0;
                 if (Interval < 0) return GetTime(FrameCount - 1);
                 return Math.Max(Interval * (FrameCount - 1), 0);
             }
