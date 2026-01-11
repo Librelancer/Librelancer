@@ -759,7 +759,7 @@ public class SystemEditorTab : GameContentTab
                 Data));
         }
         //Star
-        if (Controls.EditButtonRow("Start", sel.SystemObject.Star?.Nickname ?? "(none)"))
+        if (Controls.EditButtonRow("Star", sel.SystemObject.Star?.Nickname ?? "(none)"))
         {
             Popups.OpenPopup(new StarSelection(
                 x => UndoBuffer.Commit(new ObjectSetArchetypeLoadoutStar(
