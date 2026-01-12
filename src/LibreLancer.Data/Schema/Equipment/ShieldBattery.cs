@@ -4,11 +4,10 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
-{
-    [ParsedSection]
-    public partial class ShieldBattery : AbstractEquipment
-    {
+namespace LibreLancer.Data.Schema.Equipment;
 
-    }
+[ParsedSection]
+public partial class ShieldBattery : AbstractEquipment
+{
+
 }

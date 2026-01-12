@@ -4,21 +4,19 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+public abstract class UniverseElement
 {
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("strid_name")]
+    public int IdsName;
+    [Entry("name")]
+    public string? Name;
 
-	public abstract class UniverseElement
-	{
-        [Entry("nickname")]
-        public string Nickname;
-        [Entry("strid_name")]
-        public int IdsName;
-        [Entry("name")]
-        public string Name;
-
-		public override string ToString()
-		{
-			return Nickname;
-		}
-	}
+    public override string? ToString()
+    {
+        return Nickname;
+    }
 }

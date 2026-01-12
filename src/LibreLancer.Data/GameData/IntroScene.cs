@@ -4,13 +4,11 @@
 
 using System.Collections.Generic;
 
-namespace LibreLancer.Data.GameData
-{
-	public class IntroScene
-	{
-		public string ThnName;
-		public List<ResolvedThn> Scripts;
-		public string Music;
-	}
-}
+namespace LibreLancer.Data.GameData;
 
+public class IntroScene
+{
+    public string? ThnName;
+    public List<ResolvedThn> Scripts = [];
+    public string? Music;
+}

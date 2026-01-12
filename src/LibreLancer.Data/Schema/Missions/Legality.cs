@@ -1,8 +1,7 @@
-namespace LibreLancer.Data.Schema.Missions
+namespace LibreLancer.Data.Schema.Missions;
+
+public enum Legality
 {
-    public enum Legality
-    {
-        Lawful,
-        Unlawful
-    }
+    Lawful,
+    Unlawful
 }

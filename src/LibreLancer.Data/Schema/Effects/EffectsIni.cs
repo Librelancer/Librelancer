@@ -8,24 +8,23 @@ using System.Linq;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Data.Schema.Effects
-{
-    [ParsedIni]
-    public partial class EffectsIni
-    {
-        [Section("viseffect")]
-        public List<VisEffect> VisEffects = new List<VisEffect>();
-        [Section("beamspear")]
-        public List<BeamSpear> BeamSpears = new List<BeamSpear>();
-        [Section("beambolt")]
-        public List<BeamBolt> BeamBolts = new List<BeamBolt>();
-        [Section("effect")]
-        public List<Effect> Effects = new List<Effect>();
-        [Section("effecttype")]
-        public List<EffectType> EffectTypes = new List<EffectType>();
-        [Section("effectlod")]
-        public List<EffectLOD> EffectLODs = new List<EffectLOD>();
+namespace LibreLancer.Data.Schema.Effects;
 
-        public void AddIni(string ini, FileSystem vfs, IniStringPool stringPool = null) => ParseIni(ini, vfs, stringPool);
-	}
+[ParsedIni]
+public partial class EffectsIni
+{
+    [Section("viseffect")]
+    public List<VisEffect> VisEffects = [];
+    [Section("beamspear")]
+    public List<BeamSpear> BeamSpears = [];
+    [Section("beambolt")]
+    public List<BeamBolt> BeamBolts = [];
+    [Section("effect")]
+    public List<Effect> Effects = [];
+    [Section("effecttype")]
+    public List<EffectType> EffectTypes = [];
+    [Section("effectlod")]
+    public List<EffectLOD> EffectLODs = [];
+
+    public void AddIni(string ini, FileSystem vfs, IniStringPool? stringPool = null) => ParseIni(ini, vfs, stringPool);
 }

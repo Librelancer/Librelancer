@@ -5,22 +5,21 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.NewCharDB
+namespace LibreLancer.Data.Schema.NewCharDB;
+
+[ParsedSection]
+public partial class NewCharPackage
 {
-    [ParsedSection]
-    public partial class NewCharPackage
-    {
-        [Entry("nickname")]
-        public string Nickname;
-        [Entry("strid_name")]
-        public int StridName;
-        [Entry("strid_desc")]
-        public int StridDesc;
-        [Entry("ship")]
-        public string Ship;
-        [Entry("loadout")]
-        public string Loadout;
-        [Entry("money")]
-        public long Money;
-    }
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("strid_name")]
+    public int StridName;
+    [Entry("strid_desc")]
+    public int StridDesc;
+    [Entry("ship")]
+    public string? Ship;
+    [Entry("loadout")]
+    public string? Loadout;
+    [Entry("money")]
+    public long Money;
 }

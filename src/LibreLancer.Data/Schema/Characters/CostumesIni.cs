@@ -9,26 +9,28 @@ using System.Text;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Data.Schema.Characters
+namespace LibreLancer.Data.Schema.Characters;
+
+[ParsedIni]
+public partial class CostumesIni
 {
-    [ParsedIni]
-	public partial class CostumesIni
+    [Section("costume")] public List<Costume> Costumes = [];
+
+    public CostumesIni(string path, FileSystem vfs, IniStringPool? stringPool = null)
     {
-        [Section("costume")]
-        public List<Costume> Costumes = new List<Costume>();
+        ParseIni(path!, vfs, stringPool);
+    }
 
-		public CostumesIni(string path, FileSystem vfs, IniStringPool stringPool = null)
+    public Costume? FindCostume(string nickname)
+    {
+        var candidates = Costumes
+            .Where(c => c.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase)).ToArray();
+        var count = candidates.Count<Costume>();
+        return count switch
         {
-            ParseIni(path, vfs, stringPool);
-		}
-
-		public Costume FindCostume(string nickname)
-		{
-			IEnumerable<Costume> candidates = from Costume c in Costumes where c.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase) select c;
-			int count = candidates.Count<Costume>();
-			if (count == 1) return candidates.First<Costume>();
-			else if (count == 0) return null;
-			else throw new Exception(count + " Costumes with nickname " + nickname);
-		}
-	}
+            1 => candidates.First<Costume>(),
+            0 => null,
+            _ => throw new Exception(count + " Costumes with nickname " + nickname)
+        };
+    }
 }

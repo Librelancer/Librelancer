@@ -4,12 +4,10 @@
 
 using System;
 
-namespace LibreLancer.Data.Schema.Universe
-{
-	public enum LightType
-	{
-		Point,
-		Directional
-	}
-}
+namespace LibreLancer.Data.Schema.Universe;
 
+public enum LightType
+{
+    Point,
+    Directional
+}

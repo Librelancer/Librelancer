@@ -4,16 +4,15 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+[ParsedSection]
+public partial class NebulaBackgroundLightning
 {
-    [ParsedSection]
-    public partial class NebulaBackgroundLightning
-    {
-        [Entry("duration")]
-        public float Duration;
-        [Entry("gap")]
-        public float Gap;
-        [Entry("color")]
-        public Color4 Color;
-    }
+    [Entry("duration")]
+    public float Duration;
+    [Entry("gap")]
+    public float Gap;
+    [Entry("color")]
+    public Color4 Color;
 }

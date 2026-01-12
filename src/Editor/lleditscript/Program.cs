@@ -172,7 +172,7 @@ internal class Program
         return 1;
     }
 
-    private static string ReadScript(string? filePath)
+    private static string ReadScript(string filePath)
     {
         var scriptText = File.ReadAllText(filePath);
         if (scriptText.StartsWith("#!"))
@@ -228,7 +228,7 @@ internal class Program
             return 0;
         }
 
-        var filePath = args[argStart];
+        var filePath = args[argStart]!;
         if (modulePath)
         {
             filePath = SearchFile(
@@ -366,7 +366,7 @@ internal class Program
         return 0;
     }
 
-    private static bool IsPEFile(string? path)
+    private static bool IsPEFile(string path)
     {
         using var stream = File.OpenRead(path);
         Span<byte> mz = stackalloc byte[2];

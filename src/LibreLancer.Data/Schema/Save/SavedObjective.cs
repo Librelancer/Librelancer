@@ -17,10 +17,10 @@ public partial class SavedObjective
     public int IdsOne;
     public int IdsTwo;
     public Vector3 ObjectivePosition;
-    public string StringParam;
+    public string? StringParam;
 
     [EntryHandler("type", MinComponents = 2)]
-    void HandleType(Entry e)
+    private void HandleType(Entry e)
     {
         Type = e[0].ToInt32();
         if (Type == 3) {

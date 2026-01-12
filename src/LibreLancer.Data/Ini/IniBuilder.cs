@@ -5,7 +5,7 @@ namespace LibreLancer.Data.Ini;
 
 public class IniBuilder
 {
-    public List<Section> Sections = new List<Section>();
+    public List<Section> Sections = [];
 
     public IniSectionBuilder Section(string name)
     {
@@ -17,8 +17,8 @@ public class IniBuilder
 
     public class IniSectionBuilder
     {
-        public Section Section;
-        public List<Section> Parent;
+        public Section Section = null!;
+        public List<Section> Parent = null!;
 
         public void RemoveIfEmpty()
         {
@@ -26,7 +26,7 @@ public class IniBuilder
                 Parent.Remove(Section);
         }
 
-        public IniSectionBuilder OptionalEntry(string name, string value)
+        public IniSectionBuilder OptionalEntry(string name, string? value)
         {
             if (!string.IsNullOrWhiteSpace(value))
             {
@@ -38,10 +38,14 @@ public class IniBuilder
             return this;
         }
 
-        public IniSectionBuilder OptionalEntry(string name, string[] value)
+        public IniSectionBuilder OptionalEntry(string name, string[]? value)
         {
-            if (value != null && value.Length > 0)
-                Entry(name, value);
+            if (value is not { Length: > 0 })
+            {
+                return this;
+            }
+
+            Entry(name, value);
             return this;
         }
 
@@ -94,12 +98,7 @@ public class IniBuilder
             return this;
         }
 
-        public IniSectionBuilder OptionalEntry(string name, HashValue value)
-        {
-            if (value.Hash == 0 && value.String == null)
-                return this;
-            return Entry(name, value);
-        }
+        public IniSectionBuilder OptionalEntry(string name, HashValue value) => value is { Hash: 0, String: null } ? this : Entry(name, value);
 
         public IniSectionBuilder Entry(string name, Vector4 value)
             => Entry(name, value.X, value.Y, value.Z, value.W);
@@ -139,13 +138,15 @@ public class IniBuilder
             return this;
         }
 
-        public IniSectionBuilder Entry(string name, params ValueBase[] values)
+        public IniSectionBuilder Entry(string name, params ValueBase[]? values)
         {
             var e = new Entry(Section, name);
             if (values != null)
             {
                 foreach (var v in values)
+                {
                     e.Add(v);
+                }
             }
 
             Section.Add(e);

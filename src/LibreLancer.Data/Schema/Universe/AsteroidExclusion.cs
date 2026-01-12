@@ -7,7 +7,7 @@ public partial class AsteroidExclusion
 {
     [Entry("exclude")]
     [Entry("exclusion")]
-    public string ZoneName;
+    public string? ZoneName;
     [Entry("exclude_billboards")]
     public bool ExcludeBillboards;
     [Entry("exclude_dynamic_asteroids")]

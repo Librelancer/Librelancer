@@ -4,20 +4,19 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+[ParsedSection]
+public partial class NebulaDynamicLightning
 {
-    [ParsedSection]
-    public partial class NebulaDynamicLightning
-    {
-        [Entry("gap")]
-        public float Gap;
-        [Entry("duration")]
-        public float Duration;
-        [Entry("color")]
-        public Color4 Color;
-        [Entry("ambient_intensity")]
-        public float AmbientIntensity;
-        [Entry("intensity_increase")]
-        public float IntensityIncrease;
-    }
+    [Entry("gap")]
+    public float Gap;
+    [Entry("duration")]
+    public float Duration;
+    [Entry("color")]
+    public Color4 Color;
+    [Entry("ambient_intensity")]
+    public float AmbientIntensity;
+    [Entry("intensity_increase")]
+    public float IntensityIncrease;
 }

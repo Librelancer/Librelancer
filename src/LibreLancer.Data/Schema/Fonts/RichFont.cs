@@ -2,12 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-namespace LibreLancer.Data.Schema.Fonts
+namespace LibreLancer.Data.Schema.Fonts;
+
+public class RichFont
 {
-	public class RichFont
-	{
-		public int Index;
-		public string Name;
-		public int Size;
-	}
+    public int Index;
+    public string? Name;
+    public int Size;
 }

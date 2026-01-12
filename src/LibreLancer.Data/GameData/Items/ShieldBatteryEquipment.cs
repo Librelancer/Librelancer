@@ -4,5 +4,5 @@ namespace LibreLancer.Data.GameData.Items;
 
 public class ShieldBatteryEquipment : Equipment
 {
-    public ShieldBattery Def;
+    public required ShieldBattery Def;
 }

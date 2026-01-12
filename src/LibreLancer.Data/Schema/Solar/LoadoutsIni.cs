@@ -7,17 +7,16 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Solar
-{
-    [ParsedIni]
-	public partial class LoadoutsIni
-	{
-        [Section("loadout")]
-        public List<Loadout> Loadouts = new List<Loadout>();
+namespace LibreLancer.Data.Schema.Solar;
 
-		public void AddLoadoutsIni(string path, FreelancerData gdata, IniStringPool stringPool = null)
-        {
-            ParseIni(path, gdata.VFS, stringPool);
-        }
+[ParsedIni]
+public partial class LoadoutsIni
+{
+    [Section("loadout")]
+    public List<Loadout> Loadouts = [];
+
+    public void AddLoadoutsIni(string path, FreelancerData gdata, IniStringPool? stringPool = null)
+    {
+        ParseIni(path, gdata.VFS, stringPool);
     }
 }

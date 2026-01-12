@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 namespace LibreLancer.Data.IO;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-struct Zip32EndOfCentralDirectory
+internal struct Zip32EndOfCentralDirectory
 {
     //Skip signature
     public ushort DiskNumber;
@@ -16,7 +16,7 @@ struct Zip32EndOfCentralDirectory
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-struct ZipCentralDirectory
+internal struct ZipCentralDirectory
 {
     public uint Signature;
     public ushort Version;
@@ -37,7 +37,7 @@ struct ZipCentralDirectory
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
-struct ZipLocalFileHeader
+internal struct ZipLocalFileHeader
 {
     public uint Signature;
     public ushort VersionNeeded;

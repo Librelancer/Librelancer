@@ -3,11 +3,10 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LibreLancer.Data.Schema.Missions
+namespace LibreLancer.Data.Schema.Missions;
+
+public enum TriggerInitState
 {
-    public enum TriggerInitState
-    {
-        INACTIVE,
-        ACTIVE
-    }
+    INACTIVE,
+    ACTIVE
 }

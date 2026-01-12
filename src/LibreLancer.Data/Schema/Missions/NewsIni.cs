@@ -7,29 +7,28 @@ using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Data.Schema.Missions
-{
-    [ParsedIni]
-    public partial class NewsIni
-    {
-        [Section("NewsItem")] public List<NewsItem> NewsItems = new List<NewsItem>();
-        public void AddNewsIni(string path, FileSystem vfs, IniStringPool stringPool = null)
-        {
-            ParseIni(path, vfs, stringPool);
-        }
-    }
+namespace LibreLancer.Data.Schema.Missions;
 
-    [ParsedSection]
-    public partial class NewsItem
+[ParsedIni]
+public partial class NewsIni
+{
+    [Section("NewsItem")] public List<NewsItem> NewsItems = [];
+    public void AddNewsIni(string path, FileSystem vfs, IniStringPool? stringPool = null)
     {
-        [Entry("rank")] public string[] Rank;
-        [Entry("icon")] public string Icon;
-        [Entry("logo")] public string Logo;
-        [Entry("category")] public int Category; //Unused entirely
-        [Entry("headline")] public int Headline;
-        [Entry("text")] public int Text;
-        [Entry("base", Multiline = true)] public List<string> Base = new List<string>();
-        [Entry("autoselect", Presence = true)] public bool Autoselect;
-        [Entry("audio", Presence = true)] public string Audio; //Unused in vanilla
+        ParseIni(path, vfs, stringPool);
     }
+}
+
+[ParsedSection]
+public partial class NewsItem
+{
+    [Entry("rank")] public string[]? Rank;
+    [Entry("icon")] public string? Icon;
+    [Entry("logo")] public string? Logo;
+    [Entry("category")] public int Category; //Unused entirely
+    [Entry("headline")] public int Headline;
+    [Entry("text")] public int Text;
+    [Entry("base", Multiline = true)] public List<string?> Base = [];
+    [Entry("autoselect", Presence = true)] public bool Autoselect;
+    [Entry("audio", Presence = true)] public string? Audio; //Unused in vanilla
 }

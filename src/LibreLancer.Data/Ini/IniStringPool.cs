@@ -20,7 +20,7 @@ public sealed class IniStringPool
         }
     }
 
-    static string Factory(string key) => key;
+    private static string Factory(string key) => key;
 
     public string FromSpan(ReadOnlySpan<char> instance)
     {

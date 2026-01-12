@@ -2,6 +2,6 @@ namespace LibreLancer.Data.GameData.Items;
 
 public class MissileLauncherEquipment : Equipment
 {
-    public Data.Schema.Equipment.Gun Def;
-    public MissileEquip Munition;
+    public required Data.Schema.Equipment.Gun Def;
+    public required MissileEquip Munition;
 }

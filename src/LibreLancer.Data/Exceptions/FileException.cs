@@ -5,25 +5,16 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace LibreLancer
+namespace LibreLancer;
+
+[Serializable]
+public abstract class FileException : Exception
 {
-    [Serializable]
-    public abstract class FileException : Exception
-    {
-        protected FileException() : base("???") { }
+    protected FileException() : base("???") { }
 
-        protected FileException(string path) : base(path) { }
+    protected FileException(string? path) : base(path) { }
 
-        protected FileException(string message, Exception innerException) : base(message, innerException) { }
+    protected FileException(string message, Exception innerException) : base(message, innerException) { }
 
-        protected FileException(SerializationInfo serializationInfo, StreamingContext streamingContext) : base(serializationInfo, streamingContext) { }
-
-        public override string Message
-        {
-            get
-            {
-                return "\r\nThe File " + base.Message + " could not be read.";
-            }
-        }
-    }
+    public override string Message => "\r\nThe File " + base.Message + " could not be read.";
 }

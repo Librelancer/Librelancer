@@ -2,20 +2,19 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-namespace LibreLancer.Data.Ini
+namespace LibreLancer.Data.Ini;
+
+public interface IValue
 {
-	public interface IValue
-	{
-        bool TryToBoolean(out bool result);
-        bool TryToInt32(out int result);
-        bool TryToInt64(out long result);
-        bool TryToSingle(out float result);
+    bool TryToBoolean(out bool result);
+    bool TryToInt32(out int result);
+    bool TryToInt64(out long result);
+    bool TryToSingle(out float result);
 
-        bool ToBoolean();
-		int ToInt32();
-        long ToInt64();
-        float ToSingle();
+    bool ToBoolean();
+    int ToInt32();
+    long ToInt64();
+    float ToSingle();
 
-		StringKeyValue ToKeyValue();
-	}
+    StringKeyValue ToKeyValue();
 }

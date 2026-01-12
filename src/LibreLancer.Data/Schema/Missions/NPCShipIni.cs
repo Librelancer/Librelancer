@@ -6,44 +6,43 @@ using System;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Data.Schema.Missions
+namespace LibreLancer.Data.Schema.Missions;
+
+[ParsedIni]
+public partial class NPCShipIni
 {
-    [ParsedIni]
-    public partial class NPCShipIni
+    [Section("NPCShipArch")]
+    public List<NPCShipArch> ShipArches = [];
+    public NPCShipIni(string path, FileSystem vfs, IniStringPool? stringPool = null)
     {
-        [Section("NPCShipArch")]
-        public List<NPCShipArch> ShipArches = new List<NPCShipArch>();
-        public NPCShipIni(string path, FileSystem vfs, IniStringPool stringPool = null)
-        {
-            ParseIni(path, vfs, stringPool);
-        }
+        ParseIni(path, vfs, stringPool);
     }
+}
 
 
-    [ParsedSection]
-    public partial class NPCShipArch
+[ParsedSection]
+public partial class NPCShipArch
+{
+    [Entry("nickname", Required = true)] public string Nickname = null!;
+    [Entry("loadout")] public string? Loadout;
+    public int Level;
+    [Entry("ship_archetype")] public string? ShipArchetype;
+    [Entry("pilot")] public string? Pilot;
+    [Entry("state_graph")] public string? StateGraph;
+    [Entry("npc_class")] public string[]? NpcClass;
+
+    [EntryHandler("level", MinComponents = 1)]
+    private void LevelEntry(Entry e)
     {
-        [Entry("nickname")] public string Nickname;
-        [Entry("loadout")] public string Loadout;
-        public int Level;
-        [Entry("ship_archetype")] public string ShipArchetype;
-        [Entry("pilot")] public string Pilot;
-        [Entry("state_graph")] public string StateGraph;
-        [Entry("npc_class")] public string[] NpcClass;
+        var level = e[0].ToString();
+        var index = level?.IndexOfAny("0123456789".ToCharArray());
 
-        [EntryHandler("level", MinComponents = 1)]
-        private void LevelEntry(Entry e)
+        if (index is null)
         {
-            var level = e[0].ToString();
-            var index = level?.IndexOfAny("0123456789".ToCharArray());
-
-            if (index is null)
-            {
-                Level = 0;
-                return;
-            }
-
-            _ = int.TryParse(level.AsSpan(index.Value), out Level);
+            Level = 0;
+            return;
         }
+
+        _ = int.TryParse(level.AsSpan(index.Value), out Level);
     }
 }

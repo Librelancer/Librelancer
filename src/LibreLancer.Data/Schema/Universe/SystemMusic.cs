@@ -6,9 +6,9 @@ namespace LibreLancer.Data.Schema.Universe;
 public partial class SystemMusic
 {
     [Entry("space")]
-    public string Space;
+    public string? Space;
     [Entry("danger")]
-    public string Danger;
+    public string? Danger;
     [Entry("battle")]
-    public string Battle;
+    public string? Battle;
 }

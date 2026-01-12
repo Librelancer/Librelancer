@@ -5,20 +5,19 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.NewCharDB
+namespace LibreLancer.Data.Schema.NewCharDB;
+
+[ParsedSection]
+public partial class NewCharFaction
 {
-    [ParsedSection]
-    public partial class NewCharFaction
-    {
-        [Entry("nickname")]
-        public string Nickname;
-        [Entry("rep_group")]
-        public string RepGroup;
-        [Entry("base")]
-        public string Base;
-        [Entry("package")]
-        public string Package;
-        [Entry("pilot")]
-        public string Pilot;
-    }
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("rep_group")]
+    public string? RepGroup;
+    [Entry("base")]
+    public string? Base;
+    [Entry("package")]
+    public string? Package;
+    [Entry("pilot")]
+    public string? Pilot;
 }

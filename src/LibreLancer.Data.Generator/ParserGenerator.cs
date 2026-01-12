@@ -132,17 +132,21 @@ namespace LibreLancer.Data.Generator
             None
         }
 
+        static ITypeSymbol Simplify(ITypeSymbol symbol)
+            => symbol.WithNullableAnnotation(NullableAnnotation.NotAnnotated);
+
         static (ListKind Kind, string TypeName) GetListType(ITypeSymbol typeSymbol)
         {
+            typeSymbol = Simplify(typeSymbol);
             if (typeSymbol is IArrayTypeSymbol arrayType)
             {
-                return (ListKind.Array, arrayType.ElementType.ToString());
+                return (ListKind.Array, Simplify(arrayType.ElementType).ToString());
             }
             else if (typeSymbol is INamedTypeSymbol namedType)
             {
                 if (namedType.ToString().StartsWith("System.Collections.Generic.List<"))
                 {
-                    return (ListKind.List, namedType.TypeArguments[0].ToString());
+                    return (ListKind.List, Simplify(namedType.TypeArguments[0]).ToString());
                 }
                 else
                 {
