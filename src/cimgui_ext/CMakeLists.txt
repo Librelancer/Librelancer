@@ -13,7 +13,6 @@ add_library(cimgui SHARED
     ImGuiColorTextEdit/ImGuiDebugPanel.cpp
     ImGuiColorTextEdit/UnitTests.cpp
     ImGuiColorTextEdit/cimgui_colortextedit.cpp
-    imgui-node-editor/crude_json.cpp
     imgui-node-editor/imgui_canvas.cpp
     imgui-node-editor/imgui_node_editor_api.cpp
     imgui-node-editor/imgui_node_editor.cpp

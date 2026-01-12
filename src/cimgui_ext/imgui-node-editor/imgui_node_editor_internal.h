@@ -28,7 +28,7 @@
 # include "imgui_bezier_math.h"
 # include "imgui_canvas.h"
 
-# include "crude_json.h"
+// # include "crude_json.h"
 
 # include <vector>
 # include <string>
@@ -42,7 +42,7 @@ namespace Detail {
 
 //------------------------------------------------------------------------------
 namespace ed = ax::NodeEditor::Detail;
-namespace json = crude_json;
+// namespace json = crude_json;
 
 
 //------------------------------------------------------------------------------
@@ -518,10 +518,10 @@ struct NodeSettings
     void ClearDirty();
     void MakeDirty(SaveReasonFlags reason);
 
-    json::value Serialize();
+    // json::value Serialize();
 
-    static bool Parse(const std::string& string, NodeSettings& settings);
-    static bool Parse(const json::value& data, NodeSettings& result);
+    // static bool Parse(const std::string& string, NodeSettings& settings);
+    // static bool Parse(const json::value& data, NodeSettings& result);
 };
 
 struct Settings
@@ -551,9 +551,9 @@ struct Settings
     void ClearDirty(Node* node = nullptr);
     void MakeDirty(SaveReasonFlags reason, Node* node = nullptr);
 
-    std::string Serialize();
+    //std::string Serialize();
 
-    static bool Parse(const std::string& string, Settings& settings);
+    //static bool Parse(const std::string& string, Settings& settings);
 };
 
 struct Control
