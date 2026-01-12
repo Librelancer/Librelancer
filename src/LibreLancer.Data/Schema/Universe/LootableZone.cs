@@ -11,7 +11,7 @@ namespace LibreLancer.Data.Schema.Universe;
 [ParsedSection]
 public partial class LootableZone
 {
-    [Entry("zone", Required = true)] public string? Zone = null!;
+    [Entry("zone")] public string? Zone; // Refers to whole field when null?
     [Entry("asteroid_loot_container")] public string? AsteroidLootContainer;
     [Entry("asteroid_loot_commodity")] public string? AsteroidLootCommodity;
     [Entry("dynamic_loot_container")] public string? DynamicLootContainer;

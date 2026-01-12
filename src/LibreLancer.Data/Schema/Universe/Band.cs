@@ -11,8 +11,8 @@ namespace LibreLancer.Data.Schema.Universe;
 [ParsedSection]
 public partial class Band
 {
-    [Entry("zone", Required = true)]
-    public string Zone = null!;
+    [Entry("zone")]
+    public string? Zone; // Unsure what this does, may refer to whole field when null
     [Entry("render_parts")]
     public int? RenderParts;
     [Entry("shape")]
