@@ -1,6 +1,6 @@
 bl_info = {
     "name": "Librelancer Utilities",
-    "blender": (4, 0, 0),
+    "blender": (5, 0, 0),
     "category": "Object",
 }
 
