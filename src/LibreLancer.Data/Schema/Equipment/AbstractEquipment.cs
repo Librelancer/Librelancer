@@ -11,7 +11,7 @@ namespace LibreLancer.Data.Schema.Equipment;
 [BaseSection]
 public abstract partial class AbstractEquipment
 {
-    [Entry("nickname", Required = true)]
+    [Entry("nickname")] // Should be required, while LOD is AbstractEquipment it can't be. (Child section needs rework)
     public string Nickname = null!;
     [Entry("da_archetype")]
     public string? DaArchetype;
