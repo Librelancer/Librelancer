@@ -7,9 +7,8 @@ using LibreLancer.Data.GameData.Archetypes;
 
 namespace LibreLancer.Data.GameData.World;
 
-public class SystemObject
+public class SystemObject : NicknameItem
 {
-    public required string Nickname;
     public int IdsName;
     public int IdsInfo;
     public Base? Base; //used for linking IdsInfo

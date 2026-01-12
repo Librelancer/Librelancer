@@ -38,6 +38,17 @@ public class ObjectSetTransform(GameObject target, SystemObjectList list,Transfo
     }
 }
 
+public class ObjectSetNickname(GameObject target, SystemObjectList list, string old, string updated)
+    : SysObjectModification<string>(target, list, old, updated, "SetNickname")
+{
+    protected override void SetData(SystemObject data, string value)
+    {
+        Target.Nickname = value;
+        data.Nickname = value;
+        list.Refresh();
+    }
+}
+
 
 public class ObjectSetArchetypeLoadoutStar(
     GameObject target, SystemEditorTab tab,

@@ -686,6 +686,12 @@ public class SystemEditorTab : GameContentTab
         }
     }
 
+    bool ObjNameTaken(string name, SystemObject obj)
+    {
+        var o = World.GetObject(name);
+        return o != null && o.SystemObject != obj;
+    }
+    EditorAction ObjRename(GameObject obj, string old, string updated) => new ObjectSetNickname(obj, ObjectsList, old, updated);
 
     void ObjectProperties(GameObject sel)
     {
@@ -698,6 +704,8 @@ public class SystemEditorTab : GameContentTab
 
         if (!Controls.BeginEditorTable("object"))
             return;
+        Controls.InputItemNickname("Nickname", UndoBuffer, sel.SystemObject, ObjNameTaken,
+            (_, o, u) => ObjRename(sel, o, u));
         Controls.IdsInputStringUndo("Name", Data, Popups, UndoBuffer, () => ref sel.SystemObject.IdsName);
         Controls.IdsInputXmlUndo("Infocard", win, Data, Popups, UndoBuffer, () => ref sel.SystemObject.IdsInfo);
 
