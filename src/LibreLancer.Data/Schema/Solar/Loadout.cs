@@ -15,7 +15,7 @@ public partial class Loadout
 {
     [Entry("nickname", Required =  true)] public string Nickname = null!;
 
-    [Entry("archetype", Required = true)] public string Archetype = null!;
+    [Entry("archetype")] public string? Archetype; // Not required
 
     public List<LoadoutCargo> Cargo = [];
     public List<LoadoutEquip> Equip = [];
