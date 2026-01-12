@@ -12,7 +12,7 @@ namespace LibreLancer.Data.Schema.Voices;
 [ParsedSection]
 internal partial class VoiceSection
 {
-    [Entry("nickname", Required = true)] public string Nickname = null!;
+    [Entry("nickname")] public string? Nickname;
     [Entry("extend")] public string? Extend;
     [Entry("script", Multiline = true)] public List<string> Scripts = [];
 }
@@ -32,6 +32,11 @@ public class VoicesIni
                     if (VoiceSection.TryParse(section, out var s))
                     {
                         var name = s.Extend ?? s.Nickname;
+                        if (name == null)
+                        {
+                            FLLog.Error("Ini", $"{section.File}:{section.Line} [Voice] missing nickname or extend.");
+                            continue;
+                        }
                         if (!Voices.TryGetValue(name, out currentVoice))
                         {
                             currentVoice = new Voice() { Nickname = name };
