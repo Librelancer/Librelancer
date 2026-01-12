@@ -3,6 +3,8 @@
 // LICENSE, which is part of this source code package
 
 
+using System;
+
 namespace LibreLancer.Graphics.Backends.OpenGL;
 
 internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
@@ -14,6 +16,8 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
 
     public int Width => texture.Width;
     public int Height => texture.Height;
+
+    private bool isDisposed = false;
 
     public GLRenderTarget2D (GLRenderContext context, GLTexture2D texture, GLDepthBuffer? depth)
     {
@@ -39,11 +43,19 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
 
     internal override void BindFramebuffer()
     {
+        if (isDisposed)
+        {
+            throw new ObjectDisposedException("RenderTarget2D");
+        }
         GL.BindFramebuffer(GL.GL_FRAMEBUFFER, FBO);
     }
 
     public void BlitToScreen(Point offset)
     {
+        if (isDisposed)
+        {
+            throw new ObjectDisposedException("RenderTarget2D");
+        }
         RenderContext.Instance.Renderer2D.Flush();
         RenderContext.Instance.ApplyViewport();
         RenderContext.Instance.ApplyScissor();
@@ -58,6 +70,10 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
 
     public void BlitToBuffer(RenderTarget2D other, Point offset)
     {
+        if (isDisposed)
+        {
+            throw new ObjectDisposedException("RenderTarget2D");
+        }
         RenderContext.Instance.Renderer2D.Flush();
         RenderContext.Instance.ApplyViewport();
         RenderContext.Instance.ApplyScissor();
@@ -73,6 +89,10 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
 
     public void BlitToScreen()
     {
+        if (isDisposed)
+        {
+            throw new ObjectDisposedException("RenderTarget2D");
+        }
         RenderContext.Instance.Renderer2D.Flush();
         context.PrepareBlit(false);
         GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, FBO);
@@ -84,6 +104,11 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
 
     public override void Dispose ()
     {
+        if (isDisposed)
+        {
+            throw new ObjectDisposedException("RenderTarget2D");
+        }
+        isDisposed = true;
         GL.DeleteFramebuffer(FBO);
     }
 }
