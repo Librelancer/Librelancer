@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace LibreLancer.Media;
 
-enum AudioEvent
+internal enum AudioEvent
 {
     Play,
     Stop,
@@ -27,7 +27,7 @@ enum AudioEvent
     Quit
 }
 
-struct AudioEventMessage
+internal struct AudioEventMessage
 {
     public AudioEvent Type;
     public SoundInstance Instance;
