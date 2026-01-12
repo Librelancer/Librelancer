@@ -1391,9 +1391,9 @@ public class SystemEditorTab : GameContentTab
                     {
                         var mat = Matrix4x4.CreateFromQuaternion(camera.Rotation);
                         string matrix = @$"{{
-  {mat.M11.ToStringInvariant()}, {mat.M12.ToStringInvariant()}, {mat.M13.ToStringInvariant()},
-  {mat.M21.ToStringInvariant()}, {mat.M22.ToStringInvariant()}, {mat.M23.ToStringInvariant()},
-  {mat.M31.ToStringInvariant()}, {mat.M32.ToStringInvariant()}, {mat.M33.ToStringInvariant()}
+  {{{mat.M11.ToStringInvariant()}, {mat.M12.ToStringInvariant()}, {mat.M13.ToStringInvariant()}}},
+  {{{mat.M21.ToStringInvariant()}, {mat.M22.ToStringInvariant()}, {mat.M23.ToStringInvariant()}}},
+  {{{mat.M31.ToStringInvariant()}, {mat.M32.ToStringInvariant()}, {mat.M33.ToStringInvariant()}}}
 }}";
                         win.SetClipboardText(matrix);
                     }
