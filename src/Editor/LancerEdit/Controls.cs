@@ -6,11 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using ImGuiNET;
-using LancerEdit.GameContent;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
+using LibreLancer.Data;
 using LibreLancer.ImUI;
+using LibreLancer.Infocards;
 using LibreLancer.Media;
 
 namespace LancerEdit;
@@ -70,10 +72,44 @@ public static class Controls
     public static void CheckboxUndo(string label, EditorUndoBuffer buffer,
         FieldAccessor<bool> value)
     {
-        var v = value();
-        if (ImGui.Checkbox(label, ref v))
+        if (InEditorTable)
         {
-            buffer.Set(label, value, v);
+            EditControlSetup(label, 0);
+            ImGui.PushID(label);
+            var v = value();
+            if (ImGui.Checkbox("##value", ref v))
+                buffer.Set(label, value, v);
+            ImGui.PopID();
+        }
+        else
+        {
+            var v = value();
+            if (ImGui.Checkbox(label, ref v))
+                buffer.Set(label, value, v);
+        }
+    }
+
+    public static void EditControlSetup(string label, float width, float tableWidth = -1)
+    {
+        if (InEditorTable)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+        }
+        ImGui.AlignTextToFramePadding();
+        Label(label);
+        if (InEditorTable)
+        {
+            ImGui.TableNextColumn();
+            ImGui.SetNextItemWidth(tableWidth);
+        }
+        else
+        {
+            ImGui.SameLine();
+            if (width > 0.0f)
+            {
+                ImGui.SetNextItemWidth(width);
+            }
         }
     }
 
@@ -84,19 +120,66 @@ public static class Controls
         float width = 0.0f)
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
-        if (width != 0.0f)
-        {
-            ImGui.SetNextItemWidth(width);
-        }
+        EditControlSetup(label, width);
         ImGuiExt.InputTextLogged("##input",
             ref value(),
             250,
             (old, updated) => buffer.Set(label, value, old, updated),
             true);
         ImGui.PopID();
+    }
+
+    public static void InputItemNickname<T>(string label,
+        EditorUndoBuffer buffer,
+        T value,
+        Func<string, T, bool> nicknameTaken,
+        Func<T, string, string, EditorAction> commit,
+        float width = 0.0f) where T : NicknameItem
+    {
+        ImGui.PushID(label);
+        EditControlSetup(label, width);
+        if (ImGuiExt.InputTextLogged("##input",
+                ref value.Nickname,
+                250,
+                OnChanged,
+                true))
+        {
+            if (string.IsNullOrEmpty(value.Nickname))
+            {
+                ImGui.TextColored(Color4.Red, "Nickname cannot be empty");
+            }
+            else if (nicknameTaken(value.Nickname, value))
+            {
+                ImGui.TextColored(Color4.Red, $"Item '{value.Nickname}' already exists");
+            }
+        }
+
+        void OnChanged(string old, string updated)
+        {
+            if (string.IsNullOrWhiteSpace(updated) || nicknameTaken(value.Nickname, value))
+            {
+                value.Nickname = old; // Unable to set. Reset
+            }
+            else
+            {
+                buffer.Commit(commit(value, old, updated));
+            }
+        }
+
+        ImGui.PopID();
+    }
+
+    public static void InputItemNickname<T>(string label,
+        EditorUndoBuffer buffer,
+        SortedDictionary<string, T> list,
+        T value,
+        float width = 0.0f) where T : NicknameItem
+    {
+        InputItemNickname(label, buffer,
+            value,
+            (nickname, v) => list.TryGetValue(nickname, out var o) && o != v,
+            (v, old, updated) => new ItemRename<T>(old, updated, list, v),
+            width);
     }
 
     private static int oldInt = 0;
@@ -112,9 +195,7 @@ public static class Controls
     )
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
+        EditControlSetup(label, 0);
         ref int v = ref value();
         int oldCopy = v;
         ImGui.InputInt("##input", ref v, step, step_fast, flags);
@@ -145,9 +226,7 @@ public static class Controls
         ImGuiSliderFlags flags = ImGuiSliderFlags.None)
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
+        EditControlSetup(label, 0);
         ref float v = ref value();
         float oldCopy = v;
         ImGui.SliderFloat(label, ref v, v_min, v_max, format, flags);
@@ -166,26 +245,23 @@ public static class Controls
         string label,
         EditorUndoBuffer buffer,
         FieldAccessor<float> value,
-        int step = 0,
-        int step_fast = 0,
+        Action hook = null,
         string format = "%.3f",
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None
     )
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
+        EditControlSetup(label, 0);
         ref float v = ref value();
         float oldCopy = v;
-        ImGui.InputFloat("##input", ref v, step, step_fast, format, flags);
+        ImGui.InputFloat("##input", ref v, 0, 0, format, flags);
         if (ImGui.IsItemActivated())
         {
             oldFloat = oldCopy;
         }
         if (ImGui.IsItemDeactivatedAfterEdit())
         {
-            buffer.Set(label, value, oldFloat, v);
+            buffer.Set(label, value, oldFloat, v, hook);
         }
         ImGui.PopID();
     }
@@ -197,9 +273,7 @@ public static class Controls
         FieldAccessor<Quaternion> value)
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
+        EditControlSetup(label, 0);
         ref Quaternion q = ref value();
         Quaternion oldCopy = q;
         ImGui.InputFloat4("##input", ref Unsafe.As<Quaternion, Vector4>(ref q));
@@ -225,9 +299,7 @@ public static class Controls
     )
     {
         ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        Label(label);
-        ImGui.SameLine();
+        EditControlSetup(label, 0);
         ref Vector3 v = ref value();
         Vector3 oldCopy = v;
         ImGui.InputFloat3("##input", ref v, format, flags);
@@ -244,21 +316,24 @@ public static class Controls
 
     public static void DisabledInputTextId(string label, string value, float width = 0.0f)
     {
-        ImGui.BeginDisabled(true);
-        InputTextIdDirect(label, ref value, width);
+        EditControlSetup(label, width);
+        ImGui.PushID(label);
+        value ??= "";
+        ImGui.BeginDisabled();
+        ImGui.InputText("##input", ref value, 250, ImGuiInputTextFlags.ReadOnly);
         ImGui.EndDisabled();
+        ImGui.PopID();
     }
 
     public static bool InputTextIdDirect(string label, ref string value, float width = 0.0f)
     {
-        if (width != 0.0f)
-        {
-            ImGui.SetNextItemWidth(width);
-        }
-
+        EditControlSetup(label, width);
+        ImGui.PushID(label);
         value ??= "";
-        return ImGui.InputText(label, ref value, 250,
+        var ret = ImGui.InputText("##input", ref value, 250,
             ImGuiInputTextFlags.CallbackCharFilter | ImGuiInputTextFlags.EnterReturnsTrue, callback);
+        ImGui.PopID();
+        return ret;
     }
 
     public static bool SmallButton(string text)
@@ -319,65 +394,63 @@ public static class Controls
         return retval;
     }
 
-    private static readonly string[] columnNames = new string[] { "A", "B", "C", "D", "E", "F", "G", "H" };
-    public static bool BeginPropertyTable(string name, params bool[] columns)
+
+    public static bool InEditorTable;
+    public static bool BeginEditorTable(string id)
     {
-        if (!ImGui.BeginTable(name, columns.Length, ImGuiTableFlags.Borders))
-            return false;
-        for (int i = 0; i < columns.Length; i++)
+        ImGui.PushID(id);
+        if (!ImGui.BeginTable("##editortable", 2))
         {
-            ImGui.TableSetupColumn(columnNames[i], columns[i] ? ImGuiTableColumnFlags.WidthFixed : ImGuiTableColumnFlags.WidthStretch);
+            ImGui.PopID();
+            return false;
         }
-        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+        ImGui.TableSetupColumn("##labels", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##values", ImGuiTableColumnFlags.WidthStretch);
+        InEditorTable = true;
         return true;
     }
 
-    public static void TruncText(string text, int maxLength)
+    public static void TableSeparator()
     {
-        if (string.IsNullOrEmpty(text)) return;
-        var fL = text.IndexOf('\n');
-        if (fL != -1 || text.Length > maxLength)
-        {
-            var x = fL != -1
-                ? Math.Min(fL, maxLength)
-                : maxLength;
-            var s = ImGuiExt.IDWithExtra(text.Substring(0, x) + "...", "elpt");
-            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, Vector4.Zero);
-            ImGui.PushStyleColor(ImGuiCol.HeaderActive, Vector4.Zero);
-            ImGui.Selectable(s, false);
-            ImGui.PopStyleColor();
-            ImGui.PopStyleColor();
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetNextWindowSize(new Vector2(300, 0), ImGuiCond.Always);
-                if (ImGui.BeginTooltip())
-                {
-                    ImGui.TextWrapped(text);
-                    ImGui.EndTooltip();
-                }
-            }
-
-        }
-        else
-        {
-            ImGui.Text(text);
-        }
+        ImGui.EndTable();
+        ImGui.Separator();
+        ImGui.BeginTable("##editortable", 2);
+        ImGui.TableSetupColumn("##labels", ImGuiTableColumnFlags.WidthFixed);
+        ImGui.TableSetupColumn("##values", ImGuiTableColumnFlags.WidthStretch);
     }
 
-    public static void PropertyRow(string name, string value)
+    [DllImport("cimgui")]
+    static extern void igTableFullRowBegin();
+    [DllImport("cimgui")]
+    static extern void igTableFullRowEnd();
+
+    public static void TableSeparatorText(string heading)
     {
+        ImGui.PushStyleVar(ImGuiStyleVar.SeparatorTextBorderSize, 1);
         ImGui.TableNextRow();
         ImGui.TableNextColumn();
-        ImGui.Text(name);
-        ImGui.TableNextColumn();
-        ImGui.Text(value);
-        ImGui.TableNextColumn();
+        igTableFullRowBegin();
+        ImGui.SeparatorText(heading);
+        igTableFullRowEnd();
+        ImGui.PopStyleVar();
     }
 
-    public static void EndPropertyTable()
+    public static bool EditButtonRow(string name, string value)
     {
-        ImGui.PopStyleVar();
+        ImGui.PushID(name);
+        EditControlSetup(name, 0, -ButtonWidth($"{Icons.Edit}"));
+        ImGui.LabelText("", value);
+        ImGui.SameLine();
+        var r = ImGui.Button($"{Icons.Edit}");
+        ImGui.PopID();
+        return r;
+    }
+
+    public static void EndEditorTable()
+    {
+        InEditorTable = false;
         ImGui.EndTable();
+        ImGui.PopID();
     }
 
 
@@ -391,7 +464,7 @@ public static class Controls
         {
             if (ImGui.Button($"Set {label}"))
             {
-                value = Vector3.Zero;
+                buffer.Set(label, accessor, Vector3.Zero);
             }
         }
         else
@@ -404,9 +477,7 @@ public static class Controls
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (!value.Present) return;
 
-            var v = value.Value;
             InputFloat3Undo(label, buffer, () => ref accessor().Value);
-            value = v;
         }
     }
 
@@ -432,9 +503,7 @@ public static class Controls
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (!value.Present) return;
 
-            var v = value.Value;
             InputFloatUndo(label, buffer, () => ref accessor().Value);
-            value = v;
         }
     }
 
@@ -460,18 +529,14 @@ public static class Controls
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (!value.Present) return;
 
-            var v = value.Value;
             InputQuaternionUndo(label, buffer, () => ref accessor().Value);
-            value = v;
         }
     }
 
     public static void InputStringList(string id, EditorUndoBuffer undoBuffer, List<string> list, bool rmButtonOnEveryElement = true)
     {
         ImGui.PushID(id);
-        ImGui.AlignTextToFramePadding();
-        Label(id);
-
+        EditControlSetup(id,0);
         if (list.Count is 0)
         {
             AddListControls();
@@ -534,47 +599,103 @@ public static class Controls
         }
     }
 
-    private static void IdsInput(string label, string infocard, int ids, bool showTooltipOnHover)
+
+    static void IdsInput(string label, string infocard, ref int ids, bool showTooltipOnHover)
     {
-        ImGui.InputInt(label, ref ids, 0, 0, ImGuiInputTextFlags.ReadOnly);
-        if (infocard is null)
+        string preview = "";
+        if (ids != 0)
         {
-            ImGui.SameLine();
-            ImGui.Text(Icons.Warning.ToString());
-            if (ImGui.IsItemHovered())
+            preview = infocard is null
+                ? $"{Icons.Warning} {ids}"
+                : $"{ids} ({infocard})";
+        }
+        if (!ImGuiExt.InputIntPreview(label, preview, ref ids))
+        {
+            if (infocard is { Length: > 0 } && showTooltipOnHover)
             {
-                ImGui.SetTooltip("This IDS value is invalid and does not point to a known IDS entry.");
+                ImGui.SetItemTooltip(infocard);
             }
         }
-        else if (infocard.Length > 0 && showTooltipOnHover && ImGui.IsItemHovered())
-        {
-            ImGui.BeginTooltip();
-            ImGui.PushTextWrapPos(ImGui.GetFontSize() * 35.0f);
-
-            ImGui.Text(infocard[0] == '<' ? XmlFormatter.Prettify(infocard) : infocard);
-
-            ImGui.PopTextWrapPos();
-            ImGui.EndTooltip();
-        }
     }
+
+    public static float ButtonWidth(string text)
+    {
+        var s = ImGui.GetStyle();
+        return 2 * s.FramePadding.X + s.FrameBorderSize +
+               s.ItemSpacing.X + ImGui.CalcTextSize(text).X;
+    }
+
+    private static int oldIds = 0;
 
     public static void IdsInputStringUndo(string label, GameDataContext gameData, PopupManager popup,
         EditorUndoBuffer undoBuffer, FieldAccessor<int> accessor,
         bool showTooltipOnHover = true, float inputWidth = 100f)
     {
-        int ids = accessor();
-        var infocard = gameData.Infocards.GetStringResource(ids);
-        ImGui.PushItemWidth(inputWidth);
-        IdsInput(label, infocard, ids, showTooltipOnHover);
-        ImGui.PopItemWidth();
         ImGui.PushID(label);
+        EditControlSetup(label, inputWidth, -ButtonWidth($"{Icons.MagnifyingGlass}"));
+        ref int ids = ref accessor();
+        int oldCopy = ids;
+        var infocard = gameData.Infocards.HasStringResource(ids)
+                ? gameData.Infocards.GetStringResource(ids)
+                : null;
+        IdsInput("##idsinput", infocard, ref ids, showTooltipOnHover);
+        if (ImGui.IsItemActivated())
+        {
+            oldIds = oldCopy;
+        }
+        if (ImGui.IsItemDeactivatedAfterEdit())
+        {
+            undoBuffer.Set(label, accessor, oldIds, ids);
+        }
         ImGui.SameLine();
-        if (ImGui.Button("Browse Ids"))
+        if (ImGui.Button($"{Icons.MagnifyingGlass}"))
         {
             popup.OpenPopup(new StringSelection(accessor(), gameData.Infocards,
                 n => undoBuffer.Set(label, accessor, n)));
         }
         ImGui.PopID();
+    }
+
+    static string lastParsed = null;
+    static string xmlPreview = null;
+    static string PreviewText(string pa, FontManager fonts)
+    {
+        if (lastParsed == pa)
+            return xmlPreview;
+        xmlPreview = RDLParse.Parse(pa, fonts).ExtractText();
+        lastParsed = pa;
+        return xmlPreview;
+    }
+
+    public static bool IdsInputXmlUndo(string label, MainWindow win, GameDataContext gameData, PopupManager popup,
+        EditorUndoBuffer undoBuffer, FieldAccessor<int> accessor,
+        bool showTooltipOnHover = true, float inputWidth = 100f)
+    {
+        ImGui.PushID(label);
+        EditControlSetup(label, inputWidth, -ButtonWidth($"{Icons.MagnifyingGlass}"));
+        ref int ids = ref accessor();
+        int oldCopy = ids;
+        var infocard = gameData.Infocards.HasXmlResource(ids)
+            ? PreviewText(gameData.Infocards.GetXmlResource(ids), gameData.Fonts)
+            : null;
+        IdsInput("##idsinput", infocard, ref ids, showTooltipOnHover);
+        if (ImGui.IsItemActivated())
+        {
+            oldIds = oldCopy;
+        }
+        if (ImGui.IsItemDeactivatedAfterEdit())
+        {
+            undoBuffer.Set(label, accessor, oldIds, ids);
+            return true;
+        }
+        ImGui.SameLine();
+        if (ImGui.Button($"{Icons.MagnifyingGlass}"))
+        {
+            popup.OpenPopup(new InfocardSelection(ids, win, gameData.Infocards,
+                gameData.Fonts, n => undoBuffer.Set(label, accessor, n)));
+        }
+        ImGui.PopID();
+        return false;
     }
 
     public static void HelpMarker(string helpText, bool sameLine = false)

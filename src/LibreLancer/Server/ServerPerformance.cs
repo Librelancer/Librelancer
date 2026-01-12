@@ -1,13 +1,23 @@
+using System.Collections.Concurrent;
+
 namespace LibreLancer.Server;
 
 public class ServerPerformance
 {
     public const int MAX_TIMING_ENTRIES = 6 * 60;
     public CircularBuffer<float> Timings = new (MAX_TIMING_ENTRIES);
-    private IUIThread thread;
-    public ServerPerformance(IUIThread thread)
+
+    private readonly ConcurrentQueue<float> pending = new();
+
+    public void AddEntry(float f)
     {
-        this.thread = thread;
+        pending.Enqueue(f);
     }
-    public void AddEntry(float f) => thread.QueueUIThread(() => Timings.Enqueue(f));
+
+    public void Update()
+    {
+        // UI thread: drain queue
+        while (pending.TryDequeue(out var value))
+            Timings.Enqueue(value);
+    }
 }

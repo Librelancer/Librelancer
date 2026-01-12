@@ -119,7 +119,7 @@ public class ZoneList : IDisposable
     }
 
     public bool HasZone(string nickname) =>
-        Zones.Any(x => x.Current.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase));
+        ZonesByName.ContainsKey(nickname);
 
     public void ZoneRenamed(Zone z, string oldNick)
     {

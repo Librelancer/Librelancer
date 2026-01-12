@@ -141,7 +141,7 @@ public static class DirectiveEditor
 
     static void EditSetLifetime(SetLifetimeDirective directive, EditorUndoBuffer undoBuffer)
     {
-        Controls.InputFloatUndo("Lifetime", undoBuffer, () => ref directive.Lifetime, 0, 0, "%.0f");
+        Controls.InputFloatUndo("Lifetime", undoBuffer, () => ref directive.Lifetime, null, "%.0f");
     }
 
     static void EditStayInRange(StayInRangeDirective directive, EditorUndoBuffer undoBuffer)

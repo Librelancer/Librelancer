@@ -44,7 +44,7 @@ public class NodeMissionTrigger : Node
     public override string Name => "Mission Trigger";
     public override string InternalId => Data.Nickname;
 
-    static bool StartChild(NodeTriggerEntry e, out bool remove)
+    private static bool StartChild(NodeTriggerEntry e, out bool remove)
     {
         ImGui.BeginGroup();
         ImGui.PushStyleColor(ImGuiCol.Header, e.Color);
@@ -59,17 +59,20 @@ public class NodeMissionTrigger : Node
         return render;
     }
 
-    static void EndChild(bool render)
+    private static void EndChild(bool render)
     {
-        if(render)
+        if (render)
+        {
             ImGui.Separator();
+        }
+
         ImGui.EndGroup();
     }
 
-    float[] cachedHeightsCond;
-    private float[] cachedHeightsAct;
+    private float[]? cachedHeightsCond;
+    private float[]? cachedHeightsAct;
 
-    static float GetHeight(float[] cache, float fh, int index)
+    private static float GetHeight(float[] cache, float fh, int index)
     {
         if (cache == null || index >= cache.Length ||
             cache[index] < float.Epsilon)
@@ -77,7 +80,7 @@ public class NodeMissionTrigger : Node
         return cache[index];
     }
 
-    void RenderConditions(bool clipped, bool usePins, float szPin, float szContent, float pad,
+    private void RenderConditions(bool clipped, bool usePins, float szPin, float szContent, float pad,
         GameDataContext gameData, PopupManager popups, EditorUndoBuffer undoBuffer, ref NodePopups nodePopups,
         ref NodeLookups nodeLookups)
     {
@@ -117,17 +120,22 @@ public class NodeMissionTrigger : Node
             }
             else
             {
-                if (cachedHeightsCond == null ||
-                    cachedHeightsCond.Length != Conditions.Count)
+                if (cachedHeightsCond == null || cachedHeightsCond.Length != Conditions.Count)
+                {
                     cachedHeightsCond = new float[Conditions.Count];
+                }
+
                 var sp = ImGui.GetCursorPosY();
                 bool c = StartChild(e, out var remove);
                 if (c)
                 {
+                    ImGui.PushID(i);
                     ImGui.Dummy(new Vector2(1, 4)); //pad
                     e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
                     ImGui.Dummy(new Vector2(1, 4)); //pad
+                    ImGui.PopID();
                 }
+
                 EndChild(c);
                 if (remove)
                 {
@@ -135,7 +143,7 @@ public class NodeMissionTrigger : Node
                     i--;
                 }
 
-                if (i < cachedHeightsCond.Length && i >= 0)
+                if (cachedHeightsCond != null && i < cachedHeightsCond.Length && i >= 0)
                 {
                     cachedHeightsCond[i] = ImGui.GetCursorPosY() - sp;
                 }
@@ -175,16 +183,17 @@ public class NodeMissionTrigger : Node
             }
             else
             {
-                if (cachedHeightsAct == null ||
-                    cachedHeightsAct.Length != Actions.Count)
+                if (cachedHeightsAct == null || cachedHeightsAct.Length != Actions.Count)
                     cachedHeightsAct = new float[Actions.Count];
                 var sp = ImGui.GetCursorPosY();
                 var c = StartChild(e, out var remove);
                 if (c)
                 {
+                    ImGui.PushID(i);
                     ImGui.Dummy(new Vector2(1, 4) ); //pad
                     e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
                     ImGui.Dummy(new Vector2(1, 4)); //pad
+                    ImGui.PopID();
                 }
                 EndChild(c);
                 if (remove)
@@ -193,7 +202,7 @@ public class NodeMissionTrigger : Node
                     i--;
                 }
 
-                if (i < cachedHeightsCond.Length && i >= 0)
+                if (cachedHeightsAct != null && i < cachedHeightsAct.Length && i >= 0)
                 {
                     cachedHeightsAct[i] = ImGui.GetCursorPosY() - sp;
                 }

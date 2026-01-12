@@ -50,6 +50,7 @@ public static class Icons
     public const char Copy = '\uf0c5';
     public const char Paste = '\uf0ea';
     public const char Eraser = '\uf12d';
+    public const char MagnifyingGlass = '\uf002';
     public const char StreetView = '\uf21d';
     public const char Paintbrush = '\uf1fc';
     public const char Star = '\uf005';

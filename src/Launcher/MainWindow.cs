@@ -51,6 +51,17 @@ public class MainWindow() : Game(640, 350, true)
 
     protected override void Draw(double elapsed)
     {
+        var process = imGui.DoRender(elapsed);
+        switch (process)
+        {
+            case ImGuiProcessing.Sleep:
+                WaitForEvent(2000);
+                break;
+            case ImGuiProcessing.Slow:
+                WaitForEvent(50);
+                break;
+        }
+
         imGui.NewFrame(elapsed);
         RenderContext.ReplaceViewport(0, 0, Width, Height);
         RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);

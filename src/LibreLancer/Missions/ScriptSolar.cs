@@ -18,7 +18,7 @@ public class ScriptSolar : NicknameItem
     public List<string> Labels = new List<string>();
     public float Radius;
     public string Voice;
-    public CostumeEntry Costume;
+    public CostumeEntry Costume = new();
     public string Loadout;
     public string Visit;
     public string Pilot;

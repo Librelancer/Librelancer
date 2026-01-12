@@ -336,7 +336,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             NodeEditor.SelectNode(jumpToNode.Id);
             NodeEditor.NavigateToSelection(true);
             jumpToNode = null;
-            jumpLookup.SetSelected(null);
         }
 
         ImGui.SetCursorScreenPos(cursorTopLeft);
@@ -666,53 +665,13 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         base.Dispose();
     }
 
-    static void InputItemNickname<T>(string label,
-        EditorUndoBuffer buffer,
-        SortedDictionary<string, T> list,
-        T value,
-        float width = 0.0f) where T : NicknameItem
+
+    static bool SidebarHeader(string id)
     {
-        ImGui.PushID(label);
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text(label);
-        ImGui.SameLine();
-        if (width != 0.0f)
-        {
-            ImGui.SetNextItemWidth(width);
-        }
-
-        if (ImGuiExt.InputTextLogged("##input",
-                ref value.Nickname,
-                250,
-                OnChanged,
-                true))
-        {
-            if (string.IsNullOrEmpty(value.Nickname))
-            {
-                ImGui.TextColored(Color4.Red, "Nickname cannot be empty");
-            }
-            else if (list.TryGetValue(value.Nickname, out var item) &&
-                     item != value)
-            {
-                ImGui.TextColored(Color4.Red, $"Item '{value.Nickname}' already exists");
-            }
-        }
-
-        void OnChanged(string old, string updated)
-        {
-            if (string.IsNullOrWhiteSpace(updated) ||
-                list.TryGetValue(updated, out var item) &&
-                item != value)
-            {
-                value.Nickname = old; // Unable to set. Reset
-            }
-            else
-            {
-                buffer.Commit(new ItemRename<T>(old, updated, list, value));
-            }
-        }
-
-        ImGui.PopID();
+        ImGui.PushStyleColor(ImGuiCol.Header, ImGui.GetColorU32(ImGuiCol.FrameBg));
+        var r = ImGui.CollapsingHeader(id, ImGuiTreeNodeFlags.DefaultOpen);
+        ImGui.PopStyleColor();
+        return r;
     }
 
     void ItemList<T>(string itemName,

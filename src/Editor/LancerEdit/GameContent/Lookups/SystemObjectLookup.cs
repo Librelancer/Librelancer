@@ -4,21 +4,16 @@ using LibreLancer.World;
 
 namespace LancerEdit.GameContent.Lookups;
 
-public class SystemObjectLookup : ObjectLookup<GameObject>
+public class SystemObjectLookup(
+    IEnumerable<GameObject> objects,
+    GameDataContext ctx)
+    : ObjectLookup<GameObject>(objects, x =>
 {
-    public SystemObjectLookup(string id, IEnumerable<GameObject> objects, GameDataContext ctx, GameObject initial)
+    if (x == null) return "(none)";
+    var idsn = x.SystemObject.IdsName;
+    if (idsn != 0)
     {
-        CreateDropdown(id,
-            objects.Prepend(null),
-            x =>
-            {
-                if (x == null) return "(none)";
-                var idsn = x.Content().IdsName;
-                if (idsn != 0)
-                {
-                    return $"{x.Nickname} ({ctx.Infocards.GetStringResource(idsn)})";
-                }
-                return x.Nickname;
-            }, initial);
+        return $"{x.Nickname} ({ctx.Infocards.GetStringResource(idsn)})";
     }
-}
+    return x.Nickname;
+});

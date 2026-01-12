@@ -6,8 +6,9 @@ namespace LancerEdit.GameContent.Lookups;
 
 public class EncounterLookup : ObjectLookup<string>
 {
-    public string[] Archetypes { get; private set; }
-    public EncounterLookup(string id, GameDataContext gd, string initial)
+    public string[] Archetypes => Options;
+
+    static string[] GetEncounters(GameDataContext gd)
     {
         // Access encounter folder to grab their ini files
         var encountersDir = gd.GameData.Items.Ini.Freelancer.DataPath + "MISSIONS\\ENCOUNTERS\\";
@@ -16,16 +17,11 @@ public class EncounterLookup : ObjectLookup<string>
             .Select(x => Path.GetFileNameWithoutExtension(x))
             .OrderBy(x => x)
             .ToArray();
+        return encounterParams;
+    }
 
-        Archetypes = encounterParams;
-
-        // Selects first encounter
-        var initialValue = encounterParams.FirstOrDefault();
-
-        CreateDropdown(
-            id,
-            encounterParams,
-            x => x,
-            initialValue);
+    public EncounterLookup(GameDataContext gd) :
+        base(GetEncounters(gd))
+    {
     }
 }

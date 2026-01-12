@@ -1,49 +1,70 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImGuiNET;
 
 namespace LancerEdit.GameContent.Lookups;
 
-public abstract class ObjectLookup<T> where T : class
+public class ObjectLookup<T> where T : class
 {
-    private record Display(string Name, T Value);
+    protected T[] Options;
 
-    private Display sel;
+    private Func<T, string> displayName;
 
-    public T Selected => sel?.Value;
-    public T Hovered => dropdown?.Hovered?.Value;
-    public bool IsOpen => dropdown.IsOpen;
-
-    private SearchDropdown<Display> dropdown;
-    private Display[] options;
-
-    public Action<T> OnSelected;
-
-    protected void CreateDropdown(string id, IEnumerable<T> values, Func<T,string> name, T initial)
+    public ObjectLookup(
+        IEnumerable<T> values,
+        Func<T,string> name = null)
     {
-        options = values
-            .Select(x => new Display( name(x), x))
-            .ToArray();
-        if(initial != null)
-            sel = options.FirstOrDefault(x => x.Value == initial);
-        dropdown = new SearchDropdown<Display>(id,
-             x => x?.Name ?? "(none)",
-            x =>
-            {
-                sel = x;
-                OnSelected?.Invoke(x.Value);
-            },
-            sel, options);
+        Options = values.ToArray();
+        displayName = name;
     }
 
-    public void SetSelected(T value)
+    public ObjectLookup<T> Filter(Func<T, bool> filter) =>
+        new(Options.Where(filter), displayName);
+
+    public bool DrawUndo(string label,
+        EditorUndoBuffer undoBuffer,
+        FieldAccessor<T> accessor,
+        bool allowNull = false)
     {
-        sel = options.FirstOrDefault(x => x.Value == value);
-        dropdown.SetSelected(sel);
+        ref var sel = ref accessor();
+        return Draw(label, ref sel, (o, u) => undoBuffer.Set(label, accessor, o, u));
     }
 
-    public void Draw()
+    public bool Draw(string label,
+        ref T selected,
+        Action<T, T> onSelected = null,
+        bool allowNull = false)
     {
-        dropdown.Draw();
+        return Draw(label, ref selected, out _, onSelected, allowNull);
+    }
+
+
+    public bool Draw(string label,
+        ref T selected,
+        out T hovered,
+        Action<T, T> onSelected = null,
+        bool allowNull = false)
+    {
+        if (Controls.InEditorTable)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+        }
+        if (label != null &&
+            !label.StartsWith("##"))
+        {
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text(label);
+        }
+        if (Controls.InEditorTable)
+        {
+            ImGui.TableNextColumn();
+            ImGui.SetNextItemWidth(-1);
+        }
+
+        return SearchDropdown<T>.Draw(
+            label, ref selected, out hovered,
+            Options, displayName, onSelected, allowNull);
     }
 }
