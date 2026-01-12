@@ -126,6 +126,7 @@ namespace LibreLancer.Render
             {
                  vertices = new VertexBillboardColor2[GetVertexCount(Sun)];
                  CreateVertices(vertices, pos, Sun);
+                 genPos = pos;
             }
 
             bufferIndex = vertices != null ? sys.QuadBuffer.DoVertices(vertices) : -1;
