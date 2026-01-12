@@ -1341,13 +1341,11 @@ public class SystemEditorTab : GameContentTab
     {
         if (render3d && cameraOpen)
         {
-            ImGui.SetNextWindowSize(new Vector2(360, 210) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSize(new Vector2(360, 145) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
             if (ImGui.Begin("Camera", ref cameraOpen))
             {
                 string pos =
                     $"{camera.Position.X.ToStringInvariant()}, {camera.Position.Y.ToStringInvariant()}, {camera.Position.Z.ToStringInvariant()}";
-                string rotWXYZ =
-                    $"{camera.Rotation.W.ToStringInvariant()}, {camera.Rotation.X.ToStringInvariant()}, {camera.Rotation.Y.ToStringInvariant()}, {camera.Rotation.Z.ToStringInvariant()}";
                 string rotEuler =
                     $"{camera.RotationEuler.X.ToStringInvariant()}, {camera.RotationEuler.Y.ToStringInvariant()}, {camera.RotationEuler.Z.ToStringInvariant()}";
                 ImGui.SeparatorText("Position");
@@ -1357,20 +1355,38 @@ public class SystemEditorTab : GameContentTab
                 ImGui.SameLine();
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text(pos);
-                ImGui.SeparatorText("WXYZ Rotation");
-                if (ImGui.Button($"{Icons.Copy}##wxyz")) {
-                    win.SetClipboardText(rotWXYZ);
-                }
-                ImGui.SameLine();
-                ImGui.AlignTextToFramePadding();
-                ImGui.Text(rotWXYZ);
-                ImGui.SeparatorText("Euler Rotation");
-                if (ImGui.Button($"{Icons.Copy}##euler")) {
-                    win.SetClipboardText(rotEuler);
+                ImGui.SeparatorText("Rotation");
+                if (ImGui.Button($"{Icons.Copy}##rotation")) {
+                    ImGui.OpenPopup("rotcopy");
                 }
                 ImGui.SameLine();
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text(rotEuler);
+                if (ImGui.BeginPopup("rotcopy"))
+                {
+                    if (ImGui.MenuItem("Euler Angles"))
+                    {
+                        win.SetClipboardText(rotEuler);
+                    }
+                    if (ImGui.MenuItem("WXYZ Quaternion"))
+                    {
+                        string rotWXYZ =
+                            $"{camera.Rotation.W.ToStringInvariant()}, {camera.Rotation.X.ToStringInvariant()}, {camera.Rotation.Y.ToStringInvariant()}, {camera.Rotation.Z.ToStringInvariant()}";
+                        win.SetClipboardText(rotWXYZ);
+                    }
+
+                    if (ImGui.MenuItem("Orientation Matrix"))
+                    {
+                        var mat = Matrix4x4.CreateFromQuaternion(camera.Rotation);
+                        string matrix = @$"{{
+  {mat.M11.ToStringInvariant()}, {mat.M12.ToStringInvariant()}, {mat.M13.ToStringInvariant()},
+  {mat.M21.ToStringInvariant()}, {mat.M22.ToStringInvariant()}, {mat.M23.ToStringInvariant()},
+  {mat.M31.ToStringInvariant()}, {mat.M32.ToStringInvariant()}, {mat.M33.ToStringInvariant()}
+}}";
+                        win.SetClipboardText(matrix);
+                    }
+                    ImGui.EndPopup();
+                }
             }
 
             ImGui.End();
