@@ -8,9 +8,13 @@
 extern "C" {
 #endif
 #ifdef _WIN32
+#if BUILDING_CRNLIB
 #define CRNEXPORT __declspec(dllexport)
 #else
-#define CRNEXPORT
+#define CRNEXPORT __declspec(dllimport)
+#endif
+#else
+#define CRNEXPORT __attribute__((visibility("default")))
 #endif
 
 typedef enum crnglue_format {
