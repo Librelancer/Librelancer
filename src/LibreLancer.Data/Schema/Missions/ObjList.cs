@@ -12,8 +12,8 @@ public partial class ObjList : IEntryHandler
 {
     [Entry("nickname", Required = true)]
     public string Nickname = null!;
-    [Entry("system", Required = true)]
-    public string System = null!;
+    [Entry("system")]
+    public string? System;
     public List<ObjCmd> Commands = [];
 
 

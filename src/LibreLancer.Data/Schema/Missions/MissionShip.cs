@@ -13,8 +13,8 @@ public partial class MissionShip
 {
     [Entry("nickname", Required = true)]
     public string Nickname = null!;
-    [Entry("system", Required = true)]
-    public string System = null!;
+    [Entry("system")]
+    public string? System;
     [Entry("npc")]
     public string? NPC;
     [Entry("label", Multiline = true)]
