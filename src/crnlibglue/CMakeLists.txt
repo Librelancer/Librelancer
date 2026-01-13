@@ -94,7 +94,6 @@ ${CRNLIB_THREAD_SRCS}
 crnlibglue.cpp
 )
 
-set_property(TARGET crnlibglue PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 set_target_properties(crnlibglue PROPERTIES C_VISIBILITY_PRESET hidden)
 set_target_properties(crnlibglue PROPERTIES CXX_VISIBILITY_PRESET hidden)
 target_compile_definitions(crnlibglue PRIVATE -DBUILDING_CRNLIB)
