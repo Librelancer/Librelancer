@@ -13,7 +13,7 @@ using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
-using LibreLancer.Media;
+using LibreLancer.Sounds;
 
 namespace LancerEdit;
 
@@ -375,16 +375,18 @@ public static class Controls
         return 1;
     }
 
-    public static bool Music(string id, MainWindow win, bool enabled = true)
+    public static bool Music(string id, SoundManager sounds, bool enabled = true)
     {
-        if (win.Audio.Music.State == PlayState.Playing)
+        if (sounds.MusicPlaying)
         {
             if (ImGui.Button($"{Icons.Stop}##{id}"))
-                win.Audio.Music.Stop(0);
+                sounds.StopMusic();
             return false;
         }
         return ImGuiExt.Button($"{Icons.Play}##{id}", enabled);
     }
+
+
     public static bool GradientButton(string id, Color4 colA, Color4 colB, Vector2 size, bool gradient)
     {
         if (!gradient)

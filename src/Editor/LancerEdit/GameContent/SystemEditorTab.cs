@@ -1233,7 +1233,7 @@ public class SystemEditorTab : GameContentTab
         SearchDropdown<string>.DrawUndo(title, UndoBuffer, music, Data.MusicByName, null, true);
         ImGui.SameLine();
         var value = music();
-        if(Controls.Music("music", win, value != null))
+        if(Controls.Music("music", Data.Sounds, value != null))
             Data.Sounds.PlayMusic(value, 0, true);
         ImGui.PopID();
     }

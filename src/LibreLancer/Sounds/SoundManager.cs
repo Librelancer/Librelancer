@@ -242,6 +242,8 @@ namespace LibreLancer.Sounds
             }
         }
 
+        public bool MusicPlaying => audio.Music.State != PlayState.Stopped;
+
         public void StopMusic(float fadeOut = 0)
 		{
             if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
