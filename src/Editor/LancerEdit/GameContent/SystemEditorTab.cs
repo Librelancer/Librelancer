@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ImGuiNET;
-using LancerEdit.GameContent.Lookups;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
@@ -17,7 +16,6 @@ using LibreLancer.Data.GameData.Archetypes;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema;
-using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.ImUI;
@@ -164,7 +162,15 @@ public class SystemEditorTab : GameContentTab
     public void ForceSelectObject(GameObject obj)
     {
         layout.ActiveLeftTab = 1;
-        ObjectsList.SelectSingle(obj);
+        ObjectsList. SelectSingle(obj);
+        ObjectsList.ScrollToSelection();
+        map2D.ClearSelectedTradelaneGroup();
+    }
+
+    public void ForceSelectObjectMultiple(IEnumerable<GameObject> obj)
+    {
+        layout.ActiveLeftTab = 1;
+        ObjectsList.SelectMultiple(obj);
         ObjectsList.ScrollToSelection();
     }
 
@@ -220,7 +226,7 @@ public class SystemEditorTab : GameContentTab
             }
             else
             {
-                tb.FloatSliderItem("Zoom", ref map2D.Zoom, 1, 10, "%.2fx");
+                tb.FloatSliderItem("Zoom", ref map2D.Zoom, 1, 100, "%.2fx");
             }
             tb.ToggleButtonItem("Map", ref mapOpen);
             tb.ToggleButtonItem("History", ref historyOpen);

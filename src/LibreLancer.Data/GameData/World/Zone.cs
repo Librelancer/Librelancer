@@ -97,10 +97,12 @@ public class Zone : NicknameItem
         {
             topDown = null;
             outline = null;
+            zoneCenter = null;
         }
     }
 
     private static bool _scaledErrorTriggered = false;
+
     public float ScaledDistance(Vector3 point)
     {
         switch (data.Shape)
@@ -127,6 +129,7 @@ public class Zone : NicknameItem
                     FLLog.Error("Zones", $"Fixme: Scaled distance called on {data.Shape} ({Nickname})");
                     _scaledErrorTriggered = true;
                 }
+
                 // BAD
                 return Vector3.Distance(data.Position, point) / data.Size.X;
         }
@@ -134,7 +137,7 @@ public class Zone : NicknameItem
 
     public bool Intersects(BoundingBox box)
     {
-        switch(data.Shape)
+        switch (data.Shape)
         {
             case ShapeKind.Box:
             {
@@ -158,6 +161,7 @@ public class Zone : NicknameItem
                     if (ContainsPoint(c))
                         return true;
                 }
+
                 return false;
             }
             //We don't support cylinder/ring bbox intersection
@@ -174,22 +178,23 @@ public class Zone : NicknameItem
                 return Vector3.Distance(data.Position, point) <= data.Size.X;
             case ShapeKind.Box:
             {
-                point = Vector3.Transform(point,_shape.Box.R) - _shape.Box.P;
+                point = Vector3.Transform(point, _shape.Box.R) - _shape.Box.P;
                 //test
                 var max = (data.Size * 0.5f);
                 var min = -max;
-                return !(point.X < min.X || point.Y < min.Y || point.Z < min.Z || point.X > max.X || point.Y > max.Y || point.Z > max.Z);
+                return !(point.X < min.X || point.Y < min.Y || point.Z < min.Z || point.X > max.X || point.Y > max.Y ||
+                         point.Z > max.Z);
             }
             case ShapeKind.Ellipsoid:
             {
-                point = Vector3.Transform(point,_shape.Box.R) - _shape.Box.P;
+                point = Vector3.Transform(point, _shape.Box.R) - _shape.Box.P;
                 return PrimitiveMath.EllipsoidContains(Vector3.Zero, data.Size, point);
             }
             case ShapeKind.Cylinder:
             {
                 Vector3 d = _shape.CylRing.P2 - _shape.CylRing.P1;
                 Vector3 pd = point - _shape.CylRing.P1;
-                float dot = Vector3.Dot (pd, d);
+                float dot = Vector3.Dot(pd, d);
 
                 if (dot < 0.0f || dot > _shape.CylRing.SZ2.Y)
                 {
@@ -203,7 +208,7 @@ public class Zone : NicknameItem
             {
                 Vector3 d = _shape.CylRing.P2 - _shape.CylRing.P1;
                 Vector3 pd = point - _shape.CylRing.P1;
-                float dot = Vector3.Dot (pd, d);
+                float dot = Vector3.Dot(pd, d);
 
                 if (dot < 0.0f || dot > _shape.CylRing.SZ2.Y)
                 {
@@ -232,7 +237,7 @@ public class Zone : NicknameItem
         if (a.Length != b.Length) return false;
         return a.AsSpan().SequenceEqual(b);
     }
-    
+
     public ref int IdsName => ref data.IdsName;
     public ref int IdsInfo => ref data.IdsInfo;
 
@@ -278,9 +283,20 @@ public class Zone : NicknameItem
 
     private Vector2[]? topDown = null;
     private Vector2[]? outline = null;
+    private Vector2? zoneCenter = null;
+
+    public Vector2 ZoneCenter
+    {
+        get
+        {
+            if (zoneCenter == null)
+                OutlineMesh(); // ensures it is built
+            return zoneCenter!.Value;
+        }
+    }
 
     private static readonly Vector3[] _cubeVertices =
-    [
+    {
         new(-0.5f, -0.5f, -0.5f),
         new(0.5f, -0.5f, -0.5f),
         new(0.5f, -0.5f, 0.5f),
@@ -289,7 +305,7 @@ public class Zone : NicknameItem
         new(0.5f, 0.5f, -0.5f),
         new(0.5f, 0.5f, 0.5f),
         new(-0.5f, 0.5f, 0.5f)
-    ];
+    };
 
     private static readonly Vector3[] _cylinderVertices =
     [
@@ -378,10 +394,12 @@ public class Zone : NicknameItem
         {
             //Flatten a mesh + create convex hull
             List<Vector2> points = new List<Vector2>(_cubeVertices.Length);
-            foreach (var v in _cubeVertices) {
+            foreach (var v in _cubeVertices)
+            {
                 var p0 = Vector3.Transform(v * Size, RotationMatrix);
                 points.Add(new Vector2(p0.X, p0.Z));
             }
+
             outline = Outline2D(points);
         }
         else // Cylinder and ring
@@ -389,16 +407,43 @@ public class Zone : NicknameItem
             //Flatten a mesh + create convex hull
             List<Vector2> points = new List<Vector2>(_cylinderVertices.Length);
             var sz = new Vector3(Size.X, Size.Y, Size.X);
-            foreach (var v in _cylinderVertices) {
+            foreach (var v in _cylinderVertices)
+            {
                 var p0 = Vector3.Transform(v * sz, RotationMatrix);
                 points.Add(new Vector2(p0.X, p0.Z));
             }
+
             outline = Outline2D(points);
         }
+
+        zoneCenter = GetPolygonCenter(outline);
         return outline;
     }
 
-    private static Vector2[] Outline2D(List<Vector2> points)
+    static Vector2 GetPolygonCenter(ReadOnlySpan<Vector2> poly)
+    {
+        float area = 0f;
+        float cx = 0f;
+        float cy = 0f;
+
+        for (int i = 0, j = poly.Length - 1; i < poly.Length; j = i++)
+        {
+            float cross = poly[j].X * poly[i].Y - poly[i].X * poly[j].Y;
+            area += cross;
+            cx += (poly[j].X + poly[i].X) * cross;
+            cy += (poly[j].Y + poly[i].Y) * cross;
+        }
+
+        area *= 0.5f;
+
+        if (MathF.Abs(area) < 0.0001f)
+            return poly[0];
+
+        float inv = 1f / (6f * area);
+        return new Vector2(cx * inv, cy * inv);
+    }
+
+    static Vector2[] Outline2D(List<Vector2> points)
     {
         if (points == null || points.Count <= 1)
             throw new InvalidOperationException();
@@ -413,6 +458,7 @@ public class Zone : NicknameItem
                 k--;
             H[k++] = points[i];
         }
+
         // Build upper hull
         for (int i = n - 2, t = k + 1; i >= 0; i--)
         {
@@ -420,13 +466,14 @@ public class Zone : NicknameItem
                 k--;
             H[k++] = points[i];
         }
+
         // Don't triangulate
         return H.Take(k).ToArray();
     }
 
     public Vector2[] TopDownMesh()
     {
-        if(topDown != null)
+        if (topDown != null)
             return topDown;
 
         if (Shape == ShapeKind.Ellipsoid)
@@ -465,10 +512,12 @@ public class Zone : NicknameItem
         {
             //Flatten a mesh + create convex hull
             List<Vector2> points = new List<Vector2>(_cubeVertices.Length);
-            foreach (var v in _cubeVertices) {
+            foreach (var v in _cubeVertices)
+            {
                 var p0 = Vector3.Transform(v * Size, RotationMatrix);
                 points.Add(new Vector2(p0.X, p0.Z));
             }
+
             topDown = Convex2D(points);
         }
         else // Cylinder and ring
@@ -476,10 +525,12 @@ public class Zone : NicknameItem
             //Flatten a mesh + create convex hull
             List<Vector2> points = new List<Vector2>(_cylinderVertices.Length);
             var sz = new Vector3(Size.X, Size.Y, Size.X);
-            foreach (var v in _cylinderVertices) {
+            foreach (var v in _cylinderVertices)
+            {
                 var p0 = Vector3.Transform(v * sz, RotationMatrix);
                 points.Add(new Vector2(p0.X, p0.Z));
             }
+
             topDown = Convex2D(points);
         }
 
@@ -504,6 +555,7 @@ public class Zone : NicknameItem
                 k--;
             H[k++] = points[i];
         }
+
         // Build upper hull
         for (int i = n - 2, t = k + 1; i >= 0; i--)
         {
@@ -521,6 +573,7 @@ public class Zone : NicknameItem
             triangulated[j++] = H[i];
             triangulated[j++] = H[i + 1];
         }
+
         return triangulated;
     }
 
@@ -561,7 +614,7 @@ public class Zone : NicknameItem
     public Encounter[]? Encounters;
     public DensityRestriction[]? DensityRestrictions;
 
-    public Zone ()
+    public Zone()
     {
     }
 
@@ -632,7 +685,7 @@ public enum ZonePropFlags
     Exclusion2 = 131072,
     Damage = 0x040000,
     DragModifier = 0x080000,
-    Interference  = 0x100000,
+    Interference = 0x100000,
     Spacedust = 0x200000,
     Music = 0x200000
 }
