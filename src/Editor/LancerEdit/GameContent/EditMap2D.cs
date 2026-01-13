@@ -776,18 +776,13 @@ public class EditMap2D
 
     private void CommitTradeLaneGroupDrag(SystemEditorTab tab)
     {
-        foreach (var kvp in tradeLaneDragStartTransforms)
-        {
-            tab.UndoBuffer.Commit(
-                new ObjectSetTransform(
-                    kvp.Key,
-                    tab.ObjectsList,
-                    kvp.Value,
-                    kvp.Key.LocalTransform
-                )
-            );
-        }
-
+        var actions = tradeLaneDragStartTransforms.Select(kvp => (EditorAction)new ObjectSetTransform(
+            kvp.Key,
+            tab.ObjectsList,
+            kvp.Value,
+            kvp.Key.LocalTransform
+        ));
+        tab.UndoBuffer.Commit(EditorAggregateAction.Create(actions.ToArray()));
         draggingTradeLaneGroup = null;
         tradeLaneDragStartTransforms = null;
     }
