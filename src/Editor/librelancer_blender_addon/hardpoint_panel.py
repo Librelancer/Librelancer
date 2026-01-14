@@ -13,10 +13,16 @@ class HardpointPanel(bpy.types.Panel):
         layout = self.layout
 
         obj = context.object
-        
+
         if not 'hardpoint' in obj:
             row = layout.row()
             row.label(text="Not a hardpoint")
+            row = layout.row()
+            row.prop(context.scene, "hardpoint_prefix")
+            row = layout.row()
+            row.prop(context.scene, "hardpoint_middle")
+            row = layout.row()
+            row.prop(context.scene, "hardpoint_start_num")
             return
 
         row = layout.row()
@@ -42,6 +48,21 @@ def set_hptype(self, value):
     self['hptype'] = 'rev' if value == 1 else 'fix'
 
 def register():
+    bpy.types.Scene.hardpoint_prefix = bpy.props.StringProperty(name="Hardpoint Prefix", default="Hp")
+    bpy.types.Scene.hardpoint_middle = bpy.props.StringProperty(name="Middle Name", default="")
+    bpy.types.Scene.hardpoint_hptype = bpy.props.StringProperty(default="fix")
+    bpy.types.Scene.hardpoint_naming = bpy.props.StringProperty(default="number")
+    bpy.types.Scene.hardpoint_start_num = bpy.props.IntProperty(name="Start Number", default=1, min=0)
+    bpy.types.Scene.hardpoint_current_num = bpy.props.IntProperty(default=1)
+    bpy.types.Scene.pending_location = bpy.props.FloatVectorProperty()
+    bpy.types.Scene.pending_normal = bpy.props.FloatVectorProperty()
+    bpy.types.Scene.pending_face_index = bpy.props.IntProperty()
+    bpy.types.Scene.pending_object = bpy.props.PointerProperty(type=bpy.types.Object)
+    bpy.types.Scene.view_direction = bpy.props.FloatVectorProperty()
+    bpy.types.Scene.has_pending = bpy.props.BoolProperty(default=False)
+    bpy.types.Scene.has_floor_pending = bpy.props.BoolProperty(default=False)
+    bpy.types.Scene.place_done = bpy.props.BoolProperty(default=False)
+    bpy.types.Scene.last_snap_type = bpy.props.StringProperty(default="none")
     bpy.types.Object.min = bpy.props.FloatProperty(name="Minimum")
     bpy.types.Object.max = bpy.props.FloatProperty(name="Maximum")
     bpy.types.Object.hardpoint = bpy.props.BoolProperty(name="Hardpoint")
