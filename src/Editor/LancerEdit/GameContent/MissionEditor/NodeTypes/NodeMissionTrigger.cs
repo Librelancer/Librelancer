@@ -14,7 +14,7 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public class NodeMissionTrigger : Node
 {
-    public readonly MissionTrigger Data;
+    public readonly TriggerHeader Data;
     public List<NodeTriggerEntry> Conditions = new();
     public List<NodeTriggerEntry> Actions = new();
 
@@ -23,17 +23,23 @@ public class NodeMissionTrigger : Node
 
     public NodeMissionTrigger(MissionTrigger data, MissionScriptEditorTab tab) : base(NodeColours.Trigger)
     {
-        this.Data = data ?? new MissionTrigger();
+        var src = data ?? new MissionTrigger();
+        Data = new TriggerHeader()
+        {
+            Nickname = src.Nickname,
+            Repeatable = src.Repeatable,
+            InitState = src.InitState
+        };
 
         Inputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Input));
         Outputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Output));
 
-        foreach (var c in this.Data.Conditions)
+        foreach (var c in src.Conditions)
         {
             Conditions.Add(NodeTriggerEntry.ConditionToNode(c.Type, c.Entry));
         }
 
-        foreach (var a in this.Data.Actions)
+        foreach (var a in src.Actions)
         {
             Actions.Add(NodeTriggerEntry.ActionToNode(a.Type, a));
         }
@@ -317,10 +323,11 @@ public class NodeMissionTrigger : Node
             ImGui.AlignTextToFramePadding();
             ImGui.Text("ID");
             ImGui.SameLine();
-            ImGuiExt.InputTextLogged("##id", ref Data.Nickname, 255, (old, upd) =>
-            {
-                tab.OnRenameTrigger(this, old, upd);
-            }, true);
+            Controls.InputItemNickname("##id", undoBuffer, Data,
+                (n, _) => {
+                    var node = tab.GetTrigger(n);
+                    return node != null && node != this; },
+                (_, o, u) => tab.OnRenameTrigger(this, o, u));
             nb.Popups.StringCombo("System", undoBuffer, () => ref Data.System, gameData.SystemsByName, true);
             Controls.CheckboxUndo("Repeatable", undoBuffer, () => ref Data.Repeatable);
             nb.Popups.Combo("Initial State", undoBuffer, () => ref Data.InitState);
@@ -343,10 +350,9 @@ public class NodeMissionTrigger : Node
 
     }
 
-    public void WriteNode(MissionScriptEditorTab missionEditor, IniBuilder builder)
+    public void WriteNode(IniBuilder builder)
     {
         var s = builder.Section("Trigger");
-
 
         if (string.IsNullOrWhiteSpace(Data.Nickname))
         {

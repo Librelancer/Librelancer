@@ -11,20 +11,20 @@ namespace LancerEdit.GameContent.MissionEditor;
 
 partial class MissionScriptEditorTab
 {
-    class NewTriggerAction(Vector2 position, MissionScriptEditorTab tab) : EditorAction
+    class NewTriggerAction(string name, Vector2 position, MissionScriptEditorTab tab) : EditorAction
     {
-        private NodeMissionTrigger trigger = new(null, tab);
+        private NodeMissionTrigger trigger = new(new() { Nickname = name }, tab);
         public override void Commit()
         {
             tab.nodes.Add(trigger);
             tab.nodeRelocationQueue.Enqueue((trigger.Id, position));
-            tab.SetupJumpList();
+            tab.SetupLookups();
         }
 
         public override void Undo()
         {
             tab.nodes.Remove(trigger);
-            tab.SetupJumpList();
+            tab.SetupLookups();
         }
 
         public override string ToString() => "New Trigger";
@@ -39,7 +39,7 @@ partial class MissionScriptEditorTab
         public override void Set(string value)
         {
             trigger.Data.Nickname = value;
-            tab.SetupJumpList();
+            tab.SetupLookups();
         }
     }
 
@@ -210,7 +210,7 @@ partial class MissionScriptEditorTab
             {
                 NodePin.DeleteLink(l.LinkId);
             }
-            tab.SetupJumpList();
+            tab.SetupLookups();
         }
 
         public override void Undo()
@@ -227,7 +227,7 @@ partial class MissionScriptEditorTab
                 n.StartPin.OwnerNode.OnLinkCreated(n);
                 n.EndPin.OwnerNode.OnLinkCreated(n);
             }
-            tab.SetupJumpList();
+            tab.SetupLookups();
         }
 
         public override string ToString() => $"Delete Node {id}";
