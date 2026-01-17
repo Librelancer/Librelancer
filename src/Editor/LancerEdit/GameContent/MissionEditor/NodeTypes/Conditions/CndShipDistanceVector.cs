@@ -34,7 +34,7 @@ public class CndShipDistanceVector : NodeTriggerEntry
             true);
 
         Controls.InputFloat3Undo("Position", undoBuffer, () => ref Data.position, "%.0f");
-        Controls.SliderFloatUndo("Distance", undoBuffer, () => ref Data.distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+        Controls.InputFloatUndo("Distance", undoBuffer, () => ref Data.distance);
         Controls.InputOptionalFloatUndo("Tick Away", undoBuffer, () => ref Data.tickAway);
     }
 

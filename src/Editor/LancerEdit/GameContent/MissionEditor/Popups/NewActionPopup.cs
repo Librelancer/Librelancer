@@ -3,6 +3,7 @@ using System.Linq;
 using ImGuiNET;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
+using LibreLancer.Missions.Actions;
 
 namespace LancerEdit.GameContent.MissionEditor.Popups;
 
@@ -17,6 +18,7 @@ public class NewActionPopup(Action<TriggerActions> onCreate) : PopupWindow
 
     private static readonly (string Text, TriggerActions Value)[] _options =
         Enum.GetValues<TriggerActions>()
+            .Where(x => !ScriptedAction.Unsupported.Contains(x))
             .Select(x => (x.ToString(), x))
             .OrderBy(x => x.Item1)
             .ToArray();

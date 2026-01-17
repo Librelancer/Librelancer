@@ -10,9 +10,10 @@ namespace BuildLL
     {
         public static void Run(string directory, CMakeSettings settings = null)
         {
-            var argBuilder = new StringBuilder(directory);
-            argBuilder.Append(" -S ").AppendQuoted(Path.GetFullPath(directory));
+            var argBuilder = new StringBuilder();
             var workingDir = Path.GetFullPath(settings?.OutputPath ?? directory);
+            argBuilder.Append("-B ").AppendQuoted(workingDir);
+            argBuilder.Append(" -S ").AppendQuoted(Path.GetFullPath(directory));
             Directory.CreateDirectory(workingDir);
             if (settings?.Platform != null)
             {

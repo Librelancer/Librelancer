@@ -225,10 +225,7 @@ namespace LibreLancer.Render
 
         public void AddObject(ObjectRenderer render)
         {
-            lock (objects)
-            {
-                objects.Add(render);
-            }
+            objects.Add(render);
         }
 
         class TemporaryFx

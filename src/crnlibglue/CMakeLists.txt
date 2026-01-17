@@ -94,6 +94,10 @@ ${CRNLIB_THREAD_SRCS}
 crnlibglue.cpp
 )
 
+set_target_properties(crnlibglue PROPERTIES C_VISIBILITY_PRESET hidden)
+set_target_properties(crnlibglue PROPERTIES CXX_VISIBILITY_PRESET hidden)
+target_compile_definitions(crnlibglue PRIVATE -DBUILDING_CRNLIB)
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
     # link libgcc/libstdc++ into our .dll
     target_link_options(crnlibglue PRIVATE -static-libgcc -static-libstdc++ -static)

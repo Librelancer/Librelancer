@@ -52,6 +52,13 @@ public abstract class ScriptedCondition
     protected static bool IdEqual(string a, string b) =>
         string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 
+
+    public static readonly TriggerConditions[] Unsupported =
+    [
+        TriggerConditions.Cnd_CmpToPlane,
+        TriggerConditions.Cnd_JumpgateAct
+    ];
+
     public static IEnumerable<ScriptedCondition> Convert(IEnumerable<MissionCondition> conditions)
     {
         foreach (var c in conditions)

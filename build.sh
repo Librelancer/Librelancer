@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# No telemetry
+DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+DOTNET_CLI_TELEMETRY_OPTOUT=1
 # Define directories.
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "$SCRIPT_DIR/build.config"
