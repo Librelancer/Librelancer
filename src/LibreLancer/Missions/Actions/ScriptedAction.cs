@@ -12,6 +12,7 @@ using LibreLancer.Net;
 using LibreLancer.Server;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace LibreLancer.Missions.Actions
 {
@@ -69,6 +70,20 @@ namespace LibreLancer.Missions.Actions
         {
             FLLog.Warning("Missions", $"{GetType().Name}.Write() is not implemented!");
         }
+
+
+        public static readonly TriggerActions[] Unsupported =
+        [
+            TriggerActions.Act_SetFlee,
+            TriggerActions.Act_SpawnShipRel,
+            TriggerActions.Act_RepChangeRequest,
+            TriggerActions.Act_RelocateForm,
+            TriggerActions.Act_PilotParams,
+            TriggerActions.Act_PlayNN,
+            TriggerActions.Act_PlayerForm,
+            TriggerActions.Act_GiveMB
+        ];
+
 
         public static IEnumerable<ScriptedAction> Convert(IEnumerable<MissionAction> actions)
         {
