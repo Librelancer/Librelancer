@@ -26,10 +26,10 @@ public class CndTetherBreak : NodeTriggerEntry
         Controls.InputTextIdUndo("Source Ship", undoBuffer, () => ref Data.SourceShip);
         Controls.InputTextIdUndo("Dest Ship", undoBuffer, () => ref Data.DestShip);
 
-        Controls.SliderFloatUndo("Distance", undoBuffer, () => ref Data.Distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+        Controls.InputFloatUndo("Distance", undoBuffer, () => ref Data.Distance);
         Controls.InputIntUndo("Count", undoBuffer, () => ref Data.Count, 1, 10, default, new(1, 300));
 
-        Controls.SliderFloatUndo("Unknown", undoBuffer, () => ref Data.Unknown, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+        Controls.InputFloatUndo("Unknown", undoBuffer, () => ref Data.Unknown);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

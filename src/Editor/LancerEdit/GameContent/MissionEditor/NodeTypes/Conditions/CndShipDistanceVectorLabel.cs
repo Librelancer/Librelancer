@@ -35,7 +35,7 @@ public class CndShipDistanceVectorLabel : NodeTriggerEntry
         // TODO: Transform label into combo selection
         Controls.InputTextIdUndo("Label", undoBuffer, () => ref Data.Label);
         Controls.InputFloat3Undo("Position", undoBuffer, () => ref Data.Position, "%.0f");
-        Controls.SliderFloatUndo("Radius", undoBuffer, () => ref Data.Distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+        Controls.InputFloatUndo("Radius", undoBuffer, () => ref Data.Distance);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

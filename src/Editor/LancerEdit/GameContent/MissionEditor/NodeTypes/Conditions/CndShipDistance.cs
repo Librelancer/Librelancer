@@ -33,7 +33,7 @@ public class CndShipDistance : NodeTriggerEntry
             "triggered when the source ship is at least the specified distance away from the destination object.",
             true);
 
-        Controls.SliderFloatUndo("Distance", undoBuffer, () => ref Data.distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
+        Controls.InputFloatUndo("Distance", undoBuffer, () => ref Data.distance);
         Controls.InputOptionalFloatUndo("Tick Away", undoBuffer, () => ref Data.tickAway);
     }
 
