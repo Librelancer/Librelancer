@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
+using System.Runtime.Versioning;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
@@ -31,22 +32,19 @@ public class MainWindow() : Game(640, 350, true)
 
         sm.SetScreen(new LauncherScreen(this, config, sm, pm));
 
-        if (!string.IsNullOrEmpty(config.FreelancerPath) || Platform.RunningOS != OS.Windows)
-        {
-            return;
-        }
+        if (string.IsNullOrEmpty(config.FreelancerPath) || OperatingSystem.IsWindows())
+            {
+                var flPath = GetFreelancerPath();
+                
+                if (!string.IsNullOrEmpty(flPath))
+                    {
+                        config.FreelancerPath=(flPath);
+                        
+                    } else {
 
-        var combinedPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"\Microsoft Games\Freelancer");
-        var flPathRegistry = IntPtr.Size == 8
-            ? @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft Games\Freelancer\1.0"
-            : @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft Games\Freelancer\1.0";
-        var actualPath = (string?)Registry.GetValue(flPathRegistry, "AppPath", combinedPath);
-
-        if (!string.IsNullOrEmpty(actualPath))
-        {
-            config.FreelancerPath=(actualPath);
-        }
-
+                        return;
+                    }
+            }
     }
 
     protected override void Draw(double elapsed)
@@ -90,9 +88,28 @@ public class MainWindow() : Game(640, 350, true)
 
     public void StartGame()
     {
-
         Program.StartPath = Path.Combine(GetBasePath(), "lancer");
         Exit();
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string? GetFreelancerPath()
+    {
+        // TODO: This function should be in a shared class so that LLServerGui can also use it
+        var defaultPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"\Microsoft Games\Freelancer");
+        var registryPath = IntPtr.Size == 8
+            ? @"HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Microsoft Games\Freelancer\1.0"
+            : @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft Games\Freelancer\1.0";
+            
+        var installPath = (string?)Registry.GetValue(registryPath, "AppPath", defaultPath);
+        if (installPath != null)
+            {
+                return installPath;
+                
+            } else {
+            
+                return default;
+            }
     }
 
     private static string GetBasePath()
