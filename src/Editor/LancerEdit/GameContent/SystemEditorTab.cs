@@ -875,7 +875,7 @@ public class SystemEditorTab : GameContentTab
         {
             var totalH = ImGui.GetWindowHeight();
             ImGuiExt.SplitterV(2f, ref h1, ref h2, 15 * ImGuiHelper.Scale, 60 * ImGuiHelper.Scale, -1);
-            h1 = totalH - h2 - 24f * ImGuiHelper.Scale;
+            h1 = totalH - h2 - 4f * ImGuiHelper.Scale;
             ImGui.BeginChild(id, new Vector2(ImGui.GetWindowWidth(), h1));
         }
         else

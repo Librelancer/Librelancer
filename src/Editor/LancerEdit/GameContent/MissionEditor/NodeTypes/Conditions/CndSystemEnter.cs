@@ -24,9 +24,9 @@ public class CndSystemEnter : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.CheckboxUndo("Any", undoBuffer, () => ref Data.any);
-        ImGui.BeginDisabled(Data.any);
-        Controls.InputStringList("Systems", undoBuffer, Data.systems);
+        Controls.CheckboxUndo("Any", undoBuffer, () => ref Data.Any);
+        ImGui.BeginDisabled(Data.Any);
+        Controls.InputStringList("Systems", undoBuffer, Data.Systems);
         ImGui.EndDisabled();
     }
 

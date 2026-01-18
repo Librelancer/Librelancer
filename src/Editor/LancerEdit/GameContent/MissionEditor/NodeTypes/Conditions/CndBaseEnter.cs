@@ -21,7 +21,7 @@ public class CndBaseEnter : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Base", undoBuffer, () => ref Data.@base); // TODO: Comboify
+        Controls.InputTextIdUndo("Base", undoBuffer, () => ref Data.Base); // TODO: Comboify
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

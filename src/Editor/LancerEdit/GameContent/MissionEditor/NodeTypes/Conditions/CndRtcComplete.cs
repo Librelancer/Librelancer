@@ -22,7 +22,7 @@ public class CndRtcComplete : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Rtc INI File", undoBuffer, () => ref Data.iniFile);
+        Controls.InputTextIdUndo("Rtc INI File", undoBuffer, () => ref Data.IniFile);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

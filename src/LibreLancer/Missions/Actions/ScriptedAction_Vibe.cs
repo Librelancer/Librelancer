@@ -67,9 +67,9 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SetVibe(MissionAction act) : base(act)
         {
-            Target = act.Entry[0].ToString();
-            Other = act.Entry[1].ToString();
-            Vibe = Enum.Parse<VibeSet>(act.Entry[2].ToString(), true);
+            GetString(nameof(Target), 0, out Target, act.Entry);
+            GetString(nameof(Other), 1, out Other, act.Entry);
+            GetEnum(nameof(Vibe), 2, out Vibe, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -95,9 +95,9 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SetVibeLbl(MissionAction act) : base(act)
         {
-            Label1 = act.Entry[0].ToString();
-            Label2 = act.Entry[1].ToString();
-            Vibe = Enum.Parse<VibeSet>(act.Entry[2].ToString(), true);
+            GetString(nameof(Label1), 0, out Label1, act.Entry);
+            GetString(nameof(Label2), 1, out Label2, act.Entry);
+            GetEnum(nameof(Vibe), 2, out Vibe, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -132,9 +132,9 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SetVibeShipToLbl(MissionAction act) : base(act)
         {
-            Ship = act.Entry[0].ToString();
-            Label = act.Entry[1].ToString();
-            Vibe = Enum.Parse<VibeSet>(act.Entry[2].ToString(), true);
+            GetString(nameof(Ship), 0, out Ship, act.Entry);
+            GetString(nameof(Label), 1, out Label, act.Entry);
+            GetEnum(nameof(Vibe), 2, out Vibe, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -163,9 +163,9 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SetVibeLblToShip(MissionAction act) : base(act)
         {
-            Label = act.Entry[0].ToString();
-            Ship = act.Entry[1].ToString();
-            Vibe = Enum.Parse<VibeSet>(act.Entry[2].ToString(), true);
+            GetString(nameof(Label), 0, out Label, act.Entry);
+            GetString(nameof(Ship), 1, out Ship, act.Entry);
+            GetEnum(nameof(Vibe), 2, out Vibe, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
