@@ -24,7 +24,7 @@ public class CndEncounterLaunched : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Encounter", undoBuffer, () => ref Data.encounter);
+        Controls.InputTextIdUndo("Encounter", undoBuffer, () => ref Data.Encounter);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -21,8 +21,7 @@ namespace LibreLancer.Missions.Actions
         }
         public Act_MovePlayer(MissionAction act) : base(act)
         {
-            Position = new Vector3(act.Entry[0].ToSingle(), act.Entry[1].ToSingle(),
-                act.Entry[2].ToSingle());
+            GetVector3(nameof(Position), 0, out Position, act.Entry);
             if(act.Entry.Count > 3)
                 Unknown = act.Entry[3].ToSingle();
         }
@@ -49,8 +48,8 @@ namespace LibreLancer.Missions.Actions
 
         public Act_Cloak(MissionAction a) : base(a)
         {
-            Target = a.Entry[0].ToString();
-            Cloaked = a.Entry[1].ToBoolean();
+            GetString(nameof(Target),  0, out Target, a.Entry);
+            GetBoolean(nameof(Cloaked), 1, out Cloaked, a.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -109,10 +108,8 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SetInitialPlayerPos(MissionAction act) : base(act)
         {
-            Position = new Vector3(act.Entry[0].ToSingle(), act.Entry[1].ToSingle(),
-                act.Entry[2].ToSingle());
-            Orientation = new Quaternion(act.Entry[4].ToSingle(), act.Entry[5].ToSingle(),
-                act.Entry[6].ToSingle(), act.Entry[3].ToSingle());
+            GetVector3(nameof(Position), 0, out Position, act.Entry);
+            GetQuaternion(nameof(Quaternion), 3, out Orientation, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -139,13 +136,12 @@ namespace LibreLancer.Missions.Actions
 
         public Act_RelocateShip(MissionAction act) : base(act)
         {
-            Ship = act.Entry[0].ToString();
-            Position = new Vector3(act.Entry[1].ToSingle(), act.Entry[2].ToSingle(),
-                act.Entry[3].ToSingle());
+            GetString(nameof(Ship), 0, out Ship, act.Entry);
+            GetVector3(nameof(Position), 1, out Position, act.Entry);
             if (act.Entry.Count > 4)
             {
-                Orientation = new Quaternion(act.Entry[5].ToSingle(), act.Entry[6].ToSingle(), act.Entry[7].ToSingle(),
-                    act.Entry[4].ToSingle());
+                GetQuaternion(nameof(Orientation), 4, out var o, act.Entry);
+                Orientation = o;
             }
         }
 

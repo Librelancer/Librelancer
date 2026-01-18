@@ -23,8 +23,8 @@ public class CndNpcSystemEnter : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("System", undoBuffer, () => ref Data.system);
-        Controls.InputStringList("Ships", undoBuffer, Data.ships);
+        Controls.InputTextIdUndo("System", undoBuffer, () => ref Data.System);
+        Controls.InputStringList("Ships", undoBuffer, Data.Ships);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

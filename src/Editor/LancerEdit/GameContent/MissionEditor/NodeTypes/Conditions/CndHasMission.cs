@@ -23,7 +23,7 @@ public class CndHasMission : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.CheckboxUndo("Has Mission", undoBuffer, () => ref Data.hasMission);
+        Controls.CheckboxUndo("Has Mission", undoBuffer, () => ref Data.HasMission);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

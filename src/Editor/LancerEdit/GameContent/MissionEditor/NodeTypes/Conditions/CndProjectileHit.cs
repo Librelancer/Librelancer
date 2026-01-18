@@ -23,9 +23,9 @@ public class CndProjectileHit : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.target);
-        Controls.InputTextIdUndo("Source", undoBuffer, () => ref Data.source);
-        Controls.InputIntUndo("Count", undoBuffer, () => ref Data.count, 1, 100, default, new(1, 10000));
+        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.Target);
+        Controls.InputTextIdUndo("Source", undoBuffer, () => ref Data.Source);
+        Controls.InputIntUndo("Count", undoBuffer, () => ref Data.Count, 1, 100, default, new(1, 10000));
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -23,8 +23,8 @@ public class CndLootAcquired : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Source Ship", undoBuffer, () => ref Data.sourceShip);
-        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.target);
+        Controls.InputTextIdUndo("Source Ship", undoBuffer, () => ref Data.SourceShip);
+        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.Target);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
