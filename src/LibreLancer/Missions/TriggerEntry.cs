@@ -78,7 +78,8 @@ public abstract class TriggerEntry
         result = Quaternion.Identity;
         if (e.Count > index + 2)
         {
-            result = new(e[index + 3].ToSingle(), e[index].ToSingle(), e[index + 1].ToSingle(), e[index + 2].ToSingle());
+            //W = 0, X = 1, Y = 2, Z = 3
+            result = new(e[index + 1].ToSingle(), e[index + 2].ToSingle(), e[index + 3].ToSingle(), e[index].ToSingle());
         }
         else
         {
