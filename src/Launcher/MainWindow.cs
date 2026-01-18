@@ -32,18 +32,11 @@ public class MainWindow() : Game(640, 350, true)
 
         sm.SetScreen(new LauncherScreen(this, config, sm, pm));
 
-        if (string.IsNullOrEmpty(config.FreelancerPath) || OperatingSystem.IsWindows())
+        if (string.IsNullOrEmpty(config.FreelancerPath))
             {
                 var flPath = GetFreelancerPath();
-                
                 if (!string.IsNullOrEmpty(flPath))
-                    {
-                        config.FreelancerPath=(flPath);
-                        
-                    } else {
-
-                        return;
-                    }
+                    config.FreelancerPath=(flPath);
             }
     }
 
@@ -92,7 +85,6 @@ public class MainWindow() : Game(640, 350, true)
         Exit();
     }
 
-    //[SupportedOSPlatform("windows")]
     private static string GetFreelancerPath()
     {
         // TODO: This function should be in a shared class so that LLServerGui can also use it
