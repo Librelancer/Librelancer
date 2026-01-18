@@ -42,7 +42,7 @@ public static class AudioImporter
     {
         try
         {
-            var decoder = new AudioDecoder(stream);
+            using var decoder = new AudioDecoder(stream);
             var info = new AudioImportInfo();
             info.Channels = decoder.Format == LdFormat.Mono8 || decoder.Format == LdFormat.Mono16 ? 1 : 2;
             info.Frequency = decoder.Frequency;
