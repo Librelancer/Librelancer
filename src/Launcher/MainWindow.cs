@@ -3,14 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Numerics;
-using System.Runtime.Versioning;
+using Microsoft.Win32;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.ImUI;
-using Microsoft.Win32;
 using Launcher.Screens;
 
 namespace Launcher;
@@ -26,18 +24,13 @@ public class MainWindow() : Game(640, 350, true)
     {
         Title = "Librelancer Launcher";
         imGui = new ImGuiHelper(this, 1);
-        RenderContext.PushViewport(0, 0, Width, Height);
-
         config = GameConfig.Create();
-
+        
+        RenderContext.PushViewport(0, 0, Width, Height);
         sm.SetScreen(new LauncherScreen(this, config, sm, pm));
 
         if (string.IsNullOrEmpty(config.FreelancerPath))
-            {
-                var flPath = GetFreelancerPath();
-                if (!string.IsNullOrEmpty(flPath))
-                    config.FreelancerPath=(flPath);
-            }
+            config.FreelancerPath = GetFreelancerPath();
     }
 
     protected override void Draw(double elapsed)
@@ -52,16 +45,16 @@ public class MainWindow() : Game(640, 350, true)
                 WaitForEvent(50);
                 break;
         }
-
+        
         imGui.NewFrame(elapsed);
         RenderContext.ReplaceViewport(0, 0, Width, Height);
         RenderContext.ClearColor = new Color4(0.2f, 0.2f, 0.2f, 1f);
         RenderContext.ClearAll();
-        ImGui.PushFont(ImGuiHelper.Roboto, 0);
+        
         var size = (Vector2)ImGui.GetIO().DisplaySize;
-
         ImGui.SetNextWindowSize(new Vector2(size.X, size.Y), ImGuiCond.Always);
         ImGui.SetNextWindowPos(new Vector2(0, 0), ImGuiCond.Always, Vector2.Zero);
+        ImGui.PushFont(ImGuiHelper.Roboto, 0);
 
         var childOpened = true;
         ImGui.Begin("screen", ref childOpened,
@@ -102,7 +95,7 @@ public class MainWindow() : Game(640, 350, true)
 
     private static string GetBasePath()
     {
-        using var processModule = Process.GetCurrentProcess().MainModule;
-        return Path.GetDirectoryName(processModule?.FileName) ?? AppDomain.CurrentDomain.BaseDirectory;
+        var processPath = System.Environment.ProcessPath;
+        return Path.GetDirectoryName(processPath) ?? AppDomain.CurrentDomain.BaseDirectory;
     }
 }
