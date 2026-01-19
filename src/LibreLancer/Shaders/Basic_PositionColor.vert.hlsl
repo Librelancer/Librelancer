@@ -13,6 +13,8 @@ struct Output
 #ifdef VERTEX_LIGHTING
     float3 diffuseTermFront: TEXCOORD6;
     float3 diffuseTermBack: TEXCOORD7;
+    float3 ambientTermFront: TEXCOORD8;
+    float3 ambientTermBack: TEXCOORD9;
 #endif
     float4 position : SV_Position;
 };
@@ -50,6 +52,8 @@ Output main(VSInput input)
     VertexLightTerms lightTerms = CalculateVertexLighting(output.worldPosition, n);
     output.diffuseTermFront = lightTerms.diffuseTermFront;
     output.diffuseTermBack = lightTerms.diffuseTermBack;
+    output.ambientTermFront = lightTerms.ambientTermFront;
+    output.ambientTermBack = lightTerms.ambientTermBack;
 #endif
     return output;
 }
