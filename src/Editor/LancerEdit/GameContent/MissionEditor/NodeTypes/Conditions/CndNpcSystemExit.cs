@@ -24,8 +24,8 @@ public class CndNpcSystemExit : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         ImGui.Text("This node type has not been tested. Proceed with caution.");
-        Controls.InputTextIdUndo("System", undoBuffer, () => ref Data.system);
-        Controls.InputStringList("Ships", undoBuffer, Data.ships);
+        Controls.InputTextIdUndo("System", undoBuffer, () => ref Data.System);
+        Controls.InputStringList("Ships", undoBuffer, Data.Ships);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

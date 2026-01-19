@@ -23,8 +23,8 @@ public class CndHealthDecreased : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.target);
-        Controls.SliderFloatUndo("Health", undoBuffer, () => ref Data.percent, 0, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp);
+        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.Target);
+        Controls.SliderFloatUndo("Health", undoBuffer, () => ref Data.Percent, 0, 1f, "%.2f", ImGuiSliderFlags.AlwaysClamp);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

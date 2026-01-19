@@ -23,7 +23,7 @@ public class CndInTradeLane : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.CheckboxUndo("In Trade Lane", undoBuffer, () => ref Data.inTL);
+        Controls.CheckboxUndo("In Trade Lane", undoBuffer, () => ref Data.InTL);
         nodePopups.StringCombo("Ship", undoBuffer, () => ref Data.Ship, lookups.Ships);
     }
 

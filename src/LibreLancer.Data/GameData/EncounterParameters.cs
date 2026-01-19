@@ -1,7 +1,3 @@
 namespace LibreLancer.Data.GameData;
 
-public class EncounterParameters
-{
-    public required string Nickname;
-    public required string SourceFile;
-}
+public record struct EncounterParameters(string Nickname, string SourceFile);

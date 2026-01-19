@@ -23,8 +23,8 @@ public class CndRumourHeard : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         ImGui.Text("This node has not been tested in game, and the values may be incorrect.");
-        Controls.CheckboxUndo("Has Heard Rumour", undoBuffer, () => ref Data.hasHeardRumour);
-        Controls.InputIntUndo("Rumour Id", undoBuffer, () => ref Data.rumourId);
+        Controls.CheckboxUndo("Has Heard Rumour", undoBuffer, () => ref Data.HasHeardRumor);
+        Controls.InputIntUndo("Rumour Id", undoBuffer, () => ref Data.RumorId);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

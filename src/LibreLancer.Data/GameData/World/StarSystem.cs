@@ -137,6 +137,11 @@ public class StarSystem : NamedItem
             other.LightSources.Add(lt.Clone());
         }
 
+        foreach (var ep in EncounterParameters)
+        {
+            other.EncounterParameters.Add(ep);
+        }
+
         other.TexturePanelsFiles = TexturePanelsFiles.ToList();
         foreach (var rf in ResourceFiles)
             other.ResourceFiles.Add(rf);

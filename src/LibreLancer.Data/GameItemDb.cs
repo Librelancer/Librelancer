@@ -1122,11 +1122,7 @@ public class GameItemDb
 
             foreach (var ec in inisys.EncounterParameters)
             {
-                sys.EncounterParameters.Add(new EncounterParameters()
-                {
-                    Nickname = ec.Nickname,
-                    SourceFile = ec.Filename
-                });
+                sys.EncounterParameters.Add(new EncounterParameters(ec.Nickname, ec.Filename));
             }
 
             var p = new List<PreloadObject>();

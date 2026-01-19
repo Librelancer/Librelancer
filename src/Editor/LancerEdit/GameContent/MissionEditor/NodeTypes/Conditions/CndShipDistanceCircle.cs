@@ -24,8 +24,8 @@ public class CndShipDistanceCircle : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Source Ship", undoBuffer, () => ref Data.sourceShip);
-        Controls.InputTextIdUndo("Dest Object", undoBuffer, () => ref Data.destObject);
+        Controls.InputTextIdUndo("Source Ship", undoBuffer, () => ref Data.SourceShip);
+        Controls.InputTextIdUndo("Dest Object", undoBuffer, () => ref Data.DestObject);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

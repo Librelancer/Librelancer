@@ -126,7 +126,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             AutoPositionNodes(triggerNodes, counts);
         }
 
-        SetupJumpList();
+        SetupLookups();
     }
 
     bool ReadSavedPositions(string file)
@@ -277,8 +277,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
     }
 
 
-    public void OnRenameTrigger(NodeMissionTrigger node, string oldName, string newName) =>
-        undoBuffer.Commit(new RenameTriggerAction(node, this, oldName, newName));
+    public EditorAction OnRenameTrigger(NodeMissionTrigger node, string oldName, string newName) =>
+         new RenameTriggerAction(node, this, oldName, newName);
 
     private Queue<Action> nodeEditActions = new();
 
@@ -538,7 +538,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         if (ImGui.MenuItem("Trigger"))
         {
-            undoBuffer.Commit(new NewTriggerAction(position, this));
+            var c = NameInputConfig.Nickname("New Trigger", x => GetTrigger(x) != null);
+            popup.OpenPopup(new NameInputPopup(c, "", x => undoBuffer.Commit(new NewTriggerAction(x, position, this))));
         }
 
         if (ImGui.MenuItem("Comment Node"))
@@ -743,7 +744,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         NodeEditor.SetCurrentEditor(null);
 
-        missionIni.Save(FileSaveLocation, gameData, this, nodes.OfType<NodeMissionTrigger>(), savedNodes);
+        missionIni.Save(FileSaveLocation, gameData, nodes.OfType<NodeMissionTrigger>(), savedNodes);
 
         return new EditResult<bool>(true);
     }

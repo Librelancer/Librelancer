@@ -960,8 +960,8 @@ World Time: {12:F2}
                     session.Items.FirstOrDefault(x => x.Equipment is ShieldBatteryEquipment)?.Count ?? 0;
                 uiApi.RepairKits =
                     session.Items.FirstOrDefault(x => x.Equipment is RepairKitEquipment)?.Count ?? 0;
-                ui.Update(Game);
             }
+            ui.Update(Game);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
             TimeDilatedUpdate(delta);
             sysrender.Camera = GetCurrentCamera();
@@ -1047,6 +1047,10 @@ World Time: {12:F2}
             _turretViewCamera.Viewport = Game.RenderContext.CurrentViewport;
             if(!IsSpecialCamera())
 			    ProcessInput(delta);
+            else if (ui.HasModal)
+            {
+                current_cur = cur_arrow;
+            }
 
             //Has to be here or glitches
             if (!Dead)
@@ -1545,18 +1549,17 @@ World Time: {12:F2}
                     nextObjectiveUpdate = 0;
                     UpdateObjectiveObjects();
                 }
-                ui.RenderWidget(delta);
             }
             else
             {
                 ui.Visible = false;
             }
 
-
             if (Thn != null && Thn.Running)
             {
                 Game.RenderContext.PopViewport();
             }
+            ui.RenderWidget(delta);
             session.SetDebug(Game.Debug.Enabled);
             Game.Debug.Draw(delta, () =>
             {
@@ -1630,7 +1633,7 @@ World Time: {12:F2}
                 if(showObjectList)
                     Game.Debug.ObjectsWindow(world.Objects);
             });
-            if ((!IsSpecialCamera() && ShowHud) || Game.Debug.Enabled)
+            if ((!IsSpecialCamera() && ShowHud) || Game.Debug.Enabled || ui.HasModal)
             {
                 current_cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
             }

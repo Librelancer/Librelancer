@@ -115,7 +115,7 @@ public class EditMap2D
             cameraCenter -= delta / mapSize;
         }
         // Zoom
-        else if (ImGui.IsWindowHovered() && ImGui.GetIO().MouseWheel != 0f)
+        else if (ImGui.IsWindowHovered() && ImGui.GetIO().MouseWheel != 0f && !CreationTools.IsAnyToolActive)
         {
             float wheel = ImGui.GetIO().MouseWheel;
             float oldZoom = Zoom;
