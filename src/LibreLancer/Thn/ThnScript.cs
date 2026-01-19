@@ -280,20 +280,27 @@ namespace LibreLancer.Thn
 			}
 			if (table.TryGetValue("userprops", out o))
 			{
+                // userprops table is uniquely case-insensitive
 				var usrprops = (ThornTable)o;
-				if (usrprops.TryGetValue("category", out o))
+                Dictionary<string, object> usertable = new(StringComparer.OrdinalIgnoreCase);
+                foreach (var p in usrprops.Pairs)
+                {
+                    usertable[p.Key?.ToString() ?? ""] = p.Value;
+                }
+
+				if (usertable.TryGetValue("category", out o))
 				{
 					e.MeshCategory = (string)o;
 				}
-				if (usrprops.TryGetValue("nofog", out o))
+				if (usertable.TryGetValue("nofog", out o))
 				{
 					e.NoFog = ThnTypes.Convert<bool>(o);
 				}
-                if (usrprops.TryGetValue("Actor", out o))
+                if (usertable.TryGetValue("Actor", out o))
                 {
                     e.Actor = o.ToString();
                 }
-                if (usrprops.TryGetValue("TextString", out o))
+                if (usertable.TryGetValue("TextString", out o))
                 {
                     e.DisplayText = new ThnDisplayText();
                     e.DisplayText.TextIDS = FuzzyInt(o);
@@ -301,11 +308,11 @@ namespace LibreLancer.Thn
                         e.DisplayText.Start = FuzzyFloat(o);
                 }
 
-                if (usrprops.TryGetValue("Priority", out o))
+                if (usertable.TryGetValue("Priority", out o))
                 {
                     e.Priority = o.ToString();
                 }
-                if (usrprops.TryGetValue("main_object", out o))
+                if (usertable.TryGetValue("main_object", out o))
                 {
                     e.MainObject = true;
                 }
