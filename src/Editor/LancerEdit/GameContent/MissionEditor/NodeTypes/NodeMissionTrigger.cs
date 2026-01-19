@@ -27,6 +27,7 @@ public class NodeMissionTrigger : Node
         Data = new TriggerHeader()
         {
             Nickname = src.Nickname,
+            System = src.System,
             Repeatable = src.Repeatable,
             InitState = src.InitState
         };
