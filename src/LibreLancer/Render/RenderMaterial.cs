@@ -53,14 +53,16 @@ namespace LibreLancer.Render
             public float Type;
             public Color3f Diffuse;
             public float Range;
+            public Color3f Ambient;
+            private float _padding0;
             public Vector3 Attentuation;
             private float _padding1;
             public Vector3 Direction;
+            private float _padding2;
             public float Spotlight;
             public float Falloff;
             public float Theta;
             public float Phi;
-            private float _padding2;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -142,12 +144,13 @@ namespace LibreLancer.Render
                 lights[lt].Attentuation = src.Attenuation;
                 lights[lt].Direction = src.Direction;
                 lights[lt].Diffuse = src.Color;
+                lights[lt].Ambient = src.Ambient;
                 lights[lt].Range = src.Range;
                 if (src.Kind == LightKind.Spotlight)
                 {
                     lights[lt].Spotlight = 1;
-                    lights[lt].Theta =  MathF.Cos(src.Theta * 0.5f);
-                    lights[lt].Phi = MathF.Cos(src.Phi * 0.5f);
+                    lights[lt].Theta =  MathF.Cos(MathHelper.DegreesToRadians(src.Theta) * 0.5f);
+                    lights[lt].Phi = MathF.Cos(MathHelper.DegreesToRadians(src.Phi) * 0.5f);
                     lights[lt].Falloff = src.Falloff;
                 }
                 if (src.Kind == LightKind.Point || src.Kind == LightKind.Spotlight)

@@ -67,7 +67,13 @@ namespace LLServer
             var running = true;
 			while (running)
             {
-                var (cmd, cmdargs) = GetCommand(Console.ReadLine()?.Trim() ?? "");
+                var input = Console.ReadLine();
+                if (input == null)
+                {
+                    app.WaitExit();
+                    break;
+                }
+                var (cmd, cmdargs) = GetCommand(input);
                 switch (cmd.ToLowerInvariant())
 				{
 					case "stop":
