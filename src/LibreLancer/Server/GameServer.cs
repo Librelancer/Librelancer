@@ -140,6 +140,12 @@ namespace LibreLancer.Server
             gameThread.Start();
         }
 
+        public void JoinThread()
+        {
+            gameThread.Join();
+        }
+
+
         public void Stop()
         {
             running = false;
@@ -163,7 +169,7 @@ namespace LibreLancer.Server
         ConcurrentQueue<Action> worldRequests = new ConcurrentQueue<Action>();
         ConcurrentQueue<IPacket> localPackets = new ConcurrentQueue<IPacket>();
         public readonly ConcurrentQueue<ServerEvent> ServerEvents = new ConcurrentQueue<ServerEvent>();
-        
+
         public void OnLocalPacket(IPacket pkt)
         {
             localPackets.Enqueue(pkt);
