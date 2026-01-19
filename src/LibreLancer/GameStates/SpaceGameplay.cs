@@ -1610,7 +1610,7 @@ World Time: {12:F2}
                 }
                 else
                 {
-                    ImGui.Text($"Server Tick: {session.EmbedddedServer.Server.CurrentTick}");
+                    ImGui.Text($"Server Tick: {session.EmbeddedServer.Server.CurrentTick}");
                 }
 
                 bool hasDebug = world.Physics.DebugRenderer != null;
@@ -1625,7 +1625,10 @@ World Time: {12:F2}
                 ImGui.Text($"Free Audio Voices: {Game.Audio.FreeSources}");
                 ImGui.Text($"Playing Sounds: {Game.Audio.PlayingInstances}");
                 ImGui.Text($"Audio Update Time: {Game.Audio.UpdateTime:0.000}ms");
-                ImGui.Text($"Storyline: {session.EmbedddedServer.Server.LocalPlayer.Story?.CurrentStory?.Nickname}");
+                if (!session.Multiplayer)
+                {
+                    ImGui.Text($"Storyline: {session.EmbeddedServer.Server.LocalPlayer.Story?.CurrentStory?.Nickname}");
+                }
                 //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {

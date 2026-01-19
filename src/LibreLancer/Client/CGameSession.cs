@@ -72,7 +72,7 @@ namespace LibreLancer.Client
 
         public CircularBuffer<int> UpdatePacketSizes = new CircularBuffer<int>(200);
 
-        public EmbeddedServer EmbedddedServer => connection as EmbeddedServer;
+        public EmbeddedServer EmbeddedServer => connection as EmbeddedServer;
 
 
 
