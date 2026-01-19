@@ -74,7 +74,8 @@ public class MainWindow() : Game(640, 350, true)
 
     public void StartGame()
     {
-        Program.StartPath = Path.Combine(GetBasePath(), "lancer");
+        var basePath = Path.GetDirectoryName(Environment.ProcessPath) ?? AppDomain.CurrentDomain.BaseDirectory;
+        Program.StartPath = Path.Combine(basePath, "lancer");
         Exit();
     }
 
@@ -91,11 +92,5 @@ public class MainWindow() : Game(640, 350, true)
             
         var installPath = (string?)Registry.GetValue(registryPath, "AppPath", defaultPath);
         return installPath ?? "";
-    }
-
-    private static string GetBasePath()
-    {
-        var processPath = System.Environment.ProcessPath;
-        return Path.GetDirectoryName(processPath) ?? AppDomain.CurrentDomain.BaseDirectory;
     }
 }
