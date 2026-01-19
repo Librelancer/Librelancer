@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
@@ -13,9 +14,19 @@ namespace LancerEdit.GameContent.MissionEditor;
 public sealed partial class MissionScriptEditorTab
 {
     private NodeMissionTrigger[] jumpOptions;
-    void SetupJumpList()
+    private Dictionary<string, NodeMissionTrigger> triggersByName;
+    void SetupLookups()
     {
         jumpOptions = nodes.OfType<NodeMissionTrigger>().OrderBy(x => x.InternalId).ToArray();
+        triggersByName = new(StringComparer.OrdinalIgnoreCase);
+        foreach (var n in jumpOptions)
+            triggersByName[n.InternalId] = n;
+    }
+
+    public NodeMissionTrigger GetTrigger(string name)
+    {
+        triggersByName.TryGetValue(name, out var ret);
+        return ret;
     }
 
     private void RenderLeftSidebar()

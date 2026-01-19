@@ -25,9 +25,9 @@ public class CndPlayerManeuver : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.Combo("Maneuver", undoBuffer, () => ref Data.type);
+        nodePopups.Combo("Maneuver", undoBuffer, () => ref Data.Type);
         // TODO: transform this into a combobox of different ships or a object depending on type
-        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.target);
+        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.Target);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

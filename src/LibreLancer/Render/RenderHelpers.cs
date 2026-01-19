@@ -28,16 +28,6 @@ namespace LibreLancer.Render
             ldynamic = true;
             var lights = Lighting.Create();
             lights.Ambient = lambient ? new Color3f(src.Ambient.R, src.Ambient.G, src.Ambient.B) : Color3f.Black;
-            for (int i = 0; i < src.Lights.Count; i++)
-            {
-                if (src.Lights[i].LightGroup != lightGroup)
-                    continue;
-                if (!src.Lights[i].Active)
-                    continue;
-                lights.Ambient.R += src.Lights[i].Light.Ambient.R;
-                lights.Ambient.G += src.Lights[i].Light.Ambient.G;
-                lights.Ambient.B += src.Lights[i].Light.Ambient.B;
-            }
             lights.NumberOfTilesX = src.NumberOfTilesX;
 			if (nofog)
 			{
@@ -71,7 +61,7 @@ namespace LibreLancer.Render
 					//Advanced spotlight cull
 					if ((l.Kind == LightKind.Spotlight) && SpotlightTest(ref l, c, r))
 						continue;
-                    //if ((lc + 1) > MAX_LIGHTS) throw new Exception("Too many lights!");
+                    if ((lc + 1) > MAX_LIGHTS) throw new Exception("Too many lights!");
                     if ((lc + 1) > MAX_LIGHTS) break;
                     lc++;
                     lights.Lights.SourceEnabled[i] = true;

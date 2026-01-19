@@ -23,9 +23,9 @@ public class CndProjectileHitShipToLabel : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Source Label", undoBuffer, () => ref Data.source);
-        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.target);
-        Controls.InputIntUndo("Count", undoBuffer, () => ref Data.count, 1, 100, default, new(1, 10000));
+        Controls.InputTextIdUndo("Source Label", undoBuffer, () => ref Data.Source);
+        Controls.InputTextIdUndo("Target", undoBuffer, () => ref Data.Target);
+        Controls.InputIntUndo("Count", undoBuffer, () => ref Data.Count, 1, 100, default, new(1, 10000));
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

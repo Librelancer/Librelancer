@@ -39,8 +39,11 @@ namespace LibreLancer.World
 
         protected GameDataManager GetGameData()
         {
-            if(Parent.GetWorld().Renderer != null)
-                return Parent.GetWorld().Renderer.Game.GetService<GameDataManager>();
+            var w = Parent.GetWorld();
+            if (w?.Server != null)
+                return w.Server.Server.GameData;
+            if(w?.Renderer != null)
+                return w.Renderer.Game.GetService<GameDataManager>();
             return null;
         }
 

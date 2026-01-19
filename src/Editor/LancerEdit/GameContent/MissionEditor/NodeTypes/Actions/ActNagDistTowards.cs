@@ -65,7 +65,7 @@ public sealed class ActNagDistTowards : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         Controls.InputTextIdUndo("Nickname", undoBuffer, () => ref Data.Nickname);
-        Controls.InputTextIdUndo("Nagger", undoBuffer, () => ref Data.Nagger);
+        Controls.InputTextIdUndo("NagFrom", undoBuffer, () => ref Data.NagFrom);
         Controls.IdsInputStringUndo("Mission Fail IDS", gameData, popup, undoBuffer, () => ref Data.MissionFailIds);
         Controls.InputFloatUndo("Distance", undoBuffer, () => ref Data.Distance);
 

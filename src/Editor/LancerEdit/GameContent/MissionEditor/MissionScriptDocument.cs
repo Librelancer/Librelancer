@@ -71,7 +71,6 @@ public class MissionScriptDocument
     public void Save(
         string filename,
         GameDataContext gameData,
-        MissionScriptEditorTab tab,
         IEnumerable<NodeMissionTrigger> triggers,
         IEnumerable<SavedNode> nodes)
     {
@@ -137,7 +136,7 @@ public class MissionScriptDocument
 
         foreach (var tr in triggers)
         {
-            tr.WriteNode(tab, ini);
+            tr.WriteNode(ini);
         }
 
         var nodeSection = ini.Section("Nodes");

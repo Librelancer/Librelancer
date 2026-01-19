@@ -22,7 +22,7 @@ public class CndPopUpDialog : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("PopUp Option", undoBuffer, () => ref Data.popUpOption);
+        Controls.InputTextIdUndo("PopUp Option", undoBuffer, () => ref Data.PopUpOption);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

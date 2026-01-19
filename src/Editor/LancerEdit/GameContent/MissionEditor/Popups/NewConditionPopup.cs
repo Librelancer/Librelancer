@@ -3,6 +3,7 @@ using System.Linq;
 using ImGuiNET;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
+using LibreLancer.Missions.Conditions;
 
 namespace LancerEdit.GameContent.MissionEditor.Popups;
 
@@ -17,6 +18,7 @@ public class NewConditionPopup(Action<TriggerConditions> onCreate) : PopupWindow
 
     private static readonly (string Text, TriggerConditions Value)[] options =
         Enum.GetValues<TriggerConditions>()
+            .Where(x => !ScriptedCondition.Unsupported.Contains(x))
             .Select(x => (x.ToString(), x))
             .OrderBy(x => x.Item1)
             .ToArray();
