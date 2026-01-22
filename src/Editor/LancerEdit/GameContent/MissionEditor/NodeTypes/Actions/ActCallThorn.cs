@@ -23,6 +23,8 @@ public sealed class ActCallThorn : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
+        Controls.InputTextUndo("Script", undoBuffer, () => ref Data.Thorn);
+        Controls.InputTextIdUndo("Main Object", undoBuffer, () => ref Data.MainObject);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

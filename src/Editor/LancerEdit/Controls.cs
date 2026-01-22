@@ -113,6 +113,21 @@ public static class Controls
         }
     }
 
+    public static void InputTextUndo(string label,
+        EditorUndoBuffer buffer,
+        FieldAccessor<string> value,
+        float width = 0.0f)
+    {
+        ImGui.PushID(label);
+        EditControlSetup(label, width);
+        ImGuiExt.InputTextLogged("##input",
+            ref value(),
+            250,
+            (old, updated) => buffer.Set(label, value, old, updated),
+            false);
+        ImGui.PopID();
+    }
+
 
     public static void InputTextIdUndo(string label,
         EditorUndoBuffer buffer,
