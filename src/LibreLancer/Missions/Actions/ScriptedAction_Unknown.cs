@@ -977,6 +977,11 @@ public class Act_DebugMsg : ScriptedAction
         Message = CommentEscaping.Escape(Message);
     }
 
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        FLLog.Info("Mission", $"Act_DebugMsg: {Message}");
+    }
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry(CommentEscaping.Escape(Message));

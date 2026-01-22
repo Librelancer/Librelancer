@@ -107,6 +107,7 @@ public abstract class NodeTriggerEntry : Node
             TriggerActions.Act_RelocateShip => new ActRelocateShip(action),
             TriggerActions.Act_StartDialog => new ActStartDialog(action),
             TriggerActions.Act_SendComm => new ActSendComm(action),
+            TriggerActions.Act_DebugMsg => new ActDebugMsg(action),
             TriggerActions.Act_EtherComm => new ActEtherComm(action),
             TriggerActions.Act_SetVibe => new ActSetVibe(action),
             TriggerActions.Act_SetVibeLbl => new ActSetVibeLabel(action),
