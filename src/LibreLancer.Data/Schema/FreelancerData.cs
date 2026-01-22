@@ -80,6 +80,7 @@ public class FreelancerData
     public KeymapIni Keymap = null!;
     public KeyListIni KeyList = null!;
     public VoicesIni Voices = null!;
+    public ShipClassesIni ShipClasses = null!;
     public StorylineIni Storyline = null!;
     public VignetteParamsIni? VignetteParams;
     public string? DataVersion;
@@ -379,6 +380,14 @@ public class FreelancerData
             {
                 VignetteParams = new();
                 VignetteParams.AddFile(Freelancer.DataPath + "randommissions\\vignetteparams.ini", VFS);
+            }
+        });
+        Run(() =>
+        {
+            ShipClasses = new();
+            if (VFS.FileExists(Freelancer.DataPath + "missions\\shipclasses.ini"))
+            {
+                ShipClasses.AddFile(Freelancer.DataPath + "missions\\shipclasses.ini", VFS, stringPool);
             }
         });
         Run(() =>

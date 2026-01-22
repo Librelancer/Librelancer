@@ -67,12 +67,12 @@ public struct SpaceCostume
 
 public struct FormationKind
 {
-    public string Kind;
-    public string Formation;
+    public string EncounterFormation;
+    public string FormationDef;
 
     public FormationKind(Entry e)
     {
-        Kind = e[0].ToString()!;
-        Formation = e[1].ToString()!;
+        EncounterFormation = e[0].ToString()!;
+        FormationDef = e[1].ToString()!;
     }
 }

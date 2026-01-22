@@ -25,6 +25,7 @@ using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Data.Schema.Pilots;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Data.Schema.Universe;
+using LibreLancer.Data.Schema.Voices;
 using Archetype = LibreLancer.Data.GameData.Archetype;
 using Asteroid = LibreLancer.Data.GameData.Asteroid;
 using AsteroidField = LibreLancer.Data.GameData.World.AsteroidField;
@@ -40,6 +41,7 @@ using Pilot = LibreLancer.Data.GameData.Pilot;
 using Spine = LibreLancer.Data.GameData.World.Spine;
 using StarSystem = LibreLancer.Data.GameData.World.StarSystem;
 using SystemObject = LibreLancer.Data.GameData.World.SystemObject;
+using Voice = LibreLancer.Data.GameData.Voice;
 using Zone = LibreLancer.Data.GameData.World.Zone;
 
 namespace LibreLancer.Data;
@@ -75,6 +77,7 @@ public class GameItemDb
     public List<StoryIndex> Story = [];
     public GameItemCollection<Sun> Stars = [];
     public readonly GameItemCollection<StarSystem> Systems = [];
+    public GameItemCollection<Voice> Voices = [];
     public GameItemCollection<ResolvedFx> VisEffects = [];
     public VignetteTree VignetteTree = null!;
 
@@ -490,7 +493,6 @@ public class GameItemDb
                 {
                     if (gd.Min != 0 || gd.Max != 0) //Vanilla adds disabled ships ??? (why)
                     {
-
                         @base.SoldShips.Add(new SoldShip() { Package = sp });
                     }
                 }
@@ -523,6 +525,29 @@ public class GameItemDb
         return pkg;
     }
 
+    private void InitVoices()
+    {
+        FLLog.Info("Voices", $"Initing {flData.Voices.Voices.Count} voices");
+        Dictionary<string, VoiceProp> voiceProps = new(StringComparer.OrdinalIgnoreCase);
+        foreach (var vp in flData.Voices.VoiceProps)
+        {
+            voiceProps[vp.Voice] = vp;
+        }
+        foreach (var v in flData.Voices.Voices.Values)
+        {
+            if (!voiceProps.TryGetValue(v.Nickname, out var p))
+                p = new();
+            var n = new Voice()
+            {
+                Nickname = v.Nickname,
+                CRC = FLHash.CreateID(v.Nickname),
+                Gender = p.Gender,
+                Scripts = v.Scripts.ToArray()
+            };
+            Voices.Add(n);
+        }
+    }
+
     private void InitFactions()
     {
         FLLog.Info("Factions", $"Initing {flData.InitialWorld.Groups.Count} factions");
@@ -540,18 +565,45 @@ public class GameItemDb
             };
             fac.Hidden = flData.Freelancer.HiddenFactions.Contains(fac.Nickname, StringComparer.OrdinalIgnoreCase);
             fac.CRC = CrcTool.FLModelCrc(fac.Nickname);
+            if (fac.Properties != null)
+            {
+                foreach (var v in fac.Properties.Voice)
+                {
+                    var res = Voices.Get(v);
+                    if(res != null)
+                        fac.NpcVoices.Add(res);
+                    else
+                        FLLog.Error("Faction", $"{f.Nickname} references unknown voice {v}");
+                }
+
+                foreach (var v in fac.Properties.NpcShip)
+                {
+                    var res = NpcShips.Get(v);
+
+                    if (res != null)
+                    {
+                        fac.NpcShips.Add(res);
+                        foreach (var cls in res.NpcClass)
+                        {
+                            if (!fac.ShipsByClass.TryGetValue(cls, out var lst))
+                            {
+                                lst = new();
+                                fac.ShipsByClass[cls] = lst;
+                            }
+                            lst.Add(res);
+                        }
+                    }
+                    else
+                        FLLog.Error("Faction", $"{f.Nickname} references unknown NPCShipArch {v}");
+                }
+            }
+
             Factions.Add(fac);
         }
 
         foreach (var f in flData.InitialWorld.Groups)
         {
-            var us = Factions.Get(f.Nickname);
-
-            if (us is null)
-            {
-                FLLog.Warning("Faction", $"Unknown faction ({f.Nickname}) defined in InitialWorld");
-                continue;
-            }
+            var us = Factions.Get(f.Nickname)!; // we just created this, we know it exists.
 
             foreach (var rep in f.Rep)
             {
@@ -591,7 +643,6 @@ public class GameItemDb
 
     private void InitVignetteTree()
     {
-
         VignetteTree = VignetteTree.FromIni(Ini.VignetteParams!);
         Ini.VignetteParams = null;
     }
@@ -710,14 +761,15 @@ public class GameItemDb
                 }
             }
         }, baseTask);
-        var factionsTask = tasks.Begin(InitFactions);
+        var voicesTask = tasks.Begin(InitVoices);
         var equipmentTask = tasks.Begin(InitEquipment, effectsTask);
         var goodsTask = tasks.Begin(InitGoods, equipmentTask);
         var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
         var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask);
         var starsTask = tasks.Begin(InitStars);
         var astsTask = tasks.Begin(InitAsteroids);
-        tasks.Begin(InitNpcShips, shipsTask, loadoutsTask);
+        var npcShips = tasks.Begin(InitNpcShips, shipsTask, loadoutsTask);
+        var factionsTask = tasks.Begin(InitFactions, voicesTask, npcShips);
         tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
         tasks.Begin(InitBodyParts);
         tasks.Begin(InitNews, baseTask);

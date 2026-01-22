@@ -20,6 +20,7 @@ internal partial class VoiceSection
 public class VoicesIni
 {
     public Dictionary<string, Voice> Voices = new(StringComparer.OrdinalIgnoreCase);
+    public List<VoiceProp> VoiceProps = new();
 
     public void AddVoicesIni(string path, FileSystem vfs, IniStringPool? stringPool = null)
     {
@@ -57,6 +58,12 @@ public class VoicesIni
                         currentVoice.Messages.Add(msg);
                     }
                     break;
+                case "mvoiceprop":
+                    if (VoiceProp.TryParse(section, out var prop))
+                    {
+                        VoiceProps.Add(prop);
+                    }
+                    break;
             }
         }
     }
@@ -76,4 +83,15 @@ public partial class VoiceMessage
     [Entry("attenuation")] public float Attenuation;
     [Entry("duration")] public float Duration;
     [Entry("priority")] public string? Priority;
+}
+
+[ParsedSection]
+public partial class VoiceProp
+{
+    [Entry("Voice", Required = true)]
+    public string Voice = "";
+    [Entry("supports_roles")]
+    public string[] SupportsRoles = [];
+    [Entry("gender")]
+    public FLGender Gender;
 }

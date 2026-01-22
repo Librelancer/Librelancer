@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using LibreLancer.Data.Schema.Missions;
 
 namespace LibreLancer.Data.GameData;
 
@@ -22,4 +24,10 @@ public class Faction : NamedItem
 
     public override string? ToString() => $"Faction: {Nickname}";
     public float GetReputation(Faction f) => Reputations.GetValueOrDefault(f, 0.0f);
+
+    public List<Voice> NpcVoices = [];
+    public List<ShipArch> NpcShips = [];
+
+    public Dictionary<string, List<ShipArch>> ShipsByClass = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, FormationDef> Formations = new(StringComparer.OrdinalIgnoreCase);
 }
