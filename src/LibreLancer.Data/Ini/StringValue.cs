@@ -32,7 +32,10 @@ public class StringValue : ValueBase
         {
             return true;
         }
-
+        if ("yes".Equals(value, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ("no".Equals(value, StringComparison.OrdinalIgnoreCase))
+            return false;
         result = !string.IsNullOrEmpty(value);
         return true;
     }
