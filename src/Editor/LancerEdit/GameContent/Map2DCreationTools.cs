@@ -144,7 +144,7 @@ public class PatrolEditor
     {
         if (IsActive)
         {
-            var adjustedPoint = new Vector3(point.X, point.Y + YOffset, point.Z);
+            var adjustedPoint = new Vector3(point.X, YOffset, point.Z);
             Points.Add(adjustedPoint);
         }
     }
@@ -193,7 +193,7 @@ public class PatrolEditor
             var lastPoint = wPos + worldToMap(Points[Points.Count - 1]);
             var mouseInWindow = mousePos - wPos;
             var currentMouseWorldPos = mapToWorld(mouseInWindow);
-            var mouseWithOffset = new Vector3(currentMouseWorldPos.X, currentMouseWorldPos.Y + YOffset, currentMouseWorldPos.Z);
+            var mouseWithOffset = new Vector3(currentMouseWorldPos.X, YOffset, currentMouseWorldPos.Z);
             var mouseMapPos = wPos + worldToMap(mouseWithOffset);
             dlist.AddLine(lastPoint, mouseMapPos, 0xFF80FF80, 1f * ImGuiHelper.Scale);
         }
@@ -204,7 +204,7 @@ public class PatrolEditor
             var mouseInWindow = mousePos - wPos;
             var worldPos = mapToWorld(mouseInWindow);
             // Apply Y offset to the new point
-            worldPos.Y += YOffset;
+            worldPos.Y = YOffset;
             AddPoint(worldPos);
         }
 
