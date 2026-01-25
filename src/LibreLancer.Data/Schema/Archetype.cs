@@ -90,7 +90,7 @@ public partial class Archetype
             IniDiagnostic.InvalidEnum(e, e.Section);
         }
 
-        DockingSpheres.Add(new DockSphere() { Type = type, Hardpoint = e[1].ToString()!, Radius = e[2].ToInt32(), Script = scr });
+        DockingSpheres.Add(new DockSphere() { Type = type, Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
     }
 
 }

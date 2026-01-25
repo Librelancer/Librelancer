@@ -10,9 +10,9 @@ using System.Text;
 namespace LibreLancer.Data.Ini;
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
-public class Entry : ICollection<IValue>
+public class Entry : ICollection<ValueBase>
 {
-    private readonly IList<IValue> values;
+    private readonly IList<ValueBase> values;
 
     public string Name { get; init; }
 
@@ -24,23 +24,23 @@ public class Entry : ICollection<IValue>
     {
         Section = section;
         Name = name;
-        values = capacity > 0 ? new List<IValue>(capacity) : new List<IValue>();
+        values = capacity > 0 ? new List<ValueBase>(capacity) : new List<ValueBase>();
     }
 
-    public IValue this[int index]
+    public ValueBase this[int index]
     {
         get => values[index];
         set => values[index] = value;
     }
 
-    public void Add(IValue item) => values.Add(item);
+    public void Add(ValueBase item) => values.Add(item);
     public void Clear() => values.Clear();
-    public bool Contains(IValue item) => values.Contains(item);
-    public void CopyTo(IValue[] array, int arrayIndex) => values.CopyTo(array, arrayIndex);
+    public bool Contains(ValueBase item) => values.Contains(item);
+    public void CopyTo(ValueBase[] array, int arrayIndex) => values.CopyTo(array, arrayIndex);
     public int Count => values.Count;
     public bool IsReadOnly => false;
-    public bool Remove(IValue item) => values.Remove(item);
-    public IEnumerator<IValue> GetEnumerator() => values.GetEnumerator();
+    public bool Remove(ValueBase item) => values.Remove(item);
+    public IEnumerator<ValueBase> GetEnumerator() => values.GetEnumerator();
     IEnumerator IEnumerable.GetEnumerator() => values.GetEnumerator();
 
     /*public static bool operator ==(Entry operand1, Entry operand2)

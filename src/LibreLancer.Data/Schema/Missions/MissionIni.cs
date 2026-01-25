@@ -1,10 +1,7 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
@@ -39,44 +36,6 @@ public partial class MissionIni
     public MissionIni(string path, FileSystem vfs)
     {
         ParseIni(path, vfs);
-
-        foreach (var objective in Objectives)
-        {
-            if (objective.Type is null)
-            {
-                throw new InvalidOperationException(
-                    $"Invalid NNObjective Type ({objective.Nickname}) within file {path}");
-            }
-
-            objective.TypeData = new NNObjectiveType
-            {
-                Type = objective.Type[0]
-            };
-
-            if (objective.Type[0] == "ids")
-            {
-                objective.TypeData.NameIds = int.Parse(objective.Type[1]);
-            }
-            else if (objective.Type[0] == "rep_inst" || objective.Type[0] == "navmarker")
-            {
-                objective.TypeData.System = objective.Type[1];
-                objective.TypeData.NameIds = int.Parse(objective.Type[2]);
-                objective.TypeData.ExplanationIds = int.Parse(objective.Type[3]);
-                objective.TypeData.Position = new Vector3(
-                    float.Parse(objective.Type[4], NumberFormatInfo.InvariantInfo),
-                    float.Parse(objective.Type[5], NumberFormatInfo.InvariantInfo),
-                    float.Parse(objective.Type[6], NumberFormatInfo.InvariantInfo));
-
-                if (objective.Type[0] == "rep_inst")
-                {
-                    objective.TypeData.SolarNickname = objective.Type[7];
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid NNObjective Type Provided: " + objective.Type[0]);
-            }
-        }
     }
 }
 [ParsedSection]

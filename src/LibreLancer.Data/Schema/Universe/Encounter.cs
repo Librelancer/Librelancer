@@ -72,7 +72,7 @@ public class Encounter : ICloneable, IEquatable<Encounter>
 
     public Encounter(Entry e)
     {
-        Archetype = e[0].ToString()!;
+        Archetype = e[0].ToString();
         if(e.Count > 1)
             Difficulty = e[1].ToInt32();
         if (e.Count > 2)

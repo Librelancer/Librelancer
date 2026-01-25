@@ -40,7 +40,7 @@ public class GraphIni
                         nickname = e[0].ToString();
                         break;
                     case "type":
-                        var t = e[0].ToString()!.ToUpperInvariant();
+                        var t = e[0].ToString().ToUpperInvariant();
                         if (t == "FLOAT")
                             fg = new FloatGraph();
                         else

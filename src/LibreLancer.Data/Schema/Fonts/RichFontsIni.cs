@@ -23,7 +23,7 @@ public class RichFontsIni
 
             foreach (var e in section.Where(e => e.Name.ToLowerInvariant() == "font"))
             {
-                Fonts.Add(new RichFont() { Index = e[0].ToInt32(), Name = e[1].ToString()!, Size = e[2].ToInt32() });
+                Fonts.Add(new RichFont() { Index = e[0].ToInt32(), Name = e[1].ToString(), Size = e[2].ToInt32() });
             }
         }
     }

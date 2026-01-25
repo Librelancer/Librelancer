@@ -38,9 +38,9 @@ public class LoadoutEquip
 
     public LoadoutEquip(Entry e)
     {
-        Nickname = e[0].ToString()!;
+        Nickname = e[0].ToString();
         if (e.Count > 1)
-            Hardpoint = e[1].ToString()!;
+            Hardpoint = e[1].ToString();
     }
 }
 
@@ -50,7 +50,7 @@ public class LoadoutCargo
     public int Count;
     public LoadoutCargo(Entry e)
     {
-        Nickname = e[0].ToString()!;
+        Nickname = e[0].ToString();
         Count = e.Count > 1 ? e[1].ToInt32() : 1;
     }
 }

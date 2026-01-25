@@ -6,7 +6,7 @@ using System;
 
 namespace LibreLancer.Data.Ini;
 
-public abstract class ValueBase : IValue
+public abstract class ValueBase
 {
     public Entry? Entry { get; init; }
 
@@ -48,6 +48,9 @@ public abstract class ValueBase : IValue
     {
         throw new InvalidCastException();
     }
+
+    // Override to hint the C# compiler ToString() can't be null
+    public abstract override string ToString();
 
     public static implicit operator ValueBase(HashValue hv) =>
         hv.String != null

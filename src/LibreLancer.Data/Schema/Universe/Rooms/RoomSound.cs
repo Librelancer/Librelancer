@@ -16,6 +16,6 @@ public partial class RoomSound
     private void MusicEntry(Entry e)
     {
         Music = e[0].ToString();
-        MusicOneShot = e.Count > 1 && e[1].ToString()!.Equals("oneshot", StringComparison.OrdinalIgnoreCase);
+        MusicOneShot = e.Count > 1 && e[1].ToString().Equals("oneshot", StringComparison.OrdinalIgnoreCase);
     }
 }

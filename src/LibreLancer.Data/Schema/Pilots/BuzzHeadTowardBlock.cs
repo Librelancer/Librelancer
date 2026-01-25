@@ -61,7 +61,7 @@ public class HeadTowardsStyle
 
     public HeadTowardsStyle(Entry e)
     {
-        Style = e[0].ToString()!;
+        Style = e[0].ToString();
         Weight = e[1].ToSingle();
     }
 }

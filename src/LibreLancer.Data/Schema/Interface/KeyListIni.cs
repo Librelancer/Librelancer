@@ -34,7 +34,7 @@ public class KeyListIni
                 foreach (var entry in section)
                 {
                     if(entry.Count > 0 && entry.Name.Equals("id", StringComparison.OrdinalIgnoreCase))
-                        currentGroup?.Keys.Add(entry[0].ToString()!);
+                        currentGroup?.Keys.Add(entry[0].ToString());
                 }
             }
         }

@@ -20,7 +20,7 @@ public class MarketGood
     public MarketGood() { }
     public MarketGood(Entry e)
     {
-        Good = e[0].ToString()!;
+        Good = e[0].ToString();
         Rank = e[1].ToInt32();
         Rep = e[2].ToSingle();
         Min = e[3].ToInt32();

@@ -28,10 +28,10 @@ public class MouseIni
                         switch (e.Name.ToLowerInvariant())
                         {
                             case "file":
-                                TxmFile = e[0].ToString()!;
+                                TxmFile = e[0].ToString();
                                 break;
                             case "name":
-                                TextureName = e[0].ToString()!;
+                                TextureName = e[0].ToString();
                                 break;
                         }
                     }

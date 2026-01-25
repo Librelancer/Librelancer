@@ -110,7 +110,7 @@ public static class IniWriter
                             break;
                         default:
                             writer.Write((byte)IniValueType.String);
-                            writer.Write(StringOffset(value.ToString()!));
+                            writer.Write(StringOffset(value.ToString()));
                             break;
                     }
                 }

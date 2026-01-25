@@ -139,9 +139,9 @@ public class FreelancerIni
                             if (DataPath != null)
                                 throw new Exception ("Duplicate " + e.Name + " Entry in " + s.Name);
                             if (IsLibrelancer)
-                                DataPath = EndInSep(e[0].ToString()!);
+                                DataPath = EndInSep(e[0].ToString());
                             else
-                                DataPath = "EXE\\" + EndInSep(e[0].ToString()!);
+                                DataPath = "EXE\\" + EndInSep(e[0].ToString());
                         }
                         if (e.Name.ToLowerInvariant() == "dacom path")
                         {
@@ -178,7 +178,7 @@ public class FreelancerIni
                         }
                         else
                         {
-                            FLLog.Warning("Dll", e[0].ToString()!);
+                            FLLog.Warning("Dll", e[0].ToString());
                         }
                     }
                     break;
@@ -186,7 +186,7 @@ public class FreelancerIni
                     foreach (Entry e in s) {
                         if (e.Name.ToLowerInvariant () != "movie_file")
                             continue;
-                        StartupMovies.Add (e [0].ToString()!);
+                        StartupMovies.Add (e [0].ToString());
                     }
                     break;
                 case "extended":
@@ -207,11 +207,11 @@ public class FreelancerIni
                                 break;
                             case "nonavmap":
                                 if (!extNoNavmaps) { NoNavmapSystems = []; extNoNavmaps = true; }
-                                NoNavmapSystems.Add(e[0].ToString()!);
+                                NoNavmapSystems.Add(e[0].ToString());
                                 break;
                             case "hidefaction":
                                 if (!extHideFac) { HiddenFactions = [];  extHideFac = true; };
-                                HiddenFactions.Add(e[0].ToString()!);
+                                HiddenFactions.Add(e[0].ToString());
                                 break;
                         }
                     }

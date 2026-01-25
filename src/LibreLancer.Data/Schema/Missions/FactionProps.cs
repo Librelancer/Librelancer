@@ -46,7 +46,7 @@ public struct ScanForCargo
 
     public ScanForCargo(Entry e)
     {
-        Cargo = e[0].ToString()!;
+        Cargo = e[0].ToString();
         Param = e[1].ToInt32();
     }
 }
@@ -59,9 +59,9 @@ public struct SpaceCostume
 
     public SpaceCostume(Entry e)
     {
-        Head = e[0].ToString()!;
-        Body = e[1].ToString()!;
-        Extra = e[2].ToString()!;
+        Head = e[0].ToString();
+        Body = e[1].ToString();
+        Extra = e[2].ToString();
     }
 }
 
@@ -72,7 +72,7 @@ public struct FormationKind
 
     public FormationKind(Entry e)
     {
-        EncounterFormation = e[0].ToString()!;
-        FormationDef = e[1].ToString()!;
+        EncounterFormation = e[0].ToString();
+        FormationDef = e[1].ToString();
     }
 }

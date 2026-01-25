@@ -17,9 +17,9 @@ public abstract class TriggerEntry
         return false;
     }
 
-    protected bool ParseBoolean(IValue value)
+    protected bool ParseBoolean(ValueBase value)
     {
-        bool? result = value.ToString()!.ToLowerInvariant() switch
+        bool? result = value.ToString().ToLowerInvariant() switch
         {
             "1" => true,
             "accept" => true,

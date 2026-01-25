@@ -47,21 +47,21 @@ public partial class GfNpc
 
     [EntryHandler("rumor", MinComponents = 4, Multiline = true)]
     private void HandleRumor(Entry e) => Rumors.Add(
-        new NpcRumor(e[0].ToString()!, e[1].ToString()!, e[2].ToInt32(), e[3].ToInt32(), false)
+        new NpcRumor(e[0].ToString(), e[1].ToString(), e[2].ToInt32(), e[3].ToInt32(), false)
     );
 
     [EntryHandler("rumor_type2", MinComponents = 4, Multiline = true)]
     private void HandleRumorType2(Entry e) => Rumors.Add(
-        new NpcRumor(e[0].ToString()!, e[1].ToString()!, e[2].ToInt32(), e[3].ToInt32(), true)
+        new NpcRumor(e[0].ToString(), e[1].ToString(), e[2].ToInt32(), e[3].ToInt32(), true)
     );
 
     [EntryHandler("bribe", MinComponents = 3, Multiline = true)]
     private void HandleBribe(Entry e) => Bribes.Add(
-        new NpcBribe(e[0].ToString()!, e[1].ToInt32(), e[2].ToInt32())
+        new NpcBribe(e[0].ToString(), e[1].ToInt32(), e[2].ToInt32())
     );
 
     [EntryHandler("misn", MinComponents = 3)]
-    private void HandleMisn(Entry e) => Mission = new NpcMission(e[0].ToString()!, e[1].ToSingle(), e[2].ToSingle());
+    private void HandleMisn(Entry e) => Mission = new NpcMission(e[0].ToString(), e[1].ToSingle(), e[2].ToSingle());
 
     [EntryHandler("rumorknowdb", Multiline = true)]
     private void RumorKnowDb(Entry knowdb)
@@ -69,7 +69,7 @@ public partial class GfNpc
         if (Rumors.Count == 0)
             IniDiagnostic.Warn("rumorknowdb without rumor", knowdb);
         else
-            Rumors[^1].Objects = knowdb.Select(x => x.ToString()!).ToArray();
+            Rumors[^1].Objects = knowdb.Select(x => x.ToString()).ToArray();
     }
 
     [EntryHandler("knowdb", Multiline = true)]
@@ -78,7 +78,7 @@ public partial class GfNpc
         if (Know.Count == 0)
             IniDiagnostic.Warn("knowdb without know", knowdb);
         else
-            Know[^1].Objects = knowdb.Select(x => x.ToString()!).ToArray();
+            Know[^1].Objects = knowdb.Select(x => x.ToString()).ToArray();
     }
 }
 

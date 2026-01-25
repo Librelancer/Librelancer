@@ -22,8 +22,8 @@ public partial class MissionDialog
     {
         var ln = new DialogLine()
         {
-            Source = e[0].ToString()!,
-            Target = e[1].ToString()!, Line = e[2].ToString()!
+            Source = e[0].ToString(),
+            Target = e[1].ToString(), Line = e[2].ToString()
         };
 
         if (e.Count > 3)

@@ -18,7 +18,7 @@ public class MouseShape
             switch (e.Name.ToLowerInvariant())
             {
                 case "name":
-                    Name = e[0].ToString()!;
+                    Name = e[0].ToString();
                     break;
                 case "x":
                     x = e[0].ToInt32();

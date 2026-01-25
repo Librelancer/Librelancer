@@ -160,9 +160,9 @@ public class ShieldLink
 
     public ShieldLink(Entry e)
     {
-        Name = e[0].ToString()!;
-        HardpointMount = e[1].ToString()!;
-        HardpointShield = e[2].ToString()!;
+        Name = e[0].ToString();
+        HardpointMount = e[1].ToString();
+        HardpointShield = e[2].ToString();
     }
 }
 
@@ -178,6 +178,6 @@ public class SurfaceHitEffects
     public SurfaceHitEffects(Entry e)
     {
         Threshold = e[0].ToSingle();
-        Effects = e.Skip(1).Select(x => x.ToString()!).ToArray();
+        Effects = e.Skip(1).Select(x => x.ToString()).ToArray();
     }
 }

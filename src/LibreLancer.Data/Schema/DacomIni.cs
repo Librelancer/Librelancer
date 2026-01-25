@@ -20,7 +20,7 @@ public class DacomIni
                     var map = new MaterialMap ();
                     foreach (Entry e in s) {
                         if (e.Name.ToLowerInvariant () != "name") {
-                            map.AddMap (e.Name, e [0].ToString()!);
+                            map.AddMap (e.Name, e [0].ToString());
                         } else {
                             map.AddRegex (e [0].ToKeyValue ());
                         }

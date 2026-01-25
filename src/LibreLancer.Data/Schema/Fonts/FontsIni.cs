@@ -20,7 +20,7 @@ public class FontsIni
             {
                 foreach(var entry in section)
                 {
-                    FontFiles.Add(entry[0].ToString()!);
+                    FontFiles.Add(entry[0].ToString());
                 }
             }
             else if(section.Name.ToLowerInvariant() == "truetype")

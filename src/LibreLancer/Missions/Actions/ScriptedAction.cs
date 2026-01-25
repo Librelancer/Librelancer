@@ -190,38 +190,31 @@ namespace LibreLancer.Missions.Actions
                 return;
             }
 
-            if (v.Type[0].Equals("ids", StringComparison.OrdinalIgnoreCase))
+            switch (v.Type)
             {
-                runtime.Player.SetObjective(new NetObjective(int.Parse(v.Type[1])), History);
+                case NNObjectiveType.ids:
+                    runtime.Player.SetObjective(new NetObjective(v.NameIds), History);
+                    break;
+                case NNObjectiveType.navmarker:
+                    runtime.Player.SetObjective(
+                        new NetObjective(
+                            v.NameIds,
+                            v.ExplanationIds,
+                            v.System,
+                            v.Position
+                        ), History);
+                    break;
+                case NNObjectiveType.rep_inst:
+                    runtime.Player.SetObjective(
+                        new NetObjective(
+                            v.NameIds,
+                            v.ExplanationIds,
+                            v.System,
+                            v.SolarNickname
+                            ), History);
+                    break;
             }
-            else if (v.Type[0].Equals("navmarker", StringComparison.OrdinalIgnoreCase))
-            {
-                runtime.Player.SetObjective(
-                    new NetObjective(
-                        int.Parse(v.Type[2]),
-                        int.Parse(v.Type[3]),
-                        v.Type[1],
-                        new Vector3(
-                            float.Parse(v.Type[4], CultureInfo.InvariantCulture),
-                            float.Parse(v.Type[5], CultureInfo.InvariantCulture),
-                            float.Parse(v.Type[6], CultureInfo.InvariantCulture)
-                        )
-                    ),
-                    History
-                );
-            }
-            else if (v.Type[0].Equals("rep_inst", StringComparison.OrdinalIgnoreCase))
-            {
-                runtime.Player.SetObjective(
-                    new NetObjective(
-                        int.Parse(v.Type[2]),
-                        int.Parse(v.Type[3]),
-                        v.Type[1],
-                        v.Type[7]
-                    ),
-                    History
-                );
-            }
+
         }
     }
 

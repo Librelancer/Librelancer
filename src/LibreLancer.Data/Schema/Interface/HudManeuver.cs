@@ -17,10 +17,10 @@ public class HudManeuver
 
     public HudManeuver(Entry e)
     {
-        Action = e[0].ToString()!;
+        Action = e[0].ToString();
         InfocardA = e[1].ToInt32();
         InfocardB = e[2].ToInt32();
-        ActiveModel = e[3].ToString()!;
-        InactiveModel = e[4].ToString()!;
+        ActiveModel = e[3].ToString();
+        InactiveModel = e[4].ToString();
     }
 }

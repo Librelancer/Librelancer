@@ -690,10 +690,10 @@ public static class IniSerializer
 
     public static void SerializeMissionObjective(NNObjective objective, IniBuilder ini)
     {
-        ini.Section("NNObjective")
+        var obj = ini.Section("NNObjective")
             .Entry("nickname", objective.Nickname)
-            .Entry("state", objective.State)
-            .Entry("type", objective.Type);
+            .OptionalEntry("state", objective.State);
+
     }
 
     public static void SerializeScriptFormation(ScriptFormation formation, IniBuilder ini)

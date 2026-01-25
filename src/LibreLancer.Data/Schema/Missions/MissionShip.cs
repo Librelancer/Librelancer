@@ -38,7 +38,7 @@ public partial class MissionShip
     [EntryHandler("cargo", Multiline = true, MinComponents = 2)]
     private void ParseCargo(Entry e) => Cargo.Add(new MissionShipCargo()
     {
-        Cargo = e[0].ToString()!,
+        Cargo = e[0].ToString(),
         Count = e[1].ToInt32()
     });
 
@@ -51,7 +51,7 @@ public partial class MissionShip
             index = e[1].ToInt32();
         }
 
-        ArrivalObj = new(e[0].ToString()!, index);
+        ArrivalObj = new(e[0].ToString(), index);
     }
 
     public MissionRelativePosition RelativePosition = new();

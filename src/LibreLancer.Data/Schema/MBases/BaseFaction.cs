@@ -23,7 +23,7 @@ public partial class BaseFaction
     private void HandleMissionType(Entry e)
     {
         var weight = e.Count > 3 ? e[3].ToSingle() : 100;
-        Missions.Add(new BaseFactionMission(e[0].ToString()!, e[1].ToSingle(), e[2].ToSingle(), weight));
+        Missions.Add(new BaseFactionMission(e[0].ToString(), e[1].ToSingle(), e[2].ToSingle(), weight));
     }
 }
 

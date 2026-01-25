@@ -33,11 +33,11 @@ public class OfferTextEntry
     {
         var ot = new OfferTextEntry();
         var itemList = new List<OfferTextItem>();
-        ot.Op = Enum.Parse<OfferTextOp>(e[0].ToString()!);
+        ot.Op = Enum.Parse<OfferTextOp>(e[0].ToString());
         for (int i = 1; i < e.Count; i++)
         {
             var item = new OfferTextItem();
-            var opOrIds = e[i].ToString()!.ToLowerInvariant();
+            var opOrIds = e[i].ToString().ToLowerInvariant();
             switch (opOrIds)
             {
                 case "singular":
@@ -56,7 +56,7 @@ public class OfferTextEntry
             {
                 if (e[i + 1].TryToInt32(out _))
                     break;
-                var op = e[i + 1].ToString()!;
+                var op = e[i + 1].ToString();
                 if (op.Equals("singular", StringComparison.OrdinalIgnoreCase) ||
                     op.Equals("plural", StringComparison.OrdinalIgnoreCase))
                     break;

@@ -35,6 +35,8 @@ public class MapValue : ValueBase
         throw new InvalidCastException ();
     }
 
+    public override string ToString() => value?.ToString() ?? "";
+
     public override StringKeyValue ToKeyValue()
     {
         return value;

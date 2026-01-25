@@ -43,7 +43,7 @@ public class MetaSave
                 }
                 else if (e.Name.Equals("description", StringComparison.OrdinalIgnoreCase))
                 {
-                    var bytes = e[0].ToString()!.SplitInGroups(2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
+                    var bytes = e[0].ToString().SplitInGroups(2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
                     sg.Description = Encoding.BigEndianUnicode.GetString(bytes);
                     descSet = true;
 

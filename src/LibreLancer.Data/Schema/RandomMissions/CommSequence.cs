@@ -33,11 +33,11 @@ public class CommSequence
         var c = new CommSequence
         {
             Event = e[0].ToString(),
-            Target = Enum.Parse<CommSequenceTarget>(e[1].ToString()!, true),
+            Target = Enum.Parse<CommSequenceTarget>(e[1].ToString(), true),
             Unknown1 = e[2].ToSingle(),
             Unknown2 = e[3].ToSingle(),
             Unknown3 = e[4].ToSingle(),
-            Source = Enum.Parse<CommSequenceSource>(e[5].ToString()!, true),
+            Source = Enum.Parse<CommSequenceSource>(e[5].ToString(), true),
             Comm = e[6].ToString()
         };
         return c;

@@ -80,9 +80,9 @@ public class AttackPreference
 
     public AttackPreference(Entry e)
     {
-        Target = Enum.Parse<AttackTarget>(e[0].ToString()!, true);
+        Target = Enum.Parse<AttackTarget>(e[0].ToString(), true);
         Unknown = e[1].ToSingle();
-        var flags = e[2].ToString()!
+        var flags = e[2].ToString()
             .Split('|', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         foreach (var f in flags)
             Flags |= Enum.Parse<AttackFlags>(f, true);

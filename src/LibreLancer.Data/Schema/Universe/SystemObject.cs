@@ -87,8 +87,8 @@ public partial class SystemObject : SystemPart
     [EntryHandler("goto", MinComponents = 2)]
     private void HandleGoto(Entry e)
     {
-        var tunnel = e.Count > 2 ? e[2].ToString()! : "";
-        Goto = new JumpReference(e[0].ToString()!, e[1].ToString()!, tunnel);
+        var tunnel = e.Count > 2 ? e[2].ToString() : "";
+        Goto = new JumpReference(e[0].ToString(), e[1].ToString(), tunnel);
     }
 
     [EntryHandler("ring", MinComponents = 2)]

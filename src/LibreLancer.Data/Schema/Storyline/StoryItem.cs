@@ -30,7 +30,7 @@ public partial class StoryItem
         }
         else
         {
-            var str = e.Count > 1 ? e[1].ToString()! : "";
+            var str = e.Count > 1 ? e[1].ToString() : "";
             Actions.Add(new(act, str));
         }
     }

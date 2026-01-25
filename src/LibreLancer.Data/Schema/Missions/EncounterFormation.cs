@@ -25,20 +25,20 @@ public partial class EncounterFormation
     [EntryHandler("ship_by_class", Multiline = true, MinComponents = 3)]
     void HandleShipByClass(Entry e)
     {
-        Ships.Add(new EncounterShipDefinition(EncounterShipKind.Class, e[0].ToInt32(), e[1].ToInt32(), e[2].ToString()!));
+        Ships.Add(new EncounterShipDefinition(EncounterShipKind.Class, e[0].ToInt32(), e[1].ToInt32(), e[2].ToString()));
     }
 
     [EntryHandler("ship_by_npc_arch", Multiline = true, MinComponents = 3)]
     void HandleShipByNpcArch(Entry e)
     {
-        Ships.Add(new EncounterShipDefinition(EncounterShipKind.NPCArch, e[0].ToInt32(), e[1].ToInt32(), e[2].ToString()!));
+        Ships.Add(new EncounterShipDefinition(EncounterShipKind.NPCArch, e[0].ToInt32(), e[1].ToInt32(), e[2].ToString()));
     }
 
     [EntryHandler("arrival", MinComponents = 1)]
     void HandleArrival(Entry e)
     {
         Arrival = new EncounterArrival();
-        foreach (var str in e.Select(x => x.ToString()!))
+        foreach (var str in e.Select(x => x.ToString()))
         {
             if (str[0] == '-' && Enum.TryParse<Arrivals>(str.AsSpan(1), out var exclude))
                 Arrival.Excludes.Add(exclude);

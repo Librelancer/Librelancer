@@ -20,11 +20,11 @@ public class PlayerEquipment
     public PlayerEquipment() { }
     public PlayerEquipment(Entry e)
     {
-        var s = e[0].ToString()!;
+        var s = e[0].ToString();
         Item = !uint.TryParse(s, out uint hash) ? new HashValue(s) : hash;
         if (e.Count < 2) return;
         //Extra
-        Hardpoint = e[1].ToString()!;
+        Hardpoint = e[1].ToString();
         if (e.Count > 2) Unknown = e[2].ToSingle();
     }
 
@@ -47,7 +47,7 @@ public class PlayerCargo
     public PlayerCargo() { }
     public PlayerCargo(Entry e)
     {
-        var s = e[0].ToString()!;
+        var s = e[0].ToString();
         if (!uint.TryParse(s, out uint hash)) Item = new HashValue(s);
         else Item = hash;
         Count = e[1].ToInt32();
@@ -160,7 +160,7 @@ public partial class SavePlayer : IWriteSection
     {
         try
         {
-            var bytes = e[0].ToString()!.SplitInGroups(2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
+            var bytes = e[0].ToString().SplitInGroups(2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
             Description = Encoding.BigEndianUnicode.GetString(bytes);
         }
         catch (Exception)
@@ -174,7 +174,7 @@ public partial class SavePlayer : IWriteSection
     {
         try
         {
-            var bytes = e[0].ToString()!.SplitInGroups(2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
+            var bytes = e[0].ToString().SplitInGroups(2).Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray();
             Name = Encoding.BigEndianUnicode.GetString(bytes);
         }
         catch (Exception)

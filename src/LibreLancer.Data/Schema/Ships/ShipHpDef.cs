@@ -18,7 +18,7 @@ public class ShipHpDef
 
     public ShipHpDef(Entry e)
     {
-        Type = e[0].ToString()!;
-        Hardpoints = e.Skip(1).Select(x => x.ToString()!).ToArray();
+        Type = e[0].ToString();
+        Hardpoints = e.Skip(1).Select(x => x.ToString()).ToArray();
     }
 }

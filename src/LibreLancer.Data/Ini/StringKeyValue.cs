@@ -13,9 +13,6 @@ public class StringKeyValue : ValueBase
 
     public StringKeyValue (string key, string value)
     {
-        if (key == null) throw new ArgumentNullException(nameof(key));
-        if (value == null) throw new ArgumentNullException(nameof(value));
-
         Key = key;
         Value = value;
     }
@@ -45,4 +42,6 @@ public class StringKeyValue : ValueBase
     {
         return this;
     }
+
+    public override string ToString() => $"{Key} = {Value}";
 }

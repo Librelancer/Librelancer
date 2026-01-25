@@ -24,11 +24,11 @@ public partial class MissionState : IWriteSection
 
     [EntryHandler("rtc", Multiline = true, MinComponents = 2)]
     private void HandleRtc(Entry e) =>
-        Rtcs.Add(new(e[0].ToString()!, e[1].ToBoolean()));
+        Rtcs.Add(new(e[0].ToString(), e[1].ToBoolean()));
 
     [EntryHandler("ambi_scene", Multiline = true, MinComponents = 3)]
     private void HandleAmbiScene(Entry e) =>
-        Ambients.Add(new(e[0].ToString()!, new HashValue(e[1]), new HashValue(e[2])));
+        Ambients.Add(new(e[0].ToString(), new HashValue(e[1]), new HashValue(e[2])));
 
     public void WriteTo(IniBuilder builder)
     {

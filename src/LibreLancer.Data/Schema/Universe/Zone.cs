@@ -114,10 +114,10 @@ public partial class Zone : SystemPart
             //FLLog.Warning("Ini", $"faction entry without matching encounter at {e.Section.File}:{e.Line}");
         }
         else {
-            Encounters[^1].FactionSpawns.Add(new (e[0].ToString()!, e[1].ToSingle()));
+            Encounters[^1].FactionSpawns.Add(new (e[0].ToString(), e[1].ToSingle()));
         }
     }
 
     [EntryHandler("density_restriction", MinComponents = 2, Multiline = true)]
-    private void HandleDensityRestriction(Entry e) => DensityRestrictions.Add(new DensityRestriction(e[0].ToInt32(), e[1].ToString()!));
+    private void HandleDensityRestriction(Entry e) => DensityRestrictions.Add(new DensityRestriction(e[0].ToInt32(), e[1].ToString()));
 }

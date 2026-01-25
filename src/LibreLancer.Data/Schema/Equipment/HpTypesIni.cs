@@ -104,7 +104,7 @@ public class HpTypesIni
                 {
                     AddType(new HpType(
                         x.Name,
-                        Enum.Parse<HpCategory>(x[0].ToString()!, true),
+                        Enum.Parse<HpCategory>(x[0].ToString(), true),
                         x[1].ToInt32(),
                         x[2].ToInt32(),
                         x[3].ToInt32()

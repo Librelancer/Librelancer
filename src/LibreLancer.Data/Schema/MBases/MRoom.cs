@@ -30,8 +30,8 @@ public class MRoomNpcRef
 
     public MRoomNpcRef(Entry e)
     {
-        Npc = e[0].ToString()!;
-        StandMarker = e[1].ToString()!;
+        Npc = e[0].ToString();
+        StandMarker = e[1].ToString();
         if(e.Count > 2)
             Script = e[2].ToString();
         if(e.Count > 3)

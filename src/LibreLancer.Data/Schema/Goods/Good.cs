@@ -63,7 +63,7 @@ public partial class Good
             amt = e[2].ToInt32();
         }
 
-        Addons.Add(new GoodAddon() { Equipment = e[0].ToString()!, Hardpoint = e[1].ToString()!, Amount = amt });
+        Addons.Add(new GoodAddon() { Equipment = e[0].ToString(), Hardpoint = e[1].ToString(), Amount = amt });
     }
 
     [EntryHandler("free_ammo", Multiline = true, MinComponents = 2)]

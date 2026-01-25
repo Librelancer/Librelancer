@@ -20,12 +20,12 @@ public partial class Explosion
     [EntryHandler("effect", MinComponents = 2, Multiline = true)]
     private void HandleEffect(Entry e)
     {
-        Effects.Add((e[0].ToString()!, e[1].ToSingle()));
+        Effects.Add((e[0].ToString(), e[1].ToSingle()));
     }
 
     [EntryHandler("debris_type", MinComponents = 2, Multiline = true)]
     private void HandleDebrisType(Entry e)
     {
-        DebrisTypes.Add((e[0].ToString()!, e[1].ToSingle()));
+        DebrisTypes.Add((e[0].ToString(), e[1].ToSingle()));
     }
 }

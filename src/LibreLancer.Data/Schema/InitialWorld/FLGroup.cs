@@ -16,5 +16,5 @@ public partial class FlGroup
 
     [EntryHandler("rep", MinComponents = 2, Multiline = true)]
     private void HandleRep(Entry e) =>
-        Rep.Add(new GroupReputation(e[0].ToSingle(), e[1].ToString()!));
+        Rep.Add(new GroupReputation(e[0].ToSingle(), e[1].ToString()));
 }

@@ -91,8 +91,8 @@ public class TexturePanels
                         throw new Exception("Duplicate " + e.Name + " Entry in " + section.Name);
                     }
 
-                    Files.Add(e[0].ToString()!);
-                    f = e[0].ToString()!;
+                    Files.Add(e[0].ToString());
+                    f = e[0].ToString();
                     break;
                 case "texture_name":
                     if (e.Count != 1)
@@ -100,18 +100,18 @@ public class TexturePanels
                         throw new Exception($"Invalid number of values in {section.Name} Entry {e.Name}: {e.Count}");
                     }
 
-                    current_texname = e[0].ToString()!;
+                    current_texname = e[0].ToString();
                     break;
 
                 case "tex_shape":
-                    Shapes[e[0].ToString()!] =
-                        new TextureShape(e[0].ToString()!, e[0].ToString()!, new RectangleF(0, 0, 1, 1));
+                    Shapes[e[0].ToString()] =
+                        new TextureShape(e[0].ToString(), e[0].ToString(), new RectangleF(0, 0, 1, 1));
                     break;
                 case "shape_name":
                     if (e.Count != 1)
                         throw new Exception("Invalid number of values in " + section.Name + " Entry " + e.Name +
                                             ": " + e.Count);
-                    var shape_name = e[0].ToString()!;
+                    var shape_name = e[0].ToString();
                     RectangleF dimensions;
 
                     if (i + 1 >= section.Count || section[i + 1].Name.ToLower() != "dim")
@@ -140,7 +140,7 @@ public class TexturePanels
                     i++;
                     break;
                 case "name":
-                    shapeTexName = e[0].ToString()!;
+                    shapeTexName = e[0].ToString();
                     break;
                 default:
                     FLLog.Warning("Ini", "Invalid entry " + e.Name + " in " + section.File);

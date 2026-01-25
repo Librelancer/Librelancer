@@ -26,9 +26,9 @@ public class PetalDbIni
                 switch (e.Name.ToLowerInvariant())
                 {
                     case "room":
-                        if (!Rooms.ContainsKey(e[0].ToString()!))
+                        if (!Rooms.ContainsKey(e[0].ToString()))
                         {
-                            Rooms.Add(e[0].ToString()!, e[1].ToString()!);
+                            Rooms.Add(e[0].ToString(), e[1].ToString());
                         }
                         else
                         {
@@ -37,9 +37,9 @@ public class PetalDbIni
 
                         break;
                     case "prop":
-                        if (!Props.ContainsKey(e[0].ToString()!))
+                        if (!Props.ContainsKey(e[0].ToString()))
                         {
-                            Props.Add(e[0].ToString()!, e[1].ToString()!);
+                            Props.Add(e[0].ToString(), e[1].ToString());
                         }
                         else
                         {
@@ -48,9 +48,9 @@ public class PetalDbIni
 
                         break;
                     case "cart":
-                        if (!Carts.ContainsKey(e[0].ToString()!))
+                        if (!Carts.ContainsKey(e[0].ToString()))
                         {
-                            Carts.Add(e[0].ToString()!, e[1].ToString()!);
+                            Carts.Add(e[0].ToString(), e[1].ToString());
                         }
                         else
                         {

@@ -11,7 +11,7 @@ public struct HashValue : IEquatable<HashValue>
     private uint h;
     private string? s;
 
-    public HashValue(IValue v)
+    public HashValue(ValueBase v)
     {
         if (v.TryToInt32(out var hash))
         {
@@ -20,7 +20,7 @@ public struct HashValue : IEquatable<HashValue>
         }
         else
         {
-            s = v.ToString()!;
+            s = v.ToString();
             h = FLHash.CreateID(s);
         }
     }

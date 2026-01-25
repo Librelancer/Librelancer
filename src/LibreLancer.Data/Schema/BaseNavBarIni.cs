@@ -29,7 +29,7 @@ public class BaseNavBarIni
                     entry.Add(new StringValue(""));
                 }
 
-                Navbar.Add(entry.Name, entry[0].ToString()!);
+                Navbar.Add(entry.Name, entry[0].ToString());
             }
         }
     }

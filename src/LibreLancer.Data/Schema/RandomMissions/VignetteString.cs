@@ -28,7 +28,7 @@ public struct VignetteString
             for (int i = 0; i < str.Arguments.Length; i++)
             {
                 idx++;
-                str.Arguments[i] = e[idx].ToString()!;
+                str.Arguments[i] = e[idx].ToString();
             }
         }
         else

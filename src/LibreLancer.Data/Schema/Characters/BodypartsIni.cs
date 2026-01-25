@@ -31,7 +31,7 @@ public class BodypartsIni
                     // TODO: Bodyparts Animations
                     foreach (var e in s)
                     {
-                        Animations.Add(e[0].ToString()!);
+                        Animations.Add(e[0].ToString());
                     }
                     break;
                 case "detailswitchtable":
@@ -45,7 +45,7 @@ public class BodypartsIni
                     {
                         if (e.Name.Equals("sex", StringComparison.OrdinalIgnoreCase))
                         {
-                            currentSkeletonSex = e[0].ToString()!;
+                            currentSkeletonSex = e[0].ToString();
                         }
                     }
                     // TODO: Bodyparts Skeleton

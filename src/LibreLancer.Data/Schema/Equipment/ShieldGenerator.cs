@@ -27,7 +27,7 @@ public partial class ShieldGenerator : AbstractEquipment
     {
         ShieldHitEffects.Add(new ShieldHitEffect()
         {
-            Number = e[0].ToSingle(), Effect = e[1].ToString()!
+            Number = e[0].ToSingle(), Effect = e[1].ToString()
         });
     }
 }

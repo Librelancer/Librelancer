@@ -18,7 +18,7 @@ public class DirectionWeight
 
     public DirectionWeight(Entry e)
     {
-        Direction = e[0].ToString()!;
+        Direction = e[0].ToString();
         Weight = e[1].ToSingle();
     }
 }

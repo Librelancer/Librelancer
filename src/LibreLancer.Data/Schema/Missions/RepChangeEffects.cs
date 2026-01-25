@@ -13,7 +13,7 @@ public partial class RepChangeEffects
     public List<GroupReputation> EmpathyRate = [];
 
     [EntryHandler("empathy_rate", MinComponents = 2, Multiline = true)]
-    private void HandleEmpathyRate(Entry e) => EmpathyRate.Add(new GroupReputation(e[1].ToSingle(), e[0].ToString()!));
+    private void HandleEmpathyRate(Entry e) => EmpathyRate.Add(new GroupReputation(e[1].ToSingle(), e[0].ToString()));
 
     [EntryHandler("event", MinComponents = 2, Multiline = true)]
     private void HandleEvent(Entry e) => Events.Add(new EmpathyEvent(e));

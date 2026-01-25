@@ -26,21 +26,21 @@ public partial class RoomInfo
         {
             int i = 0;
             bool all = false;
-            if (e[0].ToString()!.Equals("all", StringComparison.OrdinalIgnoreCase))
+            if (e[0].ToString().Equals("all", StringComparison.OrdinalIgnoreCase))
             {
                 all = true;
                 i++;
             }
 
-            if (!e[i].ToString()!.Equals("ambient", StringComparison.OrdinalIgnoreCase))
+            if (!e[i].ToString().Equals("ambient", StringComparison.OrdinalIgnoreCase))
             {
                 FLLog.Warning("Ini", $"Invalid room scene entry {e}");
             }
 
             i++;
-            var path = e[i].ToString()!;
+            var path = e[i].ToString();
             var trafficPriority = (i + 1 < e.Count) &&
-                              e[i + 1].ToString()!.Equals("TRAFFIC_PRIORITY", StringComparison.OrdinalIgnoreCase);
+                              e[i + 1].ToString().Equals("TRAFFIC_PRIORITY", StringComparison.OrdinalIgnoreCase);
             SceneScripts.Add(new SceneEntry(all, trafficPriority, path));
         }
         catch

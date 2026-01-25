@@ -62,7 +62,7 @@ public partial class NavmapIniIcons : IEntryHandler
 
     bool IEntryHandler.HandleEntry(Entry e)
     {
-        Map[e.Name] = e[0].ToString()!;
+        Map[e.Name] = e[0].ToString();
         return true;
     }
 }
