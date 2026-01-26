@@ -9,4 +9,4 @@ public class NewsItemLookup(
     GameDataContext gd,
     Func<NewsItem, bool> allow)
     : ObjectLookup<NewsItem>(news.AllNews.Where(allow),
-        x => $"[{x.Icon}] {gd.Infocards.GetStringResource(x.Headline)}");
+        x => x == null ? "(none)" : $"[{x.Icon}] {gd.Infocards.GetStringResource(x.Headline)}");

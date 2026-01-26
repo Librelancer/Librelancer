@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using ImGuiNET;
 using LancerEdit.GameContent.Lookups;
 using LibreLancer.Data.GameData;
@@ -22,6 +23,7 @@ public class NewsSelection : PopupWindow
         Func<NewsItem, bool> allow)
     {
         this.onSelect = onSelect;
+        selected = news.AllNews.Where(allow).FirstOrDefault();
         lookup = new NewsItemLookup(news, gd, allow);
     }
 
