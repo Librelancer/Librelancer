@@ -400,7 +400,7 @@ public class EditMap2D
                 min = cluster.ScreenPos - new Vector2(clusterIconSize);
                 max = cluster.ScreenPos + new Vector2(clusterIconSize);
                 hovered = ImGui.IsMouseHoveringRect(min, max);
-                clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
+                clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left) && !CreationTools.IsAnyToolActive;
 
                 var offset = cluster.Objects.Count > 9 ? 8 : 4;
 
@@ -427,7 +427,7 @@ public class EditMap2D
                 min = cluster.ScreenPos - new Vector2(objectIconSize / 2f);
                 max = cluster.ScreenPos + new Vector2(objectIconSize / 2f);
                 hovered = ImGui.IsMouseHoveringRect(min, max);
-                clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
+                clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left) && !CreationTools.IsAnyToolActive;
 
                 var icon = ctx.GetArchetypePreview(obj.SystemObject.Archetype);
                 Vector2 imageSize = new Vector2(objectIconSize) * ImGuiHelper.Scale;
@@ -464,7 +464,7 @@ public class EditMap2D
                     tab.ForceSelectObject(obj);
                 }
 
-                if (hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                if (hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left) && !CreationTools.IsAnyToolActive)
                 {
                     tab.ForceSelectObject(obj);
                     dragTarget = obj;
@@ -563,8 +563,8 @@ public class EditMap2D
                 Vector2 min = screenPos - new Vector2(size / 2);
                 Vector2 max = screenPos + new Vector2(size / 2);
                 bool hovered = ImGui.IsMouseHoveringRect(min, max);
-                bool clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left);
-                bool doubleClicked = hovered && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
+                bool clicked = hovered && ImGui.IsMouseClicked(ImGuiMouseButton.Left) && !CreationTools.IsAnyToolActive;
+                bool doubleClicked = hovered && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left) && !CreationTools.IsAnyToolActive;
 
                 // REDUCED: draw squares for each ring
                 if (lod is MapLod.Reduced or MapLod.Minimal)
@@ -621,6 +621,10 @@ public class EditMap2D
 
     private void DrawContextMenu(StarSystem system, GameWorld world, GameDataContext ctx, SystemEditorTab tab, float mapSize, Vector2 mapTopLeft)
     {
+        // Disable context menu when any creation tool is active
+        if (CreationTools.IsAnyToolActive)
+            return;
+
         ImGui.SetNextItemAllowOverlap();
         if (ImGui.BeginPopupContextItem("##mapContext"))
         {
