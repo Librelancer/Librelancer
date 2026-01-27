@@ -693,6 +693,31 @@ public static class IniSerializer
         var obj = ini.Section("NNObjective")
             .Entry("nickname", objective.Nickname)
             .OptionalEntry("state", objective.State);
+        switch (objective.Type)
+        {
+            case NNObjectiveType.ids:
+                obj.Entry("type", "ids", objective.NameIds);
+                break;
+            case NNObjectiveType.navmarker:
+                obj.Entry("type", "navmarker",
+                    objective.System,
+                    objective.NameIds,
+                    objective.ExplanationIds,
+                    objective.Position.X,
+                    objective.Position.Y,
+                    objective.Position.Z);
+                break;
+            case NNObjectiveType.rep_inst:
+                obj.Entry("type", "rep_inst",
+                    objective.System,
+                    objective.NameIds,
+                    objective.ExplanationIds,
+                    objective.Position.X,
+                    objective.Position.Y,
+                    objective.Position.Z,
+                    objective.SolarNickname);
+                break;
+        }
 
     }
 
