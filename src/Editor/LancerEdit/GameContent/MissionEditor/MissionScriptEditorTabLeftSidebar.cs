@@ -6,6 +6,7 @@ using ImGuiNET;
 using LancerEdit.GameContent.Lookups;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
 using LibreLancer.Data.GameData;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -77,6 +78,14 @@ public sealed partial class MissionScriptEditorTab
         {
             ImGui.PushID(4);
             RenderFormationManagement();
+            ImGui.PopID();
+        }
+        ImGui.NewLine();
+
+        if (SidebarHeader("Objective Management"))
+        {
+            ImGui.PushID(5);
+            RenderObjectiveManagement();
             ImGui.PopID();
         }
 
@@ -311,6 +320,66 @@ public sealed partial class MissionScriptEditorTab
                         gameData.GameData.Items.Ini.Freelancer.DataPath + x,
                         this));
                 }, VfsFileSelector.MakeFilter(".ini")));
+        }
+        Controls.EndEditorTable();
+    }
+
+    private DocumentObjective selectedObjective;
+
+    private void RenderObjectiveManagement()
+    {
+        DictionaryRemove<DocumentObjective> Delete()
+        {
+            return new(
+                "Objective",
+                missionIni.Objectives, selectedObjective,
+                () => ref selectedObjective);
+        }
+        ItemList("Objective", missionIni.Objectives, () => ref selectedObjective, Delete);
+
+        if (selectedObjective is null)
+        {
+            return;
+        }
+
+        if (!Controls.BeginEditorTable("objective"))
+            return;
+
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.Objectives, selectedObjective);
+        Controls.EditControlSetup("Type", 0);
+        if (ImGui.BeginCombo("##type", selectedObjective.Data.Type.ToString()))
+        {
+            if (ImGui.Selectable("ids", selectedObjective.Data.Type == NNObjectiveType.ids) &&
+                selectedObjective.Data.Type != NNObjectiveType.ids)
+            {
+                undoBuffer.Set("Type", () => ref selectedObjective.Data.Type, NNObjectiveType.ids);
+            }
+            if (ImGui.Selectable("navmarker", selectedObjective.Data.Type == NNObjectiveType.navmarker) &&
+                selectedObjective.Data.Type != NNObjectiveType.navmarker)
+            {
+                undoBuffer.Set("Type", () => ref selectedObjective.Data.Type, NNObjectiveType.navmarker);
+
+            }
+            if (ImGui.Selectable("rep_inst", selectedObjective.Data.Type == NNObjectiveType.rep_inst) &&
+                selectedObjective.Data.Type != NNObjectiveType.rep_inst)
+            {
+                undoBuffer.Set("Type", () => ref selectedObjective.Data.Type, NNObjectiveType.rep_inst);
+            }
+            ImGui.EndCombo();
+        }
+        Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer, () => ref selectedObjective.Data.NameIds);
+        if (selectedObjective.Data.Type != NNObjectiveType.ids)
+        {
+            Controls.IdsInputStringUndo("Explanation", gameData, popup, undoBuffer, () => ref selectedObjective.Data.ExplanationIds);
+            Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedObjective.Data.System);
+        }
+        if (selectedObjective.Data.Type == NNObjectiveType.navmarker)
+        {
+            Controls.InputFloat3Undo("Position", undoBuffer,  () => ref selectedObjective.Data.Position);
+        }
+        if (selectedObjective.Data.Type == NNObjectiveType.rep_inst)
+        {
+            Controls.InputTextIdUndo("Object", undoBuffer, () => ref selectedObjective.Data.SolarNickname);
         }
         Controls.EndEditorTable();
     }

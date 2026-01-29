@@ -59,7 +59,7 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.NewLine();
 
-        if (SidebarHeader("Objective List"))
+        if (SidebarHeader("Object Directive List"))
         {
             ImGui.PushID(5);
             RenderObjectiveListManager();
