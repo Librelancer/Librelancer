@@ -168,6 +168,96 @@ public class SysZoneSetSizeZ(Zone target, SystemEditorTab tab, float old, float 
     }
 }
 
+public class SysZoneSetSort(Zone target, SystemEditorTab tab, float old, float updated)
+    : SysZoneModification<float>(target, old, updated, "SetZoneSort")
+{
+    public override void Set(float value) => Target.Sort = value;
+}
+
+public class SysZoneSetToughness(Zone target, SystemEditorTab tab, int old, int updated)
+    : SysZoneModification<int>(target, old, updated, "SetZoneToughness")
+{
+    public override void Set(int value) => Target.Toughness = value;
+}
+
+public class SysZoneSetDensity(Zone target, SystemEditorTab tab, int old, int updated)
+    : SysZoneModification<int>(target, old, updated, "SetZoneDensity")
+{
+    public override void Set(int value) => Target.Density = value;
+}
+
+public class SysZoneSetRepopTime(Zone target, SystemEditorTab tab, int old, int updated)
+    : SysZoneModification<int>(target, old, updated, "SetZoneRepopTime")
+{
+    public override void Set(int value) => Target.RepopTime = value;
+}
+
+public class SysZoneSetMaxBattleSize(Zone target, SystemEditorTab tab, int old, int updated)
+    : SysZoneModification<int>(target, old, updated, "SetZoneMaxBattleSize")
+{
+    public override void Set(int value) => Target.MaxBattleSize = value;
+}
+
+public class SysZoneSetReliefTime(Zone target, SystemEditorTab tab, int old, int updated)
+    : SysZoneModification<int>(target, old, updated, "SetZoneReliefTime")
+{
+    public override void Set(int value) => Target.ReliefTime = value;
+}
+
+public class SysZoneSetPropertyFlags(Zone target, SystemEditorTab tab, ZonePropFlags old, ZonePropFlags updated)
+    : SysZoneModification<ZonePropFlags>(target, old, updated, "SetZonePropertyFlags")
+{
+    public override void Set(ZonePropFlags value)
+    {
+        var oldHadCloud = (old & ZonePropFlags.Cloud) == ZonePropFlags.Cloud;
+        var newHasCloud = (value & ZonePropFlags.Cloud) == ZonePropFlags.Cloud;
+        
+        Target.PropertyFlags = value;
+        
+        // If the Cloud/Nebula flag changed, reload the renderers
+        if (oldHadCloud != newHasCloud)
+        {
+            tab.ReloadFieldRenderers();
+        }
+    }
+}
+
+public class SysZoneSetVisitFlags(Zone target, SystemEditorTab tab, VisitFlags old, VisitFlags updated)
+    : SysZoneModification<VisitFlags>(target, old, updated, "SetZoneVisitFlags")
+{
+    public override void Set(VisitFlags value) => Target.VisitFlags = value;
+}
+
+public class SysZoneSetSpacedustMaxParticles(Zone target, SystemEditorTab tab, int old, int updated)
+    : SysZoneModification<int>(target, old, updated, "SetZoneSpacedustMaxParticles")
+{
+    public override void Set(int value) => Target.SpacedustMaxParticles = value;
+}
+
+public class SysZoneSetPopType(Zone target, SystemEditorTab tab, string[] old, string[] updated)
+    : SysZoneModification<string[]>(target, old, updated, "SetZonePopType")
+{
+    public override void Set(string[] value) => Target.PopType = value;
+}
+
+public class SysZoneSetSpacedust(Zone target, SystemEditorTab tab, string old, string updated)
+    : SysZoneModification<string>(target, old, updated, "SetZoneSpacedust")
+{
+    public override void Set(string value) => Target.Spacedust = value;
+}
+
+public class SysZoneSetMusic(Zone target, SystemEditorTab tab, string old, string updated)
+    : SysZoneModification<string>(target, old, updated, "SetZoneMusic")
+{
+    public override void Set(string value) => Target.Music = value;
+}
+
+public class SysZoneSetPropertyFogColor(Zone target, SystemEditorTab tab, Color4? old, Color4? updated)
+    : SysZoneModification<Color4?>(target, old, updated, "SetZonePropertyFogColor")
+{
+    public override void Set(Color4? value) => Target.PropertyFogColor = value;
+}
+
 public class SysAddZoneAction(SystemEditorTab tab, Zone zone) : EditorAction
 {
     private EditZone z;
