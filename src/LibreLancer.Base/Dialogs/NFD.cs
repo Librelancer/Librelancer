@@ -60,6 +60,9 @@ internal static unsafe class NFD
     public static extern void* NFD_GetError();
 
     [DllImport("lancerdialogs", CallingConvention =  CallingConvention.Cdecl)]
+    public static extern void NFD_PathSet_FreePathN(void* path);
+
+    [DllImport("lancerdialogs", CallingConvention =  CallingConvention.Cdecl)]
     public static extern void NFD_FreePathN(void* path);
 
     // Count entries in the set
