@@ -30,7 +30,7 @@ public class BaseSelection : PopupWindow
         lookup = allow != null
             ? gd.Bases.Filter(allow)
             : gd.Bases;
-        initial = selected;
+        selected = initial;
         Title = title;
         this.needsValue = needsValue;
     }

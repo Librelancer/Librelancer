@@ -96,8 +96,10 @@ public class GameDataContext : IDisposable
         LoadoutsByName = db.Loadouts.Select(x => x.Nickname).Order().ToArray();
         GoodsByName = db.Goods.Select(x => x.Nickname).Order().ToArray();
         MusicByName = GameData.AllSounds.Where(x => x.Type == AudioType.Music).Select(x => x.Nickname).Order().ToArray();
-
-        Factions = new(
+        Bases = new(
+            db.Bases.OrderBy(x => x.Nickname),
+            x => x == null ? "(none)" : $"{x.Nickname} ({GameData.GetString(x.IdsName)})"
+        );        Factions = new(
             db.Factions.OrderBy(x => x.Nickname),
             x => x == null ? "(none)" : $"{x.Nickname} ({GameData.GetString(x.IdsName)})"
         );
