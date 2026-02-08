@@ -81,6 +81,7 @@ namespace LibreLancer.Render
         {
             public BoneInstance Bone;
             public int JointMapIndex;
+            public int JointMapCursor;
             public ResolvedJoint(BoneInstance bone, int jm)
             {
                 Bone = bone;
@@ -104,11 +105,12 @@ namespace LibreLancer.Render
             public float Duration;
             public bool Loop;
 
-            public List<ResolvedJoint> Joints = new List<ResolvedJoint>();
+            public RefList<ResolvedJoint> Joints = new RefList<ResolvedJoint>();
             public DfmSkeletonManager Parent;
             public Vector3 RootTranslation = Vector3.Zero;
             public Quaternion RootRotation = Quaternion.Identity;
             public Quaternion RootRotationAccumulator = Quaternion.Identity;
+            private int rootCursor = 0;
 
             public Script Script;
 
@@ -132,8 +134,10 @@ namespace LibreLancer.Render
                     {
                         var trOne = Vector3.Zero;
                         Quaternion qOne = Quaternion.Identity;
-                        if (o.Channel.HasPosition) trOne = o.Channel.PositionAtTime(o.Channel.Duration);
-                        if (o.Channel.HasOrientation) qOne = o.Channel.QuaternionAtTime(o.Channel.Duration);
+                        if (o.Channel.HasPosition)
+                            trOne = o.Channel.PositionAtTime(o.Channel.Duration, ref rootCursor);
+                        if (o.Channel.HasOrientation)
+                            qOne = o.Channel.QuaternionAtTime(o.Channel.Duration, ref rootCursor);
                         int hangDetect = 0;
                         while (cht > o.Channel.Duration)
                         {
@@ -144,8 +148,9 @@ namespace LibreLancer.Render
                                 throw new Exception($"Hang in root object map code: broke {Script.Name}");
                         }
                     }
-                    if (o.Channel.HasPosition) translate += o.Channel.PositionAtTime(cht);
-                    if (o.Channel.HasOrientation) rotate *= o.Channel.QuaternionAtTime(cht);
+
+                    if (o.Channel.HasPosition) translate += o.Channel.PositionAtTime(cht, ref rootCursor);
+                    if (o.Channel.HasOrientation) rotate *= o.Channel.QuaternionAtTime(cht, ref rootCursor);
                     return true;
                 }
                 return false;
@@ -156,16 +161,17 @@ namespace LibreLancer.Render
                 T += delta;
                 var ft = (float) (T * TimeScale) + StartTime;
                 bool running = false;
-                foreach (var j in Joints)
+                for(int i = 0; i < Joints.Count; i++)
                 {
+                    ref var j = ref Joints[i];
                     ref var ch = ref Script.JointMaps[j.JointMapIndex].Channel;
                     var cht = ft;
                     if (Loop && ft > ch.Duration)
                         cht = ft % ch.Duration;
                     if (ch.HasOrientation)
-                        j.Bone.Rotation = ch.QuaternionAtTime(cht);
+                        j.Bone.Rotation = ch.QuaternionAtTime(cht, ref j.JointMapCursor);
                     if (ch.HasPosition)
-                        j.Bone.Translation = ch.PositionAtTime(cht);
+                        j.Bone.Translation = ch.PositionAtTime(cht, ref j.JointMapCursor);
                     if (ft < ch.Duration || Loop)
                         running = true;
                 }

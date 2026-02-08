@@ -173,24 +173,47 @@ namespace LibreLancer.Utf.Anm
             );
         }
 
-        readonly int GetIndex(float time, out float t0, out float t1)
+        readonly int GetIndex(float time, out float t0, out float t1, ref int cursor)
         {
+            if (FrameCount <= 1)
+            {
+                t0 = t1 = 0;
+                return 0;
+            }
             if (Interval < 0)
             {
-                for (int i = 0; i < FrameCount - 1; i++)
+                cursor = MathHelper.Clamp(cursor, 0, FrameCount - 1);
+                while (true)
                 {
-                    if (GetTime(i + 1) >= time)
+                    t0 = GetTime(cursor);
+                    if (time < t0)
                     {
-                        t0 = GetTime(i);
-                        t1 = GetTime(i + 1);
-                        return i;
+                        if (cursor == 0)
+                        {
+                            t1 = GetTime(cursor + 1);
+                            return cursor;
+                        }
+                        cursor--;
+                    }
+                    else
+                    {
+                        if (cursor == FrameCount - 1)
+                        {
+                            t1 = t0;
+                            return cursor;
+                        }
+                        t1 = GetTime(cursor + 1);
+                        if (time >= t1)
+                        {
+                            cursor++;
+                        }
+                        else
+                        {
+                            return cursor;
+                        }
                     }
                 }
-
-                t0 = t1 = 0;
-                return FrameCount - 1;
             }
-
             var idx = MathHelper.Clamp((int)Math.Floor(time / Interval), 0, FrameCount - 1);
             t0 = idx * Interval;
             t1 = (idx + 1) * Interval;
@@ -207,9 +230,9 @@ namespace LibreLancer.Utf.Anm
             }
         }
 
-        public readonly Vector3 PositionAtTime(float time)
+        public readonly Vector3 PositionAtTime(float time, ref int cursor)
         {
-            var idx = GetIndex(time, out float t0, out float t1);
+            var idx = GetIndex(time, out float t0, out float t1, ref cursor);
             if (idx == FrameCount - 1) return GetPosition(FrameCount - 1);
             var a = GetPosition(idx);
             var b = GetPosition(idx + 1);
@@ -217,18 +240,18 @@ namespace LibreLancer.Utf.Anm
             return a + ((b - a) * blend);
         }
 
-        public readonly Quaternion QuaternionAtTime(float time)
+        public readonly Quaternion QuaternionAtTime(float time, ref int cursor)
         {
-            var idx = GetIndex(time, out float t0, out float t1);
+            var idx = GetIndex(time, out float t0, out float t1, ref cursor);
             if (idx == FrameCount - 1) return GetQuaternion(FrameCount - 1);
             var a = GetQuaternion(idx);
             var b = GetQuaternion(idx + 1);
             return Quaternion.Slerp(a, b, (time - t0) / (t1 - t0));
         }
 
-        public readonly ChannelFloat FloatAtTime(float time)
+        public readonly ChannelFloat FloatAtTime(float time, ref int cursor)
         {
-            var idx = GetIndex(time, out float t0, out float t1);
+            var idx = GetIndex(time, out float t0, out float t1, ref cursor);
             if (idx == FrameCount - 1)
             {
                 return GetAngle(FrameCount - 1);
