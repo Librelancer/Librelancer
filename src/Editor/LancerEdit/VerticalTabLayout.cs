@@ -102,32 +102,24 @@ public class VerticalTabLayout
 
     public void Draw(VerticalTabStyle mode)
     {
-        int count = 1;
-        if (ActiveLeftTab >= 0)
-            count++;
-        if (ActiveRightTab >= 0)
-            count++;
-
-        if (count == 1)
+        if (ActiveLeftTab < 0 && ActiveRightTab < 0)
         {
             DrawMiddleColumn(mode);
             return;
         }
 
-        if (!ImGui.BeginTable($"##tabslayout{count}", count,
+        if (!ImGui.BeginTable($"##tabslayout3", 3,
                 ImGuiTableFlags.NoPadInnerX | ImGuiTableFlags.NoPadOuterX | ImGuiTableFlags.BordersInnerV |
-                ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg))
+                ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg | ImGuiTableFlags.Hideable))
             return;
-        if (ActiveLeftTab >= 0) {
-            ImGui.TableSetupColumn("##left", ImGuiTableColumnFlags.WidthStretch, 0.25f);
-        }
+        ImGui.TableSetupColumn("##left", ImGuiTableColumnFlags.WidthFixed, 150 * ImGuiHelper.Scale);
         ImGui.TableSetupColumn("##middle", ImGuiTableColumnFlags.WidthStretch);
-        if (ActiveRightTab >= 0) {
-            ImGui.TableSetupColumn("##right", ImGuiTableColumnFlags.WidthStretch, 0.25f);
-        }
+        ImGui.TableSetupColumn("##right", ImGuiTableColumnFlags.WidthFixed, 150 * ImGuiHelper.Scale);
+        ImGui.TableSetColumnEnabled(0, ActiveLeftTab >= 0);
+        ImGui.TableSetColumnEnabled(2, ActiveRightTab >= 0);
         ImGui.TableNextRow();
+        ImGui.TableNextColumn();
         if (ActiveLeftTab >= 0) {
-            ImGui.TableNextColumn();
             ImGui.BeginChild("##lefttab");
             drawLeft(TabsLeft[ActiveLeftTab].Tag);
             ImGui.EndChild();
@@ -135,8 +127,8 @@ public class VerticalTabLayout
 
         ImGui.TableNextColumn();
         DrawMiddleColumn(mode);
+        ImGui.TableNextColumn();
         if (ActiveRightTab >= 0) {
-            ImGui.TableNextColumn();
             ImGui.BeginChild("##righttab");
             drawRight(TabsRight[ActiveRightTab].Tag);
             ImGui.EndChild();
