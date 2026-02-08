@@ -13,8 +13,8 @@ namespace LibreLancer.Data.Schema.Universe;
 [ParsedIni]
 public partial class Base : UniverseElement
 {
-    [Entry("system", Required = true)]
-    public string System = null!;
+    [Entry("system")]
+    public string? System;
 
     [Entry("file", Required = true)]
     public string File = null!;

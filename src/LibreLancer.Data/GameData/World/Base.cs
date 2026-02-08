@@ -13,7 +13,7 @@ namespace LibreLancer.Data.GameData.World;
 public class Base : NamedItem
 {
     //Populated from universe
-    public string System = null!;
+    public string? System = null;
     public string? TerrainTiny;
     public string? TerrainSml;
     public string? TerrainMdm;
