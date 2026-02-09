@@ -156,6 +156,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                     continue;
                 }
 
+                trigger.IsCollapsed = data.IsCollapsed;
                 nodeRelocationQueue.Enqueue((trigger.Id, data.Position));
                 count++;
             }

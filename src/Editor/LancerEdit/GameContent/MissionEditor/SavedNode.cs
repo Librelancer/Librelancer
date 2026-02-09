@@ -13,6 +13,7 @@ public sealed class SavedNode
     public string Name;
     public Vector2 Position;
     public Vector2 Size;
+    public bool IsCollapsed;
 
     public static SavedNode FromComment(Vector2 pos, CommentNode comment) => new()
     {
@@ -26,7 +27,8 @@ public sealed class SavedNode
     {
         IsTrigger = true,
         Name = trigger.Data.Nickname,
-        Position = pos
+        Position = pos,
+        IsCollapsed = trigger.IsCollapsed,
     };
 
     public static SavedNode FromEntry(Entry e)
@@ -43,7 +45,8 @@ public sealed class SavedNode
             IsTrigger = isTrigger,
             Name = isTrigger ? e[1].ToString() : CommentEscaping.Unescape(e[1].ToString() ?? ""),
             Position = new(e[2].ToSingle(), e[3].ToSingle()),
-            Size = isTrigger || e.Count <= 4 ? new(100) : new(e[4].ToSingle(), e[5].ToSingle())
+            Size = isTrigger || e.Count <= 4 ? new(100) : new(e[4].ToSingle(), e[5].ToSingle()),
+            IsCollapsed = isTrigger && e.Count >= 5 && e[4].ToBoolean(),
         };
     }
 
@@ -51,7 +54,7 @@ public sealed class SavedNode
     {
         if (IsTrigger)
         {
-            section.Entry("node", "Trigger", Name, Position.X, Position.Y);
+            section.Entry("node", "Trigger", Name, Position.X, Position.Y, IsCollapsed);
         }
         else
         {

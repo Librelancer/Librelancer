@@ -20,6 +20,7 @@ public class NodeMissionTrigger : Node
 
     private NodeSuspendState suspend = new();
     private MissionScriptEditorTab tab;
+    public bool IsCollapsed = false;
 
     public NodeMissionTrigger(MissionTrigger data, MissionScriptEditorTab tab) : base(NodeColours.Trigger)
     {
@@ -48,7 +49,7 @@ public class NodeMissionTrigger : Node
         this.tab = tab;
     }
 
-    public override string Name => "Mission Trigger";
+    public override string Name => string.IsNullOrWhiteSpace(Data.Nickname) ? "Mission Trigger" : Data.Nickname;
     public override string InternalId => Data.Nickname;
 
     private static bool StartChild(NodeTriggerEntry e, out bool remove)
@@ -289,6 +290,16 @@ public class NodeMissionTrigger : Node
         var nb = NodeBuilder.Begin(Id, suspend);
 
         nb.Header(Color);
+
+        ImGui.PushStyleColor(ImGuiCol.Border, 0);
+        ImGui.PushStyleColor(ImGuiCol.Button, 0);
+        if (ImGui.Button(IsCollapsed ? Icons.ArrowDown : Icons.ArrowUp))
+        {
+            IsCollapsed = !IsCollapsed;
+        }
+
+        ImGui.PopStyleColor(2);
+        ImGui.SameLine();
         ImGui.Text(Name);
         nb.EndHeader();
 
@@ -314,6 +325,12 @@ public class NodeMissionTrigger : Node
         VectorIcons.Icon(iconSize, VectorIcon.Flow, false, Color4.Green);
         NodeEditor.EndPin();
 
+        if (IsCollapsed)
+        {
+            nb.Dispose();
+            return;
+        }
+
         if (nb.Clipped)
         {
             ImGui.Dummy(new(180, ImGui.GetFrameHeightWithSpacing() * 3 + ImGui.GetFrameHeight()));
@@ -334,7 +351,6 @@ public class NodeMissionTrigger : Node
             nb.Popups.Combo("Initial State", undoBuffer, () => ref Data.InitState);
             ImGui.PopItemWidth();
         }
-
 
         // Draw conditions/actions
         ImGui.BeginTable("##trigger", 2, ImGuiTableFlags.PreciseWidths, new Vector2(szLeft + szRight + 8 * pad, 0));
