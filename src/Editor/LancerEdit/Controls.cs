@@ -256,8 +256,8 @@ public static class Controls
         ImGui.PopID();
     }
 
-    public static void InputFloatUndo(
-        string label,
+    public static void InputFloatValueUndo(
+        string id,
         EditorUndoBuffer buffer,
         FieldAccessor<float> value,
         Action hook = null,
@@ -265,11 +265,36 @@ public static class Controls
         ImGuiInputTextFlags flags = ImGuiInputTextFlags.None
     )
     {
-        ImGui.PushID(label);
-        EditControlSetup(label, 0);
+        ImGui.PushID(id);
         ref float v = ref value();
         float oldCopy = v;
         ImGui.InputFloat("##input", ref v, 0, 0, format, flags);
+        if (ImGui.IsItemActivated())
+        {
+            oldFloat = oldCopy;
+        }
+        if (ImGui.IsItemDeactivatedAfterEdit())
+        {
+            buffer.Set(id, value, oldFloat, v, hook);
+        }
+        ImGui.PopID();
+    }
+
+
+    public static void InputFloatUndo(
+        string label,
+        EditorUndoBuffer buffer,
+        FieldAccessor<float> value,
+        Action hook = null,
+        string format = "%.3f",
+        float nonTableWidth = 0
+    )
+    {
+        ImGui.PushID(label);
+        EditControlSetup(label, nonTableWidth);
+        ref float v = ref value();
+        float oldCopy = v;
+        ImGui.InputFloat("##input", ref v, 0, 0, format);
         if (ImGui.IsItemActivated())
         {
             oldFloat = oldCopy;
@@ -406,8 +431,13 @@ public static class Controls
     {
         if (!gradient)
             return ImGui.ColorButton(id, colA, ImGuiColorEditFlags.NoAlpha, size);
-        var img = ImGuiHelper.RenderGradient(colA, colB);
-        var retval = ImGui.ImageButton(id, img, size, new Vector2(0, 1), new Vector2(0, 0));
+        var retval = ImGui.InvisibleButton(id, size);
+        var min = ImGui.GetItemRectMin();
+        var max = ImGui.GetItemRectMax();
+        var dlist = ImGui.GetWindowDrawList();
+        ImGuiHelper.DrawVerticalGradient(dlist, min, max, (VertexDiffuse)colA, (VertexDiffuse)colB, EasingTypes.Linear);
+        var b = ImGui.IsItemHovered() ? ImGui.GetColorU32(ImGuiCol.ButtonHovered) : ImGui.GetColorU32(ImGuiCol.Border);
+        dlist.AddRect(min, max, b);
         return retval;
     }
 

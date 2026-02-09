@@ -329,24 +329,6 @@ namespace LibreLancer.ImUI
             return new ImTextureRef() { _TexID = id };
         }
 
-        public static ImTextureRef RenderGradient( Color4 top, Color4 bottom)
-        {
-            return instance.RenderGradientInternal(top, bottom);
-        }
-
-        ImTextureRef RenderGradientInternal(Color4 top, Color4 bottom)
-        {
-            var target = new RenderTarget2D(game.RenderContext, 128,128);
-            var r2d = game.RenderContext.Renderer2D;
-            game.RenderContext.RenderTarget = target;
-            game.RenderContext.PushViewport(0, 0, 128, 128);
-            r2d.DrawVerticalGradient(new Rectangle(0,0,128,128), top, bottom);
-            game.RenderContext.PopViewport();
-            game.RenderContext.RenderTarget = null;
-            toFree.Add(target);
-            return RegisterTexture(target.Texture);
-        }
-
         public bool PauseWhenUnfocused = false;
         private double renderTimer = 0.47;
         private const double RENDER_TIME = 0.47;
@@ -452,7 +434,6 @@ namespace LibreLancer.ImUI
             _modalDrawn = true;
         }
 
-        List<RenderTarget2D> toFree = new List<RenderTarget2D>();
 		public void Render(RenderContext rstate)
 		{
             lastWantedKeyboard = ImGui.GetIO().WantCaptureKeyboard;
@@ -460,11 +441,6 @@ namespace LibreLancer.ImUI
             _modalDrawn = false;
 			ImGui.Render();
             RenderImDrawData(ImGui.GetDrawData(), rstate);
-            foreach (var tex in toFree) {
-                DeregisterTexture(tex.Texture);
-                tex.Dispose();
-            }
-            toFree = new List<RenderTarget2D>();
 		}
 
         [StructLayout(LayoutKind.Sequential)]
@@ -481,6 +457,119 @@ namespace LibreLancer.ImUI
                 new VertexElement(VertexSlots.Color, 4, VertexElementType.UnsignedByte, true, 4 * sizeof(float))
             );
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct LerpVert : IVertexType
+        {
+            public Vector2 Pos;
+            public uint Color1;
+            public uint Color2;
+            public ushort Side;
+            public ushort Lerp;
+
+            public LerpVert(Vector2 pos, uint color1, uint color2, ushort side, EasingTypes lerp)
+            {
+                Pos = pos;
+                Color1 = color1;
+                Color2 = color2;
+                Side = side;
+                Lerp = (ushort)lerp;
+            }
+
+            public VertexDeclaration GetVertexDeclaration() => new(
+                sizeof(float) * 5,
+                new VertexElement(VertexSlots.Position, 2, VertexElementType.Float, false, 0),
+                new VertexElement(VertexSlots.Color, 4, VertexElementType.UnsignedByte, true, 2 * sizeof(float)),
+                new VertexElement(VertexSlots.Color2, 4, VertexElementType.UnsignedByte, true, 3 * sizeof(float)),
+                new VertexElement(VertexSlots.Texture1, 2, VertexElementType.UnsignedShort, false, 4 * sizeof(float), true)
+            );
+        }
+
+        private RefList<LerpVert> lerpVerts = new();
+
+        static void AddShaderGradientH(ImDrawListPtr dlist, Vector2 min, Vector2 max, VertexDiffuse color1, VertexDiffuse color2,
+            EasingTypes easing)
+        {
+            int startVertex = instance.lerpVerts.Count;
+            //top left
+            instance.lerpVerts.Add(new(
+                min, color1, color2, 0, easing));
+            //top right
+            instance.lerpVerts.Add(new(
+                new(max.X, min.Y), color1, color2, 1, easing));
+            //bottom left
+            instance.lerpVerts.Add(new(
+                new (min.X, max.Y),  color1, color2, 0, easing));
+            //bottom right
+            instance.lerpVerts.Add(new(
+                max, color1, color2, 1, easing));
+            dlist.AddCallback(GradientCallback, (startVertex / 4) * 6);
+        }
+
+        static void AddShaderGradientV(ImDrawListPtr dlist, Vector2 min, Vector2 max, VertexDiffuse color1, VertexDiffuse color2,
+            EasingTypes easing)
+        {
+            int startVertex = instance.lerpVerts.Count;
+            //top left
+            instance.lerpVerts.Add(new(
+                min, color1, color2, 0, easing));
+            //top right
+            instance.lerpVerts.Add(new(
+                new(max.X, min.Y), color1, color2, 0, easing));
+            //bottom left
+            instance.lerpVerts.Add(new(
+                new (min.X, max.Y),  color1, color2, 1, easing));
+            //bottom right
+            instance.lerpVerts.Add(new(
+                max, color1, color2, 1, easing));
+            dlist.AddCallback(GradientCallback, (startVertex / 4) * 6);
+        }
+
+        private static void GradientCallback(ImDrawList* parentList, ImDrawCmd* cmd)
+        {
+            instance.OnDrawGradient(GetClipRect(cmd), (int)cmd->UserCallbackData);
+        }
+
+        public static void DrawHorizontalGradient(ImDrawListPtr dlist, Vector2 min, Vector2 max, VertexDiffuse color1, VertexDiffuse color2,
+            EasingTypes easing)
+        {
+            switch (easing)
+            {
+                case EasingTypes.Step:
+                    dlist.AddRectFilled(min, max, color1);
+                    break;
+                case EasingTypes.EaseIn:
+                case EasingTypes.EaseInOut:
+                case EasingTypes.EaseOut:
+                    AddShaderGradientH(dlist, min, max, color1, color2, easing);
+                    break;
+                default:
+                    dlist.AddRectFilledMultiColor(min, max,
+                        color1, color2, color2, color1);
+                    break;
+            }
+        }
+
+        public static void DrawVerticalGradient(ImDrawListPtr dlist, Vector2 min, Vector2 max, VertexDiffuse color1, VertexDiffuse color2,
+            EasingTypes easing)
+        {
+            switch (easing)
+            {
+                case EasingTypes.Step:
+                    dlist.AddRectFilled(min, max, color1);
+                    break;
+                case EasingTypes.EaseIn:
+                case EasingTypes.EaseInOut:
+                case EasingTypes.EaseOut:
+                    AddShaderGradientV(dlist, min, max, color1, color2, easing);
+                    break;
+                default:
+                    dlist.AddRectFilledMultiColor(min, max,
+                        color1, color1, color2, color2);
+                    break;
+            }
+        }
+
 
         public bool SetCursor = true;
         public bool HandleKeyboard = true;
@@ -526,6 +615,53 @@ namespace LibreLancer.ImUI
                 texture.SetTexID(0);
                 texture.SetStatus(ImTextureStatus.Destroyed);
             }
+        }
+
+        VertexBuffer gvbo;
+        ElementBuffer gibo;
+        private Shader gradShader;
+        private int gSize = -1;
+        private int giSize = -1;
+
+        void OnDrawGradient(Rectangle clipRect, int index)
+        {
+            if (game.RenderContext.PushScissor(clipRect))
+            {
+                game.RenderContext.Shader = gradShader;
+                gvbo.Draw(PrimitiveTypes.TriangleList, index, 2);
+                game.RenderContext.PopScissor();
+            }
+        }
+
+        void UploadGradients()
+        {
+            if (lerpVerts.Count == 0)
+                return;
+            if (gSize < lerpVerts.Count)
+            {
+                if (gvbo != null) gvbo.Dispose();
+                if (gibo != null) gibo.Dispose();
+                gSize = lerpVerts.Count;
+                gvbo = new VertexBuffer(game.RenderContext, typeof(LerpVert), gSize, true);
+                int lerpIndexCount = (lerpVerts.Count / 4) * 6;
+                var quadIndices = new ushort[lerpIndexCount];
+                var iptr = 0;
+                for (var i = 0; i < gSize; i += 4) {
+                    /* Triangle 1 */
+                    quadIndices[iptr++] = (ushort)i;
+                    quadIndices[iptr++] = (ushort)(i + 1);
+                    quadIndices[iptr++] = (ushort)(i + 2);
+                    /* Triangle 2 */
+                    quadIndices[iptr++] = (ushort)(i + 1);
+                    quadIndices[iptr++] = (ushort)(i + 3);
+                    quadIndices[iptr++] = (ushort)(i + 2);
+                }
+                gibo = new ElementBuffer(game.RenderContext, lerpIndexCount, true);
+                gibo.SetData(quadIndices);
+                gvbo.SetElementBuffer(gibo);
+            }
+            gvbo.SetData(lerpVerts.AsSpan());
+            lerpVerts.Clear();
         }
 
 		VertexBuffer vbo;
@@ -579,10 +715,12 @@ namespace LibreLancer.ImUI
             }
             //Render
             draw_data.ScaleClipRects(io.DisplayFramebufferScale);
-
 			var mat = Matrix4x4.CreateOrthographicOffCenter(0, game.Width, game.Height, 0, 0, 1);
             var uiShader = ImGuiShader.Shader.Get(0);
+            gradShader = ImGuiShader.Gradient.Get(0);
+            UploadGradients();
             uiShader.SetUniformBlock(2, ref mat);
+            gradShader.SetUniformBlock(2, ref mat);
             rstate.Shader = uiShader;
 			rstate.Cull = false;
 			rstate.BlendMode = BlendMode.Normal;

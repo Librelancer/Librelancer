@@ -6,6 +6,7 @@ namespace LibreLancer.ImUI.Shaders;
 static class ImGuiShader
 {
     public static ShaderBundle Shader;
+    public static ShaderBundle Gradient;
 
     private static bool iscompiled;
 
@@ -19,6 +20,7 @@ static class ImGuiShader
         iscompiled = true;
         FLLog.Debug("Shaders", "Compiling ImGui shaders");
         Shader = Compile(context, "ImGuiShader");
+        Gradient = Compile(context, "AdvGradient");
         FLLog.Debug("Shaders", "Compile complete");
     }
 
