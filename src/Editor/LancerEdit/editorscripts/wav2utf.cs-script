@@ -5,11 +5,9 @@
     [Argument]
     name = Input Folder
     type = folder
-    isactive = Directory, true
     [Argument]
     name = Output File
     type = file
-    isactive = Directory, false
     [Argument]
     name = Recursive
     type = flag
