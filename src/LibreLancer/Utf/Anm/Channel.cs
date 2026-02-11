@@ -135,7 +135,7 @@ namespace LibreLancer.Utf.Anm
         readonly Quaternion GetFullQuat(int offset)
         {
             var xyzw = Unsafe.ReadUnaligned<Vector4>(ref buffer.Buffer[offset]);
-            return new Quaternion(xyzw.W, xyzw.X, xyzw.Y, xyzw.Z);
+            return new Quaternion(xyzw[1], xyzw[2], xyzw[3], xyzw[0]);
         }
 
         readonly Quaternion GetQuat0x40(int offset)
