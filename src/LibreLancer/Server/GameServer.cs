@@ -302,6 +302,7 @@ namespace LibreLancer.Server
                 FLLog.Info("Server", "Finished Loading Game Data");
                 GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             }
+            Task.Run(() => PhysicsWarmup.Warmup());
             InitBaselinePrices();
             Worlds = new WorldProvider(this);
             serverTiming = Stopwatch.StartNew();
