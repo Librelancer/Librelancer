@@ -138,15 +138,30 @@ public class ZoneList : IDisposable
             ZonesByName[z.Current.Nickname] = z.Current;
 
         AsteroidFields.SetFields(asteroidFields, ZonesByName);
-        Nebulae = nebulae.Select(x => x.Clone(ZonesByName)).ToList();
+        
+        // Clone nebulae with zone lookup, it is a undo/edit safety, cloning creates independent copies that can be edited without modifying the original game data until the user explicitly saves.
+        Nebulae = new List<Nebula>();
+        if (nebulae != null) {
+            foreach (var neb in nebulae) {
+                if (neb == null) {
+                    continue;
+                }
+                var cloned = neb.Clone(ZonesByName);
+                Nebulae.Add(cloned);
+            }
+        }
 
 
         //asteroid fields
         foreach (var ast in AsteroidFields.Fields)
         {
+            if (ast == null || ast.Zone == null)
+                continue;
             zoneTypes[ast.Zone.Nickname] = ZoneDisplayKind.AsteroidField;
             foreach (var ex in ast.ExclusionZones)
             {
+                if (ex == null || ex.Zone == null)
+                    continue;
                 zoneTypes[ex.Zone.Nickname] = ZoneDisplayKind.ExclusionZone;
             }
         }
@@ -154,9 +169,15 @@ public class ZoneList : IDisposable
         //nebulae
         foreach (var neb in Nebulae)
         {
+            if (neb == null || neb.Zone == null)
+                continue;
             zoneTypes[neb.Zone.Nickname] = ZoneDisplayKind.Nebula;
+            if (neb.ExclusionZones == null)
+                continue;
             foreach (var ex in neb.ExclusionZones)
             {
+                if (ex == null || ex.Zone == null)
+                    continue;
                 zoneTypes[ex.Zone.Nickname] = ZoneDisplayKind.ExclusionZone;
             }
         }
@@ -169,6 +190,14 @@ public class ZoneList : IDisposable
             return d;
         }
         return ZoneDisplayKind.Normal;
+    }
+
+    public void SetZoneType(string nickname, ZoneDisplayKind kind)
+    {
+        if (kind == ZoneDisplayKind.Normal)
+            zoneTypes.Remove(nickname);
+        else
+            zoneTypes[nickname] = kind;
     }
 
 

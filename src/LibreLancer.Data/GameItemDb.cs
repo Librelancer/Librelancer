@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime;
@@ -14,6 +15,7 @@ using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.Market;
 using LibreLancer.Data.GameData.RandomMissions;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema;
 using LibreLancer.Data.Schema.Audio;
 using LibreLancer.Data.Schema.Effects;
@@ -1831,6 +1833,256 @@ public class GameItemDb
         }
 
         return n;
+    }
+
+    private AsteroidCubeRotation ParseCubeRotation(string? rotX, string? rotY, string? rotZ)
+    {
+        static Vector4 ParseVector4(string? value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return Vector4.Zero;
+            var parts = value.Split(',').Select(float.Parse).ToArray();
+            return parts.Length switch
+            {
+                1 => new Vector4(parts[0], 0, 0, 0),
+                2 => new Vector4(parts[0], parts[1], 0, 0),
+                3 => new Vector4(parts[0], parts[1], parts[2], 0),
+                _ => new Vector4(parts[0], parts[1], parts[2], parts[3])
+            };
+        }
+
+        return new AsteroidCubeRotation
+        {
+            AxisX = ParseVector4(rotX),
+            AxisY = ParseVector4(rotY),
+            AxisZ = ParseVector4(rotZ)
+        };
+    }
+
+    // Public method to load an asteroid field from an INI file for the editor
+    public AsteroidField LoadAsteroidField(string sourceFile)
+    {
+                
+        var field = new AsteroidField
+        {
+            SourceFile = sourceFile,
+            Zone = null, // Will be set by the caller
+            Cube = [] // Initialize Cube to empty list like GetAsteroidField does
+        };
+
+        var dataPath = DataPath(sourceFile);
+                
+        if (dataPath == null || !VFS.FileExists(dataPath))
+        {
+            FLLog.Error("GameData", $"Asteroid field file not found: {sourceFile}");
+            return field;
+        }
+
+        try
+        {
+            
+            var bytes = VFS.ReadAllBytes(dataPath);
+            
+            using var stream = new MemoryStream(bytes);
+            
+            // Parse INI file - asteroid fields use [Field] section, not [Asteroids]
+            foreach (var section in IniFile.ParseFile(dataPath, stream, true, false))
+            {
+                if (section.Name.Equals("Field", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Parse texture panels
+                    var texturePanels = section["texture_panels"]?.ToString();
+                    if (texturePanels != null)
+                    {
+                        foreach (var f in texturePanels.Split(',').Select(x => x.Trim()))
+                        {
+                            var texPanel = TexturePanelFile(DataPath(f)!, f);
+                            if (texPanel != null)
+                                field.TexturePanels.Add(texPanel);
+                        }
+                    }
+
+                    // Parse flags
+                    var flagsStr = section["flags"]?.ToString();
+                    if (flagsStr != null)
+                    {
+                        foreach (var flag in flagsStr.Split(',').Select(x => x.Trim()))
+                        {
+                            if (FieldFlagUtils.TryParse(flag, out var f))
+                                field.Flags |= f;
+                        }
+                    }
+
+                    // Parse cube rotation
+                    field.CubeRotation = ParseCubeRotation(section["cube_rotation_x"]?.ToString(),
+                                                           section["cube_rotation_y"]?.ToString(),
+                                                           section["cube_rotation_z"]?.ToString());
+
+                    // Parse field properties
+                    field.CubeSize = int.TryParse(section["cube_size"]?.ToString(), out var cs) ? cs : 100;
+                    field.FillDist = float.TryParse(section["fill_distance"]?.ToString(), out var fd) ? fd : 100;
+                    field.EmptyCubeFrequency = float.TryParse(section["empty_cube_frequency"]?.ToString(), out var ecf) ? ecf : 0f;
+
+                    // Parse colors
+                    var diffuseColor = section["diffuse_color"]?.ToString();
+                    if (diffuseColor != null)
+                    {
+                        var parts = diffuseColor.Split(',').Select(float.Parse).ToArray();
+                        if (parts.Length >= 3)
+                            field.DiffuseColor = new Color4(parts[0], parts[1], parts[2], 1f);
+                    }
+
+                    var ambientColor = section["ambient_color"]?.ToString();
+                    if (ambientColor != null)
+                    {
+                        var parts = ambientColor.Split(',').Select(float.Parse).ToArray();
+                        if (parts.Length >= 3)
+                            field.AmbientColor = new Color4(parts[0], parts[1], parts[2], 1f);
+                    }
+
+                    // Parse asteroids in cube
+                    var cubeAsteroids = section["cube_asteroids"]?.ToString();
+                    if (cubeAsteroids != null)
+                    {
+                        field.Cube = [];
+                        foreach (var astEntry in cubeAsteroids.Split(',').Select(x => x.Trim()).Where(x => !string.IsNullOrEmpty(x)))
+                        {
+                            var astParts = astEntry.Split(' ');
+                            if (astParts.Length >= 4)
+                            {
+                                var pos = astParts[0].Split(',').Select(float.Parse).ToArray();
+                                var rot = astParts[1].Split(',').Select(float.Parse).ToArray();
+                                var name = astParts[2];
+                                var info = astParts[3];
+                                field.Cube.Add(new StaticAsteroid
+                                {
+                                    Position = new Vector3(pos[0], pos[1], pos[2]),
+                                    Rotation = MathHelper.QuatFromEulerDegrees(new Vector3(rot[0], rot[1], rot[2])),
+                                    Info = info,
+                                    Archetype = Asteroids.Get(name)
+                                });
+                            }
+                        }
+                    }
+
+                    // Parse asteroid billboards
+                    var billboardCount = section["asteroid_billboard_count"]?.ToString();
+                    if (billboardCount != null && int.TryParse(billboardCount, out var count) && count > 0)
+                    {
+                        field.BillboardCount = count;
+                        field.BillboardDistance = float.TryParse(section["asteroid_billboard_start_dist"]?.ToString(), out var bsd) ? bsd : 100;
+                        field.BillboardFadePercentage = float.TryParse(section["asteroid_billboard_fade_dist_percent"]?.ToString(), out var bfp) ? bfp : 0.5f;
+                        field.BillboardShape = section["asteroid_billboard_shape"]?.ToString();
+                        var bsize = section["asteroid_billboard_size"]?.ToString();
+                        if (bsize != null)
+                        {
+                            var bsParts = bsize.Split(',').Select(float.Parse).ToArray();
+                            if (bsParts.Length >= 2)
+                                field.BillboardSize = new Vector2(bsParts[0], bsParts[1]);
+                        }
+                        var bTint = section["asteroid_billboard_color_shift"]?.ToString();
+                        if (bTint != null)
+                        {
+                            var btParts = bTint.Split(',').Select(float.Parse).ToArray();
+                            if (btParts.Length >= 3)
+                                field.BillboardTint = new Color3f(btParts[0], btParts[1], btParts[2]);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            FLLog.Error("GameData", $"Failed to load asteroid field from {sourceFile}: {e}");
+        }
+
+        FLLog.Info("GameData", $"LoadAsteroidField completed. SourceFile: {field.SourceFile}, Cube count: {field.Cube?.Count ?? 0}");
+        return field;
+    }
+
+    // Public method to load a nebula from an INI file for the editor
+    public Nebula LoadNebula(string sourceFile)
+    {
+        FLLog.Info("GameData", $"LoadNebula called with sourceFile: {sourceFile}");
+        
+        var nebula = new Nebula
+        {
+            SourceFile = sourceFile,
+            Zone = null // Will be set by the caller
+        };
+
+        var dataPath = DataPath(sourceFile);
+        FLLog.Info("GameData", $"LoadNebula: dataPath resolved to: {dataPath}");
+        
+        if (dataPath == null || !VFS.FileExists(dataPath))
+        {
+            FLLog.Error("GameData", $"Nebula file not found: {sourceFile}");
+            return nebula;
+        }
+
+        try
+        {
+            FLLog.Info("GameData", $"LoadNebula: reading file {dataPath}");
+            var bytes = VFS.ReadAllBytes(dataPath);
+            FLLog.Info("GameData", $"LoadNebula: read {bytes.Length} bytes");
+            using var stream = new MemoryStream(bytes);
+            
+            // Parse INI file - nebula files have [Fog], [Exterior], etc. sections directly
+            foreach (var section in IniFile.ParseFile(dataPath, stream, true, false))
+            {
+                // Parse texture panels from TexturePanels section
+                if (section.Name.Equals("TexturePanels", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var entry in section)
+                    {
+                        if (entry.Name.Equals("file", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var f = entry.ToString();
+                            if (!string.IsNullOrWhiteSpace(f))
+                            {
+                                var texPanel = TexturePanelFile(DataPath(f)!, f);
+                                if (texPanel != null)
+                                    nebula.TexturePanels.Add(texPanel);
+                            }
+                        }
+                    }
+                }
+                // Parse exterior properties from [Exterior] section
+                else if (section.Name.Equals("Exterior", StringComparison.OrdinalIgnoreCase))
+                {
+                    nebula.ExteriorFill = section["fill_shape"]?.ToString();
+                    var extColor = section["color"]?.ToString();
+                    if (extColor != null)
+                    {
+                        var parts = extColor.Split(',').Select(float.Parse).ToArray();
+                        if (parts.Length >= 3)
+                            nebula.ExteriorColor = new Color4(parts[0], parts[1], parts[2], 1f);
+                    }
+                }
+                // Parse fog properties from [Fog] section
+                else if (section.Name.Equals("Fog", StringComparison.OrdinalIgnoreCase))
+                {
+                    nebula.FogEnabled = true;
+                    var fogColor = section["color"]?.ToString();
+                    if (fogColor != null)
+                    {
+                        var parts = fogColor.Split(',').Select(float.Parse).ToArray();
+                        if (parts.Length >= 3)
+                            nebula.FogColor = new Color4(parts[0], parts[1], parts[2], 1f);
+                    }
+                    var fogNear = float.TryParse(section["near"]?.ToString(), out var fn) ? fn : 0f;
+                    var fogFar = float.TryParse(section["distance"]?.ToString(), out var ff) ? ff : 1000f;
+                    nebula.FogRange = new Vector2(fogNear, fogFar);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            FLLog.Error("GameData", $"Failed to load nebula from {sourceFile}: {e}");
+        }
+
+        FLLog.Info("GameData", $"LoadNebula completed. SourceFile: {nebula.SourceFile}");
+        return nebula;
     }
 
 

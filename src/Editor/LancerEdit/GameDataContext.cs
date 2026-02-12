@@ -120,6 +120,11 @@ public class GameDataContext : IDisposable
             x => x == null ? "(none)" : $"{x.Nickname} ({GameData.GetString(x.IdsName)})"
         );
         Encounters = new(this);
+        Spacedusts = GameData.Items.Ini.Effects.Effects
+            .Where(x => x.EffectType == "EFT_MISC_DUST")
+            .Select(x => x.Nickname)
+            .Order()
+            .ToArray();
     }
 
     public ObjectLookup<Base> Bases;
@@ -132,6 +137,7 @@ public class GameDataContext : IDisposable
     public CostumeLookup Costumes;
     public ObjectLookup<StoryIndex> StoryIndices;
     public ObjectLookup<StarSystem> Systems;
+    public string[] Spacedusts { get; private set; } = Array.Empty<string>();
 
     public void Load(MainWindow win, string folder, string cache, Action onComplete, Action<Exception> onError)
     {

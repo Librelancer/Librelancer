@@ -42,13 +42,14 @@ public class AsteroidFieldList
         system.AsteroidFields = new List<AsteroidField>();
         foreach (var f in Fields)
         {
-            if (!DataEquality.ObjectEquals(f, OriginalFields[f]))
-            {
-                var sections = IniSerializer.SerializeAsteroidField(f);
-                var filename = gameData.VFS.GetBackingFileName(gameData.Items.DataPath(f.SourceFile));
-                IniWriter.WriteIniFile(filename, sections);
-                FLLog.Info("Ini", $"Saved to {filename}");
-            }
+            // If this is uncommented, it will overwrite asteroid/nebula files contents wrongly, Callum mentioned to rethink how it works
+            //if (!DataEquality.ObjectEquals(f, OriginalFields[f]))
+            //{
+            //    var sections = IniSerializer.SerializeAsteroidField(f);
+            //    var filename = gameData.VFS.GetBackingFileName(gameData.Items.DataPath(f.SourceFile));
+            //    IniWriter.WriteIniFile(filename, sections);
+            //    FLLog.Info("Ini", $"Saved to {filename}");
+            //}
             var cloned = f.Clone(system.ZoneDict);
             OriginalFields[f] = cloned;
             system.AsteroidFields.Add(cloned);
