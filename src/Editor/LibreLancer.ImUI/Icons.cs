@@ -27,6 +27,7 @@ public static class Icons
     public const char Export = '\uf56e';
     public const char Import = '\uf56f';
     public const char Keyboard = '\uf11c';
+    public const char Link = '\uf0c1';
     public const char List = '\uf03a';
     public const char Open = '\uf07c';
     public const char Save = '\uf0c7';
