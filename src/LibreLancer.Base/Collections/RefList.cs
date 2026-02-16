@@ -7,7 +7,7 @@ namespace LibreLancer;
 
 public class RefList<T> : IList<T>
 {
-    private T[] backing = [];
+    private T[] backing;
     private int count = 0;
 
     public struct Enumerator : IEnumerator<T>
@@ -77,6 +77,16 @@ public class RefList<T> : IList<T>
 
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)this).GetEnumerator();
 
+    public RefList()
+    {
+        backing = [];
+    }
+
+    public RefList(int capacity)
+    {
+        backing = new T[capacity];
+    }
+
     public void Add(T item)
     {
         Grow();
@@ -121,6 +131,8 @@ public class RefList<T> : IList<T>
     {
         backing.AsSpan(0, count).CopyTo(array.AsSpan(arrayIndex));
     }
+
+    public ReadOnlySpan<T> AsSpan() => backing.AsSpan(0, count);
 
     public bool Remove(T item)
     {

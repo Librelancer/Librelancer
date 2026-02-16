@@ -16,6 +16,7 @@ using LibreLancer.Render;
 using LibreLancer.Sounds;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
+using LibreLancer.Physics;
 using LibreLancer.Resources;
 
 namespace LibreLancer
@@ -125,6 +126,7 @@ namespace LibreLancer
             });
             GameDataLoaderThread.Name = "GamedataLoader";
             GameDataLoaderThread.Start();
+            Task.Run(() => PhysicsWarmup.Warmup());
             //
             Fonts = new FontManager();
 			Billboards = new Billboards (RenderContext);

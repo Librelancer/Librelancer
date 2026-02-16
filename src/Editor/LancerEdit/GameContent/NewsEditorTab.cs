@@ -165,11 +165,13 @@ public class NewsEditorTab : GameContentTab
             ImGui.TableNextColumn();
             if (ImGui.Button($"{Icons.PlusCircle} New Article"))
             {
-                var ni = new NewsItem();
-                ni.From = Data.GameData.Items.Story[0];
-                ni.To = Data.GameData.Items.Story[^1];
-                ni.Logo = newsImages[0];
-                ni.Icon = newsIcons[0];
+                var ni = new NewsItem
+                {
+                    From = Data.GameData.Items.Story[0],
+                    To = Data.GameData.Items.Story[^1],
+                    Logo = newsImages[0],
+                    Icon = newsIcons[0]
+                };
                 undoBuffer.Commit(new NewsNew(ni, News));
                 window.QueueUIThread(() =>
                 {
@@ -202,11 +204,11 @@ public class NewsEditorTab : GameContentTab
                 {
                     ImGui.Text($"{Icons.Warning} Visible range selection invalid");
                 }
-                bool isAutoselect = selectedItem.Autoselect;
+                bool isAutoselect = selectedItem.AutoSelect;
                 ImGui.Checkbox("Autoselect", ref isAutoselect);
-                if (isAutoselect != selectedItem.Autoselect)
+                if (isAutoselect != selectedItem.AutoSelect)
                 {
-                    undoBuffer.Commit(new NewsSetAutoselect(selectedItem, selectedItem.Autoselect, isAutoselect));
+                    undoBuffer.Commit(new NewsSetAutoselect(selectedItem, selectedItem.AutoSelect, isAutoselect));
                 }
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text("Icon: ");

@@ -53,8 +53,8 @@ public static class IniWriter
 
     public static void WriteBini(Stream outputStream, IEnumerable<Section> sections)
     {
-        List<string> allStrings = new List<string>();
-        Dictionary<string, int> stringBlock = new Dictionary<string, int>();
+        List<string> allStrings = [];
+        Dictionary<string, int> stringBlock = new();
         int stringsOffset = 0;
 
         int StringOffset(string str)

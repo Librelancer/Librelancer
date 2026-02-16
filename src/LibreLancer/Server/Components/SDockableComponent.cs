@@ -264,7 +264,6 @@ namespace LibreLancer.Server.Components
                     undockers.RemoveAt(i);
                     FLLog.Debug("Docking", $"{undock.Ship} launch complete {pDistance} + 20 >= {totaldistance}");
                     Parent.GetWorld().Server?.LaunchComplete(undock.Ship);
-                    continue;
                 }
             }
 
@@ -286,11 +285,11 @@ namespace LibreLancer.Server.Components
                 }
 
                 TryTriggerAnimation(dock.Dock, dock.Ship);
-                bool canDock = CanDock(dock.Dock, dock.Ship, dock.TLHardpoint);
-
+                if (!CanDock(dock.Dock, dock.Ship, dock.TLHardpoint))
+                    continue;
                 if (Action.Kind == DockKinds.Base)
                 {
-                    if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player) && canDock)
+                    if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
                     {
                         player.Player.ForceLand(Action.Target);
                     }
@@ -301,7 +300,7 @@ namespace LibreLancer.Server.Components
                 }
                 else if (Action.Kind == DockKinds.Jump)
                 {
-                    if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player) && canDock)
+                    if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
                     {
                         player.Player.JumpTo(Action.Target, Action.Exit, Parent.World.Server.GatherJumpers());
                     }
@@ -312,30 +311,14 @@ namespace LibreLancer.Server.Components
                 }
                 else if (Action.Kind == DockKinds.Tradelane)
                 {
-                    if ((dock.Ship.TryGetComponent<SPlayerComponent>(out var player) ||
-                         dock.Ship.TryGetComponent<SNPCComponent>(out var npc)) && canDock)
+                    StartTradelane(dock.Ship, dock.TLHardpoint);
+                    if (dock.Ship.Formation != null &&
+                        dock.Ship.Formation.LeadShip == dock.Ship)
                     {
-                        //FLLog.Debug("Tradelane", $"Ship {dock.Ship.Nickname} starting tradelane");
-                        StartTradelane(dock.Ship, dock.TLHardpoint);
-                        if (dock.Ship.Formation != null &&
-                            dock.Ship.Formation.LeadShip == dock.Ship)
-                        {
-                            foreach (var ship in dock.Ship.Formation.Followers)
-                                StartTradelane(ship, dock.TLHardpoint);
-                        }
-
-                        activeDockings.RemoveAt(i);
+                        foreach (var ship in dock.Ship.Formation.Followers)
+                            StartTradelane(ship, dock.TLHardpoint);
                     }
-                    else
-                    {
-                        //FLLog.Debug("Tradelane",
-                            //$"Ship {dock.Ship.Nickname} NOT starting tradelane - canDock is false, waiting...");
-                        // Don't remove from list - keep checking until ship reaches dock point
-                    }
-
-                    continue;
                 }
-
 
                 activeDockings.RemoveAt(i);
             }

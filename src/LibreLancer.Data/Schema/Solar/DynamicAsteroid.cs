@@ -6,11 +6,11 @@ namespace LibreLancer.Data.Schema.Solar;
 public partial class DynamicAsteroid
 {
     [Entry("nickname", Required = true)]
-    public string Nickname;
+    public string Nickname = null!;
     [Entry("DA_archetype")]
-    public string DaArchetype;
+    public string? DaArchetype;
     [Entry("material_library")]
-    public string MaterialLibrary;
+    public string? MaterialLibrary;
     [Entry("explosion_arch")]
-    public string ExplosionArch;
+    public string? ExplosionArch;
 }

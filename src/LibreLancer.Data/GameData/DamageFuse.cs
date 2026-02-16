@@ -2,11 +2,10 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-namespace LibreLancer.Data.GameData
+namespace LibreLancer.Data.GameData;
+
+public class DamageFuse
 {
-    public class DamageFuse
-    {
-        public FuseResources Fuse;
-        public float Threshold;
-    }
+    public FuseResources? Fuse;
+    public float Threshold;
 }

@@ -5,8 +5,8 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using ImGuiNET;
-using LancerEdit.GameContent.Lookups;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
@@ -16,7 +16,6 @@ using LibreLancer.Data.GameData.Archetypes;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema;
-using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.ImUI;
@@ -39,13 +38,14 @@ public class SystemEditorTab : GameContentTab
     private static WorldMatrixBuffer matrixBuffer = new WorldMatrixBuffer();
 
     //public fields
-    public SystemEditData SystemData;
     public GameWorld World;
+    public StarSystem OriginalSystem;
     public StarSystem CurrentSystem;
     public GameDataContext Data;
     public SunImmediateRenderer SunPreview;
     public SystemRenderer Renderer => renderer;
 
+    private List<SystemObject> sortedOriginalObjects;
     private MainWindow win;
     private SystemRenderer renderer;
     private Viewport3D viewport;
@@ -118,12 +118,59 @@ public class SystemEditorTab : GameContentTab
         layout.TabsLeft.Add(new(Icons.Cube,"Objects", 1));
         layout.TabsLeft.Add(new(Icons.Lightbulb,"Lights", 2));
         layout.TabsLeft.Add(new(Icons.Globe, "System", 3));
+
+        UndoBuffer.Hook = OnDataChanged;
+    }
+
+    static bool ModelsEqual(ResolvedModel a, ResolvedModel b)
+    {
+        if (a == null && b != null) return false;
+        if (b == null && a != null) return false;
+        if (a == b) return true;
+        return a.ModelFile.Equals(b.ModelFile, StringComparison.OrdinalIgnoreCase);
+    }
+
+    bool GetSystemDirty() =>
+        CurrentSystem.IdsName != OriginalSystem.IdsName ||
+        CurrentSystem.IdsInfo != OriginalSystem.IdsInfo ||
+        CurrentSystem.BackgroundColor != OriginalSystem.BackgroundColor ||
+        CurrentSystem.AmbientColor != OriginalSystem.AmbientColor ||
+        CurrentSystem.MusicSpace != OriginalSystem.MusicSpace ||
+        CurrentSystem.MusicBattle != OriginalSystem.MusicBattle ||
+        CurrentSystem.MusicDanger != OriginalSystem.MusicDanger ||
+        Math.Abs(CurrentSystem.NavMapScale - OriginalSystem.NavMapScale) > float.Epsilon ||
+        !ModelsEqual(CurrentSystem.StarsBasic, OriginalSystem.StarsBasic) ||
+        !ModelsEqual(CurrentSystem.StarsComplex, OriginalSystem.StarsComplex) ||
+        !ModelsEqual(CurrentSystem.StarsNebula, OriginalSystem.StarsNebula);
+
+    public bool IsUniverseDirty() =>
+        CurrentSystem.IdsName != OriginalSystem.IdsName ||
+        CurrentSystem.IdsInfo != OriginalSystem.IdsInfo;
+
+    public bool IsSystemDirty { get; private set; }
+
+    private void OnDataChanged()
+    {
+        var checkObjects = Task.Run(() => ObjectsList.CheckDirty(sortedOriginalObjects));
+        var checkLights = Task.Run(() => LightsList.CheckDirty());
+        var checkZones = Task.Run(() => ZoneList.CheckDirty());
+        IsSystemDirty = false;
+        IsSystemDirty = GetSystemDirty();
+        Task.WaitAll([checkObjects, checkLights, checkZones]);
     }
 
     public void ForceSelectObject(GameObject obj)
     {
         layout.ActiveLeftTab = 1;
-        ObjectsList.SelectSingle(obj);
+        ObjectsList. SelectSingle(obj);
+        ObjectsList.ScrollToSelection();
+        map2D.ClearSelectedTradelaneGroup();
+    }
+
+    public void ForceSelectObjectMultiple(IEnumerable<GameObject> obj)
+    {
+        layout.ActiveLeftTab = 1;
+        ObjectsList.SelectMultiple(obj);
         ObjectsList.ScrollToSelection();
     }
 
@@ -179,7 +226,7 @@ public class SystemEditorTab : GameContentTab
             }
             else
             {
-                tb.FloatSliderItem("Zoom", ref map2D.Zoom, 1, 10, "%.2fx");
+                tb.FloatSliderItem("Zoom", ref map2D.Zoom, 1, 100, "%.2fx");
             }
             tb.ToggleButtonItem("Map", ref mapOpen);
             tb.ToggleButtonItem("History", ref historyOpen);
@@ -196,12 +243,12 @@ public class SystemEditorTab : GameContentTab
         {
             viewport.Mode = (CameraModes)camModes[cameraMode].Tag;
             ImGuiHelper.AnimatingElement();
-            renderer.BackgroundOverride = SystemData.SpaceColor;
-            renderer.SystemLighting.Ambient = new Color4(SystemData.Ambient, 1);
+            renderer.BackgroundOverride = CurrentSystem.BackgroundColor;
+            renderer.SystemLighting.Ambient = new Color4(CurrentSystem.AmbientColor, 1);
             renderer.SystemLighting.Lights = new List<DynamicLight>(LightsList.Sources.Count);
-            for (int i = 0; i < LightsList.Sources.Count; i++)
+            foreach(var lt in LightsList.Sources.Values)
             {
-                renderer.SystemLighting.Lights.Add(new() { Active = LightsList.Visible[i], Light = LightsList.Sources[i].Light });
+                renderer.SystemLighting.Lights.Add(new() { Active = !lt.Disabled, Light = lt.Light });
             }
 
             var cpos = ImGui.GetCursorPos();
@@ -220,7 +267,7 @@ public class SystemEditorTab : GameContentTab
         else
         {
             DrawToolbar();
-            map2D.Draw(SystemData, World, Data, this, win.RenderContext);
+            map2D.Draw(CurrentSystem, World, Data, this, win.RenderContext);
         }
         gizmoPreviews = [];
     }
@@ -258,7 +305,7 @@ public class SystemEditorTab : GameContentTab
             var dir = (end - start).Normalized() * 50000;
             var dist = float.MaxValue;
             LightSource r = null;
-            foreach (var lt in LightsList.Sources)
+            foreach (var lt in LightsList.Sources.Values)
             {
                 var bb = DisplayMesh.Lightbulb.Bounds;
                 bb.Min += lt.Light.Position;
@@ -275,6 +322,11 @@ public class SystemEditorTab : GameContentTab
         }
     }
 
+    public void ResetOriginalObjects()
+    {
+        sortedOriginalObjects = OriginalSystem.Objects.OrderBy(x => x.Nickname).ToList();
+    }
+
     void LoadSystem(StarSystem system)
     {
         ObjectsList.SelectSingle(null);
@@ -287,7 +339,9 @@ public class SystemEditorTab : GameContentTab
         //Load system
         renderer = new SystemRenderer(camera, Data.Resources, win);
         World = new GameWorld(renderer, Data.Resources, null, true);
-        CurrentSystem = system;
+        OriginalSystem = system;
+        ResetOriginalObjects();
+        CurrentSystem = system.Clone();
         Data.GameData.LoadAllSystem(CurrentSystem);
         World.LoadSystem(CurrentSystem, Data.Resources, null, false, false);
         World.Renderer.LoadLights(CurrentSystem);
@@ -295,7 +349,6 @@ public class SystemEditorTab : GameContentTab
         systemMap.SetObjects(CurrentSystem);
         renderer.PhysicsHook = RenderEditorObjects;
         renderer.OpaqueHook = RenderOpaque;
-        SystemData = new SystemEditData(CurrentSystem);
         //Setup UI
         ZoneList = new ZoneList();
         ZoneList.SetZones(CurrentSystem.Zones, CurrentSystem.AsteroidFields, CurrentSystem.Nebulae);
@@ -337,7 +390,7 @@ public class SystemEditorTab : GameContentTab
             mats[i].Initialize(win.Resources);
         }
 
-        foreach (var light in LightsList.Sources)
+        foreach (var light in LightsList.Sources.Values)
         {
             var w = Matrix4x4.CreateTranslation(light.Light.Position);
             var mb = matrixBuffer.SubmitMatrix(ref w);
@@ -389,20 +442,8 @@ public class SystemEditorTab : GameContentTab
         }, ZoneProperties);
     }
 
-    void InfocardRow(int idsInfo, Action<int> change)
-    {
-        //Infocard
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text("Infocard");
-        ImGui.TableNextColumn();
-        Controls.TruncText(InfocardPreview(idsInfo), 20);
-        ImGui.TableNextColumn();
-        if (ImGui.Button($"{Icons.Edit}##infocard"))
-        {
-            Popups.OpenPopup(new InfocardSelection(idsInfo, win, Data.Infocards, Data.Fonts, change));
-        }
-    }
+    bool ZoneNameTaken(string name, Zone z) => ZoneList.HasZone(name) && ZoneList.ZonesByName[name] != z;
+    EditorAction ZoneRename(Zone z, string old, string updated) => new SysZoneSetNickname(z, this, old, updated);
 
     void ZoneProperties()
     {
@@ -421,34 +462,14 @@ public class SystemEditorTab : GameContentTab
             IniWindow(ib, "zone.txt");
         }
 
-        if (!Controls.BeginPropertyTable("properties", true, false, true))
+        if (!Controls.BeginEditorTable("zone"))
             return;
-        Controls.PropertyRow("Nickname", sel.Nickname);
-        if (ImGui.Button($"{Icons.Edit}##nickname"))
-        {
-            Popups.OpenPopup(new NameInputPopup(
-                NameInputConfig.Nickname("Rename", x => ZoneList.HasZone(x)),
-                sel.Nickname,
-                x => UndoBuffer.Commit(new SysZoneSetNickname(sel, this, sel.Nickname, x))
-            ));
-        }
-
-        Controls.PropertyRow("Name", Data.Infocards.GetStringResource(sel.IdsName));
-        if (ImGui.Button($"{Icons.Edit}##name"))
-        {
-            Popups.OpenPopup(new StringSelection(sel.IdsName, Data.Infocards,
-                newIds =>
-                {
-                   UndoBuffer.Commit(new SysZoneSetIdsName(sel, this, sel.IdsName, newIds));
-                }));
-        }
-
-        //Infocard
-        InfocardRow(sel.IdsInfo, x => UndoBuffer.Commit(new SysZoneSetIdsInfo(sel, this, sel.IdsInfo, x)));
+        Controls.InputItemNickname("Nickname", UndoBuffer, sel, ZoneNameTaken, ZoneRename);
+        Controls.IdsInputStringUndo("Name", Data, Popups, UndoBuffer, () => ref sel.IdsName);
+        Controls.IdsInputXmlUndo("Infocard", win, Data, Popups, UndoBuffer, () => ref sel.IdsInfo);
 
         //Position
-        Controls.PropertyRow("Position", $"{sel.Position.X:0.00}, {sel.Position.Y:0.00}, {sel.Position.Z: 0.00}");
-        if (ImGui.Button($"{Icons.Edit}##position"))
+        if (Controls.EditButtonRow("Position", $"{sel.Position.X:0.00}, {sel.Position.Y:0.00}, {sel.Position.Z: 0.00}"))
         {
             var origPosition = sel.Position;
             Popups.OpenPopup(new Vector3Popup("Position", false, origPosition, (value, kind) =>
@@ -461,9 +482,7 @@ public class SystemEditorTab : GameContentTab
         }
 
         var rot = sel.RotationMatrix.GetEulerDegrees();
-        Controls.PropertyRow("Rotation",
-            $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}");
-        if (ImGui.Button($"{Icons.Edit}##rotation"))
+        if (Controls.EditButtonRow("Rotation",  $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}"))
         {
             var origMatrix = sel.RotationMatrix;
             var origAngles = sel.RotationAngles;
@@ -490,14 +509,8 @@ public class SystemEditorTab : GameContentTab
             }));
         }
 
-        if (ImGui.Button("0##rot"))
-        {
-            UndoBuffer.Commit(SysZoneSetRotation.Create(sel, this, Matrix4x4.Identity));
-        }
-
         ShapeProperties(sel);
-        Controls.EndPropertyTable();
-
+        Controls.EndEditorTable();
         //Special
         var ast = ZoneList.AsteroidFields.Fields.FirstOrDefault(x => x.Zone == sel);
         if (ast != null && ImGui.Button("Edit Asteroids"))
@@ -507,17 +520,11 @@ public class SystemEditorTab : GameContentTab
         }
 
         //Comment
-        Controls.BeginPropertyTable("comment", true, false, true);
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text("Comment");
-        ImGui.TableNextColumn();
-        Controls.TruncText(sel.Comment, 20);
-        ImGui.TableNextColumn();
-        if (ImGui.Button($"{Icons.Edit}##comment"))
+        ImGui.SeparatorText("Comment");
+        ImGui.TextWrapped(sel.Comment ?? "");
+        if (ImGui.Button($"{Icons.Edit} Edit##comment"))
             Popups.OpenPopup(new CommentPopup(sel.Comment,
                 x => UndoBuffer.Commit(new SysZoneSetComment(sel, this, sel.Comment, x))));
-        Controls.EndPropertyTable();
     }
 
     private bool closeField = false;
@@ -526,41 +533,10 @@ public class SystemEditorTab : GameContentTab
         closeField = true;
     }
 
-    void ShapeChangeButton(Zone z)
-    {
-        if (ImGui.Button($"{Icons.Edit}##shape"))
-            ImGui.OpenPopup("shapeitem");
-        bool changed = false;
-        if (ImGui.BeginPopup("shapeitem"))
-        {
-            if (ImGui.MenuItem("Sphere", (z.Shape != ShapeKind.Sphere)))
-            {
-                z.ChangeShape(ShapeKind.Sphere, this);
-            }
-            if (ImGui.MenuItem("Ellipsoid", (z.Shape != ShapeKind.Ellipsoid)))
-            {
-                z.ChangeShape(ShapeKind.Ellipsoid, this);
-            }
-            if (ImGui.MenuItem("Box", (z.Shape != ShapeKind.Box)))
-            {
-               z.ChangeShape(ShapeKind.Box, this);
-            }
-            if (ImGui.MenuItem("Cylinder", (z.Shape != ShapeKind.Cylinder)))
-            {
-                z.ChangeShape(ShapeKind.Cylinder, this);
-            }
-            if (ImGui.MenuItem("Ring", (z.Shape != ShapeKind.Ring)))
-            {
-                z.ChangeShape(ShapeKind.Ring, this);
-            }
-            ImGui.EndPopup();
-        }
-    }
 
     void FloatRow(string name, float size, Action<float> preview, Action<float,float> set)
     {
-        Controls.PropertyRow(name, size.ToString("0.####"));
-        if (ImGui.Button($"{Icons.Edit}##{name}"))
+        if (Controls.EditButtonRow(name, size.ToString("0.####")))
         {
             Popups.OpenPopup(new FloatPopup(name, size, (old, updated) => set(old,updated), v =>
             {
@@ -580,8 +556,31 @@ public class SystemEditorTab : GameContentTab
 
     void ShapeProperties(Zone zone)
     {
-        Controls.PropertyRow("Shape", zone.Shape.ToString());
-        ShapeChangeButton(zone);
+        Controls.EditControlSetup("Shape", 0);
+        if (ImGui.BeginCombo("##shape", zone.Shape.ToString()))
+        {
+            if (ImGui.Selectable("Sphere", (zone.Shape == ShapeKind.Sphere)))
+            {
+                zone.ChangeShape(ShapeKind.Sphere, this);
+            }
+            if (ImGui.Selectable("Ellipsoid", (zone.Shape == ShapeKind.Ellipsoid)))
+            {
+                zone.ChangeShape(ShapeKind.Ellipsoid, this);
+            }
+            if (ImGui.Selectable("Box", (zone.Shape == ShapeKind.Box)))
+            {
+                zone.ChangeShape(ShapeKind.Box, this);
+            }
+            if (ImGui.Selectable("Cylinder", (zone.Shape == ShapeKind.Cylinder)))
+            {
+                zone.ChangeShape(ShapeKind.Cylinder, this);
+            }
+            if (ImGui.Selectable("Ring", (zone.Shape == ShapeKind.Ring)))
+            {
+                zone.ChangeShape(ShapeKind.Ring, this);
+            }
+            ImGui.EndCombo();
+        }
         var labels = shapeLabels[zone.Shape];
         if (!string.IsNullOrWhiteSpace(labels[0]))
         {
@@ -639,29 +638,20 @@ public class SystemEditorTab : GameContentTab
 
     public void SetArchetypeLoadout(GameObject obj, Archetype archetype, ObjectLoadout loadout, Sun star)
     {
-        var ed = obj.GetEditData();
-        ed.Archetype = archetype;
-        ed.Loadout = loadout;
-        ed.Star = star;
+        obj.SystemObject.Archetype = archetype;
+        obj.SystemObject.Loadout = loadout;
+        obj.SystemObject.Star = star;
         var tr = obj.LocalTransform;
-        World.InitObject(obj, true, obj.SystemObject, Data.Resources, null, false, true, ed.Loadout, ed.Archetype, (OptionalArgument<Sun>)ed.Star);
-        obj.AddComponent(ed);
+        World.InitObject(obj, true, obj.SystemObject, Data.Resources, null, false, true,
+            obj.SystemObject.Loadout, obj.SystemObject.Archetype,
+            (OptionalArgument<Sun>)obj.SystemObject.Star);
         obj.SetLocalTransform(tr);
     }
 
-    void FactionRow(string name, Faction f, Action<Faction> onSet)
-    {
-        Controls.PropertyRow(name,
-            f == null ? "(none)" : $"{f.Nickname} ({Data.Infocards.GetStringResource(f.IdsName)})");
-        if (ImGui.Button($"{Icons.Edit}##{name}"))
-            Popups.OpenPopup(new FactionSelection(onSet, name, f, Data));
-    }
 
     void BaseRow(string name, Base f, Action<Base> onSet, string message = null)
     {
-        Controls.PropertyRow(name,
-            f == null ? "(none)" : $"{f.Nickname} ({Data.Infocards.GetStringResource(f.IdsName)})");
-        if (ImGui.Button($"{Icons.Edit}##{name}"))
+        if (Controls.EditButtonRow("Base", f == null ? "(none)" : $"{f.Nickname} ({Data.Infocards.GetStringResource(f.IdsName)})"))
             Popups.OpenPopup(new BaseSelection(onSet, name, message, f, Data));
     }
 
@@ -690,8 +680,7 @@ public class SystemEditorTab : GameContentTab
 
     void DockRow(DockAction act, Archetype a, Action<DockAction> onSet)
     {
-        Controls.PropertyRow("Dock", DockDescription(act));
-        if (ImGui.Button($"{Icons.Edit}##dock"))
+        if (Controls.EditButtonRow("Dock", DockDescription(act)))
         {
             Popups.OpenPopup(
                 new DockActionSelection(
@@ -703,67 +692,33 @@ public class SystemEditorTab : GameContentTab
         }
     }
 
-    private string lastPreview = null;
-    private int lastPreviewId = -1;
-    string InfocardPreview(int id)
+    bool ObjNameTaken(string name, SystemObject obj)
     {
-        if (id <= 0)
-        {
-            return "";
-        }
-        if (id != lastPreviewId)
-        {
-            lastPreviewId = id;
-            var infocard = Data.Infocards.GetXmlResource(id);
-            var parsed = RDLParse.Parse(infocard, Data.Fonts);
-            lastPreview = parsed.ExtractText();
-        }
-
-        return lastPreview;
+        var o = World.GetObject(name);
+        return o != null && o.SystemObject != obj;
     }
+    EditorAction ObjRename(GameObject obj, string old, string updated) => new ObjectSetNickname(obj, ObjectsList, old, updated);
 
     void ObjectProperties(GameObject sel)
     {
-        var ed = sel.GetEditData(false);
-        var gc = sel.Content();
         if (ImGui.Button("Get Ini"))
         {
-            SystemObject obj;
-            if (sel.TryGetComponent<ObjectEditData>(out var oed)) {
-                obj = oed.MakeCopy().SystemObject;
-            } else {
-                obj = sel.SystemObject;
-            }
             var ib = new IniBuilder();
-            IniSerializer.SerializeSystemObject(obj, ib);
+            IniSerializer.SerializeSystemObject(sel.SystemObject, ib);
             IniWindow(ib, "object.txt");
         }
 
-        if (!Controls.BeginPropertyTable("properties", true, false, true))
+        if (!Controls.BeginEditorTable("object"))
             return;
-        Controls.PropertyRow("Nickname", sel.Nickname);
-        if (ImGui.Button($"{Icons.Edit}##nickname"))
-        {
-            Popups.OpenPopup(new NameInputPopup(NameInputConfig.Nickname("Rename", n => World.GetObject(n) != null),
-                sel.Nickname, x => UndoBuffer.Commit(new ObjectSetNickname(sel, ObjectsList, sel.Nickname, x))));
-        }
+        Controls.InputItemNickname("Nickname", UndoBuffer, sel.SystemObject, ObjNameTaken,
+            (_, o, u) => ObjRename(sel, o, u));
+        Controls.IdsInputStringUndo("Name", Data, Popups, UndoBuffer, () => ref sel.SystemObject.IdsName);
+        Controls.IdsInputXmlUndo("Infocard", win, Data, Popups, UndoBuffer, () => ref sel.SystemObject.IdsInfo);
 
-        Controls.PropertyRow("Name", ed == null
-            ? sel.Name.GetName(Data.GameData, camera.Position)
-            : ed.GetName(Data.GameData, camera.Position));
-        if (ImGui.Button($"{Icons.Edit}##name"))
-        {
-            var oldName = ed?.IdsName ?? sel.SystemObject.IdsName;
-            Popups.OpenPopup(new StringSelection(oldName, Data.Infocards,
-                newIds => UndoBuffer.Commit(new ObjectSetIdsName(sel, ObjectsList, oldName, newIds))));
-        }
-        //Infocard
-        InfocardRow(gc.IdsInfo, x => UndoBuffer.Commit(new ObjectSetIdsInfo(sel, ObjectsList, gc.IdsInfo, x)));
         //Position
         var pos = sel.LocalTransform.Position;
         var rot = sel.LocalTransform.GetEulerDegrees();
-        Controls.PropertyRow("Position", $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}");
-        if (ImGui.Button($"{Icons.Edit}##position"))
+        if (Controls.EditButtonRow("Position",  $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}"))
         {
             var oldTr = sel.LocalTransform;
             Popups.OpenPopup(new Vector3Popup("Position", false, oldTr.Position, (value, kind) =>
@@ -782,8 +737,7 @@ public class SystemEditorTab : GameContentTab
                 }
             }));
         }
-        Controls.PropertyRow("Rotation", $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}");
-        if (ImGui.Button($"{Icons.Edit}##rotation"))
+        if (Controls.EditButtonRow("Rotation",  $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}"))
         {
             var oldTr = sel.LocalTransform;
             var angles = oldTr.Orientation.GetEulerDegrees();
@@ -805,13 +759,12 @@ public class SystemEditorTab : GameContentTab
             }));
         }
 
-        var oldArchetype = ed?.Archetype ?? sel.SystemObject.Archetype;
-        var oldLoadout = ed != null ? ed.Loadout : sel.SystemObject.Loadout;
-        var oldStar = ed != null ? ed.Star : sel.SystemObject.Star;
+        var oldArchetype = sel.SystemObject.Archetype;
+        var oldLoadout =  sel.SystemObject.Loadout;
+        var oldStar = sel.SystemObject.Star;
 
         //Archetype
-        Controls.PropertyRow("Archetype", gc.Archetype?.Nickname ?? "(none)");
-        if (ImGui.Button($"{Icons.Edit}##archetype"))
+        if (Controls.EditButtonRow("Archetype", sel.SystemObject.Archetype?.Nickname ?? "(none)"))
         {
             Popups.OpenPopup(new ArchetypeSelection(
                 x => UndoBuffer.Commit(new ObjectSetArchetypeLoadoutStar(
@@ -820,8 +773,7 @@ public class SystemEditorTab : GameContentTab
                 Data));
         }
         //Star
-        Controls.PropertyRow("Star", gc.Star?.Nickname ?? "(none)");
-        if (ImGui.Button($"{Icons.Edit}##star"))
+        if (Controls.EditButtonRow("Star", sel.SystemObject.Star?.Nickname ?? "(none)"))
         {
             Popups.OpenPopup(new StarSelection(
                 x => UndoBuffer.Commit(new ObjectSetArchetypeLoadoutStar(
@@ -831,8 +783,7 @@ public class SystemEditorTab : GameContentTab
         }
 
         //Loadout
-        Controls.PropertyRow("Loadout", gc.Loadout?.Nickname ?? "(none)");
-        if (ImGui.Button($"{Icons.Edit}##loadout"))
+        if (Controls.EditButtonRow("Loadout", sel.SystemObject.Loadout?.Nickname ?? "(none)"))
         {
             Popups.OpenPopup(new LoadoutSelection(
                 x => UndoBuffer.Commit(new ObjectSetArchetypeLoadoutStar(
@@ -842,47 +793,37 @@ public class SystemEditorTab : GameContentTab
                 Data));
         }
 
-        Controls.PropertyRow("Parent", gc.ParentObject ?? "(none)");
-        if (ImGui.Button($"{Icons.Edit}##parent"))
+        if (Controls.EditButtonRow("Parent", sel.SystemObject.Parent ?? "(none)"))
         {
             Popups.OpenPopup(new ParentSelectPopup(
                 ObjectsList.Objects.Where(x => x != sel),
-                Data, World.GetObject(gc.ParentObject),
-                x => UndoBuffer.Commit(new ObjectSetParent(sel, ObjectsList, gc.ParentObject, x?.Nickname))
+                Data, World.GetObject(sel.SystemObject.Parent),
+                x => UndoBuffer.Set("Parent", () => ref sel.SystemObject.Parent, x.Nickname)
                 ));
         }
 
         //Visit
-        Controls.PropertyRow("Visit", VisitFlagEditor.FlagsString(gc.Visit));
-        if (ImGui.Button($"{Icons.Edit}##visit"))
-            Popups.OpenPopup(
-                new VisitFlagEditor(gc.Visit, x => UndoBuffer.Commit(new ObjectSetVisit(sel, ObjectsList, gc.Visit, x))));
-        FactionRow("Reputation", gc.Reputation, x => UndoBuffer.Commit(new ObjectSetReputation(sel, ObjectsList, gc.Reputation, x)));
-        Controls.EndPropertyTable();
-        if (!Controls.BeginPropertyTable("base and docking", true, false, true))
-            return;
+        if (Controls.EditButtonRow("Visit", VisitFlagEditor.FlagsString(sel.SystemObject.Visit)))
+        {
+            Popups.OpenPopup(new VisitFlagEditor(sel.SystemObject.Visit,
+                x => UndoBuffer.Set("Visit", () => ref sel.SystemObject.Visit, x)));
+        }
+        Data.Factions.DrawUndo("Reputation", UndoBuffer, () => ref sel.SystemObject.Reputation, true);
         BaseRow(
             "Base",
-            gc.Base,
-            x => UndoBuffer.Commit(new ObjectSetBase(sel, ObjectsList, gc.Base, x)),
+            sel.SystemObject.Base,
+            x => UndoBuffer.Set("Base", () => ref sel.SystemObject.Base, x),
             "This is the base entry used when linking infocards.\nDocking requires setting the dock action"
         );
-        DockRow(gc.Dock, gc.Archetype, x => UndoBuffer.Commit(new ObjectSetDock(sel, ObjectsList, gc.Dock, x)));
-        Controls.EndPropertyTable();
+        DockRow(sel.SystemObject.Dock, sel.SystemObject.Archetype, x => UndoBuffer.Set("Dock", () => ref sel.SystemObject.Dock, x));
+        Controls.EndEditorTable();
 
         //Comment
-        if(!Controls.BeginPropertyTable("comment", true, false, true))
-            return;
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text("Comment");
-        ImGui.TableNextColumn();
-        Controls.TruncText(gc.Comment, 20);
-        ImGui.TableNextColumn();
-        if (ImGui.Button($"{Icons.Edit}##comment"))
-            Popups.OpenPopup(new CommentPopup(gc.Comment,
-                x => UndoBuffer.Commit(new ObjectSetComment(sel, ObjectsList, gc.Comment, x))));
-        Controls.EndPropertyTable();
+        ImGui.SeparatorText("Comment");
+        ImGui.TextWrapped(sel.SystemObject.Comment ?? "");
+        if (ImGui.Button($"{Icons.Edit} Edit"))
+            Popups.OpenPopup(new CommentPopup(sel.SystemObject.Comment,
+                x => UndoBuffer.Set("Comment", () => ref sel.SystemObject.Comment, x)));
     }
 
     public void CreateObject(string nickname, Archetype archetype, Vector3? pos = null)
@@ -934,7 +875,7 @@ public class SystemEditorTab : GameContentTab
         {
             var totalH = ImGui.GetWindowHeight();
             ImGuiExt.SplitterV(2f, ref h1, ref h2, 15 * ImGuiHelper.Scale, 60 * ImGuiHelper.Scale, -1);
-            h1 = totalH - h2 - 24f * ImGuiHelper.Scale;
+            h1 = totalH - h2 - 4f * ImGuiHelper.Scale;
             ImGui.BeginChild(id, new Vector2(ImGui.GetWindowWidth(), h1));
         }
         else
@@ -1013,31 +954,6 @@ public class SystemEditorTab : GameContentTab
             else if (ObjectsList.Selection.Count > 0)
             {
                 ImGui.Text("Multiple objects selected");
-                bool canReset = false;
-                foreach (var obj in ObjectsList.Selection)
-                {
-                    if (obj.GetEditData(false) != null)
-                    {
-                        canReset = true;
-                        break;
-                    }
-                }
-
-                if (ImGuiExt.Button("Reset All", canReset))
-                {
-                    for (int i = 0; i < ObjectsList.Selection.Count; i++)
-                    {
-                        var sel = ObjectsList.Selection[i];
-                        sel.Unregister(World.Physics);
-                        World.RemoveObject(sel);
-                        sel = World.NewObject(sel.SystemObject, Data.Resources, null, false);
-                        if (i == 0)
-                            ObjectsList.SelectedTransform = sel.LocalTransform.Matrix();
-                        ObjectsList.Selection[i] = sel;
-                    }
-
-                    ObjectsList.SetObjects(World);
-                }
                 if (ObjectsList.Selection.Count == 2)
                 {
                     if (ImGui.Button("Join Objects"))
@@ -1056,8 +972,8 @@ public class SystemEditorTab : GameContentTab
                                 if (setParent)
                                 {
                                     UndoBuffer.Commit(EditorAggregateAction.Create([
-                                        new ObjectSetParent(ObjectsList.Selection[1], ObjectsList,
-                                            ObjectsList.Selection[1].Content().ParentObject,
+                                        EditorPropertyModification<string>.Create("Parent", () =>
+                                            ref ObjectsList.Selection[1].SystemObject.Parent,
                                             ObjectsList.Selection[0].Nickname),
                                         setTr
                                     ]));
@@ -1130,14 +1046,18 @@ public class SystemEditorTab : GameContentTab
                               Matrix4x4.CreateRotationY(viewport.CameraRotation.X);
                     var dir = Vector3.Transform(-Vector3.UnitZ, rot);
                     var to = viewport.CameraOffset + (dir * 50);
-                    var lt = new LightSource();
-                    lt.Nickname = n;
+                    var lt = new LightSource
+                    {
+                        Nickname = n,
+                        AttenuationCurveName = null
+                    };
+
                     lt.Light.Attenuation = Vector3.UnitX;
                     lt.Light.Range = 5000;
                     lt.Light.Color = Color3f.White;
                     lt.Light.Position = to;
                     lt.Light.Kind = LightKind.Point;
-                    UndoBuffer.Commit(new SysLightCreate(lt, this));
+                    UndoBuffer.Commit(new DictionaryAdd<LightSource>("Light", LightsList.Sources, lt, () => ref LightsList.Selected));
                 }));
             }
             LightsList.Draw();
@@ -1155,51 +1075,45 @@ public class SystemEditorTab : GameContentTab
                 IniSerializer.SerializeLightSource(sel, ib);
                 IniWindow(ib, "LightSource.txt");
             }
-            if (!Controls.BeginPropertyTable("Props", true, false, true))
+            if (!Controls.BeginEditorTable("Props"))
                 return;
-            Controls.PropertyRow("Nickname", sel.Nickname);
-            if (ImGui.Button($"{Icons.Edit}##nickname"))
+            Controls.InputItemNickname("Nickname", UndoBuffer, LightsList.Sources, sel);
+            Controls.InputFloat3Undo("Position", UndoBuffer, () => ref sel.Light.Position);
+            ColorProperty("Color", sel.Light.Color, x =>
+                UndoBuffer.Commit(new SysLightSetColor(sel, sel.Light.Color, x, LightsList)));
+            bool isDirectional = sel.Light.Kind == LightKind.Directional;
+            Controls.EditControlSetup("Type", 0);
+            if (ImGui.BeginCombo("Type", isDirectional ? "Directional" : "Point"))
             {
-                Popups.OpenPopup(new NameInputPopup(
-                    NameInputConfig.Nickname("Rename", x => LightsList.HasLight(x)),
-                    sel.Nickname,
-                    x => UndoBuffer.Commit(new SysLightSetNickname(sel, sel.Nickname, x, LightsList))
-                ));
-            }
-            var pos = sel.Light.Position;
-            Controls.PropertyRow("Position", $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}");
-            if (ImGui.Button($"{Icons.Edit}##position"))
-            {
-                var origPosition = sel.Light.Position;
-                Popups.OpenPopup(new Vector3Popup("Position", false, origPosition, (value, kind) =>
+                if (ImGui.Selectable("Point", !isDirectional) && isDirectional)
                 {
-                    if (kind == SetActionKind.Commit)
-                        UndoBuffer.Commit(new SysLightSetPosition(sel, origPosition, value, LightsList));
-                    else
-                        sel.Light.Position = value;
-                }));
+                    UpdateLightKind(sel,
+                        sel.AttenuationCurveName != null ? LightKind.PointAttenCurve : LightKind.Point);
+                }
+                if (ImGui.Selectable("Directional", isDirectional) && !isDirectional)
+                {
+                    UpdateLightKind(sel, LightKind.Directional);
+                }
+                ImGui.EndCombo();
             }
-            ColorProperty("Color", new Color4(sel.Light.Color, 1), x =>
-                UndoBuffer.Commit(new SysLightSetColor(sel, sel.Light.Color, x.Rgb, LightsList)));
-            Controls.PropertyRow("Type", sel.Light.Kind == LightKind.Directional ? "Directional" : "Point");
-            if (sel.Light.Kind == LightKind.Directional)
+            if (isDirectional)
             {
-                var dir = sel.Light.Direction;
-                Controls.PropertyRow("Direction", $"{dir.X:0.00000}, {dir.Y:0.0000}, {dir.Z:0.0000}");
+                Controls.InputFloat3Undo("Direction", UndoBuffer, () => ref sel.Light.Direction);
             }
-            Controls.PropertyRow("Range", $"{sel.Light.Range:0.00}");
-            if (ImGui.Button($"{Icons.Edit}##range"))
+            else
             {
-                Popups.OpenPopup(new FloatPopup("Range", sel.Light.Range,
-                    (old, updated) => UndoBuffer.Commit(new SysLightSetRange(sel, old, updated, LightsList)),
-                    v => sel.Light.Range = v, 1));
+                ImGui.BeginDisabled();
+                Controls.EditControlSetup("Direction", 0);
+                Vector3 blank = Vector3.Zero;
+                ImGui.InputFloat3("##empty", ref blank);
+                ImGui.EndDisabled();
             }
+            Controls.InputFloatUndo("Range", UndoBuffer, () => ref sel.Light.Range);
             Vector3 atten3 = sel.Light.Attenuation;
             var attenPreview = string.IsNullOrWhiteSpace(sel.AttenuationCurveName)
                 ? $"{atten3.X:0.00000000}, {atten3.Y:0.00000000}, {atten3.Z:0.00000000}"
                 : sel.AttenuationCurveName;
-            Controls.PropertyRow("Attenuation", attenPreview);
-            if (ImGui.Button($"{Icons.Edit}##atten"))
+            if (Controls.EditButtonRow("Attenuation", attenPreview))
             {
                 FloatGraph graph = null;
                 Vector3 attenuation = sel.Light.Attenuation;
@@ -1223,7 +1137,7 @@ public class SystemEditorTab : GameContentTab
                     Data.GameData));
             }
 
-            Controls.EndPropertyTable();
+            Controls.EndEditorTable();
         });
     }
 
@@ -1236,26 +1150,19 @@ public class SystemEditorTab : GameContentTab
         win.TextWindows.Add(new TextDisplayWindow(sr.ReadToEnd(), name, win));
     }
 
-    void MusicProp(string name, string arg, Action<string> onSet)
-    {
-        Controls.PropertyRow(name, arg ?? "(none)");
-        if (Controls.Music(name, win, !string.IsNullOrEmpty(arg)))
-            Data.Sounds.PlayMusic(arg, 0, true);
-        ImGui.TableNextColumn();
-        if (ImGui.Button($"{Icons.Edit}##{name}"))
-            Popups.OpenPopup(new MusicSelection(onSet, name, arg, Data, win));
-        ImGui.TableNextColumn();
-        if (ImGuiExt.Button($"{Icons.TrashAlt}##{name}", !string.IsNullOrEmpty(arg)))
-            onSet(null);
-    }
-
     void StarsphereProp(string name, ResolvedModel arg, Action<ResolvedModel> onSet)
     {
+        ImGui.PushID(name);
         var modelName = arg?.ModelFile;
         if (modelName != null)
             modelName = Path.GetFileName(modelName);
-        Controls.PropertyRow(name, modelName ?? "(none)");
-        if (ImGui.Button($"{Icons.Edit}##{name}"))
+        float btnWidth = Controls.ButtonWidth($"{Icons.Edit}") +
+                         Controls.ButtonWidth($"{Icons.TrashAlt}");
+        Controls.EditControlSetup(name, 0, -btnWidth);
+        var preview = modelName ?? "(none)";
+        ImGui.InputText("##display", ref preview, 250, ImGuiInputTextFlags.ReadOnly);
+        ImGui.SameLine();
+        if (ImGui.Button($"{Icons.Edit}"))
         {
             Popups.OpenPopup(new VfsFileSelector(name, Data.GameData.VFS, Data.GameData.Items.Ini.Freelancer.DataPath, file =>
             {
@@ -1264,34 +1171,34 @@ public class SystemEditorTab : GameContentTab
                 onSet(new ResolvedModel() { ModelFile = modelFile, SourcePath = sourcePath });
             }, VfsFileSelector.MakeFilter(".cmp")));
         }
-
-        ImGui.TableNextColumn();
-        if (ImGuiExt.Button($"{Icons.TrashAlt}##{name}", arg != null))
+        ImGui.SameLine();
+        if (ImGuiExt.Button($"{Icons.TrashAlt}", arg != null))
         {
             onSet(null);
         }
+        ImGui.PopID();
     }
 
     public void ReloadStarspheres()
     {
         var models = new List<RigidModel>();
-        if (SystemData.StarsBasic != null)
+        if (CurrentSystem.StarsBasic != null)
         {
-            var mdl = SystemData.StarsBasic.LoadFile(Data.Resources);
+            var mdl = CurrentSystem.StarsBasic.LoadFile(Data.Resources);
             if (mdl?.Drawable is IRigidModelFile rm)
                 models.Add(rm.CreateRigidModel(true, Data.Resources));
         }
 
-        if (SystemData.StarsComplex != null)
+        if (CurrentSystem.StarsComplex != null)
         {
-            var mdl = SystemData.StarsComplex.LoadFile(Data.Resources);
+            var mdl = CurrentSystem.StarsComplex.LoadFile(Data.Resources);
             if (mdl?.Drawable is IRigidModelFile rm)
                 models.Add(rm.CreateRigidModel(true, Data.Resources));
         }
 
-        if (SystemData.StarsNebula != null)
+        if (CurrentSystem.StarsNebula != null)
         {
-            var mdl = SystemData.StarsNebula.LoadFile(Data.Resources);
+            var mdl = CurrentSystem.StarsNebula.LoadFile(Data.Resources);
             if (mdl?.Drawable is IRigidModelFile rm)
                 models.Add(rm.CreateRigidModel(true, Data.Resources));
         }
@@ -1301,81 +1208,59 @@ public class SystemEditorTab : GameContentTab
 
     void ColorProperty(string name, Color4 color, Action<Color4> onSet)
     {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text(name);
-        ImGui.TableNextColumn();
-        ImGui.PushItemWidth(-1);
+        Controls.EditControlSetup(name, 0);
         if (ImGui.ColorButton(name, color, ImGuiColorEditFlags.NoAlpha,
                 new Vector2(ImGui.CalcItemWidth(), ImGui.GetFrameHeight())))
         {
             Popups.OpenPopup(new ColorPicker(name, color, onSet));
         }
-
-        ImGui.TableNextColumn();
-        if (ImGui.Button($"{Icons.Edit}##{name}"))
-            Popups.OpenPopup(new ColorPicker(name, color, onSet));
-        ImGui.PopItemWidth();
     }
 
     void ColorProperty(string name, Color3f color, Action<Color3f> onSet)
     {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.Text(name);
-        ImGui.TableNextColumn();
-        ImGui.PushItemWidth(-1);
+        Controls.EditControlSetup(name, 0);
         if (ImGui.ColorButton(name, new Color4(color, 1), ImGuiColorEditFlags.NoAlpha,
                 new Vector2(ImGui.CalcItemWidth(), ImGui.GetFrameHeight())))
         {
             Popups.OpenPopup(new ColorPicker(name, color, onSet));
         }
+    }
 
-        ImGui.TableNextColumn();
-        if (ImGui.Button($"{Icons.Edit}##{name}"))
-            Popups.OpenPopup(new ColorPicker(name, color, onSet));
-        ImGui.PopItemWidth();
+    void MusicProp(string title, FieldAccessor<string> music)
+    {
+        ImGui.PushID(title);
+        Controls.EditControlSetup(title, 0, -Controls.ButtonWidth($"{Icons.Play}"));
+        SearchDropdown<string>.DrawUndo(title, UndoBuffer, music, Data.MusicByName, null, true);
+        ImGui.SameLine();
+        var value = music();
+        if(Controls.Music("music", Data.Sounds, value != null))
+            Data.Sounds.PlayMusic(value, 0, true);
+        ImGui.PopID();
     }
 
     void SystemPanel()
     {
-        if (!Controls.BeginPropertyTable("Props", true, false, true))
+        if (!Controls.BeginEditorTable("System"))
             return;
-        Controls.PropertyRow("Name", Data.Infocards.GetStringResource(SystemData.IdsName));
-        if (ImGui.Button($"{Icons.Edit}##name"))
-        {
-            Popups.OpenPopup(new StringSelection(SystemData.IdsName, Data.Infocards,
-                newIds => UndoBuffer.Commit(new SysDataSetIdsName(SystemData, SystemData.IdsName, newIds))));
-        }
-        InfocardRow(SystemData.IdsInfo,
-            x => UndoBuffer.Commit(new SysDataSetIdsInfo(SystemData, SystemData.IdsInfo, x)));
-        ColorProperty("Space Color", SystemData.SpaceColor, x =>
-            UndoBuffer.Commit(new SysDataSetSpaceColor(SystemData, SystemData.SpaceColor, x)));
-        ColorProperty("Ambient Color", SystemData.Ambient, x =>
-            UndoBuffer.Commit(new SysDataSetAmbient(SystemData, SystemData.Ambient, x)));
-        Controls.EndPropertyTable();
-        ImGui.Separator();
-        ImGui.Text("Music");
-        if (!Controls.BeginPropertyTable("Music", true, false, true, true, true))
-            return;
-        MusicProp("Space", SystemData.MusicSpace, x =>
-            UndoBuffer.Commit(new SysDataSetMusic(SystemData, SystemData.MusicSpace, x, "Space")));
-        MusicProp("Battle", SystemData.MusicBattle, x =>
-            UndoBuffer.Commit(new SysDataSetMusic(SystemData, SystemData.MusicBattle, x, "Battle")));
-        MusicProp("Danger", SystemData.MusicDanger, x =>
-            UndoBuffer.Commit(new SysDataSetMusic(SystemData, SystemData.MusicDanger, x, "Danger")));
-        Controls.EndPropertyTable();
-        ImGui.Separator();
-        ImGui.Text("Stars");
-        if (!Controls.BeginPropertyTable("Stars", true, false, true, true))
-            return;
-        StarsphereProp("Layer 1", SystemData.StarsBasic, x =>
-            UndoBuffer.Commit(new SysDataSetStars(SystemData, SystemData.StarsBasic, x, "Basic", this)));
-        StarsphereProp("Layer 2", SystemData.StarsComplex, x =>
-            UndoBuffer.Commit(new SysDataSetStars(SystemData, SystemData.StarsComplex, x, "Complex", this)));
-        StarsphereProp("Layer 3", SystemData.StarsNebula, x =>
-            UndoBuffer.Commit(new SysDataSetStars(SystemData, SystemData.StarsNebula, x, "Nebula", this)));
-        Controls.EndPropertyTable();
+        Controls.IdsInputStringUndo("Name", Data, Popups, UndoBuffer, () => ref CurrentSystem.IdsName);
+        Controls.IdsInputXmlUndo("Infocard", win, Data, Popups, UndoBuffer, () => ref CurrentSystem.IdsInfo);
+        Controls.TableSeparatorText("Colors");
+        ColorProperty("Space", CurrentSystem.BackgroundColor, x =>
+            UndoBuffer.Set("Space Color", () => ref CurrentSystem.BackgroundColor, x));
+        ColorProperty("Ambient", CurrentSystem.AmbientColor, x =>
+            UndoBuffer.Set("Ambient Color", () => ref CurrentSystem.AmbientColor, x));
+        Controls.TableSeparatorText("Music");
+        MusicProp("Space", () => ref CurrentSystem.MusicSpace);
+        MusicProp("Battle", () => ref CurrentSystem.MusicBattle);
+        MusicProp("Danger", () => ref CurrentSystem.MusicDanger);
+        Controls.TableSeparatorText("Stars");
+        StarsphereProp("Layer 1", CurrentSystem.StarsBasic, x =>
+            UndoBuffer.Commit(new SysDataSetStars(CurrentSystem, CurrentSystem.StarsBasic, x, "Basic", this)));
+        StarsphereProp("Layer 2", CurrentSystem.StarsComplex, x =>
+            UndoBuffer.Commit(new SysDataSetStars(CurrentSystem, CurrentSystem.StarsComplex, x, "Complex", this)));
+        StarsphereProp("Layer 3", CurrentSystem.StarsNebula, x =>
+            UndoBuffer.Commit(new SysDataSetStars(CurrentSystem, CurrentSystem.StarsNebula, x, "Nebula", this)));
+        Controls.EndEditorTable();
     }
 
     private static readonly Color4[] zoneColors = new Color4[]
@@ -1474,13 +1359,11 @@ public class SystemEditorTab : GameContentTab
     {
         if (render3d && cameraOpen)
         {
-            ImGui.SetNextWindowSize(new Vector2(360, 210) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
+            ImGui.SetNextWindowSize(new Vector2(360, 145) * ImGuiHelper.Scale, ImGuiCond.FirstUseEver);
             if (ImGui.Begin("Camera", ref cameraOpen))
             {
                 string pos =
                     $"{camera.Position.X.ToStringInvariant()}, {camera.Position.Y.ToStringInvariant()}, {camera.Position.Z.ToStringInvariant()}";
-                string rotWXYZ =
-                    $"{camera.Rotation.W.ToStringInvariant()}, {camera.Rotation.X.ToStringInvariant()}, {camera.Rotation.Y.ToStringInvariant()}, {camera.Rotation.Z.ToStringInvariant()}";
                 string rotEuler =
                     $"{camera.RotationEuler.X.ToStringInvariant()}, {camera.RotationEuler.Y.ToStringInvariant()}, {camera.RotationEuler.Z.ToStringInvariant()}";
                 ImGui.SeparatorText("Position");
@@ -1490,20 +1373,38 @@ public class SystemEditorTab : GameContentTab
                 ImGui.SameLine();
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text(pos);
-                ImGui.SeparatorText("WXYZ Rotation");
-                if (ImGui.Button($"{Icons.Copy}##wxyz")) {
-                    win.SetClipboardText(rotWXYZ);
-                }
-                ImGui.SameLine();
-                ImGui.AlignTextToFramePadding();
-                ImGui.Text(rotWXYZ);
-                ImGui.SeparatorText("Euler Rotation");
-                if (ImGui.Button($"{Icons.Copy}##euler")) {
-                    win.SetClipboardText(rotEuler);
+                ImGui.SeparatorText("Rotation");
+                if (ImGui.Button($"{Icons.Copy}##rotation")) {
+                    ImGui.OpenPopup("rotcopy");
                 }
                 ImGui.SameLine();
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text(rotEuler);
+                if (ImGui.BeginPopup("rotcopy"))
+                {
+                    if (ImGui.MenuItem("Euler Angles"))
+                    {
+                        win.SetClipboardText(rotEuler);
+                    }
+                    if (ImGui.MenuItem("WXYZ Quaternion"))
+                    {
+                        string rotWXYZ =
+                            $"{camera.Rotation.W.ToStringInvariant()}, {camera.Rotation.X.ToStringInvariant()}, {camera.Rotation.Y.ToStringInvariant()}, {camera.Rotation.Z.ToStringInvariant()}";
+                        win.SetClipboardText(rotWXYZ);
+                    }
+
+                    if (ImGui.MenuItem("Orientation Matrix"))
+                    {
+                        var mat = Matrix4x4.CreateFromQuaternion(camera.Rotation);
+                        string matrix = @$"{{
+  {{{mat.M11.ToStringInvariant()}, {mat.M12.ToStringInvariant()}, {mat.M13.ToStringInvariant()}}},
+  {{{mat.M21.ToStringInvariant()}, {mat.M22.ToStringInvariant()}, {mat.M23.ToStringInvariant()}}},
+  {{{mat.M31.ToStringInvariant()}, {mat.M32.ToStringInvariant()}, {mat.M33.ToStringInvariant()}}}
+}}";
+                        win.SetClipboardText(matrix);
+                    }
+                    ImGui.EndPopup();
+                }
             }
 
             ImGui.End();
@@ -1542,12 +1443,11 @@ public class SystemEditorTab : GameContentTab
         return m + "_01";
     }
 
-    record ObjectClipboardItem(ObjectEditData EditData, Transform3D Transform)
+    record ObjectClipboardItem(SystemObject SystemObject, Transform3D Transform)
     {
         //MakeCopy() after new object data to clone the SystemObject - detaches from world state
         public static ObjectClipboardItem Create(GameObject obj)
-            => new((obj.TryGetComponent<ObjectEditData>(out var ed) ?
-                ed : new ObjectEditData(obj)).MakeCopy(), obj.LocalTransform);
+            => new(obj.SystemObject.Clone(), obj.LocalTransform);
     }
 
     public override void OnHotkey(Hotkeys hk, bool shiftPressed)
@@ -1582,18 +1482,18 @@ public class SystemEditorTab : GameContentTab
             HashSet<string> generatedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var clip in objs)
             {
-                string n = clip.EditData.SystemObject.Nickname;
+                string n = clip.SystemObject.Nickname;
                 while (World.GetObject(n) != null ||
                        generatedNames.Contains(n))
                 {
                     n = MakeCopyNickname(n);
                 }
                 generatedNames.Add(n);
-                var newData = clip.EditData.MakeCopy();
-                newData.Apply();
-                newData.ApplyTransform(clip.Transform);
-                newData.SystemObject.Nickname = n;
-                sel.Add(new SysCreateObject(this, newData.SystemObject));
+                var newData = clip.SystemObject.Clone();
+                newData.Position = clip.Transform.Position;
+                newData.Rotation = clip.Transform.Orientation;
+                newData.Nickname = n;
+                sel.Add(new SysCreateObject(this, newData));
             }
             UndoBuffer.Commit(EditorAggregateAction.Create(sel.ToArray()));
             ObjectsList.SetObjects(World);
@@ -1613,7 +1513,7 @@ public class SystemEditorTab : GameContentTab
             {
                 toCreate.Nickname = MakeCopyNickname(toCreate.Nickname);
             }
-            UndoBuffer.Commit(new SysLightCreate(toCreate, this));
+            UndoBuffer.Commit(new DictionaryAdd<LightSource>("Light", LightsList.Sources, toCreate, () => ref LightsList.Selected));
         }
 
         if (hk == Hotkeys.Copy && ZonesMode && ZoneList.Selected != null)
@@ -1630,6 +1530,13 @@ public class SystemEditorTab : GameContentTab
             }
             UndoBuffer.Commit(new SysZoneCreate(this, toCreate));
         }
+
+        #if DEBUG
+        if (hk == Hotkeys.ChangeSystem)
+        {
+            OnDataChanged();
+        }
+        #endif
     }
 
     private bool firstTab = true;
@@ -1658,7 +1565,7 @@ public class SystemEditorTab : GameContentTab
                 return;
             }
         }
-        var curSysName = Data.Infocards.GetStringResource(SystemData.IdsName);
+        var curSysName = Data.Infocards.GetStringResource(CurrentSystem.IdsName);
         Title = $"{curSysName} ({CurrentSystem.Nickname})";
         World.RenderUpdate(elapsed);
         if (propertiesMode == 1 &&
@@ -1725,12 +1632,10 @@ public class SystemEditorTab : GameContentTab
                     manipulatingObjects = true;
                 }
 
-                //GetEditData(objectList.Selection[0]);
                 for (int i = 0; i < ObjectsList.Selection.Count; i++)
                 {
                     ObjectsList.Selection[i]
                         .SetLocalTransform(Transform3D.FromMatrix(ImGuizmo.ApplyDelta(ObjectsList.Selection[i].LocalTransform.Matrix(), delta, op)));
-                    ObjectsList.Selection[i].GetEditData();
                 }
             }
 
@@ -1739,7 +1644,7 @@ public class SystemEditorTab : GameContentTab
             {
                 var actions = originalObjTransforms.Select(x => (EditorAction)new
                     ObjectSetTransform(x.Object, ObjectsList, x.Transform, x.Object.LocalTransform)).ToArray();
-                UndoBuffer.Push(EditorAggregateAction.Create(actions));
+                UndoBuffer.Commit(EditorAggregateAction.Create(actions)); // Need commit to set SystemObject fields
                 manipulatingObjects = false;
                 originalObjTransforms = new();
             }
@@ -1861,7 +1766,7 @@ public class SystemEditorTab : GameContentTab
         // Clear tool state
         map2D.CreationTools.Tradelane.Cancel();
         // Create objects
-        var tlNick = $"{SystemData.Nickname}_Trade_Lane_Ring_1";
+        var tlNick = $"{CurrentSystem.Nickname}_Trade_Lane_Ring_1";
         HashSet<string> nicks = new();
         List<SystemObject> createdTradelanes = new();
         var offset = (tl.End - tl.Start) / (tl.Count - 1);

@@ -75,3 +75,11 @@ indent_size = 2
 
 [*.sh]
 end_of_line = lf
+
+# Suppressions
+[src/LibreLancer.Data/Schema/**/*.cs]
+resharper_field_can_be_made_read_only_global_highlighting = none # Generated INI code cannot be made readonly
+resharper_unassigned_field_global_highlighting = none # Generated INI fields are assigned by the generator
+resharper_collection_never_updated_global_highlighting = none # Updated via generator
+resharper_non_readonly_member_in_get_hash_code_highlighting = none # We use GetHashCode to equate FL IDs
+resharper_class_never_instantiated_global_highlighting = none # Handled by generator

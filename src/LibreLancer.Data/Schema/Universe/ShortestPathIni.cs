@@ -9,17 +9,17 @@ namespace LibreLancer.Data.Schema.Universe;
 public partial class ShortestPathIni
 {
     [Section("SystemConnections")]
-    public List<SystemConnections> SystemConnections = new();
+    public List<SystemConnections> SystemConnections = [];
 
     public void AddFile(string path, FileSystem vfs) => ParseIni(path, vfs);
 }
 
-public record ShortestPathEntry(string Start, string End, string[] Hops);
+public record ShortestPathEntry(string? Start, string? End, string[] Hops);
 
 [ParsedSection]
 public partial class SystemConnections
 {
-    public List<ShortestPathEntry> Entries = new();
+    public List<ShortestPathEntry> Entries = [];
 
     [EntryHandler("Path", Multiline = true, MinComponents = 3)]
     public void HandlePathEntry(Entry e)

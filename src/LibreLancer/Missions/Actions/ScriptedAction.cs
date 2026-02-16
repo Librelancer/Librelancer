@@ -12,10 +12,11 @@ using LibreLancer.Net;
 using LibreLancer.Server;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace LibreLancer.Missions.Actions
 {
-    public abstract class ScriptedAction
+    public abstract class ScriptedAction : TriggerEntry
     {
         public string Text { get; private set; }
 
@@ -29,36 +30,6 @@ namespace LibreLancer.Missions.Actions
             Text = a.Entry.ToString();
         }
 
-        protected bool ParseBoolean(IValue value)
-        {
-            bool? result = value.ToString()!.ToLowerInvariant() switch
-            {
-                "1" => true,
-                "accept" => true,
-                "active" => true,
-                "yes" => true,
-                "on" => true,
-                "succeed" => true,
-                "true" => true,
-                "lock" => true,
-                "0" => false,
-                "off" => false,
-                "no" => false,
-                "reject" => false,
-                "fail" => false,
-                "false" => false,
-                "unlock" => false,
-                _ => null
-            };
-
-            if (result is not null)
-            {
-                return result.Value;
-            }
-
-            FLLog.Warning("ScriptedAction", $"Unable to parse boolean value '{value}'");
-            return false;
-        }
 
         public virtual void Invoke(MissionRuntime runtime, MissionScript script)
         {
@@ -69,6 +40,20 @@ namespace LibreLancer.Missions.Actions
         {
             FLLog.Warning("Missions", $"{GetType().Name}.Write() is not implemented!");
         }
+
+
+        public static readonly TriggerActions[] Unsupported =
+        [
+            TriggerActions.Act_SetFlee,
+            TriggerActions.Act_SpawnShipRel,
+            TriggerActions.Act_RepChangeRequest,
+            TriggerActions.Act_RelocateForm,
+            TriggerActions.Act_PilotParams,
+            TriggerActions.Act_PlayNN,
+            TriggerActions.Act_PlayerForm,
+            TriggerActions.Act_GiveMB
+        ];
+
 
         public static IEnumerable<ScriptedAction> Convert(IEnumerable<MissionAction> actions)
         {
@@ -205,38 +190,31 @@ namespace LibreLancer.Missions.Actions
                 return;
             }
 
-            if (v.Type[0].Equals("ids", StringComparison.OrdinalIgnoreCase))
+            switch (v.Type)
             {
-                runtime.Player.SetObjective(new NetObjective(int.Parse(v.Type[1])), History);
+                case NNObjectiveType.ids:
+                    runtime.Player.SetObjective(new NetObjective(v.NameIds), History);
+                    break;
+                case NNObjectiveType.navmarker:
+                    runtime.Player.SetObjective(
+                        new NetObjective(
+                            v.NameIds,
+                            v.ExplanationIds,
+                            v.System,
+                            v.Position
+                        ), History);
+                    break;
+                case NNObjectiveType.rep_inst:
+                    runtime.Player.SetObjective(
+                        new NetObjective(
+                            v.NameIds,
+                            v.ExplanationIds,
+                            v.System,
+                            v.SolarNickname
+                            ), History);
+                    break;
             }
-            else if (v.Type[0].Equals("navmarker", StringComparison.OrdinalIgnoreCase))
-            {
-                runtime.Player.SetObjective(
-                    new NetObjective(
-                        int.Parse(v.Type[2]),
-                        int.Parse(v.Type[3]),
-                        v.Type[1],
-                        new Vector3(
-                            float.Parse(v.Type[4], CultureInfo.InvariantCulture),
-                            float.Parse(v.Type[5], CultureInfo.InvariantCulture),
-                            float.Parse(v.Type[6], CultureInfo.InvariantCulture)
-                        )
-                    ),
-                    History
-                );
-            }
-            else if (v.Type[0].Equals("rep_inst", StringComparison.OrdinalIgnoreCase))
-            {
-                runtime.Player.SetObjective(
-                    new NetObjective(
-                        int.Parse(v.Type[2]),
-                        int.Parse(v.Type[3]),
-                        v.Type[1],
-                        v.Type[7]
-                    ),
-                    History
-                );
-            }
+
         }
     }
 
@@ -250,7 +228,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_ActTrig(MissionAction act) : base(act)
         {
-            Trigger = act.Entry[0].ToString();
+            GetString(nameof(Trigger), 0, out Trigger, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -273,7 +251,7 @@ namespace LibreLancer.Missions.Actions
         }
         public Act_DeactTrig(MissionAction act) : base(act)
         {
-            Trigger = act.Entry[0].ToString();
+            GetString(nameof(Trigger), 0, out Trigger, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -298,7 +276,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_AddRTC(MissionAction act) : base(act)
         {
-            RTC = act.Entry[0].ToString();
+            GetString(nameof(RTC), 0, out RTC, act.Entry);
             if (act.Entry.Count > 1)
                 Repeatable = "repeatable".Equals(act.Entry[1].ToString(), StringComparison.OrdinalIgnoreCase);
         }
@@ -326,7 +304,7 @@ namespace LibreLancer.Missions.Actions
         }
         public Act_RemoveRTC(MissionAction act) : base(act)
         {
-            RTC = act.Entry[0].ToString();
+            GetString(nameof(RTC), 0, out RTC, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -352,9 +330,9 @@ namespace LibreLancer.Missions.Actions
 
         public Act_AddAmbient(MissionAction act) : base(act)
         {
-            Script = act.Entry[0].ToString();
-            Room = act.Entry[1].ToString();
-            Base = act.Entry[2].ToString();
+            GetString(nameof(Script), 0, out Script, act.Entry);
+            GetString(nameof(Room), 1, out Room, act.Entry);
+            GetString(nameof(Base), 2, out Base, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -377,7 +355,7 @@ namespace LibreLancer.Missions.Actions
         }
         public Act_RemoveAmbient(MissionAction act) : base(act)
         {
-            Script = act.Entry[0].ToString();
+            GetString(nameof(Script), 0, out Script, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -404,8 +382,9 @@ namespace LibreLancer.Missions.Actions
 
         public Act_Invulnerable(MissionAction act) : base(act)
         {
-            Object = act.Entry[0].ToString();
-            Invulnerable = Unknown = act.Entry[1].ToBoolean();
+            GetString(nameof(Object), 0, out Object, act.Entry);
+            GetBoolean(nameof(Invulnerable), 1, out Invulnerable, act.Entry);
+            Unknown = Invulnerable;
             if(act.Entry.Count > 2)
                 Unknown = act.Entry[2].ToBoolean();
             if(act.Entry.Count > 3)
@@ -446,8 +425,8 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SetShipAndLoadout(MissionAction act) : base(act)
         {
-            Ship = act.Entry[0].ToString();
-            Loadout = act.Entry[1].ToString();
+            GetString(nameof(Ship), 0, out Ship, act.Entry);
+            GetString(nameof(Loadout), 1, out Loadout, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -506,7 +485,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_PlaySoundEffect(MissionAction act) : base(act)
         {
-            Effect = act.Entry[0].ToString();
+            GetString("Effect", 0, out Effect, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -543,9 +522,9 @@ namespace LibreLancer.Missions.Actions
                 Reset = true;
                 return;
             }
-            Space = act.Entry[0].ToString();
-            Danger = act.Entry[1].ToString();
-            Battle = act.Entry[2].ToString();
+            GetString(nameof(Space), 0, out Space, act.Entry);
+            GetString(nameof(Danger), 1, out Danger, act.Entry);
+            GetString(nameof(Battle), 2, out Battle, act.Entry);
             if(act.Entry.Count > 3)
                 Motif = act.Entry[3].ToString();
             if (act.Entry.Count > 4)
@@ -597,7 +576,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_ForceLand(MissionAction act) : base(act)
         {
-            Base = act.Entry[0].ToString();
+            GetString(nameof(Base), 0, out Base, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -621,7 +600,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_DisableTradelane(MissionAction act) : base(act)
         {
-            Tradelane = act.Entry[0].ToString();
+            GetString(nameof(Tradelane), 0, out Tradelane, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -653,7 +632,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_AdjAcct(MissionAction act) : base(act)
         {
-            Amount = act.Entry[0].ToInt32();
+            GetInt(nameof(Amount), 0, out Amount, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -678,8 +657,8 @@ namespace LibreLancer.Missions.Actions
 
         public Act_LightFuse(MissionAction act) : base(act)
         {
-            Target = act.Entry[0].ToString();
-            Fuse = act.Entry[1].ToString();
+            GetString(nameof(Target), 0, out Target, act.Entry);
+            GetString(nameof(Fuse), 1, out Fuse, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -719,9 +698,9 @@ namespace LibreLancer.Missions.Actions
         }
         public Act_PopupDialog(MissionAction act) : base(act)
         {
-            Title = act.Entry[0].ToInt32();
-            Contents = act.Entry[1].ToInt32();
-            ID = act.Entry[2].ToString();
+            GetInt(nameof(Title), 0, out Title, act.Entry);
+            GetInt(nameof(Contents), 1, out Contents, act.Entry);
+            GetString(nameof(ID), 2, out ID, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -746,8 +725,8 @@ namespace LibreLancer.Missions.Actions
 
         public Act_GiveObjList(MissionAction act) : base(act)
         {
-            Target = act.Entry[0].ToString();
-            List = act.Entry[1].ToString();
+            GetString(nameof(Target), 0, out Target, act.Entry);
+            GetString(nameof(List), 1, out List, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -821,7 +800,8 @@ namespace LibreLancer.Missions.Actions
 
         public Act_ChangeState(MissionAction act) : base(act)
         {
-            Succeed = act.Entry[0].ToString().Equals("SUCCEED", StringComparison.OrdinalIgnoreCase);
+            GetString("Succeed", 0, out var succeed, act.Entry);
+            Succeed = succeed.Equals("SUCCEED", StringComparison.OrdinalIgnoreCase);
             if (act.Entry.Count > 1)
                 Ids = act.Entry[1].ToInt32();
         }
@@ -876,6 +856,7 @@ namespace LibreLancer.Missions.Actions
         }
         public Act_CallThorn(MissionAction act) : base(act)
         {
+            GetString(nameof(Thorn), 0, out Thorn, act.Entry);
             Thorn = act.Entry[0].ToString();
             if (act.Entry.Count > 1)
                 MainObject = act.Entry[1].ToString();

@@ -1739,9 +1739,9 @@ void ed::EditorContext::UpdateNodeState(Node* node)
     // Load state from config (if possible)
     if (tryLoadState)
     {
-        NodeSettings newSettings = *settings;
+        /*NodeSettings newSettings = *settings;
         if (NodeSettings::Parse(m_Config.LoadNode(node->m_ID), newSettings))
-            *settings = newSettings;
+            *settings = newSettings;*/
     }
 
     node->m_Bounds.Min      = settings->m_Location;
@@ -2162,7 +2162,7 @@ ed::Link* ed::EditorContext::GetLink(LinkId id)
 
 void ed::EditorContext::LoadSettings()
 {
-    ed::Settings::Parse(m_Config.Load(), m_Settings);
+    //ed::Settings::Parse(m_Config.Load(), m_Settings);
 
     if (ImRect_IsEmpty(m_Settings.m_VisibleRect))
     {
@@ -2189,8 +2189,8 @@ void ed::EditorContext::SaveSettings()
 
         if (!node->m_RestoreState && settings->m_IsDirty && m_Config.SaveNodeSettings)
         {
-            if (m_Config.SaveNode(node->m_ID, settings->Serialize().dump(), settings->m_DirtyReason))
-                settings->ClearDirty();
+            //if (m_Config.SaveNode(node->m_ID, settings->Serialize().dump(), settings->m_DirtyReason))
+            settings->ClearDirty();
         }
     }
 
@@ -2202,7 +2202,7 @@ void ed::EditorContext::SaveSettings()
     m_Settings.m_ViewZoom    = m_NavigateAction.m_Zoom;
     m_Settings.m_VisibleRect = m_NavigateAction.m_VisibleRect;
 
-    if (m_Config.Save(m_Settings.Serialize(), m_Settings.m_DirtyReason))
+    //if (m_Config.Save(m_Settings.Serialize(), m_Settings.m_DirtyReason))
         m_Settings.ClearDirty();
 
     m_Config.EndSave();
@@ -2673,7 +2673,7 @@ void ed::NodeSettings::MakeDirty(SaveReasonFlags reason)
     m_DirtyReason = m_DirtyReason | reason;
 }
 
-ed::json::value ed::NodeSettings::Serialize()
+/*ed::json::value ed::NodeSettings::Serialize()
 {
     json::value result;
     result["location"]["x"] = m_Location.x;
@@ -2728,7 +2728,7 @@ bool ed::NodeSettings::Parse(const json::value& data, NodeSettings& result)
         return false;
 
     return true;
-}
+}*/
 
 
 
@@ -2794,7 +2794,7 @@ void ed::Settings::MakeDirty(SaveReasonFlags reason, Node* node)
     }
 }
 
-std::string ed::Settings::Serialize()
+/*std::string ed::Settings::Serialize()
 {
     json::value result;
 
@@ -2929,7 +2929,7 @@ bool ed::Settings::Parse(const std::string& string, Settings& settings)
     settings = std::move(result);
 
     return true;
-}
+}*/
 
 
 

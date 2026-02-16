@@ -72,10 +72,8 @@ public class RunningServerScreen(
         ImGui.Separator();
 
         ImGui.PushItemWidth(-1);
-        if (ImGui.BeginTable(
-                "server_stats_layout",
-                3,
-                ImGuiTableFlags.SizingStretchProp))
+
+        if (ImGui.BeginTable("server_stats_layout", 3, ImGuiTableFlags.SizingStretchProp))
         {
             ImGui.TableSetupColumn("stats", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableSetupColumn("spacing", ImGuiTableColumnFlags.WidthFixed);
@@ -128,7 +126,9 @@ public class RunningServerScreen(
     private void DrawServerStats()
     {
         ImGui.Text("Status:");
+
         ImGui.SameLine(Theme.LabelWidthMedium * ImGuiHelper.Scale);
+
         if (win.Server == null || (!win.IsRunning && !isStarting))
         {
             ImGui.TextColored(Theme.ErrorTextColor, "Not running");
@@ -143,7 +143,9 @@ public class RunningServerScreen(
         }
 
         ImGui.Text("Listening Port:");
+
         ImGui.SameLine(Theme.LabelWidthMedium * ImGuiHelper.Scale);
+
         ImGui.Text(win.Server?.Server?.Listener?.Port.ToString() ?? "-");
 
         ImGui.Separator();
@@ -163,7 +165,9 @@ public class RunningServerScreen(
             admins.Any(a => a.Name == p.Character.Name)).ToString());
 
         ImGui.Text("Banned Players");
+
         ImGui.SameLine(Theme.LabelWidthMedium * ImGuiHelper.Scale);
+
         ImGui.Text(bannedPlayers?.Count().ToString() ?? "-");
 
         if (ImGui.Button("Stop Server", new Vector2(-1, ImGui.GetFrameHeight() * 2 * ImGuiHelper.Scale)))
@@ -196,6 +200,8 @@ public class RunningServerScreen(
         var perf = win.ServerPerformance;
         if (perf == null)
             return;
+
+        perf.Update();
 
         Span<float> values = stackalloc float[ServerPerformance.MAX_TIMING_ENTRIES];
         var len = perf.Timings.Count;
@@ -763,7 +769,9 @@ public class RunningServerScreen(
         }
     }
 
+
     private void HandleCharacterDisconnected(CharacterDisconnectedEventPayload? characterDisconnectedEventPayload)
+
     {
         FLLog.Info("Server Gui", "Received Character Disconnect Server Event");
         if (characterDisconnectedEventPayload == null) return;
@@ -772,6 +780,7 @@ public class RunningServerScreen(
         if (player == null) return;
 
         universePlayers.RemoveAll(p => p.AccountId == player.AccountId);
+
     }
 
     private void HandleCharacterConnected(CharacterConnectedEventPayload? characterConnectedEventPayload)

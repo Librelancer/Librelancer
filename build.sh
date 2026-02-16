@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# Configure dotnet cli
+export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export MSBUILDTERMINALLOGGER=off
+# Workaround for redhat based systems
+export OPENSSL_ENABLE_SHA1_SIGNATURES=1
 # Define directories.
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "$SCRIPT_DIR/build.config"
@@ -28,5 +34,4 @@ if [ $? -ne 0 ]; then
 fi
 
 cd "$SCRIPT_DIR"
-# Fix fedora RSA+SHA1 disabled
-OPENSSL_ENABLE_SHA1_SIGNATURES=1 MSBUILDTERMINALLOGGER=off dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- "$@"
+dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- "$@"

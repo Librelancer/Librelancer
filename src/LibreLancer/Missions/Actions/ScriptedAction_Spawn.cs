@@ -25,7 +25,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SpawnSolar(MissionAction act) : base(act)
         {
-            Solar = act.Entry[0].ToString();
+            GetString(nameof(Solar),  0, out Solar, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -71,8 +71,8 @@ namespace LibreLancer.Missions.Actions
 
         public Act_MarkObj(MissionAction act) : base(act)
         {
-            Object = act.Entry[0].ToString();
-            Important = act.Entry[1].ToInt32() != 0;
+            GetString(nameof(Object), 0, out Object, act.Entry);
+            GetBoolean(nameof(Important), 1, out Important, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -200,13 +200,18 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SpawnFormation(MissionAction act) : base(act)
         {
+            GetString(nameof(Formation), 0, out Formation, act.Entry);
             Formation = act.Entry[0].ToString();
             if (act.Entry.Count > 1)
-                Position = new Vector3(act.Entry[1].ToSingle(), act.Entry[2].ToSingle(),
-                    act.Entry[3].ToSingle());
-            if(act.Entry.Count > 4)
-                Orientation = new Quaternion(act.Entry[5].ToSingle(),
-                    act.Entry[6].ToSingle(),  act.Entry[7].ToSingle(), act.Entry[4].ToSingle());
+            {
+                GetVector3(nameof(Position), 1, out var p, act.Entry);
+                Position = p;
+            }
+            if (act.Entry.Count > 4)
+            {
+                GetQuaternion(nameof(Orientation), 4, out var q, act.Entry);
+                Orientation = q;
+            }
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -270,19 +275,20 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SpawnShip(MissionAction act) : base(act)
         {
-            Ship = act.Entry[0].ToString();
+            GetString(nameof(Ship), 0, out Ship, act.Entry);
             if (act.Entry.Count > 1)
             {
                 ObjList = act.Entry[1].ToString();
             }
             if (act.Entry.Count > 2)
             {
-                Position = new Vector3(act.Entry[2].ToSingle(), act.Entry[3].ToSingle(), act.Entry[4].ToSingle());
+                GetVector3(nameof(Position), 2, out var p, act.Entry);
+                Position = p;
             }
             if (act.Entry.Count > 5)
             {
-                Orientation = new Quaternion(act.Entry[6].ToSingle(), act.Entry[7].ToSingle(), act.Entry[8].ToSingle(),
-                    act.Entry[5].ToSingle());
+                GetQuaternion(nameof(Orientation), 5, out var q, act.Entry);
+                Orientation = q;
             }
         }
 
@@ -331,7 +337,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SpawnLoot(MissionAction act) : base(act)
         {
-            Loot = act.Entry[0].ToString();
+            GetString(nameof(Loot), 0, out Loot, act.Entry);
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
@@ -394,7 +400,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_Destroy(MissionAction act) : base(act)
         {
-            Target = act.Entry[0].ToString();
+            GetString(nameof(Target), 0, out Target, act.Entry);
             if (act.Entry.Count > 1)
             {
                 Enum.TryParse<DestroyKind>(act.Entry[1].ToString(), true, out Kind);

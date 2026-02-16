@@ -5,7 +5,7 @@ namespace LibreLancer.Data;
 
 public static class DataEquality
 {
-    public static bool IdEquals(string a, string b)
+    public static bool IdEquals(string? a, string? b)
     {
         if (a == null && b == null) return true;
         if (a == null) return false;
@@ -13,7 +13,7 @@ public static class DataEquality
         return a.Equals(b, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static bool ObjectEquals<T>(T a, T b) where T : IDataEquatable<T>
+    public static bool ObjectEquals<T>(T? a, T? b) where T : IDataEquatable<T>
     {
         if(a == null && b == null) return true;
         if(a == null) return false;
@@ -21,7 +21,7 @@ public static class DataEquality
         return a.DataEquals(b);
     }
 
-    public static bool ListEquals<T>(IList<T> a, IList<T> b) where T : IDataEquatable<T>
+    public static bool ListEquals<T>(IList<T>? a, IList<T>? b) where T : IDataEquatable<T>
     {
         if(a == null && b == null) return true;
         if(a == null) return false;

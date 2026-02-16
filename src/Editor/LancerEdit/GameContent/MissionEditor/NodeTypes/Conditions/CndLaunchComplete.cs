@@ -22,7 +22,7 @@ public class CndLaunchComplete : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Ship", undoBuffer, () => ref Data.ship);
+        Controls.InputTextIdUndo("Ship", undoBuffer, () => ref Data.Ship);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

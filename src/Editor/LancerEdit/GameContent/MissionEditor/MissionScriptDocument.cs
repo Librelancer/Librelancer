@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema.Missions;
@@ -9,12 +10,13 @@ using LibreLancer.Missions;
 
 namespace LancerEdit.GameContent.MissionEditor;
 
+
 public class MissionScriptDocument
 {
     public MissionInfo Info;
     public SortedDictionary<string, ShipArch> NpcShips;
     public SortedDictionary<string, ScriptNPC> Npcs;
-    public SortedDictionary<string, NNObjective> Objectives;
+    public SortedDictionary<string, DocumentObjective> Objectives;
     public SortedDictionary<string, ScriptDialog> Dialogs;
     public SortedDictionary<string, ScriptShip> Ships;
     public SortedDictionary<string, ScriptSolar> Solars;
@@ -59,19 +61,21 @@ public class MissionScriptDocument
         Info = script.Info;
         NpcShips = ToSortedDictionary(script.NpcShips);
         Npcs = ToSortedDictionary(script.NPCs);
-        Objectives = ToSortedDictionary(script.Objectives);
+
         Dialogs = ToSortedDictionary(script.Dialogs);
         Ships = ToSortedDictionary(script.Ships);
         Solars = ToSortedDictionary(script.Solars);
         Formations = ToSortedDictionary(script.Formations);
         Loots = ToSortedDictionary(script.Loot);
         ObjLists = ToSortedDictionary(script.ObjLists);
+        Objectives = new (StringComparer.OrdinalIgnoreCase);
+        foreach (var obj in script.Objectives)
+            Objectives[obj.Key] = new() { Nickname = obj.Key, Data = obj.Value };
     }
 
     public void Save(
         string filename,
         GameDataContext gameData,
-        MissionScriptEditorTab tab,
         IEnumerable<NodeMissionTrigger> triggers,
         IEnumerable<SavedNode> nodes)
     {
@@ -102,7 +106,8 @@ public class MissionScriptDocument
 
         foreach (var objective in Objectives.Values)
         {
-            IniSerializer.SerializeMissionObjective(objective, ini);
+            objective.Data.Nickname = objective.Nickname;
+            IniSerializer.SerializeMissionObjective(objective.Data, ini);
         }
 
         foreach (var loot in Loots.Values)
@@ -137,7 +142,7 @@ public class MissionScriptDocument
 
         foreach (var tr in triggers)
         {
-            tr.WriteNode(tab, ini);
+            tr.WriteNode(ini);
         }
 
         var nodeSection = ini.Section("Nodes");
@@ -148,4 +153,9 @@ public class MissionScriptDocument
 
         IniWriter.WriteIniFile(filename, ini.Sections);
     }
+}
+
+public class DocumentObjective : NicknameItem
+{
+    public NNObjective Data = new();
 }

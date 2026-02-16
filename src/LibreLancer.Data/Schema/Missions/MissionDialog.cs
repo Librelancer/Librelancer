@@ -5,41 +5,41 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Missions
+namespace LibreLancer.Data.Schema.Missions;
+
+[ParsedSection]
+public partial class MissionDialog
 {
-    [ParsedSection]
-    public partial class MissionDialog
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("system", Required = true)]
+    public string System = null!;
+
+    public List<DialogLine> Lines = [];
+
+    [EntryHandler("line", MinComponents = 3, Multiline = true)]
+    private void HandleLine(Entry e)
     {
-        [Entry("nickname")]
-        public string Nickname;
-        [Entry("system")]
-        public string System;
-
-        public List<DialogLine> Lines = new List<DialogLine>();
-
-        [EntryHandler("line", MinComponents = 3, Multiline = true)]
-        void HandleLine(Entry e)
+        var ln = new DialogLine()
         {
-            var ln = new DialogLine()
-            {
-                Source = e[0].ToString(),
-                Target = e[1].ToString(), Line = e[2].ToString()
-            };
-            if (e.Count > 3)
-                ln.Unknown1 = e[3].ToInt32();
-            if(e.Count > 4)
-                ln.Unknown2 = e[4].ToInt32();
-            Lines.Add(ln);
-        }
-    }
-    public class DialogLine
-    {
-        public string Source;
-        public string Target;
-        public string Line;
-        public OptionalArgument<int> Unknown1;
-        public OptionalArgument<int> Unknown2;
+            Source = e[0].ToString(),
+            Target = e[1].ToString(), Line = e[2].ToString()
+        };
 
-        public DialogLine Clone() => (DialogLine)MemberwiseClone();
+        if (e.Count > 3)
+            ln.Unknown1 = e[3].ToInt32();
+        if(e.Count > 4)
+            ln.Unknown2 = e[4].ToInt32();
+        Lines.Add(ln);
     }
+}
+public class DialogLine
+{
+    public string? Source;
+    public string? Target;
+    public string? Line;
+    public OptionalArgument<int> Unknown1;
+    public OptionalArgument<int> Unknown2;
+
+    public DialogLine Clone() => (DialogLine)MemberwiseClone();
 }

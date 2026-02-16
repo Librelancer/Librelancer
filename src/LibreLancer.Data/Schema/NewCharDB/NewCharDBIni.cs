@@ -7,18 +7,17 @@ using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Data.Schema.NewCharDB
-{
-    [ParsedIni]
-    public partial class NewCharDBIni
-    {
-        [Section("faction")]
-        public List<NewCharFaction> Factions = new List<NewCharFaction>();
-        [Section("package")]
-        public List<NewCharPackage> Packages = new List<NewCharPackage>();
-        [Section("pilot")]
-        public List<NewCharPilot> Pilots = new List<NewCharPilot>();
+namespace LibreLancer.Data.Schema.NewCharDB;
 
-        public void AddNewCharDBIni(string path, FileSystem vfs, IniStringPool stringPool = null) => ParseIni(path, vfs, stringPool);
-    }
+[ParsedIni]
+public partial class NewCharDBIni
+{
+    [Section("faction")]
+    public List<NewCharFaction> Factions = [];
+    [Section("package")]
+    public List<NewCharPackage> Packages = [];
+    [Section("pilot")]
+    public List<NewCharPilot> Pilots = [];
+
+    public void AddNewCharDBIni(string path, FileSystem vfs, IniStringPool? stringPool = null) => ParseIni(path, vfs, stringPool);
 }

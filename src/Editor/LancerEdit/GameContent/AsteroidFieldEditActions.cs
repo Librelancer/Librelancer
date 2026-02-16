@@ -130,13 +130,11 @@ public class AsteroidFieldRefresh(SystemEditorTab tab) : EditorAction
 {
     public override void Commit()
     {
-        tab.ZoneList.CheckDirty();
         tab.ReloadFieldRenderers();
     }
 
     public override void Undo()
     {
-        tab.ZoneList.CheckDirty();
         tab.ReloadFieldRenderers();
     }
 
@@ -150,7 +148,6 @@ public class SysAddAsteroidField(AsteroidField newField, SystemEditorTab tab)
     {
         tab.ZoneList.AsteroidFields.Fields.Add(newField);
         tab.ZoneList.AsteroidFields.OriginalFields[newField] = null;
-        tab.ZoneList.CheckDirty();
         tab.ReloadFieldRenderers();
 
     }
@@ -159,7 +156,6 @@ public class SysAddAsteroidField(AsteroidField newField, SystemEditorTab tab)
     {
         tab.ZoneList.AsteroidFields.Fields.Remove(newField);
         tab.ZoneList.AsteroidFields.OriginalFields.Remove(newField);
-        tab.ZoneList.CheckDirty();
         tab.ReloadFieldRenderers();
     }
 }

@@ -58,7 +58,6 @@ public class StarSelection : PopupWindow
 
     public override void OnClosed()
     {
-        sunPreview.Dispose();
         sunPreview = null;
     }
 

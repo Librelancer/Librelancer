@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Lookups;
 using LancerEdit.GameContent.MissionEditor.NodeTypes;
 using LibreLancer.Data.GameData;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.ImUI;
 using LibreLancer.Missions;
 
@@ -13,9 +15,19 @@ namespace LancerEdit.GameContent.MissionEditor;
 public sealed partial class MissionScriptEditorTab
 {
     private NodeMissionTrigger[] jumpOptions;
-    void SetupJumpList()
+    private Dictionary<string, NodeMissionTrigger> triggersByName;
+    void SetupLookups()
     {
         jumpOptions = nodes.OfType<NodeMissionTrigger>().OrderBy(x => x.InternalId).ToArray();
+        triggersByName = new(StringComparer.OrdinalIgnoreCase);
+        foreach (var n in jumpOptions)
+            triggersByName[n.InternalId] = n;
+    }
+
+    public NodeMissionTrigger GetTrigger(string name)
+    {
+        triggersByName.TryGetValue(name, out var ret);
+        return ret;
     }
 
     private void RenderLeftSidebar()
@@ -68,6 +80,14 @@ public sealed partial class MissionScriptEditorTab
             RenderFormationManagement();
             ImGui.PopID();
         }
+        ImGui.NewLine();
+
+        if (SidebarHeader("Objective Management"))
+        {
+            ImGui.PushID(5);
+            RenderObjectiveManagement();
+            ImGui.PopID();
+        }
 
         ImGui.EndChild();
     }
@@ -93,7 +113,7 @@ public sealed partial class MissionScriptEditorTab
         if (!Controls.BeginEditorTable("formation"))
             return;
 
-        InputItemNickname("Nickname", undoBuffer, missionIni.Formations, selectedFormation);
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.Formations, selectedFormation);
 
         Controls.TableSeparatorText("Absolute Position");
         Controls.InputFloat3Undo("Position", undoBuffer, () => ref selectedFormation.Position);
@@ -180,7 +200,7 @@ public sealed partial class MissionScriptEditorTab
         if (!Controls.BeginEditorTable("npc"))
             return;
 
-        InputItemNickname("Nickname", undoBuffer, missionIni.Npcs, selectedNpc);
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.Npcs, selectedNpc);
         Controls.InputTextIdUndo("Archetype", undoBuffer, () => ref selectedNpc.NpcShipArch);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
             missionIni.NpcShips.ContainsKey(selectedNpc.NpcShipArch)
@@ -224,7 +244,7 @@ public sealed partial class MissionScriptEditorTab
         if (!Controls.BeginEditorTable("shiparch"))
             return;
 
-        InputItemNickname("Nickname", undoBuffer, missionIni.NpcShips, selectedArch);
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.NpcShips, selectedArch);
         gameData.Ships.DrawUndo("Ship", undoBuffer, () => ref selectedArch.Ship);
         Controls.InputTextIdUndo("Loadout", undoBuffer, () => ref selectedArch.Loadout, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() =>
@@ -300,6 +320,66 @@ public sealed partial class MissionScriptEditorTab
                         gameData.GameData.Items.Ini.Freelancer.DataPath + x,
                         this));
                 }, VfsFileSelector.MakeFilter(".ini")));
+        }
+        Controls.EndEditorTable();
+    }
+
+    private DocumentObjective selectedObjective;
+
+    private void RenderObjectiveManagement()
+    {
+        DictionaryRemove<DocumentObjective> Delete()
+        {
+            return new(
+                "Objective",
+                missionIni.Objectives, selectedObjective,
+                () => ref selectedObjective);
+        }
+        ItemList("Objective", missionIni.Objectives, () => ref selectedObjective, Delete);
+
+        if (selectedObjective is null)
+        {
+            return;
+        }
+
+        if (!Controls.BeginEditorTable("objective"))
+            return;
+
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.Objectives, selectedObjective);
+        Controls.EditControlSetup("Type", 0);
+        if (ImGui.BeginCombo("##type", selectedObjective.Data.Type.ToString()))
+        {
+            if (ImGui.Selectable("ids", selectedObjective.Data.Type == NNObjectiveType.ids) &&
+                selectedObjective.Data.Type != NNObjectiveType.ids)
+            {
+                undoBuffer.Set("Type", () => ref selectedObjective.Data.Type, NNObjectiveType.ids);
+            }
+            if (ImGui.Selectable("navmarker", selectedObjective.Data.Type == NNObjectiveType.navmarker) &&
+                selectedObjective.Data.Type != NNObjectiveType.navmarker)
+            {
+                undoBuffer.Set("Type", () => ref selectedObjective.Data.Type, NNObjectiveType.navmarker);
+
+            }
+            if (ImGui.Selectable("rep_inst", selectedObjective.Data.Type == NNObjectiveType.rep_inst) &&
+                selectedObjective.Data.Type != NNObjectiveType.rep_inst)
+            {
+                undoBuffer.Set("Type", () => ref selectedObjective.Data.Type, NNObjectiveType.rep_inst);
+            }
+            ImGui.EndCombo();
+        }
+        Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer, () => ref selectedObjective.Data.NameIds);
+        if (selectedObjective.Data.Type != NNObjectiveType.ids)
+        {
+            Controls.IdsInputStringUndo("Explanation", gameData, popup, undoBuffer, () => ref selectedObjective.Data.ExplanationIds);
+            Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedObjective.Data.System);
+        }
+        if (selectedObjective.Data.Type == NNObjectiveType.navmarker)
+        {
+            Controls.InputFloat3Undo("Position", undoBuffer,  () => ref selectedObjective.Data.Position);
+        }
+        if (selectedObjective.Data.Type == NNObjectiveType.rep_inst)
+        {
+            Controls.InputTextIdUndo("Object", undoBuffer, () => ref selectedObjective.Data.SolarNickname);
         }
         Controls.EndEditorTable();
     }

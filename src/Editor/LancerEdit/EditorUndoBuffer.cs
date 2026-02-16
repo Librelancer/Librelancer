@@ -5,8 +5,8 @@ using System.Numerics;
 using System.Text;
 using ImGuiNET;
 using LibreLancer;
+using LibreLancer.Data;
 using LibreLancer.ImUI;
-using LibreLancer.Missions;
 
 namespace LancerEdit;
 
@@ -47,14 +47,14 @@ public class EditorUndoBuffer
         Hook?.Invoke();
     }
 
-    public void Set<T>(string name, FieldAccessor<T> accessor, T newValue)
+    public void Set<T>(string name, FieldAccessor<T> accessor, T newValue, Action hook = null)
     {
-        Commit(EditorPropertyModification<T>.Create(name, accessor, newValue));
+        Commit(EditorPropertyModification<T>.Create(name, accessor, newValue, hook));
     }
 
-    public void Set<T>(string name, FieldAccessor<T> accessor, T oldValue, T newValue)
+    public void Set<T>(string name, FieldAccessor<T> accessor, T oldValue, T newValue, Action hook = null)
     {
-        Commit(EditorPropertyModification<T>.Create(name, accessor, oldValue, newValue));
+        Commit(EditorPropertyModification<T>.Create(name, accessor, oldValue, newValue, hook));
     }
 
     public bool CanUndo => undoStack.Count > 0;
@@ -184,29 +184,34 @@ public class EditorPropertyModification<T> : EditorModification<T>
 {
     private string name;
     private FieldAccessor<T> accessor;
+    private Action hook;
 
-    private EditorPropertyModification(string name, T old, T updated, FieldAccessor<T> accessor)
+    private EditorPropertyModification(string name, T old, T updated, FieldAccessor<T> accessor, Action hook)
         : base(old, updated)
     {
         this.name = name;
         this.accessor = accessor;
+        this.hook = null;
     }
 
 
     public override void Set(T value)
     {
         accessor() = value;
+        hook?.Invoke();
     }
 
     string Print(T obj) => obj?.ToString() ?? "NULL";
 
     public override string ToString() => $"{name}\nOld: {Print(Old)}\nUpdated: {Print(Updated)}";
 
-    public static EditorPropertyModification<T> Create(string name, FieldAccessor<T> accessor, T updated)
-        => new(name, accessor(), updated, accessor);
+    public static EditorPropertyModification<T> Create(string name, FieldAccessor<T> accessor, T updated,
+        Action hook = null)
+        => new(name, accessor(), updated, accessor, hook);
 
-    public static EditorPropertyModification<T> Create(string name, FieldAccessor<T> accessor, T old, T updated)
-        => new(name, old, updated, accessor);
+    public static EditorPropertyModification<T> Create(string name, FieldAccessor<T> accessor, T old, T updated,
+        Action hook = null)
+        => new(name, old, updated, accessor, hook);
 }
 
 public class ListAdd<T>(string Name, List<T> List, T Value) : EditorAction
@@ -236,3 +241,63 @@ public class ListRemove<T>(string Name, List<T> List, int Index, T Value) : Edit
     public override string ToString() => $"{Name} Remove Item";
 }
 
+public class ItemRename<T>(string Old, string Updated, SortedDictionary<string, T> Collection, T Value)
+    : EditorAction where T : NicknameItem
+{
+    public override void Commit()
+    {
+        Collection.Remove(Old);
+        Value.Nickname = Updated;
+        Collection.Add(Updated, Value);
+    }
+
+    public override void Undo()
+    {
+        Value.Nickname = Old;
+        Collection.Remove(Updated);
+        Collection.Add(Old, Value);
+    }
+
+    public override string ToString() => $"Rename '{Old}'->'{Updated}'";
+}
+
+public class DictionaryAdd<T>(string Name, SortedDictionary<string, T> Collection, T Value,
+    FieldAccessor<T> selected)
+    : EditorAction where T : NicknameItem
+{
+    public override void Commit()
+    {
+        selected() = Value;
+        Collection.Add(Value.Nickname, Value);
+    }
+
+    public override void Undo()
+    {
+        if (selected() == Value)
+            selected() = null;
+        Collection.Remove(Value.Nickname);
+    }
+
+    public override string ToString() => $"{Name} Add Item";
+}
+
+public class DictionaryRemove<T>(string Name, SortedDictionary<string, T> Collection, T Value,
+    FieldAccessor<T> selected)
+    : EditorAction where T : NicknameItem
+{
+    public override void Commit()
+    {
+        if (selected() == Value)
+            selected() = null;
+        Collection.Remove(Value.Nickname);
+    }
+
+    public override void Undo()
+    {
+        if (selected() == null)
+            selected() = Value;
+        Collection.Add(Value.Nickname, Value);
+    }
+
+    public override string ToString() => $"{Name} Delete Item";
+}

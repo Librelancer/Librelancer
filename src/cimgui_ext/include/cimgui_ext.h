@@ -57,6 +57,7 @@ CIMGUI_API int igExtInputInt2(const char* label, int v[2], int flags);
 CIMGUI_API int igExtInputInt3(const char* label, int v[3], int flags);
 CIMGUI_API int igExtInputInt4(const char* label, int v[4], int flags);
 CIMGUI_API int igExtInputDouble(const char* label, double* v, double step, double step_fast, const char* format, int flags);
+CIMGUI_API int igExtInputIntPreview(const char *label, const char *preview, int* v);
 
 //layout hack
 CIMGUI_API void igTableFullRowBegin();
@@ -226,7 +227,7 @@ typedef struct {
     axVec4  Colors[axStyleColor_Count];
 } axStyle;
 
-typedef struct 
+typedef struct
 {
     axVec2 StartPosition;
     axVec2 EndPosition;

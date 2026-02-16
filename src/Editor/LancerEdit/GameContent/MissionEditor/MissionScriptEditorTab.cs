@@ -126,7 +126,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             AutoPositionNodes(triggerNodes, counts);
         }
 
-        SetupJumpList();
+        SetupLookups();
     }
 
     bool ReadSavedPositions(string file)
@@ -156,6 +156,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
                     continue;
                 }
 
+                trigger.IsCollapsed = data.IsCollapsed;
                 nodeRelocationQueue.Enqueue((trigger.Id, data.Position));
                 count++;
             }
@@ -277,8 +278,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
     }
 
 
-    public void OnRenameTrigger(NodeMissionTrigger node, string oldName, string newName) =>
-        undoBuffer.Commit(new RenameTriggerAction(node, this, oldName, newName));
+    public EditorAction OnRenameTrigger(NodeMissionTrigger node, string oldName, string newName) =>
+         new RenameTriggerAction(node, this, oldName, newName);
 
     private Queue<Action> nodeEditActions = new();
 
@@ -538,7 +539,8 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         if (ImGui.MenuItem("Trigger"))
         {
-            undoBuffer.Commit(new NewTriggerAction(position, this));
+            var c = NameInputConfig.Nickname("New Trigger", x => GetTrigger(x) != null);
+            popup.OpenPopup(new NameInputPopup(c, "", x => undoBuffer.Commit(new NewTriggerAction(x, position, this))));
         }
 
         if (ImGui.MenuItem("Comment Node"))
@@ -665,47 +667,6 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         base.Dispose();
     }
 
-    static void InputItemNickname<T>(string label,
-        EditorUndoBuffer buffer,
-        SortedDictionary<string, T> list,
-        T value,
-        float width = 0.0f) where T : NicknameItem
-    {
-        ImGui.PushID(label);
-        Controls.EditControlSetup(label, width);
-        if (ImGuiExt.InputTextLogged("##input",
-                ref value.Nickname,
-                250,
-                OnChanged,
-                true))
-        {
-            if (string.IsNullOrEmpty(value.Nickname))
-            {
-                ImGui.TextColored(Color4.Red, "Nickname cannot be empty");
-            }
-            else if (list.TryGetValue(value.Nickname, out var item) &&
-                     item != value)
-            {
-                ImGui.TextColored(Color4.Red, $"Item '{value.Nickname}' already exists");
-            }
-        }
-
-        void OnChanged(string old, string updated)
-        {
-            if (string.IsNullOrWhiteSpace(updated) ||
-                list.TryGetValue(updated, out var item) &&
-                item != value)
-            {
-                value.Nickname = old; // Unable to set. Reset
-            }
-            else
-            {
-                buffer.Commit(new ItemRename<T>(old, updated, list, value));
-            }
-        }
-
-        ImGui.PopID();
-    }
 
     static bool SidebarHeader(string id)
     {
@@ -784,7 +745,7 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
 
         NodeEditor.SetCurrentEditor(null);
 
-        missionIni.Save(FileSaveLocation, gameData, this, nodes.OfType<NodeMissionTrigger>(), savedNodes);
+        missionIni.Save(FileSaveLocation, gameData, nodes.OfType<NodeMissionTrigger>(), savedNodes);
 
         return new EditResult<bool>(true);
     }

@@ -20,7 +20,7 @@ namespace LibreLancer.Missions.Actions
         }
         public Act_StartDialog(MissionAction act) : base(act)
         {
-            Dialog = act.Entry[0].ToString();
+            GetString(nameof(Dialog), 0,  out Dialog, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -69,9 +69,9 @@ namespace LibreLancer.Missions.Actions
         }
         public Act_SendComm(MissionAction act) : base(act)
         {
-            Source = act.Entry[0].ToString();
-            Destination = act.Entry[1].ToString();
-            Line = act.Entry[2].ToString();
+            GetString(nameof(Source), 0, out Source, act.Entry);
+            GetString(nameof(Destination), 1, out Destination, act.Entry);
+            GetString(nameof(Line),  2, out Line, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -118,17 +118,17 @@ namespace LibreLancer.Missions.Actions
 
         public Act_EtherComm(MissionAction act) : base(act)
         {
-            Voice = act.Entry[0].ToString();
-            IdsName = act.Entry[1].ToInt32();
-            Target = act.Entry[2].ToString();
-            Line = act.Entry[3].ToString();
-            Unknown = act.Entry[4].ToInt32();
-            Head = act.Entry[5].ToString()!;
+            GetString(nameof(Voice), 0, out Voice, act.Entry);
+            GetInt(nameof(IdsName), 1, out IdsName, act.Entry);
+            GetString(nameof(Target), 2, out Target, act.Entry);
+            GetString(nameof(Line), 3, out Line, act.Entry);
+            GetInt(nameof(Unknown), 4, out Unknown, act.Entry);
+            GetString(nameof(Head), 5, out Head, act.Entry);
             if (Head.Equals("no_head", StringComparison.OrdinalIgnoreCase))
             {
                 Head = string.Empty;
             }
-            Body = act.Entry[6].ToString();
+            GetString(nameof(Body), 6, out Body, act.Entry);
             if (act.Entry.Count > 7)
             {
                 Accessory =  act.Entry[7].ToString();

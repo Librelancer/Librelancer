@@ -4,12 +4,11 @@
 
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Equipment
+namespace LibreLancer.Data.Schema.Equipment;
+
+[ParsedSection]
+public partial class Scanner : AbstractEquipment
 {
-    [ParsedSection]
-    public partial class Scanner : AbstractEquipment
-    {
-        [Entry("range")] public float Range;
-        [Entry("cargo_scan_range")] public float CargoScanRange;
-    }
+    [Entry("range")] public float Range;
+    [Entry("cargo_scan_range")] public float CargoScanRange;
 }

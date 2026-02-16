@@ -4,8 +4,8 @@ namespace LibreLancer.Data.GameData;
 
 public class ResolvedThn
 {
-    public ReadFileCallback ReadCallback;
-    public FileSystem VFS;
-    public string DataPath;
-    public string SourcePath;
+    public required ReadFileCallback ReadCallback;
+    public required FileSystem VFS;
+    public required string? DataPath;
+    public required string? SourcePath;
 }

@@ -29,7 +29,7 @@ public static class IniSerializer
             .OptionalEntry("space_farclip", sys.FarClip, 20000);
 
         //Archetype
-        if (sys.Preloads.Length > 0)
+        if (sys.Preloads is { Length: > 0 })
         {
             var section = ib.Section("Archetype");
             foreach (var p in sys.Preloads)
@@ -609,7 +609,7 @@ public static class IniSerializer
                 .Entry("logo", article.Logo)
                 .Entry("headline", article.Headline)
                 .Entry("text", article.Text)
-                .OptionalEntry("autoselect", article.Autoselect)
+                .OptionalEntry("autoselect", article.AutoSelect)
                 .OptionalEntry("audio", article.Audio);
 
             foreach (var b in bases)
@@ -690,10 +690,35 @@ public static class IniSerializer
 
     public static void SerializeMissionObjective(NNObjective objective, IniBuilder ini)
     {
-        ini.Section("NNObjective")
+        var obj = ini.Section("NNObjective")
             .Entry("nickname", objective.Nickname)
-            .Entry("state", objective.State)
-            .Entry("type", objective.Type);
+            .OptionalEntry("state", objective.State);
+        switch (objective.Type)
+        {
+            case NNObjectiveType.ids:
+                obj.Entry("type", "ids", objective.NameIds);
+                break;
+            case NNObjectiveType.navmarker:
+                obj.Entry("type", "navmarker",
+                    objective.System,
+                    objective.NameIds,
+                    objective.ExplanationIds,
+                    objective.Position.X,
+                    objective.Position.Y,
+                    objective.Position.Z);
+                break;
+            case NNObjectiveType.rep_inst:
+                obj.Entry("type", "rep_inst",
+                    objective.System,
+                    objective.NameIds,
+                    objective.ExplanationIds,
+                    objective.Position.X,
+                    objective.Position.Y,
+                    objective.Position.Z,
+                    objective.SolarNickname);
+                break;
+        }
+
     }
 
     public static void SerializeScriptFormation(ScriptFormation formation, IniBuilder ini)

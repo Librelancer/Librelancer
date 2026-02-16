@@ -6,5 +6,5 @@ namespace LibreLancer.Data.Schema.RandomMissions;
 public partial class DocumentationNode : VignetteNode
 {
     [Entry("documentation")]
-    public string Documentation;
+    public string? Documentation;
 }

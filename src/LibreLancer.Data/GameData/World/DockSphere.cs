@@ -4,16 +4,12 @@
 
 using LibreLancer.Data.Schema.Solar;
 
-namespace LibreLancer.Data.GameData.World
+namespace LibreLancer.Data.GameData.World;
+
+public class DockSphere
 {
-	public class DockSphere
-	{
-		public DockSphereType Type;
-		public string Hardpoint;
-		public int Radius;
-		public string Script;
-		public DockSphere()
-		{
-		}
-	}
+    public required DockSphereType Type;
+    public required string Hardpoint;
+    public required int Radius;
+    public string? Script;
 }

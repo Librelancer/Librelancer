@@ -21,8 +21,9 @@ public class Act_NNIds : ScriptedAction
 
     public Act_NNIds(MissionAction act) : base(act)
     {
-        Ids = act.Entry[0].ToInt32();
-        if (act.Entry[1].ToString()! != "HISTORY")
+        GetInt(nameof(Ids), 0, out Ids, act.Entry);
+        GetString("History", 1, out var hist, act.Entry);
+        if (hist != "HISTORY")
         {
             FLLog.Warning("Missions", "Act_NNIds unknown parameter");
         }
@@ -44,7 +45,7 @@ public class Act_SetVibeOfferBaseHack : ScriptedAction
 
     public Act_SetVibeOfferBaseHack(MissionAction act) : base(act)
     {
-        Id = act.Entry[0].ToString()!;
+        GetString(nameof(Id), 0, out Id, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -66,10 +67,10 @@ public class Act_NNPath : ScriptedAction
 
     public Act_NNPath(MissionAction act) : base(act)
     {
-        Ids1 = act.Entry[0].ToInt32()!;
-        Ids2 = act.Entry[1].ToInt32()!;
-        ObjectId = act.Entry[2].ToString()!;
-        SystemId = act.Entry[3].ToString()!;
+        GetInt(nameof(Ids1), 0,  out Ids1, act.Entry);
+        GetInt(nameof(Ids2), 1, out Ids2, act.Entry);
+        GetString(nameof(ObjectId), 2, out ObjectId, act.Entry);
+        GetString(nameof(SystemId), 3, out SystemId, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -88,7 +89,7 @@ public class Act_SetTitle : ScriptedAction
 
     public Act_SetTitle(MissionAction act) : base(act)
     {
-        Ids = act.Entry[0].ToInt32()!;
+        GetInt(nameof(Ids), 0, out Ids, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -107,7 +108,7 @@ public class Act_SetOffer : ScriptedAction
 
     public Act_SetOffer(MissionAction act) : base(act)
     {
-        Ids = act.Entry[0].ToInt32()!;
+        GetInt(nameof(Ids), 0, out Ids, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -128,9 +129,9 @@ public class Act_RandomPopSphere : ScriptedAction
 
     public Act_RandomPopSphere(MissionAction act) : base(act)
     {
-        Position = new(act.Entry[0].ToInt32(), act.Entry[1].ToInt32(), act.Entry[2].ToInt32());
-        Radius = act.Entry[3].ToSingle();
-        On = ParseBoolean(act.Entry[4]);
+        GetVector3(nameof(Position), 0, out Position, act.Entry);
+        GetFloat(nameof(Radius), 3, out Radius, act.Entry);
+        GetBoolean(nameof(On), 4, out On, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -149,7 +150,7 @@ public class Act_RandomPop : ScriptedAction
 
     public Act_RandomPop(MissionAction act) : base(act)
     {
-        On = ParseBoolean(act.Entry[0]);
+        GetBoolean(nameof(On), 0, out On, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -170,9 +171,9 @@ public class Act_LockDock : ScriptedAction
 
     public Act_LockDock(MissionAction act) : base(act)
     {
-        Target = act.Entry[0].ToString();
-        Object = act.Entry[1].ToString();
-        Lock = ParseBoolean(act.Entry[2]);
+        GetString(nameof(Target), 0, out Target, act.Entry);
+        GetString(nameof(Object), 0, out Object, act.Entry);
+        GetBoolean(nameof(Lock), 2, out Lock, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -192,7 +193,7 @@ public class Act_PlayerCanDock : ScriptedAction
 
     public Act_PlayerCanDock(MissionAction act) : base(act)
     {
-        CanDock = ParseBoolean(act.Entry[0]);
+        GetBoolean(nameof(CanDock), 0, out CanDock, act.Entry);
 
         foreach (var entry in act.Entry.Skip((1)))
         {
@@ -224,7 +225,7 @@ public class Act_PlayerCanTradelane : ScriptedAction
 
     public Act_PlayerCanTradelane(MissionAction act) : base(act)
     {
-        CanDock = ParseBoolean(act.Entry[0]);
+        GetBoolean(nameof(CanDock), 0, out CanDock, act.Entry);
 
         foreach (var entry in act.Entry.Skip((1)))
         {
@@ -256,8 +257,8 @@ public class Act_PlayerEnemyClamp : ScriptedAction
 
     public Act_PlayerEnemyClamp(MissionAction act) : base(act)
     {
-        Min = act.Entry[0].ToInt32();
-        Max = act.Entry[1].ToInt32();
+        GetInt(nameof(Min), 0, out Min, act.Entry);
+        GetInt(nameof(Max), 1, out Max, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -277,7 +278,7 @@ public class Act_Save : ScriptedAction
 
     public Act_Save(MissionAction act) : base(act)
     {
-        Trigger = act.Entry[0].ToString();
+        GetString(nameof(Trigger), 0, out Trigger, act.Entry);
         if (act.Entry.Count >= 2)
         {
             Ids = act.Entry[1].ToInt32();
@@ -329,7 +330,7 @@ public class Act_LockManeuvers : ScriptedAction
 public class Act_NagDistLeaving : ScriptedAction
 {
     public string Nickname = string.Empty;
-    public string Nagger = string.Empty;
+    public string NagFrom = string.Empty;
     public string Target = string.Empty;
     public int MissionFailIds;
     public float Distance;
@@ -343,8 +344,8 @@ public class Act_NagDistLeaving : ScriptedAction
 
     public Act_NagDistLeaving(MissionAction act) : base(act)
     {
-        Nickname = act.Entry[0].ToString();
-        Nagger = act.Entry[1].ToString();
+        GetString(nameof(Nickname), 0, out Nickname, act.Entry);
+        GetString(nameof(NagFrom), 1, out NagFrom, act.Entry);
         if (act.Entry.Count is 3)
         {
             Target = act.Entry[2].ToString();
@@ -396,7 +397,7 @@ public class Act_NagDistLeaving : ScriptedAction
         var list = new List<ValueBase>()
         {
             Nickname,
-            Nagger,
+            NagFrom,
         };
 
         if (Target != string.Empty)
@@ -436,7 +437,7 @@ public class Act_NagOff : ScriptedAction
 
     public Act_NagOff(MissionAction act) : base(act)
     {
-        Nag = act.Entry[0].ToString();
+        GetString(nameof(Nag), 0, out Nag, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -456,8 +457,8 @@ public class Act_SetNNHidden : ScriptedAction
 
     public Act_SetNNHidden(MissionAction act) : base(act)
     {
-        Objective = act.Entry[0].ToString();
-        Hide = ParseBoolean(act.Entry[1]);
+        GetString(nameof(Objective),  0, out Objective, act.Entry);
+        GetBoolean(nameof(Hide), 0, out Hide, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -476,7 +477,7 @@ public class Act_NagClamp : ScriptedAction
 
     public Act_NagClamp(MissionAction act) : base(act)
     {
-        Clamp = ParseBoolean(act.Entry[0]);
+        GetBoolean(nameof(Clamp) , 0, out Clamp, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -488,7 +489,7 @@ public class Act_NagClamp : ScriptedAction
 public class Act_NagDistTowards : ScriptedAction
 {
     public string Nickname = string.Empty;
-    public string Nagger = string.Empty;
+    public string NagFrom = string.Empty;
     public string Target = string.Empty;
     public int MissionFailIds;
     public float Distance;
@@ -501,14 +502,15 @@ public class Act_NagDistTowards : ScriptedAction
 
     public Act_NagDistTowards(MissionAction act) : base(act)
     {
-        var isObject = act.Entry[0].ToString()!.Equals("obj", StringComparison.OrdinalIgnoreCase);
-        Nickname = act.Entry[1].ToString();
-        Nagger = act.Entry[2].ToString();
+        GetString("obj/point", 0, out var objField, act.Entry);
+        var isObject = objField.Equals("obj", StringComparison.OrdinalIgnoreCase);
+        GetString(nameof(Nickname), 1, out Nickname, act.Entry);
+        GetString(nameof(NagFrom), 2, out NagFrom, act.Entry);
 
         if (isObject)
         {
-            Target = act.Entry[3].ToString();
-            MissionFailIds = act.Entry[4].ToInt32();
+            GetString(nameof(Target), 3, out Target, act.Entry);
+            GetInt(nameof(MissionFailIds), 4, out MissionFailIds, act.Entry);
 
             if (act.Entry.Count > 5)
             {
@@ -522,8 +524,8 @@ public class Act_NagDistTowards : ScriptedAction
         }
         else
         {
-            Position = new(act.Entry[3].ToSingle(), act.Entry[4].ToSingle(), act.Entry[5].ToSingle());
-            MissionFailIds = act.Entry[6].ToInt32();
+            GetVector3(nameof(Position), 3, out Position, act.Entry);
+            GetInt(nameof(MissionFailIds), 6, out MissionFailIds, act.Entry);
 
             if (act.Entry.Count > 7)
             {
@@ -543,7 +545,7 @@ public class Act_NagDistTowards : ScriptedAction
         {
             !string.IsNullOrWhiteSpace(Target) ? "OBJ" : "POS",
             Nickname,
-            Nagger,
+            NagFrom,
         };
 
         if (!string.IsNullOrWhiteSpace(Target))
@@ -583,8 +585,8 @@ public class Act_AdjHealth : ScriptedAction
 
     public Act_AdjHealth(MissionAction act) : base(act)
     {
-        Target = act.Entry[0].ToString();
-        Adjustment = act.Entry[1].ToSingle();
+        GetString(nameof(Target), 0,  out Target, act.Entry);
+        GetFloat(nameof(Adjustment), 1, out Adjustment, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -603,7 +605,7 @@ public class Act_RemoveCargo : ScriptedAction
 
     public Act_RemoveCargo(MissionAction act) : base(act)
     {
-        Cargo = act.Entry[0].ToString();
+        GetString(nameof(Cargo), 0, out Cargo, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -623,8 +625,8 @@ public class Act_SetOrient : ScriptedAction
 
     public Act_SetOrient(MissionAction act) : base(act)
     {
-        Target = act.Entry[0].ToString();
-        Orientation = new(act.Entry[2].ToSingle(), act.Entry[3].ToSingle(), act.Entry[4].ToSingle(), act.Entry[1].ToSingle());
+        GetString(nameof(Target), 0, out Target,  act.Entry);
+        GetQuaternion(nameof(Orientation), 1, out Orientation, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -646,9 +648,13 @@ public class Act_SetRep : ScriptedAction
 
     public Act_SetRep(MissionAction act) : base(act)
     {
-        Object = act.Entry[0].ToString();
-        Faction = act.Entry[1].ToString();
-        if (act.Entry[2].TryToSingle(out var single))
+        GetString(nameof(Object), 0, out Object, act.Entry);
+        GetString(nameof(Faction), 1, out Faction, act.Entry);
+        if (act.Entry.Count < 3)
+        {
+            WarnMissing("Reputation", 2, act.Entry);
+        }
+        else if (act.Entry[2].TryToSingle(out var single))
         {
             NewValue = single;
         }
@@ -685,7 +691,7 @@ public class Act_GcsClamp : ScriptedAction
 
     public Act_GcsClamp(MissionAction act) : base(act)
     {
-        Clamp = ParseBoolean(act.Entry[0]);
+        GetBoolean(nameof(Clamp) , 0, out Clamp, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -705,8 +711,8 @@ public class Act_StaticCam : ScriptedAction
 
     public Act_StaticCam(MissionAction act) : base(act)
     {
-        Position = new Vector3(act.Entry[0].ToSingle(), act.Entry[1].ToSingle(), act.Entry[2].ToSingle());
-        Orientation = new Quaternion(act.Entry[6].ToSingle(), act.Entry[3].ToSingle(), act.Entry[4].ToSingle(), act.Entry[5].ToSingle());
+        GetVector3(nameof(Position), 0, out Position, act.Entry);
+        GetQuaternion(nameof(Orientation), 3, out Orientation, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -728,8 +734,9 @@ public class Act_SetNNState : ScriptedAction
 
     public Act_SetNNState(MissionAction act) : base(act)
     {
-        Objective = act.Entry[0].ToString();
-        Complete = act.Entry[1].ToString()!.Equals("complete", StringComparison.OrdinalIgnoreCase);
+        GetString(nameof(Objective), 0, out Objective, act.Entry);
+        GetString(nameof(Complete), 1, out var c, act.Entry);
+        Complete = c.Equals("complete", StringComparison.OrdinalIgnoreCase);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -749,8 +756,8 @@ public class Act_SetLifetime : ScriptedAction
 
     public Act_SetLifetime(MissionAction act) : base(act)
     {
-        Object = act.Entry[0].ToString();
-        Seconds = act.Entry[1].ToInt32();
+        GetString(nameof(Object), 0, out Object, act.Entry);
+        GetInt(nameof(Seconds), 1, out Seconds, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -769,7 +776,7 @@ public class Act_RpopTLAttacksEnabled : ScriptedAction
 
     public Act_RpopTLAttacksEnabled(MissionAction act) : base(act)
     {
-        Enabled = ParseBoolean(act.Entry[0]);
+        GetBoolean(nameof(Enabled), 0, out Enabled, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -788,7 +795,7 @@ public class Act_RpopAttClamp : ScriptedAction
 
     public Act_RpopAttClamp(MissionAction act) : base(act)
     {
-        Enabled = ParseBoolean(act.Entry[0]);
+        GetBoolean(nameof(Enabled), 0, out Enabled, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -808,8 +815,9 @@ public class Act_SetPriority : ScriptedAction
 
     public Act_SetPriority(MissionAction act) : base(act)
     {
-        Object = act.Entry[0].ToString();
-        AlwaysExecute = act.Entry[1].ToString()!.Equals("always_execute", StringComparison.OrdinalIgnoreCase);
+        GetString(nameof(Object), 0, out Object, act.Entry);
+        GetString("Priority", 1, out var p, act.Entry);
+        AlwaysExecute = p.Equals("always_execute", StringComparison.OrdinalIgnoreCase);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -829,8 +837,8 @@ public class Act_NagGreet : ScriptedAction
 
     public Act_NagGreet(MissionAction act) : base(act)
     {
-        Source = act.Entry[0].ToString();
-        Target = act.Entry[1].ToString();
+        GetString(nameof(Source), 0, out Source, act.Entry);
+        GetString(nameof(Target), 1, out Target, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -850,8 +858,8 @@ public class Act_Jumper : ScriptedAction
 
     public Act_Jumper(MissionAction act) : base(act)
     {
-        Target = act.Entry[0].ToString();
-        JumpWithPlayer = ParseBoolean(act.Entry[1]);
+        GetString(nameof(Target), 0, out Target, act.Entry);
+        GetBoolean(nameof(JumpWithPlayer), 1, out JumpWithPlayer, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -870,7 +878,7 @@ public class Act_HostileClamp : ScriptedAction
 
     public Act_HostileClamp(MissionAction act) : base(act)
     {
-        Enabled = ParseBoolean(act.Entry[0]);
+        GetBoolean(nameof(Enabled), 0,  out Enabled, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -907,8 +915,8 @@ public class Act_EnableManeuver : ScriptedAction
 
     public Act_EnableManeuver(MissionAction act) : base(act)
     {
-        Enum.TryParse(act.Entry[0].ToString(), true, out Maneuver);
-        Lock = ParseBoolean(act.Entry[1]);
+        GetEnum(nameof(Maneuver), 0, out Maneuver, act.Entry);
+        GetBoolean(nameof(Lock), 1, out Lock, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -927,7 +935,7 @@ public class Act_EnableEnc : ScriptedAction
 
     public Act_EnableEnc(MissionAction act) : base(act)
     {
-        Encounter = act.Entry[0].ToString();
+        GetString(nameof(Encounter),  0, out Encounter, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -946,7 +954,7 @@ public class Act_DisableEnc : ScriptedAction
 
     public Act_DisableEnc(MissionAction act) : base(act)
     {
-        Encounter = act.Entry[0].ToString();
+        GetString(nameof(Encounter), 0,  out Encounter, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -965,7 +973,13 @@ public class Act_DebugMsg : ScriptedAction
 
     public Act_DebugMsg(MissionAction act) : base(act)
     {
-        Message = CommentEscaping.Unescape(act.Entry[0].ToString());
+        GetString(nameof(Message), 0, out Message, act.Entry);
+        Message = CommentEscaping.Escape(Message);
+    }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        FLLog.Info("Mission", $"Act_DebugMsg: {Message}");
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -984,7 +998,7 @@ public class Act_DockRequest : ScriptedAction
 
     public Act_DockRequest(MissionAction act) : base(act)
     {
-        Object = act.Entry[0].ToString();
+        GetString(nameof(Object),  0, out Object, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)

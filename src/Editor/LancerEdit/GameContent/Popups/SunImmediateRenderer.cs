@@ -145,7 +145,7 @@ public class SunImmediateRenderer : IDisposable
         glowMaterial.Use(render, vtype, ref Lighting.Empty, 0);
         vertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, idx, 2);
         idx += 6;
-        if (sun.Spines != null)
+        if (sun.Spines is { Count: >0 })
         {
             spineMaterial.Use(render, vtype, ref Lighting.Empty, 0);
             vertexBuffer.Draw(PrimitiveTypes.TriangleList, 0, idx, sun.Spines.Count * 2);

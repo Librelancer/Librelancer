@@ -7,14 +7,13 @@ using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Data.Schema.Goods
-{
-    [ParsedIni]
-    public partial class GoodsIni
-    {
-        [Section("good")]
-        public List<Good> Goods = new List<Good>();
+namespace LibreLancer.Data.Schema.Goods;
 
-        public void AddGoodsIni(string filename, FileSystem vfs, IniStringPool stringPool = null) => ParseIni(filename, vfs, stringPool);
-    }
+[ParsedIni]
+public partial class GoodsIni
+{
+    [Section("good")]
+    public List<Good> Goods = [];
+
+    public void AddGoodsIni(string filename, FileSystem vfs, IniStringPool? stringPool = null) => ParseIni(filename, vfs, stringPool);
 }

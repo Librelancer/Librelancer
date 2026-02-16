@@ -5,32 +5,32 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Missions
+namespace LibreLancer.Data.Schema.Missions;
+
+[ParsedSection]
+public partial class ObjList : IEntryHandler
 {
-    [ParsedSection]
-    public partial class ObjList : IEntryHandler
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("system")]
+    public string? System;
+    public List<ObjCmd> Commands = [];
+
+
+    bool IEntryHandler.HandleEntry(Entry e)
     {
-        [Entry("nickname")]
-        public string Nickname;
-        [Entry("system")]
-        public string System;
-        public List<ObjCmd> Commands = new List<ObjCmd>();
-
-
-        bool IEntryHandler.HandleEntry(Entry e)
+        if (!Enum.TryParse<ObjListCommands>(e.Name, true, out var c))
         {
-            ObjListCommands c;
-            if(Enum.TryParse<ObjListCommands>(e.Name, true, out c))
-            {
-                Commands.Add(new ObjCmd() { Command = c, Entry = e });
-                return true;
-            }
             return false;
         }
+
+        Commands.Add(new ObjCmd() { Command = c, Entry = e });
+        return true;
     }
-    public class ObjCmd
-    {
-        public ObjListCommands Command;
-        public Entry Entry;
-    }
+}
+
+public class ObjCmd
+{
+    public ObjListCommands Command;
+    public Entry? Entry;
 }

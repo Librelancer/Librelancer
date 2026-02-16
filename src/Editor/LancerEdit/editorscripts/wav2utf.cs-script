@@ -1,0 +1,62 @@
+/*
+    ; Voice UTF Creator by IrateRedKite and Laz
+    [Script]
+    name = Create Voice UTF File
+    [Argument]
+    name = Input Folder
+    type = folder
+    [Argument]
+    name = Output File
+    type = file
+    [Argument]
+    name = Recursive
+    type = flag
+    flag = r
+*/
+
+using System.IO;
+using System.Linq;
+using LibreLancer.ContentEdit;
+using LibreLancer.Data;
+
+ScriptUsage(@"input output [-r]
+input is a folder containing .wav files (min 1), output is a UTF file to be created.\n
+If the output directory does not exist, it will be created if possible.\n
+recursive specifies whether or not to parse subfolders within the input folder");
+
+bool recursive = false;
+FlagOption("r|recursive", "Search subfolders in the source directory for files.", v => recursive = v);
+
+var args = ParseArguments(2);
+string input = args[0];
+string output = args[1];
+
+Console.WriteLine("Compiling all .wav files in " + input);
+
+if (!Directory.Exists(input))
+{
+    Console.WriteLine("Input directory not found");
+    Environment.Exit(2);
+}
+
+if (!Directory.Exists(output))
+{
+    Directory.CreateDirectory(Directory.GetParent(output).FullName);
+}
+
+var utf = new EditableUtf();
+
+foreach(var file in Directory.GetFiles(input, "*.wav", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly))
+{
+    Console.WriteLine("Compiling " + file);
+    var bytes = File.ReadAllBytes(file);
+    var linename = Path.GetFileNameWithoutExtension(file);
+    var nodeName = $"0x{FLHash.CreateID(linename).ToString("X8")}";
+    utf.Root.Children.Add(new LUtfNode() {
+        Name = nodeName,
+        Parent = utf.Root,
+        Data = bytes
+    });
+}
+
+utf.Save(output, 0);

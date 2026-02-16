@@ -7,100 +7,57 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LibreLancer.Data.Ini
+namespace LibreLancer.Data.Ini;
+
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
+public class Section : ICollection<Entry>
 {
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
-	public class Section : ICollection<Entry>
-	{
-        private List<Entry> entries;
+    private List<Entry> entries;
 
-        public string Name { get; init; }
+    public string Name { get; init; }
 
-        public string File { get; init; } = "[Null]";
+    public string? File { get; init; } = "[Null]";
 
-        public int Line { get; init; } = -1;
+    public int Line { get; init; } = -1;
 
-		public Section(string name, int capacity = -1)
-		{
-			if (name == null) throw new ArgumentNullException(nameof(name));
+    public Section(string name, int capacity = -1)
+    {
+        entries = capacity > 0 ? new List<Entry>(capacity) : [];
+        Name = name;
+    }
 
-			entries = capacity > 0 ? new List<Entry>(capacity) : new List<Entry>();
-			Name = name;
-		}
+    public Entry this[int index]
+    {
+        get => entries[index];
+        set => entries[index] = value;
+    }
 
-		public Entry this[int index]
-		{
-			get { return entries[index]; }
-			set { entries[index] = value; }
-		}
-
-		public Entry this[string name]
-		{
-			get
-			{
-				IEnumerable<Entry> candidates = from Entry e in entries where e.Name == name select e;
-				int count = candidates.Count<Entry>();
-				if (count == 0) return null;
-				else return candidates.First<Entry>();
-			}
-		}
-
-		public void Add(Entry item)
-		{
-			entries.Add(item);
-		}
-
-		public void Clear()
-		{
-			entries.Clear();
-		}
-
-		public bool Contains(Entry item)
-		{
-			return entries.Contains(item);
-		}
-
-		public void CopyTo(Entry[] array, int arrayIndex)
-		{
-			entries.CopyTo(array, arrayIndex);
-		}
-
-		public int Count
-		{
-			get { return entries.Count; }
-		}
-
-		public bool IsReadOnly
-		{
-			get { return false; }
-		}
-
-		public bool Remove(Entry item)
-		{
-			return entries.Remove(item);
-		}
-
-        public List<Entry>.Enumerator GetEnumerator()
+    public Entry? this[string name]
+    {
+        get
         {
-            return entries.GetEnumerator();
+            var candidates = entries.Where(e => e.Name == name).ToArray();
+            var count = candidates.Count();
+            return count == 0 ? null : candidates.First();
         }
+    }
 
-        IEnumerator<Entry> IEnumerable<Entry>.GetEnumerator()
-        {
-            return entries.GetEnumerator();
-        }
+    public void Add(Entry item) => entries.Add(item);
+    public void Clear() => entries.Clear();
+    public bool Contains(Entry item) => entries.Contains(item);
+    public void CopyTo(Entry[] array, int arrayIndex) => entries.CopyTo(array, arrayIndex);
+    public int Count => entries.Count;
+    public bool IsReadOnly => false;
+    public bool Remove(Entry item) => entries.Remove(item);
+    public List<Entry>.Enumerator GetEnumerator() => entries.GetEnumerator();
+    IEnumerator<Entry> IEnumerable<Entry>.GetEnumerator() => entries.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => entries.GetEnumerator();
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return entries.GetEnumerator();
-		}
-
-		public override string ToString()
-		{
-			//string result = "[" + Name + "]\r\n";
-			//foreach (Entry e in entries) result += e + "\r\n";
-			//return result;
-			return Name;
-		}
-	}
+    public override string ToString()
+    {
+        //string result = "[" + Name + "]\r\n";
+        //foreach (Entry e in entries) result += e + "\r\n";
+        //return result;
+        return Name;
+    }
 }

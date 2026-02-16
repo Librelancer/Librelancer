@@ -188,7 +188,7 @@ public class MainWindow() : Game(600, 600, true)
 
         if (Server.Server != null)
         {
-            Server.Server.PerformanceStats = new ServerPerformance(this);
+            Server.Server.PerformanceStats = new ServerPerformance();
         }
 
         return true;

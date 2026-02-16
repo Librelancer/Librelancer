@@ -7,119 +7,84 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace LibreLancer.Data.Ini
+namespace LibreLancer.Data.Ini;
+
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
+public class Entry : ICollection<ValueBase>
 {
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1710:IdentifiersShouldHaveCorrectSuffix")]
-	public class Entry : ICollection<IValue>
-	{
-        private readonly IList<IValue> values;
+    private readonly IList<ValueBase> values;
 
-        public string Name { get; init; }
+    public string Name { get; init; }
 
-        public Section Section { get; init; }
+    public Section Section { get; init; }
 
-		public int Line { get; init; } = -1;
+    public int Line { get; init; } = -1;
 
-		public Entry(Section section, string name, int capacity = -1)
-		{
-            if (section == null) throw new ArgumentNullException(nameof(section));
-			if (name == null) throw new ArgumentNullException(nameof(name));
+    public Entry(Section section, string name, int capacity = -1)
+    {
+        Section = section;
+        Name = name;
+        values = capacity > 0 ? new List<ValueBase>(capacity) : new List<ValueBase>();
+    }
 
-            Section = section;
-			Name = name;
-            if(capacity > 0)
-                values = new List<IValue>(capacity);
-            else
-			    values = new List<IValue>();
-		}
+    public ValueBase this[int index]
+    {
+        get => values[index];
+        set => values[index] = value;
+    }
 
-		public IValue this[int index]
-		{
-			get { return values[index]; }
-			set { values[index] = value; }
-		}
+    public void Add(ValueBase item) => values.Add(item);
+    public void Clear() => values.Clear();
+    public bool Contains(ValueBase item) => values.Contains(item);
+    public void CopyTo(ValueBase[] array, int arrayIndex) => values.CopyTo(array, arrayIndex);
+    public int Count => values.Count;
+    public bool IsReadOnly => false;
+    public bool Remove(ValueBase item) => values.Remove(item);
+    public IEnumerator<ValueBase> GetEnumerator() => values.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => values.GetEnumerator();
 
-		public void Add(IValue item)
-		{
-			values.Add(item);
-		}
+    /*public static bool operator ==(Entry operand1, Entry operand2)
+    {
+        return operand1.Equals(operand2);
+    }
 
-		public void Clear()
-		{
-			values.Clear();
-		}
+    public static bool operator !=(Entry operand1, Entry operand2)
+    {
+        return !(operand1 == operand2);
+    }
 
-		public bool Contains(IValue item)
-		{
-			return values.Contains(item);
-		}
-
-		public void CopyTo(IValue[] array, int arrayIndex)
-		{
-			values.CopyTo(array, arrayIndex);
-		}
-
-		public int Count
-		{
-			get { return values.Count; }
-		}
-
-		public bool IsReadOnly
-		{
-			get { return false; }
-		}
-
-		public bool Remove(IValue item)
-		{
-			return values.Remove(item);
-		}
-
-		public IEnumerator<IValue> GetEnumerator()
-		{
-			return values.GetEnumerator();
-		}
-
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return values.GetEnumerator();
-		}
-
-		/*public static bool operator ==(Entry operand1, Entry operand2)
+    public override bool Equals(object obj)
+    {
+        if (obj is Entry)
         {
-            return operand1.Equals(operand2);
+            Entry e = (Entry)obj;
+            return namePointer == e.namePointer && values == e.values;
+        }
+        else return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return namePointer.GetHashCode() ^ values.GetHashCode();
+    }*/
+
+    public override string ToString()
+    {
+        StringBuilder sb = new(Name);
+        if (values.Count > 0)
+        {
+            sb.Append(" = ");
         }
 
-        public static bool operator !=(Entry operand1, Entry operand2)
+        for (var i = 0; i < values.Count; i++)
         {
-            return !(operand1 == operand2);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is Entry)
+            sb.Append(values[i]);
+            if (i < values.Count - 1)
             {
-                Entry e = (Entry)obj;
-                return namePointer == e.namePointer && values == e.values;
+                sb.Append(", ");
             }
-            else return false;
         }
 
-        public override int GetHashCode()
-        {
-            return namePointer.GetHashCode() ^ values.GetHashCode();
-        }*/
-
-        public override string ToString()
-        {
-            StringBuilder sb = new(Name);
-            if (values.Count > 0) sb.Append(" = ");
-            for (int i = 0; i < values.Count; i++)
-            {
-                sb.Append(values[i]);
-                if (i < values.Count - 1)
-                    sb.Append(", ");
-            }
-            return sb.ToString();
-        }
+        return sb.ToString();
     }
 }

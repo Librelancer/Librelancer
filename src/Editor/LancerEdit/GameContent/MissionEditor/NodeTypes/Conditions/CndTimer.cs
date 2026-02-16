@@ -22,7 +22,7 @@ public class CndTimer : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.SliderFloatUndo("Seconds", undoBuffer, () => ref Data.Seconds, 0.1f, 300f, "%.2f");
+        Controls.InputFloatUndo("Seconds", undoBuffer, () => ref Data.Seconds);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

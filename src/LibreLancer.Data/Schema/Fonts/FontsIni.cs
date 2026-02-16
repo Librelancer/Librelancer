@@ -6,28 +6,27 @@ using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Data.Schema.Fonts
+namespace LibreLancer.Data.Schema.Fonts;
+
+public class FontsIni
 {
-    public class FontsIni
+    public List<string> FontFiles = [];
+    public List<UIFont> UIFonts = [];
+    public void AddFontsIni(string path, FileSystem vfs, IniStringPool? stringPool = null)
     {
-        public List<string> FontFiles = new List<string>();
-        public List<UIFont> UIFonts = new List<UIFont>();
-        public void AddFontsIni(string path, FileSystem vfs, IniStringPool stringPool = null)
+        foreach (var section in IniFile.ParseFile(path, vfs, false, stringPool))
         {
-            foreach (var section in IniFile.ParseFile(path, vfs, false, stringPool))
+            if (section.Name.ToLowerInvariant() == "fontfiles")
             {
-                if (section.Name.ToLowerInvariant() == "fontfiles")
+                foreach(var entry in section)
                 {
-                    foreach(var entry in section)
-                    {
-                        FontFiles.Add(entry[0].ToString());
-                    }
+                    FontFiles.Add(entry[0].ToString());
                 }
-                else if(section.Name.ToLowerInvariant() == "truetype")
-                {
-                    if (UIFont.TryParse(section, out var ui))
-                        UIFonts.Add(ui);
-                }
+            }
+            else if(section.Name.ToLowerInvariant() == "truetype")
+            {
+                if (UIFont.TryParse(section, out var ui))
+                    UIFonts.Add(ui);
             }
         }
     }

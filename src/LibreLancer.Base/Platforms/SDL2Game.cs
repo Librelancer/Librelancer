@@ -41,6 +41,7 @@ internal class SDL2Game : IGame
 
     public SDL2Game(int w, int h, bool allowScreensaver)
     {
+        FLLog.Warning("Platform", "SDL2 backend in use, expect bugs (please install SDL3)");
         width = w;
         height = h;
         mythread = Thread.CurrentThread.ManagedThreadId;

@@ -15,6 +15,8 @@ struct Input
 #ifdef VERTEX_LIGHTING
     float3 diffuseTermFront: TEXCOORD6;
     float3 diffuseTermBack: TEXCOORD7;
+    float3 ambientTermFront: TEXCOORD8;
+    float3 ambientTermBack: TEXCOORD9;
 #endif
     bool frontFacing : SV_IsFrontFace;
 };
@@ -35,7 +37,9 @@ float4 main(Input input) : SV_Target0
 #ifdef VERTEX_LIGHTING
     float4 lit = ApplyVertexLighting(ac, ec, Dc * input.color,
         DtTexture.Sample(DtSampler, input.texCoord),
-        input.viewPosition, input.frontFacing ? input.diffuseTermFront : input.diffuseTermBack);
+        input.viewPosition,
+        input.frontFacing ? input.diffuseTermFront : input.diffuseTermBack,
+        input.frontFacing ? input.ambientTermFront : input.ambientTermBack);
 #else
     float4 lit = ApplyPixelLighting(Ac, 0, Dc,
         1,

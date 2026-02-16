@@ -9,30 +9,34 @@ public record SceneEntry(bool AmbientAll, bool TrafficPriority, string Path);
 public partial class RoomInfo
 {
     [Entry("set_script")]
-    public string SetScript;
+    public string? SetScript;
 
-    public List<SceneEntry> SceneScripts = new List<SceneEntry>();
+    public List<SceneEntry> SceneScripts = [];
 
     [Entry("goodscart_script")]
-    public string GoodscartScript;
+    public string? GoodscartScript;
 
     [Entry("animation")]
-    public string Animation;
+    public string? Animation;
 
     [EntryHandler("scene", MinComponents = 2, Multiline = true)]
-    void Scene(Entry e)
+    private void Scene(Entry e)
     {
         try
         {
             int i = 0;
             bool all = false;
-            if (e[0].ToString().Equals("all", StringComparison.OrdinalIgnoreCase)) {
+            if (e[0].ToString().Equals("all", StringComparison.OrdinalIgnoreCase))
+            {
                 all = true;
                 i++;
             }
-            if (!e[i].ToString().Equals("ambient", StringComparison.OrdinalIgnoreCase)) {
+
+            if (!e[i].ToString().Equals("ambient", StringComparison.OrdinalIgnoreCase))
+            {
                 FLLog.Warning("Ini", $"Invalid room scene entry {e}");
             }
+
             i++;
             var path = e[i].ToString();
             var trafficPriority = (i + 1 < e.Count) &&

@@ -6,9 +6,9 @@ namespace LibreLancer.Data.Schema.Universe.Rooms;
 public partial class Spiels
 {
     [Entry("EquipmentDealer")]
-    public string EquipmentDealer;
+    public string? EquipmentDealer;
     [Entry("ShipDealer")]
-    public string ShipDealer;
+    public string? ShipDealer;
     [Entry("CommodityDealer")]
-    public string CommodityDealer;
+    public string? CommodityDealer;
 }

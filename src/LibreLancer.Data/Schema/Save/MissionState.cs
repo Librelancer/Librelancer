@@ -18,16 +18,16 @@ public partial class MissionState : IWriteSection
     [Entry("random_pop")] public bool RandomPop;
     [Entry("msn_offer")] public int MsnOffer;
     [Entry("msn_title")] public int MsnTitle;
-    public List<MissionRtc> Rtcs = new List<MissionRtc>();
-    public List<MissionAmbient> Ambients = new List<MissionAmbient>();
+    public List<MissionRtc> Rtcs = [];
+    public List<MissionAmbient> Ambients = [];
     [Entry("story_cue")] public int StoryCue;
 
     [EntryHandler("rtc", Multiline = true, MinComponents = 2)]
-    void HandleRtc(Entry e) =>
+    private void HandleRtc(Entry e) =>
         Rtcs.Add(new(e[0].ToString(), e[1].ToBoolean()));
 
     [EntryHandler("ambi_scene", Multiline = true, MinComponents = 3)]
-    void HandleAmbiScene(Entry e) =>
+    private void HandleAmbiScene(Entry e) =>
         Ambients.Add(new(e[0].ToString(), new HashValue(e[1]), new HashValue(e[2])));
 
     public void WriteTo(IniBuilder builder)

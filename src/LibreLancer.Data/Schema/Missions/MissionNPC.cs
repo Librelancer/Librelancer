@@ -5,23 +5,21 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Missions
-{
-    [ParsedSection]
-    public partial class MissionNPC
-    {
-        [Entry("nickname")]
-        public string Nickname;
-        [Entry("space_costume")]
-        public string[] SpaceCostume;
-        [Entry("affiliation")]
-        public string Affiliation;
-        [Entry("npc_ship_arch")]
-        public string NpcShipArch;
-        [Entry("individual_name")]
-        public int IndividualName;
-        [Entry("voice")]
-        public string Voice;
-    }
+namespace LibreLancer.Data.Schema.Missions;
 
+[ParsedSection]
+public partial class MissionNPC
+{
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+    [Entry("space_costume")]
+    public string[]? SpaceCostume;
+    [Entry("affiliation")]
+    public string Affiliation = null!;
+    [Entry("npc_ship_arch")]
+    public string? NpcShipArch;
+    [Entry("individual_name")]
+    public int IndividualName;
+    [Entry("voice")]
+    public string? Voice;
 }

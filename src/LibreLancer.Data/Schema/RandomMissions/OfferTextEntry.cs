@@ -21,13 +21,13 @@ public class OfferTextItem
 {
     public OfferTextType Type;
     public int Ids;
-    public string[] Args;
+    public string[] Args = [];
 }
 
 public class OfferTextEntry
 {
     public OfferTextOp Op;
-    public OfferTextItem[] Items;
+    public OfferTextItem[] Items = [];
 
     public static OfferTextEntry FromEntry(Entry e)
     {
@@ -38,16 +38,18 @@ public class OfferTextEntry
         {
             var item = new OfferTextItem();
             var opOrIds = e[i].ToString().ToLowerInvariant();
-            if (opOrIds == "singular")
+            switch (opOrIds)
             {
-                item.Type = OfferTextType.singular;
-                i++;
+                case "singular":
+                    item.Type = OfferTextType.singular;
+                    i++;
+                    break;
+                case "plural":
+                    item.Type = OfferTextType.plural;
+                    i++;
+                    break;
             }
-            if (opOrIds == "plural")
-            {
-                item.Type = OfferTextType.plural;
-                i++;
-            }
+
             item.Ids = e[i].ToInt32();
             var args = new List<string>();
             while (i + 1 < e.Count)

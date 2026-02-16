@@ -27,7 +27,27 @@ namespace LibreLancer.World.Components
             public float TimeScale;
             public bool Reverse;
 			public bool Loop;
-		}
+            public int[] ObjectCursors;
+            public int[] JointCursors;
+
+            public ActiveAnimation(Script script)
+            {
+                ObjectCursors = new int[script.ObjectMaps.Count];
+                JointCursors = new int[script.JointMaps.Count];
+                Script = script;
+                ScriptDuration = GetScriptDuration(script);
+            }
+
+            float GetScriptDuration(Script sc)
+            {
+                float duration = 0;
+                foreach (var jm in sc.JointMaps)
+                {
+                    duration = Math.Max(duration, jm.Channel.Duration);
+                }
+                return duration;
+            }
+        }
 
 		AnmFile anm;
         private RigidModel rm;
@@ -67,12 +87,13 @@ namespace LibreLancer.World.Components
                         var joint = mdl.Parts[jm.ChildName].Construct;
                         ChannelFloat angles = 0;
                         float t = a.Reverse ? 0 : jm.Channel.Duration;
-                        if (jm.Channel.HasAngle) angles = jm.Channel.FloatAtTime((float) t);
+                        int jointCursor = 0;
+                        if (jm.Channel.HasAngle) angles = jm.Channel.FloatAtTime((float)t, ref jointCursor);
                         var quat = Quaternion.Identity;
-                        if (jm.Channel.HasOrientation) quat = jm.Channel.QuaternionAtTime((float) t);
+                        if (jm.Channel.HasOrientation) quat = jm.Channel.QuaternionAtTime((float) t, ref jointCursor);
                         joint.Update(angles, quat);
                     }
-                    completeAnimations.Add(new ActiveAnimation()
+                    completeAnimations.Add(new ActiveAnimation(sc)
                     {
                         Name = a.Name,
                         Reverse = a.Reverse,
@@ -81,10 +102,9 @@ namespace LibreLancer.World.Components
                 else
                 {
                     FLLog.Debug("Client", $"Add animation starting {a.WorldStartTime}: current {getTotalTime()}");
-                    animations.Add(new ActiveAnimation()
+                    animations.Add(new ActiveAnimation(sc)
                     {
                         Name = a.Name,
-                        Script = sc,
                         WorldStartTime = a.WorldStartTime,
                         Loop = a.Loop,
                         Reverse = a.Reverse,
@@ -107,15 +127,7 @@ namespace LibreLancer.World.Components
             getTotalTime = () => accumTime;
         }
 
-        float GetScriptDuration(Script sc)
-        {
-            float duration = 0;
-            foreach (var jm in sc.JointMaps)
-            {
-                duration = Math.Max(duration, jm.Channel.Duration);
-            }
-            return duration;
-        }
+
 
         public void StartAnimation(Script script, bool loop = true, float start_time = 0, float time_scale = 1,
             float duration = 0, bool reverse = false)
@@ -141,17 +153,15 @@ namespace LibreLancer.World.Components
             }
             else
             {
-                animations.Add(new ActiveAnimation()
+                animations.Add(new ActiveAnimation(script)
                 {
                     Name = script.Name,
-                    Script = script,
                     WorldStartTime = getTotalTime(),
                     Loop = loop,
                     Duration = duration,
                     StartT = start_time,
                     TimeScale = time_scale,
                     Reverse = reverse,
-                    ScriptDuration = GetScriptDuration(script)
                 });
                 active[script] = animations[^1];
             }
@@ -236,44 +246,46 @@ namespace LibreLancer.World.Components
             float ts = a.TimeScale <= 0 ? 1 : a.TimeScale;
 			for (int i = 0; i < a.Script.ObjectMaps.Count; i++)
 			{
-				if (!ProcessObjectMap(ref a.Script.ObjectMaps[i], a.WorldStartTime, ts, a.Loop))
+				if (!ProcessObjectMap(ref a.Script.ObjectMaps[i], ref a.ObjectCursors[i], a.WorldStartTime, ts, a.Loop))
 					finished = false;
 			}
             for (int i = 0; i < a.Script.JointMaps.Count; i++)
 			{
-				if (!ProcessJointMap(ref a.Script.JointMaps[i], a.WorldStartTime, ts, a.Loop, a.Reverse))
+				if (!ProcessJointMap(ref a.Script.JointMaps[i], ref a.JointCursors[i], a.WorldStartTime, ts, a.Loop, a.Reverse))
 					finished = false;
 			}
 			return finished || (a.Duration > 0 && (getTotalTime() - a.WorldStartTime) >= a.Duration);
 		}
 
 
-		bool ProcessObjectMap(ref ObjectMap om, double startTime, float timeScale, bool loop)
+		bool ProcessObjectMap(ref ObjectMap om, ref int cur, double startTime, float timeScale, bool loop)
 		{
 			return false;
 		}
 
-		bool ProcessJointMap(ref JointMap jm, double startTime, float timeScale, bool loop, bool reverse)
+		bool ProcessJointMap(ref JointMap jm, ref int cur, double startTime, float timeScale, bool loop, bool reverse)
         {
             var mdl = Parent == null ? rm : Parent.Model.RigidModel;
             var joint = mdl.Parts[jm.ChildName].Construct;
             double t = (getTotalTime() - startTime) * timeScale;
+            bool done = false;
 			//looping?
-			if (jm.Channel.Interval == -1)
-			{
-				if (!loop && t >= jm.Channel.Duration)
-					return true;
-				else
-					t = t % jm.Channel.Duration;
-			}
+            if (!loop && t >= jm.Channel.Duration)
+            {
+                done = true;
+            }
+            else
+            {
+                t = t % jm.Channel.Duration;
+            }
             if (reverse)
                 t = jm.Channel.Duration - t;
             ChannelFloat angle = 0;
-            if (jm.Channel.HasAngle) angle = jm.Channel.FloatAtTime((float) t);
+            if (jm.Channel.HasAngle) angle = jm.Channel.FloatAtTime((float)t, ref cur);
             var quat = Quaternion.Identity;
-            if (jm.Channel.HasOrientation) quat = jm.Channel.QuaternionAtTime((float) t);
+            if (jm.Channel.HasOrientation) quat = jm.Channel.QuaternionAtTime((float)t, ref cur);
             joint.Update(angle, quat);
-			return false;
+			return done;
 		}
 
         public float GetPlayPosition(Script sc)

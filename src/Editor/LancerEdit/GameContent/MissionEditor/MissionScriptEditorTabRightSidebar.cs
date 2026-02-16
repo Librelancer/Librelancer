@@ -59,7 +59,7 @@ public sealed partial class MissionScriptEditorTab
 
         ImGui.NewLine();
 
-        if (SidebarHeader("Objective List"))
+        if (SidebarHeader("Object Directive List"))
         {
             ImGui.PushID(5);
             RenderObjectiveListManager();
@@ -87,7 +87,7 @@ public sealed partial class MissionScriptEditorTab
             return;
         }
 
-        InputItemNickname("Nickname", undoBuffer, missionIni.Dialogs, selectedDialog);
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.Dialogs, selectedDialog);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedDialog.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedDialog.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
@@ -150,7 +150,7 @@ public sealed partial class MissionScriptEditorTab
 
         if (!Controls.BeginEditorTable("loot"))
             return;
-        InputItemNickname("Nickname", undoBuffer, missionIni.Loots, selectedLoot);
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.Loots, selectedLoot);
         gameData.Equipment.DrawUndo("Archetype", undoBuffer,
             () => ref selectedLoot.Archetype);
         Controls.IdsInputStringUndo("Name", gameData, popup, undoBuffer,
@@ -203,7 +203,7 @@ public sealed partial class MissionScriptEditorTab
         if (!Controls.BeginEditorTable("Solar"))
             return;
 
-        InputItemNickname("Nickname", undoBuffer, missionIni.Solars, selectedSolar);
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.Solars, selectedSolar);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedSolar.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedSolar.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>
@@ -277,7 +277,7 @@ public sealed partial class MissionScriptEditorTab
         if (!Controls.BeginEditorTable("Ship"))
             return;
 
-        InputItemNickname("Nickname", undoBuffer, missionIni.Ships, selectedShip);
+        Controls.InputItemNickname("Nickname", undoBuffer, missionIni.Ships, selectedShip);
         Controls.InputTextIdUndo("System", undoBuffer, () => ref selectedShip.System, 150f);
         MissionEditorHelpers.AlertIfInvalidRef(() => selectedShip.System.Length is 0 ||
                                                      gameData.GameData.Items.Systems.Any(x =>

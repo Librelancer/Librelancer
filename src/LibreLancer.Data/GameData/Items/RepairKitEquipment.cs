@@ -4,5 +4,5 @@ namespace LibreLancer.Data.GameData.Items;
 
 public class RepairKitEquipment : Equipment
 {
-    public RepairKit Def;
+    public required RepairKit Def;
 }

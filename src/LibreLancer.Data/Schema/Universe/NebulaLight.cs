@@ -5,16 +5,15 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Universe
+namespace LibreLancer.Data.Schema.Universe;
+
+[ParsedSection]
+public partial class NebulaLight
 {
-    [ParsedSection]
-	public partial class NebulaLight
-    {
-        [Entry("ambient")]
-        public Color4? Ambient;
-        [Entry("sun_burnthrough_intensity")]
-        public float? SunBurnthroughIntensity;
-        [Entry("sun_burnthrough_scaler")]
-        public float? SunBurnthroughScaler;
-    }
+    [Entry("ambient")]
+    public Color4? Ambient;
+    [Entry("sun_burnthrough_intensity")]
+    public float? SunBurnthroughIntensity;
+    [Entry("sun_burnthrough_scaler")]
+    public float? SunBurnthroughScaler;
 }

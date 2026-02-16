@@ -7,31 +7,29 @@ using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
-namespace LibreLancer.Data.Schema
+namespace LibreLancer.Data.Schema;
+
+public class DacomIni
 {
-	public class DacomIni
-	{
-		public MaterialMap MaterialMap { get; private set; }
-		public DacomIni (string dacomPath, FileSystem vfs)
-		{
-			foreach (Section s in IniFile.ParseFile(dacomPath, vfs, true)) {
-				switch (s.Name.ToLowerInvariant ()) {
-				case "materialmap":
-					var map = new MaterialMap ();
-					foreach (Entry e in s) {
-						if (e.Name.ToLowerInvariant () != "name") {
-							map.AddMap (e.Name, e [0].ToString ());
-						} else {
-							map.AddRegex (e [0].ToKeyValue ());
-						}
-					}
-					break;
-				default:
-					break;
-				}
+    public MaterialMap? MaterialMap { get; private set; }
+    public DacomIni (string dacomPath, FileSystem vfs)
+    {
+        foreach (Section s in IniFile.ParseFile(dacomPath, vfs, true)) {
+            switch (s.Name.ToLowerInvariant ()) {
+                case "materialmap":
+                    var map = new MaterialMap ();
+                    foreach (Entry e in s) {
+                        if (e.Name.ToLowerInvariant () != "name") {
+                            map.AddMap (e.Name, e [0].ToString());
+                        } else {
+                            map.AddRegex (e [0].ToKeyValue ());
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
 
-			}
-		}
-	}
+        }
+    }
 }
-

@@ -10,7 +10,7 @@ public class SystemObjectLookup(
     : ObjectLookup<GameObject>(objects, x =>
 {
     if (x == null) return "(none)";
-    var idsn = x.Content().IdsName;
+    var idsn = x.SystemObject.IdsName;
     if (idsn != 0)
     {
         return $"{x.Nickname} ({ctx.Infocards.GetStringResource(idsn)})";

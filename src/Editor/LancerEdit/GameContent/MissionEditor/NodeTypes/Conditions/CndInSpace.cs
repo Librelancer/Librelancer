@@ -22,7 +22,7 @@ public class CndInSpace : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.CheckboxUndo("In Space", undoBuffer, () => ref Data.inSpace);
+        Controls.CheckboxUndo("In Space", undoBuffer, () => ref Data.InSpace);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -56,6 +56,11 @@ public class ServerApp(ServerConfig config)
         return true;
     }
 
+    public void WaitExit()
+    {
+        Server?.JoinThread();
+    }
+
     private static string GetBasePath()
     {
         using var processModule = Process.GetCurrentProcess().MainModule;

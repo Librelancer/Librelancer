@@ -26,6 +26,9 @@ namespace LibreLancer.ImUI
         [DllImport("cimgui", EntryPoint = "igExtUseTitlebar", CallingConvention = CallingConvention.Cdecl)]
         public static extern void UseTitlebar(out float restoreX, out float restoreY);
 
+        [DllImport("cimgui")]
+        static extern int igExtInputIntPreview(IntPtr label, IntPtr preview, ref int v);
+
         public static readonly string Version;
 
         static ImGuiExt()
@@ -74,6 +77,17 @@ namespace LibreLancer.ImUI
 
             fixed(byte* ni = native_id.ToUTF8Z(), np = native_preview.ToUTF8Z())
                 return igExtComboButton((IntPtr)ni, (IntPtr)np);
+        }
+
+        public static unsafe bool InputIntPreview(string id, string preview, ref int value)
+        {
+            Span<byte> nbytes = stackalloc byte[512];
+            using var native_id = new UTF8ZHelper(nbytes, id);
+
+            Span<byte> pbytes = stackalloc byte[512];
+            using var native_preview = new UTF8ZHelper(pbytes, preview);
+            fixed (byte* ni = native_id.ToUTF8Z(), np = native_preview.ToUTF8Z())
+                return igExtInputIntPreview((IntPtr)ni, (IntPtr)np, ref value) != 0;
         }
 
         public static bool ToggleButton(string text, bool v, bool enabled = true)

@@ -24,7 +24,7 @@ public class CndDestroyed : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Target", undoBuffer, () => ref Data.label, lookups.ShipsAndLabels);
+        nodePopups.StringCombo("Target", undoBuffer, () => ref Data.Label, lookups.ShipsAndLabels);
 
         Controls.InputIntUndo("Count", undoBuffer, () => ref Data.Count);
         nodePopups.Combo("Kind", undoBuffer, () => ref Data.Kind);

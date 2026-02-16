@@ -5,21 +5,20 @@
 using System;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Pilots
+namespace LibreLancer.Data.Schema.Pilots;
+
+public class DirectionWeight
 {
-    public class DirectionWeight
+    public string? Direction;
+    public float Weight;
+
+    public DirectionWeight()
     {
-        public string Direction;
-        public float Weight;
+    }
 
-        public DirectionWeight()
-        {
-        }
-
-        public DirectionWeight(Entry e)
-        {
-            Direction = e[0].ToString();
-            Weight = e[1].ToSingle();
-        }
+    public DirectionWeight(Entry e)
+    {
+        Direction = e[0].ToString();
+        Weight = e[1].ToSingle();
     }
 }

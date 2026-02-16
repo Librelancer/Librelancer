@@ -251,11 +251,21 @@ public static unsafe class SearchDropdown<T>
         {
             SelectedIndex = -1;
             for (var i = 0; i < AllChoices.Length; i++)
-                if (AllChoices[i].Item.Equals(selectedValue))
+            {
+                if (AllChoices[i].Item == null)
+                {
+                    if (selectedValue == null)
+                    {
+                        SelectedIndex = i;
+                        break;
+                    }
+                }
+                else if (AllChoices[i].Item.Equals(selectedValue))
                 {
                     SelectedIndex = i;
                     break;
                 }
+            }
         }
 
         public int GetCurrentIndex()

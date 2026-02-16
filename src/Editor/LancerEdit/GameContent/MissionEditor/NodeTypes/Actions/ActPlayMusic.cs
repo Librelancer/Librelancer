@@ -29,10 +29,21 @@ public sealed class ActPlayMusic : NodeTriggerEntry
         Controls.CheckboxUndo("Reset to Default", undoBuffer, () => ref Data.Reset);
 
         nodePopups.StringCombo("Space", undoBuffer, () => ref Data.Space, gameData.MusicByName, true);
+        ImGui.SameLine();
+        if(Controls.Music("Space", gameData.Sounds, !string.IsNullOrWhiteSpace(Data.Space)))
+            gameData.Sounds.PlayMusic(Data.Space, 0, true);
         nodePopups.StringCombo("Danger", undoBuffer, () => ref Data.Danger, gameData.MusicByName, true);
+        ImGui.SameLine();
+        if(Controls.Music("Danger", gameData.Sounds, !string.IsNullOrWhiteSpace(Data.Danger)))
+            gameData.Sounds.PlayMusic(Data.Danger, 0, true);
         nodePopups.StringCombo("Battle", undoBuffer, () => ref Data.Battle, gameData.MusicByName, true);
+        ImGui.SameLine();
+        if(Controls.Music("Battle", gameData.Sounds, !string.IsNullOrWhiteSpace(Data.Battle)))
+            gameData.Sounds.PlayMusic(Data.Battle, 0, true);
         nodePopups.StringCombo("Motif", undoBuffer, () => ref Data.Motif, gameData.MusicByName, true);
-
+        ImGui.SameLine();
+        if(Controls.Music("Motif", gameData.Sounds, !string.IsNullOrWhiteSpace(Data.Motif)))
+            gameData.Sounds.PlayMusic(Data.Motif, 0, true);
         Controls.InputFloatUndo("Fade", undoBuffer, () => ref Data.Fade);
     }
 

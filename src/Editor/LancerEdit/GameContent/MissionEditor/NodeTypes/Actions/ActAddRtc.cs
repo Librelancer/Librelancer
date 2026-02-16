@@ -23,7 +23,7 @@ public sealed class ActAddRtc : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("RTC", undoBuffer, () => ref Data.RTC);
+        Controls.InputTextUndo("RTC", undoBuffer, () => ref Data.RTC);
         Controls.CheckboxUndo("Repeatable", undoBuffer, () => ref Data.Repeatable);
     }
 

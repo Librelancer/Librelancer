@@ -24,17 +24,17 @@ public class CndShipDistance : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("Source Ship", undoBuffer, () => ref Data.sourceShip);
-        Controls.InputTextIdUndo("Dest Object", undoBuffer, () => ref Data.destObject);
+        Controls.InputTextIdUndo("Source Ship", undoBuffer, () => ref Data.SourceShip);
+        Controls.InputTextIdUndo("Dest Object", undoBuffer, () => ref Data.DestObject);
 
-        Controls.CheckboxUndo("Inside", undoBuffer, () => ref Data.inside);
+        Controls.CheckboxUndo("Inside", undoBuffer, () => ref Data.Inside);
         Controls.HelpMarker(
             "Whether the source ship should be within (true) the specified distance, or if the condition is " +
             "triggered when the source ship is at least the specified distance away from the destination object.",
             true);
 
-        Controls.SliderFloatUndo("Distance", undoBuffer, () => ref Data.distance, 0.0f, 100000.0f, "%.0f", ImGuiSliderFlags.AlwaysClamp);
-        Controls.InputOptionalFloatUndo("Tick Away", undoBuffer, () => ref Data.tickAway);
+        Controls.InputFloatUndo("Distance", undoBuffer, () => ref Data.Distance);
+        Controls.InputOptionalFloatUndo("Tick Away", undoBuffer, () => ref Data.TickAway);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

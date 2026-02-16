@@ -42,7 +42,7 @@ public static class IniDiagnostic
         FLLog.Warning("Ini", warning + " " + FormatLine(e.Section.File, e.Line, e.Section));
     }
 
-    static string FormatLine(string file, int line)
+    private static string FormatLine(string? file, int line)
     {
         if (line >= 0)
             return $" at {file}, line {line}";
@@ -56,7 +56,7 @@ public static class IniDiagnostic
     }
 
 
-    public static string FormatLine(string file, int line, Section? section)
+    public static string FormatLine(string? file, int line, Section? section)
     {
         if (section == null)
             return FormatLine(file, line);

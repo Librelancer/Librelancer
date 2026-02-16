@@ -38,7 +38,7 @@ public class MusicSelection : PopupWindow
         SearchDropdown<string>.Draw("##music", ref selection, options, x => x ?? "(none)");
         ImGui.PopItemWidth();
         ImGui.SameLine();
-        if(Controls.Music("music", win, selection != null))
+        if(Controls.Music("music", gd.Sounds, selection != null))
             gd.Sounds.PlayMusic(selection, 0, true);
         if (ImGui.Button("Ok"))
         {

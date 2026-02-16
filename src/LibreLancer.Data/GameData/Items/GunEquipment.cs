@@ -2,12 +2,11 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-namespace LibreLancer.Data.GameData.Items
+namespace LibreLancer.Data.GameData.Items;
+
+public class GunEquipment : Equipment
 {
-    public class GunEquipment : Equipment
-    {
-        public Data.Schema.Equipment.Gun Def;
-        public MunitionEquip Munition;
-        public ResolvedFx FlashEffect;
-    }
+    public required Data.Schema.Equipment.Gun Def;
+    public required MunitionEquip Munition;
+    public ResolvedFx? FlashEffect;
 }

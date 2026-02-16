@@ -6,9 +6,9 @@ namespace LibreLancer.Data.GameData.World;
 
 public class DynamicLootZone : IDataEquatable<DynamicLootZone>
 {
-    public Zone Zone;
-    public LootCrateEquipment LootContainer;
-    public Items.Equipment LootCommodity;
+    public Zone? Zone;
+    public LootCrateEquipment? LootContainer;
+    public Items.Equipment? LootCommodity;
     public Vector2 LootCount;
     public float LootDifficulty;
 
@@ -18,7 +18,7 @@ public class DynamicLootZone : IDataEquatable<DynamicLootZone>
         var o = (DynamicLootZone)MemberwiseClone();
         o.Zone = Zone == null
             ? null
-            : newZones.GetValueOrDefault(Zone.Nickname);
+            : newZones!.GetValueOrDefault(Zone.Nickname);
         return o;
     }
 

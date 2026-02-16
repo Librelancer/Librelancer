@@ -14,26 +14,34 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes;
 
 public class NodeMissionTrigger : Node
 {
-    public readonly MissionTrigger Data;
+    public readonly TriggerHeader Data;
     public List<NodeTriggerEntry> Conditions = new();
     public List<NodeTriggerEntry> Actions = new();
 
     private NodeSuspendState suspend = new();
     private MissionScriptEditorTab tab;
+    public bool IsCollapsed = false;
 
     public NodeMissionTrigger(MissionTrigger data, MissionScriptEditorTab tab) : base(NodeColours.Trigger)
     {
-        this.Data = data ?? new MissionTrigger();
+        var src = data ?? new MissionTrigger();
+        Data = new TriggerHeader()
+        {
+            Nickname = src.Nickname,
+            System = src.System,
+            Repeatable = src.Repeatable,
+            InitState = src.InitState
+        };
 
         Inputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Input));
         Outputs.Add(new NodePin(this, LinkType.Trigger, PinKind.Output));
 
-        foreach (var c in this.Data.Conditions)
+        foreach (var c in src.Conditions)
         {
             Conditions.Add(NodeTriggerEntry.ConditionToNode(c.Type, c.Entry));
         }
 
-        foreach (var a in this.Data.Actions)
+        foreach (var a in src.Actions)
         {
             Actions.Add(NodeTriggerEntry.ActionToNode(a.Type, a));
         }
@@ -41,10 +49,10 @@ public class NodeMissionTrigger : Node
         this.tab = tab;
     }
 
-    public override string Name => "Mission Trigger";
+    public override string Name => string.IsNullOrWhiteSpace(Data.Nickname) ? "Mission Trigger" : Data.Nickname;
     public override string InternalId => Data.Nickname;
 
-    static bool StartChild(NodeTriggerEntry e, out bool remove)
+    private static bool StartChild(NodeTriggerEntry e, out bool remove)
     {
         ImGui.BeginGroup();
         ImGui.PushStyleColor(ImGuiCol.Header, e.Color);
@@ -59,17 +67,20 @@ public class NodeMissionTrigger : Node
         return render;
     }
 
-    static void EndChild(bool render)
+    private static void EndChild(bool render)
     {
-        if(render)
+        if (render)
+        {
             ImGui.Separator();
+        }
+
         ImGui.EndGroup();
     }
 
-    float[] cachedHeightsCond;
-    private float[] cachedHeightsAct;
+    private float[]? cachedHeightsCond;
+    private float[]? cachedHeightsAct;
 
-    static float GetHeight(float[] cache, float fh, int index)
+    private static float GetHeight(float[] cache, float fh, int index)
     {
         if (cache == null || index >= cache.Length ||
             cache[index] < float.Epsilon)
@@ -77,7 +88,7 @@ public class NodeMissionTrigger : Node
         return cache[index];
     }
 
-    void RenderConditions(bool clipped, bool usePins, float szPin, float szContent, float pad,
+    private void RenderConditions(bool clipped, bool usePins, float szPin, float szContent, float pad,
         GameDataContext gameData, PopupManager popups, EditorUndoBuffer undoBuffer, ref NodePopups nodePopups,
         ref NodeLookups nodeLookups)
     {
@@ -117,17 +128,22 @@ public class NodeMissionTrigger : Node
             }
             else
             {
-                if (cachedHeightsCond == null ||
-                    cachedHeightsCond.Length != Conditions.Count)
+                if (cachedHeightsCond == null || cachedHeightsCond.Length != Conditions.Count)
+                {
                     cachedHeightsCond = new float[Conditions.Count];
+                }
+
                 var sp = ImGui.GetCursorPosY();
                 bool c = StartChild(e, out var remove);
                 if (c)
                 {
+                    ImGui.PushID(i);
                     ImGui.Dummy(new Vector2(1, 4)); //pad
                     e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
                     ImGui.Dummy(new Vector2(1, 4)); //pad
+                    ImGui.PopID();
                 }
+
                 EndChild(c);
                 if (remove)
                 {
@@ -135,7 +151,7 @@ public class NodeMissionTrigger : Node
                     i--;
                 }
 
-                if (i < cachedHeightsCond.Length && i >= 0)
+                if (cachedHeightsCond != null && i < cachedHeightsCond.Length && i >= 0)
                 {
                     cachedHeightsCond[i] = ImGui.GetCursorPosY() - sp;
                 }
@@ -175,16 +191,17 @@ public class NodeMissionTrigger : Node
             }
             else
             {
-                if (cachedHeightsAct == null ||
-                    cachedHeightsAct.Length != Actions.Count)
+                if (cachedHeightsAct == null || cachedHeightsAct.Length != Actions.Count)
                     cachedHeightsAct = new float[Actions.Count];
                 var sp = ImGui.GetCursorPosY();
                 var c = StartChild(e, out var remove);
                 if (c)
                 {
+                    ImGui.PushID(i);
                     ImGui.Dummy(new Vector2(1, 4) ); //pad
                     e.RenderContent(gameData, popups, undoBuffer, ref nodePopups, ref nodeLookups);
                     ImGui.Dummy(new Vector2(1, 4)); //pad
+                    ImGui.PopID();
                 }
                 EndChild(c);
                 if (remove)
@@ -193,7 +210,7 @@ public class NodeMissionTrigger : Node
                     i--;
                 }
 
-                if (i < cachedHeightsCond.Length && i >= 0)
+                if (cachedHeightsAct != null && i < cachedHeightsAct.Length && i >= 0)
                 {
                     cachedHeightsAct[i] = ImGui.GetCursorPosY() - sp;
                 }
@@ -273,6 +290,16 @@ public class NodeMissionTrigger : Node
         var nb = NodeBuilder.Begin(Id, suspend);
 
         nb.Header(Color);
+
+        ImGui.PushStyleColor(ImGuiCol.Border, 0);
+        ImGui.PushStyleColor(ImGuiCol.Button, 0);
+        if (ImGui.Button(IsCollapsed ? Icons.ArrowDown : Icons.ArrowUp))
+        {
+            IsCollapsed = !IsCollapsed;
+        }
+
+        ImGui.PopStyleColor(2);
+        ImGui.SameLine();
         ImGui.Text(Name);
         nb.EndHeader();
 
@@ -298,6 +325,12 @@ public class NodeMissionTrigger : Node
         VectorIcons.Icon(iconSize, VectorIcon.Flow, false, Color4.Green);
         NodeEditor.EndPin();
 
+        if (IsCollapsed)
+        {
+            nb.Dispose();
+            return;
+        }
+
         if (nb.Clipped)
         {
             ImGui.Dummy(new(180, ImGui.GetFrameHeightWithSpacing() * 3 + ImGui.GetFrameHeight()));
@@ -308,16 +341,16 @@ public class NodeMissionTrigger : Node
             ImGui.AlignTextToFramePadding();
             ImGui.Text("ID");
             ImGui.SameLine();
-            ImGuiExt.InputTextLogged("##id", ref Data.Nickname, 255, (old, upd) =>
-            {
-                tab.OnRenameTrigger(this, old, upd);
-            }, true);
+            Controls.InputItemNickname("##id", undoBuffer, Data,
+                (n, _) => {
+                    var node = tab.GetTrigger(n);
+                    return node != null && node != this; },
+                (_, o, u) => tab.OnRenameTrigger(this, o, u));
             nb.Popups.StringCombo("System", undoBuffer, () => ref Data.System, gameData.SystemsByName, true);
             Controls.CheckboxUndo("Repeatable", undoBuffer, () => ref Data.Repeatable);
             nb.Popups.Combo("Initial State", undoBuffer, () => ref Data.InitState);
             ImGui.PopItemWidth();
         }
-
 
         // Draw conditions/actions
         ImGui.BeginTable("##trigger", 2, ImGuiTableFlags.PreciseWidths, new Vector2(szLeft + szRight + 8 * pad, 0));
@@ -334,10 +367,9 @@ public class NodeMissionTrigger : Node
 
     }
 
-    public void WriteNode(MissionScriptEditorTab missionEditor, IniBuilder builder)
+    public void WriteNode(IniBuilder builder)
     {
         var s = builder.Section("Trigger");
-
 
         if (string.IsNullOrWhiteSpace(Data.Nickname))
         {

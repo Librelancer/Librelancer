@@ -7,8 +7,8 @@ namespace LibreLancer.Data.Schema.InitialWorld;
 public partial class LockedGates
 {
     [Entry("locked_gate", Multiline = true)]
-    public List<int> Locked = new List<int>();
+    public List<int> Locked = [];
 
     [Entry("npc_locked_gate", Multiline = true)]
-    public List<int> NpcLockedGates = new List<int>();
+    public List<int> NpcLockedGates = [];
 }

@@ -22,7 +22,7 @@ public class CndJumpInComplete : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        Controls.InputTextIdUndo("System", undoBuffer, () => ref Data.system);
+        Controls.InputTextIdUndo("System", undoBuffer, () => ref Data.System);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

@@ -11,11 +11,11 @@ namespace LibreLancer.Data.Schema.PetalDb;
 
 public class PetalDbIni
 {
-    public Dictionary<string, string> Rooms = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-    public Dictionary<string, string> Props = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-    public Dictionary<string, string> Carts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> Rooms = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> Props = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, string> Carts = new(StringComparer.OrdinalIgnoreCase);
 
-    public void AddFile(string path, FileSystem vfs, IniStringPool stringPool = null)
+    public void AddFile(string path, FileSystem vfs, IniStringPool? stringPool = null)
     {
         foreach (var section in IniFile.ParseFile(path, vfs, false, stringPool))
         {

@@ -7,27 +7,26 @@ using System.Collections.Generic;
 using System.Text;
 using LibreLancer.Data.Ini;
 
-namespace LibreLancer.Data.Schema.Save
+namespace LibreLancer.Data.Schema.Save;
+
+[ParsedSection]
+public partial class SaveGroup : IWriteSection
 {
-    [ParsedSection]
-    public partial class SaveGroup : IWriteSection
+    [Entry("nickname", Required = true)]
+    public string Nickname = null!;
+
+    public List<SaveRep> Rep = [];
+
+    [EntryHandler("rep", Multiline = true, MinComponents = 2)]
+    private void HandleRep(Entry e) => Rep.Add(new SaveRep(e));
+
+    public void WriteTo(IniBuilder builder)
     {
-        [Entry("nickname")]
-        public string Nickname;
-
-        public List<SaveRep> Rep = new List<SaveRep>();
-
-        [EntryHandler("rep", Multiline = true, MinComponents = 2)]
-        void HandleRep(Entry e) => Rep.Add(new SaveRep(e));
-
-        public void WriteTo(IniBuilder builder)
+        var section = builder.Section("Group")
+            .Entry("nickname", Nickname);
+        foreach (var rep in Rep)
         {
-            var section = builder.Section("Group")
-                .Entry("nickname", Nickname);
-            foreach (var rep in Rep)
-            {
-                section.Entry("rep", rep.Reputation, rep.Group);
-            }
+            section.Entry("rep", rep.Reputation, rep.Group!);
         }
     }
 }

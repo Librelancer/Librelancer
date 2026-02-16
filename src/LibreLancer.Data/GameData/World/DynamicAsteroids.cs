@@ -5,7 +5,7 @@ namespace LibreLancer.Data.GameData.World;
 
 public class DynamicAsteroids : ICloneable, IDataEquatable<DynamicAsteroids>
 {
-    public DynamicAsteroid Asteroid;
+    public DynamicAsteroid? Asteroid;
     public int Count;
     public int PlacementRadius;
     public int PlacementOffset;

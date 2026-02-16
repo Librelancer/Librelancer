@@ -6,14 +6,14 @@ namespace LibreLancer.Data;
 public struct HashValue : IEquatable<HashValue>
 {
     public uint Hash => h;
-    public string String => s;
+    public string? String => s;
 
     private uint h;
-    private string s;
+    private string? s;
 
-    public HashValue(IValue v)
+    public HashValue(ValueBase v)
     {
-        if (v.TryToInt32(out int hash))
+        if (v.TryToInt32(out var hash))
         {
             h = (uint)hash;
             s = null;
@@ -44,57 +44,15 @@ public struct HashValue : IEquatable<HashValue>
         this.h = (uint)h;
     }
 
-    public override string ToString()
-    {
-        if (s != null) return $"{s} ({h})";
-        return h.ToString();
-    }
-
-    public static implicit operator HashValue(uint u)
-    {
-        return new HashValue(u);
-    }
-
-    public static implicit operator HashValue(int i)
-    {
-        return new HashValue(i);
-    }
-
-    public static implicit operator HashValue(string s) => new HashValue(s);
-
-    public static implicit operator uint(HashValue sh)
-    {
-        return sh.h;
-    }
-
-    public static explicit operator int(HashValue sh)
-    {
-        return unchecked((int)sh.h);
-    }
-
-    public override bool Equals(object obj)
-    {
-        if (!(obj is HashValue hash)) return false;
-        return h == hash.h;
-    }
-
-    public bool Equals(HashValue other)
-    {
-        return h == other.h;
-    }
-
-    public static bool operator ==(HashValue left, HashValue right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(HashValue left, HashValue right)
-    {
-        return !left.Equals(right);
-    }
-
-    public override int GetHashCode()
-    {
-        return unchecked((int) h);
-    }
+    public override string ToString() => s != null ? $"{s} ({h})" : h.ToString();
+    public static implicit operator HashValue(uint u) => new(u);
+    public static implicit operator HashValue(int i) => new(i);
+    public static implicit operator HashValue(string s) => new(s);
+    public static implicit operator uint(HashValue sh) => sh.h;
+    public static explicit operator int(HashValue sh) => unchecked((int)sh.h);
+    public override bool Equals(object? obj) => obj is HashValue hash && h == hash.h;
+    public bool Equals(HashValue other) => h == other.h;
+    public static bool operator ==(HashValue left, HashValue right) => left.Equals(right);
+    public static bool operator !=(HashValue left, HashValue right) => !left.Equals(right);
+    public override int GetHashCode() => unchecked((int) h);
 }

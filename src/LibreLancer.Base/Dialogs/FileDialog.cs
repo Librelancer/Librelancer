@@ -396,8 +396,8 @@ public static class FileDialog
                     // Convert wchar_t* to UTF-16 string
                     results[i] = str;
 
-                    // Free individual path (Windows: FreePathN)
-                    NFD.NFD_FreePathN(pathPtr);
+                    // Free individual path (Windows: PathSet_FreePathN)
+                    NFD.NFD_PathSet_FreePathN(pathPtr);
                 }
             }
             else

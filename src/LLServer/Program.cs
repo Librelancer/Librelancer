@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Options;
@@ -15,6 +16,7 @@ namespace LLServer
 	{
         public static async Task<int> Main(string[] args)
         {
+                   
             bool printHelp = false;
             bool printVersion = false;
             string? configPath = null;
@@ -63,11 +65,24 @@ namespace LLServer
                 await Console.Error.WriteLineAsync("Server failed to start");
                 return 1;
             }
+            
+            using var sigterm = PosixSignalRegistration.Create(PosixSignal.SIGTERM, _ =>
+            {
+                Console.WriteLine("Server shutting down");
+                app.StopServer();
+                Environment.Exit(0);
+            });
 
             var running = true;
 			while (running)
             {
-                var (cmd, cmdargs) = GetCommand(Console.ReadLine()?.Trim() ?? "");
+                var input = Console.ReadLine();
+                if (input == null)
+                {
+                    app.WaitExit();
+                    break;
+                }
+                var (cmd, cmdargs) = GetCommand(input);
                 switch (cmd.ToLowerInvariant())
 				{
 					case "stop":

@@ -5,17 +5,23 @@ namespace LibreLancer.Data.Schema.RandomMissions;
 
 public struct VignetteString
 {
-    public string Target;
+    public string? Target;
     public int Ids;
     public string[] Arguments;
 
     public static bool TryParse(bool useEntryName, Entry e, out VignetteString str)
     {
-        str = new VignetteString();
-        str.Target = useEntryName ? e.Name : e[0].ToString();
+        str = new VignetteString
+        {
+            Target = useEntryName ? e.Name : e[0].ToString()
+        };
+
         int idx = useEntryName ? 0 : 1;
         if (!e[idx].TryToInt32(out str.Ids))
+        {
             return false;
+        }
+
         if (e.Count >= idx + 1)
         {
             str.Arguments = new string[e.Count - (idx + 1)];

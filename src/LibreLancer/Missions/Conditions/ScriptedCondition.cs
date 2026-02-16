@@ -12,7 +12,7 @@ using LibreLancer.Server.Components;
 
 namespace LibreLancer.Missions.Conditions;
 
-public abstract class ScriptedCondition
+public abstract class ScriptedCondition : TriggerEntry
 {
     public virtual void Write(IniBuilder.IniSectionBuilder section)
     {
@@ -51,6 +51,13 @@ public abstract class ScriptedCondition
 
     protected static bool IdEqual(string a, string b) =>
         string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+
+
+    public static readonly TriggerConditions[] Unsupported =
+    [
+        TriggerConditions.Cnd_CmpToPlane,
+        TriggerConditions.Cnd_JumpgateAct
+    ];
 
     public static IEnumerable<ScriptedCondition> Convert(IEnumerable<MissionCondition> conditions)
     {
@@ -159,11 +166,10 @@ public class Cnd_WatchVibe : ScriptedCondition
 
     public Cnd_WatchVibe([NotNull] Entry entry)
     {
-        SourceObject = entry[0].ToString();
-        TargetObject = entry[1].ToString();
-        _ = Enum.TryParse(entry[2].ToString(), out Vibe);
-        var option = entry[3].ToString();
-        Enum.TryParse(option, out Operator);
+        GetString(nameof(SourceObject), 0, out SourceObject, entry);
+        GetString(nameof(TargetObject), 1, out TargetObject, entry);
+        GetEnum(nameof(Vibe), 2, out Vibe, entry);
+        GetEnum(nameof(Operator), 3, out Operator, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -183,8 +189,8 @@ public class Cnd_WatchTrigger : ScriptedCondition
 
     public Cnd_WatchTrigger([NotNull] Entry entry)
     {
-        Trigger = entry[0].ToString();
-        TriggerState = Enum.Parse<TriggerState>(entry[1].ToString()!, ignoreCase: true);
+        GetString(nameof(Trigger), 0, out Trigger, entry);
+        GetEnum(nameof(TriggerState), 1, out TriggerState, entry);
     }
 
     //TODO : ON/OFF == COMPLETED/ACTIVE?
@@ -238,8 +244,8 @@ public class Cnd_TLExited :
 
     public Cnd_TLExited([NotNull] Entry entry)
     {
-        Source = entry[0].ToString();
-        StartRing = entry[1].ToString();
+        GetString(nameof(Source), 0, out Source, entry);
+        GetString(nameof(StartRing), 1, out StartRing, entry);
         if (entry.Count > 2)
         {
             NextRing = entry[2].ToString();
@@ -280,8 +286,8 @@ public class Cnd_TLEntered :
 
     public Cnd_TLEntered([NotNull] Entry entry)
     {
-        Source = entry[0].ToString();
-        StartRing = entry[1].ToString();
+        GetString(nameof(Source), 0, out Source, entry);
+        GetString(nameof(StartRing), 1, out StartRing, entry);
         if (entry.Count > 2)
         {
             NextRing = entry[2].ToString();
@@ -309,7 +315,6 @@ public class Cnd_TLEntered :
 public class Cnd_Timer : ScriptedCondition
 {
     public float Seconds;
-    public bool Completed = false;
 
     public Cnd_Timer()
     {
@@ -317,7 +322,7 @@ public class Cnd_Timer : ScriptedCondition
 
     public Cnd_Timer([NotNull] Entry entry)
     {
-        Seconds = entry[0].ToSingle();
+        GetFloat(nameof(Seconds), 0, out Seconds, entry);
     }
 
     public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
@@ -346,10 +351,10 @@ public class Cnd_TetherBroke : ScriptedCondition
 
     public Cnd_TetherBroke([NotNull] Entry entry)
     {
-        SourceShip = entry[0].ToString()!;
-        DestShip = entry[1].ToString();
-        Distance = entry[2].ToSingle();
-        Count = entry[3].ToInt32();
+        GetString(nameof(SourceShip), 0, out SourceShip, entry);
+        GetString(nameof(DestShip), 1, out DestShip, entry);
+        GetFloat(nameof(Distance), 2, out Distance, entry);
+        GetInt(nameof(Count), 3, out Count, entry);
         Unknown = entry?.Count >= 5 ? entry[4].ToSingle() : 0.0f;
     }
 
@@ -361,8 +366,8 @@ public class Cnd_TetherBroke : ScriptedCondition
 
 public class Cnd_SystemExit : ScriptedCondition
 {
-    public List<string> systems = [];
-    public bool any;
+    public List<string> Systems = [];
+    public bool Any;
 
     public Cnd_SystemExit()
     {
@@ -374,25 +379,25 @@ public class Cnd_SystemExit : ScriptedCondition
         {
             if (system.ToString()!.Equals("any", StringComparison.InvariantCultureIgnoreCase))
             {
-                systems = [];
-                any = true;
+                Systems = [];
+                Any = true;
                 break;
             }
 
-            systems.Add(system.ToString()!);
+            Systems.Add(system.ToString()!);
         }
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_SystemExit", any ? ["any"] : systems.Select(x => (ValueBase)x).ToArray());
+        section.Entry("Cnd_SystemExit", Any ? ["any"] : Systems.Select(x => (ValueBase)x).ToArray());
     }
 }
 
 public class Cnd_SystemEnter : ScriptedCondition
 {
-    public List<string> systems = [];
-    public bool any;
+    public List<string> Systems = [];
+    public bool Any;
 
     public Cnd_SystemEnter()
     {
@@ -404,18 +409,18 @@ public class Cnd_SystemEnter : ScriptedCondition
         {
             if (system.ToString()!.Equals("any", StringComparison.InvariantCultureIgnoreCase))
             {
-                systems = [];
-                any = true;
+                Systems = [];
+                Any = true;
                 break;
             }
 
-            systems.Add(system.ToString()!);
+            Systems.Add(system.ToString()!);
         }
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_SystemEnter", any ? ["any"] : systems.Select(x => (ValueBase)x).ToArray());
+        section.Entry("Cnd_SystemEnter", Any ? ["any"] : Systems.Select(x => (ValueBase)x).ToArray());
     }
 }
 
@@ -446,8 +451,8 @@ public class Cnd_SpaceEnter :
 public class Cnd_RumorHeard : ScriptedCondition
 {
     // TODO: Figure out what the inputs to rumours are. The ones here are pure speculation as we have no examples.
-    public int rumourId;
-    public bool hasHeardRumour;
+    public int RumorId;
+    public bool HasHeardRumor;
 
     public Cnd_RumorHeard()
     {
@@ -455,20 +460,20 @@ public class Cnd_RumorHeard : ScriptedCondition
 
     public Cnd_RumorHeard([NotNull] Entry entry)
     {
-        rumourId = entry[0].ToInt32();
-        hasHeardRumour = entry[1].ToBoolean();
+        GetInt(nameof(RumorId), 0, out RumorId, entry);
+        GetBoolean(nameof(HasHeardRumor), 1, out HasHeardRumor, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_RumorHeard", rumourId, hasHeardRumour);
+        section.Entry("Cnd_RumorHeard", RumorId, HasHeardRumor);
     }
 }
 
 public class Cnd_RTCDone :
     SingleEventListenerCondition<RTCDoneEvent>
 {
-    public string iniFile = string.Empty;
+    public string IniFile = string.Empty;
 
     public Cnd_RTCDone()
     {
@@ -476,23 +481,23 @@ public class Cnd_RTCDone :
 
     public Cnd_RTCDone([NotNull] Entry entry)
     {
-        iniFile = entry[0].ToString();
+        GetString(nameof(IniFile), 0, out IniFile, entry);
     }
 
     protected override bool EventCheck(RTCDoneEvent ev, MissionRuntime runtime, ActiveCondition self) =>
-        IdEqual(ev.RTC, iniFile);
+        IdEqual(ev.RTC, IniFile);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_RTCDone", iniFile);
+        section.Entry("Cnd_RTCDone", IniFile);
     }
 }
 
 public class Cnd_ProjHitShipToLbl : ScriptedCondition
 {
-    public string target = string.Empty;
-    public int count = 1;
-    public string source = string.Empty;
+    public string Target = string.Empty;
+    public int Count = 1;
+    public string Source = string.Empty;
 
     public Cnd_ProjHitShipToLbl()
     {
@@ -500,22 +505,22 @@ public class Cnd_ProjHitShipToLbl : ScriptedCondition
 
     public Cnd_ProjHitShipToLbl([NotNull] Entry entry)
     {
-        target = entry[0].ToString();
-        count = entry[1].ToInt32();
+        GetString(nameof(Target), 0, out Target, entry);
+        GetInt(nameof(Count), 1, out Count, entry);
 
         if (entry?.Count >= 3)
         {
-            source = entry[2].ToString();
+            Source = entry[2].ToString();
         }
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        List<ValueBase> entries = [target, count];
+        List<ValueBase> entries = [Target, Count];
 
-        if (!string.IsNullOrWhiteSpace(source))
+        if (!string.IsNullOrWhiteSpace(Source))
         {
-            entries.Add(source);
+            entries.Add(Source);
         }
 
         section.Entry("Cnd_ProjHitShipToLbl", entries.ToArray());
@@ -524,9 +529,9 @@ public class Cnd_ProjHitShipToLbl : ScriptedCondition
 
 public class Cnd_ProjHit : EventListenerCondition<ProjectileHitEvent>
 {
-    public string target = string.Empty;
-    public int count = 1;
-    public string source = string.Empty;
+    public string Target = string.Empty;
+    public int Count = 1;
+    public string Source = string.Empty;
 
     public Cnd_ProjHit()
     {
@@ -539,27 +544,27 @@ public class Cnd_ProjHit : EventListenerCondition<ProjectileHitEvent>
 
     public Cnd_ProjHit([NotNull] Entry entry)
     {
-        target = entry[0].ToString();
-        count = entry[1].ToInt32();
+        GetString(nameof(Target), 0, out Target, entry);
+        GetInt(nameof(Count), 1, out Count, entry);
         if (entry?.Count >= 3)
         {
-            source = entry[2].ToString();
+            Source = entry[2].ToString();
         }
     }
 
     public override void Init(MissionRuntime runtime, ActiveCondition self)
     {
         base.Init(runtime, self);
-        self.Storage = new HitCounter() { Remaining = count };
-        runtime.RegisterHitEvent(target);
+        self.Storage = new HitCounter() { Remaining = Count };
+        runtime.RegisterHitEvent(Target);
     }
 
     public override void OnEvent(ProjectileHitEvent ev, MissionRuntime runtime, ActiveCondition self)
     {
         var st = (HitCounter)self.Storage;
         if (st.Remaining <= 0) return;
-        if (IdEqual(target, ev.Target) &&
-            (string.IsNullOrEmpty(source) || IdEqual(source, ev.Source)))
+        if (IdEqual(Target, ev.Target) &&
+            (string.IsNullOrEmpty(Source) || IdEqual(Source, ev.Source)))
         {
             st.Remaining--;
         }
@@ -572,11 +577,11 @@ public class Cnd_ProjHit : EventListenerCondition<ProjectileHitEvent>
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        List<ValueBase> entries = [target, count];
+        List<ValueBase> entries = [Target, Count];
 
-        if (!string.IsNullOrWhiteSpace(source))
+        if (!string.IsNullOrWhiteSpace(Source))
         {
-            entries.Add(source);
+            entries.Add(Source);
         }
 
         section.Entry("Cnd_ProjHit", entries.ToArray());
@@ -586,7 +591,7 @@ public class Cnd_ProjHit : EventListenerCondition<ProjectileHitEvent>
 public class Cnd_PopUpDialog : SingleEventListenerCondition<ClosePopupEvent>
 {
     // TODO: Make popup dialog options use a enum
-    public string popUpOption = "CLOSE";
+    public string PopUpOption = "CLOSE";
 
     public Cnd_PopUpDialog()
     {
@@ -594,22 +599,22 @@ public class Cnd_PopUpDialog : SingleEventListenerCondition<ClosePopupEvent>
 
     public Cnd_PopUpDialog([NotNull] Entry entry)
     {
-        popUpOption = entry[0].ToString();
+        GetString(nameof(PopUpOption), 0, out PopUpOption, entry);
     }
 
     protected override bool EventCheck(ClosePopupEvent ev, MissionRuntime runtime, ActiveCondition self)
-        => IdEqual(ev.Button, popUpOption);
+        => IdEqual(ev.Button, PopUpOption);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_PopUpDialog", popUpOption);
+        section.Entry("Cnd_PopUpDialog", PopUpOption);
     }
 }
 
 public class Cnd_PlayerManeuver : SingleEventListenerCondition<PlayerManeuverEvent>
 {
-    public ManeuverType type = ManeuverType.Dock;
-    public string target = string.Empty;
+    public ManeuverType Type = ManeuverType.Dock;
+    public string Target = string.Empty;
 
     public Cnd_PlayerManeuver()
     {
@@ -617,20 +622,20 @@ public class Cnd_PlayerManeuver : SingleEventListenerCondition<PlayerManeuverEve
 
     public Cnd_PlayerManeuver([NotNull] Entry entry)
     {
-        Enum.TryParse(entry[0].ToString()!, true, out type);
+        GetEnum(nameof(Type), 0, out Type, entry);
         if (entry?.Count >= 2)
         {
-            target = entry[1].ToString();
+            Target = entry[1].ToString();
         }
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_PlayerManeuver", type.ToString(), target);
+        section.Entry("Cnd_PlayerManeuver", Type.ToString(), Target);
     }
 
     protected override bool EventCheck(PlayerManeuverEvent ev, MissionRuntime runtime, ActiveCondition self) =>
-        ev.Type == type && IdEqual(ev.Target, target);
+        ev.Type == Type && IdEqual(ev.Target, Target);
 }
 
 public class Cnd_PlayerLaunch : SingleEventListenerCondition<PlayerLaunchedEvent>
@@ -646,8 +651,8 @@ public class Cnd_PlayerLaunch : SingleEventListenerCondition<PlayerLaunchedEvent
 
 public class Cnd_NPCSystemExit : ScriptedCondition
 {
-    public string system = string.Empty;
-    public List<string> ships = [];
+    public string System = string.Empty;
+    public List<string> Ships = [];
 
     public Cnd_NPCSystemExit()
     {
@@ -655,23 +660,23 @@ public class Cnd_NPCSystemExit : ScriptedCondition
 
     public Cnd_NPCSystemExit([NotNull] Entry entry)
     {
-        system = entry[0].ToString();
+        GetString(nameof(System), 0, out System, entry);
         foreach (var value in entry.Skip(1))
         {
-            ships.Add(value.ToString()!);
+            Ships.Add(value.ToString()!);
         }
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_NPCSystemExit", ships.Prepend(system).ToArray());
+        section.Entry("Cnd_NPCSystemExit", Ships.Prepend(System).ToArray());
     }
 }
 
 public class Cnd_NPCSystemEnter : EventListenerCondition<SystemEnteredEvent>
 {
-    public string system = string.Empty;
-    public List<string> ships = [];
+    public string System = string.Empty;
+    public List<string> Ships = [];
 
     public Cnd_NPCSystemEnter()
     {
@@ -679,24 +684,24 @@ public class Cnd_NPCSystemEnter : EventListenerCondition<SystemEnteredEvent>
 
     public Cnd_NPCSystemEnter([NotNull] Entry entry)
     {
-        system = entry[0].ToString();
+        GetString(nameof(System), 0, out System, entry);
         foreach (var value in entry.Skip(1))
         {
-            ships.Add(value.ToString()!);
+            Ships.Add(value.ToString()!);
         }
     }
 
     public override void Init(MissionRuntime runtime, ActiveCondition self)
     {
         var checking = new ConditionHashSet();
-        foreach (var sh in ships)
+        foreach (var sh in Ships)
             checking.Values.Add(sh);
         self.Storage = checking;
     }
 
     public override void OnEvent(SystemEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
     {
-        if (!ev.System.Equals(system, StringComparison.OrdinalIgnoreCase))
+        if (!ev.System.Equals(System, StringComparison.OrdinalIgnoreCase))
             return;
         var v = (ConditionHashSet)self.Storage;
         v.Values.Remove(ev.Ship);
@@ -709,7 +714,7 @@ public class Cnd_NPCSystemEnter : EventListenerCondition<SystemEnteredEvent>
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_NPCSystemEnter", ships.Prepend(system).ToArray());
+        section.Entry("Cnd_NPCSystemEnter", Ships.Prepend(System).ToArray());
     }
 }
 
@@ -724,7 +729,8 @@ public class Cnd_MsnResponse :
 
     public Cnd_MsnResponse([NotNull] Entry entry)
     {
-        accept = entry[0].ToString()!.Equals("accept", StringComparison.InvariantCultureIgnoreCase);
+        GetString("accept/reject", 0, out var s, entry);
+        accept = s.Equals("accept", StringComparison.InvariantCultureIgnoreCase);
     }
 
     protected override bool EventCheck(MissionResponseEvent ev, MissionRuntime runtime, ActiveCondition self) =>
@@ -738,8 +744,8 @@ public class Cnd_MsnResponse :
 
 public class Cnd_LootAcquired : SingleEventListenerCondition<LootAcquiredEvent>
 {
-    public string target = string.Empty;
-    public string sourceShip = string.Empty;
+    public string Target = string.Empty;
+    public string SourceShip = string.Empty;
 
     public Cnd_LootAcquired()
     {
@@ -747,23 +753,23 @@ public class Cnd_LootAcquired : SingleEventListenerCondition<LootAcquiredEvent>
 
     public Cnd_LootAcquired([NotNull] Entry entry)
     {
-        target = entry[0].ToString();
-        sourceShip = entry[1].ToString();
+        GetString(nameof(Target),  0, out Target, entry);
+        GetString(nameof(SourceShip), 1, out SourceShip, entry);
     }
 
     protected override bool EventCheck(LootAcquiredEvent ev, MissionRuntime runtime, ActiveCondition self)
-        => IdEqual(target, ev.LootNickname) && IdEqual(sourceShip, ev.AcquirerShip);
+        => IdEqual(Target, ev.LootNickname) && IdEqual(SourceShip, ev.AcquirerShip);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_LootAcquired", target, sourceShip);
+        section.Entry("Cnd_LootAcquired", Target, SourceShip);
     }
 }
 
 public class Cnd_LocExit : ScriptedCondition
 {
-    public string location = string.Empty;
-    public string @base = string.Empty;
+    public string Location = string.Empty;
+    public string Base = string.Empty;
 
     public Cnd_LocExit()
     {
@@ -771,13 +777,13 @@ public class Cnd_LocExit : ScriptedCondition
 
     public Cnd_LocExit([NotNull] Entry entry)
     {
-        location = entry[0].ToString();
-        @base = entry[1].ToString();
+        GetString(nameof(Location), 0, out Location, entry);
+        GetString(nameof(Base), 1, out Base, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_LocExit", location, @base);
+        section.Entry("Cnd_LocExit", Location, Base);
     }
 }
 
@@ -793,8 +799,8 @@ public class Cnd_LocEnter :
 
     public Cnd_LocEnter([NotNull] Entry entry)
     {
-        Room = entry[0].ToString();
-        Base = entry[1].ToString();
+        GetString(nameof(Room), 0, out Room, entry);
+        GetString(nameof(Base), 1, out Base, entry);
     }
 
     protected override bool EventCheck(LocationEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
@@ -808,7 +814,7 @@ public class Cnd_LocEnter :
 
 public class Cnd_LaunchComplete : SingleEventListenerCondition<LaunchCompleteEvent>
 {
-    public string ship = string.Empty;
+    public string Ship = string.Empty;
 
     public Cnd_LaunchComplete()
     {
@@ -816,21 +822,21 @@ public class Cnd_LaunchComplete : SingleEventListenerCondition<LaunchCompleteEve
 
     public Cnd_LaunchComplete([NotNull] Entry entry)
     {
-        ship = entry[0].ToString();
+        GetString(nameof(Ship), 0, out Ship, entry);
     }
 
     protected override bool EventCheck(LaunchCompleteEvent ev, MissionRuntime runtime, ActiveCondition self)
-        => IdEqual(ship, ev.Ship);
+        => IdEqual(Ship, ev.Ship);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_LaunchComplete", ship);
+        section.Entry("Cnd_LaunchComplete", Ship);
     }
 }
 
 public class Cnd_JumpInComplete : ScriptedCondition
 {
-    public string system = string.Empty;
+    public string System = string.Empty;
 
     public Cnd_JumpInComplete()
     {
@@ -838,12 +844,13 @@ public class Cnd_JumpInComplete : ScriptedCondition
 
     public Cnd_JumpInComplete([NotNull] Entry entry)
     {
-        system = entry[0].ToString();
+        GetString(nameof(System),  0, out System, entry);
+        System = entry[0].ToString();
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_JumpInComplete", system);
+        section.Entry("Cnd_JumpInComplete", System);
     }
 }
 
@@ -876,9 +883,9 @@ public class Cnd_InZone : ScriptedCondition
 
     public Cnd_InZone([NotNull] Entry entry)
     {
-        InZone = entry[0].ToString()!.Equals("true", System.StringComparison.InvariantCultureIgnoreCase);
-        Ship = entry[1].ToString();
-        Zone = entry[2].ToString();
+        GetBoolean(nameof(InZone), 0, out InZone, entry);
+        GetString(nameof(Ship), 1, out Ship, entry);
+        GetString(nameof(Zone), 2, out Zone, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -889,7 +896,7 @@ public class Cnd_InZone : ScriptedCondition
 
 public class Cnd_InTradelane : ScriptedCondition
 {
-    public bool inTL = false;
+    public bool InTL = false;
     public string Ship = string.Empty;
 
     public Cnd_InTradelane()
@@ -898,19 +905,19 @@ public class Cnd_InTradelane : ScriptedCondition
 
     public Cnd_InTradelane([NotNull] Entry entry)
     {
-        inTL = entry[0].ToString()!.Equals("true", System.StringComparison.InvariantCultureIgnoreCase);
-        Ship = entry[1].ToString();
+        GetBoolean(nameof(InTL), 0, out InTL, entry);
+        GetString(nameof(Ship), 1, out Ship, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_InTradelane", inTL, Ship);
+        section.Entry("Cnd_InTradelane", InTL, Ship);
     }
 }
 
 public class Cnd_InSpace : ScriptedCondition
 {
-    public bool inSpace;
+    public bool InSpace;
 
     public Cnd_InSpace()
     {
@@ -918,7 +925,7 @@ public class Cnd_InSpace : ScriptedCondition
 
     public Cnd_InSpace([NotNull] Entry entry)
     {
-        inSpace = entry[0].ToString()!.Equals("true", System.StringComparison.InvariantCultureIgnoreCase);
+        GetBoolean(nameof(InSpace), 0, out InSpace, entry);
     }
 
     public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed) =>
@@ -926,14 +933,14 @@ public class Cnd_InSpace : ScriptedCondition
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_InSpace", inSpace);
+        section.Entry("Cnd_InSpace", InSpace);
     }
 }
 
 public class Cnd_HealthDec : ScriptedCondition
 {
-    public string target = string.Empty;
-    public float percent;
+    public string Target = string.Empty;
+    public float Percent;
 
     public Cnd_HealthDec()
     {
@@ -941,34 +948,34 @@ public class Cnd_HealthDec : ScriptedCondition
 
     public Cnd_HealthDec([NotNull] Entry entry)
     {
-        target = entry[0].ToString();
-        percent = entry[1].ToSingle();
+        GetString(nameof(Target), 0, out Target, entry);
+        GetFloat(nameof(Percent), 1, out Percent, entry);
     }
 
     public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
     {
         if(!runtime.GetSpace(out var space))
             return false;
-        var obj = space.World.GameWorld.GetObject(target);
+        var obj = space.World.GameWorld.GetObject(Target);
         if (obj == null)
             return false;
         if (obj.TryGetComponent<SHealthComponent>(out var health))
         {
             var pct = health.CurrentHealth / health.MaxHealth;
-            return pct <= percent;
+            return pct <= Percent;
         }
         return false;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_HealthDec", target, percent);
+        section.Entry("Cnd_HealthDec", Target, Percent);
     }
 }
 
 public class Cnd_HasMsn : ScriptedCondition
 {
-    public bool hasMission;
+    public bool HasMission;
 
     public Cnd_HasMsn()
     {
@@ -976,18 +983,18 @@ public class Cnd_HasMsn : ScriptedCondition
 
     public Cnd_HasMsn([NotNull] Entry entry)
     {
-        hasMission = entry[0].ToString()!.Equals("yes", System.StringComparison.InvariantCultureIgnoreCase);
+        GetBoolean("yes/no", 0, out HasMission, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_HasMsn", hasMission ? "yes" : "no");
+        section.Entry("Cnd_HasMsn", HasMission ? "yes" : "no");
     }
 }
 
 public class Cnd_EncLaunched : ScriptedCondition
 {
-    public string encounter = string.Empty;
+    public string Encounter = string.Empty;
 
     public Cnd_EncLaunched()
     {
@@ -995,12 +1002,12 @@ public class Cnd_EncLaunched : ScriptedCondition
 
     public Cnd_EncLaunched([NotNull] Entry entry)
     {
-        encounter = entry[0].ToString();
+        GetString(nameof(Encounter), 0,  out Encounter, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_EncLaunched", encounter);
+        section.Entry("Cnd_EncLaunched", Encounter);
     }
 }
 
@@ -1019,11 +1026,13 @@ public class Cnd_DistVecLbl : ScriptedCondition
 
     public Cnd_DistVecLbl([NotNull] Entry entry)
     {
-        Inside = entry[0].ToString()!.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
-        Any = entry[1].ToString()!.Equals("any", StringComparison.InvariantCultureIgnoreCase);
-        Label = entry[2].ToString();
-        Position = new Vector3(entry[3].ToSingle(), entry[4].ToSingle(), entry[5].ToSingle());
-        Distance = entry[6].ToSingle();
+        GetString("inside/outside", 0, out string s, entry);
+        Inside = s.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
+        GetString("any/all", 1, out  s, entry);
+        Any = s.Equals("any", StringComparison.InvariantCultureIgnoreCase);
+        GetString("label", 2, out Label, entry);
+        GetVector3(nameof(Position), 3, out Position, entry);
+        GetFloat(nameof(Distance), 6, out Distance, entry);
     }
 
     public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
@@ -1064,11 +1073,11 @@ public class Cnd_DistVecLbl : ScriptedCondition
 
 public class Cnd_DistVec : ScriptedCondition
 {
-    public bool inside;
-    public Vector3 position;
-    public float distance;
-    public string sourceShip;
-    public OptionalArgument<float> tickAway;
+    public bool Inside;
+    public Vector3 Position;
+    public float Distance;
+    public string SourceShip;
+    public OptionalArgument<float> TickAway;
 
     public Cnd_DistVec()
     {
@@ -1076,24 +1085,25 @@ public class Cnd_DistVec : ScriptedCondition
 
     public Cnd_DistVec([NotNull] Entry entry)
     {
-        inside = entry[0].ToString()!.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
-        sourceShip = entry[1].ToString();
-        position = new Vector3(entry[2].ToSingle(), entry[3].ToSingle(), entry[4].ToSingle());
-        distance = entry[5].ToSingle();
+        GetString("inside/outside", 0, out string s, entry);
+        Inside = s.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
+        GetString(nameof(SourceShip), 1, out SourceShip, entry);
+        GetVector3(nameof(Position), 2, out Position, entry);
+        GetFloat(nameof(Distance), 5, out Distance, entry);
 
         if (entry.Count >= 8 &&
             entry[7].ToString()!.Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
         {
-            tickAway = entry[6].ToSingle();
+            TickAway = entry[6].ToSingle();
         }
     }
 
     public override void Init(MissionRuntime runtime, ActiveCondition self)
     {
         base.Init(runtime, self);
-        if (tickAway.Present)
+        if (TickAway.Present)
         {
-            self.Storage = new ConditionDouble() { Value = tickAway.Value };
+            self.Storage = new ConditionDouble() { Value = TickAway.Value };
         }
     }
 
@@ -1101,30 +1111,30 @@ public class Cnd_DistVec : ScriptedCondition
     {
         if (!runtime.GetSpace(out var space))
             return false;
-        var obj = space.World.GameWorld.GetObject(sourceShip);
+        var obj = space.World.GameWorld.GetObject(SourceShip);
         if (obj == null)
             return false;
-        bool isInside = Vector3.Distance(obj.WorldTransform.Position, position) <= distance;
-        if(tickAway.Present)
+        bool isInside = Vector3.Distance(obj.WorldTransform.Position, Position) <= Distance;
+        if(TickAway.Present)
         {
             var st = (ConditionDouble)self.Storage;
-            if (inside == isInside)
+            if (Inside == isInside)
             {
                 st.Value -= elapsed;
             }
             return st.Value <= 0;
         }
-        return inside == isInside;
+        return Inside == isInside;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         List<ValueBase> entries =
-            [inside ? "inside" : "outside", sourceShip, position.X, position.Y, position.Z, distance];
+            [Inside ? "inside" : "outside", SourceShip, Position.X, Position.Y, Position.Z, Distance];
 
-        if (tickAway.Present)
+        if (TickAway.Present)
         {
-            entries.Add(tickAway.Value);
+            entries.Add(TickAway.Value);
             entries.Add("tick_away");
         }
 
@@ -1134,11 +1144,11 @@ public class Cnd_DistVec : ScriptedCondition
 
 public class Cnd_DistShip : ScriptedCondition
 {
-    public bool inside;
-    public float distance;
-    public string sourceShip;
-    public string destObject;
-    public OptionalArgument<float> tickAway;
+    public bool Inside;
+    public float Distance;
+    public string SourceShip;
+    public string DestObject;
+    public OptionalArgument<float> TickAway;
 
     public Cnd_DistShip()
     {
@@ -1146,24 +1156,25 @@ public class Cnd_DistShip : ScriptedCondition
 
     public Cnd_DistShip([NotNull] Entry entry)
     {
-        inside = entry[0].ToString()!.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
-        sourceShip = entry[1].ToString();
-        destObject = entry[2].ToString();
-        distance = entry[3].ToSingle();
+        GetString("inside/outside", 0, out string s, entry);
+        Inside = s.Equals("inside", StringComparison.InvariantCultureIgnoreCase);
+        GetString(nameof(SourceShip), 1, out SourceShip, entry);
+        GetString(nameof(DestObject), 2, out DestObject, entry);
+        GetFloat(nameof(Distance), 3, out Distance, entry);
 
         if (entry.Count >= 6 &&
             entry[5].ToString()!.Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
         {
-            tickAway = entry[4].ToSingle();
+            TickAway = entry[4].ToSingle();
         }
     }
 
     public override void Init(MissionRuntime runtime, ActiveCondition self)
     {
         base.Init(runtime, self);
-        if (tickAway.Present)
+        if (TickAway.Present)
         {
-            self.Storage = new ConditionDouble() { Value = tickAway.Value };
+            self.Storage = new ConditionDouble() { Value = TickAway.Value };
         }
     }
 
@@ -1171,15 +1182,15 @@ public class Cnd_DistShip : ScriptedCondition
     {
         if (!runtime.GetSpace(out var space))
             return false;
-        var obj = space.World.GameWorld.GetObject(sourceShip);
-        var obj2 = space.World.GameWorld.GetObject(destObject);
+        var obj = space.World.GameWorld.GetObject(SourceShip);
+        var obj2 = space.World.GameWorld.GetObject(DestObject);
         if (obj == null || obj2 == null)
             return false;
-        var isInside = Vector3.Distance(obj.WorldTransform.Position, obj2.WorldTransform.Position) <= distance;
-        if(tickAway.Present)
+        var isInside = Vector3.Distance(obj.WorldTransform.Position, obj2.WorldTransform.Position) <= Distance;
+        if(TickAway.Present)
         {
             var st = (ConditionDouble)self.Storage;
-            if (inside == isInside)
+            if (Inside == isInside)
             {
                 st.Value -= elapsed;
             }
@@ -1189,16 +1200,16 @@ public class Cnd_DistShip : ScriptedCondition
             }
             return st.Value <= 0;
         }
-        return inside == isInside;
+        return Inside == isInside;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        List<ValueBase> entries = [inside ? "inside" : "outside", sourceShip, destObject, distance];
+        List<ValueBase> entries = [Inside ? "inside" : "outside", SourceShip, DestObject, Distance];
 
-        if (tickAway.Present)
+        if (TickAway.Present)
         {
-            entries.Add(tickAway.Value);
+            entries.Add(TickAway.Value);
             entries.Add("tick_away");
         }
 
@@ -1208,8 +1219,8 @@ public class Cnd_DistShip : ScriptedCondition
 
 public class Cnd_DistCircle : ScriptedCondition
 {
-    public string sourceShip;
-    public string destObject;
+    public string SourceShip;
+    public string DestObject;
 
     public Cnd_DistCircle()
     {
@@ -1217,13 +1228,13 @@ public class Cnd_DistCircle : ScriptedCondition
 
     public Cnd_DistCircle([NotNull] Entry entry)
     {
-        sourceShip = entry[0].ToString();
-        destObject = entry[1].ToString();
+        GetString(nameof(SourceShip), 0, out SourceShip, entry);
+        GetString(nameof(DestObject), 1, out DestObject, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_DistCircle", sourceShip, destObject);
+        section.Entry("Cnd_DistCircle", SourceShip, DestObject);
     }
 }
 
@@ -1243,7 +1254,7 @@ public enum CndDestroyedKind
 public class Cnd_Destroyed :
     EventListenerCondition<DestroyedEvent>
 {
-    public string label = string.Empty;
+    public string Label = string.Empty;
     public int Count = 0;
     public CndDestroyedKind Kind = CndDestroyedKind.Unset;
 
@@ -1253,7 +1264,7 @@ public class Cnd_Destroyed :
 
     public Cnd_Destroyed([NotNull] Entry entry)
     {
-        label = entry[0].ToString();
+        GetString(nameof(Label), 0, out Label, entry);
         if (entry.Count <= 1)
         {
             return;
@@ -1264,19 +1275,19 @@ public class Cnd_Destroyed :
         if (entry.Count > 2)
         {
             var kindString = entry[2].ToString();
-            FLLog.Debug("Mission", $"Cnd_Destroyed parsing Kind: '{kindString}' for label '{label}'");
+            FLLog.Debug("Mission", $"Cnd_Destroyed parsing Kind: '{kindString}' for label '{Label}'");
             if (!Enum.TryParse(kindString, out Kind))
             {
                 FLLog.Error("Mission", $"Cnd_Destroyed unknown value {kindString}, defaulting to Unset");
             }
             else
             {
-                FLLog.Debug("Mission", $"Cnd_Destroyed parsed Kind: {Kind} for label '{label}'");
+                FLLog.Debug("Mission", $"Cnd_Destroyed parsed Kind: {Kind} for label '{Label}'");
             }
         }
         else
         {
-            FLLog.Debug("Mission", $"Cnd_Destroyed no Kind specified for label '{label}', using Unset");
+            FLLog.Debug("Mission", $"Cnd_Destroyed no Kind specified for label '{Label}', using Unset");
         }
     }
 
@@ -1288,7 +1299,7 @@ public class Cnd_Destroyed :
 
     public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
     {
-        if (runtime.Labels.TryGetValue(label, out var lbl))
+        if (runtime.Labels.TryGetValue(Label, out var lbl))
         {
             //FLLog.Debug("Mission", $"Cnd_Destroyed CheckCondition for label '{label}': Count={Count}, Kind={Kind}, DestroyedCount={lbl.DestroyedCount()}, IsAllKilled={lbl.IsAllKilled()}");
             if (Count <= 0)  // Special case for negative Count (e.g. -1, which means "all")
@@ -1318,7 +1329,7 @@ public class Cnd_Destroyed :
     public override void OnEvent(DestroyedEvent ev, MissionRuntime runtime, ActiveCondition self)
     {
         // Single object destroyed
-        if (IdEqual(label, ev.Object))
+        if (IdEqual(Label, ev.Object))
         {
             ((ConditionBoolean)self.Storage).Value = true;
         }
@@ -1326,7 +1337,7 @@ public class Cnd_Destroyed :
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        List<ValueBase> entries = [label];
+        List<ValueBase> entries = [Label];
 
         if (Count != 0 || Kind != CndDestroyedKind.Unset)
         {
@@ -1369,7 +1380,7 @@ public class Cnd_CommComplete :
 
     public Cnd_CommComplete([NotNull] Entry entry)
     {
-        Comm = entry[0].ToString();
+        GetString(nameof(Comm), 0, out Comm, entry);
     }
 
     protected override bool EventCheck(CommCompleteEvent ev, MissionRuntime runtime, ActiveCondition self)
@@ -1393,9 +1404,9 @@ public class Cnd_CharSelect : SingleEventListenerCondition<CharSelectEvent>
 
     public Cnd_CharSelect([NotNull] Entry entry)
     {
-        Character = entry[0].ToString();
-        Room = entry[1].ToString();
-        Base = entry[2].ToString();
+        GetString(nameof(Character), 0, out Character, entry);
+        GetString(nameof(Room), 1, out Room, entry);
+        GetString(nameof(Base), 2, out Base, entry);
     }
 
     protected override bool EventCheck(CharSelectEvent ev, MissionRuntime runtime, ActiveCondition self)
@@ -1418,8 +1429,8 @@ public class Cnd_CargoScanned : SingleEventListenerCondition<CargoScannedEvent>
 
     public Cnd_CargoScanned([NotNull] Entry entry)
     {
-        ScanningShip = entry[0].ToString();
-        ScannedShip = entry[1].ToString();
+        GetString(nameof(ScanningShip), 0, out ScanningShip, entry);
+        GetString(nameof(ScannedShip), 1, out ScannedShip, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -1433,7 +1444,7 @@ public class Cnd_CargoScanned : SingleEventListenerCondition<CargoScannedEvent>
 
 public class Cnd_BaseExit : ScriptedCondition
 {
-    public string @base = string.Empty;
+    public string Base = string.Empty;
 
     public Cnd_BaseExit()
     {
@@ -1441,34 +1452,34 @@ public class Cnd_BaseExit : ScriptedCondition
 
     public Cnd_BaseExit([NotNull] Entry entry)
     {
-        @base = entry[0].ToString();
+        GetString(nameof(Base), 0, out Base, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_BaseExit", @base);
+        section.Entry("Cnd_BaseExit", Base);
     }
 }
 
 public class Cnd_BaseEnter :
     SingleEventListenerCondition<BaseEnteredEvent>
 {
-    public string @base = string.Empty;
+    public string Base = string.Empty;
 
     public Cnd_BaseEnter()
     {
     }
 
     protected override bool EventCheck(BaseEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
-        => IdEqual(ev.Base, @base);
+        => IdEqual(ev.Base, Base);
 
     public Cnd_BaseEnter([NotNull] Entry entry)
     {
-        @base = entry[0].ToString();
+        GetString(nameof(Base), 0, out Base, entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Cnd_BaseEnter", @base);
+        section.Entry("Cnd_BaseEnter", Base);
     }
 }
