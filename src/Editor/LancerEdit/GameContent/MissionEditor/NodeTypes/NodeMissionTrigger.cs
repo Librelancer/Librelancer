@@ -52,15 +52,42 @@ public class NodeMissionTrigger : Node
     public override string Name => string.IsNullOrWhiteSpace(Data.Nickname) ? "Mission Trigger" : Data.Nickname;
     public override string InternalId => Data.Nickname;
 
-    private static bool StartChild(NodeTriggerEntry e, out bool remove)
+    private static bool StartChild(int index, List<NodeTriggerEntry> list, out bool remove, out int reorder)
     {
+        reorder = 0;
+        var node = list[index];
         ImGui.BeginGroup();
-        ImGui.PushStyleColor(ImGuiCol.Header, e.Color);
-        ImGui.PushStyleColor(ImGuiCol.Button, e.Color);
+        ImGui.PushStyleColor(ImGuiCol.Header, node.Color);
+        ImGui.PushStyleColor(ImGuiCol.Button, node.Color);
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
-        remove = ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.TrashAlt}", e.Id));
+
+        if (list.Count > 1)
+        {
+            if (index != 0)
+            {
+                if (ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.ArrowUp}", node.Id)))
+                {
+                    reorder = -1;
+                }
+
+                ImGui.SameLine();
+            }
+
+            if (index != list.Count - 1)
+            {
+                if (ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.ArrowDown}", node.Id)))
+                {
+                    reorder = 1;
+                }
+
+                ImGui.SameLine();
+            }
+        }
+
+        remove = ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.TrashAlt}", node.Id));
         ImGui.SameLine();
-        var render = ImGui.CollapsingHeader(ImGuiExt.IDWithExtra(e.Name, (long)e.Id));
+        var render = ImGui.CollapsingHeader(ImGuiExt.IDWithExtra(node.Name, (long)node.Id));
+
         ImGui.PopStyleVar();
         ImGui.PopStyleColor();
         ImGui.PopStyleColor();
@@ -101,6 +128,8 @@ public class NodeMissionTrigger : Node
 
         var fh = ImGui.GetFrameHeightWithSpacing();
 
+        KeyValuePair<int, int>? nodeSwap = null;
+
         for(var i = 0; i < Conditions.Count; i++)
         {
             var e = Conditions[i];
@@ -134,7 +163,17 @@ public class NodeMissionTrigger : Node
                 }
 
                 var sp = ImGui.GetCursorPosY();
-                bool c = StartChild(e, out var remove);
+                bool c = StartChild(i, Conditions, out var remove, out var reorder);
+
+                if (reorder == -1)
+                {
+                    nodeSwap = new KeyValuePair<int, int>(i, i - 1);
+                }
+                else if (reorder == 1)
+                {
+                    nodeSwap = new KeyValuePair<int, int>(i, i + 1);
+                }
+
                 if (c)
                 {
                     ImGui.PushID(i);
@@ -162,6 +201,11 @@ public class NodeMissionTrigger : Node
         {
             ImGui.EndTable();
         }
+
+        if (nodeSwap is not null)
+        {
+            (Conditions[nodeSwap.Value.Key], Conditions[nodeSwap.Value.Value]) = (Conditions[nodeSwap.Value.Value], Conditions[nodeSwap.Value.Key]);
+        }
     }
 
     void RenderActions(bool clipped, bool usePins, float szPin, float szContent, float pad,
@@ -176,6 +220,9 @@ public class NodeMissionTrigger : Node
             ImGui.TableSetupColumn("##content", ImGuiTableColumnFlags.WidthFixed, szContent);
             ImGui.TableSetupColumn("##pins", ImGuiTableColumnFlags.WidthFixed, szPin);
         }
+
+        KeyValuePair<int, int>? nodeSwap = null;
+
         for (var i = 0; i < Actions.Count; i++)
         {
             var e = Actions[i];
@@ -194,7 +241,17 @@ public class NodeMissionTrigger : Node
                 if (cachedHeightsAct == null || cachedHeightsAct.Length != Actions.Count)
                     cachedHeightsAct = new float[Actions.Count];
                 var sp = ImGui.GetCursorPosY();
-                var c = StartChild(e, out var remove);
+                bool c = StartChild(i, Actions, out var remove, out var reorder);
+
+                if (reorder == -1)
+                {
+                    nodeSwap = new KeyValuePair<int, int>(i, i - 1);
+                }
+                else if (reorder == 1)
+                {
+                    nodeSwap = new KeyValuePair<int, int>(i, i + 1);
+                }
+
                 if (c)
                 {
                     ImGui.PushID(i);
@@ -203,6 +260,7 @@ public class NodeMissionTrigger : Node
                     ImGui.Dummy(new Vector2(1, 4)); //pad
                     ImGui.PopID();
                 }
+
                 EndChild(c);
                 if (remove)
                 {
@@ -236,6 +294,11 @@ public class NodeMissionTrigger : Node
         if (usePins)
         {
             ImGui.EndTable();
+        }
+
+        if (nodeSwap is not null)
+        {
+            (Actions[nodeSwap.Value.Key], Actions[nodeSwap.Value.Value]) = (Actions[nodeSwap.Value.Value], Actions[nodeSwap.Value.Key]);
         }
     }
 
