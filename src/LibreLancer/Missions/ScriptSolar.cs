@@ -13,7 +13,7 @@ public class ScriptSolar : NicknameItem
     public Faction Faction;
     public string System;
     public Vector3 Position;
-    public Quaternion Orientation;
+    public Quaternion Orientation = Quaternion.Identity;
     public string Base;
     public List<string> Labels = new List<string>();
     public float Radius;
