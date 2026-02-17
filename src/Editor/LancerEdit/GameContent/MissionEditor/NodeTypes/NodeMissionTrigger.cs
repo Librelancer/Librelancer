@@ -61,27 +61,43 @@ public class NodeMissionTrigger : Node
         ImGui.PushStyleColor(ImGuiCol.Button, node.Color);
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
 
+        var buttonSize = new Vector2(28, 21);
+
         if (list.Count > 1)
         {
-            if (index != 0)
-            {
-                if (ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.ArrowUp}", node.Id)))
-                {
-                    reorder = -1;
-                }
-
-                ImGui.SameLine();
-            }
-
             if (index != list.Count - 1)
             {
                 if (ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.ArrowDown}", node.Id)))
                 {
                     reorder = 1;
                 }
-
-                ImGui.SameLine();
             }
+            else
+            {
+                ImGui.Dummy(buttonSize);
+            }
+
+            ImGui.SameLine();
+            if (index != 0)
+            {
+                if (ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.ArrowUp}", node.Id)))
+                {
+                    reorder = -1;
+                }
+            }
+            else
+            {
+                ImGui.Dummy(buttonSize);
+            }
+
+            ImGui.SameLine();
+        }
+        else
+        {
+            ImGui.Dummy(buttonSize);
+            ImGui.SameLine();
+            ImGui.Dummy(buttonSize);
+            ImGui.SameLine();
         }
 
         remove = ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.TrashAlt}", node.Id));
