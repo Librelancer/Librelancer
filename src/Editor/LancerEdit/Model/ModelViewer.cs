@@ -248,10 +248,14 @@ namespace LancerEdit
                     ct.CheckItem("VMeshWire",  ref drawVMeshWire);
                 ct.CheckItem("Bounds", ref doBounds);
                 ct.CheckItem("Normals", ref drawNormals);
+                if (ct.ButtonItem(Icons.Link.ToString(), tooltip: "Show associated files"))
+                {
+                    _window.OpenResourcesFiltered(Name);
+                };
             }
             var yPos = ImGui.GetFrameHeightWithSpacing();
             ImGui.SetCursorPos(afterPos + new Vector2(framePadding.X, -yPos - framePadding.Y));
-            //
+
             var camModes = (cameraPart != null) ? camModesCockpit : camModesNormal;
             ImGuiExt.DropdownButton("Camera Mode", ref selectedCam, camModes);
             modelViewport.Mode = (CameraModes) (camModes[selectedCam].Tag);

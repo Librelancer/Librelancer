@@ -73,6 +73,8 @@ namespace LancerEdit
 
         private const int LOG_SIZE = 128 * 1024; //128k UTF-16, 256k UTF-8
 
+        Dictionary<string, ResourceUsage> ResourceIndex = new(StringComparer.OrdinalIgnoreCase);
+
         public MainWindow(GameConfiguration configuration = null) : base(800, 600, true, configuration)
         {
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
@@ -676,7 +678,7 @@ namespace LancerEdit
 
                 if (Theme.IconMenuItem(Icons.Palette, "Resources", true))
                 {
-                    AddTab(new ResourcesTab(this, Resources, MissingResources, ReferencedMaterials, ReferencedTextures));
+                    AddTab(new ResourcesTab(this, Resources, ResourceIndex));
                 }
                 if (Theme.IconMenuItem(Icons.FileImport, "Import Model", true))
                 {
@@ -843,6 +845,8 @@ namespace LancerEdit
             {
                 tab.DetectResources(MissingResources, ReferencedMaterials, ReferencedTextures);
             }
+
+            BuildResourceIndex();
 
             var statusSz = Config.StatusBarVisible ? 22 * ImGuiHelper.Scale : 0;
             ImGui.SetNextWindowSize(new Vector2(size.X, size.Y - statusSz), ImGuiCond.Always);
@@ -1118,5 +1122,206 @@ namespace LancerEdit
             Audio.Dispose();
             quickFileBrowser?.Dispose();
         }
+
+        void BuildResourceIndex()
+        {
+            ResourceIndex.Clear();
+
+            // 1. Materials (by CRC)
+            foreach (var matId in ReferencedMaterials)
+            {
+                var key = $"mat:{matId:X}";
+
+                if (!ResourceIndex.TryGetValue(key, out var usage))
+                {
+                    usage = new ResourceUsage
+                    {
+                        Type = ResourceUsageType.Material,
+                        MaterialId = matId,
+                        Name = ResolveMaterialName(matId),
+                        Missing = false
+
+                    };
+                    ResolveProviders(usage);
+                    ResourceIndex[key] = usage;
+                }
+            }
+
+            // 2. Textures (by name)
+            foreach (var tex in ReferencedTextures)
+            {
+                var key = $"tex:{tex.Name}";
+
+                if (!ResourceIndex.TryGetValue(key, out var usage))
+                {
+                    usage = new ResourceUsage
+                    {
+                        Type = ResourceUsageType.Texture,
+                        Name = tex.Name,
+                        Missing = !tex.Found
+                    };
+                    ResolveProviders(usage);
+                    if (!string.IsNullOrEmpty(tex.Reference))
+                        usage.UsedBy.Add(ExtractModelName(tex.Reference));
+                    ResourceIndex[key] = usage;
+                }
+                else
+                {
+                    usage.Missing |= !tex.Found;
+                }
+            }
+
+            // 3. Missing references (authoritative usage info)
+            foreach (var miss in MissingResources)
+            {
+                // MissingReference.Missing looks like "Texture: debris.tga"
+                // or "Material: 0xFFA146A6"
+                if (miss.Missing.StartsWith("Texture: ", StringComparison.OrdinalIgnoreCase))
+                {
+                    var texName = miss.Missing.Substring("Texture: ".Length);
+                    var key = $"tex:{texName}";
+
+                    if (!ResourceIndex.TryGetValue(key, out var usage))
+                    {
+                        usage = new ResourceUsage
+                        {
+                            Type = ResourceUsageType.Texture,
+                            Name = texName,
+                            Missing = true
+                        };
+                        ResourceIndex[key] = usage;
+                    }
+
+                    if (!string.IsNullOrEmpty(miss.Reference))
+                        usage.UsedBy.Add(ExtractModelName(miss.Reference));
+                }
+                else if (miss.Missing.StartsWith("Material: ", StringComparison.OrdinalIgnoreCase))
+                {
+                    var crcStr = miss.Missing.Substring("Material: ".Length);
+                    if (uint.TryParse(crcStr.Replace("0x", ""), System.Globalization.NumberStyles.HexNumber,
+                            null, out var matId))
+                    {
+                        var key = $"mat:{matId:X}";
+
+                        if (!ResourceIndex.TryGetValue(key, out var usage))
+                        {
+                            usage = new ResourceUsage
+                            {
+                                Type = ResourceUsageType.Material,
+                                MaterialId = matId,
+                                Name = ResolveMaterialName(matId),
+                                Missing = true
+                            };
+                            ResourceIndex[key] = usage;
+                        }
+
+                        if (!string.IsNullOrEmpty(miss.Reference))
+                            usage.UsedBy.Add(ExtractModelName(miss.Reference));
+                    }
+                }
+            }
+        }
+
+        string ResolveMaterialName(uint matId)
+        {
+            var mat = Resources.FindMaterial(matId);
+            if (mat != null && !string.IsNullOrEmpty(mat.Name))
+                return mat.Name;
+
+            return $"0x{matId:X}";
+        }
+
+        string ExtractModelName(string source)
+        {
+            if (string.IsNullOrWhiteSpace(source))
+                return source;
+
+            source = source.Trim();
+
+            // Remove leading dash prefix from detection
+            if (source.StartsWith("- "))
+                source = source.Substring(2).Trim();
+
+            var comma = source.IndexOf(',');
+            if (comma >= 0)
+                return source.Substring(0, comma).Trim();
+
+            return source;
+        }
+
+        public void OpenResourcesFiltered(string modelName)
+        {
+            var tab = TabControl.Tabs.OfType<ResourcesTab>().FirstOrDefault();
+
+            if (tab == null)
+            {
+                tab = new ResourcesTab(this, Resources, ResourceIndex);
+                AddTab(tab);
+            }
+
+            tab.SetUsedByFilter(modelName);
+            TabControl.SetSelected(tab);
+        }
+
+        void ResolveProviders(ResourceUsage usage)
+        {
+            foreach (var tab in TabControl.Tabs.OfType<UtfTab>())
+            {
+                var utf = tab.Utf;
+
+                if (usage.Type == ResourceUsageType.Material && usage.MaterialId.HasValue)
+                {
+                    if (UtfContainsMaterial(utf, usage.MaterialId.Value))
+                        usage.ProvidedBy.Add(tab.DocumentName);
+                }
+
+                if (usage.Type == ResourceUsageType.Texture)
+                {
+                    if (UtfContainsTexture(utf, usage.Name))
+                        usage.ProvidedBy.Add(tab.DocumentName);
+                }
+            }
+        }
+
+        bool UtfContainsTexture(EditableUtf utf, string textureName)
+        {
+            foreach (var node in utf.Root.IterateAll())
+            {
+                if (node.Name.Equals(textureName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
+        }
+
+        bool UtfContainsMaterial(EditableUtf utf, uint crc)
+        {
+            foreach (var node in utf.Root.IterateAll())
+            {
+                if (CrcTool.FLModelCrc(node.Name) == crc)
+                    return true;
+            }
+
+            return false;
+        }
+
+    }
+
+
+    public enum ResourceUsageType
+    {
+        Material,
+        Texture
+    }
+
+    public class ResourceUsage
+    {
+        public ResourceUsageType Type;
+        public string Name; // texture name OR material display name
+        public uint? MaterialId; // only for materials
+        public bool Missing;
+
+        public HashSet<string> UsedBy = new(); // model / drawable names
+        public HashSet<string> ProvidedBy = new(); // utf filenames (optional, can be empty)
     }
 }

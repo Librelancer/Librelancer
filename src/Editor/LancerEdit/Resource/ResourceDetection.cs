@@ -20,14 +20,18 @@ namespace LancerEdit
         public bool Found;
         public int Width;
         public int Height;
+        public string Reference;
+        public uint MaterialId;
 
         public TextureReference()
         {
         }
 
-        public TextureReference(string name, Texture tex)
+        public TextureReference(string name, Texture tex, string reference = null, uint materialId = 0)
         {
             Name = name;
+            Reference = reference;
+            MaterialId = materialId;
             Found = tex != null;
             if (tex is Texture2D t2d)
             {
@@ -115,7 +119,7 @@ namespace LancerEdit
             {
                 if (HasTexture(texrefs, tex)) return;
                 var tx = res.FindTexture(tex);
-                texrefs.Add(new TextureReference(tex, tx));
+                texrefs.Add(new TextureReference(tex, tx, refstr, CrcTool.FLModelCrc(mName)));
                 if (tx == null)
 				{
 					var str = "Texture: " + tex;

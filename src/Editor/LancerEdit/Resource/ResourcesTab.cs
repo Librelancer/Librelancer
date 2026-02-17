@@ -17,88 +17,249 @@ namespace LancerEdit
     public class ResourcesTab : EditorTab
     {
         ResourceManager res;
-        List<MissingReference> missing;
-        List<uint> referencedMats;
-        List<TextureReference> referencedTex;
         MainWindow win;
-        public ResourcesTab(MainWindow window, ResourceManager res, List<MissingReference> missing, List<uint> referencedMats, List<TextureReference> referencedTex)
+        Dictionary<string, ResourceUsage> resourceIndex;
+
+        string typeFilter = "";
+        string nameFilter = "";
+        string usedByFilter = "";
+        string providedByFilter = "";
+
+        public ResourcesTab(MainWindow window, ResourceManager res, Dictionary<string, ResourceUsage> resourceIndex)
         {
             this.res = res;
             this.win = window;
-            this.missing = missing;
-            this.referencedMats = referencedMats;
-            this.referencedTex = referencedTex;
+            this.resourceIndex = resourceIndex;
             Title = "Resources";
+        }
+
+        public void SetUsedByFilter(string value)
+        {
+            usedByFilter = value ?? "";
         }
 
         public override void Draw(double elapsed)
         {
-            ImGui.Columns(2, "cols", true);
-            ImGui.Text("Type");
-            ImGui.NextColumn();
-            ImGui.Text("Reference");
-            ImGui.Separator();
-            ImGui.NextColumn();
-            var tcolor = ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
-            foreach (var t in res.TextureDictionary)
+            var flags =
+                ImGuiTableFlags.RowBg |
+                ImGuiTableFlags.Borders |
+                ImGuiTableFlags.Resizable |
+                ImGuiTableFlags.Sortable |
+                ImGuiTableFlags.ScrollY;
+
+            if (!ImGui.BeginTable("ResourcesTable", 4, flags))
+                return;
+
+            ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort, 110);
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("Used By", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("Provided By", ImGuiTableColumnFlags.WidthStretch);
+
+            ImGui.TableHeadersRow();
+
+            var sortedData = resourceIndex.Values.ToList();
+
+            ApplySorting(sortedData);
+
+            // Filter Row (locked top row)
+            ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
+
+            ImGui.TableSetColumnIndex(0);
+            DrawFilterWithClearButton("typeFilter", ref typeFilter, ImGui.GetColumnWidth());
+            ImGui.TableSetColumnIndex(1);
+            DrawFilterWithClearButton("nameFilter", ref nameFilter, ImGui.GetColumnWidth());
+            ImGui.TableSetColumnIndex(2);
+            DrawFilterWithClearButton("usedByFilter", ref usedByFilter, ImGui.GetColumnWidth());
+            ImGui.TableSetColumnIndex(3);
+            DrawFilterWithClearButton("providedByFilter", ref providedByFilter, ImGui.GetColumnWidth());
+
+            // Data Rows
+            foreach (var usage in sortedData)
             {
-                var col = new Vector4(0.6f, 0.6f, 0.6f, 1f);
-                foreach (var tex in referencedTex)
-                {
-                    if (t.Key.Equals(tex.Name, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        col = tcolor;
-                        break;
-                    }
-                }
-                ImGui.TextColored(col, "Texture");
-                ImGui.NextColumn();
-                SelectableColored(col, ImGuiExt.IDSafe(t.Key));
-                ContextView(t.Key, () =>
-                {
-                    if (t.Value is Texture2D)
-                    {
-                        var title = string.Format("{0} (Texture)", t.Key);
-                        win.AddTab(new TextureViewer(title, (Texture2D)t.Value, null, false));
-                    }
-                    else
-                    {
-                        FLLog.Error("Texture", "Tried to view non-2D texture");
-                    }
-                });
-                ImGui.NextColumn();
+                if (!PassesFilter(usage))
+                    continue;
+
+                ImGui.TableNextRow();
+
+                DrawTypeCell(usage);
+                DrawNameCell(usage);
+                DrawUsedByCell(usage);
+                DrawSourceCell(usage);
             }
 
-            foreach (var m in res.MaterialDictionary)
-            {
-                var col = referencedMats.Contains(m.Key) ? tcolor : new Vector4(0.6f, 0.6f, 0.6f, 1f);
-                ImGui.TextColored(col, "Material");
-                ImGui.NextColumn();
-                ImGui.TextColored(col, ImGuiExt.IDSafe(string.Format("{0} (0x{1:X})", m.Value.Name, m.Key)));
-                ImGui.NextColumn();
-            }
-            foreach(var m in res.AnimationDictionary)
-            {
-                var col = referencedTex.Any(x => x.Name == m.Key) ? tcolor : new Vector4(0.6f, 0.6f, 0.6f, 1f);
-                ImGui.TextColored(col, "Animated Texture");
-                ImGui.NextColumn();
-                SelectableColored(col, ImGuiExt.IDSafe(m.Key));
-                ContextView(m.Key, () =>
-                {
-                    var title = string.Format("{0} (Animation)", m.Key);
-                    win.AddTab(new TextureViewer(title, (Texture2D)res.FindTexture(m.Key + "_0"), m.Value, false));
-                });
-                ImGui.NextColumn();
-            }
-            foreach (var ln in missing)
-            {
-                ImGui.TextColored(Color4.Red, "Missing");
-                ImGui.NextColumn();
-                ImGui.TextColored(Color4.Red, string.Format("{0} (Ref {1})", ln.Missing, ln.Reference));
-                ImGui.NextColumn();
-            }
-            ImGui.Columns(1, null, false);
+            ImGui.EndTable();
         }
+
+        unsafe void ApplySorting(List<ResourceUsage> list)
+        {
+            var sortSpecs = ImGui.TableGetSortSpecs();
+            if (sortSpecs.SpecsCount == 0)
+                return;
+
+            var specsPtr = (ImGuiTableColumnSortSpecs*)sortSpecs.Specs.Handle;
+
+            for (int i = 0; i < sortSpecs.SpecsCount; i++)
+            {
+                var spec = specsPtr[i];
+
+                Comparison<ResourceUsage> comparison = null;
+
+                switch (spec.ColumnIndex)
+                {
+                    case 0: // Type
+                        comparison = (a, b) => a.Type.CompareTo(b.Type);
+                        break;
+
+                    case 1: // Name
+                        comparison = (a, b) =>
+                            string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+                        break;
+
+                    case 2: // Used By
+                        comparison = (a, b) =>
+                            string.Compare(
+                                string.Join(",", a.UsedBy),
+                                string.Join(",", b.UsedBy),
+                                StringComparison.OrdinalIgnoreCase);
+                        break;
+                }
+
+                if (comparison != null)
+                {
+                    if (spec.SortDirection == ImGuiSortDirection.Ascending)
+                        list.Sort(comparison);
+                    else
+                        list.Sort((a, b) => comparison(b, a));
+                }
+            }
+
+            // DO NOT gate sorting on SpecsDirty
+            sortSpecs.SpecsDirty = false;
+        }
+
+        bool PassesFilter(ResourceUsage u)
+        {
+            if (!string.IsNullOrEmpty(typeFilter) &&
+                !u.Type.ToString().Contains(typeFilter, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            if (!string.IsNullOrEmpty(nameFilter) &&
+                (u.Name == null ||
+                 !u.Name.Contains(nameFilter, StringComparison.OrdinalIgnoreCase)))
+                return false;
+
+            if (!string.IsNullOrEmpty(usedByFilter))
+            {
+                if (!u.UsedBy.Any(x =>
+                        x.Contains(usedByFilter, StringComparison.OrdinalIgnoreCase)))
+                    return false;
+            }
+
+            return true;
+        }
+
+        void DrawTypeCell(ResourceUsage u)
+        {
+            ImGui.TableSetColumnIndex(0);
+
+            Vector4 color = u.Missing
+                ? Theme.ErrorTextColor
+                : ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
+
+            ImGui.TextColored(color, u.Type.ToString());
+        }
+        void DrawNameCell(ResourceUsage u)
+        {
+            ImGui.TableSetColumnIndex(1);
+
+            Vector4 color = u.Missing
+                ? Theme.ErrorTextColor
+                : ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
+
+            string label = u.Type == ResourceUsageType.Material
+                ? $"{u.Name} (0x{u.MaterialId:X})"
+                : u.Name;
+
+            ImGui.PushStyleColor(ImGuiCol.Text, color);
+            ImGui.Selectable(ImGuiExt.IDSafe(label), false, ImGuiSelectableFlags.SpanAllColumns);
+            ImGui.PopStyleColor();
+
+            DrawContextMenu(label, u);
+        }
+        void DrawUsedByCell(ResourceUsage u)
+        {
+            ImGui.TableSetColumnIndex(2);
+
+            Vector4 color = u.Missing
+                ? Theme.ErrorTextColor
+                : ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
+
+            if (u.UsedBy.Count == 0)
+            {
+                ImGui.TextDisabled("-");
+                return;
+            }
+
+            ImGui.TextColored(color,string.Join(", ", u.UsedBy.OrderBy(x => x)));
+        }
+        void DrawSourceCell(ResourceUsage u)
+        {
+            ImGui.TableSetColumnIndex(3);
+            Vector4 color = u.Missing
+                ? Theme.ErrorTextColor
+                : ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
+
+            if (u.ProvidedBy.Count == 0)
+            {
+                ImGui.TextDisabled("-");
+                return;
+            }
+
+            ImGui.TextColored(color,string.Join(", ", u.ProvidedBy.OrderBy(x => x)));
+        }
+        void DrawFilterWithClearButton(string id, ref string value, float width)
+        {
+            ImGui.PushID(id);
+            ImGui.Spacing();
+            ImGui.SetNextItemWidth(width -ImGui.GetTextLineHeightWithSpacing()*2f); // leave space for button
+            ImGui.InputText("##input", ref value, 128);
+
+
+            ImGui.SameLine();
+
+            //ImGui.SetNextItemWidth(36); // leave space for button
+
+            if (ImGui.Button(Icons.X.ToString(), new Vector2(ImGui.GetTextLineHeightWithSpacing()*1.5f,ImGui.GetTextLineHeightWithSpacing())))
+            {
+                value = "";
+
+            }
+            ImGui.PopID();
+        }
+        void DrawContextMenu(string id, ResourceUsage u)
+        {
+            if (!ImGui.BeginPopupContextItem(id))
+                return;
+
+            if (u.Type == ResourceUsageType.Texture && !u.Missing)
+            {
+                if (ImGui.MenuItem("View Texture"))
+                {
+                    var tex = res.FindTexture(u.Name);
+                    if (tex is Texture2D t2d)
+                        win.AddTab(new TextureViewer(u.Name, t2d, null, false));
+                }
+            }
+
+            if (u.Type == ResourceUsageType.Material && u.MaterialId.HasValue)
+            {
+                if (ImGui.MenuItem("Copy Material CRC"))
+                    win.SetClipboardText($"0x{u.MaterialId.Value:X}");
+            }
+
+            ImGui.EndPopup();
+        }
+
         static void SelectableColored(Vector4 col, string label)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, col);
