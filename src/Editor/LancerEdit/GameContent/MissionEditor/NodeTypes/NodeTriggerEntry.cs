@@ -162,4 +162,16 @@ public abstract class NodeTriggerEntry : Node
             _ => throw new NotImplementedException($"Unable to render node for action type: {action.Type}"),
         };
     }
+
+    public abstract MissionCondition CloneCondition();
+    public abstract MissionAction CloneAction();
+    protected Entry BuildEntry()
+    {
+        var builder = new IniBuilder();
+        var section = builder.Section("Trigger");
+        WriteEntry(section);
+
+        var builtSection = builder.Sections[0];
+        return builtSection[0];
+    }
 }
