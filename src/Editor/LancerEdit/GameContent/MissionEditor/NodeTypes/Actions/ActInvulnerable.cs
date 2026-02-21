@@ -25,7 +25,7 @@ public sealed class ActInvulnerable : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Object", undoBuffer, () => ref Data.Object, lookups.ShipsAndSolars);
+        nodePopups.StringCombo("Object", undoBuffer, () => ref Data.Object, lookups.ShipsSolarsAndLabels);
 
         Controls.CheckboxUndo("Is Invulnerable", undoBuffer, () => ref Data.Invulnerable);
     }
