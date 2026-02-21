@@ -246,9 +246,19 @@ partial class MissionScriptEditorTab
             this.tab = tab;
         }
 
-        public override void Commit() => tab.AddNode(node, position);
+        public override void Commit()
+        {
+            tab.nodes.Add(node);
+            tab.nodeRelocationQueue.Enqueue((node.Id, position));
+            tab.SetupLookups();
+        }
 
-        public override void Undo() => tab.RemoveNode(node);
+        public override void Undo()
+        {
+            tab.nodeEditActions.Enqueue(() => NodeEditor.DeleteNode(node.Id));
+            tab.nodes.Remove(node);
+            tab.SetupLookups();
+        }
 
         public override string ToString() => "Duplicate Node";
     }
