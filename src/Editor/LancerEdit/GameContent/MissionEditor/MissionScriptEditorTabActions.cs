@@ -232,4 +232,24 @@ partial class MissionScriptEditorTab
 
         public override string ToString() => $"Delete Node {id}";
     }
+
+    public class NewNodeFromCloneAction : EditorAction
+    {
+        private readonly Node node;
+        private readonly Vector2 position;
+        private readonly MissionScriptEditorTab tab;
+
+        public NewNodeFromCloneAction(Node node, Vector2 position, MissionScriptEditorTab tab)
+        {
+            this.node = node;
+            this.position = position;
+            this.tab = tab;
+        }
+
+        public override void Commit() => tab.AddNode(node, position);
+
+        public override void Undo() => tab.RemoveNode(node);
+
+        public override string ToString() => "Duplicate Node";
+    }
 }
