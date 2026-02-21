@@ -32,4 +32,13 @@ public class CndProjectileHit : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_ProjHit,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

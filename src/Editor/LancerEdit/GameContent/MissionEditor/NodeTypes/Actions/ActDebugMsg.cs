@@ -27,4 +27,13 @@ public sealed class ActDebugMsg : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_DebugMsg,
+            BuildEntry()
+        );
+    }
 }

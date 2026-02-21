@@ -51,4 +51,13 @@ public sealed class ActPlayMusic : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_PlayMusic,
+            BuildEntry()
+        );
+    }
 }

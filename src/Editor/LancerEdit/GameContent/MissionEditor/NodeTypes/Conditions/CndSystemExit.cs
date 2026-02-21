@@ -34,4 +34,13 @@ public class CndSystemExit : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_SystemExit,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

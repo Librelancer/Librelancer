@@ -30,6 +30,16 @@ public sealed class ActActivateNodeTrigger : NodeTriggerEntry
         Controls.DisabledInputTextId("Trigger", text);
     }
 
+    public override MissionCondition CloneCondition() => null;
+
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_ActTrig,
+            BuildEntry()
+        );
+    }
+
     public override void OnLinkCreated(NodeLink link)
     {
         if (link.StartPin.OwnerNode == this)

@@ -29,4 +29,13 @@ public sealed class ActRevertCamera : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_RevertCam,
+            BuildEntry()
+        );
+    }
 }

@@ -31,4 +31,13 @@ public class CndRumourHeard : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_RumorHeard,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }
