@@ -4,9 +4,12 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using ImGuiNET;
+using LancerEdit.GameContent.MissionEditor;
+using LancerEdit.GameContent.MissionEditor.NodeTypes;
 using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.ImUI;
+using LibreLancer.ImUI.NodeEditor;
 
 namespace LancerEdit;
 
@@ -300,4 +303,24 @@ public class DictionaryRemove<T>(string Name, SortedDictionary<string, T> Collec
     }
 
     public override string ToString() => $"{Name} Delete Item";
+}
+
+public class NewNodeFromCloneAction : EditorAction
+{
+    private readonly Node node;
+    private readonly Vector2 position;
+    private readonly MissionScriptEditorTab tab;
+
+    public NewNodeFromCloneAction(Node node, Vector2 position, MissionScriptEditorTab tab)
+    {
+        this.node = node;
+        this.position = position;
+        this.tab = tab;
+    }
+
+    public override void Commit() => tab.AddNode(node, position);
+
+    public override void Undo() => tab.RemoveNode(node);
+
+    public override string ToString() => "Duplicate Node";
 }
