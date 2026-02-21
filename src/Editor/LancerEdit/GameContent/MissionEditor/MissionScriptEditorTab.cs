@@ -354,6 +354,13 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             if (foundNode != 0)
             {
                 contextNodeId = foundNode;
+
+                // If the node isn't already selected,clear selection and select it.
+                if (!NodeEditor.IsNodeSelected(foundNode))
+                {
+                    NodeEditor.ClearSelection();
+                    NodeEditor.SelectNode(foundNode);
+                }
             }
 
             ImGui.OpenPopup(nodeContextMenu);
