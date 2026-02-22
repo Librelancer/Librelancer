@@ -31,4 +31,13 @@ public class CndNpcSystemEnter : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_NPCSystemEnter,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

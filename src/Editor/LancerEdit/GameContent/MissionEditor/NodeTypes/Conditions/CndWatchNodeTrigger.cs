@@ -54,4 +54,13 @@ public class CndWatchNodeTrigger : NodeTriggerEntry
             Data.Trigger = string.Empty;
         }
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_WatchTrigger,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

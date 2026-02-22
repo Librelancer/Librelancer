@@ -301,3 +301,5 @@ public class DictionaryRemove<T>(string Name, SortedDictionary<string, T> Collec
 
     public override string ToString() => $"{Name} Delete Item";
 }
+
+

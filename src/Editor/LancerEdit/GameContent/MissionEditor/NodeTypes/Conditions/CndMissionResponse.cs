@@ -30,4 +30,13 @@ public class CndMissionResponse : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_MsnResponse,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

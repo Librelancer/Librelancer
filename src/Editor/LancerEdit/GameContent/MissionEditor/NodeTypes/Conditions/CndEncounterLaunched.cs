@@ -31,4 +31,13 @@ public class CndEncounterLaunched : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_EncLaunched,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

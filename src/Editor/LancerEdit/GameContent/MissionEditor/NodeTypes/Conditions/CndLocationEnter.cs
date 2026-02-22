@@ -30,4 +30,13 @@ public class CndLocationEnter : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_LocEnter,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

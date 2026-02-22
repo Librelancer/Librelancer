@@ -28,4 +28,13 @@ public class CndBaseExit : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_BaseExit,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

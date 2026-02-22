@@ -396,4 +396,34 @@ public class NodeMissionTrigger : Node
             action.WriteEntry(s);
         }
     }
+
+    public override Node Clone(MissionScriptEditorTab sourceTab)
+    {
+        var newTrigger = new MissionTrigger
+        {
+            Nickname = sourceTab.GenerateUniqueTriggerName(Data.Nickname),
+            System = Data.System,
+            Repeatable = Data.Repeatable,
+            InitState = Data.InitState
+        };
+
+        foreach (var cond in Conditions)
+        {
+            var cloned = cond.CloneCondition();
+            if (cloned != null)
+                newTrigger.Conditions.Add(cloned);
+        }
+
+        foreach (var act in Actions)
+        {
+            var cloned = act.CloneAction();
+            if (cloned != null)
+                newTrigger.Actions.Add(cloned);
+        }
+
+        return new NodeMissionTrigger(newTrigger, sourceTab)
+        {
+            IsCollapsed = this.IsCollapsed
+        };
+    }
 }

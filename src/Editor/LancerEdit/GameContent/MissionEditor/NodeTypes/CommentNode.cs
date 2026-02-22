@@ -130,4 +130,12 @@ public class CommentNode : Node
         ImGui.PopID();
         NodeEditor.Resume();
     }
+
+    public override Node Clone(MissionScriptEditorTab sourceTab)
+    {
+        return new CommentNode()
+        {
+            BlockName = this.BlockName
+        };
+    }
 }

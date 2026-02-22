@@ -32,4 +32,13 @@ public sealed class ActPopupDialog : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_PopUpDialog,
+            BuildEntry()
+        );
+    }
 }

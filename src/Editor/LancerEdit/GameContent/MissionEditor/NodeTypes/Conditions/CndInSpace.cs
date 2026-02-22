@@ -29,4 +29,13 @@ public class CndInSpace : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_InSpace,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

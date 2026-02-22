@@ -48,4 +48,13 @@ public sealed class ActDeactivateNodeTrigger : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_DeactTrig,
+            BuildEntry()
+        );
+    }
 }

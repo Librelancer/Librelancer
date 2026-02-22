@@ -23,6 +23,11 @@ public abstract class Node(VertexDiffuse? color = null)
     public abstract void Render(GameDataContext gameData, PopupManager popup, EditorUndoBuffer undoBuffer,
         ref NodeLookups lookups);
 
+    public virtual Node Clone(MissionScriptEditorTab sourceTab)
+    {
+        throw new NotSupportedException($"{GetType().Name} does not support cloning.");
+    }
+
     private Vector2? cachedSizes = null;
 
     // May not ever be called

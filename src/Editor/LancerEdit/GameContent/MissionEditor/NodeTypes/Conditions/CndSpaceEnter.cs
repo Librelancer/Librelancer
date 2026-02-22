@@ -25,4 +25,13 @@ public class CndSpaceEnter : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_SpaceEnter,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }
