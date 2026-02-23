@@ -106,12 +106,12 @@ public sealed partial class MissionScriptEditorTab
             {
                 if (missionIni.Ships.TryGetValue(line.Source, out var src))
                 {
-                    gameData.Sounds.PlayVoiceLine(src.NPC.Voice, FLHash.CreateID(line.Line));
+                    gameData.Sounds.PlayVoiceLine(src.NPC.Voice, line.Line);
 
                 }
                 else if (missionIni.Solars.TryGetValue(line.Source, out var src2))
                 {
-                    gameData.Sounds.PlayVoiceLine(src2.Voice, FLHash.CreateID(line.Line));
+                    gameData.Sounds.PlayVoiceLine(src2.Voice, line.Line);
                 }
             }
 

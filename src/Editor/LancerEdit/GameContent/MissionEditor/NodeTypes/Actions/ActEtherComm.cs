@@ -34,7 +34,7 @@ public sealed class ActEtherComm : NodeTriggerEntry
 
         if (ImGui.Button("Play Line " + Icons.Play))
         {
-            gameData.Sounds.PlayVoiceLine(Data.Voice, FLHash.CreateID(Data.Line));
+            gameData.Sounds.PlayVoiceLine(Data.Voice, Data.Line);
         }
     }
 

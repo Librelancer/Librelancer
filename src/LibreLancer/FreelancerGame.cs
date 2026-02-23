@@ -64,7 +64,9 @@ namespace LibreLancer
         {
             Audio.MasterVolume = config.Settings.MasterVolume;
             Audio.Music.Volume = config.Settings.MusicVolume;
-            Audio.SfxVolume = config.Settings.SfxVolume;
+            Audio.SetVolume(SoundCategory.Sfx, config.Settings.SfxVolume);
+            Audio.SetVolume(SoundCategory.Interface, config.Settings.InterfaceVolume);
+            Audio.SetVolume(SoundCategory.Voice, config.Settings.VoiceVolume);
             currentState?.OnSettingsChanged();
         }
 
@@ -101,7 +103,9 @@ namespace LibreLancer
 			Audio = new AudioManager(this);
             Audio.MasterVolume = _cfg.Settings.MasterVolume;
             Audio.Music.Volume = _cfg.Settings.MusicVolume;
-            Audio.SfxVolume = _cfg.Settings.SfxVolume;
+            Audio.SetVolume(SoundCategory.Sfx, _cfg.Settings.SfxVolume);
+            Audio.SetVolume(SoundCategory.Interface, _cfg.Settings.InterfaceVolume);
+            Audio.SetVolume(SoundCategory.Voice, _cfg.Settings.VoiceVolume);
 			//Load data
 			FLLog.Info("Game", "Loading game data");
 			GameData = new GameDataManager(new GameItemDb(vfs), ResourceManager);

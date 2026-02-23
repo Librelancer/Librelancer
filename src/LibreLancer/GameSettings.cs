@@ -20,6 +20,10 @@ namespace LibreLancer
         public float MasterVolume = 1.0f;
         [Entry("sfx_volume")]
         public float SfxVolume = 1.0f;
+        [Entry("voice_volume")]
+        public float VoiceVolume = 1.0f;
+        [Entry("interface_volume")]
+        public float InterfaceVolume = 1.0f;
         [Entry("music_volume")]
         public float MusicVolume = 1.0f;
 
@@ -54,6 +58,8 @@ namespace LibreLancer
             writer.WriteLine("[Settings]");
             writer.WriteLine($"master_volume = {Fmt(MasterVolume)}");
             writer.WriteLine($"sfx_volume = {Fmt(SfxVolume)}");
+            writer.WriteLine($"voice_volume = {Fmt(VoiceVolume)}");
+            writer.WriteLine($"interface_volume = {Fmt(InterfaceVolume)}");
             writer.WriteLine($"music_volume = {Fmt(MusicVolume)}");
 
             writer.WriteLine($"fullscreen = {(FullScreen ? "true" : "false")}");
@@ -74,6 +80,8 @@ namespace LibreLancer
             var gs = new GameSettings();
             gs.MasterVolume = MasterVolume;
             gs.SfxVolume = SfxVolume;
+            gs.InterfaceVolume = InterfaceVolume;
+            gs.VoiceVolume = VoiceVolume;
             gs.MusicVolume = MusicVolume;
 
             gs.FullScreen = FullScreen;

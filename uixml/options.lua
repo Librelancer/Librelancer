@@ -81,6 +81,7 @@ class options : options_Designer with Modal
 		this.panel(this.Panels[1])
 		this.opts = Game.GetCurrentSettings()
 		e.sfxvol.Value = this.opts.SfxVolume
+		e.voicevol.Value = this.opts.VoiceVolume
 		this.keymap = Game.GetKeyMap()
 
 		e.listtable.SetData(this.keymap)
@@ -125,6 +126,7 @@ class options : options_Designer with Modal
 		local e = this.Elements
 		this.opts.SfxVolume = e.sfxvol.Value
 		this.opts.MusicVolume = e.musicvol.Value
+		this.opts.VoiceVolume = e.voicevol.Value
 		this.opts.MSAA = idx_to_msaa(this.MSAA.vcurrent)
 		this.opts.Anisotropy = idx_to_anisotropy(this.AF.vcurrent)
 		this.keymap.Save();

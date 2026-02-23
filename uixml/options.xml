@@ -12,12 +12,15 @@
 			<Panel.Background><DisplayModel model="framewithdipdown"/></Panel.Background>
 			<Panel Width="390" Height="380" ID="win_audio" Visible="false">
 				<TextBlock Text="AUDIO OPTIONS" Strid="1679" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
+				<!-- Dialogue Volume -->
+				<TextBlock X="18" Y="29" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1409"/>
+				<HSlider Width="175" Height="12" X="196" Y="34" id="voicevol"/>
 				<!-- SFX Volume -->
-				<TextBlock X="18" Y="29" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1336"/>
-				<HSlider Width="175" Height="12" X="196" Y="34" id="sfxvol"/>
+				<TextBlock X="18" Y="59" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1336"/>
+				<HSlider Width="175" Height="12" X="196" Y="64" id="sfxvol"/>
 				<!-- Music Volume -->
-				<TextBlock X="18" Y="59" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1337"/>
-				<HSlider Width="175" Height="12" X="196" Y="64" id="musicvol"/>
+				<TextBlock X="18" Y="89" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1337"/>
+				<HSlider Width="175" Height="12" X="196" Y="94" id="musicvol"/>
 			</Panel>
 			<Panel Width="390" Height="480" ID="win_controls" Visible="true">
 				<TextBlock Text="Control Options" Strid="1681" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>

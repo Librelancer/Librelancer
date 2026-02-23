@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
@@ -544,6 +545,12 @@ public class GameItemDb
                 Gender = p.Gender,
                 Scripts = v.Scripts.ToArray()
             };
+            foreach (var line in v.Messages)
+            {
+                var info = new VoiceLineInfo(line.Attenuation);
+                n.Lines[line.Message] = info;
+                n.LinesByHash[FLHash.CreateID(line.Message)] = info;
+            }
             Voices.Add(n);
         }
     }
