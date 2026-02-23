@@ -42,6 +42,8 @@ namespace LancerEdit
         public ParticleLibrary ParticleFile;
         private ParticleEffect lastEffect = null;
         private ParticleEffect currentEffect;
+        private AppearanceReference[] allAppearances;
+        private FieldReference[] allFields;
 
         float sparam = 1;
 
@@ -85,15 +87,22 @@ namespace LancerEdit
             layout.TabsRight.Add(new(Icons.Fire, "Effects", 0));
             layout.ActiveLeftTab = 0; // Open by default
             layout.ActiveRightTab = 0;
+            undoBuffer.Hook += OnChanged;
             currentEffect = ParticleFile.Effects.First();
-            SetupRender(currentEffect);
+            OnChanged();
             popups = new();
+        }
+
+        private void OnChanged()
+        {
+            allAppearances = currentEffect.Appearances.ToArray();
+            allFields = GetEffectNodes(currentEffect).OfType<FieldReference>().ToArray();
+            SetupRender(currentEffect);
         }
 
         ParticleEffectInstance instance;
         void SetupRender(ParticleEffect effect)
         {
-            selectedReference = null;
             instance = new ParticleEffectInstance(effect);
             instance.Pool = pool;
             instance.Resources = ParticleFile.Resources;
@@ -116,7 +125,11 @@ namespace LancerEdit
         void DrawMiddle()
         {
             //Fx management
-            if (currentEffect != lastEffect) SetupRender(currentEffect);
+            if (currentEffect != lastEffect)
+            {
+                selectedReference = null;
+                OnChanged();
+            }
             ImGui.SameLine();
             ImGui.PushItemWidth(80);
             ImGui.SliderFloat("SParam", ref sparam, 0, 1, "%f");
@@ -233,9 +246,29 @@ namespace LancerEdit
             {
                 openEditors.Add(selectedReference.Node);
             }
-
             // Pairs
-
+            if (selectedReference is EmitterReference emit)
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Linked: ");
+                ImGui.SameLine();
+                SearchDropdown<AppearanceReference>.Draw("linked-app",
+                    ref emit.Linked, allAppearances, x => x?.Node?.NodeName ?? "(none)",
+                    (old, upd) =>
+                        undoBuffer.Set("Linked", () => ref emit.Linked, old, upd),
+                    true);
+            }
+            if (selectedReference is AppearanceReference app)
+            {
+                ImGui.AlignTextToFramePadding();
+                ImGui.Text("Linked: ");
+                ImGui.SameLine();
+                SearchDropdown<FieldReference>.Draw("linked-app",
+                    ref app.Linked, allFields, x => x?.Node?.NodeName ?? "(none)",
+                    (old, upd) =>
+                        undoBuffer.Set("Linked", () => ref app.Linked, old, upd),
+                    true);
+            }
             // Re-order hierarchy
         }
 
