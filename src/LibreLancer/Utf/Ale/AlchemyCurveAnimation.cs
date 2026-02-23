@@ -18,6 +18,12 @@ namespace LibreLancer.Utf.Ale
             Items = new();
         }
 
+        public AlchemyCurveAnimation(float value)
+        {
+            Type = EasingTypes.Linear;
+            Items = [new AlchemyCurve() { Value = value, IsCurve = false }];
+        }
+
 		public AlchemyCurveAnimation (BinaryReader reader)
 		{
 			Type = (EasingTypes)reader.ReadByte ();
@@ -31,7 +37,7 @@ namespace LibreLancer.Utf.Ale
 				cpkf.Flags = (LoopFlags)loop;
 				ushort lcnt = reader.ReadUInt16 ();
 				if (loop != 0 || lcnt != 0) {
-					var l = new List<CurveKeyframe> (lcnt);
+					var l = new RefList<CurveKeyframe> (lcnt);
 					for (int j = 0; j < lcnt; j++) {
 						l.Add (new CurveKeyframe () {
 							Time = reader.ReadSingle(),
@@ -42,8 +48,9 @@ namespace LibreLancer.Utf.Ale
 					}
 					cpkf.Keyframes = l;
 				}
+                cpkf.IsCurve = cpkf.Keyframes is { Count: > 0 };
 				Items.Add (cpkf);
-			}
+            }
 		}
 
         public bool Animates

@@ -11,15 +11,13 @@ namespace LibreLancer.Fx
 {
 	public class FxNode
 	{
-		public string Name;
 		public string NodeName = "LIBRELANCER:UNNAMED_NODE";
 		public uint CRC;
-		public float NodeLifeSpan = float.PositiveInfinity;
+		public float NodeLifeSpan = float.MaxValue;
 		public AlchemyTransform Transform;
 
 		public FxNode(AlchemyNode ale)
 		{
-			Name = ale.Name;
 			AleParameter temp;
 			if (ale.TryGetParameter (AleProperty.Node_Name, out temp)) {
 				NodeName = (string)temp.Value;
@@ -50,24 +48,24 @@ namespace LibreLancer.Fx
 
         public virtual AlchemyNode SerializeNode()
         {
-            var n = new AlchemyNode { Name = GetType().Name };
+            var n = new AlchemyNode { ClassName = GetType().Name };
             n.Parameters.Add(new(AleProperty.Node_Name, NodeName));
             n.Parameters.Add(new(AleProperty.Node_Transform, Transform));
-            if(!float.IsPositiveInfinity(NodeLifeSpan))
+            if(NodeLifeSpan <= 3.4e36f)
                 n.Parameters.Add(new(AleProperty.Node_LifeSpan, NodeLifeSpan));
             return n;
         }
 
         public override string ToString()
         {
-            return $"{Name} - {NodeName}";
+            return NodeName;
         }
 
-        public FxNode(string name, string nodename)
+        public FxNode(string nodename)
 		{
-			Name = name;
 			NodeName = nodename;
-		}
+            CRC = CrcTool.FLAleCrc(nodename);
+        }
 	}
 }
 

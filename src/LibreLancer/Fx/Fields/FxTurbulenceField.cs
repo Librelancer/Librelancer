@@ -16,6 +16,12 @@ namespace LibreLancer.Fx
             Approach = ale.GetCurveAnimation(AleProperty.TurbulenceField_Approach);
         }
 
+        public FxTurbulenceField(string name) : base(name)
+        {
+            Magnitude = new(1);
+            Approach = new(1);
+        }
+
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();

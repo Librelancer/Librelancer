@@ -11,6 +11,8 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
 
     public IEnumerable<uint> Crcs => crcCollection.Keys;
 
+    public int Count => crcCollection.Count;
+
     public bool TryGetValue(string? nickname, out T? value)
     {
         if (!string.IsNullOrEmpty(nickname))

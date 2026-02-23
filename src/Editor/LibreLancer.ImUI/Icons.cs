@@ -68,6 +68,7 @@ public static class Icons
     public const char SquareMinus = '\uf146';
     public const char SquareCorners = '\uf065';
     public const char SquareCornersInverted = '\uf066';
+    public const char QuestionCircle = '\uf059';
     //View Mode
     public const char Image = '\uf03e';
     public const char Lightbulb = '\uf0eb';
@@ -118,6 +119,16 @@ public static class Icons
 
     public static readonly char Warning;
 
+    public static readonly char BeamAppearance;
+    public static readonly char ParticleAppearance;
+    public static readonly char RectAppearance;
+    public static readonly char PerpAppearance;
+    public static readonly char BasicAppearance;
+
+    public static readonly char SphereEmitter;
+    public static readonly char ConeEmitter;
+    public static readonly char CubeEmitter;
+
     public static void Init() => GC.KeepAlive(Warning); //Run static constructor
 
     static Icons()
@@ -140,6 +151,17 @@ public static class Icons
         Tint(out Rev_LightSeaGreen, SyncAlt, Color4.LightSeaGreen);
         Tint(out Rev_LightGreen, SyncAlt, Color4.LightGreen);
         Tint(out Warning, ExclamationTriangle, Color4.Orange);
+
+        Tint(out BeamAppearance, Bolt, Color4.CornflowerBlue);
+        Tint(out ParticleAppearance, SprayCan, Color4.CornflowerBlue);
+        Tint(out RectAppearance, Stop, Color4.CornflowerBlue);
+        Tint(out PerpAppearance, Splotch, Color4.CornflowerBlue);
+        Tint(out BasicAppearance, Images, Color4.CornflowerBlue);
+
+        Tint(out SphereEmitter, Globe, Color4.OrangeRed);
+        Tint(out ConeEmitter, IceCream, Color4.OrangeRed);
+        Tint(out CubeEmitter, Cube, Color4.OrangeRed);
+
     }
 
     private static ushort pmap = 0xE100;

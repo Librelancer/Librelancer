@@ -22,6 +22,10 @@ namespace LibreLancer.Fx
             LineAppearance = ale.GetBoolean(AleProperty.BeamApp_LineAppearance);
 		}
 
+        public FLBeamAppearance(string name) : base(name)
+        {
+        }
+
         public override void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx, Matrix4x4 transform, float sparam)
 		{
             //get particles!

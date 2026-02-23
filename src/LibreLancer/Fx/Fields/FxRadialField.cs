@@ -20,6 +20,14 @@ namespace LibreLancer.Fx
             Approach = ale.GetCurveAnimation(AleProperty.RadialField_Approach);
 		}
 
+        public FxRadialField(string name) : base(name)
+        {
+            Radius = new(1);
+            Attenuation = new(1);
+            Magnitude = new(1);
+            Approach = new(1);
+        }
+
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();

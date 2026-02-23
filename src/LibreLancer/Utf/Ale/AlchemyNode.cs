@@ -7,8 +7,9 @@ using System.Collections.Generic;
 namespace LibreLancer.Utf.Ale
 {
 	public class AlchemyNode
-	{
-		public string Name;
+    {
+        public string NodeName = "";
+		public string ClassName;
 		public uint CRC;
 		public List<AleParameter> Parameters = new List<AleParameter>();
 		public AlchemyNode ()
@@ -16,7 +17,7 @@ namespace LibreLancer.Utf.Ale
 		}
 		public override string ToString ()
 		{
-			return Name;
+			return ClassName;
 		}
 		public bool TryGetParameter(AleProperty name, out AleParameter parameter)
 		{
@@ -64,7 +65,7 @@ namespace LibreLancer.Utf.Ale
             else if (haveDef)
             {
                 var fa = new AlchemyFloatAnimation();
-                fa.Items.Add(new AlchemyFloats() { Data = [(0, 0)]});
+                fa.Items.Add(new AlchemyFloats() { Keyframes = [new(0, 0)]});
                 return fa;
             }
             return null;
@@ -90,7 +91,7 @@ namespace LibreLancer.Utf.Ale
             if (TryGetObject(name, out AlchemyColorAnimation v))
                 return v;
             var fa = new AlchemyColorAnimation();
-            fa.Items.Add(new AlchemyColors() { Data = [new(0, Color3f.White)]});
+            fa.Items.Add(new AlchemyColors() { Keyframes = [new(0, Color3f.White)]});
             return fa;
         }
 

@@ -15,6 +15,13 @@ namespace LibreLancer.Fx
             Magnitude = ale.GetCurveAnimation(AleProperty.AirField_Magnitude);
             Approach = ale.GetCurveAnimation(AleProperty.AirField_Approach);
         }
+
+        public FxAirField(string name) : base(name)
+        {
+            Magnitude = new(1);
+            Approach = new(1);
+        }
+
 	}
 }
 

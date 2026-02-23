@@ -6,34 +6,45 @@ using System;
 
 namespace LibreLancer.Utf.Ale
 {
+    public struct FloatKeyframe
+    {
+        public float Time;
+        public float Value;
+        public FloatKeyframe(float t, float v)
+        {
+            Time = t;
+            Value = v;
+        }
+    }
+
 	public class AlchemyFloats
 	{
 		public float SParam;
-		public EasingTypes Type;
-		public ValueTuple<float,float>[] Data;
+        public EasingTypes Type = EasingTypes.Linear;
+        public RefList<FloatKeyframe> Keyframes = [new(0, 0)];
 		public AlchemyFloats ()
 		{
 		}
 		public float GetValue(float time) {
 			//Only have one keyframe? Just return it.
-			if (Data.Length == 1) {
-				return Data [0].Item2;
+			if (Keyframes.Count == 1) {
+				return Keyframes [0].Value;
 			}
 			//Locate the keyframes to interpolate between
 			float t1 = float.NegativeInfinity;
 			float t2 = 0, v1 = 0, v2 = 0;
-			for (int i = 0; i < Data.Length - 1; i++) {
-				if (time >= Data [i].Item1 && time <= Data [i + 1].Item1) {
-					t1 = Data [i].Item1;
-					t2 = Data [i + 1].Item1;
-					v1 = Data [i].Item2;
-					v2 = Data [i + 1].Item2;
+			for (int i = 0; i < Keyframes.Count - 1; i++) {
+				if (time >= Keyframes [i].Time && time <= Keyframes [i + 1].Time) {
+					t1 = Keyframes [i].Time;
+					t2 = Keyframes [i + 1].Time;
+					v1 = Keyframes [i].Value;
+					v2 = Keyframes [i + 1].Value;
                     break;
                 }
 			}
 			//Time wasn't between any values. Return max.
 			if (t1 == float.NegativeInfinity) {
-				return Data [Data.Length - 1].Item2;
+				return Keyframes [Keyframes.Count - 1].Value;
 			}
 			//Interpolate!
 			return Easing.Ease(Type,time, t1, t2, v1, v2);
@@ -42,9 +53,9 @@ namespace LibreLancer.Utf.Ale
         public float GetMax(bool abs)
         {
             float max = 0;
-            foreach (var i in Data)
+            foreach (var i in Keyframes)
             {
-                var x = abs ? Math.Abs(i.Item2) : i.Item1;
+                var x = abs ? Math.Abs(i.Value) : i.Value;
                 if (x > max) max = x;
             }
             return max;

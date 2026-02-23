@@ -14,6 +14,12 @@ namespace LibreLancer.Fx
             Gravity = ale.GetCurveAnimation(AleProperty.GravityField_Gravity);
 		}
 
+        public FxGravityField(string name) : base(name)
+        {
+            Gravity = new(1);
+        }
+
+
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();

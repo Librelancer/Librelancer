@@ -80,7 +80,7 @@ namespace LibreLancer.Render
         public override string ToString()
         {
             if (fx == null) return "Null ParticleFx";
-            return $"[{this.GetType().Name}] {fx.Effect.Name}";
+            return $"[{this.GetType().Name}] {fx.Effect.Nickname}";
         }
     }
 }

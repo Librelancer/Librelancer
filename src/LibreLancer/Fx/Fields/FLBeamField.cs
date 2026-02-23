@@ -11,6 +11,10 @@ namespace LibreLancer.Fx
 		public FLBeamField (AlchemyNode ale) : base(ale)
 		{
 		}
-	}
+
+        public FLBeamField(string name) : base(name)
+        {
+        }
+    }
 }
 

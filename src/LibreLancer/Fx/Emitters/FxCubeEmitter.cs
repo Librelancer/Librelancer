@@ -24,6 +24,15 @@ namespace LibreLancer.Fx
             MaxSpread = ale.GetCurveAnimation(AleProperty.CubeEmitter_MaxSpread);
 		}
 
+        public FxCubeEmitter(string name) : base(name)
+        {
+            Width = new (1);
+            Height = new (1);
+            Depth = new (1);
+            MinSpread = new (0);
+            MaxSpread = new (0);
+        }
+
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();

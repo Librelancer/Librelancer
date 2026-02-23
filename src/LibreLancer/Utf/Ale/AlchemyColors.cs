@@ -6,36 +6,47 @@ using System;
 
 namespace LibreLancer.Utf.Ale
 {
+    public struct ColorKeyframe
+    {
+        public float Time;
+        public Color3f Value;
+        public ColorKeyframe(float time, Color3f value)
+        {
+            Time = time;
+            Value = value;
+        }
+    }
+
 	public class AlchemyColors
 	{
 		public float SParam;
 		public EasingTypes Type;
-		public Tuple<float,Color3f>[] Data;
+        public RefList<ColorKeyframe> Keyframes = [new(0, Color3f.White)];
 		public AlchemyColors ()
 		{
 		}
 		public Color3f GetValue(float time)
 		{
 			//Only have one keyframe? Just return it.
-			if (Data.Length == 1) {
-				return Data [0].Item2;
+			if (Keyframes.Count == 1) {
+				return Keyframes [0].Value;
 			}
 			//Locate the keyframes to interpolate between
 			float t1 = float.NegativeInfinity;
 			float t2 = 0;
 			Color3f v1 = new Color3f(), v2 = new Color3f();
-			for (int i = 0; i < Data.Length - 1; i++) {
-				if (time >= Data [i].Item1 && time <= Data [i + 1].Item1) {
-					t1 = Data [i].Item1;
-					t2 = Data [i + 1].Item1;
-					v1 = Data [i].Item2;
-					v2 = Data [i + 1].Item2;
+			for (int i = 0; i < Keyframes.Count - 1; i++) {
+				if (time >= Keyframes [i].Time && time <= Keyframes [i + 1].Time) {
+					t1 = Keyframes [i].Time;
+					t2 = Keyframes [i + 1].Time;
+					v1 = Keyframes [i].Value;
+					v2 = Keyframes [i + 1].Value;
                     break;
                 }
 			}
 			//Time wasn't between any values. Return max.
 			if (t1 == float.NegativeInfinity) {
-				return Data [Data.Length - 1].Item2;
+				return Keyframes [Keyframes.Count - 1].Value;
 			}
 			//Interpolate!
 			return Easing.EaseColorRGB(Type,time, t1, t2, v1, v2);
