@@ -226,6 +226,7 @@ namespace LancerEdit
             //Node enabled
             var enabled = selectedReference.Enabled;
             ImGui.Checkbox("Enabled", ref enabled);
+            ImGui.SetItemTooltip("State of the node in this visualization (editor only).");
             selectedReference.Enabled = enabled;
             //
             if (ImGui.Button("Edit Node") && !openEditors.Contains(selectedReference.Node))
