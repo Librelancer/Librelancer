@@ -172,7 +172,7 @@ public class Act_LockDock : ScriptedAction
     public Act_LockDock(MissionAction act) : base(act)
     {
         GetString(nameof(Target), 0, out Target, act.Entry);
-        GetString(nameof(Object), 0, out Object, act.Entry);
+        GetString(nameof(Object), 1, out Object, act.Entry);
         GetBoolean(nameof(Lock), 2, out Lock, act.Entry);
     }
 
