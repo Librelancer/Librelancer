@@ -3734,7 +3734,9 @@ ed::EditorAction::AcceptResult ed::SizeAction::Accept(const Control& control)
         //const auto mousePos     = to_point(ImGui::GetMousePos());
         //const auto closestPoint = control.ActiveNode->Bounds.get_closest_point_hollow(mousePos, static_cast<int>(control.ActiveNode->Rounding));
 
-        auto pivot = GetRegion(control.ActiveNode);
+        // Take delta into account when calculating start of drag, or we lose this event sometimes. ~ Callum
+        auto pivot = control.ActiveNode->GetRegion(ImGui::GetMousePos() - ImGui::GetMouseDragDelta(0, 0.0f));
+        
         if (pivot != NodeRegion::Header && pivot != NodeRegion::Center)
         {
             m_StartBounds      = control.ActiveNode->m_Bounds;
