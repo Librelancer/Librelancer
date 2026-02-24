@@ -115,6 +115,22 @@ namespace LibreLancer.ImUI
            ImGui.EndDisabled();
            return r;
         }
+
+        /// <summary>
+        /// Button that can be disabled
+        /// </summary>
+        /// <param name="text">Text.</param>
+        /// <param name="enabled">If set to <c>true</c> enabled.</param>
+        /// <param name="rounding">Corners to be rounded</param>
+        public static bool Button(string text, bool enabled, ImDrawFlags rounding)
+        {
+            ImGui.BeginDisabled(!enabled);
+            var r = ButtonRounding(text, Vector2.Zero, rounding);
+            ImGui.EndDisabled();
+            return r;
+        }
+
+
         /// <summary>
         /// Button that can be disabled
         /// </summary>
