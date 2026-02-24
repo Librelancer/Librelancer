@@ -35,8 +35,6 @@ public class GameResourceManager : ResourceManager, IDisposable
     Dictionary<string, Cursor> cursors = new(StringComparer.OrdinalIgnoreCase);
     Dictionary<string, TexFrameAnimation> frameanims = new(StringComparer.OrdinalIgnoreCase);
     Dictionary<string, ParticleLibrary> particlelibs = new(StringComparer.OrdinalIgnoreCase);
-    public Dictionary<string, string> TextureSources = new(StringComparer.OrdinalIgnoreCase);
-    public Dictionary<uint, string> MaterialSources = new();
 
     List<string> loadedResFiles = new List<string>();
     List<string> preloadFiles = new List<string>();

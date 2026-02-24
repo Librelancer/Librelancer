@@ -23,7 +23,7 @@ namespace LancerEdit
         string typeFilter = "";
         string nameFilter = "";
         string usedByFilter = "";
-        string providedByFilter = "";
+        string sourceFilter = "";
 
         public ResourcesTab(MainWindow window, ResourceManager res, Dictionary<string, ResourceUsage> resourceIndex)
         {
@@ -53,7 +53,7 @@ namespace LancerEdit
             ImGui.TableSetupColumn("Type", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort, 110);
             ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("Used By", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("Provided By", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("Source", ImGuiTableColumnFlags.WidthStretch);
 
             ImGui.TableHeadersRow();
 
@@ -65,13 +65,13 @@ namespace LancerEdit
             ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
 
             ImGui.TableSetColumnIndex(0);
-            DrawFilterWithClearButton("typeFilter", ref typeFilter, ImGui.GetColumnWidth());
+            DrawFilterWithClearButton("typeFilter",ref typeFilter, ImGui.GetColumnWidth(), "Filter by Type");
             ImGui.TableSetColumnIndex(1);
-            DrawFilterWithClearButton("nameFilter", ref nameFilter, ImGui.GetColumnWidth());
+            DrawFilterWithClearButton("nameFilter", ref nameFilter, ImGui.GetColumnWidth(), "Filter by  Name");
             ImGui.TableSetColumnIndex(2);
-            DrawFilterWithClearButton("usedByFilter", ref usedByFilter, ImGui.GetColumnWidth());
+            DrawFilterWithClearButton("usedByFilter", ref usedByFilter, ImGui.GetColumnWidth(), "Filter by Used By");
             ImGui.TableSetColumnIndex(3);
-            DrawFilterWithClearButton("providedByFilter", ref providedByFilter, ImGui.GetColumnWidth());
+            DrawFilterWithClearButton("sourceFilter", ref sourceFilter, ImGui.GetColumnWidth(), "Filter by Source");
 
             // Data Rows
             foreach (var usage in sortedData)
@@ -217,12 +217,12 @@ namespace LancerEdit
 
             ImGui.TextColored(color,string.Join(", ", u.ProvidedBy.OrderBy(x => x)));
         }
-        void DrawFilterWithClearButton(string id, ref string value, float width)
+        void DrawFilterWithClearButton(string id, ref string value, float width, string hint)
         {
             ImGui.PushID(id);
             ImGui.Spacing();
             ImGui.SetNextItemWidth(width -ImGui.GetTextLineHeightWithSpacing()*2f); // leave space for button
-            ImGui.InputText("##input", ref value, 128);
+            ImGui.InputTextWithHint("##input",hint, ref value, 128);
 
 
             ImGui.SameLine();
