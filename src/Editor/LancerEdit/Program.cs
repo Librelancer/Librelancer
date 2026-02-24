@@ -34,7 +34,8 @@ namespace LancerEdit
                 CancellationTokenSource cts = new CancellationTokenSource();
                 AppHandler.Run(() =>
                 {
-                    mw = new MainWindow() { InitOpenFile = args };
+                    var editorConfig = EditorConfiguration.Load(true);
+                    mw = new MainWindow(editorConfig) { InitOpenFile = args };
                     pipeServer = Task.Run(async () => await PipeServer(cts.Token, x =>
                     {
                         mw.QueueUIThread(() =>
