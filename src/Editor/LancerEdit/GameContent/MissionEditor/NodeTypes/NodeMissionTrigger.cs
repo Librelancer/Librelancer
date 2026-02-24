@@ -56,57 +56,36 @@ public class NodeMissionTrigger : Node
     {
         reorder = 0;
         var node = list[index];
-        ImGui.BeginGroup();
         ImGui.PushStyleColor(ImGuiCol.Header, node.Color);
         ImGui.PushStyleColor(ImGuiCol.Button, node.Color);
         ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0,0));
 
-        var buttonSize = new Vector2(28, 21);
-
-        if (list.Count > 1)
+        ImGui.BeginDisabled(list.Count <= 1 || index == 0);
+        if (ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.ArrowUp}", node.Id)))
         {
-            if (index != list.Count - 1)
-            {
-                if (ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.ArrowDown}", node.Id)))
-                {
-                    reorder = 1;
-                }
-            }
-            else
-            {
-                ImGui.Dummy(buttonSize);
-            }
-
-            ImGui.SameLine();
-            if (index != 0)
-            {
-                if (ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.ArrowUp}", node.Id)))
-                {
-                    reorder = -1;
-                }
-            }
-            else
-            {
-                ImGui.Dummy(buttonSize);
-            }
-
-            ImGui.SameLine();
-        }
-        else
-        {
-            ImGui.Dummy(buttonSize);
-            ImGui.SameLine();
-            ImGui.Dummy(buttonSize);
-            ImGui.SameLine();
+            reorder = -1;
         }
 
-        remove = ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.TrashAlt}", node.Id));
+        ImGui.EndDisabled();
         ImGui.SameLine();
-        var render = ImGui.CollapsingHeader(ImGuiExt.IDWithExtra(node.Name, (long)node.Id));
+        ImGui.BeginDisabled(list.Count <= 1 || index == list.Count - 1);
+        if (ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.ArrowDown}", node.Id)))
+        {
+            reorder = 1;
+        }
+        ImGui.EndDisabled();
 
-        ImGui.PopStyleVar();
-        ImGui.PopStyleColor();
-        ImGui.PopStyleColor();
+        ImGui.SameLine();
+        remove = ImGui.Button(ImGuiExt.IDWithExtra($"{Icons.TrashAlt}", node.Id));
+
+        ImGui.SameLine();
+        var render = ImGui.CollapsingHeader($"{node.Name}##{node.Id}");
+
+        ImGui.PopStyleVar(2);
+        ImGui.PopStyleColor(2);
+
+        ImGui.BeginGroup();
         return render;
     }
 
