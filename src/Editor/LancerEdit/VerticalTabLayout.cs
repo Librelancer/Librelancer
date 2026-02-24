@@ -112,9 +112,9 @@ public class VerticalTabLayout
                 ImGuiTableFlags.NoPadInnerX | ImGuiTableFlags.NoPadOuterX | ImGuiTableFlags.BordersInnerV |
                 ImGuiTableFlags.Resizable | ImGuiTableFlags.RowBg | ImGuiTableFlags.Hideable))
             return;
-        ImGui.TableSetupColumn("##left", ImGuiTableColumnFlags.WidthFixed, 150 * ImGuiHelper.Scale);
+        ImGui.TableSetupColumn("##left", ImGuiTableColumnFlags.WidthFixed, 250 * ImGuiHelper.Scale);
         ImGui.TableSetupColumn("##middle", ImGuiTableColumnFlags.WidthStretch);
-        ImGui.TableSetupColumn("##right", ImGuiTableColumnFlags.WidthFixed, 150 * ImGuiHelper.Scale);
+        ImGui.TableSetupColumn("##right", ImGuiTableColumnFlags.WidthFixed, 250 * ImGuiHelper.Scale);
         ImGui.TableSetColumnEnabled(0, ActiveLeftTab >= 0);
         ImGui.TableSetColumnEnabled(2, ActiveRightTab >= 0);
         ImGui.TableNextRow();
