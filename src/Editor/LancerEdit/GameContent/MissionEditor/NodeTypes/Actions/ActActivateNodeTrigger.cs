@@ -10,7 +10,7 @@ namespace LancerEdit.GameContent.MissionEditor.NodeTypes.Actions;
 
 public sealed class ActActivateNodeTrigger : NodeTriggerEntry
 {
-    public override string Name => "Activate Trigger";
+    public override string Name => string.IsNullOrWhiteSpace(Data.Trigger) ? "Activate Trigger" : $"Activate {Data.Trigger}";
 
     public readonly Act_ActTrig Data;
     public ActActivateNodeTrigger(MissionAction action): base( NodeColours.Action)
