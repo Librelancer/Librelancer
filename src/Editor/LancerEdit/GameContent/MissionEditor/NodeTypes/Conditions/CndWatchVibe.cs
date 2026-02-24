@@ -41,4 +41,13 @@ public class CndWatchVibe : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_WatchVibe,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

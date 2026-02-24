@@ -31,4 +31,13 @@ public class CndHealthDecreased : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_HealthDec,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

@@ -16,6 +16,11 @@ namespace LibreLancer.Fx
 		public FxAppearance (AlchemyNode ale) : base(ale)
 		{
 		}
+
+        public FxAppearance(string name) : base(name)
+        {
+        }
+
         public virtual void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx, Matrix4x4 transform, float sparam)
         {
 

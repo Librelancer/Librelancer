@@ -75,7 +75,8 @@ namespace LancerEdit
 
         Dictionary<string, ResourceUsage> ResourceIndex = new(StringComparer.OrdinalIgnoreCase);
 
-        public MainWindow(GameConfiguration configuration = null) : base(800, 600, true, configuration)
+        public MainWindow(EditorConfiguration editorConfig, GameConfiguration configuration = null) : base(editorConfig.WindowWidth, editorConfig.WindowHeight, true, configuration)
+
         {
             Version = "LancerEdit " + Platform.GetInformationalVersion<MainWindow>();
             MaterialMap = new MaterialMap();
@@ -91,7 +92,7 @@ namespace LancerEdit
                 }
                 logBuffer.SetText(logText.ToString());
             };
-            Config = EditorConfiguration.Load(configuration == null || configuration.IsSDL);
+            Config = editorConfig;
             Config.LastExportPath ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
 
             logBuffer = new TextBuffer(LOG_SIZE * 2 + 1);
@@ -534,6 +535,12 @@ namespace LancerEdit
                     // Push enough frames to get good keyboard input
                     WaitForEvent(50);
                 }
+            }
+
+            if ((Config.WindowWidth != Width || Config.WindowHeight != Height) && Width > 800 && Height > 600)
+            {
+                Config.WindowHeight = Height;
+                Config.WindowWidth = Width;
             }
 
             TimeStep = elapsed;

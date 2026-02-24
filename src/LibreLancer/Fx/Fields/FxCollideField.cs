@@ -18,6 +18,13 @@ namespace LibreLancer.Fx
             Height = ale.GetCurveAnimation(AleProperty.CollideField_Height);
         }
 
+        public FxCollideField(string name) : base(name)
+        {
+            Reflectivity = new(1);
+            Width = new(1);
+            Height = new(1);
+        }
+
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();

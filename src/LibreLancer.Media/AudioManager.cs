@@ -53,35 +53,34 @@ namespace LibreLancer.Media
             }
         }
 
+        private float[] volumes =
+        [
+            1.0f,
+            1.0f,
+            1.0f,
+            1.0f
+        ];
 
-        public float SfxVolume
+        private float[] gains =
+        [
+            1.0f,
+            1.0f,
+            1.0f,
+            1.0f
+        ];
+
+        public float GetVolume(SoundCategory category) =>
+            volumes[(int)category];
+
+        public void SetVolume(SoundCategory category, float volume)
         {
-            get => _sfxVolumeValue;
-            set
+            volumes[(int)category] = volume;
+            QueueMessage(new AudioEventMessage()
             {
-                _sfxVolumeValue = value;
-                QueueMessage(new AudioEventMessage()
-                {
-                    Type = AudioEvent.SetSfxGain,
-                    Data = new Vector3(ALUtils.LinearToAlGain(SfxVolume), 0, 0)
-                });
-            }
+                Type = AudioEvent.SetCategoryGain,
+                Data = new Vector3(ALUtils.LinearToAlGain(volume), (int)category, 0)
+            });
         }
-
-        public float VoiceVolume
-        {
-            get => _voiceVolumeValue;
-            set
-            {
-                _voiceVolumeValue = value;
-                QueueMessage(new AudioEventMessage()
-                {
-                    Type = AudioEvent.SetVoiceGain,
-                    Data = new Vector3(ALUtils.LinearToAlGain(SfxVolume), 0, 0)
-                });
-            }
-        }
-
 
         static bool IsVectorValid(Vector3 v)
         {
@@ -161,20 +160,14 @@ namespace LibreLancer.Media
         private List<SoundInstance> playingSounds = new();
         private List<SoundInstance> allocatedSounds = new();
         private Vector3 listenerPosition;
-        private float _sfxVolumeGain = 1.0f;
-        private float _voiceVolumeGain = 1.0f;
         Queue<uint> freeSources = new Queue<uint>();
         delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void> alBufferDataStatic; // pointers are context specific
 
-        float GetVolume(SoundCategory category)
-        {
-            return category == SoundCategory.Voice ? _voiceVolumeGain : _sfxVolumeGain;
-        }
 
         void SetAttenuation(uint src, float attenuation, SoundCategory category)
         {
             Al.alSourcef(src, Al.AL_GAIN,
-                ALUtils.ClampVolume(ALUtils.DbToAlGain(attenuation) * GetVolume(category)));
+                ALUtils.ClampVolume(ALUtils.DbToAlGain(attenuation) * gains[(int)category]));
         }
 
         void InitSourceProperties(uint src, ref SoundInstance.SourceProperties prop, SoundCategory category)
@@ -568,12 +561,8 @@ namespace LibreLancer.Media
                         case AudioEvent.SetMasterGain:
                             Al.alListenerf(Al.AL_GAIN, message.Data.X);
                             break;
-                        case AudioEvent.SetSfxGain:
-                            _sfxVolumeGain = message.Data.X;
-                            updateGain = true;
-                            break;
-                        case AudioEvent.SetVoiceGain:
-                            _voiceVolumeGain = message.Data.X;
+                        case AudioEvent.SetCategoryGain:
+                            gains[(int)message.Data.Y] = message.Data.X;
                             updateGain = true;
                             break;
                         case AudioEvent.MusicPlay:

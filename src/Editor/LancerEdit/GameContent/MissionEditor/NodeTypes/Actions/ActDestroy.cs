@@ -24,7 +24,7 @@ public sealed class ActDestroy : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Target", undoBuffer, () => ref Data.Target, lookups.ShipsAndSolars);
+        nodePopups.StringCombo("Target", undoBuffer, () => ref Data.Target, lookups.ShipsSolarsAndLabels);
         nodePopups.Combo("Kind", undoBuffer, () => ref Data.Kind);
     }
 
@@ -33,4 +33,12 @@ public sealed class ActDestroy : NodeTriggerEntry
         Data.Write(sectionBuilder);
     }
 
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_Destroy,
+            BuildEntry()
+        );
+    }
 }

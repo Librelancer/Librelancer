@@ -5,20 +5,29 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using LibreLancer.Data;
 using LibreLancer.Resources;
 using LibreLancer.Utf.Ale;
 
 namespace LibreLancer.Fx
 {
 	public class ParticleLibrary
-	{
-		public List<ParticleEffect> Effects = new List<ParticleEffect>();
+    {
+        public GameItemCollection<ParticleEffect> Effects = new();
+        public Dictionary<string, FxNode> Nodes = new(StringComparer.OrdinalIgnoreCase);
 		public ResourceManager Resources;
         public string AlePath;
 		public ParticleLibrary (ResourceManager res, AleFile ale)
 		{
 			Resources = res;
             AlePath = ale.Path;
+            Dictionary<uint, FxNode> nodesByCrc = new();
+            foreach (var n in ale.NodeLib.Nodes)
+            {
+                var conv = NodeFromAle(n);
+                Nodes[conv.NodeName] = conv;
+                nodesByCrc[conv.CRC] = conv;
+            }
 			foreach (var effect in ale.FxLib.Effects) {
 
 				Dictionary<uint, NodeReference> nodesByIndex = new Dictionary<uint, NodeReference>();
@@ -30,38 +39,26 @@ namespace LibreLancer.Fx
 					FxNode node = null;
 					if (!noderef.IsAttachmentNode)
 					{
-                        var nd = ale.NodeLib.Nodes.FirstOrDefault((arg) => arg.CRC == noderef.CRC);
-                        if(nd == null)
+                        if(!nodesByCrc.TryGetValue(noderef.CRC, out node))
                         {
-                            node = new FxNode("error node", "error node");
+                            string errorNode = "_error_node_0";
+                            int i = 1;
+                            while (Nodes.ContainsKey(errorNode))
+                                errorNode = $"_error_node_{i++}";
+                            node = new FxNode(errorNode);
+                            Nodes[errorNode] = node;
                             FLLog.Error("Fx", effect.Name + " bad node CRC 0x" + noderef.CRC.ToString("x"));
                         }
-                        else
-                            node = NodeFromAle(ale.NodeLib.Nodes.Where((arg) => arg.CRC == noderef.CRC).First());
 					}
 
-                    NodeReference reference;
-                    if (node is FxEmitter emit)
+                    NodeReference reference = NodeReference.Create(node);
+                    if (reference is EmitterReference emit)
                     {
-                        var er = new EmitterReference() {Emitter = emit};
-                        emitters.Add(er);
-                        reference = er;
+                        emitters.Add(emit);
                     }
-                    else if (node is FxAppearance app)
+                    else if (reference is AppearanceReference app)
                     {
-                        var ar = new AppearanceReference() {Appearance = app};
-                        appearances.Add(ar);
-                        reference = ar;
-                    }
-                    else if (node is FxField field)
-                    {
-                        var fr = new FieldReference() { Field = field };
-                        fields.Add(fr);
-                        reference = fr;
-                    }
-                    else
-                    {
-                        reference = new EmptyNodeReference(node);
+                        appearances.Add(app);
                     }
 					reference.IsAttachmentNode = noderef.IsAttachmentNode;
 					nodesByIndex.Add(noderef.Index, reference);
@@ -83,26 +80,25 @@ namespace LibreLancer.Fx
                     if (n1 is EmitterReference er &&
                         n2 is AppearanceReference ar)
                     {
-                        er.AppIdx = appearances.IndexOf(ar);
+                        er.Linked = ar;
                     }
                     if (n1 is AppearanceReference ap &&
                         n2 is FieldReference fp)
                     {
-                        ap.FieldIdx = fields.IndexOf(fp);
+                        ap.Linked = fp;
                     }
 				}
                 Effects.Add(new ParticleEffect(
                     effect.CRC,
                     effect.Name,
-                    emitters.ToArray(),
-                    appearances.ToArray(),
-                    fields.ToArray(),
-                    nodesByIndex.Values.Where(x => x.Parent == null).ToArray()
+                    emitters,
+                    appearances,
+                    nodesByIndex.Values.Where(x => x.Parent == null).ToList()
                     ));
 			}
 		}
 
-        static FxNode NodeFromAle(AlchemyNode ale) => ale.Name switch
+        static FxNode NodeFromAle(AlchemyNode ale) => ale.ClassName switch
         {
             "FxNode" => new FxNode(ale),
             "FLBeamAppearance" => new FLBeamAppearance(ale),
@@ -123,21 +119,17 @@ namespace LibreLancer.Fx
             "FxGravityField" => new FxGravityField(ale),
             "FxRadialField" => new FxRadialField(ale),
             "FxTurbulenceField" => new FxTurbulenceField(ale),
-            _ => throw new ArgumentException(ale.Name)
+            _ => throw new ArgumentException(ale.ClassName)
         };
 
         private HashSet<uint> errored;
 		public ParticleEffect FindEffect(uint crc)
 		{
 			if (Effects.Count == 1)
-				return Effects[0]; //Work around buggy mods
-            for (int i = 0; i < Effects.Count; i++)
-            {
-                if (Effects[i].CRC == crc)
-                {
-                    return Effects[i];
-                }
-            }
+				return Effects.First(); //Work around buggy mods
+            var fx = Effects.Get(crc);
+            if (fx != null)
+                return fx;
             errored ??= new HashSet<uint>();
             if (!errored.Contains(crc))
             {
@@ -162,7 +154,7 @@ namespace LibreLancer.Fx
 
             foreach (var fx in Effects)
             {
-                var alfx = new ALEffect() { Name = fx.Name, CRC = fx.CRC };
+                var alfx = new ALEffect() { Name = fx.Nickname, CRC = fx.CRC };
                 List<NodeReference> list = new();
                 Dictionary<NodeReference, uint> tree = new();
                 void BuildTree(NodeReference r)
@@ -176,14 +168,15 @@ namespace LibreLancer.Fx
                     BuildTree(n);
                 foreach (var nr in list)
                 {
+                    // Init with 32768 for empty parent
                     if (nr.IsAttachmentNode)
                     {
-                        alfx.Fx.Add(new AlchemyNodeRef(1, 0, 0, tree[nr]));
+                        alfx.Fx.Add(new AlchemyNodeRef(1, 0, 32768, tree[nr]));
                     }
                     else
                     {
                         AddNode(nr.Node);
-                        alfx.Fx.Add(new AlchemyNodeRef(0, nr.Node.CRC, 0, tree[nr]));
+                        alfx.Fx.Add(new AlchemyNodeRef(0, nr.Node.CRC, 32768, tree[nr]));
                     }
                 }
                 void AssignChildren(NodeReference r)
@@ -200,16 +193,16 @@ namespace LibreLancer.Fx
                 // Assign pairs
                 for (int i = 0; i < list.Count; i++)
                 {
-                    if (list[i] is EmitterReference er && er.AppIdx != -1)
+                    if (list[i] is EmitterReference er && er.Linked != null)
                     {
                         var self = tree[list[i]];
-                        var other = tree[fx.Appearances[er.AppIdx]];
+                        var other = tree[er.Linked];
                         alfx.Pairs.Add((self, other));
                     }
-                    else if (list[i] is AppearanceReference ap && ap.FieldIdx != -1)
+                    else if (list[i] is AppearanceReference ap && ap.Linked != null)
                     {
                         var self = tree[list[i]];
-                        var other = tree[fx.Appearances[ap.FieldIdx]];
+                        var other = tree[ap.Linked];
                         alfx.Pairs.Add((self, other));
                     }
                 }

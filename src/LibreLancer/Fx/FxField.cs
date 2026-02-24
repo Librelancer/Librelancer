@@ -11,6 +11,10 @@ namespace LibreLancer.Fx
 		public FxField (AlchemyNode ale) : base(ale)
 		{
 		}
+
+        public FxField(string name) : base(name)
+        {
+        }
 	}
 }
 

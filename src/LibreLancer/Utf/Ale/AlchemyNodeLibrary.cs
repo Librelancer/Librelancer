@@ -28,7 +28,7 @@ namespace LibreLancer.Utf.Ale
 					ushort nameLen = reader.ReadUInt16 ();
 					var nodeName = Encoding.ASCII.GetString (reader.ReadBytes (nameLen)).TrimEnd ('\0');
 					reader.BaseStream.Seek(nameLen & 1, SeekOrigin.Current); //padding
-					var node = new AlchemyNode () { Name = nodeName };
+					var node = new AlchemyNode () { ClassName = nodeName };
 					node.CRC = CrcTool.FLAleCrc(nodeName);
                     uint id;
                     AleProperty prop;
@@ -79,6 +79,7 @@ namespace LibreLancer.Utf.Ale
 					if (node.TryGetParameter(AleProperty.Node_Name, out temp))
 					{
 						var nn = (string)temp.Value;
+                        node.NodeName = nn;
 						node.CRC = CrcTool.FLAleCrc(nn);
 					}
 					Nodes.Add (node);

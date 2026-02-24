@@ -42,4 +42,13 @@ public class CndShipDistanceVector : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_DistVec,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

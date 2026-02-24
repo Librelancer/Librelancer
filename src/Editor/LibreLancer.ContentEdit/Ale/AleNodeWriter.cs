@@ -44,7 +44,7 @@ public static class AleNodeWriter
         bw.Write(nodelib.Nodes.Count);
         foreach (var n in nodelib.Nodes)
         {
-            WriteString(bw, n.Name);
+            WriteString(bw, n.ClassName);
             foreach (var p in n.Parameters)
             {
                 WriteParameter(bw, p);
@@ -130,13 +130,13 @@ public static class AleNodeWriter
         {
             bw.Write(item.SParam);
             bw.Write((byte)item.Type);
-            bw.Write((byte)item.Data.Length);
-            foreach (var kf in item.Data)
+            bw.Write((byte)item.Keyframes.Count);
+            foreach (var kf in item.Keyframes)
             {
-                bw.Write(kf.Item1);
-                bw.Write(kf.Item2.R);
-                bw.Write(kf.Item2.G);
-                bw.Write(kf.Item2.B);
+                bw.Write(kf.Time);
+                bw.Write(kf.Value.R);
+                bw.Write(kf.Value.G);
+                bw.Write(kf.Value.B);
             }
         }
     }
@@ -149,11 +149,11 @@ public static class AleNodeWriter
         {
             bw.Write(item.SParam);
             bw.Write((byte)item.Type);
-            bw.Write((byte)item.Data.Length);
-            foreach (var kf in item.Data)
+            bw.Write((byte)item.Keyframes.Count);
+            foreach (var kf in item.Keyframes)
             {
-                bw.Write(kf.Item1);
-                bw.Write(kf.Item2);
+                bw.Write(kf.Time);
+                bw.Write(kf.Value);
             }
         }
     }
@@ -178,7 +178,10 @@ public static class AleNodeWriter
                     bw.Write(k.Start);
                 }
             }
-            bw.Write((ushort)0);
+            else
+            {
+                bw.Write((ushort)0);
+            }
         }
     }
 

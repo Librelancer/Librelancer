@@ -664,12 +664,19 @@ namespace LibreLancer.ImUI
             lerpVerts.Clear();
         }
 
+        private static int _tempId = 8192;
+        public static int TempId()
+        {
+            return (_tempId++);
+        }
+
 		VertexBuffer vbo;
 		ElementBuffer ibo;
 		int vboSize = -1;
 		int iboSize = -1;
 		unsafe void RenderImDrawData(ImDrawDataPtr draw_data, RenderContext rstate)
-		{
+        {
+            _tempId = 8192;
             if (draw_data.Textures != null)
             {
                 ref ImPtrVector<ImTextureData> drawTextures = ref Unsafe.AsRef<ImPtrVector<ImTextureData>>(draw_data.Textures);

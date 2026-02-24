@@ -17,6 +17,11 @@ namespace LibreLancer.Utf.Ale
             Type = EasingTypes.Linear;
         }
 
+        public AlchemyColorAnimation(Color3f constant)
+        {
+            Items = [new() { Keyframes = [new(0, constant)] }];
+        }
+
 		public AlchemyColorAnimation (BinaryReader reader)
 		{
 			Type = (EasingTypes)reader.ReadByte ();
@@ -25,9 +30,10 @@ namespace LibreLancer.Utf.Ale
 				var colors = new AlchemyColors ();
 				colors.SParam = reader.ReadSingle ();
 				colors.Type = (EasingTypes)reader.ReadByte ();
-				colors.Data = new Tuple<float, Color3f>[reader.ReadByte ()];
-				for (int i = 0; i < colors.Data.Length; i++) {
-					colors.Data [i] = new Tuple<float, Color3f> (reader.ReadSingle (), new Color3f (reader.ReadSingle (), reader.ReadSingle (), reader.ReadSingle ()));
+                var len = reader.ReadByte();
+                colors.Keyframes = new RefList<ColorKeyframe>(len);
+				for (int i = 0; i < len; i++) {
+					colors.Keyframes.Add(new  (reader.ReadSingle (), new Color3f (reader.ReadSingle (), reader.ReadSingle (), reader.ReadSingle ())));
 				}
 				Items.Add (colors);
 			}

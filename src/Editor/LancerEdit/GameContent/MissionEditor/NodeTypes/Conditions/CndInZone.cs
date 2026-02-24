@@ -30,4 +30,13 @@ public class CndInZone : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_InZone,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

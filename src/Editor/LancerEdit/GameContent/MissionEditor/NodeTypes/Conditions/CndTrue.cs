@@ -25,4 +25,13 @@ public class CndTrue : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_True,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

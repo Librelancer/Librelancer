@@ -17,7 +17,7 @@ public partial class MissionFormation
     [Entry("position")]
     public Vector3 Position;
     [Entry("orientation")]
-    public Quaternion Orientation;
+    public Quaternion Orientation = Quaternion.Identity;
     [Entry("formation")]
     public string? Formation;
     [Entry("ship", Multiline = true)]

@@ -31,4 +31,14 @@ public sealed class ActAdjustAccount : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_AdjAcct,
+            BuildEntry()
+        );
+    }
 }

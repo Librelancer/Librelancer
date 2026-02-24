@@ -41,7 +41,7 @@ public sealed class ActSendComm : NodeTriggerEntry
             lookups.MissionIni.Ships.TryGetValue(Data.Source, out var source)
             && !string.IsNullOrWhiteSpace(source?.NPC?.Voice))
         {
-            gameData.Sounds.PlayVoiceLine(source.NPC.Voice, FLHash.CreateID(Data.Line));
+            gameData.Sounds.PlayVoiceLine(source.NPC.Voice, Data.Line);
             return;
         }
 
@@ -49,12 +49,21 @@ public sealed class ActSendComm : NodeTriggerEntry
             lookups.MissionIni.Solars.TryGetValue(Data.Source, out var source2) &&
             !string.IsNullOrWhiteSpace(source2.Voice))
         {
-            gameData.Sounds.PlayVoiceLine(source2.Voice, FLHash.CreateID(Data.Line));
+            gameData.Sounds.PlayVoiceLine(source2.Voice, Data.Line);
         }
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
     {
         Data.Write(sectionBuilder);
+    }
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_SendComm,
+            BuildEntry()
+        );
     }
 }

@@ -25,7 +25,7 @@ public sealed class ActInvulnerable : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Object", undoBuffer, () => ref Data.Object, lookups.ShipsAndSolars);
+        nodePopups.StringCombo("Object", undoBuffer, () => ref Data.Object, lookups.ShipsSolarsAndLabels);
 
         Controls.CheckboxUndo("Is Invulnerable", undoBuffer, () => ref Data.Invulnerable);
     }
@@ -33,5 +33,14 @@ public sealed class ActInvulnerable : NodeTriggerEntry
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
     {
         Data.Write(sectionBuilder);
+    }
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_Invulnerable,
+            BuildEntry()
+        );
     }
 }

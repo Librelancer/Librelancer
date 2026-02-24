@@ -3,8 +3,6 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace LibreLancer.Utf.Ale
 {
@@ -13,16 +11,15 @@ namespace LibreLancer.Utf.Ale
 		public float SParam;
 		public float Value;
 		public LoopFlags Flags;
-        public List<CurveKeyframe> Keyframes;
+        public RefList<CurveKeyframe> Keyframes = [];
 
-        public bool Animates
-        {
-            get { return Keyframes != null && Keyframes.Count != 1; }
-        }
+        public bool IsCurve;
+
+        public bool Animates => IsCurve;
 
         public float GetMax(bool abs)
         {
-            if (Keyframes == null)
+            if (!IsCurve)
                 return abs ? Math.Abs(Value) : Value;
             float max = 0;
             foreach (var k in Keyframes)
@@ -33,7 +30,7 @@ namespace LibreLancer.Utf.Ale
             return max;
         }
         public float GetValue(float time) {
-			if (Keyframes == null || Keyframes.Count == 0)
+			if (!IsCurve)
 				return Value;
 			if (Keyframes.Count == 1)
 				return Keyframes [0].Value;

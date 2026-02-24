@@ -6,31 +6,29 @@ using System;
 
 namespace LibreLancer.Graphics;
 
+//D3DBLEND
+public enum BlendOp : byte
+{
+    Invalid = 0,
+    Zero = 1,
+    One = 2,
+    SrcColor = 3,
+    InvSrcColor = 4,
+    SrcAlpha = 5,
+    InvSrcAlpha = 6,
+    DstAlpha = 7,
+    InvDstAlpha = 8,
+    DstColor = 9,
+    InvDstColor = 10,
+    SrcAlphaSat = 11
+}
+
 public static class BlendMode
 {
     public const ushort Opaque = 0;
-    public const ushort Normal = (D3DBLEND_SRCALPHA << 8) | D3DBLEND_INVSRCALPHA;
-    public const ushort Additive = (D3DBLEND_SRCALPHA << 8) | D3DBLEND_ONE;
-    public const ushort OneInvSrcColor = (D3DBLEND_ONE << 8) | D3DBLEND_INVSRCCOLOR;
-    //D3DBLEND, we base our consts on this
-    private const int D3DBLEND_ZERO = 1;
-    private const int D3DBLEND_ONE              = 2;
-    private const int D3DBLEND_SRCCOLOR         = 3;
-    private const int D3DBLEND_INVSRCCOLOR      = 4;
-    private const int D3DBLEND_SRCALPHA         = 5;
-    private const int D3DBLEND_INVSRCALPHA      = 6;
-    private const int D3DBLEND_DESTALPHA        = 7;
-    private const int D3DBLEND_INVDESTALPHA     = 8;
-    private const int D3DBLEND_DESTCOLOR        = 9;
-    private const int D3DBLEND_INVDESTCOLOR     = 10;
-    private const int D3DBLEND_SRCALPHASAT      = 11;
-    /* Either obsolete or not available in D3D8
-    private const int D3DBLEND_BOTHSRCALPHA     = 12;
-    private const int D3DBLEND_BOTHINVSRCALPHA  = 13;
-    private const int D3DBLEND_BLENDFACTOR      = 14;
-    private const int D3DBLEND_INVBLENDFACTOR   = 15;
-    private const int D3DBLEND_SRCCOLOR2        = 16;
-    private const int D3DBLEND_INVSRCCOLOR2     = 17;*/
+    public const ushort Normal = ((ushort)BlendOp.SrcAlpha << 8) | (ushort)BlendOp.InvSrcAlpha;
+    public const ushort Additive = ((ushort)BlendOp.SrcAlpha << 8) | (ushort)BlendOp.One;
+    public const ushort OneInvSrcColor = ((ushort)BlendOp.One << 8) | (ushort)BlendOp.InvSrcColor;
 
     internal static void Validate(ushort blend)
     {
@@ -51,10 +49,12 @@ public static class BlendMode
         return (ushort)((src << 8) | dst);
     }
 
-    public static (int, int) Deconstruct(ushort blendMode)
+    public static ushort Create(BlendOp src, BlendOp dst) => Create((ushort)src, (ushort)dst);
+
+    public static (BlendOp, BlendOp) Deconstruct(ushort blendMode)
     {
         var src = (blendMode >> 8) & 0xFF;
         var dst = blendMode & 0xFF;
-        return (src, dst);
+        return ((BlendOp)src, (BlendOp)dst);
     }
 }

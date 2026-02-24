@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
@@ -106,12 +107,12 @@ public sealed partial class MissionScriptEditorTab
             {
                 if (missionIni.Ships.TryGetValue(line.Source, out var src))
                 {
-                    gameData.Sounds.PlayVoiceLine(src.NPC.Voice, FLHash.CreateID(line.Line));
+                    gameData.Sounds.PlayVoiceLine(src.NPC.Voice, line.Line);
 
                 }
                 else if (missionIni.Solars.TryGetValue(line.Source, out var src2))
                 {
-                    gameData.Sounds.PlayVoiceLine(src2.Voice, FLHash.CreateID(line.Line));
+                    gameData.Sounds.PlayVoiceLine(src2.Voice, line.Line);
                 }
             }
 
@@ -379,6 +380,13 @@ public sealed partial class MissionScriptEditorTab
 
     private ScriptAiCommands selectedObjList;
 
+    class SwapListItems(List<MissionDirective> Directives, int A, int B) : EditorAction
+    {
+        public override void Commit() => (Directives[A], Directives[B]) = (Directives[B], Directives[A]);
+        public override void Undo() => Commit(); // Do the reverse
+        public override string ToString() => "Move Directive";
+    }
+
     private void RenderObjectiveListManager()
     {
         DictionaryRemove<ScriptAiCommands> Delete()
@@ -396,29 +404,39 @@ public sealed partial class MissionScriptEditorTab
         }
 
         var objListTypes = Enum.GetNames<ObjListCommands>();
+        int delete = -1, moveUp = -1, moveDown = -1;
 
         for (var index = 0; index < selectedObjList.Directives.Count; index++)
         {
             ImGui.PushID(index);
             ImGui.Separator();
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0,0));
+            if (ImGuiExt.Button($"{Icons.ArrowUp}", index > 0, ImDrawFlags.RoundCornersLeft))
+                moveUp = index;
+            ImGui.SameLine();
+            if (ImGuiExt.Button($"{Icons.ArrowDown}", index + 1 < selectedObjList.Directives.Count,
+                    ImDrawFlags.RoundCornersNone))
+                moveDown = index;
+            ImGui.SameLine();
+            if (ImGuiExt.Button($"{Icons.TrashAlt}", true, ImDrawFlags.RoundCornersRight))
+                delete = index;
+            ImGui.PopStyleVar();
+            ImGui.SameLine();
+
 
             var obj = selectedObjList.Directives[index];
 
             var typeIndex = (int) obj.Command;
 
-            ImGui.SetNextItemWidth(150f);
-            ImGui.Combo("Command Type", ref typeIndex, objListTypes, objListTypes.Length);
+            ImGui.SetNextItemWidth(-1);
+            ImGui.Combo("##command", ref typeIndex, objListTypes, objListTypes.Length);
 
             if ((int) obj.Command != typeIndex)
             {
                 undoBuffer.Commit(new ListSet<MissionDirective>("Command", selectedObjList.Directives,
                     index, obj, MissionDirective.New((ObjListCommands)typeIndex)));
             }
-            if (DrawDirective(index, obj))
-            {
-                selectedObjList.Directives.RemoveAt(index--);
-            }
-
+            DirectiveEditor.EditDirective(obj, undoBuffer);
             ImGui.PopID();
         }
 
@@ -427,24 +445,14 @@ public sealed partial class MissionScriptEditorTab
             undoBuffer.Commit(new ListAdd<MissionDirective>("Command", selectedObjList.Directives, new BreakFormationDirective()));
         }
 
-        return;
-
-        bool DrawDirective(int id, MissionDirective cmd)
+        if (delete != -1)
         {
-            // begin border/frame/whatever
-            ImGui.PushID($"obj-list-{id}-{cmd.GetType()}");
-
-            ImGui.SameLine();
-
-            if (ImGui.Button($"{Icons.TrashAlt}"))
-            {
-                ImGui.PopID();
-                return true;
-            }
-            DirectiveEditor.EditDirective(cmd, undoBuffer);
-            // end border/frame/whatever
-            ImGui.PopID();
-            return false;
+            undoBuffer.Commit(new ListRemove<MissionDirective>("Command", selectedObjList.Directives,
+                delete, selectedObjList.Directives[delete]));
         }
+        if (moveUp != -1)
+            undoBuffer.Commit(new SwapListItems(selectedObjList.Directives, moveUp, moveUp - 1));
+        if(moveDown != -1)
+            undoBuffer.Commit(new SwapListItems(selectedObjList.Directives, moveDown, moveDown + 1));
     }
 }

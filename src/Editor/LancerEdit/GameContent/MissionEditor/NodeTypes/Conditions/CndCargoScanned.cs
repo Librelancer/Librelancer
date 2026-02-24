@@ -33,4 +33,13 @@ public class CndCargoScanned : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_CargoScanned,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

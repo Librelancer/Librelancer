@@ -354,6 +354,13 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
             if (foundNode != 0)
             {
                 contextNodeId = foundNode;
+
+                // If the node isn't already selected,clear selection and select it.
+                if (!NodeEditor.IsNodeSelected(foundNode))
+                {
+                    NodeEditor.ClearSelection();
+                    NodeEditor.SelectNode(foundNode);
+                }
             }
 
             ImGui.OpenPopup(nodeContextMenu);
@@ -579,6 +586,12 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         }
 
         ImGui.Separator();
+        if (ImGui.MenuItem((selectedNodes is 1)? "Duplicate Node" : "Duplicate Nodes"))
+        {
+            DuplicateSelectedNodes();
+            ImGui.CloseCurrentPopup();
+            return;
+        }
         if (!node.OnContextMenu(popup, undoBuffer))
         {
             return;
@@ -748,5 +761,74 @@ public sealed partial class MissionScriptEditorTab : GameContentTab
         missionIni.Save(FileSaveLocation, gameData, nodes.OfType<NodeMissionTrigger>(), savedNodes);
 
         return new EditResult<bool>(true);
+    }
+
+    private void DuplicateSelectedNodes()
+    {
+        Span<NodeId> nodeIds = stackalloc NodeId[nodes.Count];
+        var selectedCount = NodeEditor.GetSelectedNodes(nodeIds);
+
+        if (selectedCount == 0)
+            return;
+
+        const float offset = 40f;
+
+        var actions = new List<EditorAction>();
+
+        for (int i = 0; i < selectedCount; i++)
+        {
+            Node original = null;
+            var id = nodeIds[i];
+
+            for (int j = 0; j < nodes.Count; j++)
+            {
+                if (nodes[j].Id == id)
+                {
+                    original = nodes[j];
+                    break;
+                }
+            }
+
+            if (original == null)
+                continue;
+
+            var clone = original.Clone(this);
+
+            var pos = NodeEditor.GetNodePosition(original.Id);
+            var newPos = pos + new Vector2(offset, offset);
+
+            actions.Add(new NewNodeFromCloneAction(clone, newPos, this));
+        }
+
+        if (actions.Count > 0)
+            undoBuffer.Commit(EditorAggregateAction.Create(actions.ToArray()));
+    }
+
+    internal string GenerateUniqueTriggerName(string baseName)
+    {
+        int i = 1;
+        string newName;
+
+        do
+        {
+            newName = $"{baseName}_Copy{i}";
+            i++;
+        }
+        while (GetTrigger(newName) != null);
+
+        return newName;
+    }
+    internal void AddNode(Node node, Vector2 pos)
+    {
+        nodes.Add(node);
+        NodeEditor.SetNodePosition(node.Id, pos);
+        SetupLookups();
+    }
+
+    internal void RemoveNode(Node node)
+    {
+        nodes.Remove(node);
+        NodeEditor.DeleteNode(node.Id);
+        SetupLookups();
     }
 }

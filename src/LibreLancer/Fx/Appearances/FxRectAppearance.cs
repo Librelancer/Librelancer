@@ -4,7 +4,6 @@
 
 using System;
 using System.Numerics;
-using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using LibreLancer.Render;
 using LibreLancer.Utf.Ale;
 
@@ -44,6 +43,14 @@ namespace LibreLancer.Fx
 				Width = (AlchemyFloatAnimation)temp.Value;
 			}
 		}
+
+        public FxRectAppearance(string name) : base(name)
+        {
+            Size = null;
+            Width = new(1);
+            Length = new(1);
+            Scale = new(1);
+        }
 
 		Vector3 Project(Billboards billboards, Vector3 pt)
 		{

@@ -79,7 +79,7 @@ public class Voice
 [ParsedSection]
 public partial class VoiceMessage
 {
-    [Entry("msg", Required = true)] public string? Message = null!;
+    [Entry("msg", Required = true)] public string Message = null!;
     [Entry("attenuation")] public float Attenuation;
     [Entry("duration")] public float Duration;
     [Entry("priority")] public string? Priority;

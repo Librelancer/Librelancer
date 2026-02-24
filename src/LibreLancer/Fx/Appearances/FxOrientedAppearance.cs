@@ -18,6 +18,13 @@ namespace LibreLancer.Fx
             Width = ale.GetFloatAnimation(AleProperty.OrientedApp_Width);
 		}
 
+        public FxOrientedAppearance(string name) : base(name)
+        {
+            Size = null;
+            Width = new(1);
+            Height = new(1);
+        }
+
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();

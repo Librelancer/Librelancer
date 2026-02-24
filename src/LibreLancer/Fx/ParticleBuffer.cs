@@ -64,7 +64,7 @@ public class ParticleBuffer
         if (index < 0 || index >= b.Count)
             throw new ArgumentOutOfRangeException("index");
         for (int i = index; i < b.Count - 1; i++)
-            this[segment, index] = this[segment, index + 1];
+            this[segment, i] = this[segment, i + 1];
         this[segment, b.Count - 1] = default;
         b.Head = b.Head - 1 < 0 ? (b.Capacity - 1) : b.Head - 1;
         b.Count--;
@@ -73,6 +73,7 @@ public class ParticleBuffer
     public void Dequeue(int segment)
     {
         ref var b = ref segments[segment];
+        if (b.Capacity == 0) throw new InvalidOperationException("Empty particle buffer segment");
         if (b.Count == 0) throw new InvalidOperationException("Collection empty");
         backing[b.Start + b.Tail] = default;
         b.Tail = (b.Tail + 1) % b.Capacity;
@@ -83,6 +84,7 @@ public class ParticleBuffer
     {
         despawned = -1;
         ref var b = ref segments[segment];
+        if (b.Capacity == 0) throw new InvalidOperationException("Empty particle buffer segment");
         b.Head = (b.Head + 1) % b.Capacity;
         if (backing[b.Start + b.Head].Orientation !=
             Quaternion.Zero)

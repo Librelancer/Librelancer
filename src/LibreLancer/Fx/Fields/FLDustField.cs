@@ -14,6 +14,11 @@ namespace LibreLancer.Fx
         {
             MaxRadius = ale.GetCurveAnimation(AleProperty.SphereEmitter_MaxRadius);
         }
+
+        public FLDustField(string name) : base(name)
+        {
+            MaxRadius = new(1);
+        }
 	}
 }
 

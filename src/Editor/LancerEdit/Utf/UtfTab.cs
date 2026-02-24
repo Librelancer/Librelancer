@@ -252,7 +252,7 @@ namespace LancerEdit
                     GenerateTangents();
                 }
 
-                if (tb.ButtonItem("View Ale"))
+                if (tb.ButtonItem("Edit Ale"))
                 {
                     AleFile ale = null;
                     try
@@ -264,8 +264,12 @@ namespace LancerEdit
                         ErrorPopup($"Could not open as ale\n{e.ToString()}");
                         ale = null;
                     }
+
                     if (ale != null)
-                        main.AddTab(new AleViewer(Title, ale, main));
+                    {
+                        main.AddTab(new AleEditor(Title, FilePath, ale, Utf, main));
+                        main.TabControl.CloseTab(this);
+                    }
                 }
 
                 if (tb.ButtonItem("Resolve Audio Hashes"))

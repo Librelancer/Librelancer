@@ -8,6 +8,7 @@ using System.IO;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Data;
 using LibreLancer.Data.Schema.Audio;
 using LibreLancer.Media;
 using LibreLancer.Utf.Audio;
@@ -150,10 +151,15 @@ namespace LibreLancer.Sounds
         {
             var e = GetEntry(name);
             if (e == null) return SoundCategory.Sfx;
-            if (e.Type == AudioType.Voice)
-                return SoundCategory.Voice;
-            return SoundCategory.Sfx;
+            return e.Type switch
+            {
+                AudioType.Ambience => SoundCategory.Ambience,
+                AudioType.Interface => SoundCategory.Interface,
+                AudioType.Voice => SoundCategory.Voice,
+                _ => SoundCategory.Sfx
+            };
         }
+
         public void PlayOneShot(string name)
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
@@ -203,21 +209,52 @@ namespace LibreLancer.Sounds
             }
         }
 
+        float LineAttenuation(string voice, string line)
+        {
+            var v = data.Items.Voices.Get(voice);
+            if (v == null) return 0;
+            if (!v.Lines.TryGetValue(line, out var ifo))
+                return 0;
+            return ifo.Attenuation;
+        }
+
+        float LineAttenuation(string voice, uint line)
+        {
+            var v = data.Items.Voices.Get(voice);
+            if (v == null) return 0;
+            if (!v.LinesByHash.TryGetValue(line, out var ifo))
+                return 0;
+            return ifo.Attenuation;
+        }
+
+
         private LazyConcurrentDictionary<string, VoiceUtf> voiceUtfs = new LazyConcurrentDictionary<string, VoiceUtf>();
-        public void PlayVoiceLine(string voice, uint hash, Action onEnd = null)
+        public void PlayVoiceLine(string voice, string line, Action onEnd = null)
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
+            PlayVoiceLine(voice, FLHash.CreateID(line), LineAttenuation(voice, line), onEnd);
+        }
+
+        public void PlayVoiceLine(string voice, uint lineHash, Action onEnd = null)
+        {
+            if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));
+            PlayVoiceLine(voice, lineHash, LineAttenuation(voice, lineHash), onEnd);
+        }
+
+        void PlayVoiceLine(string voice, uint lineHash, float attenuation, Action onEnd = null)
+        {
             Task.Run(() =>
             {
                 var path = data.GetVoicePath(voice);
                 var v = voiceUtfs.GetOrAdd(path, (s) => new VoiceUtf(s, data.VFS.Open(path)));
-                var file = v.AudioFiles[hash];
+                var file = v.AudioFiles[lineHash];
                 var sn = new SoundData();
                 using var ms = new MemoryStream(file);
                 sn.LoadStream(ms);
                 ui.QueueUIThread(() =>
                 {
                     var instance = audio.CreateInstance(sn, SoundCategory.Voice);
+                    instance.SetAttenuation(attenuation);
                     instance.Priority = 2;
                     instance.OnStop = () => {
                         sn.Dispose();
@@ -227,6 +264,7 @@ namespace LibreLancer.Sounds
                 });
             });
         }
+
         public void PlayMusic(string name, float fadeTime, bool oneshot = false)
         {
             if (isDisposed) throw new ObjectDisposedException(nameof(SoundManager));

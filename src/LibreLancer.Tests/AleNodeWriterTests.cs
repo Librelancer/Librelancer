@@ -23,6 +23,7 @@ public class AleNodeWriterTests
         curve1.SParam = 0.8f;
         curve1.Flags = LoopFlags.Repeat;
         curve1.Value = 12.0f;
+        curve1.IsCurve = true;
         curve1.Keyframes = new();
         curve1.Keyframes.Add(new CurveKeyframe() { Time = 0, Start = 2, End = 3, Value = 4});
         curve1.Keyframes.Add(new CurveKeyframe() { Time = 5, Start = 6, End = 7, Value = 8});
@@ -37,6 +38,7 @@ public class AleNodeWriterTests
         curve3.SParam = 0.8f;
         curve3.Flags = LoopFlags.Repeat;
         curve3.Value = 12.0f;
+        curve3.IsCurve = true;
         curve3.Keyframes = new();
         curve3.Keyframes.Add(new CurveKeyframe() { Time = 0, Start = 2, End = 3, Value = 4});
         curve3.Keyframes.Add(new CurveKeyframe() { Time = 5, Start = 6, End = 7, Value = 8});
@@ -118,7 +120,7 @@ public class AleNodeWriterTests
     {
         var nodelib = new AlchemyNodeLibrary();
         var n = new AlchemyNode();
-        n.Name = "Hello";
+        n.ClassName = "Hello";
         n.Parameters.Add(new AleParameter(StringProp, "Texture"));
         n.Parameters.Add(new AleParameter(BoolProp, true));
         nodelib.Nodes.Add(n);
@@ -128,7 +130,7 @@ public class AleNodeWriterTests
         Assert.Equal(nodelib.Nodes.Count, copylib.Nodes.Count);
         for (int i = 0; i < nodelib.Nodes.Count; i++)
         {
-            Assert.Equal(nodelib.Nodes[i].Name, copylib.Nodes[i].Name);
+            Assert.Equal(nodelib.Nodes[i].ClassName, copylib.Nodes[i].ClassName);
             Assert.Equal(nodelib.Nodes[i].Parameters.Count, copylib.Nodes[i].Parameters.Count);
             for (int j = 0; j < nodelib.Nodes[i].Parameters.Count; j++)
             {
@@ -175,7 +177,7 @@ public class AleNodeWriterTests
     {
         var nodelib = new AlchemyNodeLibrary();
         var n = new AlchemyNode();
-        n.Name = "Hello";
+        n.ClassName = "Hello";
         // Create our curve
 
         n.Parameters.Add(new AleParameter(CurveProp, testCurve));
@@ -184,7 +186,7 @@ public class AleNodeWriterTests
 
         // Sanity check
         Assert.Equal(nodelib.Nodes.Count, copylib.Nodes.Count);
-        Assert.Equal(nodelib.Nodes[0].Name, copylib.Nodes[0].Name);
+        Assert.Equal(nodelib.Nodes[0].ClassName, copylib.Nodes[0].ClassName);
         Assert.Equal(nodelib.Nodes[0].Parameters.Count, copylib.Nodes[0].Parameters.Count);
 
         // Test curve
@@ -196,7 +198,7 @@ public class AleNodeWriterTests
     {
         var nodelib = new AlchemyNodeLibrary();
         var n = new AlchemyNode();
-        n.Name = "Hello";
+        n.ClassName = "Hello";
         var emptyTransform = new AlchemyTransform();
         n.Parameters.Add(new AleParameter(TransformProp, emptyTransform));
         nodelib.Nodes.Add(n);
@@ -204,7 +206,7 @@ public class AleNodeWriterTests
         var copylib = new AlchemyNodeLibrary(ToUtfNode(nodelib));
         // Sanity check
         Assert.Equal(nodelib.Nodes.Count, copylib.Nodes.Count);
-        Assert.Equal(nodelib.Nodes[0].Name, copylib.Nodes[0].Name);
+        Assert.Equal(nodelib.Nodes[0].ClassName, copylib.Nodes[0].ClassName);
         Assert.Equal(nodelib.Nodes[0].Parameters.Count, copylib.Nodes[0].Parameters.Count);
 
         var actual = (AlchemyTransform)nodelib.Nodes[0].Parameters[0].Value;
@@ -217,7 +219,7 @@ public class AleNodeWriterTests
     {
         var nodelib = new AlchemyNodeLibrary();
         var n = new AlchemyNode();
-        n.Name = "Hello";
+        n.ClassName = "Hello";
         var animTransform = new AlchemyTransform();
         animTransform.HasTransform = true;
         animTransform.TranslateX = testCurve;
@@ -236,7 +238,7 @@ public class AleNodeWriterTests
         var copylib = new AlchemyNodeLibrary(ToUtfNode(nodelib));
         // Sanity check
         Assert.Equal(nodelib.Nodes.Count, copylib.Nodes.Count);
-        Assert.Equal(nodelib.Nodes[0].Name, copylib.Nodes[0].Name);
+        Assert.Equal(nodelib.Nodes[0].ClassName, copylib.Nodes[0].ClassName);
         Assert.Equal(nodelib.Nodes[0].Parameters.Count, copylib.Nodes[0].Parameters.Count);
 
         var actual = (AlchemyTransform)nodelib.Nodes[0].Parameters[0].Value;
@@ -257,7 +259,7 @@ public class AleNodeWriterTests
     {
         var nodelib = new AlchemyNodeLibrary();
         var n = new AlchemyNode();
-        n.Name = "Hello";
+        n.ClassName = "Hello";
 
         var colorAnim = new AlchemyColorAnimation();
 
@@ -265,18 +267,18 @@ public class AleNodeWriterTests
         {
             SParam = 4,
             Type = EasingTypes.Step,
-            Data = [new(0, Color3f.White)]
+            Keyframes = [new(0, Color3f.White)]
         };
         colorAnim.Items.Add(colors1);
         var colors2 = new AlchemyColors()
         {
             SParam = 5,
             Type = EasingTypes.Linear,
-            Data =
+            Keyframes =
             [
                 new(0, Color3f.Black),
-                new Tuple<float, Color3f>(0.2f, new Color3f(0.5f, 0.5f, 0.8f)),
-                new Tuple<float, Color3f>(1, Color3f.White)
+                new (0.2f, new Color3f(0.5f, 0.5f, 0.8f)),
+                new (1, Color3f.White)
             ]
         };
         colorAnim.Items.Add(colors2);
@@ -288,7 +290,7 @@ public class AleNodeWriterTests
         var copylib = new AlchemyNodeLibrary(ToUtfNode(nodelib));
         // Sanity check
         Assert.Equal(nodelib.Nodes.Count, copylib.Nodes.Count);
-        Assert.Equal(nodelib.Nodes[0].Name, copylib.Nodes[0].Name);
+        Assert.Equal(nodelib.Nodes[0].ClassName, copylib.Nodes[0].ClassName);
         Assert.Equal(nodelib.Nodes[0].Parameters.Count, copylib.Nodes[0].Parameters.Count);
 
         var actual = (AlchemyColorAnimation)nodelib.Nodes[0].Parameters[0].Value;
@@ -298,7 +300,7 @@ public class AleNodeWriterTests
         {
             Assert.Equal(colorAnim.Items[i].Type, actual.Items[i].Type);
             Assert.Equal(colorAnim.Items[i].SParam,  actual.Items[i].SParam);
-            Assert.Equal(colorAnim.Items[i].Data, actual.Items[i].Data);
+            Assert.Equal(colorAnim.Items[i].Keyframes, actual.Items[i].Keyframes);
         }
     }
 
@@ -307,7 +309,7 @@ public class AleNodeWriterTests
     {
         var nodelib = new AlchemyNodeLibrary();
         var n = new AlchemyNode();
-        n.Name = "Hello";
+        n.ClassName = "Hello";
 
         var floatAnim = new AlchemyFloatAnimation();
 
@@ -315,14 +317,14 @@ public class AleNodeWriterTests
         {
             SParam = 4,
             Type = EasingTypes.Step,
-            Data = [new(0, 1)]
+            Keyframes = [new(0, 1)]
         };
         floatAnim.Items.Add(floats1);
         var floats2 = new AlchemyFloats()
         {
             SParam = 5,
             Type = EasingTypes.Linear,
-            Data =
+            Keyframes =
             [
                 new(0, 3),
                 new (0.2f, 6),
@@ -338,7 +340,7 @@ public class AleNodeWriterTests
         var copylib = new AlchemyNodeLibrary(ToUtfNode(nodelib));
         // Sanity check
         Assert.Equal(nodelib.Nodes.Count, copylib.Nodes.Count);
-        Assert.Equal(nodelib.Nodes[0].Name, copylib.Nodes[0].Name);
+        Assert.Equal(nodelib.Nodes[0].ClassName, copylib.Nodes[0].ClassName);
         Assert.Equal(nodelib.Nodes[0].Parameters.Count, copylib.Nodes[0].Parameters.Count);
 
         var actual = (AlchemyFloatAnimation)nodelib.Nodes[0].Parameters[0].Value;
@@ -348,7 +350,7 @@ public class AleNodeWriterTests
         {
             Assert.Equal(floatAnim.Items[i].Type, actual.Items[i].Type);
             Assert.Equal(floatAnim.Items[i].SParam,  actual.Items[i].SParam);
-            Assert.Equal(floatAnim.Items[i].Data, actual.Items[i].Data);
+            Assert.Equal(floatAnim.Items[i].Keyframes, actual.Items[i].Keyframes);
         }
     }
 }

@@ -30,4 +30,13 @@ public sealed class ActDockRequest : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_DockRequest,
+            BuildEntry()
+        );
+    }
 }

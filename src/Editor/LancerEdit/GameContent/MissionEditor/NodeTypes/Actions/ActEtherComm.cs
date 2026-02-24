@@ -34,12 +34,21 @@ public sealed class ActEtherComm : NodeTriggerEntry
 
         if (ImGui.Button("Play Line " + Icons.Play))
         {
-            gameData.Sounds.PlayVoiceLine(Data.Voice, FLHash.CreateID(Data.Line));
+            gameData.Sounds.PlayVoiceLine(Data.Voice, Data.Line);
         }
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)
     {
         Data.Write(sectionBuilder);
+    }
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_EtherComm,
+            BuildEntry()
+        );
     }
 }

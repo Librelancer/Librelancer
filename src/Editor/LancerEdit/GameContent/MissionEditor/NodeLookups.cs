@@ -60,7 +60,7 @@ public ref struct NodeLookups
         {
             if (_labels == null)
             {
-                _labels = MissionIni.Ships.Values.SelectMany(x => x.Labels).ToArray();
+                _labels = MissionIni.Ships.Values.SelectMany(x => x.Labels).Distinct().ToArray();
             }
             return _labels;
         }
@@ -79,7 +79,13 @@ public ref struct NodeLookups
             return _shipsAndLabels;
         }
     }
-
+    public string[] ShipsSolarsAndLabels
+    {
+        get
+        {
+            return ShipsAndLabels.Concat(ShipsAndSolars).Distinct().ToArray();
+        }
+    }
     private string[] _objectives;
 
     public string[] Objectives

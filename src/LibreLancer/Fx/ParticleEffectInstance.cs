@@ -52,7 +52,7 @@ namespace LibreLancer.Fx
             {
                 if (Emitters[i].Count > 0) return false;
             }
-            for (int i = 0; i < Effect.Emitters.Length; i++)
+            for (int i = 0; i < Effect.Emitters.Count; i++)
             {
                 if (Effect.Emitters[i].Enabled &&
                     globaltime < Effect.Emitters[i].Emitter.NodeLifeSpan)
@@ -64,7 +64,7 @@ namespace LibreLancer.Fx
         public ParticleEffectInstance(ParticleEffect fx)
         {
             ID = Interlocked.Increment(ref _id);
-            Emitters = new EmitterState[fx.Emitters.Length];
+            Emitters = new EmitterState[fx.Emitters.Count];
             Buffer = new ParticleBuffer(fx.ParticleCounts);
             Effect = fx;
         }
@@ -97,7 +97,7 @@ namespace LibreLancer.Fx
             lasttime = globaltime;
             globaltime += delta;
             //Update particles
-            for (int i = 0; i < Effect.Appearances.Length; i++)
+            for (int i = 0; i < Effect.Appearances.Count; i++)
             {
                 int count = Buffer.GetCount(i);
                 for (int j = 0; j < count; j++)
@@ -119,7 +119,7 @@ namespace LibreLancer.Fx
                 }
             }
             //Update emitters
-            for (int i = 0; i < Effect.Emitters.Length; i++)
+            for (int i = 0; i < Effect.Emitters.Count; i++)
             {
                 var r = Effect.Emitters[i];
                 if(r.Enabled)
@@ -130,7 +130,7 @@ namespace LibreLancer.Fx
         public void Draw(Matrix4x4 transform, float sparam)
         {
             if (Pool == null) return;
-            for (int i = 0; i < Effect.Appearances.Length; i++)
+            for (int i = 0; i < Effect.Appearances.Count; i++)
             {
                 if (!Effect.Appearances[i].Enabled) continue;
                 Effect.Appearances[i].Appearance.Draw(

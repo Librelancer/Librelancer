@@ -32,4 +32,13 @@ public class CndShipDistanceCircle : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_DistCircle,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

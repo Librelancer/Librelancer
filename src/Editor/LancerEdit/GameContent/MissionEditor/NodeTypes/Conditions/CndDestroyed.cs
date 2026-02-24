@@ -24,7 +24,7 @@ public class CndDestroyed : NodeTriggerEntry
         ref NodePopups nodePopups,
         ref NodeLookups lookups)
     {
-        nodePopups.StringCombo("Target", undoBuffer, () => ref Data.Label, lookups.ShipsAndLabels);
+        nodePopups.StringCombo("Target", undoBuffer, () => ref Data.Label, lookups.ShipsSolarsAndLabels);
 
         Controls.InputIntUndo("Count", undoBuffer, () => ref Data.Count);
         nodePopups.Combo("Kind", undoBuffer, () => ref Data.Kind);
@@ -34,4 +34,13 @@ public class CndDestroyed : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_Destroyed,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

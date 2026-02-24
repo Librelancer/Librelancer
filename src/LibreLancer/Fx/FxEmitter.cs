@@ -10,7 +10,7 @@ namespace LibreLancer.Fx
 {
 	public class FxEmitter : FxNode
 	{
-		public uint InitialParticles;
+		public int InitialParticles;
 		public AlchemyCurveAnimation Frequency;
         public AlchemyCurveAnimation EmitCount;
 		public AlchemyCurveAnimation InitLifeSpan;
@@ -22,7 +22,7 @@ namespace LibreLancer.Fx
 		{
 			AleParameter temp;
 			if (ale.TryGetParameter (AleProperty.Emitter_InitialParticles, out temp)) {
-				InitialParticles = (uint)temp.Value;
+				InitialParticles = (int)(uint)temp.Value;
 			}
 			if (ale.TryGetParameter (AleProperty.Emitter_Frequency, out temp)) {
 				Frequency = (AlchemyCurveAnimation)temp.Value;
@@ -44,11 +44,18 @@ namespace LibreLancer.Fx
 			}
 		}
 
+        public FxEmitter(string name) : base(name)
+        {
+            InitLifeSpan = new AlchemyCurveAnimation(1);
+
+        }
+
+
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();
             if(InitialParticles != 0)
-                n.Parameters.Add(new(AleProperty.Emitter_InitialParticles, InitialParticles));
+                n.Parameters.Add(new(AleProperty.Emitter_InitialParticles, (uint)InitialParticles));
             if(Frequency != null)
                 n.Parameters.Add(new(AleProperty.Emitter_Frequency, Frequency));
             if(EmitCount != null)
@@ -115,7 +122,7 @@ namespace LibreLancer.Fx
 
 		public void Update(EmitterReference reference, int index, ParticleEffectInstance instance, double delta, ref Matrix4x4 transform, float sparam)
 		{
-			if (reference.AppIdx == -1) return;
+			if (reference.Linked == null) return;
             if (NodeLifeSpan < instance.GlobalTime) return;
 			var maxCount = MaxParticles == null ? int.MaxValue : (int)Math.Ceiling(MaxParticles.GetValue(sparam, (float)instance.GlobalTime));
 			var freq = Frequency == null ? 0f : Frequency.GetValue(sparam, (float)instance.GlobalTime);
@@ -145,7 +152,7 @@ namespace LibreLancer.Fx
                     if (state.Count < maxCount)
                     {
                         //Emit
-                        ref var particle = ref instance.Buffer.Enqueue(reference.AppIdx, out int despawned);
+                        ref var particle = ref instance.Buffer.Enqueue(reference.AppBufIdx, out int despawned);
                         if (despawned != -1) {
                             instance.Emitters[despawned].Count--;
                             Debug.Assert(instance.Emitters[despawned].Count >= 0);
@@ -157,7 +164,7 @@ namespace LibreLancer.Fx
                         SetParticle(reference, ref particle, sparam, (float)instance.GlobalTime);
                         state.Count++;
                         //Put particle in world space if needed
-                        if (instance.Effect.Appearances[reference.AppIdx].Parent == null){
+                        if (reference.Linked.Parent == null){
                             particle.Position = Vector3.Transform(
                                 particle.Position, transform);
                             var len = particle.Normal.Length();

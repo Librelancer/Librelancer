@@ -22,6 +22,14 @@ namespace LibreLancer.Fx
             MaxSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxSpread);
 		}
 
+        public FxConeEmitter(string name) : base(name)
+        {
+            MinRadius = new (1);
+            MaxRadius = new (1);
+            MinSpread = new (0);
+            MaxSpread = new (0);
+        }
+
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();

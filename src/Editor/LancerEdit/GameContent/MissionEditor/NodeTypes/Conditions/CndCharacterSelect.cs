@@ -31,4 +31,13 @@ public class CndCharacterSelect : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_CharSelect,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

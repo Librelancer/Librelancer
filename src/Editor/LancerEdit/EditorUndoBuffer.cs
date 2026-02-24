@@ -117,7 +117,22 @@ public class EditorAggregateAction : EditorAction
     {
         if (actions.Length == 1)
             return actions[0];
-        return new EditorAggregateAction() { actions = actions };
+        if (actions.Any(x => x is EditorAggregateAction))
+        {
+            var a2 = new List<EditorAction>();
+            foreach (var x in actions)
+            {
+                if (x is EditorAggregateAction agg)
+                    a2.AddRange(agg.actions);
+                else
+                    a2.AddRange(x);
+            }
+            return new EditorAggregateAction() { actions = a2.ToArray() };
+        }
+        else
+        {
+            return new EditorAggregateAction() { actions = actions };
+        }
     }
 
     public override void Commit()
@@ -214,7 +229,7 @@ public class EditorPropertyModification<T> : EditorModification<T>
         => new(name, old, updated, accessor, hook);
 }
 
-public class ListAdd<T>(string Name, List<T> List, T Value) : EditorAction
+public class ListAdd<T>(string Name, IList<T> List, T Value) : EditorAction
 {
     public override void Commit() => List.Add(Value);
 
@@ -232,7 +247,7 @@ public class ListSet<T>(string Name, List<T> List, int Index, T Old, T New)
     public override string ToString() => $"{Name}[{Index}] '{Print(Old)}'->'{Print(New)}'";
 }
 
-public class ListRemove<T>(string Name, List<T> List, int Index, T Value) : EditorAction
+public class ListRemove<T>(string Name, IList<T> List, int Index, T Value) : EditorAction
 {
     public override void Commit() => List.RemoveAt(Index);
 
@@ -301,3 +316,5 @@ public class DictionaryRemove<T>(string Name, SortedDictionary<string, T> Collec
 
     public override string ToString() => $"{Name} Delete Item";
 }
+
+

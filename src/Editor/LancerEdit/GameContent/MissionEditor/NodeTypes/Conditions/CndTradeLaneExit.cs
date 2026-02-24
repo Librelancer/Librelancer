@@ -31,4 +31,13 @@ public class CndTradeLaneExit : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_TLExited,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

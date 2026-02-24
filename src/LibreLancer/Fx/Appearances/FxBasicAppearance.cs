@@ -51,6 +51,12 @@ namespace LibreLancer.Fx
             }
         }
 
+        public FxBasicAppearance(string name) : base(name)
+        {
+            Size = new(1);
+            Color = new(Color3f.White);
+        }
+
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();
@@ -74,6 +80,10 @@ namespace LibreLancer.Fx
             if (HToVAspect != null)
             {
                 n.Parameters.Add(new(AleProperty.BasicApp_HToVAspect, HToVAspect));
+            }
+            if (Size != null)
+            {
+                n.Parameters.Add(new(AleProperty.BasicApp_Size, Size));
             }
             if (Rotate != null)
             {

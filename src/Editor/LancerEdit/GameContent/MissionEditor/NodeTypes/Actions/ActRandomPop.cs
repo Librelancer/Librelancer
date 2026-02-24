@@ -31,4 +31,13 @@ public sealed class ActRandomPop : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition() => null;
+    public override MissionAction CloneAction()
+    {
+        return new MissionAction(
+            TriggerActions.Act_RandomPop,
+            BuildEntry()
+        );
+    }
 }

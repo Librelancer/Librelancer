@@ -11,6 +11,10 @@ namespace LibreLancer.Fx
 	{
 		public FxPerpAppearance(AlchemyNode ale) : base(ale) { }
 
+        public FxPerpAppearance(string name) : base(name)
+        {
+        }
+
         public override void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx,
             Matrix4x4 transform, float sparam)
         {

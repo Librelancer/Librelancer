@@ -8,8 +8,8 @@ namespace LibreLancer.Fx
 {
 	public class FxParticleAppearance : FxAppearance
     {
-        public string LifeName;
-        public string DeathName;
+        public string LifeName = "";
+        public string DeathName = "";
         public bool UseDynamicRotation;
         public bool SmoothRotation;
 		public FxParticleAppearance (AlchemyNode ale) : base(ale)
@@ -18,6 +18,10 @@ namespace LibreLancer.Fx
             DeathName = ale.GetString(AleProperty.ParticleApp_DeathName);
             UseDynamicRotation = ale.GetBoolean(AleProperty.ParticleApp_UseDynamicRotation);
             SmoothRotation = ale.GetBoolean(AleProperty.ParticleApp_SmoothRotation);
+        }
+
+        public FxParticleAppearance(string name) : base(name)
+        {
         }
 
         public override AlchemyNode SerializeNode()

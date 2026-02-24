@@ -776,4 +776,19 @@ public static class Controls
             ImGui.Text(id, i);
         }
     }
+
+    public static void HelpMarker(string tooltip)
+    {
+        ImGui.PushID(ImGuiHelper.TempId());
+        var sz = ImGui.CalcTextSize($"{Icons.QuestionCircle}");
+        var cpos = ImGui.GetCursorPos();
+        var framePadding = ImGui.GetStyle().FramePadding with { X = 0 };
+        // Try and center this offset FontAwesome glyph
+        ImGui.SetCursorPos(cpos + framePadding * 0.5f);
+        ImGui.Text($"{Icons.QuestionCircle}");
+        ImGui.SetCursorPos(cpos);
+        ImGui.InvisibleButton("##help", sz + (2 * framePadding));
+        ImGui.SetItemTooltip(tooltip);
+        ImGui.PopID();
+    }
 }

@@ -20,8 +20,7 @@ enum AudioEvent
     SetListenerOrientation,
     StopAll,
     SetMasterGain,
-    SetSfxGain,
-    SetVoiceGain,
+    SetCategoryGain,
     MusicPlay,
     MusicStop,
     Quit

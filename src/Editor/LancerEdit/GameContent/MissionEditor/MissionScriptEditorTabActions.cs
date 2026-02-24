@@ -232,4 +232,34 @@ partial class MissionScriptEditorTab
 
         public override string ToString() => $"Delete Node {id}";
     }
+
+    public class NewNodeFromCloneAction : EditorAction
+    {
+        private readonly Node node;
+        private readonly Vector2 position;
+        private readonly MissionScriptEditorTab tab;
+
+        public NewNodeFromCloneAction(Node node, Vector2 position, MissionScriptEditorTab tab)
+        {
+            this.node = node;
+            this.position = position;
+            this.tab = tab;
+        }
+
+        public override void Commit()
+        {
+            tab.nodes.Add(node);
+            tab.nodeRelocationQueue.Enqueue((node.Id, position));
+            tab.SetupLookups();
+        }
+
+        public override void Undo()
+        {
+            tab.nodeEditActions.Enqueue(() => NodeEditor.DeleteNode(node.Id));
+            tab.nodes.Remove(node);
+            tab.SetupLookups();
+        }
+
+        public override string ToString() => "Duplicate Node";
+    }
 }

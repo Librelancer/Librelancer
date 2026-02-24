@@ -34,4 +34,13 @@ public class CndPlayerManeuver : NodeTriggerEntry
     {
         Data.Write(sectionBuilder);
     }
+
+    public override MissionCondition CloneCondition()
+    {
+        return new MissionCondition(
+            TriggerConditions.Cnd_PlayerManeuver,
+            BuildEntry()
+        );
+    }
+    public override MissionAction CloneAction() => null;
 }

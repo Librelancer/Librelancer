@@ -10,23 +10,33 @@ namespace LibreLancer.Utf.Ale
 	public class AlchemyFloatAnimation
 	{
 		public EasingTypes Type;
-		public List<AlchemyFloats> Items = new List<AlchemyFloats> ();
+        public List<AlchemyFloats> Items;
 
         public AlchemyFloatAnimation()
         {
+            Type = EasingTypes.Linear;
+            Items = [new AlchemyFloats()];
+        }
+
+        public AlchemyFloatAnimation(float value)
+        {
+            Type = EasingTypes.Linear;
+            Items = [new AlchemyFloats() { Keyframes = [new(0,value)]}];
         }
 
 		public AlchemyFloatAnimation (BinaryReader reader)
 		{
 			Type = (EasingTypes)reader.ReadByte ();
 			int itemsCount = reader.ReadByte ();
+            Items = new(itemsCount);
 			for (int fc = 0; fc < itemsCount; fc++) {
 				var floats = new AlchemyFloats ();
 				floats.SParam = reader.ReadSingle ();
 				floats.Type = (EasingTypes)reader.ReadByte ();
-				floats.Data = new ValueTuple<float, float>[reader.ReadByte ()];
-				for (int i = 0; i < floats.Data.Length; i++) {
-					floats.Data [i] = new ValueTuple<float, float> (reader.ReadSingle (), reader.ReadSingle ());
+                var len = reader.ReadByte();
+                floats.Keyframes = new(len);
+				for (int i = 0; i < len; i++) {
+                    floats.Keyframes.Add(new(reader.ReadSingle(), reader.ReadSingle()));
 				}
 				Items.Add (floats);
 			}

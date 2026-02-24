@@ -74,6 +74,10 @@ namespace LancerEdit
         public bool ColladaVisible;
         [Entry("update_channel")]
         public string UpdateChannel;
+        [Entry("window_width")]
+        public int WindowWidth = 800;
+        [Entry("window_height")]
+        public int WindowHeight = 600;
 
         public string AutoLoadPath = "";
 
@@ -137,6 +141,10 @@ namespace LancerEdit
         {
             if (!canSave)
                 return;
+
+            WindowWidth = Math.Clamp(WindowWidth, 800, short.MaxValue);
+            WindowHeight = Math.Clamp(WindowHeight, 600, short.MaxValue);
+
             var b = new IniBuilder();
             var c = b.Section("Config")
                 .Entry("tab_style", TabStyle)
@@ -159,7 +167,9 @@ namespace LancerEdit
                 .Entry("log_visible", LogVisible)
                 .Entry("files_visible", FilesVisible)
                 .Entry("status_bar_visible", StatusBarVisible)
-                .Entry("collada_visible", ColladaVisible);
+                .Entry("collada_visible", ColladaVisible)
+                .Entry("window_width", WindowWidth)
+                .Entry("window_height", WindowHeight);
             foreach (var fav in Favorites)
                 c.Entry("favorite", Encode(fav.Name), Encode(fav.FullPath));
             if (!string.IsNullOrWhiteSpace(AutoLoadPath))
@@ -177,6 +187,7 @@ namespace LancerEdit
                 FLLog.Info("Config", $"{SelectedAnisotropy}x anisotropy not supported, disabling.");
                 TextureFilter = 2;
             }
+
             if (MSAA > context.MaxSamples)
             {
                 FLLog.Info("Config", $"{MSAA}x MSAA not supported, disabling.");
@@ -217,6 +228,9 @@ namespace LancerEdit
                     ec ??= new EditorConfiguration(true);
                     if (ec.UiScale < 1 || ec.UiScale > 2.5f)
                         ec.UiScale = 1;
+
+                    ec.WindowWidth = Math.Clamp(ec.WindowWidth, 800, short.MaxValue);
+                    ec.WindowHeight = Math.Clamp(ec.WindowHeight, 600, short.MaxValue);
                     return ec;
                 }
                 else
