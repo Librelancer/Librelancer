@@ -24,6 +24,9 @@ public class AudioImportPopup : PopupWindow
     public static readonly FileDialogFilters AudioOutputFilters = new FileDialogFilters(
         new FileFilter("MP3-Encoded Wav", "wav"));
 
+    public static readonly FileDialogFilters PcmFilters = new FileDialogFilters(
+        new FileFilter("PCM Wav", "wav"));
+
     public static void Run(MainWindow win, PopupManager m, Action<byte[]> onImport)
     {
         FileDialog.Open(path =>
@@ -31,7 +34,7 @@ public class AudioImportPopup : PopupWindow
             AudioImportInfo info;
             using (var s = File.OpenRead(path))
             {
-                info = AudioImporter.Analyze(s);
+                info = AudioImporter.Analyze(s, true);
             }
             if (info == null)
             {
@@ -46,7 +49,18 @@ public class AudioImportPopup : PopupWindow
                 }
                 else
                 {
-                    m.MessageBox("Convert Audio", $"'{Path.GetFileName(path)}' is already Freelancer-encoded wav");
+                    m.MessageBox("Convert Audio", $"'{Path.GetFileName(path)}' is already Freelancer-encoded wav. Decode to PCM wav?",
+                        false, MessageBoxButtons.YesNo, r =>
+                        {
+                            if (r == MessageBoxResponse.Yes)
+                            {
+                                FileDialog.Save(x =>
+                                {
+                                    using var f = File.Create(x);
+                                    AudioImporter.WritePcmWav(info.PcmFormat, info.Frequency, info.Data, f);
+                                }, PcmFilters);
+                            }
+                        });
                 }
             }
             else
@@ -71,6 +85,8 @@ public class AudioImportPopup : PopupWindow
     private int manualTotal = 0;
     private int manualTrimEnd = 0;
     private int manualMax = 0;
+
+    private SoundInstance loopInstance;
 
 
     private AudioImportPopup(MainWindow win, Action<byte[]> onImport, AudioImportInfo info, string path)
@@ -160,7 +176,7 @@ public class AudioImportPopup : PopupWindow
     {
         if (converting)
         {
-            log.Draw(false, new Vector2(350, 350) * ImGuiHelper.Scale);
+            log.Draw(false, new Vector2(500, 400) * ImGuiHelper.Scale);
             if (ImGuiExt.Button("Ok", finished)) {
                 ImGui.CloseCurrentPopup();
                 log.Dispose();
@@ -250,6 +266,34 @@ public class AudioImportPopup : PopupWindow
                 }
             }
         }
+
+        ImGui.Separator();
+        if (ImGui.Button($"{Icons.Play} Preview"))
+        {
+            var sd = new SoundData();
+            sd.LoadBytes(info.Data, info.Frequency, info.PcmFormat);
+            var instance = win.Audio.CreateInstance(sd, SoundCategory.Sfx);
+            instance.OnStop = () => sd.Dispose();
+            instance.Play();
+        }
+        ImGui.SameLine();
+        bool isPlaying = loopInstance is { Playing: true };
+        if (ImGui.Button(isPlaying ? $"{Icons.Stop} Stop Loop" :  $"{Icons.Play} Play Loop"))
+        {
+            if (isPlaying)
+            {
+                loopInstance?.Stop();
+                loopInstance = null;
+            }
+            else
+            {
+                var sd = new SoundData();
+                sd.LoadBytes(info.Data, info.Frequency, info.PcmFormat);
+                loopInstance = win.Audio.CreateInstance(sd, SoundCategory.Sfx);
+                loopInstance.OnStop = () => sd.Dispose();
+                loopInstance.Play(true);
+            }
+        }
         ImGui.Separator();
         if (onImport != null &&
             info.Kind == AudioImportKind.WavUncompressed)
@@ -263,6 +307,7 @@ public class AudioImportPopup : PopupWindow
         }
         if (onImport == null && ImGui.Button("Convert"))
         {
+            loopInstance?.Stop();
             FileDialog.Save(x =>
             {
                 RunConversion(File.Create(x), null);
@@ -270,6 +315,7 @@ public class AudioImportPopup : PopupWindow
         }
         if (onImport != null && ImGui.Button("Convert + Import"))
         {
+            loopInstance?.Stop();
             var stream = new MemoryStream();
             RunConversion(stream, () => { onImport(stream.ToArray()); });
         }
@@ -280,4 +326,8 @@ public class AudioImportPopup : PopupWindow
         }
     }
 
+    public override void OnClosed()
+    {
+        loopInstance?.Stop();
+    }
 }

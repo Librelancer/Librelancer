@@ -10,27 +10,21 @@ using ZstdSharp;
 namespace LibreLancer.Media
 {
 	static class SoundLoader
-	{
+    {
+        public static int GetAlFormat(LdFormat format) => format switch
+        {
+            LdFormat.Mono8 => Al.AL_FORMAT_MONO8,
+            LdFormat.Mono16 => Al.AL_FORMAT_MONO16,
+            LdFormat.Stereo8 => Al.AL_FORMAT_STEREO8,
+            LdFormat.Stereo16 => Al.AL_FORMAT_STEREO16
+        };
+
 		public static StreamingSound Open(Stream stream)
 		{
             var dec = new AudioDecoder(stream);
             var sound = new StreamingSound();
             sound.Data = dec;
-            switch(dec.Format)
-            {
-                case LdFormat.Mono8:
-                    sound.Format = Al.AL_FORMAT_MONO8;
-                    break;
-                case LdFormat.Mono16:
-                    sound.Format = Al.AL_FORMAT_MONO16;
-                    break;
-                case LdFormat.Stereo8:
-                    sound.Format = Al.AL_FORMAT_STEREO8;
-                    break;
-                case LdFormat.Stereo16:
-                    sound.Format = Al.AL_FORMAT_STEREO16;
-                    break;
-            }
+            sound.Format = GetAlFormat(dec.Format);
             sound.Frequency = dec.Frequency;
             return sound;
         }

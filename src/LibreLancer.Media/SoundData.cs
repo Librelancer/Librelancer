@@ -40,6 +40,24 @@ namespace LibreLancer.Media
 			}
 		}
 
+        public void LoadBytes(byte[] pcmData, int frequency, LdFormat format)
+        {
+            DataLength = pcmData.Length;
+            Format = SoundLoader.GetAlFormat(format);
+            Frequency = frequency;
+            Data = UnsafeHelpers.Allocate(pcmData.Length);
+            Marshal.Copy(pcmData, 0, Data.Handle, pcmData.Length);
+            var sampleLength = Format switch
+            {
+                Al.AL_FORMAT_MONO8 => 1,
+                Al.AL_FORMAT_MONO16 => 2,
+                Al.AL_FORMAT_STEREO8 => 2,
+                Al.AL_FORMAT_STEREO16 => 4,
+                _ => throw new InvalidOperationException()
+            };
+            Duration = (double)pcmData.Length / (frequency * sampleLength);
+        }
+
         public void LoadStream(Stream stream)
 		{
 			using (var snd = SoundLoader.Open(stream))

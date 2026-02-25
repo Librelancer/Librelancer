@@ -19,7 +19,9 @@ public class AudioImportInfo
     public int Frequency;
     public int Trim;
     public int Samples;
-    public int TotalMp3Bytes;
+    public int TotalMp3Bytes = -1;
+    public LdFormat PcmFormat;
+    public byte[] Data;
 }
 
 public static class AudioImporter
@@ -38,12 +40,28 @@ public static class AudioImporter
         return totalBytes;
     }
 
-    public static AudioImportInfo Analyze(Stream stream)
+    static void FillBytes(AudioDecoder decoder, AudioImportInfo info, bool includeData)
+    {
+        if (info.TotalMp3Bytes != -1)
+            return;
+        if (includeData)
+        {
+            var ms = new MemoryStream();
+            decoder.CopyTo(ms);
+            info.Data = ms.ToArray();
+            info.TotalMp3Bytes = info.Data.Length;
+        }
+        else
+            info.TotalMp3Bytes = GetByteLength(decoder);
+    }
+
+    public static AudioImportInfo Analyze(Stream stream, bool includeData = false)
     {
         try
         {
             using var decoder = new AudioDecoder(stream);
             var info = new AudioImportInfo();
+            info.PcmFormat = decoder.Format;
             info.Channels = decoder.Format == LdFormat.Mono8 || decoder.Format == LdFormat.Mono16 ? 1 : 2;
             info.Frequency = decoder.Frequency;
             info.Kind = AudioImportKind.NeedsConversion;
@@ -70,7 +88,7 @@ public static class AudioImporter
                             !decoder.GetInt(AudioProperty.Mp3Samples, out info.Samples))
                         {
                             info.Trim = info.Samples = 0;
-                            info.TotalMp3Bytes = GetByteLength(decoder);
+                            FillBytes(decoder, info, includeData);
                         }
                     }
                 }
@@ -81,10 +99,12 @@ public static class AudioImporter
                         !decoder.GetInt(AudioProperty.Mp3Samples, out info.Samples))
                     {
                         info.Trim = info.Samples = 0;
-                        info.TotalMp3Bytes = GetByteLength(decoder);
+                        FillBytes(decoder, info, includeData);
                     }
                 }
             }
+            if(includeData)
+                FillBytes(decoder, info, true);
             return info;
         }
         catch (Exception ex)
@@ -129,6 +149,31 @@ public static class AudioImporter
 
     private const ushort MPEGLAYER3_ID_MPEG = 0x1;
     private const uint MPEGLAYER3_FLAG_PADDING_OFF = 0x2;
+
+    public static void WritePcmWav(LdFormat format, int frequency, byte[] pcmData, Stream outputStream)
+    {
+        var writer = new BinaryWriter(outputStream);
+        int totalLength = pcmData.Length +
+                          12 + //riff header
+                          24 + //wave fmt chunk
+                          8; //data header
+        writer.Write("RIFF"u8);
+        writer.Write(totalLength);
+        writer.Write("WAVE"u8);
+        writer.Write("fmt "u8);
+        writer.Write(16); //sz
+        writer.Write((ushort)1); //pcm
+        ushort channels = format == LdFormat.Mono16 || format == LdFormat.Mono8 ? (ushort)1 : (ushort)2;
+        ushort bits = format == LdFormat.Mono8 || format == LdFormat.Stereo8 ? (ushort)8 : (ushort)16;
+        writer.Write(channels);
+        writer.Write(frequency);
+        writer.Write((channels * bits / 8) * frequency); //byteRate
+        writer.Write((ushort)(channels * bits / 8)); //blockAlign
+        writer.Write(bits);
+        writer.Write("data"u8);
+        writer.Write(pcmData.Length);
+        writer.Write(pcmData);
+    }
 
 
     public static EditResult<bool> ImportMp3(byte[] mp3Bytes, Stream outputStream, int manualTrim = 0, int manualSamples = 0)

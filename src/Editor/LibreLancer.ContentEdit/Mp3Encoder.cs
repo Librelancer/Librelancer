@@ -53,6 +53,11 @@ public static class Mp3Encoder
     [DllImport("libmp3lame")]
     static extern int lame_set_in_samplerate(IntPtr lame, int samplerate);
 
+    private const int vbr_mtrh = 4;
+
+    [DllImport("libmp3lame")]
+    static extern int lame_set_VBR(IntPtr lame, int vbr);
+
     //0 = best, 9 = worst
     [DllImport("libmp3lame")]
     static extern int lame_set_quality(IntPtr lame, int quality);
@@ -62,6 +67,9 @@ public static class Mp3Encoder
 
     [DllImport("libmp3lame")]
     static extern int lame_init_params(IntPtr lame);
+
+    [DllImport("libmp3lame")]
+    static extern void lame_print_internals(IntPtr lame);
 
     [DllImport("libmp3lame")]
     static extern int lame_get_lametag_frame(IntPtr lame, byte[] buffer, int length);
@@ -79,6 +87,7 @@ public static class Mp3Encoder
 
     [DllImport("libmp3lame")]
     static extern void lame_close(IntPtr gfp);
+
 
     static byte[] GetLAMETagFrame(IntPtr context)
     {
@@ -124,10 +133,11 @@ public static class Mp3Encoder
         }
         else {
             lame_set_preset(lame, (int)preset);
+            lame_set_VBR(lame, vbr_mtrh);
         }
         lame_init_params(lame);
         lame_print_config(lame);
-
+        // lame_print_internals(lame);
         log("Converting...");
         Span<byte> wavbuffer = stackalloc byte[16384];
         Span<byte> mp3buffer = stackalloc byte[8192];
