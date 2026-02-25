@@ -22,7 +22,7 @@ public class AsteroidField : IDataEquatable<AsteroidField>
     public int CubeSize;
     //Cube
     public AsteroidCubeRotation? CubeRotation;
-    public List<StaticAsteroid>? Cube;
+    public List<StaticAsteroid> Cube = [];
     //Billboards
     public int BillboardCount;
     public float BillboardDistance;

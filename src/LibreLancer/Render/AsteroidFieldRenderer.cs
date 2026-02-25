@@ -151,6 +151,12 @@ namespace LibreLancer.Render
         {
             billboardCount = 0;
             var position = camera.Position;
+            // Guard against invalid FillDist
+            if (field.FillDist <= 0)
+            {
+                FLLog.Warning("AsteroidField", $"CalculateBillboards: invalid FillDist: {field.FillDist}, skipping billboard calculation");
+                return;
+            }
             var close = AsteroidFieldShared.GetCloseCube(position, (int)(field.FillDist * 2));
             var checkRad = field.FillDist + field.BillboardSize.Y;
             int checkCount = 0;
@@ -213,6 +219,12 @@ namespace LibreLancer.Render
         void CalculateAsteroidsTask(ICamera cam)
         {
             cubeCount = 0;
+            // Guard against divide by zero if CubeSize is invalid
+            if (field.CubeSize <= 0)
+            {
+                FLLog.Warning("AsteroidField", $"CalculateAsteroidsTask: invalid CubeSize: {field.CubeSize}, skipping asteroid calculation");
+                return;
+            }
             var position = cam.Position;
             var close = AsteroidFieldShared.GetCloseCube (cameraPos, field.CubeSize);
             int amountCubes = (int)Math.Floor((field.FillDist / field.CubeSize)) + 1;
@@ -318,12 +330,13 @@ namespace LibreLancer.Render
                         }
                     }
                 }
-                if (field.BillboardCount != -1)
+                if (field.BillboardCount != -1 && billboardShape.Texture != null)
                 {
                     var cameraLights = RenderHelpers.ApplyLights(lighting, 0, cameraPos, 1, nr);
                     if (billboardTex == null || billboardTex.IsDisposed)
                         billboardTex = (Texture2D)res.FindTexture (billboardShape.Texture);
-                    billboardTask.Wait();
+                    if (billboardTex == null) return; // Skip if texture failed to load
+                    billboardTask?.Wait();
                     for (int i = 0; i < billboardCount; i++)
                     {
                         var alpha = BillboardAlpha(Vector3.Distance(calculatedBillboards[i].Position, cameraPos));

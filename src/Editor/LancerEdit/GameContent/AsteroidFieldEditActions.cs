@@ -148,6 +148,7 @@ public class SysAddAsteroidField(AsteroidField newField, SystemEditorTab tab)
     {
         tab.ZoneList.AsteroidFields.Fields.Add(newField);
         tab.ZoneList.AsteroidFields.OriginalFields[newField] = null;
+        tab.ZoneList.SetZoneType(newField.Zone.Nickname, ZoneDisplayKind.AsteroidField);
         tab.ReloadFieldRenderers();
 
     }
@@ -156,6 +157,63 @@ public class SysAddAsteroidField(AsteroidField newField, SystemEditorTab tab)
     {
         tab.ZoneList.AsteroidFields.Fields.Remove(newField);
         tab.ZoneList.AsteroidFields.OriginalFields.Remove(newField);
+        tab.ZoneList.SetZoneType(newField.Zone.Nickname, ZoneDisplayKind.Normal);
+        tab.ReloadFieldRenderers();
+    }
+}
+
+public class SysRemoveAsteroidField(AsteroidField field, SystemEditorTab tab)
+    : EditorAction
+{
+    public override void Commit()
+    {
+        tab.ZoneList.AsteroidFields.Fields.Remove(field);
+        tab.ZoneList.AsteroidFields.OriginalFields.Remove(field);
+        tab.ZoneList.SetZoneType(field.Zone.Nickname, ZoneDisplayKind.Normal);
+        tab.ReloadFieldRenderers();
+    }
+
+    public override void Undo()
+    {
+        tab.ZoneList.AsteroidFields.Fields.Add(field);
+        tab.ZoneList.AsteroidFields.OriginalFields[field] = null;
+        tab.ZoneList.SetZoneType(field.Zone.Nickname, ZoneDisplayKind.AsteroidField);
+        tab.ReloadFieldRenderers();
+    }
+}
+
+public class SysAddNebula(Nebula newNebula, SystemEditorTab tab)
+    : EditorAction
+{
+    public override void Commit()
+    {
+        tab.ZoneList.Nebulae.Add(newNebula);
+        tab.ZoneList.SetZoneType(newNebula.Zone.Nickname, ZoneDisplayKind.Nebula);
+        tab.ReloadFieldRenderers();
+    }
+
+    public override void Undo()
+    {
+        tab.ZoneList.Nebulae.Remove(newNebula);
+        tab.ZoneList.SetZoneType(newNebula.Zone.Nickname, ZoneDisplayKind.Normal);
+        tab.ReloadFieldRenderers();
+    }
+}
+
+public class SysRemoveNebula(Nebula nebula, SystemEditorTab tab)
+    : EditorAction
+{
+    public override void Commit()
+    {
+        tab.ZoneList.Nebulae.Remove(nebula);
+        tab.ZoneList.SetZoneType(nebula.Zone.Nickname, ZoneDisplayKind.Normal);
+        tab.ReloadFieldRenderers();
+    }
+
+    public override void Undo()
+    {
+        tab.ZoneList.Nebulae.Add(nebula);
+        tab.ZoneList.SetZoneType(nebula.Zone.Nickname, ZoneDisplayKind.Nebula);
         tab.ReloadFieldRenderers();
     }
 }

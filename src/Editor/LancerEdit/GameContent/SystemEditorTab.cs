@@ -510,14 +510,63 @@ public class SystemEditorTab : GameContentTab
         }
 
         ShapeProperties(sel);
+        VisitFlagsCombo("Visit Flags", UndoBuffer, () => ref sel.VisitFlags);
+        PropertyFlagsCombo("Property Flags", UndoBuffer, () => ref sel.PropertyFlags);
+        SpacedustCombo("Spacedust", UndoBuffer, () => ref sel.Spacedust, Data.Spacedusts);
+        Controls.InputIntUndo("Max Particles", UndoBuffer, () => ref sel.SpacedustMaxParticles, 1, 100);
         Controls.EndEditorTable();
-        //Special
-        var ast = ZoneList.AsteroidFields.Fields.FirstOrDefault(x => x.Zone == sel);
-        if (ast != null && ImGui.Button("Edit Asteroids"))
+        
+        // Music Section
+        ImGui.SeparatorText("Music");
+        MusicProp("Zone Music", () => ref sel.Music);
+        
+        // Fog Color & Zone Effects Section
+        ImGui.SeparatorText("Fog Color & Zone Effects");
+        var fogColor = sel.PropertyFogColor;
+        if (fogColor == null)
         {
-            closeField = false;
-            openField = new AsteroidFieldEdit(ast, win, this);
+            if (ImGui.Button("Set Fog Color"))
+            {
+                UndoBuffer.Commit(new SysZoneSetPropertyFogColor(sel, this, null, new Color4(0.5f, 0.5f, 0.5f, 1f)));
+            }
         }
+        else
+        {
+            if (ImGui.Button("Clear Fog Color"))
+            {
+                UndoBuffer.Commit(new SysZoneSetPropertyFogColor(sel, this, fogColor, null));
+            }
+            ImGui.SameLine();
+            if (ImGui.ColorButton("##fogColor", fogColor.Value, ImGuiColorEditFlags.NoAlpha,
+                new Vector2(ImGui.GetFrameHeight(), ImGui.GetFrameHeight())))
+            {
+                Popups.OpenPopup(new ColorPicker("Fog Color", fogColor.Value, color =>
+                {
+                    UndoBuffer.Commit(new SysZoneSetPropertyFogColor(sel, this, fogColor, color));
+                }));
+            }
+        }
+        if (!Controls.BeginEditorTable("zoneEffects"))
+            return;
+        Controls.InputFloatUndo("Damage", UndoBuffer, () => ref sel.Damage);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Sets the amount of damage per second done to ships and equipment within the zone.\nOver a certain threshold, this will trigger a radiation warning.");
+        Controls.InputFloatUndo("Interference", UndoBuffer, () => ref sel.Interference);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("A sensor range modifier with a range of 0 to 1.\nFor example if you set this to 0.5 it will halve your ship's current sensor range.\nTriggers the sensor efficiency warning. This also affects NPCs.");
+        Controls.InputFloatUndo("Drag Modifier", UndoBuffer, () => ref sel.DragModifier);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Divides your speed in the zone by the listed amount.\nA value of 2 here would halve your speed.\nBy default this key is tied to interference, but can be fixed with an offset from Limit Breaking 101.");
+        Controls.InputFloatUndo("Edge Fraction", UndoBuffer, () => ref sel.EdgeFraction);
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Used by nebula zones.\nDetermines how quickly nebula fog fades out in a zone.");
+        Controls.EndEditorTable();
+        
+        // Asteroid/Nebula Section
+        // The reason it is a selector on a new window instead of a select, is that when selecting the type, the file value cannot be empty, so it "request" sommething to put in there.
+        ImGui.SeparatorText("Asteroid/Nebula");
+        AsteroidNebulaSection(sel);
+        ImGui.TextWrapped("Changes are applied on save but visuals needs Lancerdit reload");
 
         //Comment
         ImGui.SeparatorText("Comment");
@@ -602,6 +651,394 @@ public class SystemEditorTab : GameContentTab
         }
     }
 
+
+    
+    // Visit Flags: 0=Default, 1=Visited, 2=Unknown, 4=Mineable, 8=ActivelyVisited, 16=Wreck, 32=Zone, 64=Faction, 128=Hidden
+    void VisitFlagsCombo(string label, EditorUndoBuffer undo, FieldAccessor<VisitFlags> accessor)
+    {
+        Controls.EditControlSetup(label, 0);
+        var currentFlags = accessor();
+        var preview = VisitFlagEditor.FlagsString(currentFlags);
+        if (ImGui.BeginCombo("##visitflags", preview))
+        {
+            // "None" option
+            if (ImGui.Selectable("(none)", currentFlags == VisitFlags.None))
+            {
+                undo.Set(label, accessor, VisitFlags.None);
+            }
+            
+            // Individual flags
+            void FlagOption(string name, VisitFlags flag)
+            {
+                var hasFlag = (currentFlags & flag) == flag;
+                if (ImGui.Selectable(name, hasFlag))
+                {
+                    var newFlags = hasFlag ? (currentFlags & ~flag) : (currentFlags | flag);
+                    undo.Set(label, accessor, newFlags);
+                }
+            }
+            
+            FlagOption("Visited", VisitFlags.Visited);
+            FlagOption("Mineable Zone", VisitFlags.MineableZone);
+            FlagOption("Actively Visited", VisitFlags.ActivelyVisited);
+            FlagOption("Wreck", VisitFlags.Wreck);
+            FlagOption("Zone", VisitFlags.Zone);
+            FlagOption("Faction", VisitFlags.Faction);
+            FlagOption("Hidden", VisitFlags.Hidden);
+            
+            ImGui.EndCombo();
+        }
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Select visit flags. Multiple flags can be combined.");
+        }
+    }
+    
+    // Property Flags: 1=LowDensity, 2=MedDensity, 4=HighDensity, 8=LowDanger, 16=MedDanger, 32=HighDanger
+    // 64=Rock, 128=Debris, 256=Ice, 512=Lava, 1024=Nomad, 2048=Crystal, 4096=Mines, 8192=Badlands
+    // 16384=GasPockets, 32768=Nebula/Cloud, 65536=Exclusion, 131072=Exclusion2
+    void PropertyFlagsCombo(string label, EditorUndoBuffer undo, FieldAccessor<ZonePropFlags> accessor)
+    {
+        Controls.EditControlSetup(label, 0);
+        var currentFlags = accessor();
+        var preview = PropertyFlagsString(currentFlags);
+        if (ImGui.BeginCombo("##propflags", preview))
+        {
+            // "None" option
+            if (ImGui.Selectable("(none)", currentFlags == ZonePropFlags.None))
+            {
+                undo.Set(label, accessor, ZonePropFlags.None);
+            }
+            
+            ImGui.SeparatorText("Density");
+            FlagOption("Low Density", ZonePropFlags.ObjDensityLow);
+            FlagOption("Medium Density", ZonePropFlags.ObjDensityMed);
+            FlagOption("High Density", ZonePropFlags.ObjDensityHigh);
+            
+            ImGui.SeparatorText("Danger");
+            FlagOption("Low Danger", ZonePropFlags.DangerLow);
+            FlagOption("Medium Danger", ZonePropFlags.DangerMed);
+            FlagOption("High Danger", ZonePropFlags.DangerHigh);
+            
+            ImGui.SeparatorText("Material");
+            FlagOption("Rock", ZonePropFlags.Rock);
+            FlagOption("Debris", ZonePropFlags.Debris);
+            FlagOption("Ice", ZonePropFlags.Ice);
+            FlagOption("Lava", ZonePropFlags.Lava);
+            FlagOption("Nomad", ZonePropFlags.Nomad);
+            FlagOption("Crystal", ZonePropFlags.Crystal);
+            FlagOption("Mines", ZonePropFlags.Mines);
+            FlagOption("Badlands", ZonePropFlags.Badlands);
+            
+            ImGui.SeparatorText("Other");
+            FlagOption("Gas Pockets", ZonePropFlags.GasPockets);
+            FlagOption("Cloud/Nebula", ZonePropFlags.Cloud);
+            FlagOption("Exclusion 1", ZonePropFlags.Exclusion1);
+            FlagOption("Exclusion 2", ZonePropFlags.Exclusion2);
+            
+            ImGui.EndCombo();
+        }
+        
+        void FlagOption(string name, ZonePropFlags flag)
+        {
+            var hasFlag = (currentFlags & flag) == flag;
+            if (ImGui.Selectable(name, hasFlag))
+            {
+                var newFlags = hasFlag ? (currentFlags & ~flag) : (currentFlags | flag);
+                undo.Set(label, accessor, newFlags);
+            }
+        }
+        
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Select property flags. Multiple flags can be combined.");
+        }
+    }
+    
+    static string PropertyFlagsString(ZonePropFlags f)
+    {
+        if (f == 0) return "(none)";
+        var parts = new List<string>();
+        if ((f & ZonePropFlags.ObjDensityLow) == ZonePropFlags.ObjDensityLow) parts.Add("Low Dens");
+        if ((f & ZonePropFlags.ObjDensityMed) == ZonePropFlags.ObjDensityMed) parts.Add("Med Dens");
+        if ((f & ZonePropFlags.ObjDensityHigh) == ZonePropFlags.ObjDensityHigh) parts.Add("High Dens");
+        if ((f & ZonePropFlags.DangerLow) == ZonePropFlags.DangerLow) parts.Add("Low Danger");
+        if ((f & ZonePropFlags.DangerMed) == ZonePropFlags.DangerMed) parts.Add("Med Danger");
+        if ((f & ZonePropFlags.DangerHigh) == ZonePropFlags.DangerHigh) parts.Add("High Danger");
+        if ((f & ZonePropFlags.Rock) == ZonePropFlags.Rock) parts.Add("Rock");
+        if ((f & ZonePropFlags.Debris) == ZonePropFlags.Debris) parts.Add("Debris");
+        if ((f & ZonePropFlags.Ice) == ZonePropFlags.Ice) parts.Add("Ice");
+        if ((f & ZonePropFlags.Lava) == ZonePropFlags.Lava) parts.Add("Lava");
+        if ((f & ZonePropFlags.Nomad) == ZonePropFlags.Nomad) parts.Add("Nomad");
+        if ((f & ZonePropFlags.Crystal) == ZonePropFlags.Crystal) parts.Add("Crystal");
+        if ((f & ZonePropFlags.Mines) == ZonePropFlags.Mines) parts.Add("Mines");
+        if ((f & ZonePropFlags.Badlands) == ZonePropFlags.Badlands) parts.Add("Badlands");
+        if ((f & ZonePropFlags.GasPockets) == ZonePropFlags.GasPockets) parts.Add("Gas");
+        if ((f & ZonePropFlags.Cloud) == ZonePropFlags.Cloud) parts.Add("Cloud");
+        if ((f & ZonePropFlags.Exclusion1) == ZonePropFlags.Exclusion1) parts.Add("Excl1");
+        if ((f & ZonePropFlags.Exclusion2) == ZonePropFlags.Exclusion2) parts.Add("Excl2");
+        return $"({(int)f}) " + string.Join(", ", parts);
+    }
+
+    
+    // Spacedust selector - uses effects with effect_type = EFT_MISC_DUST
+    void SpacedustCombo(string label, EditorUndoBuffer undo, FieldAccessor<string> accessor, string[] spacedusts)
+    {
+        Controls.EditControlSetup(label, 0);
+        var currentValue = accessor();
+        var preview = string.IsNullOrEmpty(currentValue) ? "(none)" : currentValue;
+        if (ImGui.BeginCombo("##spacedust", preview))
+        {
+            if (ImGui.Selectable("(none)", string.IsNullOrEmpty(currentValue)))
+            {
+                undo.Set(label, accessor, "");
+            }
+            foreach (var dust in spacedusts)
+            {
+                if (ImGui.Selectable(dust, dust == currentValue))
+                {
+                    undo.Set(label, accessor, dust);
+                }
+            }
+            ImGui.EndCombo();
+        }
+    }
+
+    // Asteroid/Nebula section for zones
+    void AsteroidNebulaSection(Zone sel)
+    {
+        var ast = ZoneList.AsteroidFields.Fields.FirstOrDefault(x =>
+            x.Zone != null && x.Zone.Nickname.Equals(sel.Nickname, StringComparison.OrdinalIgnoreCase));
+        var neb = ZoneList.Nebulae.FirstOrDefault(x =>
+            x.Zone != null && x.Zone.Nickname.Equals(sel.Nickname, StringComparison.OrdinalIgnoreCase));
+        
+        // Determine current type
+        int currentType = 0; // 0 = None, 1 = Asteroids, 2 = Nebula
+        string currentFile = "(none)";
+        if (ast != null)
+        {
+            currentType = 1;
+            currentFile = ast.SourceFile ?? "(none)";
+        }
+        else if (neb != null)
+        {
+            currentType = 2;
+            currentFile = neb.SourceFile ?? "(none)";
+        }
+        
+        string[] typeNames = { "(none)", "Asteroids", "Nebula" };
+        
+        Controls.EditControlSetup("Type", 0);
+        if (ImGui.BeginCombo("##zonetype", typeNames[currentType]))
+        {
+            if (ImGui.Selectable("(none)", currentType == 0) && currentType != 0)
+            {
+                // Remove existing asteroid field or nebula
+                if (ast != null)
+                    UndoBuffer.Commit(new SysRemoveAsteroidField(ast, this));
+                else if (neb != null)
+                    UndoBuffer.Commit(new SysRemoveNebula(neb, this));
+            }
+            if (ImGui.Selectable("Asteroids", currentType == 1) && currentType != 1)
+            {
+                // Remove nebula if exists, then show file popup
+                if (neb != null)
+                    UndoBuffer.Commit(new SysRemoveNebula(neb, this));
+                OpenAsteroidFileSelector(sel);
+            }
+            if (ImGui.Selectable("Nebula", currentType == 2) && currentType != 2)
+            {
+                // Remove asteroid if exists, then show file popup
+                if (ast != null)
+                    UndoBuffer.Commit(new SysRemoveAsteroidField(ast, this));
+                OpenNebulaFileSelector(sel);
+            }
+            ImGui.EndCombo();
+        }
+        
+        // Show current file and edit button
+        if (currentType != 0)
+        {
+            Controls.EditControlSetup("Zone", 0);
+            var normalizedPath = currentFile.Replace('\\', '/');
+            var fileName = Path.GetFileNameWithoutExtension(Path.GetFileName(normalizedPath));
+            ImGui.Text(fileName);
+            ImGui.SameLine();
+            if (ImGui.Button($"{Icons.Edit}##editfile"))
+            {
+                if (currentType == 1)
+                    OpenAsteroidFileSelector(sel);
+                else
+                    OpenNebulaFileSelector(sel);
+            }
+            
+        }
+    }
+    
+    void OpenAsteroidFileSelector(Zone sel)
+    {
+        var currentFile = "";
+        var ast = ZoneList.AsteroidFields.Fields.FirstOrDefault(x =>
+            x.Zone != null && x.Zone.Nickname.Equals(sel.Nickname, StringComparison.OrdinalIgnoreCase));
+        if (ast != null && ast.SourceFile != null)
+            currentFile = ast.SourceFile;
+
+        // Get the asteroid path from Freelancer.ini configuration
+        string asteroidPath = "DATA/SOLAR/ASTEROIDS";
+        if (Data.GameData.Items.Ini.Freelancer.AsteroidPaths.Count > 0)
+        {
+            var fullPath = Data.GameData.Items.Ini.Freelancer.AsteroidPaths[0];
+            // Extract the relative path from the full path for VFS lookup
+            var dataPath = Data.GameData.Items.Ini.Freelancer.DataPath;
+            // DEBUG: Log path information
+            FLLog.Debug("AsteroidFileSelector", $"DataPath: '{dataPath}'");
+            FLLog.Debug("AsteroidFileSelector", $"AsteroidPaths[0]: '{fullPath}'");
+            if (fullPath.StartsWith(dataPath, StringComparison.OrdinalIgnoreCase))
+            {
+                // Extract directory path from file path (e.g., "solar\asteroids.ini" -> "solar")
+                // Keep the DATA/ prefix from DataPath in the result
+                var relativePath = fullPath.Substring(dataPath.Length).TrimStart('/', '\\').Replace('/', '\\').Replace('\\', '\\');
+                var directoryPath = Path.GetDirectoryName(relativePath) ?? "";
+                // Prepend the directory part from DataPath (e.g., "DATA\") to the extracted path
+                var dataPathDirectory = dataPath.TrimEnd('/', '\\').Replace('/', '\\').Replace('\\', '\\');
+                // Ensure we have a trailing separator for proper path construction
+                if (!string.IsNullOrEmpty(dataPathDirectory) && !dataPathDirectory.EndsWith('\\'))
+                {
+                    dataPathDirectory += '\\';
+                }
+                // Use Path.Combine to properly construct the path: dataPathDirectory + SOLAR + subfolder
+                asteroidPath = Path.Combine(dataPathDirectory, "SOLAR", "ASTEROIDS");
+                FLLog.Debug("AsteroidFileSelector", $"Extracted relativePath: '{relativePath}'");
+                FLLog.Debug("AsteroidFileSelector", $"Extracted directoryPath: '{directoryPath}'");
+                FLLog.Debug("AsteroidFileSelector", $"DataPathDirectory: '{dataPathDirectory}'");
+            }
+            else
+            {
+                FLLog.Warning("AsteroidFileSelector", $"AsteroidPaths[0] does not start with DataPath");
+            }
+        }
+        else
+        {
+            FLLog.Warning("AsteroidFileSelector", "AsteroidPaths is empty, using default path");
+        }
+        FLLog.Debug("AsteroidFileSelector", $"Final asteroidPath for VFS: '{asteroidPath}'");
+
+        Popups.OpenPopup(new FileSelectionPopup(
+            "Select Asteroid Field",
+            Data.GameData.VFS,
+            asteroidPath,
+            ".ini",
+            currentFile,
+            file =>
+            {
+                // Remove existing asteroid field for this zone if any
+                var existingAst = ZoneList.AsteroidFields.Fields.FirstOrDefault(x =>
+                    x.Zone != null && x.Zone.Nickname.Equals(sel.Nickname, StringComparison.OrdinalIgnoreCase));
+                
+                var sourceFile = $"solar\\asteroids\\{Path.GetFileName(file)}";
+                var newField = Data.GameData.Items.LoadAsteroidField(sourceFile);
+                newField.Zone = sel;
+
+                // Create actions list for atomic operation
+                var actions = new List<EditorAction>();
+
+                // If there's an existing asteroid field, remove it
+                if (existingAst != null)
+                {
+                    actions.Add(new SysRemoveAsteroidField(existingAst, this));
+                }
+
+                // Add the new asteroid field
+                actions.Add(new SysAddAsteroidField(newField, this));
+
+                // Commit as a single atomic action
+                UndoBuffer.Commit(EditorAggregateAction.Create(actions.ToArray()));
+                ReloadFieldRenderers();
+            }));
+    }
+    
+    void OpenNebulaFileSelector(Zone sel)
+    {
+        var currentFile = "";
+        var neb = ZoneList.Nebulae.FirstOrDefault(x =>
+            x.Zone != null && x.Zone.Nickname.Equals(sel.Nickname, StringComparison.OrdinalIgnoreCase));
+        if (neb != null && neb.SourceFile != null)
+            currentFile = neb.SourceFile;
+
+        // Get the nebula path from Freelancer.ini configuration
+        // Nebula files are stored in the SOLAR directory along with asteroids
+        string nebulaPath = "DATA/SOLAR/NEBULA";
+        if (Data.GameData.Items.Ini.Freelancer.SolarPaths.Count > 0)
+        {
+            var fullPath = Data.GameData.Items.Ini.Freelancer.SolarPaths[0];
+            // Extract the relative path from the full path for VFS lookup
+            var dataPath = Data.GameData.Items.Ini.Freelancer.DataPath;
+            // DEBUG: Log path information
+            FLLog.Debug("NebulaFileSelector", $"DataPath: '{dataPath}'");
+            FLLog.Debug("NebulaFileSelector", $"SolarPaths[0]: '{fullPath}'");
+            if (fullPath.StartsWith(dataPath, StringComparison.OrdinalIgnoreCase))
+            {
+                // Extract directory path from file path (e.g., "solar\solararch.ini" -> "solar")
+                // Keep the DATA/ prefix from DataPath in the result
+                var relativePath = fullPath.Substring(dataPath.Length).TrimStart('/', '\\').Replace('/', '\\').Replace('\\', '\\');
+                var directoryPath = Path.GetDirectoryName(relativePath) ?? "";
+                // Prepend the directory part from DataPath (e.g., "DATA\") to the extracted path
+                var dataPathDirectory = dataPath.TrimEnd('/', '\\').Replace('/', '\\').Replace('\\', '\\');
+                // Ensure we have a trailing separator for proper path construction
+                if (!string.IsNullOrEmpty(dataPathDirectory) && !dataPathDirectory.EndsWith('\\'))
+                {
+                    dataPathDirectory += '\\';
+                }
+                // Use Path.Combine to properly construct the path: dataPathDirectory + SOLAR + subfolder
+                nebulaPath = Path.Combine(dataPathDirectory, "SOLAR", "NEBULA");
+                FLLog.Debug("NebulaFileSelector", $"Extracted relativePath: '{relativePath}'");
+                FLLog.Debug("NebulaFileSelector", $"Extracted directoryPath: '{directoryPath}'");
+                FLLog.Debug("NebulaFileSelector", $"DataPathDirectory: '{dataPathDirectory}'");
+            }
+            else
+            {
+                FLLog.Warning("NebulaFileSelector", $"SolarPaths[0] does not start with DataPath");
+            }
+        }
+        else
+        {
+            FLLog.Warning("NebulaFileSelector", "SolarPaths is empty, using default path");
+        }
+        FLLog.Debug("NebulaFileSelector", $"Final nebulaPath for VFS: '{nebulaPath}'");
+
+        Popups.OpenPopup(new FileSelectionPopup(
+            "Select Nebula",
+            Data.GameData.VFS,
+            nebulaPath,
+            ".ini",
+            currentFile,
+            file =>
+            {
+                // Remove existing nebula for this zone if any
+                var existingNeb = ZoneList.Nebulae.FirstOrDefault(x =>
+                    x.Zone != null && x.Zone.Nickname.Equals(sel.Nickname, StringComparison.OrdinalIgnoreCase));
+                
+                var sourceFile = $"solar\\nebula\\{Path.GetFileName(file)}";
+                var newNebula = Data.GameData.Items.LoadNebula(sourceFile);
+                newNebula.Zone = sel;
+                
+                // Create actions list for atomic operation
+                var actions = new List<EditorAction>();
+                
+                // If there's an existing nebula, remove it
+                if (existingNeb != null)
+                {
+                    actions.Add(new SysRemoveNebula(existingNeb, this));
+                }
+                
+                // Add the new nebula
+                actions.Add(new SysAddNebula(newNebula, this));
+                
+                // Commit as a single atomic action
+                UndoBuffer.Commit(EditorAggregateAction.Create(actions.ToArray()));
+                ReloadFieldRenderers();
+            }));
+    }
 
     private bool drawWireframe = false;
     void ViewPanel()
