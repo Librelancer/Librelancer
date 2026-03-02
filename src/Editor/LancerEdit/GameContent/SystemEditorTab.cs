@@ -468,8 +468,16 @@ public class SystemEditorTab : GameContentTab
         Controls.IdsInputStringUndo("Name", Data, Popups, UndoBuffer, () => ref sel.IdsName);
         Controls.IdsInputXmlUndo("Infocard", win, Data, Popups, UndoBuffer, () => ref sel.IdsInfo);
 
-        //Position
-        if (Controls.EditButtonRow("Position", $"{sel.Position.X:0.00}, {sel.Position.Y:0.00}, {sel.Position.Z: 0.00}"))
+        // Position
+        var buttonClicks = Controls.EditAndCopyButtonRow("Position",
+            $"{sel.Position.X:0.00}, {sel.Position.Y:0.00}, {sel.Position.Z: 0.00}", true);
+
+        if (buttonClicks.copyButtonClicked)
+        {
+            win.SetClipboardText($"{sel.Position.X.ToStringInvariant()}, {sel.Position.Y.ToStringInvariant()}, {sel.Position.Z.ToStringInvariant()}");
+        }
+
+        if (buttonClicks.editButtonClicked)
         {
             var origPosition = sel.Position;
             Popups.OpenPopup(new Vector3Popup("Position", false, origPosition, (value, kind) =>
@@ -482,7 +490,14 @@ public class SystemEditorTab : GameContentTab
         }
 
         var rot = sel.RotationMatrix.GetEulerDegrees();
-        if (Controls.EditButtonRow("Rotation",  $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}"))
+        buttonClicks = Controls.EditAndCopyButtonRow("Rotation", $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}", true);
+
+        if (buttonClicks.copyButtonClicked)
+        {
+            ImGui.OpenPopup("retcopy");
+        }
+
+        if (buttonClicks.editButtonClicked)
         {
             var origMatrix = sel.RotationMatrix;
             var origAngles = sel.RotationAngles;
@@ -508,6 +523,8 @@ public class SystemEditorTab : GameContentTab
                 }
             }));
         }
+
+        Controls.RotationCopyPopup("retcopy", sel.RotationMatrix, win);
 
         ShapeProperties(sel);
         Controls.EndEditorTable();
@@ -536,7 +553,8 @@ public class SystemEditorTab : GameContentTab
 
     void FloatRow(string name, float size, Action<float> preview, Action<float,float> set)
     {
-        if (Controls.EditButtonRow(name, size.ToString("0.####")))
+        var buttonClicks = Controls.EditAndCopyButtonRow(name, size.ToString("0.####"));
+        if (buttonClicks.editButtonClicked)
         {
             Popups.OpenPopup(new FloatPopup(name, size, (old, updated) => set(old,updated), v =>
             {
@@ -651,7 +669,9 @@ public class SystemEditorTab : GameContentTab
 
     void BaseRow(string name, Base f, Action<Base> onSet, string message = null)
     {
-        if (Controls.EditButtonRow("Base", f == null ? "(none)" : $"{f.Nickname} ({Data.Infocards.GetStringResource(f.IdsName)})"))
+        var buttonClicks = Controls.EditAndCopyButtonRow("Base",
+            f == null ? "(none)" : $"{f.Nickname} ({Data.Infocards.GetStringResource(f.IdsName)})");
+        if (buttonClicks.editButtonClicked)
             Popups.OpenPopup(new BaseSelection(onSet, name, message, f, Data));
     }
 
@@ -680,7 +700,8 @@ public class SystemEditorTab : GameContentTab
 
     void DockRow(DockAction act, Archetype a, Action<DockAction> onSet)
     {
-        if (Controls.EditButtonRow("Dock", DockDescription(act)))
+        var buttonClicks = Controls.EditAndCopyButtonRow("Dock", DockDescription(act));
+        if (buttonClicks.editButtonClicked)
         {
             Popups.OpenPopup(
                 new DockActionSelection(
@@ -715,10 +736,11 @@ public class SystemEditorTab : GameContentTab
         Controls.IdsInputStringUndo("Name", Data, Popups, UndoBuffer, () => ref sel.SystemObject.IdsName);
         Controls.IdsInputXmlUndo("Infocard", win, Data, Popups, UndoBuffer, () => ref sel.SystemObject.IdsInfo);
 
-        //Position
+        // Position
         var pos = sel.LocalTransform.Position;
         var rot = sel.LocalTransform.GetEulerDegrees();
-        if (Controls.EditButtonRow("Position",  $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}"))
+        var buttonClicks = Controls.EditAndCopyButtonRow("Position", $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}", true);
+        if (buttonClicks.editButtonClicked)
         {
             var oldTr = sel.LocalTransform;
             Popups.OpenPopup(new Vector3Popup("Position", false, oldTr.Position, (value, kind) =>
@@ -737,7 +759,17 @@ public class SystemEditorTab : GameContentTab
                 }
             }));
         }
-        if (Controls.EditButtonRow("Rotation",  $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}"))
+
+        buttonClicks = Controls.EditAndCopyButtonRow("Rotation", $"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}", true);
+
+        if (buttonClicks.copyButtonClicked)
+        {
+            ImGui.OpenPopup("retcopy");
+        }
+
+        Controls.RotationCopyPopup("retcopy", sel.LocalTransform.Matrix(), win);
+
+        if (buttonClicks.editButtonClicked)
         {
             var oldTr = sel.LocalTransform;
             var angles = oldTr.Orientation.GetEulerDegrees();
@@ -764,7 +796,8 @@ public class SystemEditorTab : GameContentTab
         var oldStar = sel.SystemObject.Star;
 
         //Archetype
-        if (Controls.EditButtonRow("Archetype", sel.SystemObject.Archetype?.Nickname ?? "(none)"))
+        buttonClicks = Controls.EditAndCopyButtonRow("Archetype", sel.SystemObject.Archetype?.Nickname ?? "(none)");
+        if (buttonClicks.editButtonClicked)
         {
             Popups.OpenPopup(new ArchetypeSelection(
                 x => UndoBuffer.Commit(new ObjectSetArchetypeLoadoutStar(
@@ -772,8 +805,10 @@ public class SystemEditorTab : GameContentTab
                 oldArchetype,
                 Data));
         }
+
         //Star
-        if (Controls.EditButtonRow("Star", sel.SystemObject.Star?.Nickname ?? "(none)"))
+        buttonClicks = Controls.EditAndCopyButtonRow("Star", sel.SystemObject.Star?.Nickname ?? "(none)");
+        if (buttonClicks.editButtonClicked)
         {
             Popups.OpenPopup(new StarSelection(
                 x => UndoBuffer.Commit(new ObjectSetArchetypeLoadoutStar(
@@ -783,7 +818,8 @@ public class SystemEditorTab : GameContentTab
         }
 
         //Loadout
-        if (Controls.EditButtonRow("Loadout", sel.SystemObject.Loadout?.Nickname ?? "(none)"))
+        buttonClicks = Controls.EditAndCopyButtonRow("Loadout", sel.SystemObject.Loadout?.Nickname ?? "(none)");
+        if (buttonClicks.editButtonClicked)
         {
             Popups.OpenPopup(new LoadoutSelection(
                 x => UndoBuffer.Commit(new ObjectSetArchetypeLoadoutStar(
@@ -793,7 +829,8 @@ public class SystemEditorTab : GameContentTab
                 Data));
         }
 
-        if (Controls.EditButtonRow("Parent", sel.SystemObject.Parent ?? "(none)"))
+        buttonClicks = Controls.EditAndCopyButtonRow("Parent", sel.SystemObject.Parent ?? "(none)");
+        if (buttonClicks.editButtonClicked)
         {
             Popups.OpenPopup(new ParentSelectPopup(
                 ObjectsList.Objects.Where(x => x != sel),
@@ -803,7 +840,8 @@ public class SystemEditorTab : GameContentTab
         }
 
         //Visit
-        if (Controls.EditButtonRow("Visit", VisitFlagEditor.FlagsString(sel.SystemObject.Visit)))
+        buttonClicks = Controls.EditAndCopyButtonRow("Visit", VisitFlagEditor.FlagsString(sel.SystemObject.Visit));
+        if (buttonClicks.editButtonClicked)
         {
             Popups.OpenPopup(new VisitFlagEditor(sel.SystemObject.Visit,
                 x => UndoBuffer.Set("Visit", () => ref sel.SystemObject.Visit, x)));
@@ -1113,7 +1151,8 @@ public class SystemEditorTab : GameContentTab
             var attenPreview = string.IsNullOrWhiteSpace(sel.AttenuationCurveName)
                 ? $"{atten3.X:0.00000000}, {atten3.Y:0.00000000}, {atten3.Z:0.00000000}"
                 : sel.AttenuationCurveName;
-            if (Controls.EditButtonRow("Attenuation", attenPreview))
+            var buttonClicks = Controls.EditAndCopyButtonRow("Attenuation", attenPreview);
+            if (buttonClicks.editButtonClicked)
             {
                 FloatGraph graph = null;
                 Vector3 attenuation = sel.Light.Attenuation;
