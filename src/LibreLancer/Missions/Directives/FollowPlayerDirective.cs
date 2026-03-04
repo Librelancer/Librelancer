@@ -11,7 +11,7 @@ public class FollowPlayerDirective : MissionDirective
     public override ObjListCommands Command => ObjListCommands.FollowPlayer;
 
     public string Formation = "fighter_basic";
-    public List<string> Ships = new();
+    public List<string> Ships = [];
 
     public FollowPlayerDirective()
     {

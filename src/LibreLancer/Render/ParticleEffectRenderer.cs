@@ -15,7 +15,7 @@ namespace LibreLancer.Render
         private SystemRenderer sys;
         private ParticleEffectInstance fx;
         public bool Finished = false;
-        public int Index; //needed to fix fuses spawning multiple fx on top of each-other
+        public int Index; // needed to fix fuses spawning multiple fx on top of each-other
         public Hardpoint Attachment;
 
 		public ParticleEffectRenderer(ParticleEffect effect)

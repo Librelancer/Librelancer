@@ -13,13 +13,13 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ListBox : UiWidget
     {
-        public Scrollbar Scrollbar = new Scrollbar() { Smooth = false };
+        public Scrollbar Scrollbar = new() { Smooth = false };
 
         public float ItemHeight { get; set; } = 30;
         public bool AlwaysShowScrollbar { get; set; } = false;
-        
+
         [UiContent]
-        public List<ListItem> Children { get; set; } = new List<ListItem>();
+        public List<ListItem> Children { get; set; } = [];
 
         private int MaxDisplayChildren()
         {
@@ -31,7 +31,7 @@ namespace LibreLancer.Interface
             int c = Children.Count - MaxDisplayChildren();
             return c <= 0 ? 0 : c;
         }
-        
+
         private int childOffset = 0;
         private int selectedIndex = -1;
 
@@ -70,7 +70,7 @@ namespace LibreLancer.Interface
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             var myRectangle = new RectangleF(myPos.X,myPos.Y, Width, Height);
             Background?.Draw(context, myRectangle);
-            //Update scrolling
+            // Update scrolling
             int scrollCount = ScrollCount();
             if (scrollCount <= 0) {
                 childOffset = 0;
@@ -86,7 +86,7 @@ namespace LibreLancer.Interface
             } else {
                 childOffset = (int)(Scrollbar.ScrollOffset * scrollCount);
             }
-            
+
             for(int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
             {
                 var child = Children[i];
@@ -140,7 +140,7 @@ namespace LibreLancer.Interface
                 Children[i].OnMouseUp(context, myRectangle);
             }
         }
-        
+
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);

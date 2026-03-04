@@ -12,7 +12,6 @@ public class ProjectileMaterial : RenderMaterial
 {
     public ProjectileMaterial(ResourceManager library) : base(library) { }
 
-
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
         var shader = AllShaders.Sprite.Get(0);

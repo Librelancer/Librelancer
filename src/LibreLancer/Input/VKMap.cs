@@ -7,8 +7,8 @@ internal static class VKMap
         Keys keys;
         switch (input)
         {
-            //Yes Freelancer uses negative numbers in keymap instead of the VK constants
-            case (int)VK.LeftButton: 
+            // Yes Freelancer uses negative numbers in keymap instead of the VK constants
+            case (int)VK.LeftButton:
             case -1:
                 return UserInput.FromMouse(MouseButtons.Left);
             case -2:
@@ -89,7 +89,7 @@ internal static class VKMap
             case VK.N8: return Keys.D8;
             case VK.N9: return Keys.D9;
             case VK.F1: return Keys.F1;
-            case VK.F2: return Keys.F2; 
+            case VK.F2: return Keys.F2;
             case VK.F3: return Keys.F3;
             case VK.F4: return Keys.F4;
             case VK.F5: return Keys.F5;
@@ -140,7 +140,7 @@ internal static class VKMap
             case VK.Prior: return Keys.NavPageUp;
             case VK.Next: return Keys.NavPageDown;
             case VK.Select: return Keys.Select;
-            case VK.Print: break; //no mapping for PRINT key
+            case VK.Print: break; // no mapping for PRINT key
             case VK.Execute: return Keys.Execute;
             case VK.Snapshot: return Keys.PrintScreen;
             case VK.Sleep: return Keys.Sleep;
@@ -167,7 +167,6 @@ internal static class VKMap
 
         return Keys.Unknown;
     }
-
 
     private enum VK : int
     {
@@ -551,7 +550,7 @@ internal static class VKMap
         PA1 = 0xFD,
         /// <summary></summary>
         OEMClear = 0xFE,
-        
+
         COUNT = 0xFF,
     }
 }

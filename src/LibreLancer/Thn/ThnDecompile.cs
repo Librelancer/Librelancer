@@ -17,32 +17,32 @@ namespace LibreLancer.Thn
                 return;
             _inited = true;
             ThornTable.EnumReverse = new Dictionary<string, string>();
-            //ThnObjectFlags
+            // ThnObjectFlags
             ThornTable.EnumReverse.Add("LitDynamic", "LIT_DYNAMIC");
             ThornTable.EnumReverse.Add("LitAmbient", "LIT_AMBIENT");
             ThornTable.EnumReverse.Add("Hidden", "HIDDEN");
             ThornTable.EnumReverse.Add("Reference", "REFERENCE");
             ThornTable.EnumReverse.Add("SoundSpatial", "SPATIAL");
             ThornTable.EnumReverse.Add("Spatial", "SPATIAL");
-            //EventFlags
+            // EventFlags
             ThornTable.EnumReverse.Add("Loop", "LOOP");
             ThornTable.EnumReverse.Add("Stream", "STREAM");
-            //LightTypes
+            // LightTypes
             ThornTable.EnumReverse.Add("Direct", "L_DIRECT");
             ThornTable.EnumReverse.Add("Point", "L_POINT");
             ThornTable.EnumReverse.Add("Spotlight", "L_SPOT");
-            //TargetTypes
+            // TargetTypes
             ThornTable.EnumReverse.Add("Hardpoint", "HARDPOINT");
             ThornTable.EnumReverse.Add("Part", "PART");
             ThornTable.EnumReverse.Add("Root", "ROOT");
-            //AttachFlags
+            // AttachFlags
             ThornTable.EnumReverse.Add("Position", "POSITION");
             ThornTable.EnumReverse.Add("Orientation", "ORIENTATION");
             ThornTable.EnumReverse.Add("LookAt", "LOOK_AT");
             ThornTable.EnumReverse.Add("EntityRelative", "ENTITY_RELATIVE");
             ThornTable.EnumReverse.Add("OrientationRelative", "ORIENTATION_RELATIVE");
             ThornTable.EnumReverse.Add("ParentChild", "PARENT_CHILD");
-            //EntityTypes
+            // EntityTypes
             ThornTable.EnumReverse.Add("Camera", "CAMERA");
             ThornTable.EnumReverse.Add("PSys", "PSYS");
             ThornTable.EnumReverse.Add("Monitor", "MONITOR");
@@ -56,12 +56,12 @@ namespace LibreLancer.Thn
             ThornTable.EnumReverse.Add("UnknownEntity", "UNKNOWN_ENTITY");
             ThornTable.EnumReverse.Add("Deleted", "DELETED");
             ThornTable.EnumReverse.Add("SubScene", "SUB_SCENE");
-            //FogModes
+            // FogModes
             ThornTable.EnumReverse.Add("None", "F_NONE");
             ThornTable.EnumReverse.Add("Exp2", "F_EXP2");
             ThornTable.EnumReverse.Add("Exp", "F_EXP");
             ThornTable.EnumReverse.Add("Linear", "F_LINEAR");
-            //EventTypes
+            // EventTypes
             ThornTable.EnumReverse.Add("SetCamera", "SET_CAMERA");
             ThornTable.EnumReverse.Add("AttachEntity", "ATTACH_ENTITY");
             ThornTable.EnumReverse.Add("StartSpatialPropAnim", "START_SPATIAL_PROP_ANIM");
@@ -82,7 +82,7 @@ namespace LibreLancer.Thn
             ThornTable.EnumReverse.Add("UserEvent", "USER_EVENT");
             ThornTable.EnumReverse.Add("StartReverbPropAnim", "START_REVERB_PROP_ANIM");
             ThornTable.EnumReverse.Add("Subtitle", "SUBTITLE");
-            //Axis
+            // Axis
             ThornTable.EnumReverse.Add("XAxis", "X_AXIS");
             ThornTable.EnumReverse.Add("YAxis", "Y_AXIS");
             ThornTable.EnumReverse.Add("ZAxis", "Z_AXIS");
@@ -121,13 +121,12 @@ namespace LibreLancer.Thn
 
         private static void ProcessEntities(ThornTable t, string source)
         {
-            //Make sure flags aren't integers
-            object o;
+            // Make sure flags aren't integers
             foreach(var e in t.Values)
             {
                 var ent = (ThornTable)e;
                 ent["type"] = ThnTypes.Convert<EntityTypes>(ent["type"]);
-                if (ent.TryGetValue("lightprops", out o))
+                if (ent.TryGetValue("lightprops", out var o))
                 {
                     var lp = (ThornTable)o;
                     if (lp.ContainsKey("type")) lp["type"] = ThnTypes.Convert<LightTypes>(lp["type"]);
@@ -161,7 +160,7 @@ namespace LibreLancer.Thn
                 if (ev.Length >= 4)
                 {
                     var props = (ThornTable)ev[3];
-                    //TODO: Property flags
+                    // TODO: Property flags
                 }
             }
         }

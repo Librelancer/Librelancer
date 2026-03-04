@@ -16,7 +16,6 @@ namespace LibreLancer.Server
     public static class SaveWriter
     {
 
-
         public static SaveGame CreateSave(
             NetCharacter ch,
             string description,
@@ -68,7 +67,7 @@ namespace LibreLancer.Server
 
             sg.Player.Visit.AddRange(ch.GetAllVisitFlags());
 
-            sg.Player.Interface = 3; //Unknown, matching vanilla
+            sg.Player.Interface = 3; // Unknown, matching vanilla
 
             sg.MPlayer = new MPlayer();
             sg.MPlayer.CanDock = 1;

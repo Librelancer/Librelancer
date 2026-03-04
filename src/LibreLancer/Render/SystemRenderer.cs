@@ -17,7 +17,7 @@ using LibreLancer.World;
 
 namespace LibreLancer.Render
 {
-	//Responsible for rendering the GameWorld.
+	// Responsible for rendering the GameWorld.
 	public class SystemRenderer : IDisposable
 	{
         public ICamera Camera
@@ -38,12 +38,12 @@ namespace LibreLancer.Render
 		private StarSystem starSystem;
 		public StarSystem StarSystem => starSystem;
 
-        //Editor Options
+        // Editor Options
         public bool DrawNebulae = true;
         public bool DrawStarsphere = true;
 
-        //Global Renderer Options
-		public bool ExtraLights = false; //See comments in Draw() before enabling
+        // Global Renderer Options
+		public bool ExtraLights = false; // See comments in Draw() before enabling
 
 		public RigidModel[] StarSphereModels;
 		public Matrix4x4[] StarSphereWorlds;
@@ -52,7 +52,7 @@ namespace LibreLancer.Render
         public Action OpaqueHook;
         public Action PhysicsHook;
 		public PolylineRender Polyline;
-		public SystemLighting SystemLighting = new SystemLighting();
+		public SystemLighting SystemLighting = new();
         public ParticleEffectPool FxPool;
         public BeamsBuffer Beams;
         public QuadBuffer QuadBuffer;
@@ -84,7 +84,6 @@ namespace LibreLancer.Render
         private Billboards billboards;
         private ResourceManager resman;
 
-
         public ResourceManager ResourceManager
         {
             get
@@ -100,9 +99,9 @@ namespace LibreLancer.Render
             billboards = game.GetService<Billboards>();
             Commands = game.GetService<CommandBuffer>();
             this.camera = camera;
-            AsteroidFields = new List<AsteroidFieldRenderer>();
-            Nebulae = new List<NebulaRenderer>();
-            StarSphereModels = new RigidModel[0];
+            AsteroidFields = [];
+            Nebulae = [];
+            StarSphereModels = [];
             FxPool = new ParticleEffectPool(resources.GLWindow.RenderContext, Commands);
             rstate = resources.GLWindow.RenderContext;
             resman = resources;
@@ -117,8 +116,8 @@ namespace LibreLancer.Render
         {
             if (AsteroidFields != null)
                 foreach (var f in AsteroidFields) f.Dispose();
-            AsteroidFields = new List<AsteroidFieldRenderer>();
-            Nebulae = new List<NebulaRenderer>();
+            AsteroidFields = [];
+            Nebulae = [];
             if (asteroids != null)
             {
                 foreach(var field in asteroids)
@@ -137,9 +136,9 @@ namespace LibreLancer.Render
             starSystem = system;
             if (StarSphereModels != null)
             {
-                StarSphereModels = new RigidModel[0];
+                StarSphereModels = [];
             }
-            List<RigidModel> starSphereRenderData = new List<RigidModel>();
+            List<RigidModel> starSphereRenderData = [];
             void AddModel(ResolvedModel mdl)
             {
                 if (mdl == null) return;
@@ -161,7 +160,6 @@ namespace LibreLancer.Render
             foreach (var lt in system.LightSources)
                 SystemLighting.Lights.Add(new DynamicLight() { Light = lt.Light });
         }
-
 
 		public void LoadSystem(StarSystem system)
 		{
@@ -185,7 +183,7 @@ namespace LibreLancer.Render
             }
         }
 
-        private Vector3[] debugPoints = new Vector3[0];
+        private Vector3[] debugPoints = [];
         public void UseDebugPoints(List<Vector3> list)
         {
             this.debugPoints = list.ToArray();
@@ -215,14 +213,14 @@ namespace LibreLancer.Render
 			return null;
 		}
 
-        private MultisampleTarget msaa;
+        private MultisampleTarget? msaa;
         private int _mwidth = -1, _mheight = -1;
         public CommandBuffer Commands;
         private int _twidth = -1, _theight = -1;
         private int _dwidth = -1, _dheight = -1;
         private DepthMap depthMap;
 
-        public List<ObjectRenderer> objects = new List<ObjectRenderer>(250);
+        public List<ObjectRenderer> objects = new(250);
 
         public void AddObject(ObjectRenderer render)
         {
@@ -235,7 +233,7 @@ namespace LibreLancer.Render
             public Vector3 Position;
         }
 
-        private List<TemporaryFx> tempFx = new List<TemporaryFx>();
+        private List<TemporaryFx> tempFx = [];
         public void SpawnTempFx(ParticleEffect fx, Vector3 position)
         {
             var ren = new ParticleEffectRenderer(fx);
@@ -248,7 +246,7 @@ namespace LibreLancer.Render
 		public unsafe void Draw(int renderWidth, int renderHeight)
 		{
             if (renderWidth == 0 || renderHeight == 0)
-                //Don't render on Width/Height = 0
+                // Don't render on Width/Height = 0
                 return;
             RenderTarget restoreTarget = rstate.RenderTarget;
 			if (Settings.SelectedMSAA > 0)
@@ -268,7 +266,7 @@ namespace LibreLancer.Render
 			}
             rstate.PreferredFilterLevel = Settings.SelectedFiltering;
             rstate.AnisotropyLevel = Settings.SelectedAnisotropy;
-			NebulaRenderer nr = CheckNebulae(); //are we in a nebula?
+			NebulaRenderer nr = CheckNebulae(); // are we in a nebula?
             rstate.SetCamera(camera);
             Commands.Camera = camera;
 			bool transitioned = false;
@@ -292,7 +290,7 @@ namespace LibreLancer.Render
             Commands.BonesBuffer.EndStreaming(Commands.BonesMax);
 			if (transitioned)
 			{
-				//Fully in fog. Skip Starsphere
+				// Fully in fog. Skip Starsphere
 				rstate.ClearColor = nr.Nebula.FogColor;
 				rstate.ClearAll();
 			}
@@ -308,18 +306,18 @@ namespace LibreLancer.Render
 			Commands.StartFrame(rstate);
             FxPool.StartFrame(camera, Polyline);
 			rstate.DepthEnabled = true;
-			//Optimisation for dictionary lookups
+			// Optimisation for dictionary lookups
 			LightEquipRenderer.FrameStart();
-			//Clear depth buffer for game objects
+			// Clear depth buffer for game objects
 			billboards.Begin(camera, Commands);
             SystemLighting.NumberOfTilesX = -1;
-            //Simple depth pre-pass
+            // Simple depth pre-pass
             rstate.ColorWrite = false;
             rstate.DepthFunction = DepthFunction.Less;
             foreach (var obj in objects) obj.DepthPrepass(camera, rstate);
             rstate.DepthFunction = DepthFunction.LessEqual;
             rstate.ColorWrite = true;
-			//Actual Drawing
+			// Actual Drawing
 
             Beams.Begin(Commands, resman, camera);
 			foreach (var obj in objects) obj.Draw(camera, Commands, SystemLighting, nr);
@@ -336,12 +334,12 @@ namespace LibreLancer.Render
             }
             billboards.End();
 			FxPool.EndFrame();
-			//Opaque Pass
+			// Opaque Pass
 			rstate.DepthEnabled = true;
 			Commands.DrawOpaque(rstate);
             if ((!transitioned || !DrawNebulae) && DrawStarsphere)
             {
-                //Starsphere
+                // Starsphere
                 rstate.DepthRange = new Vector2(1, 1);
                 if (camera is ThnCamera thn && !ZOverride) {
                     thn.DefaultZ();
@@ -353,7 +351,7 @@ namespace LibreLancer.Render
                     if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
                     var lighting = Lighting.Empty;
                     if (StarSphereLightings != null) lighting = StarSphereLightings[i];
-                    //We frustum cull to save on fill rate for low end devices (pi)
+                    // We frustum cull to save on fill rate for low end devices (pi)
                     var mdl = StarSphereModels[i];
                     for (int j = 0; j < mdl.AllParts.Length; j++)
                     {
@@ -371,15 +369,15 @@ namespace LibreLancer.Render
                 }
                 if (nr != null && DrawNebulae)
                 {
-                    //rstate.DepthEnabled = false;
+                    // rstate.DepthEnabled = false;
                     nr.RenderFogTransition();
-                    //rstate.DepthEnabled = true;
+                    // rstate.DepthEnabled = true;
                 }
 
                 rstate.DepthRange = new Vector2(0, 1);
             }
             OpaqueHook?.Invoke();
-            //Transparent Pass
+            // Transparent Pass
             rstate.DepthWrite = false;
 			Commands.DrawTransparent(rstate);
 			rstate.DepthWrite = true;
@@ -397,7 +395,7 @@ namespace LibreLancer.Render
                 DebugRenderer.DrawLine(lY, lmY, Color4.Red);
                 DebugRenderer.DrawLine(lZ, lmZ, Color4.Red);
             }
-            debugPoints = Array.Empty<Vector3>();
+            debugPoints = [];
 			DebugRenderer.Render();
 			if (Settings.SelectedMSAA > 0)
 			{

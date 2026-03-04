@@ -54,7 +54,6 @@ namespace LibreLancer.Render.Materials
 			Type = type;
 		}
 
-
         [Flags]
         private enum PBRFeatures : uint
         {
@@ -108,11 +107,11 @@ namespace LibreLancer.Render.Materials
                 caps |= ShaderFeatures.ET_ENABLED;
             if (Fade)
                 caps |= ShaderFeatures.FADE_ENABLED;
-            //Shitty way of dealing with alpha_mask
-            //FL has a lot of DXT1 textures that aren't part of alpha_mask
-            //so this brings overall performance down.
-            //Don't change any of this stuff unless you can verify it works
-            //in all places! (Check Li01 shipyards, Bw10 tradelanes)
+            // Shitty way of dealing with alpha_mask
+            // FL has a lot of DXT1 textures that aren't part of alpha_mask
+            // so this brings overall performance down.
+            // Don't change any of this stuff unless you can verify it works
+            // in all places! (Check Li01 shipyards, Bw10 tradelanes)
             if (AlphaTest || GetDxt1())
                 caps |= ShaderFeatures.ALPHATEST_ENABLED;
             if (vertexType is Utf.Dfm.DfmVertex)
@@ -186,9 +185,9 @@ namespace LibreLancer.Render.Materials
 
 			var shader = pbr ? GetPBRShader(vertextype) : GetRegularShader(vertextype);
             SetWorld(shader);
-            //Dt
+            // Dt
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
-			//Dc
+			// Dc
             var dcValue = Dc;
             if ((userData & DcSet) == DcSet)
             {
@@ -196,16 +195,16 @@ namespace LibreLancer.Render.Materials
                 d.A = 255;
                 dcValue = (Color4)d;
             }
-            //Blending
+            // Blending
 			if (AlphaEnabled || Fade || OcEnabled || dxt1 || AlphaTest || (userData & ForceAlpha) == ForceAlpha)
 			{
 				rstate.BlendMode = BlendMode.Normal;
 			}
 			else
 			{
-                rstate.BlendMode = BlendMode.Opaque; //TODO: Maybe I can just leave this out?
+                rstate.BlendMode = BlendMode.Opaque; // TODO: Maybe I can just leave this out?
 			}
-			//MaterialAnim
+			// MaterialAnim
             var ma = new Vector4(0, 0, 1, 1);
 			if (MaterialAnim != null)
 			{
@@ -222,7 +221,7 @@ namespace LibreLancer.Render.Materials
                 Bones.BindTo(9, BufferOffset, 200);
             }
 
-            //EtSampler
+            // EtSampler
 			if (EtEnabled)
 			{
 				BindTexture(rstate, 1, EtSampler, 1, EtFlags, ResourceManager.NullTextureName);
@@ -254,11 +253,10 @@ namespace LibreLancer.Render.Materials
                 shader.SetUniformBlock(3, ref param);
                 SetTextureCoordinates(shader, DtFlags, EtFlags, NmFlags);
             }
-			//Set lights
+			// Set lights
             SetLights(shader, ref lights, rstate.FrameNumber);
             rstate.Shader = shader;
         }
-
 
         private bool GetDxt1()
         {

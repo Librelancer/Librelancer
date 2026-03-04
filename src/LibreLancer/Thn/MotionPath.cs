@@ -18,7 +18,7 @@ namespace LibreLancer.Thn
         private const int OPEN = 1;
         private const int CLOSED = 0;
 
-        private static Dictionary<string, object> env = new Dictionary<string, object>()
+        private static Dictionary<string, object> env = new()
         {
             { "OPEN", OPEN },
             { "CLOSED", CLOSED }
@@ -53,19 +53,19 @@ namespace LibreLancer.Thn
         private bool curve = false;
         public MotionPath(string pathdescriptor)
         {
-            //Abuse the Lua runtime to parse the path descriptor for us
+            // Abuse the Lua runtime to parse the path descriptor for us
             var rt = new ThornRunner(env, null);
             var path = (ThornTable)(rt.DoString("path = {" + pathdescriptor + "}")["path"]);
             var type = (int)path[1];
             loop = type == CLOSED;
-            //detect if orientations are present
+            // detect if orientations are present
             var orient = (ThornTable)path[3];
             if (orient.Length >= 4) {
                 HasOrientation = true;
             }
             var points = new List<Vector3>();
             var quaternions = new List<Quaternion>();
-            //Construct path
+            // Construct path
             for (int i = 2; i <= path.Length; i++) {
                 if (HasOrientation && i % 2 != 0)
                     quaternions.Add(GetQuat(path[i]));

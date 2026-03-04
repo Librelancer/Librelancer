@@ -197,8 +197,8 @@ namespace LibreLancer.Net.Protocol
                    aZ == bZ;
         }
 
-        public static readonly string[] DefaultHpidData = new[]
-        {
+        public static readonly string[] DefaultHpidData =
+        [
             "internal",
             "HpCM01",
             "HpCargo01",
@@ -241,7 +241,7 @@ namespace LibreLancer.Net.Protocol
             "HpWeapon01",
             "HpWeapon02",
             "HpWeapon03",
-            "HpWeapon04",
-        };
+            "HpWeapon04"
+        ];
     }
 }

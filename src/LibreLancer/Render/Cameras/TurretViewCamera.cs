@@ -17,8 +17,7 @@ public class TurretViewCamera : ICamera
 
     private Rectangle _vp;
 
-
-    //Camera Values
+    // Camera Values
     public Matrix4x4 Projection { get; private set; }
     public Matrix4x4 View { get; private set; } = Matrix4x4.Identity;
     private Matrix4x4 viewprojection;
@@ -28,7 +27,6 @@ public class TurretViewCamera : ICamera
     public bool FrustumCheck(BoundingSphere sphere) => frustum.Intersects(sphere);
 
     public bool FrustumCheck(BoundingBox box) => frustum.Intersects(box);
-
 
     private void UpdateVp()
     {
@@ -65,7 +63,6 @@ public class TurretViewCamera : ICamera
 
     private long fnum = 0;
 
-
     public void UpdateProjection()
     {
         var aspect = Viewport.AspectRatio;
@@ -81,7 +78,6 @@ public class TurretViewCamera : ICamera
         this.Viewport = viewport;
         ChasePosition = Vector3.Zero;
     }
-
 
     public void Update(double delta)
     {

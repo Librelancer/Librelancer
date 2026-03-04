@@ -40,7 +40,7 @@ namespace LibreLancer
 		public bool InitialLoadComplete = false;
         public Stopwatch LoadTimer;
         public InputMap InputMap;
-        private GameState currentState;
+        private GameState? currentState;
 
 		public GameConfig Config
 		{
@@ -53,7 +53,7 @@ namespace LibreLancer
         private GameConfig _cfg;
 		public FreelancerGame(GameConfig config) : base(config.BufferWidth, config.BufferHeight, false)
 		{
-			//DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
+			// DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
 			_cfg = config;
             _cfg.Saved += CfgOnSaved;
 			ScreenshotSave += FreelancerGame_ScreenshotSave;
@@ -83,23 +83,23 @@ namespace LibreLancer
 		protected override void Load()
         {
             Thread.CurrentThread.Name = "FreelancerGame UIThread";
-            //Hacky but reduces load time by initing XmlSerializer
-            //as well JIT'ing the lua hardwire on a background thread.
+            // Hacky but reduces load time by initing XmlSerializer
+            // as well JIT'ing the lua hardwire on a background thread.
             Task.Run(() =>
             {
                 new InterfaceResources().ToXml();
                 LuaContext.Initialize();
             });
-			//Move to stop _TSGetMainThread error on OSX
+			// Move to stop _TSGetMainThread error on OSX
 			MinimumWindowSize = new Point(640, 480);
 			SetFullScreen(Config.Settings.FullScreen);
 			SetVSync(Config.Settings.VSync);
             Config.Settings.RenderContext = RenderContext;
             Config.Settings.Validate();
-            //Cache
+            // Cache
             var vfs = FileSystem.FromPath(_cfg.FreelancerPath);
 			ResourceManager = new GameResourceManager(this, vfs);
-			//Init Audio
+			// Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
 			Audio = new AudioManager(this);
             Audio.MasterVolume = _cfg.Settings.MasterVolume;
@@ -107,7 +107,7 @@ namespace LibreLancer
             Audio.SetVolume(SoundCategory.Sfx, _cfg.Settings.SfxVolume);
             Audio.SetVolume(SoundCategory.Interface, _cfg.Settings.InterfaceVolume);
             Audio.SetVolume(SoundCategory.Voice, _cfg.Settings.VoiceVolume);
-			//Load data
+			// Load data
 			FLLog.Info("Game", "Loading game data");
 			GameData = new GameDataManager(new GameItemDb(vfs), ResourceManager);
 			IntroMovies = GameData.GetIntroMovies();
@@ -201,7 +201,7 @@ namespace LibreLancer
 			RenderContext.ReplaceViewport(0, 0, Width, Height);
 			fps_updatetimer -= elapsed;
 			if (fps_updatetimer <= 0) {
-                //Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
+                // Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
 				fps_updatetimer = FPS_INTERVAL;
 			}
 			RenderContext.ClearAll ();

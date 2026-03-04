@@ -41,14 +41,14 @@ namespace LibreLancer.Server
 
         public uint Rank { get; private set; }
 
-        public ReputationCollection Reputation = new ReputationCollection();
+        public ReputationCollection Reputation = new();
 
         public Ship Ship { get; private set; }
-        public List<NetCargo> Items = new List<NetCargo>();
-        private Dictionary<uint, VisitFlags> visited = new Dictionary<uint, VisitFlags>();
-        private HashSet<uint> basesVisited = new();
-        private HashSet<uint> systemsVisited = new();
-        private HashSet<uint> holesVisited = new();
+        public List<NetCargo> Items = [];
+        private Dictionary<uint, VisitFlags> visited = new();
+        private HashSet<uint> basesVisited = [];
+        private HashSet<uint> systemsVisited = [];
+        private HashSet<uint> holesVisited = [];
 
         private long charId;
         private GameDataManager gData;
@@ -60,7 +60,7 @@ namespace LibreLancer.Server
 
         // Individual ship kill types are for Single player saves only.
         // In MP we simply store the statistics.
-        private Dictionary<uint, int> shipKillCounts = new Dictionary<uint, int>();
+        private Dictionary<uint, int> shipKillCounts = new();
         public void IncrementShipKillCount(Ship ship)
         {
             shipKillCounts.TryGetValue(ship.CRC, out var count);
@@ -94,7 +94,6 @@ namespace LibreLancer.Server
             return new CharacterTransaction(this, null);
         }
 
-
         public class CharacterTransaction : IDisposable
         {
             private NetCharacter nc;
@@ -102,7 +101,7 @@ namespace LibreLancer.Server
             private bool cargoDirty = false;
             private Dictionary<uint, Visit> updatedVisits = new();
             private Dictionary<Faction, float> updatedReputations = new();
-            private List<VisitHistoryInput> visitHistory = new();
+            private List<VisitHistoryInput> visitHistory = [];
 
             internal CharacterTransaction(NetCharacter n, Character newEntity)
             {
@@ -117,7 +116,6 @@ namespace LibreLancer.Server
                 nc.Position = pos;
                 nc.Orientation = orient;
             }
-
 
             public void UpdateReputation(Faction faction, float reputation)
             {
@@ -242,7 +240,7 @@ namespace LibreLancer.Server
             {
                 foreach(var item in nc.Items.Where(x => x.DbItemId != 0))
                     cargoToDelete.Add(item.DbItemId);
-                nc.Items = new List<NetCargo>();
+                nc.Items = [];
             }
 
             public void RemoveCargo(NetCargo slot, int amount)
@@ -294,13 +292,13 @@ namespace LibreLancer.Server
                     {
                         var dbItem = item.DbItemId == 0 ? null :
                             c.Items.FirstOrDefault(x => item.DbItemId == x.Id);
-                        //Add new items
+                        // Add new items
                         if (dbItem == null) {
                             dbItem = new CargoItem();
                             newItems.Add((item, dbItem));
                             c.Items.Add(dbItem);
                         }
-                        //Update existing
+                        // Update existing
                         dbItem.ItemName = item.Equipment?.Nickname;
                         dbItem.ItemCount = item.Count;
                         dbItem.Hardpoint = item.Hardpoint;
@@ -341,8 +339,8 @@ namespace LibreLancer.Server
                 }
                 else
                 {
-                    //dbChar updates are guaranteed to execute in order
-                    //so this is safe to do asynchronously
+                    // dbChar updates are guaranteed to execute in order
+                    // so this is safe to do asynchronously
                     nc.dbChar?.Update(c => Update(c, newItems), cargoDirty)
                         .ConfigureAwait(false)
                         .GetAwaiter()
@@ -465,7 +463,6 @@ namespace LibreLancer.Server
             return nc;
         }
 
-
         public static void SaveToDbCharacter(GameServer game, SaveGame sg, Character db) =>
             FromSaveGameInternal(game, sg, db);
 
@@ -495,7 +492,7 @@ namespace LibreLancer.Server
             nc.Orientation = new Quaternion(c.RotationX, c.RotationY, c.RotationZ, c.RotationW);
             nc.Ship = game.GameData.Items.Ships.Get(c.Ship);
             nc.Credits = c.Money;
-            nc.Items = new List<NetCargo>();
+            nc.Items = [];
             nc.statistics = new()
             {
                 FightersKilled = c.FightersKilled,
@@ -592,7 +589,7 @@ namespace LibreLancer.Server
             ID = id;
         }
 
-        public Equipment Equipment;
+        public Equipment? Equipment;
         public string? Hardpoint;
         public float Health;
         public int Count;

@@ -31,7 +31,7 @@ public struct VMeshOptimizeInfo
         return StartMesh == other.StartMesh && EndMesh == other.EndMesh && StartVertex == other.StartVertex && Enabled == other.Enabled;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is VMeshOptimizeInfo other && Equals(other);
     }
@@ -70,7 +70,7 @@ public class VMeshResource
                 return (vmo, v.Value.Item2);
         }
         optimized ??= new Dictionary<VMeshOptimizeInfo, (IndexResource, MeshDrawcall[])?>();
-        //Check material counts
+        // Check material counts
         var counts = new List<(uint Material, int Count)>();
         for(int i = startMesh; i < endMesh; i++) {
             var crc = Meshes[i].MaterialCrc;
@@ -99,9 +99,9 @@ public class VMeshResource
             return (new VMeshOptimizeInfo(), null);
         }
 
-        //Optimize
-        List<MeshDrawcall> drawcalls = new List<MeshDrawcall>();
-        List<(uint MaterialCrc, List<int> Indices)> merged = new List<(uint MaterialCrc, List<int> Indices)>();
+        // Optimize
+        List<MeshDrawcall> drawcalls = [];
+        List<(uint MaterialCrc, List<int> Indices)> merged = [];
         for (int i = startMesh; i < endMesh; i++)
         {
             var c = counts.First(x => x.Material == Meshes[i].MaterialCrc);
@@ -120,7 +120,7 @@ public class VMeshResource
                 var m = merged.FirstOrDefault(x => x.MaterialCrc == Meshes[i].MaterialCrc);
                 if (m.Indices == null)
                 {
-                    m = (Meshes[i].MaterialCrc, new List<int>());
+                    m = (Meshes[i].MaterialCrc, []);
                     merged.Add(m);
                 }
                 for (var j = Meshes[i].TriangleStart; j < (Meshes[i].TriangleStart + Meshes[i].NumRefVertices); j++) {

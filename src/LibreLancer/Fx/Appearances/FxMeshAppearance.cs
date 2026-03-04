@@ -6,7 +6,7 @@ using System;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
-	//Class left unimplemented on purpose. Does not work in Vanilla Freelancer
+	// Class left unimplemented on purpose. Does not work in Vanilla Freelancer
 	public class FxMeshAppearance : FxAppearance
 	{
 		public FxMeshAppearance(AlchemyNode ale) : base(ale)

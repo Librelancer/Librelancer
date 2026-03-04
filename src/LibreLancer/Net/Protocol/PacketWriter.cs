@@ -60,17 +60,17 @@ public class PacketWriter
 
     public void PutBigVarUInt32(uint u)
     {
-        if (u <= 32767) //15 bits
+        if (u <= 32767) // 15 bits
         {
             writer.Put((ushort)u);
         }
-        else if (u <= 4227071) //4194303 22 bits + 32768
+        else if (u <= 4227071) // 4194303 22 bits + 32768
         {
             u -= 32768;
             writer.Put((ushort)((u & 0x7FFF) | 0x8000));
             writer.Put((byte)((u >> 15) & 0x7f));
         }
-        else if (u <= 541097983) //536870911 29 bits + 4227072
+        else if (u <= 541097983) // 536870911 29 bits + 4227072
         {
             u -= 4227072;
             writer.Put((ushort)((u & 0x7FFF) | 0x8000));

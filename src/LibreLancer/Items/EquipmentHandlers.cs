@@ -74,20 +74,22 @@ public static class EquipmentHandlers
         var eng = (EngineEquipment) equip;
         parent.AddComponent(type != EquipmentType.Server
             ? new CEngineComponent(parent, eng)
-            : (CEngineComponent) new SEngineComponent(parent) { Engine = eng });
+            : (CEngineComponent)new SEngineComponent(parent, eng));
 
-        if (snd != null)
+        if (snd == null)
         {
-            snd.LoadSound(eng.Def.CruiseLoopSound);
-            snd.LoadSound(eng.Def.CruiseStartSound);
-            snd.LoadSound(eng.Def.CruiseStopSound);
-            snd.LoadSound(eng.Def.CruiseBackfireSound);
-            snd.LoadSound(eng.Def.CruiseStopSound);
-            snd.LoadSound(eng.Def.EngineKillSound);
-            snd.LoadSound(eng.Def.RumbleSound);
-            snd.LoadSound(eng.Def.CharacterLoopSound);
-            snd.LoadSound(eng.Def.CharacterStartSound);
+            return null;
         }
+
+        snd.LoadSound(eng.Def.CruiseLoopSound);
+        snd.LoadSound(eng.Def.CruiseStartSound);
+        snd.LoadSound(eng.Def.CruiseStopSound);
+        snd.LoadSound(eng.Def.CruiseBackfireSound);
+        snd.LoadSound(eng.Def.CruiseStopSound);
+        snd.LoadSound(eng.Def.EngineKillSound);
+        snd.LoadSound(eng.Def.RumbleSound);
+        snd.LoadSound(eng.Def.CharacterLoopSound);
+        snd.LoadSound(eng.Def.CharacterStartSound);
 
         return null;
     }
@@ -178,7 +180,6 @@ public static class EquipmentHandlers
 
         return obj;
     }
-
 
     private static GameObject? Tractor(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type,
         string hardpoint, Equipment equip)

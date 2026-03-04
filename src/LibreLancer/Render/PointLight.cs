@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace LibreLancer.Render
 {
-	//PointLight struct used by shaders (Features430 only)
+	// PointLight struct used by shaders (Features430 only)
 	[StructLayout(LayoutKind.Sequential)]
 	public struct PointLight
 	{

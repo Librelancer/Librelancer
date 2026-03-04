@@ -17,7 +17,7 @@ namespace LibreLancer.Interface
         public float TextSize { get; set; }
         public float MarginX { get; set; }
         public string Font { get; set; }
-        private InfoTextAccessor txtAccess = new InfoTextAccessor();
+        private InfoTextAccessor txtAccess = new();
         public string Text
         {
             get => txtAccess.Text;

@@ -33,10 +33,10 @@ namespace LibreLancer.Utf
         {
             if (reader == null) throw new ArgumentNullException("reader");
 
-            //int zero = reader.ReadInt32();
+            // int zero = reader.ReadInt32();
             reader.BaseStream.Seek(sizeof(int), SeekOrigin.Current);
 
-            children = new List<Node>();
+            children = [];
 
             int childOffset = reader.ReadInt32();
             if (childOffset > 0)
@@ -50,15 +50,15 @@ namespace LibreLancer.Utf
                     next = n.PeerOffset;
                 } while (next > 0);
             }
-            //else
-            //throw new FileContentsException(UtfFile.FILE_TYPE, "IntermediateNode " + Name + " doesn't have any child nodes.");
+            // else
+            // throw new FileContentsException(UtfFile.FILE_TYPE, "IntermediateNode " + Name + " doesn't have any child nodes.");
 
-            //int allocatedSize = reader.ReadInt32();
-            //int size = reader.ReadInt32();
-            //int size2 = reader.ReadInt32();
-            //int timestamp1 = reader.ReadInt32();
-            //int timestamp2 = reader.ReadInt32();
-            //int timestamp3 = reader.ReadInt32();
+            // int allocatedSize = reader.ReadInt32();
+            // int size = reader.ReadInt32();
+            // int size2 = reader.ReadInt32();
+            // int timestamp1 = reader.ReadInt32();
+            // int timestamp2 = reader.ReadInt32();
+            // int timestamp3 = reader.ReadInt32();
         }
 
         public int IndexOf(Node item)

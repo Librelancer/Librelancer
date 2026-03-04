@@ -87,7 +87,7 @@ World Time: {12:F2}
 		public SpaceGameplay(FreelancerGame g, CGameSession session) : base(g)
         {
 			FLLog.Info("Game", "Entering system " + session.PlayerSystem);
-            g.ResourceManager.ClearTextures(); //Do before loading things
+            g.ResourceManager.ClearTextures(); // Do before loading things
             g.ResourceManager.ClearMeshes();
             Game.Ui.MeshDisposeVersion++;
             this.session = session;
@@ -97,11 +97,10 @@ World Time: {12:F2}
             uiApi.IndicatorLayer.OnRender += IndicatorLayerOnRender;
             nextObjectiveUpdate = session.CurrentObjective.Ids;
             session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjective.Ids;
-            session.OnUpdateInventory = session.OnUpdatePlayerShip = null; //we should clear these handlers better
+            session.OnUpdateInventory = session.OnUpdatePlayerShip = null; // we should clear these handlers better
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys));
             loader.Init();
         }
-
 
         private ChaseCamera _chaseCamera;
         private TurretViewCamera _turretViewCamera;
@@ -111,7 +110,7 @@ World Time: {12:F2}
         private void FinishLoad()
         {
             Game.Saves.Selected = -1;
-            //Set up player object + camera
+            // Set up player object + camera
             player = new GameObject(session.PlayerShip, Game.ResourceManager, true, true);
             player.Nickname = "player";
             player.NetID = session.PlayerNetID;
@@ -123,12 +122,12 @@ World Time: {12:F2}
             Selection = new SelectedTargetComponent(player);
             Directives = new DirectiveRunnerComponent(player);
             player.AddComponent(Selection);
-            //Order components in terms of inputs (very important)
+            // Order components in terms of inputs (very important)
             player.AddComponent(pilotcomponent);
             player.AddComponent(shipInput);
-            //takes input from pilot and shipinput
+            // takes input from pilot and shipinput
             player.AddComponent(steering);
-            //takes input from steering
+            // takes input from steering
             player.AddComponent(control);
             player.AddComponent(weapons);
             player.AddComponent(new CExplosionComponent(player, session.PlayerShip.Explosion));
@@ -174,15 +173,15 @@ World Time: {12:F2}
             activeCamera = _chaseCamera;
 
             sysrender = new SystemRenderer(_chaseCamera, Game.ResourceManager, Game);
-            sysrender.ZOverride = true; //Draw all with regular Z
+            sysrender.ZOverride = true; // Draw all with regular Z
             world = new GameWorld(sysrender, Game.ResourceManager, () => session.WorldTime);
-            //Game.GameData.PreloadObjects(session.Preloads);
+            // Game.GameData.PreloadObjects(session.Preloads);
             world.LoadSystem(sys, Game.ResourceManager, Game.Sound, false);
             session.WorldReady();
             player.World = world;
             world.AddObject(player);
             player.Register(world.Physics);
-            world.Projectiles.Player = player; //For sending projectile spawns over the network
+            world.Projectiles.Player = player; // For sending projectile spawns over the network
             cur_arrow = Game.ResourceManager.GetCursor("arrow");
             cur_cross = Game.ResourceManager.GetCursor("cross");
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral");
@@ -202,7 +201,6 @@ World Time: {12:F2}
 
         public override void OnSettingsChanged() =>
             sysrender.Settings = Game.Config.Settings;
-
 
         private bool CanRecharge()
         {
@@ -316,7 +314,7 @@ World Time: {12:F2}
         {
             private readonly record struct Contact(GameObject obj, float distance, string display);
 
-            private Contact[] Contacts = Array.Empty<Contact>();
+            private Contact[] Contacts = [];
             private SpaceGameplay game;
             private Vector3 playerPos;
             private Func<GameObject, bool> contactFilter;
@@ -338,7 +336,6 @@ World Time: {12:F2}
                     return "FAR";
             }
 
-
             private Contact GetContact(GameObject obj)
             {
                 var distance = Vector3.Distance(playerPos, obj.WorldTransform.Position);
@@ -352,7 +349,6 @@ World Time: {12:F2}
                 }
                 return new Contact(obj, distance, $"{GetDistanceString(distance)} - {name}");
             }
-
 
             private bool AllFilter(GameObject o) => true;
             private bool ShipFilter(GameObject o) => o.Kind == GameObjectKind.Ship;
@@ -460,7 +456,6 @@ World Time: {12:F2}
             }
         }
 
-
         private int frameCount = 0;
 
         [WattleScriptUserData]
@@ -545,7 +540,6 @@ World Time: {12:F2}
             public void TractorSelected() => g.TractorSelected();
 
             public void TractorAll() => g.TractorAll();
-
 
             public void SetReticleTemplate(UiWidget template, Closure callback) =>
                 Reticle = new(template, callback);
@@ -700,7 +694,6 @@ World Time: {12:F2}
                 };
             }
 
-
             public Vector2 SelectionPosition()
             {
                 if (g.Selection.Selected == null) return new Vector2(-1000, -1000);
@@ -798,7 +791,6 @@ World Time: {12:F2}
             this.dockCameraInfo = info;
         }
 
-
         protected override void OnUnload()
 		{
 			Game.Keyboard.TextInput -= Game_TextInput;
@@ -876,12 +868,10 @@ World Time: {12:F2}
 			return false;
 		}
 
-
         public bool ShowHud = true;
-        //Set to true when the mission system selection.Selected music on launch
+        // Set to true when the mission system selection.Selected music on launch
         public bool RtcMusic = false;
         private bool musicTriggered = false;
-
 
         private double accum = 0;
 
@@ -985,7 +975,7 @@ World Time: {12:F2}
                     ui.Event("Popup", popup.Title, popup.Contents, popup.ID);
                 }
             }
-            if (Selection.Selected != null && !Selection.Selected.Flags.HasFlag(GameObjectFlags.Exists)) Selection.Selected = null; //Object has been blown up/despawned
+            if (Selection.Selected != null && !Selection.Selected.Flags.HasFlag(GameObjectFlags.Exists)) Selection.Selected = null; // Object has been blown up/despawned
             // do tractor beam things
             if (player.TryGetComponent<CTractorComponent>(out var tractor))
             {
@@ -1054,7 +1044,7 @@ World Time: {12:F2}
                 current_cur = cur_arrow;
             }
 
-            //Has to be here or glitches
+            // Has to be here or glitches
             if (!Dead)
             {
                 if (dockCameraInfo != null && pilotcomponent.CurrentBehavior == AutopilotBehaviors.Undock)
@@ -1070,14 +1060,14 @@ World Time: {12:F2}
             _turretViewCamera.Update(delta);
             _chaseCamera.Update(delta);
             if ((Thn == null ||
-                 !Thn.Running)) //HACK: Cutscene also updates the listener so we don't do it if one is running
+                 !Thn.Running)) // HACK: Cutscene also updates the listener so we don't do it if one is running
             {
                 Game.Sound.UpdateListener(delta, _chaseCamera.Position, _chaseCamera.CameraForward, _chaseCamera.CameraUp);
             }
             else
             {
                 Thn.Update(paused ? 0 : delta);
-                ((ThnCamera)Thn.CameraHandle).DefaultZ(); //using Thn Z here is just asking for trouble
+                ((ThnCamera)Thn.CameraHandle).DefaultZ(); // using Thn Z here is just asking for trouble
             }
         }
 
@@ -1297,7 +1287,6 @@ World Time: {12:F2}
             }
 			control.CurrentStrafe = strafe;
 
-
             var obj = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
             if (ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
                 current_cur = cur_arrow;
@@ -1306,7 +1295,6 @@ World Time: {12:F2}
             }
 
             weapons.AimPoint = GetAimPoint();
-
 
             if (Input.IsActionDown(InputAction.USER_FIRE_WEAPONS))
                 weapons.FireAll();
@@ -1326,7 +1314,7 @@ World Time: {12:F2}
 
         public void ClearComm()
         {
-            ui.Event("Comm", new object[] { null });
+            ui.Event("Comm", [null]);
         }
 
         public void ClearScan()
@@ -1406,7 +1394,6 @@ World Time: {12:F2}
             player.GetComponent<WeaponControlComponent>().Enabled = true;
         }
 
-
         private void GetCameraMatrices(out Matrix4x4 view, out Matrix4x4 projection)
         {
             view = activeCamera.View;
@@ -1466,7 +1453,7 @@ World Time: {12:F2}
                 {
                     var waypointArch = Game.GameData.Items.Archetypes.Get("waypoint");
                     missionWaypoint = new GameObject(waypointArch, null, Game.ResourceManager);
-                    missionWaypoint.Name = new ObjectName(1091); //Mission Waypoint
+                    missionWaypoint.Name = new ObjectName(1091); // Mission Waypoint
                     missionWaypoint.SetLocalTransform(new Transform3D(pos, Quaternion.Identity));
                     missionWaypoint.World = world;
                     world.AddObject(missionWaypoint);
@@ -1475,7 +1462,7 @@ World Time: {12:F2}
             }
         }
 
-        private TargetShipWireframe targetWireframe = new TargetShipWireframe();
+        private TargetShipWireframe targetWireframe = new();
 
         private int CrosshairSize()
         {
@@ -1486,7 +1473,7 @@ World Time: {12:F2}
 
         private bool showObjectList = false;
 
-		//RigidBody debugDrawBody;
+		// RigidBody debugDrawBody;
         private int waitObjectiveFrames = 120;
 		public override unsafe void Draw(double delta)
 		{
@@ -1499,7 +1486,7 @@ World Time: {12:F2}
 
             if (Thn != null && Thn.Running)
             {
-                //Viewport FOV calculations unaffected by letterboxing
+                // Viewport FOV calculations unaffected by letterboxing
                 Game.RenderContext.ClearColor = Color4.Black;
                 Game.RenderContext.ClearAll();
                 var newRatio = ((double)Game.Width / Game.Height) * 1.39;
@@ -1632,7 +1619,7 @@ World Time: {12:F2}
                 {
                     ImGui.Text($"Storyline: {session.EmbeddedServer.Server.LocalPlayer.Story?.CurrentStory?.Nickname}");
                 }
-                //ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
+                // ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
             }, () =>
             {
                 Game.Debug.MissionWindow(session.GetTriggerInfo());
@@ -1716,7 +1703,7 @@ World Time: {12:F2}
         {
             foreach (var obj in world.Objects) {
                 if (obj == Selection.Selected)
-                { //Draw last
+                { // Draw last
                 }
                 else if (obj.Kind == GameObjectKind.Ship)
                 {

@@ -68,29 +68,29 @@ namespace LibreLancer.Render
             }
         }
 
-        private static readonly Vector3[] cubeVerts = new[]
-        {
-            //Front
+        private static readonly Vector3[] cubeVerts =
+        [
+            // Front
             new Vector3(-1,-1,1),
             new Vector3(-1, 1, 1),
             new Vector3(1, 1, 1),
             new Vector3(1, -1, 1),
-            //Back
+            // Back
             new Vector3(-1,-1,-1),
             new Vector3(-1, 1, -1),
             new Vector3(1, 1, -1),
-            new Vector3(1, -1, -1),
-        };
+            new Vector3(1, -1, -1)
+        ];
 
-        private static readonly int[] cubeIndices = new[]
-        {
-            //Front
+        private static readonly int[] cubeIndices =
+        [
+            // Front
             0,1, 1,2, 2,3, 3,0,
-            //Back
+            // Back
             4,5, 5,6, 6,7, 7,4,
-            //Join
-            0,4, 1,5, 2,6, 3,7,
-        };
+            // Join
+            0,4, 1,5, 2,6, 3,7
+        ];
 
         public void DrawCube(Matrix4x4 world, float scale, Color4 color)
         {

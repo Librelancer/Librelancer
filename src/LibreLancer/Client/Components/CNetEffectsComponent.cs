@@ -12,7 +12,7 @@ namespace LibreLancer.Client.Components
 {
     public class CNetEffectsComponent : GameComponent
     {
-        private SpawnedEffect[] effects = new SpawnedEffect[0];
+        private SpawnedEffect[] effects = [];
 
         public CNetEffectsComponent(GameObject parent) : base(parent)
         {
@@ -20,19 +20,29 @@ namespace LibreLancer.Client.Components
 
         private int renIndex = 0;
 
-        private List<ParticleEffectRenderer> spawned = new List<ParticleEffectRenderer>();
+        private List<ParticleEffectRenderer> spawned = [];
 
         private void Spawn(SpawnedEffect effect)
         {
-            var fx = Parent.World.Renderer.Game.GetService<GameDataManager>().Items.Effects.Get(effect.Effect);
-            if (fx == null) return;
-            var pfx = fx.GetEffect(Parent.World.Renderer.ResourceManager);
-            if (pfx == null) return;
+            var fx = Parent.World?.Renderer?.Game?.GetService<GameDataManager>()?.Items.Effects.Get(effect.Effect);
+            var pfx = fx?.GetEffect(Parent?.World?.Renderer?.ResourceManager!);
+
+            if (pfx is null)
+            {
+                return;
+            }
+
             foreach (var fxhp in effect.Hardpoints)
             {
-                var hp = Parent.GetHardpoint(fxhp);
+                var hp = Parent?.GetHardpoint(fxhp);
+
+                if (hp is null)
+                {
+                    continue;
+                }
+
                 var fxobj = new ParticleEffectRenderer(pfx) {Index = renIndex++, Attachment = hp};
-                Parent.ExtraRenderers.Add(fxobj);
+                Parent?.ExtraRenderers.Add(fxobj);
                 spawned.Add(fxobj);
             }
         }

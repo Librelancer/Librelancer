@@ -10,7 +10,7 @@ public class ScriptFormation : NicknameItem
     public Vector3 Position = Vector3.Zero;
     public Quaternion Orientation = Quaternion.Identity;
     public string Formation;
-    public List<ScriptShip> Ships = new();
+    public List<ScriptShip> Ships = [];
     public MissionRelativePosition RelativePosition;
 
     public static ScriptFormation FromIni(

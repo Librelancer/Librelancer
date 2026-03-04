@@ -73,7 +73,7 @@ namespace LibreLancer.Server
             }
         }
 
-        //Meant to be called from WattleScript
+        // Meant to be called from WattleScript
         public NPCWattleInstance getnpc(DynValue id)
         {
             var obj = LookupObject(id, "getnpc", 1);
@@ -92,7 +92,6 @@ namespace LibreLancer.Server
         {
             return DoSpawn(loadout, pilot, 0, 0, 0, arrivalObj);
         }
-
 
         private NPCWattleInstance DoSpawn(string loadout, string pilot, float x, float y, float z, string arrivalObj)
         {

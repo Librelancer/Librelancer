@@ -30,7 +30,7 @@ namespace LibreLancer.Render
 
         public static bool VertexLighting = false;
 		public MaterialAnim MaterialAnim;
-		public WorldMatrixHandle World = new WorldMatrixHandle();
+		public WorldMatrixHandle World = new();
 		public ResourceManager Library;
 		public bool Fade = false;
 		public float FadeNear = 0;
@@ -43,7 +43,6 @@ namespace LibreLancer.Render
         public bool DoubleSided = false;
         private Texture2D[] textures = new Texture2D[8];
         private bool[] loaded = new bool[8];
-
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         private struct PackedLight
@@ -125,7 +124,7 @@ namespace LibreLancer.Render
             var data = new ShaderLighting
             {
                 UseLighting = 1,
-                //fog
+                // fog
                 FogMode = (float)lighting.FogMode,
                 FogRange = lighting.FogRange,
                 FogColor = lighting.FogColor,
@@ -161,8 +160,8 @@ namespace LibreLancer.Render
             }
 
             data.LightCount = lt;
-            int szCount = 3 * sizeof(Vector4) + //header
-                          lt * sizeof(PackedLight); //lights
+            int szCount = 3 * sizeof(Vector4) + // header
+                          lt * sizeof(PackedLight); // lights
             shader.SetUniformBlock<ShaderLighting>(2, ref data, false, szCount);
         }
 

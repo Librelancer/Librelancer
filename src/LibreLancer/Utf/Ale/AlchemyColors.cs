@@ -27,14 +27,14 @@ namespace LibreLancer.Utf.Ale
 		}
 		public Color3f GetValue(float time)
 		{
-			//Only have one keyframe? Just return it.
+			// Only have one keyframe? Just return it.
 			if (Keyframes.Count == 1) {
 				return Keyframes [0].Value;
 			}
-			//Locate the keyframes to interpolate between
+			// Locate the keyframes to interpolate between
 			float t1 = float.NegativeInfinity;
 			float t2 = 0;
-			Color3f v1 = new Color3f(), v2 = new Color3f();
+			Color3f v1 = new(), v2 = new();
 			for (int i = 0; i < Keyframes.Count - 1; i++) {
 				if (time >= Keyframes [i].Time && time <= Keyframes [i + 1].Time) {
 					t1 = Keyframes [i].Time;
@@ -44,11 +44,11 @@ namespace LibreLancer.Utf.Ale
                     break;
                 }
 			}
-			//Time wasn't between any values. Return max.
+			// Time wasn't between any values. Return max.
 			if (t1 == float.NegativeInfinity) {
 				return Keyframes [Keyframes.Count - 1].Value;
 			}
-			//Interpolate!
+			// Interpolate!
 			return Easing.EaseColorRGB(Type,time, t1, t2, v1, v2);
 		}
 	}

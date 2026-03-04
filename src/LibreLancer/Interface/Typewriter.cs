@@ -11,7 +11,7 @@ namespace LibreLancer.Interface
 {
     public class Typewriter
     {
-        private Queue<string> strings = new Queue<string>();
+        private Queue<string> strings = new();
         private Game game;
         public Typewriter(Game game)
         {
@@ -60,22 +60,27 @@ namespace LibreLancer.Interface
 
         public void Render()
         {
-            if (!string.IsNullOrEmpty(currentString)) {
-
-                var pct = MathHelper.Clamp(time / FULL_TIME, 0, 1);
-                var str = currentString.Substring(0,
-                    MathHelper.Clamp((int) (pct * currentString.Length), 0, currentString.Length));
-                if (!string.IsNullOrWhiteSpace(str))
-                {
-                    var fonts = game.GetService<FontManager>();
-                    var fnt = fonts.ResolveNickname("MissionObjective");
-                    var r2d = game.RenderContext.Renderer2D;
-                    var off = new Vector2(30,30);
-                    var shadow = off + new Vector2(2, 2);
-                    r2d.DrawString(fnt, 16, str, shadow, Color4.Black);
-                    r2d.DrawString(fnt, 16, str, off, Color4.LightGreen);
-                }
+            if (string.IsNullOrEmpty(currentString))
+            {
+                return;
             }
+
+            var pct = MathHelper.Clamp(time / FULL_TIME, 0, 1);
+            var str = currentString.Substring(0,
+                MathHelper.Clamp((int) (pct * currentString.Length), 0, currentString.Length));
+
+            if (string.IsNullOrWhiteSpace(str))
+            {
+                return;
+            }
+
+            var fonts = game.GetService<FontManager>()!;
+            var fnt = fonts.ResolveNickname("MissionObjective");
+            var r2d = game.RenderContext.Renderer2D;
+            var off = new Vector2(30,30);
+            var shadow = off + new Vector2(2, 2);
+            r2d.DrawString(fnt, 16, str, shadow, Color4.Black);
+            r2d.DrawString(fnt, 16, str, off, Color4.LightGreen);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace LibreLancer.Server.Components
 {
     public class SFuseRunnerComponent : GameComponent
     {
-        public List<SpawnedEffect> Effects = new List<SpawnedEffect>();
+        public List<SpawnedEffect> Effects = [];
         public SFuseRunnerComponent(GameObject parent) : base(parent)
         {
         }
@@ -26,7 +26,7 @@ namespace LibreLancer.Server.Components
             public double T = 0;
         }
 
-        private List<FuseInstance> instances = new List<FuseInstance>();
+        private List<FuseInstance> instances = [];
         public void Run(FuseResources fuse)
         {
             var instance = new FuseInstance();
@@ -36,8 +36,8 @@ namespace LibreLancer.Server.Components
             instances.Add(instance);
         }
 
-        private BitArray128 runningHealthFuses = new BitArray128();
-        public List<DamageFuse> DamageFuses = new List<DamageFuse>();
+        private BitArray128 runningHealthFuses = new();
+        public List<DamageFuse> DamageFuses = [];
 
         public bool RunningDeathFuse => instances.Any(x => x.Fuse.Fuse.DeathFuse);
 
@@ -52,7 +52,6 @@ namespace LibreLancer.Server.Components
                 }
             }
         }
-
 
         private uint fxID = 1;
 

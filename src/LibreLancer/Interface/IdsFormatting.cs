@@ -48,7 +48,6 @@ public struct IdsFormatItem
         return infocards?.GetStringResource(id) ?? "(NULL)";
     }
 
-
     public IdsFormatItem(char category, int index, string value)
     {
         Id = (ushort)(((category & 0xFF) << 8) | (index & 0xFF));
@@ -97,7 +96,6 @@ public static class IdsFormatting
         return r;
     }
 
-
     public static string Format(string format, InfocardManager infocards, IdsFormatItem item0, IdsFormatItem item1,
         IdsFormatItem item2, IdsFormatItem item3)
     {
@@ -145,7 +143,7 @@ public static class IdsFormatting
                         && format[idxPct + 4] >= '0' && format[idxPct + 4] <= '9')
                     {
                         variant = format[idxPct + 4] - '0';
-                        idxLast = idxPct + 5; //ingest category + 0v1
+                        idxLast = idxPct + 5; // ingest category + 0v1
                     }
                     else
                     {

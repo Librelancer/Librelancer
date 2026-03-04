@@ -26,12 +26,12 @@ namespace LibreLancer.Net
         private NetManager client;
         public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
 
-        public int MaxSequencedSize => 500;  //Min safe UDP packet size - 8 bytes overhead
+        public int MaxSequencedSize => 500;  // Min safe UDP packet size - 8 bytes overhead
         public event Action<LocalServerInfo> ServerFound;
         public event Action<bool> AuthenticationRequired;
         public event Action<DisconnectReason> Disconnected;
         public Guid UUID;
-        private ConcurrentQueue<IPacket> packets = new ConcurrentQueue<IPacket>();
+        private ConcurrentQueue<IPacket> packets = new();
         private HttpClient http;
         private NetHpidWriter hpidWrite;
 
@@ -50,7 +50,7 @@ namespace LibreLancer.Net
             get
             {
                 if (running)
-                    //LiteNetLib returns Ping as RTT/2 - not the regular measure of ping.
+                    // LiteNetLib returns Ping as RTT/2 - not the regular measure of ping.
                     return (client?.FirstPeer?.Ping ?? 0) * 2;
                 return -1;
             }
@@ -119,7 +119,7 @@ namespace LibreLancer.Net
 
         public void DiscoverGlobalPeers()
         {
-            //HTTP?
+            // HTTP?
         }
 
         private bool connecting = true;
@@ -151,8 +151,7 @@ namespace LibreLancer.Net
         {
             Task.Run(() =>
             {
-                IPEndPoint ep;
-                if (ParseEP(str, out ep))
+                if (ParseEP(str, out var ep))
                 {
                     Connect(ep);
                 }
@@ -165,8 +164,8 @@ namespace LibreLancer.Net
         private static bool ParseEP(string str, out IPEndPoint endpoint)
         {
             endpoint = new IPEndPoint(IPAddress.None, 0);
-            IPAddress ip;
-            if (IPAddress.TryParse(str, out ip))
+
+            if (IPAddress.TryParse(str, out var ip))
             {
                 endpoint = new IPEndPoint(ip, LNetConst.DEFAULT_PORT);
                 return true;
@@ -176,8 +175,7 @@ namespace LibreLancer.Net
                 var idxOf = str.LastIndexOf(':');
                 var first = str.Remove(idxOf);
                 var last = str.Substring(idxOf + 1);
-                int portNum;
-                if (!int.TryParse(last, out portNum))
+                if (!int.TryParse(last, out var portNum))
                     return false;
                 if (IPAddress.TryParse(first, out ip))
                 {
@@ -222,7 +220,7 @@ namespace LibreLancer.Net
         }
 
         private Stopwatch sw;
-        private List<LocalServerInfo> srvinfo = new List<LocalServerInfo>();
+        private List<LocalServerInfo> srvinfo = [];
 
         private AuthInfo loginServer;
         private IPEndPoint loginEndpoint;
@@ -302,7 +300,7 @@ namespace LibreLancer.Net
                             if (srvinfo[i].Unique == info.Unique)
                             {
                                 add = false;
-                                //Prefer IPv6
+                                // Prefer IPv6
                                 if(srvinfo[i].EndPoint.AddressFamily != AddressFamily.InterNetwork &&
                                    info.EndPoint.AddressFamily == AddressFamily.InterNetwork)
                                     srvinfo[i].EndPoint = info.EndPoint;
@@ -410,13 +408,13 @@ namespace LibreLancer.Net
                     FLLog.Debug("Net", "Sending broadcast");
                     client.SendBroadcast(dw, LNetConst.BROADCAST_PORT);
                 }
-                //ping servers
+                // ping servers
                 lock (srvinfo)
                 {
                     foreach (var inf in srvinfo)
                     {
                         var nowMs = sw.ElapsedMilliseconds;
-                        if (nowMs - inf.LastPingTime > 2000) //ping every 2 seconds?
+                        if (nowMs - inf.LastPingTime > 2000) // ping every 2 seconds?
                         {
                             inf.LastPingTime = nowMs;
                             var om = new PacketWriter();
@@ -425,7 +423,7 @@ namespace LibreLancer.Net
                         }
                     }
                 }
-                //events
+                // events
                 client.PollEvents();
                 Thread.Sleep(1);
             }

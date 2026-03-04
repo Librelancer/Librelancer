@@ -25,7 +25,7 @@ namespace LibreLancer.Net
 
         private GameServer game;
         private NetHpidWriter hpids;
-        private static readonly object TagConnecting = new object();
+        private static readonly object TagConnecting = new();
 
         public int Port = LNetConst.DEFAULT_PORT;
         public int MaxConnections = 200;

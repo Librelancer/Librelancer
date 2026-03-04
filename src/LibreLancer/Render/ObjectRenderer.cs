@@ -13,12 +13,11 @@ namespace LibreLancer.Render
 		public abstract void Update(double time, Vector3 position, Matrix4x4 transform);
 		public abstract void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr);
 		public virtual void DepthPrepass(ICamera camera, RenderContext rstate) { }
-		//Rendering Parameters
+		// Rendering Parameters
         private int _flags =
-            (1 << 0) | //Ambient
-            (1 << 1) | //Dynamic
-            (1 << 3); //InheritCull
-
+            (1 << 0) | // Ambient
+            (1 << 1) | // Dynamic
+            (1 << 3); // InheritCull
 
         public bool LitAmbient
         {

@@ -15,7 +15,7 @@ namespace LibreLancer.Fx
 {
     public unsafe class ParticleEffectPool : IDisposable
     {
-        //Limits
+        // Limits
         public const int MaxParticles = 30_000;
         public const int MaxParticlesPerCall = 2000;
 
@@ -44,28 +44,28 @@ namespace LibreLancer.Fx
             var vUp = (cos * src_right - sin * src_up) * (0.5f * size.X);
             var vRight = (sin * src_right + cos * src_up) * (0.5f * size.Y);
 
-            //bottom-left
+            // bottom-left
             vertices[nextParticle++] = new(
                 p - vRight - vUp,
                 color,
                 new(left, bottom)
             );
 
-            //bottom-right
+            // bottom-right
             vertices[nextParticle++] = new(
                 p + vRight - vUp,
                 color,
                 new Vector2(right, bottom)
             );
 
-            //top-left
+            // top-left
             vertices[nextParticle++] = new(
                 p - vRight + vUp,
                 color,
                 new Vector2(left, top)
             );
 
-            //top-right
+            // top-right
             vertices[nextParticle++] = new(
                 p + vRight + vUp,
                 color,
@@ -76,18 +76,18 @@ namespace LibreLancer.Fx
         public ParticleEffectPool(RenderContext context, CommandBuffer commands)
         {
             cmd = commands;
-            //Set up vertices
+            // Set up vertices
             vbo = new VertexBuffer(context, typeof(VertexPositionColorTexture), MaxParticles * 4, true);
             ebo = new ElementBuffer(context, MaxParticlesPerCall * 6);
             var indices = new ushort[MaxParticlesPerCall * 6];
             int iptr = 0;
             for (int i = 0; i < (MaxParticlesPerCall * 4); i += 4)
             {
-                //Triangle 1
+                // Triangle 1
                 indices[iptr++] = (ushort)i;
                 indices[iptr++] = (ushort)(i + 1);
                 indices[iptr++] = (ushort)(i + 2);
-                //Triangle 2
+                // Triangle 2
                 indices[iptr++] = (ushort)(i + 1);
                 indices[iptr++] = (ushort)(i + 3);
                 indices[iptr++] = (ushort)(i + 2);

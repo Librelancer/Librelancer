@@ -19,20 +19,20 @@ namespace LibreLancer.Interface
                 context.RenderContext.Renderer2D.DrawRectangle(context.PointsToPixels(clientRectangle), color, 1);
             }
             float w = Width / 3;
-            //Left
+            // Left
             LR(context, clientRectangle, 0, w, 0, color);
             LR(context, clientRectangle, w, w, 1, color);
             LR(context, clientRectangle, 2 * w, w, 2, color);
-            //Right
+            // Right
             var rW = clientRectangle.Width - Width;
             LR(context, clientRectangle, rW, w, 0, color);
             LR(context, clientRectangle, rW + w, w, 1, color);
             LR(context, clientRectangle, rW + 2 * w, w, 2, color);
-            //Top
+            // Top
             TB(context, clientRectangle, 0, w, 0, color);
             TB(context, clientRectangle, w, w, 1, color);
             TB(context, clientRectangle, 2 * w, w, 2, color);
-            //Bottom
+            // Bottom
             var rH = clientRectangle.Height - Width;
             TB(context, clientRectangle, rH, w, 0, color);
             TB(context, clientRectangle, rH + w, w, 1, color);

@@ -59,11 +59,11 @@ namespace LibreLancer.Render
         private const int INITIAL_ELEMENT_BUFFER_SIZE = 2 * 1024 * 1024;
 
         private ElementBuffer elementBuffer;
-        private FreeList indexFree = new FreeList();
+        private FreeList indexFree = new();
 
-        private Dictionary<D3DFVF, VertexResourceBuffer> buffersByType = new Dictionary<D3DFVF, VertexResourceBuffer>();
-        private List<VertexResource> resources = new List<VertexResource>();
-        private List<IndexResource> indexResources = new List<IndexResource>();
+        private Dictionary<D3DFVF, VertexResourceBuffer> buffersByType = new();
+        private List<VertexResource> resources = [];
+        private List<IndexResource> indexResources = [];
 
         private RenderContext context;
 
@@ -164,7 +164,7 @@ namespace LibreLancer.Render
                 public int Count;
             }
 
-            private List<FreeItem> list = new List<FreeItem>();
+            private List<FreeItem> list = [];
 
             public void AddItem(int start, int count)
             {
@@ -214,7 +214,7 @@ namespace LibreLancer.Render
         {
             private const int VERTEX_BUFSIZE = (int)(8 * 1024 * 1024);
 
-            private FreeList freeList = new FreeList();
+            private FreeList freeList = new();
             private int resizeCount = 0;
             public VertexBuffer VertexBuffer;
 

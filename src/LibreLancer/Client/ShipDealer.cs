@@ -20,23 +20,18 @@ using WattleScript.Interpreter;
 namespace LibreLancer.Client
 {
     [WattleScriptUserData]
-    public class ShipDealer
+    public class ShipDealer(CGameSession session)
     {
-        private CGameSession session;
-
-        public ShipDealer(CGameSession session)
-        {
-            this.session = session;
-        }
+        private CGameSession session = session;
 
         private UISoldShip ShipInfo(Ship ship)
         {
-            ship.ModelFile.LoadFile(session.Game.ResourceManager);
+            ship.ModelFile?.LoadFile(session.Game.ResourceManager);
             return new UISoldShip()
             {
                 IdsName = ship.IdsName,
                 IdsInfo = ship.IdsInfo,
-                Model = ship.ModelFile.SourcePath,
+                Model = ship.ModelFile?.SourcePath,
                 ShipClass = ship.Class,
                 Icon = session.Game.GameData.Items.GetShipIcon(ship),
                 Price = session.ShipWorth,
@@ -46,8 +41,7 @@ namespace LibreLancer.Client
 
         public UISoldShip? PlayerShip()
         {
-            if (session.PlayerShip == null) return null;
-            return ShipInfo(session.PlayerShip);
+            return session.PlayerShip == null ? null : ShipInfo(session.PlayerShip);
         }
 
         public UISoldShip[] SoldShips()
@@ -55,22 +49,26 @@ namespace LibreLancer.Client
             return session.Ships.Select(x =>
             {
                 var ship = session.Game.GameData.Items.Ships.Get(x.ShipCRC);
+                if (ship is null)
+                {
+                    return null;
+                }
+
                 var sold = ShipInfo(ship);
                 sold.Server = x;
                 sold.Price = x.PackagePrice;
                 return sold;
-            }).ToArray();
+            }).OfType<UISoldShip>().ToArray();
         }
-
 
         private ulong selectedHullPrice;
 
         private class ShipTradeItem
         {
             public bool Show = true;
-            public string Hardpoint;
-            public NetCargo Cargo;
-            public ResolvedInclude Include;
+            public string? Hardpoint;
+            public NetCargo? Cargo;
+            public ResolvedInclude? Include;
             public int Amount;
         }
 
@@ -79,27 +77,24 @@ namespace LibreLancer.Client
         private int selectedCrc;
         private Ship selectedShip;
 
-        private bool CanMount(string hpType, string hardpoint)
+        private bool CanMount(string? hpType, string? hardpoint)
         {
-            if(string.IsNullOrWhiteSpace(hpType)) return false;
-            if (!selectedShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
+            if(string.IsNullOrWhiteSpace(hpType))
+            {
                 return false;
-            if (hardpoint != null)
-            {
-                if (playerItems.Any(x => hardpoint.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
-                    return false;
-                return possible.Any(x => x.Equals(hardpoint, StringComparison.OrdinalIgnoreCase));
-            }
-            else
-            {
-                foreach (var hp in possible)
-                {
-                    if (!playerItems.Any(x => hp.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
-                        return true;
-                }
             }
 
-            return false;
+            if (!selectedShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
+            {
+                return false;
+            }
+
+            if (hardpoint != null)
+            {
+                return !playerItems.Any(x => hardpoint.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)) && possible.Any(x => x.Equals(hardpoint, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return possible.Any(hp => !playerItems.Any(x => hp.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)));
         }
 
         private class ResolvedInclude
@@ -111,10 +106,10 @@ namespace LibreLancer.Client
 
         public void Purchase(Closure callback)
         {
-            List<SellCount> sellPlayer = new List<SellCount>();
-            List<SellCount> sellPackage = new List<SellCount>();
-            List<MountId> mountPlayer = new List<MountId>();
-            List<MountId> mountPackage = new List<MountId>();
+            List<SellCount> sellPlayer = [];
+            List<SellCount> sellPackage = [];
+            List<MountId> mountPlayer = [];
+            List<MountId> mountPackage = [];
             foreach (var item in dealerItems) {
                 if (item.Cargo != null) {
                     sellPlayer.Add(new SellCount() { Count = item.Amount, ID = item.Cargo.ID });
@@ -161,7 +156,7 @@ namespace LibreLancer.Client
 
         public UIInventoryItem[] GetPlayerGoods(string filter)
         {
-            List<UIInventoryItem> inventory = new List<UIInventoryItem>();
+            List<UIInventoryItem> inventory = [];
             var filterfunc = Trader.GetFilter(filter);
             foreach (var hardpoint in selectedShip.HardpointTypes)
             {
@@ -234,7 +229,7 @@ namespace LibreLancer.Client
 
         public UIInventoryItem[] GetDealerGoods(string filter)
         {
-            List<UIInventoryItem> traderGoods = new List<UIInventoryItem>();
+            List<UIInventoryItem> traderGoods = [];
             var filterfunc = Trader.GetFilter(filter);
             for(int i = 0; i < dealerItems.Count; i++)
             {
@@ -361,8 +356,8 @@ namespace LibreLancer.Client
 
                 selectedCrc = ship.Server.PackageCRC;
                 selectedShip = ship.Ship;
-                playerItems = new List<ShipTradeItem>();
-                dealerItems = new List<ShipTradeItem>();
+                playerItems = [];
+                dealerItems = [];
                 for (int i = 0; i < task.Result.Included.Length; i++)
                 {
                     var item = task.Result.Included[i];
@@ -393,9 +388,9 @@ namespace LibreLancer.Client
             });
         }
 
-        private string? FirstAvailableHardpoint(string hptype)
+        private string? FirstAvailableHardpoint(string? hptype)
         {
-            if(string.IsNullOrWhiteSpace(hptype)) return null;
+            if (string.IsNullOrWhiteSpace(hptype)) return null;
             if (!selectedShip.PossibleHardpoints.TryGetValue(hptype, out var candidates))
                 return null;
             foreach (var possible in candidates)

@@ -9,7 +9,7 @@ namespace LibreLancer.Interface
     public class UiRenderable
     {
         [UiContent]
-        public List<DisplayElement> Elements { get; set; } = new List<DisplayElement>();
+        public List<DisplayElement> Elements { get; set; } = [];
 
         public void AddElement(DisplayElement el) => Elements.Add(el);
         public DisplayElement GetElement(int index) => Elements[index];

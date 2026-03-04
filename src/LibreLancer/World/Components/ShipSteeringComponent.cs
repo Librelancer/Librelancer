@@ -22,7 +22,7 @@ namespace LibreLancer.World.Components
 
         public bool PlayerInput;
 
-        private PIDController rollPID = new PIDController() { P = 2 };
+        private PIDController rollPID = new() { P = 2 };
 
         public ShipSteeringComponent(GameObject parent) : base(parent) { }
 
@@ -30,9 +30,9 @@ namespace LibreLancer.World.Components
 
         public override void Update(double time)
         {
-            var physics = Parent.GetComponent<ShipPhysicsComponent>(); //Get mounted engine
+            var physics = Parent.GetComponent<ShipPhysicsComponent>(); // Get mounted engine
 
-            //Set output parameters
+            // Set output parameters
             Vector3 steerControl;
             if (!PlayerInput && Parent.TryGetComponent<AutopilotComponent>(out var autoPilot) &&
                 autoPilot.CurrentBehavior != AutopilotBehaviors.None)
@@ -44,8 +44,8 @@ namespace LibreLancer.World.Components
                 steerControl = new Vector3(InPitch, InYaw, InRoll);
             }
 
-            double pitch, yaw, roll;
-            DecomposeOrientation(Matrix4x4.CreateFromQuaternion(Parent.PhysicsComponent.Body.Orientation), out pitch, out yaw, out roll);
+            double pitch, yaw;
+            DecomposeOrientation(Matrix4x4.CreateFromQuaternion(Parent.PhysicsComponent.Body.Orientation), out pitch, out yaw, out var roll);
 
             if (Math.Abs(InPitch) < float.Epsilon && Math.Abs(InYaw) < float.Epsilon)
                 steerControl.Z = MathHelper.Clamp((float) rollPID.Update(0, roll, (float) time), -0.5f, 0.5f);
@@ -59,7 +59,7 @@ namespace LibreLancer.World.Components
             physics.CruiseEnabled = Cruise;
         }
 
-        //Specific decomposition for roll
+        // Specific decomposition for roll
         private static void DecomposeOrientation(Matrix4x4 mx, out double xPitch, out double yYaw, out double zRoll)
         {
             xPitch = Math.Asin(-mx.M32);

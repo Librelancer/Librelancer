@@ -100,7 +100,6 @@ namespace LibreLancer.Utf.Anm
             return Unsafe.ReadUnaligned<float>(ref buffer.Buffer[offset]);
         }
 
-
         public readonly Vector3 GetPosition(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
@@ -111,7 +110,6 @@ namespace LibreLancer.Utf.Anm
             var offset = startIdx + (int)(stride * index + field);
             return Unsafe.ReadUnaligned<Vector3>(ref buffer.Buffer[offset]);
         }
-
 
         public readonly Quaternion GetQuaternion(int index)
         {
@@ -300,7 +298,6 @@ namespace LibreLancer.Utf.Anm
             header = (uint)(stride << 8) | (channelType & 0xFF);
         }
 
-
         public Channel(int channelType, int frameCount, float interval, AnmBuffer buffer)
         {
             header = (uint)channelType;
@@ -312,7 +309,7 @@ namespace LibreLancer.Utf.Anm
 
         public Channel(IntermediateNode root, AnmBuffer buffer)
         {
-            //Fetch from nodes
+            // Fetch from nodes
             this.buffer = buffer;
             ArraySegment<byte> cdata = new ArraySegment<byte>();
             foreach (LeafNode node in root)

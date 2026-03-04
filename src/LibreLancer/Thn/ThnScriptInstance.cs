@@ -23,8 +23,8 @@ namespace LibreLancer.Thn
     }
     public class ThnScriptInstance
     {
-        private Queue<ThnEvent> events = new Queue<ThnEvent>();
-        private List<ThnEventProcessor> processors = new List<ThnEventProcessor>();
+        private Queue<ThnEvent> events = new();
+        private List<ThnEventProcessor> processors = [];
 
         public double CurrentTime = 0;
         public double Duration;
@@ -34,7 +34,7 @@ namespace LibreLancer.Thn
         public Cutscene Cutscene;
 
         public Dictionary<string, ThnObject> Objects;
-        public Dictionary<string, ThnSoundInstance> Sounds = new Dictionary<string, ThnSoundInstance>();
+        public Dictionary<string, ThnSoundInstance> Sounds = new();
 
         private ThnScript thn;
 
@@ -63,7 +63,7 @@ namespace LibreLancer.Thn
             this.Objects = objects;
             if (spawnObjects && Cutscene.PlayerShip != null)
                 Cutscene.PlayerShip.World = Cutscene.World;
-            List<ThnObject> monitors = new List<ThnObject>();
+            List<ThnObject> monitors = [];
             foreach (var kv in thn.Entities)
             {
                 if (Objects.ContainsKey(kv.Key)) continue;
@@ -72,7 +72,7 @@ namespace LibreLancer.Thn
                 obj.Name = kv.Key;
                 obj.Translate = kv.Value.Position ?? Vector3.Zero;
                 obj.Rotate = kv.Value.Rotation;
-                //PlayerShip object
+                // PlayerShip object
                 if (spawnObjects && CheckObject(kv.Value, Cutscene.PlayerShip, EntityTypes.Compound, "playership"))
                 {
                     obj.Object = Cutscene.PlayerShip;
@@ -98,16 +98,15 @@ namespace LibreLancer.Thn
                 }
 
                 var template = kv.Value.Template;
-                string replacement;
                 if (Cutscene.Substitutions != null &&
-                    Cutscene.Substitutions.TryGetValue(kv.Value.Template, out replacement))
+                    Cutscene.Substitutions.TryGetValue(kv.Value.Template, out var replacement))
                     template = replacement;
                 var resman = Cutscene.ResourceManager;
                 var gameData = Cutscene.GameData;
                 if (spawnObjects && kv.Value.Type == EntityTypes.Compound)
                 {
                     bool getHpMount = false;
-                    //Fetch model
+                    // Fetch model
                     IDrawable? drawable = null;
                     float[] lodranges = null;
                     if (!string.IsNullOrEmpty(template))
@@ -153,7 +152,7 @@ namespace LibreLancer.Thn
                     }
 
                     if (kv.Value.UserFlag != 0)  {
-                        //This is a starsphere
+                        // This is a starsphere
                         Cutscene.AddStarsphere(drawable, obj);
                     }
                     else
@@ -170,8 +169,8 @@ namespace LibreLancer.Thn
                                            ThnObjectFlags.LitDynamic;
                             r.LitAmbient = (kv.Value.ObjectFlags & ThnObjectFlags.LitAmbient) ==
                                            ThnObjectFlags.LitAmbient;
-                            //HIDDEN just seems to be an editor flag?
-                            //r.Hidden = (kv.Value.ObjectFlags & ThnObjectFlags.Hidden) == ThnObjectFlags.Hidden;
+                            // HIDDEN just seems to be an editor flag?
+                            // r.Hidden = (kv.Value.ObjectFlags & ThnObjectFlags.Hidden) == ThnObjectFlags.Hidden;
                             r.NoFog = kv.Value.NoFog;
                             r.LODRanges = lodranges;
                         }
@@ -180,7 +179,7 @@ namespace LibreLancer.Thn
                 else if (kv.Value.Type == EntityTypes.PSys)
                 {
                     var fx = gameData.Items.Effects.Get(kv.Value.Template);
-                    fx ??= gameData.Items.VisEffects.Get(kv.Value.Template); //TODO: Check if this only searches VisEffects
+                    fx ??= gameData.Items.VisEffects.Get(kv.Value.Template); // TODO: Check if this only searches VisEffects
                     if (fx?.AlePath != null)
                     {
                         obj.Object = new GameObject();
@@ -232,7 +231,7 @@ namespace LibreLancer.Thn
                 }
                 else if (kv.Value.Type == EntityTypes.Deformable)
                 {
-                    //TODO: Hacky with fidget/placement scripts
+                    // TODO: Hacky with fidget/placement scripts
                     if (string.IsNullOrEmpty(kv.Value.Actor) || !objects.ContainsKey(kv.Value.Actor))
                     {
                         obj.Object = new GameObject();
@@ -277,18 +276,18 @@ namespace LibreLancer.Thn
                 obj.Entity = kv.Value;
                 Objects[kv.Key] = obj;
             }
-            //Verify? This seems to work
+            // Verify? This seems to work
             monitors.Sort((x,y) => string.Compare(x.Entity.Priority, y.Entity.Priority, StringComparison.Ordinal));
             for(int i = 0; i < monitors.Count; i++)
                 monitors[i].MonitorIndex = i;
         }
 
-        private Queue<ThnEvent> delaySoundEvents = new Queue<ThnEvent>();
+        private Queue<ThnEvent> delaySoundEvents = new();
         public void Update(double delta)
         {
             if (CurrentTime > Duration) return;
             CurrentTime += delta;
-            //Don't run sound on T=0 exactly to avoid desync
+            // Don't run sound on T=0 exactly to avoid desync
             while(delaySoundEvents.Count > 0 && CurrentTime > 0)
                 delaySoundEvents.Dequeue().Run(this);
             while (events.Count > 0 && events.Peek().Time <= CurrentTime)

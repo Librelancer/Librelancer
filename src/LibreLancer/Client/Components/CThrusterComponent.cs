@@ -15,7 +15,7 @@ namespace LibreLancer.Client.Components
 {
 	public class CThrusterComponent : ThrusterComponent
 	{
-        private List<ParticleEffectRenderer> fireFx = new List<ParticleEffectRenderer>();
+        private List<ParticleEffectRenderer> fireFx = [];
 		public CThrusterComponent(GameObject parent, ThrusterEquipment equip) : base(parent, equip) { }
 
 		public override void Update(double time)
@@ -27,8 +27,7 @@ namespace LibreLancer.Client.Components
 		}
 		public override void Register(Physics.PhysicsWorld physics)
         {
-            GameDataManager gameData;
-            if ((gameData = GetGameData()) != null)
+            if (GetGameData() != null)
             {
                 var resman = GetResourceManager();
                 var pfx = Equip.Particles.GetEffect(resman);
@@ -39,8 +38,8 @@ namespace LibreLancer.Client.Components
                 }
             }
 
-            for (int i = 0; i < fireFx.Count; i++)
-                Parent.ExtraRenderers.Add(fireFx[i]);
+            foreach (var t in fireFx)
+                Parent.ExtraRenderers.Add(t);
         }
 		public override void Unregister(Physics.PhysicsWorld physics)
         {

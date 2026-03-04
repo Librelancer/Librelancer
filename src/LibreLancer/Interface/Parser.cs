@@ -20,7 +20,7 @@ namespace LibreLancer.Interface
                 return InvariantFloat(s);
         }
 
-        private static Dictionary<string, Color4> namedColors = new Dictionary<string, Color4>(StringComparer.InvariantCultureIgnoreCase);
+        private static Dictionary<string, Color4> namedColors = new(StringComparer.InvariantCultureIgnoreCase);
         static Parser()
         {
             foreach(var f in typeof(Color4).GetProperties(BindingFlags.Public | BindingFlags.Static)) {
@@ -85,7 +85,7 @@ namespace LibreLancer.Interface
                 if (split.Length != 4) return false;
                 var floats = split.Select((x) => float.Parse(x.Trim(), CultureInfo.InvariantCulture)).ToArray();
                 var alpha = Percentage(split[3].Trim());
-                if (alpha > 1) alpha = (alpha / 255f); //out of spec but I'm allowed to ;)
+                if (alpha > 1) alpha = (alpha / 255f); // out of spec but I'm allowed to ;)
                 t = new Color4(floats[0] / 255, floats[1] / 255, floats[2] / 255, alpha);
                 return true;
             }

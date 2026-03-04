@@ -20,8 +20,8 @@ namespace LibreLancer.Net.Protocol
 
     public static class Packets
     {
-        private static List<Func<PacketReader, object>> parsers = new List<Func<PacketReader,object>>();
-        private static List<Type> packetTypes = new List<Type>();
+        private static List<Func<PacketReader, object>> parsers = [];
+        private static List<Type> packetTypes = [];
         public static void Register<T>(Func<PacketReader,object> parser) where T : IPacket
         {
             packetTypes.Add(typeof(T));
@@ -65,20 +65,20 @@ namespace LibreLancer.Net.Protocol
 #endif
         static Packets()
         {
-            //Authentication
+            // Authentication
             Register<GuidAuthenticationPacket>(GuidAuthenticationPacket.Read);
             Register<AuthenticationReplyPacket>(AuthenticationReplyPacket.Read);
             Register<LoginSuccessPacket>(LoginSuccessPacket.Read);
-            //Menu
+            // Menu
             Register<OpenCharacterListPacket>(OpenCharacterListPacket.Read);
             Register<NewCharacterDBPacket>(NewCharacterDBPacket.Read);
             Register<AddCharacterPacket>(AddCharacterPacket.Read);
-            //Space
+            // Space
             Register<InputUpdatePacket>(InputUpdatePacket.Read);
             Register<PackedUpdatePacket>(PackedUpdatePacket.Read);
-            //Protocol
+            // Protocol
             GeneratedProtocol.RegisterPackets();
-            //String Updates (low priority)
+            // String Updates (low priority)
             Register<SetStringsPacket>(SetStringsPacket.Read);
             Register<AddStringPacket>(AddStringPacket.Read);
         }
@@ -167,7 +167,7 @@ namespace LibreLancer.Net.Protocol
         [Flags]
         private enum SpawnHeader : ushort
         {
-            //match ObjectSpawnFlags
+            // match ObjectSpawnFlags
             Debris = (1 << 0),
             Solar = (1 << 1),
             Friendly = (1 << 2),
@@ -175,7 +175,7 @@ namespace LibreLancer.Net.Protocol
             Neutral = (1 << 4),
             Important = (1 << 5),
             Loot = (1 << 6),
-            //internal field != default
+            // internal field != default
             Name = (1 << 7),
             Affiliation = (1 << 8),
             Comm = (1 << 9),
@@ -270,7 +270,7 @@ namespace LibreLancer.Net.Protocol
             if(Dock != null) header |= SpawnHeader.Dock;
             if(DestroyedParts is { Length: >0 }) header |= SpawnHeader.Destroyed;
             if(Effects is { Length: >0 }) header |= SpawnHeader.Effects;
-            //Write
+            // Write
             ID.Put(message);
             message.Put((ushort)header);
             message.Put(Position);
@@ -395,7 +395,7 @@ namespace LibreLancer.Net.Protocol
             return ID == other.ID && EquipCRC == other.EquipCRC && Hardpoint == other.Hardpoint && Health == other.Health && Count == other.Count;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null) return false;
             if (ReferenceEquals(this, obj)) return true;
@@ -431,7 +431,7 @@ namespace LibreLancer.Net.Protocol
         public PlayerInventory()
         {
             Loadout = new();
-            Loadout.Items = new();
+            Loadout.Items = [];
         }
     }
 
@@ -552,7 +552,7 @@ namespace LibreLancer.Net.Protocol
             }
             else
             {
-                b.Items = new List<NetShipCargo>();
+                b.Items = [];
                 foreach (var d in Items)
                 {
                     if (d.NewCargo != null)
@@ -676,7 +676,7 @@ namespace LibreLancer.Net.Protocol
             }
             if (applyItems)
             {
-                diff.Items = new List<ItemDiff>();
+                diff.Items = [];
                 for (int i = 0; i < b.Items.Count; i++)
                 {
                     if (i < a.Items.Count &&
@@ -715,7 +715,7 @@ namespace LibreLancer.Net.Protocol
     {
         public uint ArchetypeCrc;
         public float Health;
-        public List<NetShipCargo> Items = new();
+        public List<NetShipCargo> Items = [];
         public static NetLoadout Read(PacketReader message)
         {
             var s = new NetLoadout();
@@ -756,7 +756,7 @@ namespace LibreLancer.Net.Protocol
         {
             var pa = new PlayerAuthState();
             pa.Position = DecodeVector3(ref reader, src.Position);
-            //Extra precision
+            // Extra precision
             pa.Orientation = reader.GetQuaternion(18);
             pa.LinearVelocity = DecodeVector3(ref reader, src.LinearVelocity);
             pa.AngularVelocity = DecodeVector3(ref reader, src.AngularVelocity);
@@ -793,14 +793,14 @@ namespace LibreLancer.Net.Protocol
                 : reader.GetFloat();
 
         private static Vector3 DecodeVector3(ref BitReader reader, Vector3 old) =>
-            new Vector3(DecodeFloat(ref reader, old.X), DecodeFloat(ref reader, old.Y), DecodeFloat(ref reader, old.Z));
+            new(DecodeFloat(ref reader, old.X), DecodeFloat(ref reader, old.Y), DecodeFloat(ref reader, old.Z));
 
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
         public void Write(ref BitWriter writer, PlayerAuthState prev, uint tick)
         {
             uint forced = tick % 15;
             EncodeVec3(ref writer, prev.Position, Position, forced == 1);
-            //Extra precision
+            // Extra precision
             writer.PutQuaternion(Orientation, 18);
             EncodeVec3(ref writer, prev.LinearVelocity, LinearVelocity, forced == 3);
             EncodeVec3(ref writer, prev.AngularVelocity, AngularVelocity, forced == 5);
@@ -851,13 +851,12 @@ namespace LibreLancer.Net.Protocol
     public struct ProjectileFireCommand
     {
         public Vector3 Target;
-        //1 bit set for each gun on owner that fired
+        // 1 bit set for each gun on owner that fired
         public ulong Guns;
-        //1 bit set for each gun not firing at Target
+        // 1 bit set for each gun not firing at Target
         public ulong Unique;
         public Vector3[] OtherTargets;
     }
-
 
     public class InputUpdatePacket : IPacket
     {
@@ -904,7 +903,7 @@ namespace LibreLancer.Net.Protocol
                 for (int i = 0; i < c; i++)
                     fc.OtherTargets[i] = reader.GetVector3();
             } else {
-                fc.OtherTargets = Array.Empty<Vector3>();
+                fc.OtherTargets = [];
             }
             return fc;
         }
@@ -1005,14 +1004,13 @@ namespace LibreLancer.Net.Protocol
         }
     }
 
-
     public class NetDlgLine
     {
         public int Source;
         public bool TargetIsPlayer;
         public string Voice;
         public uint Hash;
-        public static NetDlgLine Read(PacketReader message) => new NetDlgLine()
+        public static NetDlgLine Read(PacketReader message) => new()
             {Source = message.GetVariableInt32(), TargetIsPlayer = message.GetBool(), Voice = message.GetString(), Hash = message.GetUInt()};
         public void Put(PacketWriter message)
         {

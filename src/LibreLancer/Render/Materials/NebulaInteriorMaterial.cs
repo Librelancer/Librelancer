@@ -15,7 +15,6 @@ public class NebulaInteriorMaterial : RenderMaterial
 
     public NebulaInteriorMaterial(ResourceManager library) : base(library) { }
 
-
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
         var shader = AllShaders.NebulaInterior.Get(0);

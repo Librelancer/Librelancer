@@ -14,7 +14,7 @@ using LibreLancer.Resources;
 
 namespace LibreLancer.World.Components
 {
-    //Generates light static objects the player can hit for asteroid fields
+    // Generates light static objects the player can hit for asteroid fields
     public class AsteroidFieldComponent : GameComponent
     {
         public AsteroidField Field;
@@ -33,7 +33,7 @@ namespace LibreLancer.World.Components
             }
             else
             {
-                //Radius
+                // Radius
                 rdist = field.Zone!.Size.X;
             }
 
@@ -143,7 +143,7 @@ namespace LibreLancer.World.Components
 
             var amountCubes = (int) Math.Floor((COLLIDE_DISTANCE / Field.CubeSize)) + 1;
 
-            //Create series of bounding boxes, merging some as we go
+            // Create series of bounding boxes, merging some as we go
             var fillBoxes = new QuickList<(BoundingBox Bb, Vector4i Dims)>(8, phys.BufferPool);
 
             foreach (var pobj in phys.DynamicObjects)
@@ -171,7 +171,7 @@ namespace LibreLancer.World.Components
                     fillBoxes.Add((objbox, default), phys.BufferPool);
             }
 
-            //Merge bounding boxes second pass
+            // Merge bounding boxes second pass
             while (true)
             {
                 var changed = false;
@@ -197,7 +197,7 @@ namespace LibreLancer.World.Components
                     break;
             }
 
-            //Clear out everything if we have no bounding boxes
+            // Clear out everything if we have no bounding boxes
             ref var oldList = ref useA ? ref spawnedA : ref spawnedB;
             ref var bodies = ref useA ? ref spawnedB : ref spawnedA;
 
@@ -213,7 +213,7 @@ namespace LibreLancer.World.Components
                 return;
             }
 
-            //Allocate bitmaps on stack
+            // Allocate bitmaps on stack
             var arrayLength = 0;
 
             for (var i = 0; i < fillBoxes.Count; i++)
@@ -258,7 +258,7 @@ namespace LibreLancer.World.Components
                 }
             }
 
-            //Fill remaining cubes if needed
+            // Fill remaining cubes if needed
             foreach (var box in fillBoxes)
             {
                 var boxCubes = (box.Bb.Max - box.Bb.Min) / Field.CubeSize;
@@ -269,7 +269,7 @@ namespace LibreLancer.World.Components
                     {
                         for (var z = 0; z < boxCubes.Z; z++)
                         {
-                            if (present[Index(box.Dims, x, y, z)]) //Already added, skip checks
+                            if (present[Index(box.Dims, x, y, z)]) // Already added, skip checks
                             {
                                 continue;
                             }

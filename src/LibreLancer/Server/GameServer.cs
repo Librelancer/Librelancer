@@ -50,13 +50,12 @@ namespace LibreLancer.Server
         public GameListener Listener;
         private Thread gameThread;
 
-        public List<Player> ConnectedPlayers = new List<Player>();
+        public List<Player> ConnectedPlayers = [];
         public Player LocalPlayer;
 
-        public ConcurrentHashSet<long> CharactersInUse = new ConcurrentHashSet<long>();
+        public ConcurrentHashSet<long> CharactersInUse = [];
 
         private bool needLoadData = true;
-
 
         private string debugInfoForFrame = "";
         public void ReportDebugInfo(string info)
@@ -85,8 +84,8 @@ namespace LibreLancer.Server
                 x.Nickname.Equals(fac.Pilot, StringComparison.OrdinalIgnoreCase));
             var package = GameData.Items.Ini.NewCharDB.Packages.First(x =>
                 x.Nickname.Equals(fac.Package, StringComparison.OrdinalIgnoreCase));
-            //TODO: initial_rep = %%FACTION%%
-            //does this have any effect in FL?
+            // TODO: initial_rep = %%FACTION%%
+            // does this have any effect in FL?
 
             var src = new StringBuilder(
                 Encoding.UTF8.GetString(FlCodec.DecodeBytes(GameData.VFS.ReadAllBytes("EXE\\mpnewcharacter.fl"))));
@@ -94,10 +93,10 @@ namespace LibreLancer.Server
             src.Replace("%%NAME%%", SavePlayer.EncodeName(name));
             src.Replace("%%BASE_COSTUME%%", pilot.Body);
             src.Replace("%%COMM_COSTUME%%", pilot.Comm);
-            //Changing voice breaks in vanilla (commented out in mpnewcharacter)
+            // Changing voice breaks in vanilla (commented out in mpnewcharacter)
             src.Replace("%%VOICE%%", pilot.Voice);
-            //TODO: pilot comm_anim (not in vanilla mpnewcharacter)
-            //TODO: pilot body_anim (not in vanilla mpnewcharacter)
+            // TODO: pilot comm_anim (not in vanilla mpnewcharacter)
+            // TODO: pilot body_anim (not in vanilla mpnewcharacter)
             src.Replace("%%MONEY%%", package.Money.ToString());
             src.Replace("%%HOME_SYSTEM%%", GameData.Items.Bases.Get(fac.Base).System);
             src.Replace("%%HOME_BASE%%", fac.Base);
@@ -106,7 +105,7 @@ namespace LibreLancer.Server
             pkgStr.Append("ship_archetype = ").AppendLine(package.Ship);
             var loadout = GameData.Items.Ini.Loadouts.Loadouts.First(x =>
                 x.Nickname.Equals(package.Loadout, StringComparison.OrdinalIgnoreCase));
-            //do loadout
+            // do loadout
             foreach (var x in loadout.Equip)
             {
                 pkgStr.AppendLine(new PlayerEquipment()
@@ -125,7 +124,7 @@ namespace LibreLancer.Server
                 }.ToString());
             }
 
-            //append
+            // append
             src.Replace("%%PACKAGE%%", pkgStr.ToString());
             var initext = src.ToString();
             return SaveGame.FromString($"mpnewcharacter: {fac.Nickname}", initext);
@@ -143,7 +142,6 @@ namespace LibreLancer.Server
         {
             gameThread.Join();
         }
-
 
         public void Stop()
         {
@@ -163,11 +161,10 @@ namespace LibreLancer.Server
             }
         }
 
-
-        private Dictionary<StarSystem, ServerWorld> worlds = new Dictionary<StarSystem, ServerWorld>();
-        private ConcurrentQueue<Action> worldRequests = new ConcurrentQueue<Action>();
-        private ConcurrentQueue<IPacket> localPackets = new ConcurrentQueue<IPacket>();
-        public readonly ConcurrentQueue<ServerEvent> ServerEvents = new ConcurrentQueue<ServerEvent>();
+        private Dictionary<StarSystem, ServerWorld> worlds = new();
+        private ConcurrentQueue<Action> worldRequests = new();
+        private ConcurrentQueue<IPacket> localPackets = new();
+        public readonly ConcurrentQueue<ServerEvent> ServerEvents = new();
 
         public void OnLocalPacket(IPacket pkt)
         {
@@ -234,7 +231,6 @@ namespace LibreLancer.Server
             LocalPlayer.OpenSaveGame(sg);
         });
 
-
         private FixedTimestepLoop processingLoop;
 
         public double TotalTime => processingLoop.TotalTime.TotalSeconds;
@@ -247,10 +243,9 @@ namespace LibreLancer.Server
             var startTime = serverTiming.Elapsed;
             while (!localPackets.IsEmpty && localPackets.TryDequeue(out var local))
                 LocalPlayer.ProcessPacketDirect(local);
-            Action a;
-            if (worldRequests.Count > 0 && worldRequests.TryDequeue(out a))
+            if (worldRequests.Count > 0 && worldRequests.TryDequeue(out var a))
                 a();
-            //Update
+            // Update
             if (!(LocalPlayer?.Space?.World?.Paused ?? false))
             {
                 LocalPlayer?.UpdateMissionRuntime(time.TotalSeconds);
@@ -266,8 +261,8 @@ namespace LibreLancer.Server
             }
 
             DebugInfo = debugInfoForFrame;
-            Listener?.Server?.TriggerUpdate(); //Send packets asap
-            //Remove
+            Listener?.Server?.TriggerUpdate(); // Send packets asap
+            // Remove
             for (int i = 0; i <= spinDownCount; i++)
             {
                 var w = toSpinDown[i];

@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -75,8 +74,7 @@ namespace LibreLancer.Utf.Dfm
 						{
 							IntermediateNode meshNode = multiLevelSubNode as IntermediateNode;
 
-							int level = 0;
-							if (!int.TryParse(meshNode.Name.Substring(4), out level)) throw new Exception("");
+                            if (!int.TryParse(meshNode.Name.Substring(4), out var level)) throw new Exception("");
 							Levels.Add(level, new DfmMesh(meshNode, Parts));
 						}
 						else if (multiLevelSubNode.Name.Equals("fractions", StringComparison.OrdinalIgnoreCase))
@@ -177,7 +175,7 @@ namespace LibreLancer.Utf.Dfm
         {
             Levels[0].SetSkinning(skinning);
         }
-        //HACK: dfm can't have radius without skinning
+        // HACK: dfm can't have radius without skinning
         private float radius = -1;
 		public float GetRadius()
 		{

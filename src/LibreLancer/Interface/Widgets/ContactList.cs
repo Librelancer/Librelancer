@@ -8,7 +8,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ContactList : UiWidget
     {
-        public Scrollbar Scrollbar = new Scrollbar() { Smooth = false };
+        public Scrollbar Scrollbar = new() { Smooth = false };
         public string Font { get; set; } = "$ListText";
         public int TextSize { get; set; }
 
@@ -122,7 +122,7 @@ namespace LibreLancer.Interface
             var rect = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, rect);
             if (data != null) {
-                //Update scrolling
+                // Update scrolling
                 int scrollCount = ScrollCount();
                 if (scrollCount <= 0) {
                     childOffset = 0;
@@ -146,7 +146,7 @@ namespace LibreLancer.Interface
                 if (rowStrings == null || rowStrings.Length < rowCount) rowStrings = new CachedRenderString[DisplayRowCount];
                 for (int row = 0; row < rowCount; row++)
                 {
-                    //Get row state
+                    // Get row state
                     bool hovered = false;
                     var selected = data.IsSelected(row + childOffset);
                     var str = data.Get(row + childOffset);
@@ -169,7 +169,7 @@ namespace LibreLancer.Interface
                             textColor = NeutralColor;
                             break;
                     }
-                    //Render row
+                    // Render row
                     var rowColor = Cascade(textColor ?? InterfaceColor.White, hovered ? HoverColor : null,
                         selected ? SelectedColor : null);
                     var rowRect = GetCell(rect, row);

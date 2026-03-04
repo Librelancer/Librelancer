@@ -14,9 +14,9 @@ namespace LibreLancer.Interface
     public class Stylesheet
     {
         [UiContent]
-        public List<XmlStyle> Styles { get; set; } = new List<XmlStyle>();
+        public List<XmlStyle> Styles { get; set; } = [];
 
-        public T Lookup<T>(string name) where T : XmlStyle
+        public T Lookup<T>(string? name) where T : XmlStyle
         {
             if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
                 return DefaultStyle<T>();
@@ -37,7 +37,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ButtonStyle : XmlStyle
     {
-        
+
         public float Width { get; set; }
         public float Height { get; set; }
         public string MouseEnterSound { get; set; }
@@ -63,7 +63,7 @@ namespace LibreLancer.Interface
         public InterfaceColor TextColor { get; set; }
         public InterfaceColor TextShadow { get; set; }
     }
-    
+
     [UiLoadable]
     [WattleScriptUserData]
     public class ScrollbarStyle : XmlStyle
@@ -71,9 +71,9 @@ namespace LibreLancer.Interface
         public ButtonStyle UpButton { get; set; }
         public ButtonStyle DownButton { get; set; }
         public ButtonStyle Thumb { get; set; }
-        
+
         public ButtonStyle ThumbTop { get; set; }
-        
+
         public ButtonStyle ThumbBottom { get; set; }
         public UiRenderable Background { get; set; }
         public UiRenderable TrackArea { get; set; }
@@ -82,7 +82,7 @@ namespace LibreLancer.Interface
         public float TrackMarginY { get; set; }
         public float Width { get; set; }
     }
-    
+
     [UiLoadable]
     [WattleScriptUserData]
     public class HSliderStyle : XmlStyle
@@ -90,10 +90,10 @@ namespace LibreLancer.Interface
         public ButtonStyle LeftButton { get; set; }
         public ButtonStyle RightButton { get; set; }
         public ButtonStyle Thumb { get; set; }
-        
+
         public ButtonStyle ThumbLeft { get; set; }
         public ButtonStyle ThumbRight { get; set; }
-        
+
         public UiRenderable Background { get; set; }
         public UiRenderable TrackArea { get; set; }
         public float ButtonMarginY { get; set; }

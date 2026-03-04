@@ -88,13 +88,12 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-
             var (position, direction) = CalculateNextTradelane(tradelaneComponent);
             var distanceToTradelane = direction.Length();
 
             if (TradelaneDisrupted(distanceToTradelane, tradelaneComponent))
             {
-                //Do it to all the ships
+                // Do it to all the ships
                 if (Parent.Formation != null)
                 {
                     if (Parent.Formation.LeadShip != Parent) {
@@ -167,7 +166,6 @@ namespace LibreLancer.Server.Components
             distance < DISRUPTION_DISTANCE &&
             tradelaneComponent.TryGetFirstChildComponent<SShieldComponent>(out var comp) &&
             comp.Health < float.Epsilon;
-
 
         private void TradeLaneDisruption()
         {

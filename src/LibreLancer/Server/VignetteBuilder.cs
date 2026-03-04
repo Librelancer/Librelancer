@@ -46,12 +46,12 @@ public class VignetteParameters
 public class VignetteInfo
 {
     public bool IsError;
-    public List<string> Documentation = new();
+    public List<string> Documentation = [];
     public Dictionary<string, VignetteString> ObjectiveStrings = new();
     public Dictionary<string, CommSequence> CommSequences = new();
     public VignetteString RewardText;
     public VignetteString FailureText;
-    public List<OfferTextItem> OfferText = new();
+    public List<OfferTextItem> OfferText = [];
 }
 
 public static class VignetteBuilder
@@ -133,7 +133,7 @@ public static class VignetteBuilder
                             ? data.Data.OfferTexts[0]
                             : data.Data.OfferTexts[r.Next(0, data.Data.OfferTexts.Count)];
                         if (ot.Op == OfferTextOp.replace)
-                            vinfo.OfferText = new();
+                            vinfo.OfferText = [];
                         vinfo.OfferText.AddRange(ot.Items);
                     }
 

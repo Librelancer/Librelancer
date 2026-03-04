@@ -10,7 +10,7 @@ namespace LibreLancer.Utf
 {
     public class ConstructCollection : IList<AbstractConstruct>
     {
-        private List<AbstractConstruct> constructs = new List<AbstractConstruct>();
+        private List<AbstractConstruct> constructs = [];
 
         public void AddNode(IntermediateNode root)
         {

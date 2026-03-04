@@ -12,7 +12,7 @@ namespace LibreLancer.Client.Components;
 public class CMuzzleFlashComponent : GameComponent
 {
     public GunEquipment Object;
-    public List<ParticleEffectRenderer> Renderers = new List<ParticleEffectRenderer>();
+    public List<ParticleEffectRenderer> Renderers = [];
 
     public CMuzzleFlashComponent(GameObject parent, GunEquipment gun) : base(parent)
     {

@@ -24,18 +24,18 @@ namespace LibreLancer.Server
 {
     public class ServerWorld
     {
-        public Dictionary<Player, GameObject> Players = new Dictionary<Player, GameObject>();
-        private ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
+        public Dictionary<Player, GameObject> Players = new();
+        private ConcurrentQueue<Action> actions = new();
         public GameWorld GameWorld;
         public GameServer Server;
         public StarSystem System;
         public NPCManager NPCs;
         private Random debrisRandom = new();
-        private object _idLock = new object();
+        private object _idLock = new();
 
-        public NetIDGenerator IdGenerator = new NetIDGenerator();
+        public NetIDGenerator IdGenerator = new();
 
-        private UpdatePacker packer = new UpdatePacker();
+        private UpdatePacker packer = new();
 
         public bool Paused => paused;
 
@@ -64,7 +64,7 @@ namespace LibreLancer.Server
 
         private void PhysicsOnCollision(PhysicsObject obja, PhysicsObject objb)
         {
-            if (obja == null || objb == null) //Asteroid collision
+            if (obja == null || objb == null) // Asteroid collision
                 return;
             if (obja.Tag is GameObject g1 &&
                 objb.Tag is GameObject g2)
@@ -147,7 +147,6 @@ namespace LibreLancer.Server
             }
         }
 
-
         public void EndTractor(GameObject obj, GameObject target)
         {
             foreach (var p in Players)
@@ -214,7 +213,7 @@ namespace LibreLancer.Server
             if (obj.TryGetComponent<ShipComponent>(out var ship))
             {
                 ld = new NetLoadout();
-                ld.Items = new();
+                ld.Items = [];
                 ld.ArchetypeCrc = ship.Ship.CRC;
             }
             else
@@ -287,9 +286,9 @@ namespace LibreLancer.Server
                 info.CommHelmet = npc.CommHelmet?.CRC ?? 0;
             }
 
-            //Actual loadout
+            // Actual loadout
             info.Loadout = new NetLoadout();
-            info.Loadout.Items = new List<NetShipCargo>();
+            info.Loadout.Items = [];
             if (obj.TryGetComponent<SDebrisComponent>(out var debris))
             {
                 info.Flags |= ObjectSpawnFlags.Debris;
@@ -314,7 +313,7 @@ namespace LibreLancer.Server
             }
             else
             {
-                //Shouldn't occur
+                // Shouldn't occur
                 throw new InvalidOperationException("BuildSpawnInfo called on non-archetype object");
             }
 
@@ -364,7 +363,7 @@ namespace LibreLancer.Server
             obj.AddComponent(new SFuseRunnerComponent(obj) { DamageFuses = player.Character.Ship.Fuses });
             obj.AddComponent(new ShipPhysicsComponent(obj) { Ship = player.Character.Ship });
             obj.AddComponent(new SDestroyableComponent(obj, this));
-            if (player == Server.LocalPlayer) obj.Nickname = "Player"; //HACK: Set local player ID for mission script
+            if (player == Server.LocalPlayer) obj.Nickname = "Player"; // HACK: Set local player ID for mission script
             obj.NetID = player.ID;
             obj.Flags |= GameObjectFlags.Player;
             GameWorld.AddObject(obj);
@@ -408,7 +407,6 @@ namespace LibreLancer.Server
             }
         }
 
-
         public void ProjectileHit(GameObject obj, GameObject owner, MunitionEquip munition)
         {
             if (obj.TryGetComponent<SHealthComponent>(out var health))
@@ -446,7 +444,6 @@ namespace LibreLancer.Server
         {
             delayedActions.Enqueue((action, Server.TotalTime + delay));
         }
-
 
         public void EnqueueAction(Action a)
         {
@@ -547,7 +544,7 @@ namespace LibreLancer.Server
             player.RpcClient.UpdateAnimations(obj, obj.AnimationComponent.Serialize().ToArray());
         }
 
-        private List<GameObject> withAnimations = new List<GameObject>();
+        private List<GameObject> withAnimations = [];
 
         public void StartAnimation(GameObject obj)
         {
@@ -603,8 +600,8 @@ namespace LibreLancer.Server
             });
         }
 
-        private List<GameObject> updatingObjects = new List<GameObject>();
-        private List<GameObject> spawnedObjects = new List<GameObject>();
+        private List<GameObject> updatingObjects = [];
+        private List<GameObject> spawnedObjects = [];
 
         public GameObject SpawnSolar(string nickname, Archetype arch, string loadout, Faction rep, Vector3 position,
             Quaternion orientation, int idsName = 0, string? dockWith = null)
@@ -671,7 +668,7 @@ namespace LibreLancer.Server
                 var lt = new LootComponent(go);
                 lt.Cargo.Add(new BasicCargo(good, count));
                 go.AddComponent(lt);
-                //Spawn debris
+                // Spawn debris
                 foreach (var p in Players)
                 {
                     p.Key.RpcClient.SpawnObjects([BuildSpawnInfo(go, p.Value)]);
@@ -730,7 +727,7 @@ namespace LibreLancer.Server
                     FLHash.CreateID(archetype),
                     CrcTool.FLModelCrc(part),
                     lifetime));
-                //re-parent children
+                // re-parent children
                 foreach (var c in children)
                 {
                     if (go.Model.TryGetHardpoint(c.Attachment.Name, out var newHp))
@@ -747,7 +744,7 @@ namespace LibreLancer.Server
                 go.PhysicsComponent.Body.Impulse(initialForce);
                 go.PhysicsComponent.Body.SetDamping(0.5f, 0.2f);
                 spawnedObjects.Add(go);
-                //Spawn debris
+                // Spawn debris
                 foreach (var p in Players)
                 {
                     p.Key.RpcClient.SpawnObjects([BuildSpawnInfo(go, p.Value)]);
@@ -801,10 +798,10 @@ namespace LibreLancer.Server
 
         public bool Update(double delta, double totalTime, uint currentTick)
         {
-            //Avoid locks during Update
+            // Avoid locks during Update
             CurrentTick = currentTick;
-            Action act;
-            while (actions.Count > 0 && actions.TryDequeue(out act))
+
+            while (actions.Count > 0 && actions.TryDequeue(out var act))
             {
                 act();
             }
@@ -818,12 +815,12 @@ namespace LibreLancer.Server
                 }
             }
 
-            //pause
+            // pause
             if (paused) return true;
-            //Update
+            // Update
             NPCs.FrameStart();
             GameWorld.Update(delta);
-            //projectiles
+            // projectiles
             if (GameWorld.Projectiles.HasQueued)
             {
                 var queue = GameWorld.Projectiles.GetSpawnQueue();
@@ -831,10 +828,10 @@ namespace LibreLancer.Server
                     p.Key.RpcClient.SpawnProjectiles(queue);
             }
 
-            //Network update tick
+            // Network update tick
             SendWorldUpdates(currentTick);
             UpdateDebugInfo();
-            //Despawn after 2 seconds of nothing
+            // Despawn after 2 seconds of nothing
             if (PlayerCount == 0)
             {
                 noPlayersTime += delta;
@@ -887,7 +884,7 @@ namespace LibreLancer.Server
 
         private class IdComparer : IComparer<SortedUpdate>
         {
-            public static readonly IdComparer Instance = new IdComparer();
+            public static readonly IdComparer Instance = new();
 
             private IdComparer()
             {
@@ -897,7 +894,7 @@ namespace LibreLancer.Server
                 x.Update.ID.Value.CompareTo(y.Update.ID.Value);
         }
 
-        //This could do with some work
+        // This could do with some work
         private void SendWorldUpdates(uint tick)
         {
             // Update players
@@ -914,7 +911,7 @@ namespace LibreLancer.Server
 
             for (int i = 0; i < toUpdate.Length; i++)
             {
-                //Get main object update fields
+                // Get main object update fields
                 var obj = toUpdate[i];
                 var update = new ObjectUpdate();
                 update.ID = new ObjNetId(obj.NetID);
@@ -1010,7 +1007,7 @@ namespace LibreLancer.Server
                 else
                 {
 #if DEBUG
-                    int maxPacketSize = 500; //Min safe UDP packet size - 8
+                    int maxPacketSize = 500; // Min safe UDP packet size - 8
 #else
                     int maxPacketSize = player.Key.Client.MaxSequencedSize;
 #endif

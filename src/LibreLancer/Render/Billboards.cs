@@ -15,7 +15,7 @@ namespace LibreLancer.Render
         private const int MAX_BILLBOARDS = 10000;
 
         private RenderData[] rendat;
-        //Basic
+        // Basic
         private Shader shaderBasic;
         private BillboardVert* verticesBasic;
         private VertexBuffer vboBasic;
@@ -119,11 +119,11 @@ namespace LibreLancer.Render
         private void CreateTriBillboard(Vector3 position, float radius, Color4 color, float angle, Vector2 texA, Vector2 texB, Vector2 texC)
 		{
 			/* Create triangle points */
-			var rOn2 = radius * 0.5f; //this should be much faster than division
+			var rOn2 = radius * 0.5f; // this should be much faster than division
 			var rOn4 = radius * 0.25f;
 			var ptC = new Vector3 (0, -(rOn2), angle);
 			var ptB = new Vector3 (-rOn2 * sin120, -rOn2 * cos120, angle);
-			var ptA = new Vector3 (-rOn4 * sin240, -rOn4 * cos240, angle); //triangle is half as tall as it is wide
+			var ptA = new Vector3 (-rOn4 * sin240, -rOn4 * cos240, angle); // triangle is half as tall as it is wide
 
 			verticesBasic [vertexCountBasic++] = new BillboardVert ()
 			{
@@ -299,7 +299,6 @@ namespace LibreLancer.Render
             var dat = rendat[index];
             indexCountBasic += dat.Triangle == 1 ? 3 : 6;
         }
-
 
 
 		public void FillIbo()

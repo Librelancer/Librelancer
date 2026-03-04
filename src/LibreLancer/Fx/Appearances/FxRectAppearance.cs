@@ -13,16 +13,15 @@ namespace LibreLancer.Fx
 	{
 		public bool CenterOnPos;
 		public bool ViewingAngleFade;
-		public AlchemyFloatAnimation Scale;
-		public AlchemyFloatAnimation Length;
-		public AlchemyFloatAnimation Width;
+		public AlchemyFloatAnimation? Scale;
+		public AlchemyFloatAnimation? Length;
+		public AlchemyFloatAnimation? Width;
 
 		public FxRectAppearance (AlchemyNode ale) : base(ale)
 		{
-			AleParameter temp;
             CenterOnPos = ale.GetBoolean(AleProperty.RectApp_CenterOnPos);
             ViewingAngleFade = ale.GetBoolean(AleProperty.RectApp_ViewingAngleFade);
-			if (ale.TryGetParameter(AleProperty.RectApp_CenterOnPos, out temp))
+			if (ale.TryGetParameter(AleProperty.RectApp_CenterOnPos, out var temp))
 			{
 				CenterOnPos = (bool)temp.Value;
 			}
@@ -63,7 +62,7 @@ namespace LibreLancer.Fx
         {
             var node_tr = GetAttachment(node, transform);
             var count = instance.Buffer.GetCount(nodeIdx);
-            TextureHandler.Update(Texture, instance.Resources);
+            TextureHandler.Update(Texture, instance.Resources!);
 
             for (int i = 0; i < count; i++)
             {
@@ -83,7 +82,7 @@ namespace LibreLancer.Fx
                 var c = Color.GetValue(sparam, time);
                 var a = Alpha.GetValue(sparam, time);
                 var p2 = Vector3.Transform(src_pos + (particle.Normal * 20), node_tr);
-                //var n = (p2 - p).Normalized();
+                // var n = (p2 - p).Normalized();
                 var n = Vector3.TransformNormal(particle.Normal, transform).Normalized();
                 instance.Pool.AddRect(
                     TextureHandler,

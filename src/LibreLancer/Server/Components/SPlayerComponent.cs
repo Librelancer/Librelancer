@@ -26,7 +26,7 @@ namespace LibreLancer.Server.Components
 
         private record SavedTick(uint Tick, PlayerAuthState Player, Dictionary<int, ObjectUpdate> Updates);
 
-        //Used for compressing delta info
+        // Used for compressing delta info
         private CircularBuffer<SavedTick> oldStates = new(64);
 
         public UpdateAck MostRecentAck = default;
@@ -45,7 +45,7 @@ namespace LibreLancer.Server.Components
         }
 
         private Dictionary<int, int> priorities = new();
-        private BitArray found = new BitArray(512);
+        private BitArray found = new(512);
 
         private MissionDirective[] directives;
         public void SetDirectives(MissionDirective[] directives)
@@ -147,7 +147,7 @@ namespace LibreLancer.Server.Components
         public void QueueInput(InputUpdatePacket input)
         {
             MostRecentAck = input.Acks;
-            //Select object immediately
+            // Select object immediately
             SelectedObject = Parent.World.GetObject( input.SelectedObject);
             Enqueue(input.HistoryC);
             Enqueue(input.HistoryB);
@@ -165,7 +165,6 @@ namespace LibreLancer.Server.Components
         }
 
         private uint GetCurrentTick() => Parent.World.Server.CurrentTick;
-
 
         private bool GetInput(out NetInputControls packet)
         {

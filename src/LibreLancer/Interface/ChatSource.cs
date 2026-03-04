@@ -9,7 +9,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ChatSource
     {
-        internal CircularBuffer<DisplayMessage> Messages = new CircularBuffer<DisplayMessage>(1000);
+        internal CircularBuffer<DisplayMessage> Messages = new(1000);
         public class DisplayMessage
         {
             public List<RichTextNode> Nodes;

@@ -14,7 +14,6 @@ public class NebulaPuffMaterial : RenderMaterial
 
     public NebulaPuffMaterial(ResourceManager library) : base(library) { }
 
-
     public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
         var shader = AllShaders.NebulaExtPuff.Get(0);

@@ -10,7 +10,7 @@ namespace LibreLancer.Utf.Ale
 	public class AlchemyColorAnimation
 	{
 		public EasingTypes Type;
-		public List<AlchemyColors> Items = new List<AlchemyColors> ();
+		public List<AlchemyColors> Items = [];
 
         public AlchemyColorAnimation()
         {
@@ -40,11 +40,11 @@ namespace LibreLancer.Utf.Ale
 		}
 		public Color3f GetValue(float sparam, float time)
 		{
-			//1 item, 1 value
+			// 1 item, 1 value
 			if (Items.Count == 1) {
 				return Items [0].GetValue (time);
 			}
-			//Find 2 keyframes to interpolate between
+			// Find 2 keyframes to interpolate between
 			AlchemyColors? c1 = null, c2 = null;
 			for (int i = 0; i < Items.Count - 1; i++) {
 				if (sparam >= Items [i].SParam && sparam <= Items [i + 1].SParam) {
@@ -53,11 +53,11 @@ namespace LibreLancer.Utf.Ale
                     break;
                 }
 			}
-			//We're at the end
+			// We're at the end
 			if (c1 == null) {
 				return Items [Items.Count - 1].GetValue(time);
 			}
-			//Interpolate between SParams
+			// Interpolate between SParams
 			var v1 = c1.GetValue (time);
 			var v2 = c2.GetValue (time);
 			return Easing.EaseColorRGB (Type, sparam, c1.SParam, c2.SParam, v1, v2);

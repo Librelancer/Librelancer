@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -45,7 +44,7 @@ namespace LibreLancer.Utf.Cmp
 
         private void load(IntermediateNode root)
         {
-            Hardpoints = new List<HardpointDefinition>();
+            Hardpoints = [];
             var lvls = new Dictionary<int, VMeshRef>();
 
             foreach (Node node in root)
@@ -75,11 +74,11 @@ namespace LibreLancer.Utf.Cmp
                         foreach (Node hpn in hardpointsNode)
                         {
 							if (hpn is LeafNode)
-								continue; //No nodes here
+								continue; // No nodes here
 							var hardpointTypeNode = (IntermediateNode)hpn;
                             switch (hardpointTypeNode.Name.ToLowerInvariant())
                             {
-                                //OfType<> to avoid crashes with bad models
+                                // OfType<> to avoid crashes with bad models
                                 case "fixed":
                                     foreach (IntermediateNode fixedNode in hardpointTypeNode.OfType<IntermediateNode>())
                                         Hardpoints.Add(new FixedHardpointDefinition(fixedNode));
@@ -116,8 +115,7 @@ namespace LibreLancer.Utf.Cmp
                                 IntermediateNode levelNode = multiLevelSubNode as IntermediateNode;
                                 if (levelNode.Count == 1)
                                 {
-                                    int level = 0;
-                                    if (!int.TryParse(levelNode.Name.Substring(5), out level)) throw new Exception("Invalid Level: Missing index");
+                                    if (!int.TryParse(levelNode.Name.Substring(5), out var level)) throw new Exception("Invalid Level: Missing index");
 
                                     IntermediateNode vMeshPartNode = levelNode[0] as IntermediateNode;
 
@@ -132,7 +130,7 @@ namespace LibreLancer.Utf.Cmp
                                     }
                                     else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
                                 }
-                                //else throw new Exception("Invalid Level: More than one child or zero elements");
+                                // else throw new Exception("Invalid Level: More than one child or zero elements");
                             }
                             else if (multiLevelSubNode.Name.Equals("switch2", StringComparison.OrdinalIgnoreCase))
                             {
@@ -160,7 +158,7 @@ namespace LibreLancer.Utf.Cmp
                 }
             }
 
-            //Sort levels in order
+            // Sort levels in order
             var lvl2 = new List<VMeshRef>();
             for (int i = 0; i < 100; i++)
             {
@@ -193,7 +191,7 @@ namespace LibreLancer.Utf.Cmp
                 }
                 else
                 {
-                    p.Mesh.Levels = Array.Empty<MeshLevel>();
+                    p.Mesh.Levels = [];
                 }
                 p.Mesh.Radius = Levels[0].Radius;
                 p.Mesh.Center = Levels[0].Center;
@@ -212,7 +210,7 @@ namespace LibreLancer.Utf.Cmp
             model.Root = CreatePart(drawable, resources);
             model.Root.Name = "Root";
             model.Source = RigidModelSource.SinglePart;
-            model.AllParts = new[] { model.Root };
+            model.AllParts = [model.Root];
             model.Path = Path;
             model.MaterialAnims = MaterialAnim;
             return model;

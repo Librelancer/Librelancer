@@ -18,12 +18,11 @@ namespace LibreLancer.Sur
         public Vector3 Unknown;
         public float Radius;
         public uint Crc;
-		public float Scale; //Scale of sphere without hardpoints
-		public List<SurfacePoint> Points = new List<SurfacePoint>();
-        public List<uint> HardpointIds = new List<uint>();
+		public float Scale; // Scale of sphere without hardpoints
+		public List<SurfacePoint> Points = [];
+        public List<uint> HardpointIds = [];
 
         public SurfaceNode Root;
-
 
         public bool Dynamic = false;
 
@@ -106,7 +105,7 @@ namespace LibreLancer.Sur
         private void WriteSurf(BinaryWriter writer)
         {
             var startOffset = 4 + (int)writer.BaseStream.Position;
-            //skip section size and header
+            // skip section size and header
             writer.BaseStream.Seek(52, SeekOrigin.Current);
 
             // Write SurfaceHulls
@@ -115,7 +114,7 @@ namespace LibreLancer.Sur
             for (int i = 0; i < hulls.Length; i++)
             {
                 offsets[i] = (int) writer.BaseStream.Position;
-                writer.Write(0U); //skip offset to point
+                writer.Write(0U); // skip offset to point
                 hulls[i].Write(writer);
             }
             // Write SurfacePoints
@@ -148,16 +147,16 @@ namespace LibreLancer.Sur
                 (parentOffset, currentNode) = queue.Pop();
                 currentOffset = (int) writer.BaseStream.Position;
 
-                //Current node is right child of parent
+                // Current node is right child of parent
                 if (parentOffset > 0)
                 {
-                    //Update parent right node offset
+                    // Update parent right node offset
                     writer.BaseStream.Seek(parentOffset, SeekOrigin.Begin);
                     writer.Write(currentOffset -parentOffset);
                     writer.BaseStream.Seek(currentOffset, SeekOrigin.Begin);
                 }
-                writer.Write(0U); //right child
-                //offset to hull
+                writer.Write(0U); // right child
+                // offset to hull
                 if (currentNode.Hull != null)
                     writer.Write(-(currentOffset - offsets[Array.IndexOf(hulls, currentNode.Hull)]));
                 else
@@ -194,10 +193,9 @@ namespace LibreLancer.Sur
             writer.BaseStream.Seek(endOffset, SeekOrigin.Begin);
         }
 
-
         private void ReadSurf(BinaryReader reader)
         {
-            var size = reader.ReadInt32(); //size of the section from AFTER this field
+            var size = reader.ReadInt32(); // size of the section from AFTER this field
             var startOffset = (int)reader.BaseStream.Position;
             var endOffset = (int)reader.BaseStream.Position + size;
 
@@ -207,7 +205,7 @@ namespace LibreLancer.Sur
             Scale = (float)reader.ReadByte() / 0xFA;
             var bitsEnd = (int)reader.ReadUInt24();
             var bitsStart = (int)reader.ReadUInt32();
-            //Unknown Vector3
+            // Unknown Vector3
 
             var nodesEndOffset = startOffset + bitsEnd;
             var nodesStartOffset = startOffset + bitsStart;
@@ -237,8 +235,8 @@ namespace LibreLancer.Sur
                     throw new Exception("Node offset out of bounds " + nodeOffset);
                 reader.BaseStream.Seek(nodeOffset, SeekOrigin.Begin);
 
-                if ((rightOffset = reader.ReadInt32()) != 0) rightOffset += nodeOffset; //offset to right child
-                if ((hullOffset = reader.ReadInt32()) != 0) hullOffset += nodeOffset; //offset to associated hull
+                if ((rightOffset = reader.ReadInt32()) != 0) rightOffset += nodeOffset; // offset to right child
+                if ((hullOffset = reader.ReadInt32()) != 0) hullOffset += nodeOffset; // offset to associated hull
 
                 currentNode = SurfaceNode.Read(reader);
                 leftOffset = (int) reader.BaseStream.Position;

@@ -15,7 +15,7 @@ namespace LibreLancer.Resources;
 
 public class ServerResourceManager : ResourceManager
 {
-    private Dictionary<string, ModelResource> drawables = new Dictionary<string, ModelResource>(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, ModelResource> drawables = new(StringComparer.OrdinalIgnoreCase);
     public override Dictionary<string, Texture?> TextureDictionary => throw new InvalidOperationException();
     public override Dictionary<uint, Material?> MaterialDictionary => throw new InvalidOperationException();
     public override Dictionary<string, TexFrameAnimation?> AnimationDictionary => throw new InvalidOperationException();
@@ -30,9 +30,8 @@ public class ServerResourceManager : ResourceManager
         ConvexCollection = collection ?? new ConvexMeshCollection(GetSur);
     }
 
-
     public override OpenCylinder GetOpenCylinder(int slices) => throw new InvalidOperationException();
-    public override ParticleLibrary GetParticleLibrary(string filename) => throw new InvalidOperationException();
+    public override ParticleLibrary? GetParticleLibrary(string? filename) => throw new InvalidOperationException();
     public override QuadSphere GetQuadSphere(int slices) => throw new InvalidOperationException();
     public override Material FindMaterial(uint materialId) => throw new InvalidOperationException();
     public override VMeshResource FindMesh(uint vMeshLibId) => throw new InvalidOperationException();
@@ -61,5 +60,5 @@ public class ServerResourceManager : ResourceManager
         return item;
     }
 
-    public override void LoadResourceFile(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU) { }
+    public override void LoadResourceFile(string? filename, MeshLoadMode loadMode = MeshLoadMode.GPU) { }
 }

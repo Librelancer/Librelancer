@@ -20,7 +20,7 @@ namespace LibreLancer.World.Components
 
             if (Object.Munition.Motor != null)
             {
-                maxRange = Object.Munition.Motor.Delay * Object.Def.MuzzleVelocity; //initial time + initial accel
+                maxRange = Object.Munition.Motor.Delay * Object.Def.MuzzleVelocity; // initial time + initial accel
                 var accelEndTime = Object.Munition.Motor.Lifetime + Object.Munition.Motor.Delay;
                 if (accelEndTime > lt)
                     accelEndTime = lt;
@@ -61,7 +61,7 @@ namespace LibreLancer.World.Components
         private ProjectileManager projectiles;
         protected override bool OnFire(Vector3 point, GameObject target, bool fromServer)
         {
-            //Consume ammo
+            // Consume ammo
             if (Object.Munition.Def.RequiresAmmo)
             {
                 if (!Parent.Parent.TryGetComponent<AbstractCargoComponent>(out var cargo) ||
@@ -91,8 +91,8 @@ namespace LibreLancer.World.Components
                 {
                     projectiles = Parent.GetWorld().Projectiles;
                 }
-                //Play sound locally for latency reasons,
-                //we won't play it again for missiles owned by us
+                // Play sound locally for latency reasons,
+                // we won't play it again for missiles owned by us
                 var tr = hpFire.Transform * (Parent.Attachment.Transform * Parent.Parent.WorldTransform);
                 world.Projectiles.PlayProjectileSound(Parent.Parent, Object.Munition.Def.OneShotSound, tr.Position, hp);
                 if (!string.IsNullOrEmpty(hp))

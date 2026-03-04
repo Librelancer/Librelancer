@@ -161,7 +161,7 @@ namespace LibreLancer.Server
             }
         }
 
-        public LibreLancerContext CreateDbContext() => server.DbContextFactory.CreateDbContext(new string[0]);
+        public LibreLancerContext CreateDbContext() => server.DbContextFactory.CreateDbContext([]);
 
         public async Task BanAccount(Guid playerGuid, DateTime expiryUtc)
         {
@@ -361,15 +361,15 @@ namespace LibreLancer.Server
             return await Run(async () =>
             {
                 await using var ctx = CreateDbContext();
-                //Get account
+                // Get account
                 var acc = ctx.Accounts.First(x => x.AccountIdentifier == playerGuid);
-                //Init object
+                // Init object
                 var c = new Character();
                 fillCharacter(c);
                 var nowUtc = DateTime.UtcNow;
                 c.UpdateDate = c.CreationDate = nowUtc;
                 c.Account = acc;
-                //Add
+                // Add
                 ctx.Characters.Add(c);
                 await ctx.SaveChangesAsync();
                 return c.Id;

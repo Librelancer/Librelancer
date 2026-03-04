@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -10,7 +9,6 @@ using LibreLancer.Data.Schema;
 using LibreLancer.Render;
 using LibreLancer.Render.Materials;
 using LibreLancer.Resources;
-
 
 namespace LibreLancer.Utf.Mat
 {
@@ -45,7 +43,6 @@ namespace LibreLancer.Utf.Mat
 
 		public string DtName { get; set; }
 
-
 		/// <summary>
 		/// Diffuse Colour
 		/// </summary>
@@ -64,7 +61,6 @@ namespace LibreLancer.Utf.Mat
 		public int BtFlags { get; private set; }
 
 		private string btName;
-
 
 		public int NtFlags { get; private set; }
 		public string NtName;
@@ -115,7 +111,6 @@ namespace LibreLancer.Utf.Mat
 
 		public string Dm0Name;
 
-
 		/// <summary>
 		/// Detail Map 1 Flags
 		/// </summary>
@@ -157,13 +152,14 @@ namespace LibreLancer.Utf.Mat
         public float? MFactor;
         public float? RFactor;
 
-        private static List<string> basicMaterials = new List<string> {
-			"Dc", //DcDt buggy
-			"DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt", "DcDtBtEc", "DcDtBtEcEt",
-			"DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
-			"DcDtOcOtTwo", "DcDtBt", "DcDtBtTwo", "BtDetailMapMaterial",
-			"DcDtEcOcOtTwo", "DcDtEtTwo", "DcDtEcTwo"
-		};
+        private static List<string> basicMaterials =
+        [
+            "Dc", // DcDt buggy
+            "DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt", "DcDtBtEc", "DcDtBtEcEt",
+            "DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
+            "DcDtOcOtTwo", "DcDtBt", "DcDtBtTwo", "BtDetailMapMaterial",
+            "DcDtEcOcOtTwo", "DcDtEtTwo", "DcDtEcTwo"
+        ];
 
         private RenderMaterial _rmat;
 		public RenderMaterial Render
@@ -217,7 +213,6 @@ namespace LibreLancer.Utf.Mat
 			if (typeNode == null)
 				throw new Exception("Invalid or missing type node in " + node.Name);
 
-
 			string type = typeNode.StringData;
 			type = MaterialMap.Instance.Get(type) ?? type;
 			type = MaterialMap.Instance.Get(node.Name.ToLowerInvariant()) ?? type;
@@ -228,11 +223,11 @@ namespace LibreLancer.Utf.Mat
 			    type == "HUDIconMaterial" ||
 			    type == "PlanetWaterMaterial")
 			{
-				type = "DcDtOcOt"; //HACK: Should do env mapping
+				type = "DcDtOcOt"; // HACK: Should do env mapping
 			}
 			if (type == "ExclusionZoneMaterial")
 			{
-				type = "DcDt"; //HACK: This is handled in NebulaRenderer, not in Material.cs
+				type = "DcDt"; // HACK: This is handled in NebulaRenderer, not in Material.cs
 			}
 			var mat = new Material(node, type);
 			if (basicMaterials.Contains(type))
@@ -262,7 +257,7 @@ namespace LibreLancer.Utf.Mat
 		{
 			switch (n.Name.ToLowerInvariant())
 			{
-				//standard flags (Dc*)
+				// standard flags (Dc*)
 				case "dt_flags":
 					DtFlags = n.Int32ArrayData [0];
 					break;
@@ -298,7 +293,7 @@ namespace LibreLancer.Utf.Mat
 					break;
 				case "type":
 					break;
-				//different material types
+				// different material types
 				case "ac":
 					if (n.ColorData == null)
 						Ac = new Color4 (n.SingleArrayData [0], n.SingleArrayData [1], n.SingleArrayData [2], 1);
@@ -391,7 +386,7 @@ namespace LibreLancer.Utf.Mat
 			{
 				var bm = new BasicMaterial(type, res);
 				_rmat = bm;
-				//set up material
+				// set up material
 				bm.Dc = Dc;
 				bm.OcEnabled = Oc.HasValue;
 				if (Oc.HasValue)

@@ -43,13 +43,13 @@ public class AsteroidCubeMeshBuilder
 
     public AsteroidCubeMesh CreateMesh(RenderContext context, AsteroidField field, ResourceManager resources)
     {
-        verts = new List<VertexPositionNormalDiffuseTexture>();
-        indices = new List<ushort>();
-        hashes = new List<int>();
-        cubeDrawCalls = new List<CubeDrawcall>();
+        verts = [];
+        indices = [];
+        hashes = [];
+        cubeDrawCalls = [];
         radius = 0;
-        //Gather a list of all materials
-        List<uint> matCrcs = new List<uint>();
+        // Gather a list of all materials
+        List<uint> matCrcs = [];
         if (field.AllowMultipleMaterials)
         {
             foreach (var ast in field.Cube)
@@ -73,7 +73,7 @@ public class AsteroidCubeMeshBuilder
             matCrcs.Add(vms.Meshes[l0.StartMesh].MaterialCrc);
         }
 
-        //Create the draw calls
+        // Create the draw calls
         foreach (var mat in matCrcs)
         {
             var start = indices.Count;

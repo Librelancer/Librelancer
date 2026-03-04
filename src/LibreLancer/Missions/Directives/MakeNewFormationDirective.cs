@@ -11,7 +11,7 @@ public class MakeNewFormationDirective : MissionDirective
     public override ObjListCommands Command => ObjListCommands.MakeNewFormation;
 
     public string Formation = "fighter_basic";
-    public List<string> Ships = new();
+    public List<string> Ships = [];
 
     public MakeNewFormationDirective()
     {

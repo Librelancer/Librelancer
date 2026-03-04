@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 namespace LibreLancer
 {
 	public static class AsteroidFieldShared
-	{ 
+	{
         public static Vector3 GetCloseCube(Vector3 cameraPos, int cubeSize)
         {
             var posX = (int) (cameraPos.X < 0 ? cameraPos.X - 0.1f : cameraPos.X + 0.1f);
@@ -28,7 +28,7 @@ namespace LibreLancer
             );
             return cubePos + center;
         }
-		//TODO: This function seems to work, but should probably be analyzed to see if the outputs are any good
+		// TODO: This function seems to work, but should probably be analyzed to see if the outputs are any good
 		/// <summary>
 		/// Function to determine whether or not a cube is present in a field based on fill_rate
 		/// </summary>
@@ -37,11 +37,11 @@ namespace LibreLancer
 		/// <param name="fill_rate">Fill rate.</param>
         public static bool CubeExists(Vector3 cubePos, float emptyFrequency, out int selectedRotation)
 		{
-			//Check for fill rate
+			// Check for fill rate
 			selectedRotation = 0;
             if (emptyFrequency >= 1)
 				return false;
-			//integer hash
+			// integer hash
             var hashValue = PositionHash(cubePos);
             if (hashValue > emptyFrequency)
             {
@@ -63,12 +63,12 @@ namespace LibreLancer
                 h = (3 * h) + hash(u[1]);
                 h = (7 * h) + hash(u[2]);
             }
-            //get float
+            // get float
             return constructFloat(h);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-		//return a float between [0,1] for a hash
+		// return a float between [0,1] for a hash
         private static unsafe float constructFloat(uint m)
 		{
 			const uint ieeeMantissa = 0x007FFFFFu;
@@ -78,7 +78,7 @@ namespace LibreLancer
 			float f = *(float*)&m;
 			return f - 1.0f;
 		}
-		//simple hash function
+		// simple hash function
         private static uint hash(uint x)
 		{
             unchecked

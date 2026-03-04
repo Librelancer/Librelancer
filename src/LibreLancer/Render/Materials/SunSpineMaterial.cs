@@ -13,9 +13,7 @@ public class SunSpineMaterial : RenderMaterial
     public Vector2 SizeMultiplier;
     public string Texture;
 
-
     public SunSpineMaterial(ResourceManager library) : base(library) { }
-
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {

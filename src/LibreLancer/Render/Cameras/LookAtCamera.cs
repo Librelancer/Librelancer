@@ -14,7 +14,7 @@ namespace LibreLancer.Render.Cameras
         private Vector3 pos;
         private BoundingFrustum frustum;
 
-        public Vector2 ZRange = new Vector2(0.1f, 300000f);
+        public Vector2 ZRange = new(0.1f, 300000f);
         public bool GameFOV;
 
         public Quaternion Rotation { get; private set; } = Quaternion.Identity;

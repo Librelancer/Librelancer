@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace LibreLancer.Utf.Ale
@@ -20,7 +21,7 @@ namespace LibreLancer.Utf.Ale
 			return ClassName;
 		}
 
-		public bool TryGetParameter(AleProperty name, out AleParameter? parameter)
+		public bool TryGetParameter(AleProperty name, [MaybeNullWhen(false)] out AleParameter parameter)
 		{
 			parameter = null;
 			foreach (var p in Parameters.Where(p => p.Name == name))

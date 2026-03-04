@@ -45,50 +45,58 @@ namespace LibreLancer.Thn
             Type = ThnTypes.Convert<EventTypes>(table[2]);
             if (GetProps(table, out var props))
             {
-                if (GetValue(props, "param_curve", out ThornTable pcurve))
+                if (GetValue(props!, "param_curve", out ThornTable? pcurve))
                 {
-                    ParamCurve = new ParameterCurve(pcurve);
-                    GetValue(props, "pcurve_period", out ParamCurve.Period);
+                    ParamCurve = new ParameterCurve(pcurve!);
+                    GetValue(props!, "pcurve_period", out ParamCurve.Period);
                 }
-                GetValue(props, "duration", out Duration);
+
+                GetValue(props!, "duration", out Duration);
             }
+
             var targetTable = (ThornTable) table[3];
             Targets = new string[targetTable.Length];
-            for (int i = 1; i <= Targets.Length; i++) {
+
+            for (int i = 1; i <= Targets.Length; i++)
+            {
                 Targets[i-1] = (string)targetTable[i];
             }
         }
 
-        protected static bool GetValue<T>(ThornTable table, string key, out T result, T def = default(T))
+        protected static bool GetValue<T>(ThornTable table, string key, out T result, T def = default!)
         {
-            result = default;
-            if (table.TryGetValue(key, out var tmp))
+            result = def;
+            if (!table.TryGetValue(key, out var tmp))
             {
-                result = ThnTypes.Convert<T>(tmp);
-                return true;
+                return false;
             }
-            return false;
+
+            result = ThnTypes.Convert<T>(tmp);
+            return true;
         }
 
-        protected static bool GetProps(ThornTable table, out ThornTable props)
+        protected static bool GetProps(ThornTable table, out ThornTable? props)
         {
             props = null;
-            if (table.Length >= 4)
+
+            if (table.Length < 4)
             {
-                props = (ThornTable) table[4];
-                return true;
+                return false;
             }
-            return false;
+
+            props = (ThornTable) table[4];
+            return true;
         }
 
-        protected static IRenderHardpoint GetHardpoint(GameObject obj, string hp)
+        protected static IRenderHardpoint? GetHardpoint(GameObject obj, string hp)
         {
-            if (obj.RenderComponent is CharacterRenderer ch)
+            if (obj.RenderComponent is not CharacterRenderer ch)
             {
-                ch.Skeleton.Hardpoints.TryGetValue(hp, out var h);
-                return h;
+                return obj.GetHardpoint(hp);
             }
-            return obj.GetHardpoint(hp);
+
+            ch.Skeleton.Hardpoints.TryGetValue(hp, out var h);
+            return h;
         }
 
     }

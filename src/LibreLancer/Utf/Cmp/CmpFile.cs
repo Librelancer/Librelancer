@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -147,7 +146,7 @@ namespace LibreLancer.Utf.Cmp
                         break;
                 }
             }
-            //FL handles cmpnd nodes that point to non-existant models: fix up here
+            // FL handles cmpnd nodes that point to non-existant models: fix up here
             List<Part> broken = [];
             for (int i = 0; i < Parts.Count; i++) {
                 if (Parts[i].IsBroken()) broken.Add(Parts[i]);

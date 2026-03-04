@@ -8,7 +8,7 @@ using LibreLancer.Data.Schema.Cameras;
 
 namespace LibreLancer.Render.Cameras
 {
-    //Based on camera rigs from https://github.com/brihernandez/FreelancerFlightExample
+    // Based on camera rigs from https:// github.com/brihernandez/FreelancerFlightExample
     public class ChaseCamera : ICamera
 	{
 		public Rectangle Viewport
@@ -32,11 +32,11 @@ namespace LibreLancer.Render.Cameras
         public float HorizontalTurnAngle = 15f;
         public float VerticalTurnUpAngle = 5f;
         public float VerticalTurnDownAngle = 5f;
-        public float SmoothSpeed = 10f; //Figure out how to translate from FL
+        public float SmoothSpeed = 10f; // Figure out how to translate from FL
 
-        public Vector3 DesiredPositionOffset = new Vector3(0, 4f, 28f);
+        public Vector3 DesiredPositionOffset = new(0, 4f, 28f);
 
-        //Camera Values
+        // Camera Values
 		public Matrix4x4 Projection { get; private set; }
 		public Matrix4x4 View { get; private set; }
         private Matrix4x4 viewprojection;
@@ -54,7 +54,6 @@ namespace LibreLancer.Render.Cameras
             if (_vpdirty) UpdateVp();
             return _frustum.Intersects(box);
         }
-
 
         private void UpdateVp()
 		{
@@ -172,13 +171,12 @@ namespace LibreLancer.Render.Cameras
 		{
             fnum++;
 
-
             UpdateRotateTarget(delta);
             rigRotate = DampS(rigRotate, targetRigRotate, SmoothSpeed, (float)delta);
             UpdateLookAhead(delta);
 
-            var rigTransform = Matrix4x4.CreateFromQuaternion(rigRotate) * Matrix4x4.CreateTranslation(ChasePosition); //Camera Rig
-            var lookAheadTransform = Matrix4x4.CreateFromQuaternion(lookAhead); //LookAhead Rig
+            var rigTransform = Matrix4x4.CreateFromQuaternion(rigRotate) * Matrix4x4.CreateTranslation(ChasePosition); // Camera Rig
+            var lookAheadTransform = Matrix4x4.CreateFromQuaternion(lookAhead); // LookAhead Rig
             var camTransform = Matrix4x4.CreateTranslation(DesiredPositionOffset);
 
             Vector3 lookAheadPosition = ChasePosition + Vector3.Transform(-Vector3.UnitZ * 100, ChaseOrientation);
@@ -189,8 +187,8 @@ namespace LibreLancer.Render.Cameras
             var camRotation = Matrix4x4.CreateFromQuaternion(QuaternionEx.LookRotation(ChasePosition - lookAheadPosition, lookAheadRigUp));
             var tr = camRotation * Matrix4x4.CreateTranslation(Vector3.Transform(Vector3.Zero, transformStack));
 
-            //TODO: Finish with lookahead rig. there's some maths that go crazy there but it's needed to get this to work at all
-            //var tr = transformStack;
+            // TODO: Finish with lookahead rig. there's some maths that go crazy there but it's needed to get this to work at all
+            // var tr = transformStack;
             var v = tr;
             CameraUp = CalcDir(ref tr, Vector3.UnitY);
             CameraForward = CalcDir(ref tr, -Vector3.UnitZ);
@@ -210,7 +208,7 @@ namespace LibreLancer.Render.Cameras
         public Vector3 CameraUp;
 
         public Vector3 CameraForward;
-        //Stable way of interpolating quaternions with variable timestep
+        // Stable way of interpolating quaternions with variable timestep
         private static Quaternion DampS(Quaternion a, Quaternion b, float lambda, float dt)
         {
             return Quaternion.Slerp(a, b, 1 - (float)Math.Exp(-lambda * dt));

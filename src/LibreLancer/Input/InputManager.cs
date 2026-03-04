@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using LibreLancer.Interface;
 
 namespace LibreLancer.Input
@@ -30,10 +31,9 @@ namespace LibreLancer.Input
 			this.game = game;
         }
 
-
         private bool IsDown(UserInput check)
         {
-            if (!check.NonEmpty) return false; //Empty = nothing to check
+            if (!check.NonEmpty) return false; // Empty = nothing to check
             if (game.TextInputEnabled && !AllowedWhenTextInput(check))
                 return false;
             if (check.IsMouseButton) {
@@ -67,7 +67,6 @@ namespace LibreLancer.Input
         {
             return _isActionDown[(int)action];
         }
-
 
         private bool TryGetAction(UserInput input, out InputAction act)
         {

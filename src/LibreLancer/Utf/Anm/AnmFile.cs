@@ -2,18 +2,16 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.IO;
-
 
 namespace LibreLancer.Utf.Anm
 {
     public class AnmFile : UtfFile
     {
-        public AnmBuffer Buffer = new AnmBuffer();
-        //Optimisation to avoid some copying
+        public AnmBuffer Buffer = new();
+        // Optimisation to avoid some copying
         public static void ParseToTable(Dictionary<string, Script> table, AnmBuffer buffer, StringDeduplication strings, Stream stream, string path)
         {
             var anm = new AnmFile() {Buffer = buffer};

@@ -30,15 +30,15 @@ namespace LibreLancer.Thn.Events
         public float FogDensity;
         public float FogStart;
         public float FogEnd;
-        
+
         public StartFogPropAnimEvent() { }
 
         public StartFogPropAnimEvent(ThornTable table) : base(table)
         {
-            //Get Tables
+            // Get Tables
             if (!GetProps(table, out var props)) return;
             if (!GetValue(props, "fogprops", out ThornTable fog)) return;
-            //Set Properties
+            // Set Properties
             if (GetValue(fog, "fogon", out FogOn)) SetFlags |= AnimVars.FogOn;
             if (GetValue(fog, "fogmode", out FogMode)) SetFlags |= AnimVars.FogMode;
             if (GetValue(fog, "fogcolor", out FogColor))
@@ -53,9 +53,9 @@ namespace LibreLancer.Thn.Events
 
         public override void Run(ThnScriptInstance instance)
         {
-            if (SetFlags == AnimVars.Nothing) return; //Nothing to change
+            if (SetFlags == AnimVars.Nothing) return; // Nothing to change
             var light = instance.Cutscene.Renderer.SystemLighting;
-            //mode and fog on/off
+            // mode and fog on/off
             if ((SetFlags & AnimVars.FogOn) == AnimVars.FogOn)
             {
                 if ((SetFlags & AnimVars.FogMode) == AnimVars.FogMode)
@@ -66,8 +66,8 @@ namespace LibreLancer.Thn.Events
             if (SetFlags == (AnimVars.FogMode | AnimVars.FogOn) ||
                 SetFlags == AnimVars.FogOn ||
                 SetFlags == AnimVars.FogMode)
-                return; //Nothing to animate
-            //anim
+                return; // Nothing to animate
+            // anim
             if (Duration < float.Epsilon)
             {
                 if ((SetFlags & AnimVars.FogColor) == AnimVars.FogColor)

@@ -12,7 +12,7 @@ namespace LibreLancer.Utf.Ale
 {
 	public class AlchemyNodeLibrary
 	{
-		public List<AlchemyNode> Nodes = new List<AlchemyNode> ();
+		public List<AlchemyNode> Nodes = [];
 
         public AlchemyNodeLibrary()
         {
@@ -75,8 +75,8 @@ namespace LibreLancer.Utf.Ale
 						}
 						node.Parameters.Add (new AleParameter () { Name = prop, Value = value });
 					}
-					AleParameter temp;
-					if (node.TryGetParameter(AleProperty.Node_Name, out temp))
+
+                    if (node.TryGetParameter(AleProperty.Node_Name, out var temp))
 					{
 						var nn = (string)temp.Value;
                         node.NodeName = nn;

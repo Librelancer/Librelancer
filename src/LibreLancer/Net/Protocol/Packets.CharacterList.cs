@@ -49,7 +49,7 @@ namespace LibreLancer.Net.Protocol
                     Comm = message.GetString(),
                     Voice = message.GetString(),
                     BodyAnim = message.GetString(),
-                    CommAnim = new string[] { message.GetString(), message.GetString() }
+                    CommAnim = [message.GetString(), message.GetString()]
                 });
             }
             return new NewCharacterDBPacket() {

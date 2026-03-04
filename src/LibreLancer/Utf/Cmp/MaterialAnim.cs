@@ -30,7 +30,7 @@ namespace LibreLancer.Utf.Cmp
 						MADeltas = leaf.SingleArrayData;
 						break;
 					case "makeys":
-						//TODO: MAKeys
+						// TODO: MAKeys
 						break;
 				}
 			}
@@ -64,12 +64,12 @@ namespace LibreLancer.Utf.Cmp
 				return vScale;
 			}
 		}
-		//5 floats per frame
-		//time
-		//u offset velocity
-		//v offset velocity
-		//u scale velocity
-		//v scale velocity
+		// 5 floats per frame
+		// time
+		// u offset velocity
+		// v offset velocity
+		// u scale velocity
+		// v scale velocity
 
         private float uOffset = 0;
         private float vOffset = 0;
@@ -93,10 +93,10 @@ namespace LibreLancer.Utf.Cmp
                 float vVelocity = MADeltas[k + 2];
                 float uVelocityScale = MADeltas[k + 3];
                 float vVelocityScale = MADeltas[k + 4];
-                //loop from Beginning
+                // loop from Beginning
                 float t = totalTime;
                 while (t > duration) t -= duration;
-                //process anim
+                // process anim
                 uOffset += t * uVelocity;
                 vOffset += t * vVelocity;
                 uScale *= 1 + (t * uVelocityScale);

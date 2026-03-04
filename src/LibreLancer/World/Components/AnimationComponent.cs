@@ -51,8 +51,8 @@ namespace LibreLancer.World.Components
 
         private AnmFile anm;
         private RigidModel rm;
-        private List<ActiveAnimation> animations = new List<ActiveAnimation>();
-        private List<ActiveAnimation> completeAnimations = new List<ActiveAnimation>();
+        private List<ActiveAnimation> animations = [];
+        private List<ActiveAnimation> completeAnimations = [];
 
         private Func<double> getTotalTime;
 
@@ -75,8 +75,8 @@ namespace LibreLancer.World.Components
 
         public void UpdateAnimations(NetCmpAnimation[] data)
         {
-            animations = new List<ActiveAnimation>();
-            completeAnimations = new List<ActiveAnimation>();
+            animations = [];
+            completeAnimations = [];
             foreach (var a in data.Where(x => anm.Scripts.ContainsKey(x.Name)))
             {
                 var sc = anm.Scripts[a.Name];
@@ -113,7 +113,6 @@ namespace LibreLancer.World.Components
             }
         }
 
-
         public AnimationComponent(GameObject parent, AnmFile animation) : base(parent)
 		{
 			anm = animation;
@@ -126,7 +125,6 @@ namespace LibreLancer.World.Components
             anm = animation;
             getTotalTime = () => accumTime;
         }
-
 
 
         public void StartAnimation(Script script, bool loop = true, float start_time = 0, float time_scale = 1,
@@ -203,7 +201,6 @@ namespace LibreLancer.World.Components
         }
 
 
-
         public bool HasAnimation(string animationName)
 		{
 			if (animationName == null) return false;
@@ -257,7 +254,6 @@ namespace LibreLancer.World.Components
 			return finished || (a.Duration > 0 && (getTotalTime() - a.WorldStartTime) >= a.Duration);
 		}
 
-
         private bool ProcessObjectMap(ref ObjectMap om, ref int cur, double startTime, float timeScale, bool loop)
 		{
 			return false;
@@ -269,7 +265,7 @@ namespace LibreLancer.World.Components
             var joint = mdl.Parts[jm.ChildName].Construct;
             double t = (getTotalTime() - startTime) * timeScale;
             bool done = false;
-			//looping?
+			// looping?
             if (!loop && t >= jm.Channel.Duration)
             {
                 done = true;

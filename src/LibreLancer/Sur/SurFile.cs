@@ -12,17 +12,17 @@ using LibreLancer.Physics;
 
 namespace LibreLancer.Sur
 {
-	//TODO: Sur reader is VERY incomplete & undocumented
+	// TODO: Sur reader is VERY incomplete & undocumented
 	public class SurFile : IConvexMeshProvider
     {
-        public List<SurfacePart> Surfaces = new List<SurfacePart>();
+        public List<SurfacePart> Surfaces = [];
 
-        private Dictionary<uint, ConvexMesh[]> shapes = new Dictionary<uint, ConvexMesh[]>();
+        private Dictionary<uint, ConvexMesh[]> shapes = new();
 
         public bool TryGetHardpoint(uint meshId, uint hpId, out ConvexMesh[] mesh)
         {
             mesh = null;
-            List<ConvexMesh> hull = new List<ConvexMesh>();
+            List<ConvexMesh> hull = [];
             foreach (var surface in Surfaces)
             {
                 if (surface.Crc != meshId) continue;
@@ -56,7 +56,7 @@ namespace LibreLancer.Sur
 
         public ConvexMesh[] GetMesh(ConvexMeshId meshId)
         {
-            List<ConvexMesh> hull = new List<ConvexMesh>();
+            List<ConvexMesh> hull = [];
             foreach (var surface in Surfaces)
             {
                 if (surface.Crc != meshId.Id) continue;
@@ -101,7 +101,7 @@ namespace LibreLancer.Sur
 		}
 
         private const uint SUR_MAGIC = 0x73726576; //"vers"
-        private const uint SUR_VERSION = 0x40000000; //2.0f
+        private const uint SUR_VERSION = 0x40000000; // 2.0f
 
         public static SurFile Read(Stream stream)
         {

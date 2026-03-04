@@ -98,7 +98,6 @@ public class TextEditBase
         set => TrySetValue(ref _fontShadow, value);
     }
 
-
     public int CaretPosition;
 
     private RichTextNode[] nodes;
@@ -159,13 +158,13 @@ public class TextEditBase
             nodes = new RichTextNode[1];
     }
 
-    public void TextEntered(string chars)
+    public void TextEntered(string? chars)
     {
         if (string.IsNullOrEmpty(chars) && !_allSelected)
             return;
         if (_allSelected)
         {
-            Text = chars;
+            Text = chars!;
         }
         else
         {
@@ -175,9 +174,9 @@ public class TextEditBase
             }
             else
             {
-                SetText(_text.Insert(CaretPosition, chars));
+                SetText(_text.Insert(CaretPosition, chars!));
             }
-            CaretPosition += chars.Length;
+            CaretPosition += chars!.Length;
         }
     }
 

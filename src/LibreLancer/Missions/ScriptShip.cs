@@ -9,7 +9,7 @@ public class ScriptShip : NicknameItem
 {
     public string System;
     public ScriptNPC NPC;
-    public List<string> Labels = new List<string>(); //Multiple labels?
+    public List<string> Labels = []; // Multiple labels?
     public Vector3 Position;
     public Quaternion Orientation = Quaternion.Identity;
     public bool RandomName;
@@ -19,7 +19,7 @@ public class ScriptShip : NicknameItem
     public ArrivalObj ArrivalObj = new("", 0);
     public string InitObjectives;
     public MissionRelativePosition RelativePosition;
-    public List<MissionShipCargo> Cargo = new List<MissionShipCargo>();
+    public List<MissionShipCargo> Cargo = [];
 
     public static ScriptShip FromIni(
         MissionShip ship,
@@ -30,7 +30,7 @@ public class ScriptShip : NicknameItem
         {
             Nickname = ship.Nickname,
             System = ship.System,
-            Labels = new(ship.Labels),
+            Labels = [..ship.Labels],
             Position = ship.Position,
             Orientation = ship.Orientation,
             RandomName = ship.RandomName,

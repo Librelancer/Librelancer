@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -84,7 +85,7 @@ namespace LibreLancer.World
 
         private Equipment cacheEq;
         private int cacheCount;
-        private string cacheStr;
+        private string? cacheStr;
 
         public override string GetName(GameDataManager gameData, Vector3 other)
         {
@@ -94,15 +95,16 @@ namespace LibreLancer.World
                 return "NULL";
             var cg = loot.Cargo[0];
 
-            if (cacheStr == null || cacheEq != cg.Item ||
-                cacheCount != cg.Count)
+            if (cacheStr != null && cacheEq == cg.Item && cacheCount == cg.Count)
             {
-                cacheStr = cg.Count > 1
-                    ? $"{gameData.GetString(cg.Item.IdsName)} ({cg.Count})"
-                    : gameData.GetString(cg.Item.IdsName);
-                cacheEq = cg.Item;
-                cacheCount = cg.Count;
+                return cacheStr;
             }
+
+            cacheStr = cg.Count > 1
+                ? $"{gameData.GetString(cg.Item.IdsName)} ({cg.Count})"
+                : gameData.GetString(cg.Item.IdsName);
+            cacheEq = cg.Item;
+            cacheCount = cg.Count;
 
             return cacheStr;
         }
@@ -111,10 +113,10 @@ namespace LibreLancer.World
     public class ObjectName
     {
         internal string? _NameString = null;
-        internal int[] _Ids = null;
+        internal int[]? _Ids = null;
 
         private bool dirty = true;
-        private string cached;
+        private string? cached;
 
         public ObjectName(params int[] ids)
         {
@@ -126,7 +128,7 @@ namespace LibreLancer.World
             this._NameString = str;
         }
 
-        public virtual string GetName(GameDataManager gameData, Vector3 other)
+        public virtual string? GetName(GameDataManager gameData, Vector3 other)
         {
             if (dirty)
             {
@@ -139,7 +141,6 @@ namespace LibreLancer.World
 
             return cached;
         }
-
 
         public override string ToString()
         {
@@ -168,12 +169,11 @@ namespace LibreLancer.World
         Reputations = Neutral | Friendly | Hostile,
     }
 
-
     public class GameObject
     {
         //Static
         private static int _unique = 0;
-        public static object ClientPlayerTag = new object();
+        public static object ClientPlayerTag = new();
 
         //Public Fields
         public readonly int Unique = Interlocked.Increment(ref _unique);
@@ -190,7 +190,7 @@ namespace LibreLancer.World
         public DestructibleModel? Model;
         public ResourceManager? Resources;
         public GameWorld? World;
-        public List<ObjectRenderer> ExtraRenderers = new List<ObjectRenderer>();
+        public List<ObjectRenderer> ExtraRenderers = [];
 
         //Private Fields
         private Transform3D _localTransform = Transform3D.Identity;
@@ -200,7 +200,7 @@ namespace LibreLancer.World
         private GameObject? _parent;
         private IDrawable dr;
         public readonly List<GameObject> Children = [];
-        private readonly Dictionary<Type, GameComponent> componentLookup = new Dictionary<Type, GameComponent>();
+        private readonly Dictionary<Type, GameComponent> componentLookup = new();
 
         private readonly List<GameComponent> components = [];
 
@@ -290,7 +290,7 @@ namespace LibreLancer.World
             }
         }
 
-        public bool TryGetComponent<T>(out T? component) where T : GameComponent
+        public bool TryGetComponent<T>([MaybeNullWhen(false)] out T component) where T : GameComponent?
         {
             if (componentLookup.TryGetValue(typeof(T), out var c))
             {
@@ -302,12 +302,11 @@ namespace LibreLancer.World
             return false;
         }
 
-        public T? GetComponent<T>() where T : GameComponent
+        public T GetComponent<T>() where T : GameComponent
         {
             TryGetComponent(out T? c);
-            return c;
+            return c!;
         }
-
 
         public void RemoveComponent<T>(T component) where T : GameComponent
         {
@@ -340,12 +339,12 @@ namespace LibreLancer.World
             }
         }
 
-        public GameObject(Archetype arch, Sun sun, ResourceManager res, bool draw = true, bool phys = true)
+        public GameObject(Archetype arch, Sun? sun, ResourceManager res, bool draw = true, bool phys = true)
         {
             InitWithArchetype(arch, sun, res, draw, phys);
         }
 
-        public void InitWithArchetype(Archetype arch, Sun sun, ResourceManager res, bool draw = true, bool phys = true)
+        public void InitWithArchetype(Archetype arch, Sun? sun, ResourceManager res, bool draw = true, bool phys = true)
         {
             Kind = arch.Type == ArchetypeType.waypoint ? GameObjectKind.Waypoint : GameObjectKind.Solar;
             var flags = MeshLoadMode.GPU;
@@ -354,12 +353,12 @@ namespace LibreLancer.World
 
             if (sun != null)
             {
-                InitWithModel(arch.ModelFile.LoadFile(res, flags), arch.SeparableParts, res, false, true);
+                InitWithModel(arch.ModelFile?.LoadFile(res, flags), arch.SeparableParts, res, false, true);
                 RenderComponent = new SunRenderer(sun);
             }
             else
             {
-                InitWithModel(arch.ModelFile.LoadFile(res, flags), arch.SeparableParts, res, draw, phys);
+                InitWithModel(arch.ModelFile?.LoadFile(res, flags), arch.SeparableParts, res, draw, phys);
             }
         }
 
@@ -525,31 +524,48 @@ namespace LibreLancer.World
             }
         }
 
-        public void InitWithModel(ModelResource drawable, List<SeparablePart> separables, ResourceManager res,
+        public void InitWithModel(ModelResource? drawable, List<SeparablePart> separables, ResourceManager res,
             bool draw, bool havePhys = true)
         {
+            if (drawable is null)
+            {
+                FLLog.Error("GameObject", $"{nameof(InitWithModel)} called with null model");
+                return;
+            }
+
             Resources = res;
             dr = drawable.Drawable;
             PhysicsComponent? phys = null;
             bool isCmp = false;
 
-            if (dr is SphFile)
+            switch (dr)
             {
-                var radius = ((SphFile) dr).Radius;
-                phys = new PhysicsComponent(this) { SphereRadius = radius };
-                Model = new DestructibleModel(((SphFile) dr).CreateRigidModel(draw, res), separables);
-            }
-            else if (dr is IRigidModelFile mdl)
-            {
-                Model = new DestructibleModel(mdl.CreateRigidModel(draw, res), separables);
-                if (drawable.Collision.Valid)
-                    phys = new PhysicsComponent(this)
-                        { SurPath = drawable.Collision, Collidable = Kind != GameObjectKind.Waypoint };
-
-                if (Model.RigidModel.Animation != null)
+                case SphFile file:
                 {
-                    AnimationComponent = new AnimationComponent(this, Model.RigidModel.Animation);
-                    AddComponent(AnimationComponent);
+                    var radius = file.Radius;
+                    phys = new PhysicsComponent(this) { SphereRadius = radius };
+                    Model = new DestructibleModel(file.CreateRigidModel(draw, res), separables);
+                    break;
+                }
+                case IRigidModelFile mdl:
+                {
+                    Model = new DestructibleModel(mdl.CreateRigidModel(draw, res), separables);
+                    if (drawable.Collision.Valid)
+                    {
+                        phys = new PhysicsComponent(this)
+                        {
+                            SurPath = drawable.Collision,
+                            Collidable = Kind != GameObjectKind.Waypoint
+                        };
+                    }
+
+                    if (Model.RigidModel.Animation != null)
+                    {
+                        AnimationComponent = new AnimationComponent(this, Model.RigidModel.Animation);
+                        AddComponent(AnimationComponent);
+                    }
+
+                    break;
                 }
             }
 
@@ -579,17 +595,17 @@ namespace LibreLancer.World
                 }
                 else
                 {
-                    EquipmentObjectManager.InstantiateEquipment(this, Resources, snd,
+                    EquipmentObjectManager.InstantiateEquipment(this, Resources!, snd,
                         type, item.Hardpoint ?? "internal", item.Equipment);
                 }
             }
         }
 
-        public bool TryGetFirstChildComponent<T>(out T? result) where T : GameComponent
+        public bool TryGetFirstChildComponent<T>([MaybeNullWhen(false)] out T result) where T : GameComponent
         {
             foreach (var child in Children)
             {
-                if (child.TryGetComponent<T>(out result))
+                if (child.TryGetComponent(out result))
                 {
                     return true;
                 }
@@ -601,13 +617,13 @@ namespace LibreLancer.World
 
         public T? GetFirstChildComponent<T>() where T : GameComponent
         {
-            return Children.Select(t => t.GetComponent<T>()).OfType<T>().FirstOrDefault();
+            return Children.Select(T? (t) => t.GetComponent<T>()).OfType<T>().FirstOrDefault();
         }
 
         public struct ChildComponentEnumerator<T> : IEnumerator<T> where T : GameComponent
         {
             private int i;
-            private GameObject obj;
+            private readonly GameObject obj;
 
             public ChildComponentEnumerator(GameObject obj)
             {
@@ -637,9 +653,9 @@ namespace LibreLancer.World
                 Current = null;
             }
 
-            public T Current { get; private set; }
+            public T? Current { get; private set; }
 
-            object IEnumerator.Current => Current;
+            object? IEnumerator.Current => Current;
 
             public void Dispose() => Reset();
         }
@@ -696,35 +712,51 @@ namespace LibreLancer.World
 
         public void Update(double time)
         {
-            for (int i = 0; i < Children.Count; i++)
-                Children[i].Update(time);
-            for (int i = 0; i < components.Count; i++)
-                components[i].Update(time);
+            foreach (var child in Children)
+            {
+                child.Update(time);
+            }
+
+            foreach (var component in components)
+            {
+                component.Update(time);
+            }
         }
 
         public void RenderUpdate(double time)
         {
             RenderComponent?.Update(time, WorldTransform.Position, WorldTransform.Matrix());
-            for (int i = 0; i < Children.Count; i++)
-                Children[i].RenderUpdate(time);
+            foreach (var child in Children)
+            {
+                child.RenderUpdate(time);
+            }
+
             foreach (var child in ExtraRenderers)
+            {
                 child.Update(time, WorldTransform.Position, WorldTransform.Matrix());
+            }
         }
 
         public void Register(PhysicsWorld physics)
         {
             foreach (var child in Children)
+            {
                 child.Register(physics);
+            }
+
             foreach (var component in components)
+            {
                 component.Register(physics);
+            }
+
             Flags |= GameObjectFlags.Exists;
         }
 
-
-        public GameWorld? GetWorld()
+        public GameWorld GetWorld()
         {
-            if (World == null) return _parent?.GetWorld();
-            return World;
+            // Nullability hack here, technically it can return null,
+            // but after all calls resolve the last one will not be null
+            return (World ?? _parent?.GetWorld())!;
         }
 
         public void PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool parentCull = false)
@@ -745,9 +777,10 @@ namespace LibreLancer.World
             }
 
             foreach (var child in ExtraRenderers)
+            {
                 child.PrepareRender(camera, nr, sys, false);
+            }
         }
-
 
         public void ClearAll(PhysicsWorld physics)
         {
@@ -780,9 +813,15 @@ namespace LibreLancer.World
         public void Unregister(PhysicsWorld physics)
         {
             foreach (var component in components)
+            {
                 component.Unregister(physics);
+            }
+
             foreach (var child in Children)
+            {
                 child.Unregister(physics);
+            }
+
             Flags &= ~GameObjectFlags.Exists;
         }
 

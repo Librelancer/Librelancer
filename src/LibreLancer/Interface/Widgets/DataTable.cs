@@ -13,7 +13,7 @@ namespace LibreLancer.Interface
     {
         int Count { get; }
         int Selected { get; set; }
-        string GetContentString(int row, string column);
+        string? GetContentString(int row, string column);
         bool ValidSelection();
     }
 
@@ -21,7 +21,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class TableColumn
     {
-        private InfoTextAccessor txtAccess = new InfoTextAccessor();
+        private InfoTextAccessor txtAccess = new();
         public string Label
         {
             get => txtAccess.Text;
@@ -50,8 +50,8 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class DataTable : UiWidget
     {
-        public Scrollbar Scrollbar = new Scrollbar() { Smooth = false };
-        public List<TableColumn> Columns { get; set; } = new List<TableColumn>();
+        public Scrollbar Scrollbar = new() { Smooth = false };
+        public List<TableColumn> Columns { get; set; } = [];
         public string BodyFont { get; set; } = "$ListText";
         public int BodyTextSize { get; set; }
         public InterfaceColor BodyColor { get; set; }
@@ -328,7 +328,7 @@ namespace LibreLancer.Interface
             if (dividerPositions == null) return;
             var rect = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, rect);
-            //Update scrolling
+            // Update scrolling
             int scrollCount = ScrollCount();
             if (scrollCount <= 0) {
                 childOffset = 0;
@@ -350,7 +350,7 @@ namespace LibreLancer.Interface
                 rect.Width -= Scrollbar.Style.Width;
             }
 
-            //Handle resizing columns
+            // Handle resizing columns
             if (dragging != -1 && context.MouseLeftDown)
             {
                 var pct = MathHelper.Clamp((context.MouseX - rect.X) / (float) rect.Width, 0, 1);
@@ -359,7 +359,7 @@ namespace LibreLancer.Interface
                     dividerPositions[dragging] = pct;
                 }
             }
-            //Draw headers
+            // Draw headers
             if (ShowHeaders)
             {
                 if (columnStrings == null || columnStrings.Length != Columns.Count)
@@ -373,7 +373,7 @@ namespace LibreLancer.Interface
                         true, Columns[i].GetLabel(context));
                 }
             }
-            //Draw content
+            // Draw content
             if (data != null)
             {
                 var rowCount = Math.Min(DisplayRowCount, (data.Count - childOffset));
@@ -384,7 +384,7 @@ namespace LibreLancer.Interface
                 }
                 for (int row = 0; row < rowCount; row++)
                 {
-                    //Process hovering on a row
+                    // Process hovering on a row
                     bool hovered = false;
                     if (data.Selected != row)
                     {
@@ -400,7 +400,7 @@ namespace LibreLancer.Interface
                             }
                         }
                     }
-                    //Render the row
+                    // Render the row
                     var rowColor = Cascade(BodyColor ?? InterfaceColor.White, hovered ? BodyHover : null,
                         data.Selected == (row + childOffset) ? SelectedColor : null);
                     for (int column = 0; column < Columns.Count; column++)
@@ -414,7 +414,7 @@ namespace LibreLancer.Interface
                 }
             }
 
-            //Draw dividers
+            // Draw dividers
             if (ShowColumnBorders)
             {
                 for (int i = 0; i < dividerPositions.Length; i++)
@@ -432,18 +432,18 @@ namespace LibreLancer.Interface
                         context.PointsToPixels(new Vector2(x, y2)));
                 }
             }
-            //Draw row lines
+            // Draw row lines
             if (ShowRowBorders)
             {
                 var lineHeight = rect.Height / (DisplayRowCount + 1);
                 var x1 = rect.X;
                 var x2 = rect.X + rect.Width;
                 var lineColor = (LineColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
-                //Headers
+                // Headers
                 context.RenderContext.Renderer2D.DrawLine(lineColor,
                     context.PointsToPixels(new Vector2(x1, rect.Y + lineHeight)),
                     context.PointsToPixels(new Vector2(x2, rect.Y + lineHeight)));
-                //Rows
+                // Rows
                 for (int i = 0; i < DisplayRowCount; i++)
                 {
                     var h = rect.Y + lineHeight * (i + 2);

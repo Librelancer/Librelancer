@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -50,7 +49,7 @@ namespace LibreLancer.Utf.Dfm
 		public DfmMesh(IntermediateNode root, Dictionary<int, DfmPart> parts)
 		{
 			this.parts = parts;
-			FaceGroups = new List<FaceGroup>();
+			FaceGroups = [];
 
 			foreach (IntermediateNode node in root)
 			{
@@ -186,7 +185,7 @@ namespace LibreLancer.Utf.Dfm
 		public void Initialize(ResourceManager cache, RenderContext rstate)
         {
             res = cache;
-			List<DfmVertex> vertices = new List<DfmVertex>();
+			List<DfmVertex> vertices = [];
 			for (int i = 0; i < PointIndices.Length; i++)
 			{
                 var first = PointBoneFirst[PointIndices[i]];

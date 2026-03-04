@@ -224,15 +224,14 @@ namespace LibreLancer
         public string Name;
         public string Path;
         public bool Active = true;
-        public VisualMesh Mesh;
+        public VisualMesh? Mesh;
         public VMeshWire Wireframe;
-        public List<RigidModelPart> Children;
+        public List<RigidModelPart>? Children;
         public List<Hardpoint> Hardpoints;
-        public AbstractConstruct Construct;
+        public AbstractConstruct? Construct;
 
         private Transform3D localTransform = Transform3D.Identity;
         public Transform3D LocalTransform => localTransform;
-
 
         private static IEnumerable<RigidModelPart> EnumerateAll(RigidModelPart p)
         {
@@ -273,7 +272,7 @@ namespace LibreLancer
                 Path = Path,
                 Mesh = Mesh,
                 Wireframe = Wireframe,
-                Hardpoints = new List<Hardpoint>()
+                Hardpoints = []
             };
             if (Construct != null)
             {
@@ -284,7 +283,7 @@ namespace LibreLancer
                 newp.Hardpoints.Add(new Hardpoint(hp.Definition, newp));
             if (withChildren && Children != null)
             {
-                newp.Children = new List<RigidModelPart>();
+                newp.Children = [];
                 foreach(var c in Children) newp.Children.Add(c.Clone(true));
             }
             return newp;
@@ -341,14 +340,14 @@ namespace LibreLancer
     {
         public string Path;
         public MaterialAnimCollection MaterialAnims;
-        public AnmFile Animation;
-        public RigidModelPart Root;
+        public AnmFile? Animation;
+        public RigidModelPart? Root;
         public RigidModelPart[] AllParts;
-        //Sur models use hash value of 0 instead of "Root" hash for 3db files
-        //Sphere models don't carry a VMeshWire
+        // Sur models use hash value of 0 instead of "Root" hash for 3db files
+        // Sphere models don't carry a VMeshWire
         public RigidModelSource Source;
-        //Lookup for multipart - NULL on single-part
-        public ModelPartCollection Parts;
+        // Lookup for multipart - NULL on single-part
+        public ModelPartCollection? Parts;
         public void UpdateTransform()
         {
             Root?.UpdateTransform(Transform3D.Identity);
@@ -419,7 +418,7 @@ namespace LibreLancer
             }
         }
 
-        private static int GetLevel(float[] switch2, float levelDistance)
+        private static int GetLevel(float[]? switch2, float levelDistance)
         {
             if (switch2 == null)
             {

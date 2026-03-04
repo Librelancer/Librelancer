@@ -11,7 +11,7 @@ namespace LibreLancer.World.Components
     {
         public double CurrentCooldown = 0;
 
-        public Vector2 Angles = new Vector2(0, 0);
+        public Vector2 Angles = new(0, 0);
 
         protected WeaponComponent(GameObject parent) : base(parent) { }
 
@@ -51,7 +51,7 @@ namespace LibreLancer.World.Components
                 hp.Revolve(current);
                 Angles.X = current;
             }
-            //TODO: Finding barrel construct properly?
+            // TODO: Finding barrel construct properly?
             Utf.RevConstruct? barrel = null;
             foreach (var mdl in Parent.Model.RigidModel.AllParts)
                 if (mdl.Construct is Utf.RevConstruct revCon)
@@ -87,9 +87,9 @@ namespace LibreLancer.World.Components
         public void AimTowards(Vector3 point, double time)
         {
             var hp = Parent.Attachment;
-            //Parent is the gun itself rotated
+            // Parent is the gun itself rotated
             var br = (hp.TransformNoRotate * Parent.Parent.WorldTransform).Matrix();
-            //Inverse Transform
+            // Inverse Transform
             Matrix4x4.Invert(br, out var beforeRotate);
             var local = TransformGL(point, beforeRotate);
             var localProper = local.Normalized();

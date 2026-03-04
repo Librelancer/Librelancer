@@ -21,7 +21,7 @@ namespace LibreLancer.Interface
             };
         }
 
-        private TextEditBase editBase = new TextEditBase(false) {Focused = false, Wrap = false};
+        private TextEditBase editBase = new(false) {Focused = false, Wrap = false};
 
         public string CurrentText
         {
@@ -91,10 +91,10 @@ namespace LibreLancer.Interface
 
         private void DrawText(UiContext context, RectangleF myRect)
         {
-            //Padding
+            // Padding
             myRect.X += 2;
             myRect.Width -= 4;
-            //Draw
+            // Draw
             var size = context.TextSize(FontSize <= 0 ? 10 : FontSize);
             editBase.FontSize = size;
             if (TextShadow != null)
@@ -104,7 +104,7 @@ namespace LibreLancer.Interface
             editBase.FontColor = (TextColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             editBase.FontName = context.Data.GetFont(Font);
             var px = context.PointsToPixels(myRect);
-            //Vertical alignment hacky
+            // Vertical alignment hacky
             px.Y += (int)((px.Height / 2f) -
                     (context.RenderContext.Renderer2D.LineHeight(editBase.FontName, editBase.FontSize) / 2f));
             editBase.SetRectangle(px);

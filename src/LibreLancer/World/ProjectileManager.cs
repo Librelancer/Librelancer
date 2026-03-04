@@ -21,7 +21,7 @@ namespace LibreLancer.World
     public class ProjectileManager
     {
         public Projectile[] Projectiles = new Projectile[16384];
-        public IdPool Ids = new IdPool(16384 / 32, false);
+        public IdPool Ids = new(16384 / 32, false);
 
         private GameWorld world;
         public ProjectileManager(GameWorld world)
@@ -62,8 +62,8 @@ namespace LibreLancer.World
                 }
             }
 
-            //collect sound instances
-            List<ulong> toRemove = new List<ulong>();
+            // collect sound instances
+            List<ulong> toRemove = [];
             foreach (var kv in _instances) {
                 if (!kv.Value.Playing)
                 {
@@ -74,11 +74,10 @@ namespace LibreLancer.World
                 _instances.Remove(k);
         }
 
-        private Dictionary<string, ProjectileData> datas = new Dictionary<string, ProjectileData>();
+        private Dictionary<string, ProjectileData> datas = new();
         public ProjectileData GetData(GunEquipment gunDef)
         {
-            ProjectileData pdata;
-            if (datas.TryGetValue(gunDef.Nickname, out pdata)) return pdata;
+            if (datas.TryGetValue(gunDef.Nickname, out var pdata)) return pdata;
             pdata = new ProjectileData();
             pdata.Munition = gunDef.Munition;
             pdata.Lifetime = gunDef.Munition.Def.Lifetime;
@@ -97,11 +96,10 @@ namespace LibreLancer.World
             return pdata;
         }
 
-        private List<(ObjNetId NetId, int Index, Vector3 Target)> spawns =
-            new List<(ObjNetId NetId, int Index, Vector3 Target)>();
-        private List<(int Index, Vector3 Target)> requests = new List<(int, Vector3)>();
+        private List<(ObjNetId NetId, int Index, Vector3 Target)> spawns = [];
+        private List<(int Index, Vector3 Target)> requests = [];
 
-        private List<MissileFireCmd> missiles = new List<MissileFireCmd>();
+        private List<MissileFireCmd> missiles = [];
         public bool HasQueued => spawns.Count > 0;
         public bool HasMissilesQueued => missiles.Count > 0;
 
@@ -112,7 +110,7 @@ namespace LibreLancer.World
             return x;
         }
 
-        public void QueueMissile(string hardpoint, GameObject target)
+        public void QueueMissile(string hardpoint, GameObject? target)
         {
             if (target == null)
             {
@@ -143,7 +141,7 @@ namespace LibreLancer.World
                             first = false;
                         } else {
                             if (spawn.Target != v.Target) {
-                                targets ??= new List<Vector3>();
+                                targets ??= [];
                                 targets.Add(spawn.Target);
                                 spawn.Unique |= (1UL << v.Index);
                             }
@@ -151,14 +149,13 @@ namespace LibreLancer.World
                         spawn.Guns |= (1UL << v.Index);
                     }
                     spawn.OtherTargets = targets == null
-                        ? Array.Empty<Vector3>() :
+                        ? [] :
                         targets.ToArray();
                     return spawn;
                 }).ToArray();
             spawns.Clear();
             return result;
         }
-
 
 
         public ProjectileFireCommand? GetQueuedRequest()
@@ -212,9 +209,9 @@ namespace LibreLancer.World
                 spawns.Add((owner, wpIdx, target));
         }
 
-        private Dictionary<ulong, SoundInstance> _instances = new Dictionary<ulong, SoundInstance>();
+        private Dictionary<ulong, SoundInstance> _instances = new();
 
-        public void PlayProjectileSound(GameObject owner, string soundName, Vector3 position, string hardpoint)
+        public void PlayProjectileSound(GameObject owner, string? soundName, Vector3 position, string hardpoint)
         {
             SoundManager snd;
             if (!string.IsNullOrWhiteSpace(soundName) &&
@@ -254,18 +251,19 @@ namespace LibreLancer.World
                 Normal = heading * projectile.Velocity
             };
             PlayProjectileSound(owner, projectile.Munition.Def.OneShotSound, position, hardpoint);
-            if (world.Renderer != null && projectile.TravelEffect != null) {
+            if (world.Renderer != null && projectile.TravelEffect != null)
+            {
                 Projectiles[ptr].Effect = new ParticleEffectInstance(projectile.TravelEffect);
             }
         }
     }
     public class ProjectileData
     {
-        public MunitionEquip Munition;
+        public required MunitionEquip Munition;
         public float Velocity;
         public float Lifetime;
-        public ParticleEffect HitEffect;
-        public ParticleEffect TravelEffect;
+        public ParticleEffect? HitEffect;
+        public ParticleEffect? TravelEffect;
     }
 
     public struct Projectile

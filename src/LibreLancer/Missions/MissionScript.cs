@@ -28,7 +28,7 @@ namespace LibreLancer.Missions
         public readonly Dictionary<string, NNObjective> Objectives = new(StringComparer.OrdinalIgnoreCase);
         public readonly Dictionary<string, ScriptLoot> Loot = new(StringComparer.OrdinalIgnoreCase);
 
-        public readonly List<string> InitTriggers = new();
+        public readonly List<string> InitTriggers = [];
 
         public PreloadObject[] CalculatePreloads(GameDataManager gameData)
         {
@@ -61,8 +61,8 @@ namespace LibreLancer.Missions
             return shipItems.Concat(equipItems).ToArray();
         }
 
-        //Set only the first one
-        //Without this, order ships spawn in the wrong place in M01A
+        // Set only the first one
+        // Without this, order ships spawn in the wrong place in M01A
         private static void Set<T>(Dictionary<string, T> dict, string k, T value)
         {
             if (!dict.ContainsKey(k)) dict[k] = value;
@@ -80,7 +80,7 @@ namespace LibreLancer.Missions
                 {
                     if (!allLabels.TryGetValue(l, out var list))
                     {
-                        list = new List<string>();
+                        list = [];
                         allLabels.Add(l, list);
                     }
                     list.Add(sh.Key);
@@ -92,7 +92,7 @@ namespace LibreLancer.Missions
                 {
                     if (!allLabels.TryGetValue(l, out var list))
                     {
-                        list = new List<string>();
+                        list = [];
                         allLabels.Add(l, list);
                     }
                     list.Add(sl.Key);
@@ -170,7 +170,7 @@ namespace LibreLancer.Missions
     public class ScriptAiCommands : NicknameItem
     {
         public string System = "";
-        public readonly List<MissionDirective> Directives = new();
+        public readonly List<MissionDirective> Directives = [];
 
         public ScriptAiCommands(ObjList ini)
         {
@@ -182,7 +182,7 @@ namespace LibreLancer.Missions
         public ScriptAiCommands(string nickname)
         {
             Nickname = nickname;
-            Directives = new();
+            Directives = [];
         }
 
         public ScriptAiCommands()

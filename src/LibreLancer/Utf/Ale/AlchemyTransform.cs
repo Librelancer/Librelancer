@@ -23,7 +23,7 @@ namespace LibreLancer.Utf.Ale
         public bool Animates;
 		public AlchemyTransform (BinaryReader reader)
         {
-            reader.Skip(3); //Xform 0x4, 0x3, 0x5
+            reader.Skip(3); // Xform 0x4, 0x3, 0x5
 			HasTransform = reader.ReadByte () != 0;
 			if (HasTransform) {
 				TranslateX = new AlchemyCurveAnimation (reader);

@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -97,7 +96,7 @@ namespace LibreLancer.Utf.Mat
             materialsAccessor = new SphMaterials(this);
 
 			this.library = library;
-            sideMaterialNames = new List<string>();
+            sideMaterialNames = [];
 
 			bool sphereSet = false;
 			foreach (Node node in root)
@@ -146,14 +145,15 @@ namespace LibreLancer.Utf.Mat
             }
         }
 
-        private static CubeMapFace[] faces = new CubeMapFace[] {
-			CubeMapFace.PositiveZ,
+        private static CubeMapFace[] faces =
+        [
+            CubeMapFace.PositiveZ,
 			CubeMapFace.PositiveX,
 			CubeMapFace.NegativeZ,
 			CubeMapFace.NegativeX,
 			CubeMapFace.PositiveY,
 			CubeMapFace.NegativeY
-		};
+        ];
 
         public RigidModel CreateRigidModel(bool drawable, ResourceManager resources)
         {
@@ -169,9 +169,8 @@ namespace LibreLancer.Utf.Mat
                 var sphere = resources.GetQuadSphere(26);
                 for (int i = 0; i < 6; i++)
                 {
-                    int start, count;
                     Vector3 pos;
-                    sphere.GetDrawParameters(faces[i], out start, out count, out pos);
+                    sphere.GetDrawParameters(faces[i], out var start, out var count, out pos);
                     var dc = new MeshDrawcall();
                     dc.MaterialCrc = CrcTool.FLModelCrc(sideMaterialNames[i]);
                     dc.BaseVertex = 0;
@@ -185,9 +184,8 @@ namespace LibreLancer.Utf.Mat
                     var crc = CrcTool.FLModelCrc(sideMaterialNames[6]);
                     for (int i = 0; i < 6; i++)
                     {
-                        int start, count;
                         Vector3 pos;
-                        sphere.GetDrawParameters(faces[i], out start, out count, out pos);
+                        sphere.GetDrawParameters(faces[i], out var start, out var count, out pos);
                         var dc = new MeshDrawcall();
                         dc.MaterialCrc = crc;
                         dc.BaseVertex = 0;
@@ -196,21 +194,21 @@ namespace LibreLancer.Utf.Mat
                         dcs.Add(dc);
                     }
                 }
-                vmesh.Levels = new[]
-                {
+                vmesh.Levels =
+                [
                     new MeshLevel()
                     {
                         Drawcalls = dcs.ToArray(),
                         Scale = Radius,
                         Resource = new VMeshResource() {VertexResource = new VertexResource(sphere.VertexBuffer)}
                     }
-                };
+                ];
             }
 
-            part.Hardpoints = new List<Hardpoint>();
+            part.Hardpoints = [];
             part.Mesh = vmesh;
             model.Root = part;
-            model.AllParts = new[] {part};
+            model.AllParts = [part];
             return model;
         }
 

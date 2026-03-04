@@ -55,7 +55,6 @@ namespace LibreLancer.Render.Materials
             Dc = Color4.White;
         }
 
-
 		public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{
 			rstate.DepthEnabled = true;

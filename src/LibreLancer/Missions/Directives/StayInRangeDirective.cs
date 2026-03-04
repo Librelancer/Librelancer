@@ -53,7 +53,6 @@ public class StayInRangeDirective : MissionDirective
         }
     }
 
-
     public override void Put(PacketWriter writer)
     {
         writer.Put((byte)ObjListCommands.StayInRange);

@@ -35,7 +35,7 @@ namespace LibreLancer.Net.Protocol
                     return null;
             }
         }
-        
+
         public bool ValidSelection()
         {
             return (Selected >= 0 && Selected < Count);
@@ -49,6 +49,6 @@ namespace LibreLancer.Net.Protocol
         public long Funds;
         public string Ship;
         public string Location;
-        public long Id; //Serverside only
+        public long Id; // Serverside only
     }
 }

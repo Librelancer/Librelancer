@@ -9,14 +9,14 @@ namespace LibreLancer.Interface;
 [WattleScriptUserData]
 public class ChatHistory : UiWidget
 {
-    public ChatSource Chat = new ChatSource();
+    public ChatSource Chat = new();
 
     private BuiltRichText builtText;
     private float builtMultiplier = 0;
     private int builtVersion;
     private float lastHeight = 0;
 
-    private Scrollbar scrollbar = new Scrollbar() {Smooth = true};
+    private Scrollbar scrollbar = new() {Smooth = true};
     private bool scrollbarVisible = false;
 
     public override void ApplyStylesheet(Stylesheet sheet)

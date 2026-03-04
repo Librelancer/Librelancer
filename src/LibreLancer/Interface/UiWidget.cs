@@ -24,7 +24,7 @@ namespace LibreLancer.Interface
 
         public bool Visible { get; set; } = true;
         public bool Enabled { get; set; } = true;
-        //Style resolution code
+        // Style resolution code
         protected static T Cascade<T>(T? style, T? style2, T self) where T : struct
         {
             if (!IsDefault(self)) return self;
@@ -72,8 +72,8 @@ namespace LibreLancer.Interface
             var drawRect = context.PointsToPixels(myRectangle);
             var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, shadowColor != null, CastAlign(horizontalAlign),
                 wrap ? drawRect.Width : 0);
-            //workaround for font substitution causing layout issues - e.g. CJK
-            //TODO: How to get max lineheight of fonts in string?
+            // workaround for font substitution causing layout issues - e.g. CJK
+            // TODO: How to get max lineheight of fonts in string?
             if (sz.Y > lineHeight && sz.Y < (lineHeight * 2)) lineHeight = sz.Y;
             float drawX, drawY;
             if (!wrap)
@@ -106,7 +106,7 @@ namespace LibreLancer.Interface
                 case VerticalAlignment.Bottom:
                     drawY = drawRect.Y + drawRect.Height - lineHeight;
                     break;
-                default: //Center
+                default: // Center
                     drawY = drawRect.Y + (drawRect.Height / 2) - lineHeight / 2;
                     break;
             }
@@ -255,7 +255,7 @@ namespace LibreLancer.Interface
         public virtual void OnMouseUp(UiContext context, RectangleF parentRectangle) { }
         public virtual void OnKeyDown(UiContext context, Keys key, bool control) { }
         public virtual void OnTextInput(string text) { }
-        public virtual Vector2 GetDimensions() => new Vector2(Width, Height);
+        public virtual Vector2 GetDimensions() => new(Width, Height);
 
         public virtual UiWidget? GetElement(string elementID)
         {

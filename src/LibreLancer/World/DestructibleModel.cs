@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 
@@ -11,33 +13,30 @@ public sealed class DestructibleModel
 
     public IEnumerable<uint> DestroyedParts => destroyed;
     public IEnumerable<Hardpoint> Hardpoints => hardpoints.Values;
-    public event Action<Hardpoint> HardpointDestroyed;
+    public event Action<Hardpoint>? HardpointDestroyed;
 
-    private HashSet<uint> destroyed = new HashSet<uint>();
-    private HashSet<uint> destroyedChildren = new HashSet<uint>();
-    private Dictionary<string, Hardpoint> hardpoints = new(StringComparer.OrdinalIgnoreCase);
-    private Dictionary<string, RigidModelPart> hpToPart = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<uint> destroyed = [];
+    private readonly HashSet<uint> destroyedChildren = [];
+    private readonly Dictionary<string, Hardpoint> hardpoints = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, RigidModelPart> hpToPart = new(StringComparer.OrdinalIgnoreCase);
 
     public List<SeparablePart> SeparableParts;
-
 
     public DestructibleModel(RigidModel model, List<SeparablePart> separableParts)
     {
         RigidModel = model;
         SeparableParts = separableParts;
+
         foreach (var part in RigidModel.AllParts)
         {
-            foreach (var hp in part.Hardpoints)
+            foreach (var hp in part.Hardpoints.Where(hp => hardpoints.TryAdd(hp.Definition.Name, hp)))
             {
-                if (hardpoints.TryAdd(hp.Definition.Name, hp))
-                {
-                    hpToPart[hp.Definition.Name] = part;
-                }
+                hpToPart[hp.Definition.Name] = part;
             }
         }
     }
 
-    public bool DestroyPart(string name, out RigidModelPart part) =>
+    public bool DestroyPart(string name, out RigidModelPart? part) =>
         DestroyPart(CrcTool.FLModelCrc(name), out part);
 
     public bool IsPartDestroyed(uint crc) => destroyed.Contains(crc);
@@ -48,26 +47,27 @@ public sealed class DestructibleModel
         {
             var id = CrcTool.FLModelCrc(c.Name);
             if (destroyed.Contains(id))
+            {
                 continue;
+            }
+
             c.Active = false;
             destroyedChildren.Add(id);
-            foreach (var hp in c.Hardpoints)
+
+            foreach (var hp in c.Hardpoints.Where(hp => hpToPart[hp.Name] == part))
             {
-                if(hpToPart[hp.Name] == part)
-                {
-                    hardpoints.Remove(hp.Name);
-                    HardpointDestroyed?.Invoke(hp);
-                }
+                hardpoints.Remove(hp.Name);
+                HardpointDestroyed?.Invoke(hp);
             }
+
             CascadeDestroy(c);
         }
     }
 
-    public bool DestroyPart(uint crc, out RigidModelPart part)
+    public bool DestroyPart(uint crc, out RigidModelPart? part)
     {
-        if (destroyed.Contains(crc) ||
-            destroyedChildren.Contains(crc) ||
-            !RigidModel.Parts.TryGetPart(crc, out part))
+        var foundPart = !RigidModel.Parts!.TryGetPart(crc, out part);
+        if (destroyed.Contains(crc) || destroyedChildren.Contains(crc) || !foundPart)
         {
             part = null;
             return false;
@@ -75,11 +75,13 @@ public sealed class DestructibleModel
 
         foreach (var hp in part.Hardpoints)
         {
-            if(hpToPart[hp.Name] == part)
+            if (hpToPart[hp.Name] != part)
             {
-                hardpoints.Remove(hp.Name);
-                HardpointDestroyed?.Invoke(hp);
+                continue;
             }
+
+            hardpoints.Remove(hp.Name);
+            HardpointDestroyed?.Invoke(hp);
         }
 
         destroyed.Add(crc);
@@ -88,21 +90,19 @@ public sealed class DestructibleModel
         return true;
     }
 
-
-    public bool TryGetHardpoint(string hpname, out Hardpoint hardpoint)
+    public bool TryGetHardpoint(string? hpName, [MaybeNullWhen(false)] out Hardpoint hardpoint)
     {
-        if (hpname == null)
+        if (hpName != null)
         {
-            hardpoint = null;
-            return false;
+            return hardpoints.TryGetValue(hpName, out hardpoint);
         }
-        return hardpoints.TryGetValue(hpname, out hardpoint);
+
+        hardpoint = null;
+        return false;
     }
 
-
-    public bool HardpointExists(string hpname)
+    public bool HardpointExists(string? hpName)
     {
-        return hpname != null && hardpoints.ContainsKey(hpname);
+        return hpName != null && hardpoints.ContainsKey(hpName);
     }
-
 }

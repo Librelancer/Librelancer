@@ -76,8 +76,8 @@ namespace LibreLancer.Render
             }
         }
 
-        //Scripting
-        private List<ScriptInstance> RunningScripts = new List<ScriptInstance>();
+        // Scripting
+        private List<ScriptInstance> RunningScripts = [];
 
         private struct ResolvedJoint
         {
@@ -144,7 +144,7 @@ namespace LibreLancer.Render
             data.TranslationWeight += weight;
         }
 
-        //Used for object maps
+        // Used for object maps
         public bool ApplyRootMotion => _rootMotionInstance != null;
         public Vector3 RootTranslation => _rootMotionInstance.RootTranslation;
         public Quaternion RootRotation => _rootMotionInstance.RootRotation;
@@ -169,7 +169,7 @@ namespace LibreLancer.Render
             public float BlendInDuration;
             public float BlendOutDuration;
 
-            public RefList<ResolvedJoint> Joints = new RefList<ResolvedJoint>();
+            public RefList<ResolvedJoint> Joints = [];
             public DfmSkeletonManager Parent;
             public Vector3 RootTranslation = Vector3.Zero;
             public Quaternion RootRotation = Quaternion.Identity;
@@ -303,12 +303,11 @@ namespace LibreLancer.Render
             }
         }
 
-        public Dictionary<string, DfmHardpoint> Hardpoints =
-            new Dictionary<string, DfmHardpoint>(StringComparer.OrdinalIgnoreCase);
+        public Dictionary<string, DfmHardpoint> Hardpoints = new(StringComparer.OrdinalIgnoreCase);
         public bool GetAccessoryTransform(RigidModel model, string hpAccessory, string hpSkel, Matrix4x4 world, out Matrix4x4 result)
         {
             result = Matrix4x4.Identity;
-            //Invert source hardpoint
+            // Invert source hardpoint
             Hardpoint? srcHardpoint = null;
             foreach (var part in model.AllParts)
             {
@@ -392,7 +391,6 @@ namespace LibreLancer.Render
 
         public BoundingBox Bounds;
 
-
         private void UpdateBounds()
         {
             Bounds = BodySkinning.BoundingBox;
@@ -413,7 +411,6 @@ namespace LibreLancer.Render
                 Bounds = BoundingBox.CreateMerged(Bounds, BoundingBox.TransformAABB(RightHandSkinning.BoundingBox, rhTr));
             }
         }
-
 
 
         public void UpdateScripts(double delta)

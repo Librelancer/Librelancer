@@ -27,7 +27,6 @@ public static class ResourceLoadExtensions
         return lib?.FindEffect(fx.VisFxCrc);
     }
 
-
     public static ModelResource? LoadFile(this ResolvedModel mdl, ResourceManager res, MeshLoadMode loadMode = MeshLoadMode.GPU)
     {
         if (mdl.ModelFile == null)

@@ -395,7 +395,7 @@ public class GameResourceManager : ResourceManager, IDisposable
 
     }
 
-    public override ParticleLibrary? GetParticleLibrary(string filename)
+    public override ParticleLibrary? GetParticleLibrary(string? filename)
     {
         if (isDisposed)
         {
@@ -414,7 +414,7 @@ public class GameResourceManager : ResourceManager, IDisposable
         return lib;
     }
 
-    public override void LoadResourceFile(string filename, MeshLoadMode meshMode = MeshLoadMode.GPU)
+    public override void LoadResourceFile(string? filename, MeshLoadMode meshMode = MeshLoadMode.GPU)
     {
         if (isDisposed)
         {
@@ -625,7 +625,7 @@ public class GameResourceManager : ResourceManager, IDisposable
         if (isDisposed) return;
         isDisposed = true;
 
-        //Textures
+        // Textures
         foreach (var v in textures.Values)
         {
             if (v != null)
@@ -635,7 +635,7 @@ public class GameResourceManager : ResourceManager, IDisposable
         NullTexture.Dispose();
         WhiteTexture.Dispose();
         GreyTexture.Dispose();
-        //Vertex buffers
+        // Vertex buffers
         vertexResourceAllocator.Dispose();
         ConvexCollection.Dispose();
     }

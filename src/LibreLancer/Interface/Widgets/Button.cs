@@ -24,7 +24,7 @@ namespace LibreLancer.Interface
 
         public float MarginRight { get; set; }
 
-        private InfoTextAccessor txtAccess = new InfoTextAccessor();
+        private InfoTextAccessor txtAccess = new();
         public string Text
         {
             get => txtAccess.Text;
@@ -195,7 +195,6 @@ namespace LibreLancer.Interface
             HeldDown = false;
             DragStart = DragOffset = Vector2.Zero;
         }
-
 
         private event Action Clicked;
 

@@ -32,7 +32,6 @@ namespace LibreLancer.Render
             vertices = (VertexPositionColorTexture*)vbo.BeginStreaming();
         }
 
-
         public void StartLine(Texture2D tex, ushort blend)
 		{
 			if (pointsCount != 0)
@@ -96,8 +95,8 @@ namespace LibreLancer.Render
 
         public void AddQuad(Vector3 p0, Vector3 p1, Color4 color)
         {
-            //var mid = (p0 + p1) / 2;
-            //var face = QuaternionEx.LookAt(p0, p1);
+            // var mid = (p0 + p1) / 2;
+            // var face = QuaternionEx.LookAt(p0, p1);
             var dir = (p1 - p0).Normalized();
             var scale = (p1 - p0).Length();
 
@@ -121,7 +120,6 @@ namespace LibreLancer.Render
             Vector2 tBottom = new(T1, T1);
             Vector2 tLeft = new(T0, T1);
             Vector2 tRight = new(T1, T0);
-
 
             vertices[vertexCount++] = new VertexPositionColorTexture(
                 top,

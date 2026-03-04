@@ -85,7 +85,6 @@ namespace LibreLancer.Interface
                 context.Lines.DrawVWire(wire, mesh.VertexResource, mat, color);
         }
 
-
         public override void Render(UiContext context, RectangleF clientRectangle)
         {
             if (!Enabled || Model == null) return;
@@ -165,7 +164,7 @@ namespace LibreLancer.Interface
         private bool CanRender(UiContext context)
         {
             if (!loadable) return false;
-            if (v != context.MeshDisposeVersion){ //HACK: Clear models on vmesh dispose
+            if (v != context.MeshDisposeVersion){ // HACK: Clear models on vmesh dispose
                 v = context.MeshDisposeVersion;
                 model = null;
             }
@@ -182,7 +181,6 @@ namespace LibreLancer.Interface
             }
             return true;
         }
-
 
 
     }

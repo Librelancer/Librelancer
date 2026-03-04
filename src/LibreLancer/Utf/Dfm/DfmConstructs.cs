@@ -8,7 +8,7 @@ namespace LibreLancer.Utf.Dfm
 {
     public class DfmConstructs
     {
-        public List<DfmConstruct> Constructs = new List<DfmConstruct>();
+        public List<DfmConstruct> Constructs = [];
 
         public void AddNode(IntermediateNode root)
         {

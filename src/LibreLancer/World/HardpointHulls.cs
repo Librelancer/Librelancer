@@ -27,17 +27,23 @@ public static class HardpointHulls
     public static void Deactivate(GameComponent childComponent)
     {
         var eq = childComponent.Parent;
-        if (eq == null) {
+        if (eq == null)
+        {
             return;
         }
+
         var p = childComponent.Parent?.Parent;
-        if (eq.Attachment == null) {
+        if (eq.Attachment == null)
+        {
             return;
         }
-        if (p == null) {
+
+        if (p == null)
+        {
             return;
         }
-        p.PhysicsComponent.DeactivateHardpoint(eq.Attachment);
+
+        p.PhysicsComponent!.DeactivateHardpoint(eq.Attachment);
         FLLog.Info("HARDPOINT", $"Deactivate {eq.Attachment} on {p}");
     }
 }

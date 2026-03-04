@@ -160,7 +160,6 @@ namespace LibreLancer.Missions.Actions
                     pos = relObj.WorldTransform.Position + (dir * range);
                 }
 
-
                 var obj = runtime.Player.Space.World.NPCs.DoSpawn(
                     oName,
                     ship.Nickname,
@@ -188,15 +187,15 @@ namespace LibreLancer.Missions.Actions
         {
         }
 
-        //TODO: implement formations
+        // TODO: implement formations
         private static IReadOnlyList<Vector3> nullOffsets = new List<Vector3>(
-        new[]{
+        [
             Vector3.Zero,
             new Vector3(-60, 0, 0),
             new Vector3(60, 0, 0),
             new Vector3(0, -60, 0),
             new Vector3(0, 60, 0)
-        });
+        ]);
 
         public Act_SpawnFormation(MissionAction act) : base(act)
         {
@@ -379,7 +378,6 @@ namespace LibreLancer.Missions.Actions
             section.Entry("Act_SpawnLoot", Loot);
         }
     }
-
 
     public enum DestroyKind
     {

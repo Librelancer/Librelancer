@@ -49,7 +49,6 @@ public class GotoSplineDirective : MissionDirective
             MaxThrottle = entry[15].ToSingle();
     }
 
-
     public override void Put(PacketWriter writer)
     {
         writer.Put((byte)ObjListCommands.GotoSpline);

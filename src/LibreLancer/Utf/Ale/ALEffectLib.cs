@@ -16,7 +16,7 @@ namespace LibreLancer.Utf.Ale
 
         public ALEffectLib()
         {
-            Effects = new();
+            Effects = [];
         }
 
         public ALEffectLib(LeafNode node)
@@ -33,7 +33,7 @@ namespace LibreLancer.Utf.Ale
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
                 if (version == 1.1f)
                 {
-                    //Skip unused floats
+                    // Skip unused floats
                     reader.Skip(4 * sizeof(float));
                 }
                 Effects.Add(new ALEffect {

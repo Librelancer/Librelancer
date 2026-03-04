@@ -12,8 +12,8 @@ public class SMissileComponent : GameComponent
 
     public float Speed = 0;
 
-    private PIDController pitchControl = new PIDController() { P = 1 };
-    private PIDController yawControl = new PIDController() { P = 1 };
+    private PIDController pitchControl = new() { P = 1 };
+    private PIDController yawControl = new() { P = 1 };
 
     public SMissileComponent(GameObject parent, MissileEquip missile) : base(parent)
     {
@@ -50,15 +50,15 @@ public class SMissileComponent : GameComponent
         }
 
         if (totalTime > Missile.Def.Lifetime) {
-            Parent.World.Server.ExplodeMissile(Parent); //Todo: does this do damage?
+            Parent.World.Server.ExplodeMissile(Parent); // Todo: does this do damage?
         }
     }
 
     private void TurnTowards(double dt, Vector3 targetPoint)
     {
-        //Orientation
+        // Orientation
         var vec = Parent.InverseTransformPoint(targetPoint);
-        //normalize it
+        // normalize it
         vec.Normalize();
         //
         float yaw = MathHelper.Clamp((float)yawControl.Update(0, vec.X, dt), -1, 1);
@@ -71,7 +71,6 @@ public class SMissileComponent : GameComponent
         angularForce += (Parent.PhysicsComponent.Body.AngularVelocity * -1);
         Parent.PhysicsComponent.Body.AddTorque(angularForce);
     }
-
 
     private void DoMotor(double time)
     {

@@ -19,7 +19,7 @@ namespace LibreLancer.Missions
     public class MissionRuntime
     {
         public Player Player;
-        private object _msnLock = new object();
+        private object _msnLock = new();
 
         public MissionScript Script;
         public Random Random = new();
@@ -69,7 +69,7 @@ namespace LibreLancer.Missions
         {
             FLLog.Info("Mission", $"WriteActiveTriggers called - lastSaveTrigger: '{lastSaveTrigger}'");
 
-            //if we are in space, we only want to save the last save trigger executed, if we are not, save all
+            // if we are in space, we only want to save the last save trigger executed, if we are not, save all
             if (Player.Space != null)
             {
                 FLLog.Info("Mission", "Player is in space, saving only the last save trigger");
@@ -228,13 +228,12 @@ namespace LibreLancer.Missions
             }
         }
 
-        public TriggerInfo[] ActiveTriggersInfo = new TriggerInfo[0];
+        public TriggerInfo[] ActiveTriggersInfo = [];
 
         private void UpdateUiTriggers()
         {
             ActiveTriggersInfo = GetTriggerInfo().ToArray();
         }
-
 
         private IEnumerable<TriggerInfo> GetTriggerInfo()
         {
@@ -258,11 +257,11 @@ namespace LibreLancer.Missions
         {
             public string Name;
             public BitArray128 Satisfied;
-            public List<string> Actions = new List<string>();
-            public List<string> Conditions = new List<string>();
+            public List<string> Actions = [];
+            public List<string> Conditions = [];
         }
 
-        private List<ActiveTrigger> activeTriggers = new List<ActiveTrigger>();
+        private List<ActiveTrigger> activeTriggers = [];
 
         private void MsnEvent<T>(T e) where T : struct
         {
@@ -281,7 +280,7 @@ namespace LibreLancer.Missions
             }
         }
 
-        private HashSet<string> completedTriggers = new();
+        private HashSet<string> completedTriggers = [];
         private bool uiUpdate = false;
 
         public void CheckMissionScript()
@@ -393,7 +392,6 @@ namespace LibreLancer.Missions
             MsnEvent(new MissionResponseEvent(false));
         }
 
-
         public void FinishRTC(string rtc)
         {
             MsnEvent(new RTCDoneEvent(rtc));
@@ -409,7 +407,6 @@ namespace LibreLancer.Missions
         {
             MsnEvent(new SpaceEnteredEvent());
         }
-
 
         private void DoTrigger(ScriptedTrigger tr)
         {
@@ -440,7 +437,7 @@ namespace LibreLancer.Missions
             public string Line;
         }
 
-        private List<PendingLine> waitingLines = new List<PendingLine>();
+        private List<PendingLine> waitingLines = [];
 
         public void EnqueueLine(uint hash, string line)
         {

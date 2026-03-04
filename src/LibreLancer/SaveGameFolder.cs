@@ -12,7 +12,7 @@ namespace LibreLancer
     [WattleScriptUserData]
     public class SaveGameFolder : ITableData
     {
-        private List<MetaSave> files = new List<MetaSave>();
+        private List<MetaSave> files = [];
         private InfocardManager infocards;
 
         [WattleScriptHidden] public InfocardManager Infocards
@@ -60,7 +60,7 @@ namespace LibreLancer
                 FLLog.Info("Save", $"Located {files.Count} saves");
             }
             else {
-                files = new List<MetaSave>();
+                files = [];
                 FLLog.Info("Save", "Folder does not exist");
             }
         }

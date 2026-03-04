@@ -16,8 +16,8 @@ namespace LibreLancer.Interface
         public int IdsName;
         public int IdsInfo;
         public int ShipClass;
-        public string Icon;
-        public string Model;
+        public string? Icon;
+        public string? Model;
         public double Price;
         [WattleScriptHidden]
         public NetSoldShip Server;

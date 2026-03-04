@@ -93,8 +93,8 @@ public class ZoneLookup : IDisposable
     public void UpdatePositions()
     {
         RebuildTree();
-        //FillSubtreesForChildren(zones, subtrees); - subtrees is invalid here
-        //tree.RefitAndRefine(pool, frameIndex++);
+        // FillSubtreesForChildren(zones, subtrees); - subtrees is invalid here
+        // tree.RefitAndRefine(pool, frameIndex++);
     }
 
     private struct PointIterator(Action<Zone> cb, ZoneLookup lookup, Vector3 pos) : IBreakableForEach<int>

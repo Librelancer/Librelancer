@@ -57,9 +57,8 @@ namespace LibreLancer.Fx
 			float s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
 
 			var n = RandomInCone(s_min, s_max);
-            Vector3 translate;
-            Quaternion rotate;
-            if (DoTransform(reference, sparam, globaltime, out translate, out rotate))
+
+            if (DoTransform(reference, sparam, globaltime, out var translate, out var rotate))
             {
                 n = Vector3.Transform(n, rotate);
             }
@@ -69,7 +68,7 @@ namespace LibreLancer.Fx
             particle.Normal = n;
 		}
 
-		//Different direction to FxCubeEmitter
+		// Different direction to FxCubeEmitter
         private static Vector3 RandomInCone(float minspread, float maxspread)
 		{
 			var direction = Vector3.UnitY;

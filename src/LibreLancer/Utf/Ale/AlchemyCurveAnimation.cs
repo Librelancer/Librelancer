@@ -15,7 +15,7 @@ namespace LibreLancer.Utf.Ale
         public AlchemyCurveAnimation()
         {
             Type = EasingTypes.Linear;
-            Items = new();
+            Items = [];
         }
 
         public AlchemyCurveAnimation(float value)
@@ -74,7 +74,7 @@ namespace LibreLancer.Utf.Ale
 
         public float GetValue(float sparam, float time)
 		{
-			//1 item, 1 value
+			// 1 item, 1 value
 			if (Items.Count == 1) {
 				return Items [0].GetValue (time);
 			}

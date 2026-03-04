@@ -16,8 +16,8 @@ namespace LibreLancer.Render
     {
         private DfmFile dfm;
         private BoneInstance[] instanceArray;
-        private List<BoneInstance> starts = new List<BoneInstance>();
-        public Dictionary<string, BoneInstance> Bones = new Dictionary<string, BoneInstance>(StringComparer.OrdinalIgnoreCase);
+        private List<BoneInstance> starts = [];
+        public Dictionary<string, BoneInstance> Bones = new(StringComparer.OrdinalIgnoreCase);
         public int BufferOffset;
         public BoundingBox BoundingBox;
 
@@ -127,38 +127,38 @@ namespace LibreLancer.Render
             offset = bonesBuffer.GetAlignedIndex(offset);
         }
 
-        private static readonly Vector3[] cubeVerts = new[]
-        {
-            //Front
+        private static readonly Vector3[] cubeVerts =
+        [
+            // Front
             new Vector3(-1,-1,1),
             new Vector3(-1, 1, 1),
             new Vector3(1, 1, 1),
             new Vector3(1, -1, 1),
-            //Back
+            // Back
             new Vector3(-1,-1,-1),
             new Vector3(-1, 1, -1),
             new Vector3(1, 1, -1),
             new Vector3(1, -1, -1),
-            //Top
+            // Top
             new Vector3(0,0, 1.8f),
-            //Arrow
+            // Arrow
             new Vector3(0,0, 0),
-            new Vector3(0,1.8f, 0),
-        };
+            new Vector3(0,1.8f, 0)
+        ];
 
-        private static readonly int[] cubeIndices = new[]
-        {
-            //Front
+        private static readonly int[] cubeIndices =
+        [
+            // Front
             0,1, 1,2, 2,3, 3,0,
-            //Back
+            // Back
             4,5, 5,6, 6,7, 7,4,
-            //Join
+            // Join
             0,4, 1,5, 2,6, 3,7,
-            //Point
+            // Point
             0,8, 1,8, 2,8, 3,8,
-            //Arrow
+            // Arrow
             9,10
-        };
+        ];
 
         private void DrawCube(LineRenderer lines, Matrix4x4 world, float scale, Color4 color)
         {
@@ -173,13 +173,13 @@ namespace LibreLancer.Render
         public void DebugDraw(LineRenderer lines, Matrix4x4 world, DfmDrawMode mode)
         {
             const float scale = 0.015f;
-            //world blue
+            // world blue
             DrawCube(lines, world, scale, Color4.Blue);
             if(mode == DfmDrawMode.DebugBones ||
                mode == DfmDrawMode.DebugBonesHardpoints ||
                mode == DfmDrawMode.DebugMeshBones ||
                mode == DfmDrawMode.DebugMeshBonesHardpoints) {
-                //bones red
+                // bones red
                 for (int i = 0; i < instanceArray.Length; i++)
                 {
                     if (instanceArray[i] == null)
@@ -195,7 +195,7 @@ namespace LibreLancer.Render
                 mode == DfmDrawMode.DebugMeshHardpoints ||
                 mode == DfmDrawMode.DebugMeshBonesHardpoints)
             {
-                //hardpoints green
+                // hardpoints green
                 foreach (var hp in dfm.GetHardpoints())
                 {
                     if (Bones.TryGetValue(hp.Part.objectName, out BoneInstance bi))

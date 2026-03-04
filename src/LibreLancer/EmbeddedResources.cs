@@ -10,11 +10,10 @@ namespace LibreLancer
 	public class EmbeddedResources
 	{
 		public static string LoadString(string name)
-		{
-			using (var stream = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(name)))
-			{
-				return stream.ReadToEnd();
-			}
-		}
+        {
+            using var stream = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream(name)!);
+            return stream.ReadToEnd();
+
+        }
 	}
 }

@@ -4,7 +4,7 @@
 
 namespace LibreLancer.Interface
 {
-    //Helper class for using Strids with fallback
+    // Helper class for using Strids with fallback
     internal class InfoTextAccessor
     {
         private int _strid;

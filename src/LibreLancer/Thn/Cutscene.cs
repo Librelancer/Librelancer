@@ -20,7 +20,7 @@ namespace LibreLancer.Thn
         public Vector3 Translate;
         public Quaternion Rotate;
         public string Actor;
-        public GameObject Object;
+        public GameObject? Object;
         public DynamicLight Light;
         public ThnEntity Entity;
         public ThnCameraProps Camera;
@@ -82,12 +82,12 @@ namespace LibreLancer.Thn
     public class Cutscene : IDisposable
 	{
         public const float LETTERBOX_HEIGHT = 0.138021f;
-        //Public variables
+        // Public variables
 		public GameWorld World;
 		public SystemRenderer Renderer;
         public GameObject PlayerShip => scriptContext.PlayerShip;
         public CEngineComponent PlayerEngine => scriptContext.PlayerEngine;
-        //Public properties
+        // Public properties
         public GameResourceManager ResourceManager => resourceManager;
         public ICamera CameraHandle => camera;
         public Dictionary<string, string> Substitutions => scriptContext.Substitutions;
@@ -96,13 +96,13 @@ namespace LibreLancer.Thn
         public SoundManager SoundManager => soundManager;
         public bool Running => running;
         public double CurrentTime => currentTime;
-        //Private variables
+        // Private variables
         private double currentTime = 0;
         private Dictionary<string, ThnObject> sceneObjects;
         private Game game;
         private ThnCamera camera;
         private bool spawnObjects = true;
-        private List<Tuple<IDrawable, ThnObject>> layers = new List<Tuple<IDrawable, ThnObject>>();
+        private List<Tuple<IDrawable, ThnObject>> layers = [];
         private ThnDisplayText text;
         private GameDataManager gameData;
         private GameResourceManager resourceManager;
@@ -145,7 +145,7 @@ namespace LibreLancer.Thn
         }
 
         private ThnScriptContext scriptContext;
-        private List<ThnScriptInstance> instances = new List<ThnScriptInstance>();
+        private List<ThnScriptInstance> instances = [];
         public Cutscene(ThnScriptContext context, GameDataManager gameData, GameResourceManager resources, SoundManager sound, Rectangle viewport, Game game)
         {
             scriptContext = context;
@@ -178,7 +178,7 @@ namespace LibreLancer.Thn
 
         public void FidgetScript(ThnScript scene)
         {
-            SceneSetup(new[] { scene }, false);
+            SceneSetup([scene], false);
         }
 
         private void SceneSetup(ThnScript[] scripts, bool resetObjects = true)
@@ -188,7 +188,7 @@ namespace LibreLancer.Thn
             if (resetObjects)
             {
                 sceneObjects = new Dictionary<string, ThnObject>(StringComparer.OrdinalIgnoreCase);
-                layers = new List<Tuple<IDrawable, ThnObject>>();
+                layers = [];
             }
 
             if (spawnObjects && resetObjects) {
@@ -211,7 +211,7 @@ namespace LibreLancer.Thn
                     inst.Cleanup();
             }
             if(resetObjects)
-                instances = new List<ThnScriptInstance>();
+                instances = [];
             int startIdx = instances.Count;
             foreach (var script in scripts)
             {
@@ -232,7 +232,7 @@ namespace LibreLancer.Thn
 
             if (spawnObjects && resetObjects)
             {
-                //Add starspheres in the right order
+                // Add starspheres in the right order
                 var sorted = ((IEnumerable<Tuple<IDrawable, ThnObject>>) layers).Reverse()
                     .OrderBy(x => x.Item2.Entity.SortGroup).ToArray();
                 Renderer.StarSphereModels = new RigidModel[sorted.Length];
@@ -246,16 +246,15 @@ namespace LibreLancer.Thn
                     Renderer.StarSphereLightings[i] = Lighting.Empty;
                     starSphereObjects[i] = sorted[i].Item2;
                 }
-                //Add objects to the renderer
+                // Add objects to the renderer
                 World.RegisterAll();
             }
 
             for (int i = startIdx; i < instances.Count; i++)
                 instances[i].Update(0);
-            //Init
+            // Init
             running = true;
         }
-
 
         private ThnObject[] starSphereObjects;
 
@@ -301,8 +300,8 @@ namespace LibreLancer.Thn
             {
                 if (currentTime > text.Start)
                 {
-                    //game.GetService<Interface.Typewriter>().PlayString(gameData.GetString(text.TextIDS));
-                    //text = null;
+                    // game.GetService<Interface.Typewriter>().PlayString(gameData.GetString(text.TextIDS));
+                    // text = null;
                 }
             }
             //

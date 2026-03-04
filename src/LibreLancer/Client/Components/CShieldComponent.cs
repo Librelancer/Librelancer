@@ -26,7 +26,6 @@ namespace LibreLancer.Client.Components
 
         private float MinHealth => Equip.Def.OfflineThreshold * Equip.Def.MaxCapacity;
 
-
         public CShieldComponent(ShieldEquipment equip, GameObject parent) : base(parent)
         {
             this.Equip = equip;
@@ -35,7 +34,7 @@ namespace LibreLancer.Client.Components
 
         public void SetShieldHealth(float value, Action<ShieldUpdate>? callback = null)
         {
-            //Notify important changes
+            // Notify important changes
             if (Health <= -1 && value > 0) {
                 callback?.Invoke(ShieldUpdate.Online);
             }
@@ -46,7 +45,7 @@ namespace LibreLancer.Client.Components
             } else if (value <= 0 && Health > 0) {
                 callback?.Invoke(ShieldUpdate.Failed);
             }
-            //Set value
+            // Set value
             Health = value;
         }
 

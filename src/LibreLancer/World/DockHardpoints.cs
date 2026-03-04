@@ -26,13 +26,14 @@ public class DockHardpoints
         var hp0 = parent.GetHardpoint(DockPoints[index].DockSphere.Hardpoint);
         var hp1 = parent.GetHardpoint(hpname + "01");
         var hp2 = parent.GetHardpoint(hpname + "02");
+
         if (reverse)
         {
-            return ((Hardpoint[]) [hp0, hp1, hp2]).Where(x => x != null).ToArray();
+            return ((Hardpoint?[])[hp0, hp1, hp2]).OfType<Hardpoint>().ToArray();
         }
         else
         {
-            return ((Hardpoint[])[hp2, hp1, hp0]).Where(x => x != null).ToArray();
+            return ((Hardpoint?[])[hp2, hp1, hp0]).OfType<Hardpoint>().ToArray();
         }
     }
 

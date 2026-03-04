@@ -15,8 +15,8 @@ namespace LibreLancer.Render
         private const int MAX_COMMANDS = 16384;
         private const int MAX_TRANSPARENT_COMMANDS = 16384;
 
-		//public List<RenderCommand> Commands = new List<RenderCommand>();
-		//RenderCommand[] Commands = new RenderCommand[MAX_COMMANDS];
+		// public List<RenderCommand> Commands = new List<RenderCommand>();
+		// RenderCommand[] Commands = new RenderCommand[MAX_COMMANDS];
         private RenderCommand[] Transparents = new RenderCommand[MAX_TRANSPARENT_COMMANDS];
         private int currentCommand = 0;
         private int transparentCommand = 0;
@@ -101,7 +101,7 @@ namespace LibreLancer.Render
                 }
             }
 		}
-		//TODO: Implement MaterialAnim for asteroids
+		// TODO: Implement MaterialAnim for asteroids
 		public unsafe void AddCommandFade(
             RenderMaterial material,
             WorldMatrixHandle world,
@@ -255,7 +255,7 @@ namespace LibreLancer.Render
             }
             else
             {
-                return (1UL << 62); //starsphere
+                return (1UL << 62); // starsphere
             }
         }
 
@@ -263,7 +263,6 @@ namespace LibreLancer.Render
         {
             return (byte) (((byte)cmdType << 4) | (byte) prims);
         }
-
 
         public ulong Key;
 		public byte Type;

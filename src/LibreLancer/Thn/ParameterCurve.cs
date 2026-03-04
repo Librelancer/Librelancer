@@ -74,7 +74,7 @@ namespace LibreLancer.Thn
 					break;
 			}
 			var points = (ThornTable)table["points"];
-			Points = new List<Vector4>();
+			Points = [];
 			for (int i = 1; i <= points.Length; i++) {
 				var p = (ThornTable)points[i];
 				var v = new Vector4((float)p[1], (float)p[2], (float)p[3], (float)p[4]);
@@ -118,7 +118,7 @@ namespace LibreLancer.Thn
                     return Points[0].Y;
                 if (x >= 1)
                     return Points[Points.Count - 1].Y;
-                //X - time, Y - value, Z - in, W - out
+                // X - time, Y - value, Z - in, W - out
 
                 for (int i = 0; i < Points.Count - 1; i++)
                 {

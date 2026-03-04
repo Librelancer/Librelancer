@@ -26,13 +26,12 @@ public class PackedUpdatePacket : IPacket
     public byte[] Updates;
 
     public int DataSize =>
-        1 + //Packet Kind
-        NetPacking.ByteCountUInt64(Tick) + //Header
+        1 + // Packet Kind
+        NetPacking.ByteCountUInt64(Tick) + // Header
         NetPacking.ByteCountInt64((int)((long)OldTick - Tick)) +
         NetPacking.ByteCountInt64(((int)((long)InputSequence - Tick))) +
-        (AuthState?.Length ?? 0) + //Auth State serialized
-        (Updates?.Length ?? 0); //Updates serialized
-
+        (AuthState?.Length ?? 0) + // Auth State serialized
+        (Updates?.Length ?? 0); // Updates serialized
 
     public void WriteContents(PacketWriter outPacket)
     {
@@ -333,7 +332,7 @@ public struct UpdateVector : IEquatable<UpdateVector>
         return precision == other.precision && min.Equals(other.min) && max.Equals(other.max) && x == other.x && y == other.y && z == other.z;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is UpdateVector other && Equals(other);
     }
@@ -361,7 +360,7 @@ public class ObjectUpdate
     private const int VELOCITY_DELTA_BITS = 14;
     public UpdateVector AngularVelocity = new(Vector3.Zero, 24, -16384, 16383);
 
-    //Info
+    // Info
     public CruiseThrustState CruiseThrust;
     public bool EngineKill;
     public GunOrient[] Guns;
@@ -370,7 +369,7 @@ public class ObjectUpdate
 
     public ObjNetId ID;
 
-    //Identifier
+    // Identifier
     public UpdateVector LinearVelocity = new(Vector3.Zero, 24, -32768, 32767);
     public UpdateQuaternion Orientation = Quaternion.Identity;
     public Vector3 Position;
@@ -409,7 +408,7 @@ public class ObjectUpdate
 #if DEBUG
         msg.PutByte(0xA1);
 #endif
-        //ID
+        // ID
         if (src.ID != new ObjNetId(0) && src.ID != ID)
             throw new InvalidOperationException("Cannot delta from different object");
         if (oldTick == 0)
@@ -429,7 +428,7 @@ public class ObjectUpdate
             msg.PutByte((byte)(newTick - oldTick));
         }
 
-        //Position
+        // Position
         if (NetPacking.ApproxEqual(src.Position, Position))
         {
             msg.PutUInt(0, 2);
@@ -449,7 +448,7 @@ public class ObjectUpdate
             }
         }
 
-        //Orientation
+        // Orientation
         if (Orientation.Largest == src.Orientation.Largest &&
             Orientation.Component1 == src.Orientation.Component1 &&
             Orientation.Component2 == src.Orientation.Component2 &&
@@ -463,17 +462,17 @@ public class ObjectUpdate
             Orientation.WriteDelta(src.Orientation, ref msg);
         }
 
-        //Linear Velocity
+        // Linear Velocity
         LinearVelocity.WriteDelta(src.LinearVelocity, VELOCITY_DELTA_BITS, ref msg);
-        //Angular Velocity
+        // Angular Velocity
         AngularVelocity.WriteDelta(src.AngularVelocity, VELOCITY_DELTA_BITS, ref msg);
 
-        //Flags
+        // Flags
         msg.PutBool(Tradelane);
         msg.PutBool(EngineKill);
         msg.PutUInt((uint)CruiseThrust, 2);
 
-        //Throttle
+        // Throttle
         if (NetPacking.QuantizedEqual(src.Throttle, Throttle, -1, 1, 7))
         {
             msg.PutBool(false);
@@ -484,7 +483,7 @@ public class ObjectUpdate
             msg.PutRangedFloat(Throttle, -1, 1, 7);
         }
 
-        //Hull
+        // Hull
         if (HullValue == src.HullValue)
         {
             msg.PutBool(false);
@@ -495,7 +494,7 @@ public class ObjectUpdate
             msg.PutVarInt64(HullValue - src.HullValue);
         }
 
-        //Shield
+        // Shield
         if (ShieldValue == src.ShieldValue)
         {
             msg.PutBool(false);
@@ -506,7 +505,7 @@ public class ObjectUpdate
             msg.PutVarInt64(ShieldValue - src.ShieldValue);
         }
 
-        //Guns
+        // Guns
         if (Guns == null)
         {
             if ((src.Guns?.Length ?? 0) != 0)

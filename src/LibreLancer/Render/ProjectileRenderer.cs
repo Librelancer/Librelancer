@@ -8,7 +8,7 @@ using LibreLancer.World;
 
 namespace LibreLancer.Render
 {
-    //Renders vis_beam
+    // Renders vis_beam
     public class ProjectileRenderer : ObjectRenderer
     {
         public ProjectileManager Projectiles;

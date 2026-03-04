@@ -55,10 +55,10 @@ namespace LibreLancer.Render
 						continue;
 					var l = src.Lights[i].Light;
 					var r2 = r + l.Range;
-					//l.Kind > 0 - test if not directional
+					// l.Kind > 0 - test if not directional
 					if (l.Kind > 0 && Vector3.DistanceSquared(l.Position, c) > (r2 * r2))
 						continue;
-					//Advanced spotlight cull
+					// Advanced spotlight cull
 					if ((l.Kind == LightKind.Spotlight) && SpotlightTest(ref l, c, r))
 						continue;
                     if ((lc + 1) > MAX_LIGHTS) throw new Exception("Too many lights!");
@@ -69,12 +69,7 @@ namespace LibreLancer.Render
 			}
 			if (nebula != null)
 			{
-				Color4? ambient;
-				bool fogenabled;
-				Vector2 fogrange;
-				Color4 fogcolor;
-				RenderLight? lightning;
-				nebula.GetLighting(out fogenabled, out ambient, out fogrange, out fogcolor, out lightning);
+                nebula.GetLighting(out var fogenabled, out var ambient, out var fogrange, out var fogcolor, out var lightning);
                 if (ambient != null)
                     lights.Ambient = new Color3f(ambient.Value.R, ambient.Value.G, ambient.Value.B);
 				if (fogenabled)
@@ -93,7 +88,7 @@ namespace LibreLancer.Render
 			return lights;
 		}
 
-		//Returns whether or not a spotlight can be culled
+		// Returns whether or not a spotlight can be culled
         private static bool SpotlightTest(ref RenderLight light, Vector3 objPos, float objRadius)
 		{
 			var V = objPos - light.Position;

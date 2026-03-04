@@ -43,13 +43,13 @@ namespace LibreLancer.Render.Materials
 			rstate.BlendMode = BlendMode.Normal;
             var shader = AllShaders.Nomad.Get(0);
             SetWorld(shader);
-            //Colors
-            //Dc unused in shader rn (investigate)
-			//Dt
+            // Colors
+            // Dc unused in shader rn (investigate)
+			// Dt
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
-			//Nt
+			// Nt
 			BindTexture(rstate, 1, NtSampler ?? "NomadRGB1_NomadAlpha1", 1, NtFlags);
-			//Bt
+			// Bt
             // not implemented
             // materialanim needs check for impl?
             rstate.Shader = shader;

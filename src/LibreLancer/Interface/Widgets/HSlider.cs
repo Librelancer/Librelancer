@@ -92,18 +92,18 @@ namespace LibreLancer.Interface
                 thumbright.SetStyle(Style.ThumbRight);
             }
         }
-        private Button leftbutton = new Button()
+        private Button leftbutton = new()
         {
             Anchor = AnchorKind.CenterLeft
         };
 
-        private Button rightbutton = new Button()
+        private Button rightbutton = new()
         {
             Anchor = AnchorKind.CenterRight
         };
-        private Button thumb = new Button();
-        private Button thumbleft = new Button();
-        private Button thumbright = new Button();
+        private Button thumb = new();
+        private Button thumbleft = new();
+        private Button thumbright = new();
 
         private void Layout(UiContext context, RectangleF parent, out RectangleF myRectangle, out RectangleF track)
         {
@@ -151,7 +151,7 @@ namespace LibreLancer.Interface
             }
             timer = MathHelper.Clamp(timer, 0, 100);
             Layout(context, parent, out var myRectangle, out var track);
-            //background
+            // background
             Style?.Background?.Draw(context, myRectangle);
             //draw buttons
             leftbutton.Render(context, myRectangle);

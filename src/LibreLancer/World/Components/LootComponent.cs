@@ -8,7 +8,7 @@ namespace LibreLancer.World.Components;
 
 public class LootComponent : AbstractCargoComponent
 {
-    public List<BasicCargo> Cargo = new List<BasicCargo>();
+    public List<BasicCargo> Cargo = [];
 
     public LootComponent(GameObject parent) : base(parent)
     {

@@ -7,7 +7,7 @@ namespace LibreLancer.World;
 public class EncounterInfo
 {
     public FormationDef Formation;
-    public List<EncounterEntry> Ships = new();
+    public List<EncounterEntry> Ships = [];
 }
 
 public record EncounterEntry(ObjectName Name, Voice? Voice, ShipArch Ship);

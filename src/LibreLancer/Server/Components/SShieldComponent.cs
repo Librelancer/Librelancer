@@ -61,7 +61,6 @@ namespace LibreLancer.Server.Components
             }
         }
 
-
         public bool Damage(float incomingDamage)
         {
             if (_health > MinHealth)

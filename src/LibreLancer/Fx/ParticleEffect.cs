@@ -12,11 +12,10 @@ namespace LibreLancer.Fx
 
     public abstract class NodeReference
     {
-        public NodeReference Parent;
-        public List<NodeReference> Children = new List<NodeReference>();
+        public NodeReference? Parent;
+        public List<NodeReference> Children = [];
 
-
-        private int flags = (1 << 1); //Enabled
+        private int flags = (1 << 1); // Enabled
 
         public bool IsAttachmentNode
         {
@@ -40,36 +39,31 @@ namespace LibreLancer.Fx
 
     }
 
-    public class EmptyNodeReference : NodeReference
+    public class EmptyNodeReference(FxNode n) : NodeReference
     {
-        public override FxNode Node { get; }
-
-        public EmptyNodeReference(FxNode n)
-        {
-            Node = n;
-        }
+        public override FxNode Node { get; } = n;
     }
 
     public class EmitterReference(FxEmitter emitter) : NodeReference
     {
-        public FxEmitter Emitter = emitter;
+        public readonly FxEmitter Emitter = emitter;
         public override FxNode Node => Emitter;
 
-        public AppearanceReference Linked;
+        public AppearanceReference? Linked;
         public int AppBufIdx; // Index of the particle buffer of the linked appearance
     }
 
     public class AppearanceReference(FxAppearance app) : NodeReference
     {
-        public FxAppearance Appearance = app;
+        public readonly FxAppearance Appearance = app;
         public override FxNode Node => Appearance;
 
-        public FieldReference Linked;
+        public FieldReference? Linked;
     }
 
     public class FieldReference(FxField field) : NodeReference
     {
-        public FxField Field = field;
+        public readonly FxField Field = field;
         public override FxNode Node => Field;
     }
 
@@ -124,7 +118,7 @@ namespace LibreLancer.Fx
                     }
                     else if (emitNode.Linked.Appearance is FLBeamAppearance)
                     {
-                        //do nothing
+                        // do nothing
                     }
                     else if (emitNode.Linked.Appearance is FxRectAppearance rect)
                     {

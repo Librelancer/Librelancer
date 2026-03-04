@@ -28,12 +28,12 @@ public class WattleVector2 : HardwiredUserDataDescriptor
         AddMember("op_Multiply", new OverloadedMethodMemberDescriptor(
             "op_Multiply",
             typeof(Vector2),
-            new IOverloadableMemberDescriptor[] { new MulScalar(), new MulVec() }
-            ));
+            [new MulScalar(), new MulVec()]
+        ));
         AddMember("op_Division", new OverloadedMethodMemberDescriptor(
             "op_Division",
             typeof(Vector2),
-            new IOverloadableMemberDescriptor[] { new DivScalar(), new DivVec() }
+            [new DivScalar(), new DivVec()]
         ));
     }
 
@@ -41,10 +41,9 @@ public class WattleVector2 : HardwiredUserDataDescriptor
     {
         public Negate()
         {
-            Initialize("op_UnaryNegation", true, new ParameterDescriptor[]
-            {
-                new("value", typeof(Vector2)),
-            }, false);
+            Initialize("op_UnaryNegation", true, [
+                new("value", typeof(Vector2))
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
@@ -55,11 +54,10 @@ public class WattleVector2 : HardwiredUserDataDescriptor
     {
         public MulScalar()
         {
-            Initialize("op_Multiply", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Multiply", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(float))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
@@ -70,11 +68,10 @@ public class WattleVector2 : HardwiredUserDataDescriptor
     {
         public MulVec()
         {
-            Initialize("op_Multiply", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Multiply", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(Vector2))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
@@ -85,11 +82,10 @@ public class WattleVector2 : HardwiredUserDataDescriptor
     {
         public DivScalar()
         {
-            Initialize("op_Division", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Division", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(float))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
@@ -100,11 +96,10 @@ public class WattleVector2 : HardwiredUserDataDescriptor
     {
         public DivVec()
         {
-            Initialize("op_Division", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Division", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(Vector2))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
@@ -115,11 +110,10 @@ public class WattleVector2 : HardwiredUserDataDescriptor
     {
         public Add()
         {
-            Initialize("op_Addition", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Addition", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(Vector2))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
@@ -130,17 +124,15 @@ public class WattleVector2 : HardwiredUserDataDescriptor
     {
         public Sub()
         {
-            Initialize("op_Subtraction", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Subtraction", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(Vector2))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
             (Vector2) pars[0] - (Vector2) pars[1];
     }
-
 
     private class DescX : HardwiredMemberDescriptor
     {

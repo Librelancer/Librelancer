@@ -52,7 +52,7 @@ public partial class TractorBeamRenderer : ObjectRenderer
 
     public Vector3 Origin;
 
-    public RefList<VisibleBeam> TractorBeams = new();
+    public RefList<VisibleBeam> TractorBeams = [];
     public Color3f Color;
     private SystemRenderer sysr;
 

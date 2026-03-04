@@ -22,7 +22,7 @@ public class Cursor
 
     public void Draw(Renderer2D renderer, Mouse m, double globalTime)
     {
-        //var pos = new Vector2(m.X, m.Y) - (Hotspot * Scale);
+        // var pos = new Vector2(m.X, m.Y) - (Hotspot * Scale);
         var dst = new Rectangle(
             (int)m.X, (int)m.Y,
             (int)(Dimensions.Width * Scale), (int)(Dimensions.Height * Scale)

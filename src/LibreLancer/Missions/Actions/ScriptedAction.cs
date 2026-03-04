@@ -30,7 +30,6 @@ namespace LibreLancer.Missions.Actions
             Text = a.Entry.ToString();
         }
 
-
         public virtual void Invoke(MissionRuntime runtime, MissionScript script)
         {
             FLLog.Warning("Missions", $"{GetType().Name}.Invoke() is not implemented!");
@@ -40,7 +39,6 @@ namespace LibreLancer.Missions.Actions
         {
             FLLog.Warning("Missions", $"{GetType().Name}.Write() is not implemented!");
         }
-
 
         public static readonly TriggerActions[] Unsupported =
         [
@@ -54,7 +52,6 @@ namespace LibreLancer.Missions.Actions
             TriggerActions.Act_GiveMB
         ];
 
-
         public static IEnumerable<ScriptedAction> Convert(IEnumerable<MissionAction> actions)
         {
             foreach (var a in actions)
@@ -64,7 +61,7 @@ namespace LibreLancer.Missions.Actions
                     TriggerActions.Act_StaticCam => new Act_StaticCam(a),
                     TriggerActions.Act_StartDialog => new Act_StartDialog(a),
                     TriggerActions.Act_SpawnSolar => new Act_SpawnSolar(a),
-                    //TriggerActions.Act_SpawnShipRel => new Act_SpawnShipRel(a),
+                    // TriggerActions.Act_SpawnShipRel => new Act_SpawnShipRel(a),
                     TriggerActions.Act_SpawnShip => new Act_SpawnShip(a),
                     TriggerActions.Act_SpawnLoot => new Act_SpawnLoot(a),
                     TriggerActions.Act_SpawnFormation => new Act_SpawnFormation(a),
@@ -83,28 +80,28 @@ namespace LibreLancer.Missions.Actions
                     TriggerActions.Act_SetNNHidden => new Act_SetNNHidden(a),
                     TriggerActions.Act_SetLifeTime => new Act_SetLifetime(a),
                     TriggerActions.Act_SetInitialPlayerPos => new Act_SetInitialPlayerPos(a),
-                    //TriggerActions.Act_SetFlee => new Act_SetFlee(a),
+                    // TriggerActions.Act_SetFlee => new Act_SetFlee(a),
                     TriggerActions.Act_SendComm => new Act_SendComm(a),
                     TriggerActions.Act_Save => new Act_Save(a),
                     TriggerActions.Act_RpopTLAttacksEnabled => new Act_RpopTLAttacksEnabled(a),
                     TriggerActions.Act_RpopAttClamp => new Act_RpopAttClamp(a),
                     TriggerActions.Act_RevertCam => new Act_RevertCam(a),
-                    //TriggerActions.Act_RepChangeRequest => new Act_RepChangeRequest(a),
+                    // TriggerActions.Act_RepChangeRequest => new Act_RepChangeRequest(a),
                     TriggerActions.Act_RemoveRTC => new Act_RemoveRTC(a),
                     TriggerActions.Act_RemoveCargo => new Act_RemoveCargo(a),
                     TriggerActions.Act_RemoveAmbient => new Act_RemoveAmbient(a),
                     TriggerActions.Act_RelocateShip => new Act_RelocateShip(a),
-                    //TriggerActions.Act_RelocateForm => new Act_RelocateForm(a),
+                    // TriggerActions.Act_RelocateForm => new Act_RelocateForm(a),
                     TriggerActions.Act_RandomPopSphere => new Act_RandomPopSphere(a),
                     TriggerActions.Act_RandomPop => new Act_RandomPop(a),
                     TriggerActions.Act_SetPriority => new Act_SetPriority(a),
                     TriggerActions.Act_PopUpDialog => new Act_PopupDialog(a),
                     TriggerActions.Act_PobjIdle => new Act_PobjIdle(a),
-                    //TriggerActions.Act_PilotParams => new Act_PilotParams(a),
+                    // TriggerActions.Act_PilotParams => new Act_PilotParams(a),
                     TriggerActions.Act_PlaySoundEffect => new Act_PlaySoundEffect(a),
-                    //TriggerActions.Act_PlayNN => new Act_PlayNN(a),
+                    // TriggerActions.Act_PlayNN => new Act_PlayNN(a),
                     TriggerActions.Act_PlayMusic => new Act_PlayMusic(a),
-                    //TriggerActions.Act_PlayerForm => new Act_PlayerForm(a),
+                    // TriggerActions.Act_PlayerForm => new Act_PlayerForm(a),
                     TriggerActions.Act_PlayerEnemyClamp => new Act_PlayerEnemyClamp(a),
                     TriggerActions.Act_PlayerCanTradelane => new Act_PlayerCanTradelane(a),
                     TriggerActions.Act_PlayerCanDock => new Act_PlayerCanDock(a),
@@ -165,7 +162,7 @@ namespace LibreLancer.Missions.Actions
         {
             Objective = act.Entry[0].ToString();
             if (act.Entry.Count > 1 &&
-                act.Entry[1].ToString()!.Equals("OBJECTIVE_HISTORY", StringComparison.OrdinalIgnoreCase))
+                act.Entry[1].ToString().Equals("OBJECTIVE_HISTORY", StringComparison.OrdinalIgnoreCase))
             {
                 History = true;
             }
@@ -443,7 +440,7 @@ namespace LibreLancer.Missions.Actions
                 {
                     c.UpdateShip(null);
                     c.ClearAllCargo();
-                    p.Character.Items = new List<NetCargo>();
+                    p.Character.Items = [];
                 }
                 runtime.Player.UpdateCurrentInventory();
             }
@@ -455,7 +452,7 @@ namespace LibreLancer.Missions.Actions
                     using (var c = p.Character.BeginTransaction())
                     {
                         c.UpdateShip(p.Game.GameData.Items.Ships.Get(Ship));
-                        p.Character.Items = new List<NetCargo>();
+                        p.Character.Items = [];
                         c.ClearAllCargo();
                         foreach (var equip in loadout.Items)
                         {
@@ -499,8 +496,8 @@ namespace LibreLancer.Missions.Actions
         }
     }
 
-    //Sometimes 4 parameters, with the music track being the 4th
-    //Sometimes no_params (= stop music? not sure)
+    // Sometimes 4 parameters, with the music track being the 4th
+    // Sometimes no_params (= stop music? not sure)
     public class Act_PlayMusic : ScriptedAction
     {
         public bool Reset;
@@ -517,7 +514,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_PlayMusic(MissionAction act) : base(act)
         {
-            if (act.Entry[0].ToString()!
+            if (act.Entry[0].ToString()
                 .Equals("no_params", StringComparison.OrdinalIgnoreCase)) {
                 Reset = true;
                 return;
@@ -889,6 +886,5 @@ namespace LibreLancer.Missions.Actions
             });
         }
     }
-
 
 }

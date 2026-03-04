@@ -75,7 +75,7 @@ namespace LibreLancer.Net.Protocol
             long b = GetByte();
             ulong a = (ulong) (b & 0x7f);
             int extraCount = 0;
-            //first extra
+            // first extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -83,7 +83,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //second extra
+            // second extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -91,7 +91,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //third extra
+            // third extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -99,7 +99,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //fourth extra
+            // fourth extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -107,7 +107,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //fifth extra
+            // fifth extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -115,7 +115,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //sixth extra
+            // sixth extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -123,7 +123,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //seventh extra
+            // seventh extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -131,7 +131,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //Full ulong
+            // Full ulong
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -169,7 +169,6 @@ namespace LibreLancer.Net.Protocol
 
             return a;
         }
-
 
         public Vector3 GetNormal()
         {

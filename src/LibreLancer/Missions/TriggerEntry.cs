@@ -53,7 +53,7 @@ public abstract class TriggerEntry
         result = def;
         if (CheckArg(name, index, e))
         {
-            if (!Enum.TryParse(e[index].ToString()!, true, out result))
+            if (!Enum.TryParse(e[index].ToString(), true, out result))
             {
                 FLLog.Warning("Missions", $"Unknown enum #{index+1} {name} in {e.Name} (line {e.Line})");
             }
@@ -78,7 +78,7 @@ public abstract class TriggerEntry
         result = Quaternion.Identity;
         if (e.Count > index + 2)
         {
-            //W = 0, X = 1, Y = 2, Z = 3
+            // W = 0, X = 1, Y = 2, Z = 3
             result = new(e[index + 1].ToSingle(), e[index + 2].ToSingle(), e[index + 3].ToSingle(), e[index].ToSingle());
         }
         else

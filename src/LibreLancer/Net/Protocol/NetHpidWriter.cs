@@ -8,7 +8,7 @@ namespace LibreLancer.Net.Protocol;
 public class NetHpidWriter
 {
     private Dictionary<string, uint> indices;
-    private List<string> strings = new List<string>();
+    private List<string> strings = [];
     private int compressedRevision = -1;
     private int revision = 0;
 
@@ -46,7 +46,7 @@ public class NetHpidWriter
         }
     }
 
-    private object sync = new object();
+    private object sync = new();
         
     public NetHpidWriter()
     {

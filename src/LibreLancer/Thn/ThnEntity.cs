@@ -33,7 +33,7 @@ namespace LibreLancer.Thn
 		public ThnObjectFlags ObjectFlags;
 		public bool NoFog = false;
         public bool MainObject = false;
-        public string Priority = ""; //For monitor selection
+        public string Priority = ""; // For monitor selection
 		public override string ToString()
 		{
 			return string.Format("[{0}: {1}]", Name, Type);

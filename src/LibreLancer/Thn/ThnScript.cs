@@ -17,34 +17,34 @@ namespace LibreLancer.Thn
 	public class ThnScript
 	{
 		#region Runtime
-		public static Dictionary<string,object> ThnEnv = new Dictionary<string, object>();
+		public static Dictionary<string,object> ThnEnv = new();
 		static ThnScript()
 		{
-			//ThnObjectFlags
+			// ThnObjectFlags
 			ThnEnv.Add("LIT_DYNAMIC", ThnObjectFlags.LitDynamic);
 			ThnEnv.Add("LIT_AMBIENT", ThnObjectFlags.LitAmbient);
 			ThnEnv.Add("HIDDEN", ThnObjectFlags.Hidden);
 			ThnEnv.Add("REFERENCE", ThnObjectFlags.Reference);
 			ThnEnv.Add("SPATIAL", ThnObjectFlags.SoundSpatial);
-			//EventFlags
+			// EventFlags
             ThnEnv.Add("STREAM", SoundFlags.Stream);
 			ThnEnv.Add("LOOP", SoundFlags.Loop);
-			//LightTypes
+			// LightTypes
 			ThnEnv.Add("L_DIRECT", LightTypes.Direct);
 			ThnEnv.Add("L_POINT", LightTypes.Point);
 			ThnEnv.Add("L_SPOT", LightTypes.Spotlight);
-			//TargetTypes
+			// TargetTypes
 			ThnEnv.Add("HARDPOINT", TargetTypes.Hardpoint);
 			ThnEnv.Add("PART", TargetTypes.Part);
 			ThnEnv.Add("ROOT", TargetTypes.Root);
-			//AttachFlags
+			// AttachFlags
 			ThnEnv.Add("POSITION", AttachFlags.Position);
 			ThnEnv.Add("ORIENTATION", AttachFlags.Orientation);
 			ThnEnv.Add("LOOK_AT", AttachFlags.LookAt);
 			ThnEnv.Add("ENTITY_RELATIVE", AttachFlags.EntityRelative);
 			ThnEnv.Add("ORIENTATION_RELATIVE", AttachFlags.OrientationRelative);
 			ThnEnv.Add("PARENT_CHILD", AttachFlags.ParentChild);
-			//EntityTypes
+			// EntityTypes
 			ThnEnv.Add("CAMERA", EntityTypes.Camera);
 			ThnEnv.Add("PSYS", EntityTypes.PSys);
 			ThnEnv.Add("MONITOR", EntityTypes.Monitor);
@@ -58,12 +58,12 @@ namespace LibreLancer.Thn
             ThnEnv.Add("UNKNOWN_ENTITY", EntityTypes.UnknownEntity);
             ThnEnv.Add("SUB_SCENE", EntityTypes.SubScene);
             ThnEnv.Add("DELETED", EntityTypes.Deleted);
-            //FogModes
+            // FogModes
 			ThnEnv.Add("F_NONE", FogModes.None);
 			ThnEnv.Add("F_EXP2", FogModes.Exp2);
 			ThnEnv.Add("F_EXP", FogModes.Exp);
 			ThnEnv.Add("F_LINEAR", FogModes.Linear);
-			//EventTypes
+			// EventTypes
 			ThnEnv.Add("SET_CAMERA", EventTypes.SetCamera);
 			ThnEnv.Add("ATTACH_ENTITY", EventTypes.AttachEntity);
 			ThnEnv.Add("START_SPATIAL_PROP_ANIM", EventTypes.StartSpatialPropAnim);
@@ -84,14 +84,14 @@ namespace LibreLancer.Thn
             ThnEnv.Add("USER_EVENT", EventTypes.UserEvent);
             ThnEnv.Add("UNDEFINED_EVENT", EventTypes.UndefinedEvent);
             ThnEnv.Add("START_SUB_SCENE", EventTypes.StartSubScene);
-            //Axis
+            // Axis
 			ThnEnv.Add("X_AXIS", ThnAxis.XAxis);
 			ThnEnv.Add("Y_AXIS", ThnAxis.YAxis);
 			ThnEnv.Add("Z_AXIS", ThnAxis.ZAxis);
 			ThnEnv.Add("NEG_X_AXIS", ThnAxis.NegXAxis);
 			ThnEnv.Add("NEG_Y_AXIS", ThnAxis.NegYAxis);
 			ThnEnv.Add("NEG_Z_AXIS", ThnAxis.NegZAxis);
-			//Booleans
+			// Booleans
 			ThnEnv.Add("Y", true);
 			ThnEnv.Add("N", false);
 			ThnEnv.Add("y", true);
@@ -100,9 +100,8 @@ namespace LibreLancer.Thn
 		#endregion
 
 		public double Duration;
-		public Dictionary<string, ThnEntity> Entities = new Dictionary<string, ThnEntity>(StringComparer.OrdinalIgnoreCase);
-		public List<ThnEvent> Events = new List<ThnEvent>();
-
+		public Dictionary<string, ThnEntity> Entities = new(StringComparer.OrdinalIgnoreCase);
+		public List<ThnEvent> Events = [];
 
         public ThnScript(byte[] bytes, ReadFileCallback readFile, string source)
         {
@@ -180,12 +179,12 @@ namespace LibreLancer.Thn
             }
             throw new ArgumentException($"event type {t}");
         }
-		//Flags are stored differently internally between Freelancer and Librelancer
+		// Flags are stored differently internally between Freelancer and Librelancer
         private ThnObjectFlags ConvertFlags(EntityTypes type, ThornTable table)
 		{
 			var val = (int)(float)table["flags"];
 			if (val == 0) return ThnObjectFlags.None;
-			if (val == 1) return ThnObjectFlags.Reference; //Should be for all types
+			if (val == 1) return ThnObjectFlags.Reference; // Should be for all types
 			if (type == EntityTypes.Sound)
 			{
                 if ((val & 2) == 2) {
@@ -194,7 +193,6 @@ namespace LibreLancer.Thn
 			}
 			return ThnTypes.Convert<ThnObjectFlags>(val);
 		}
-
 
 
 		public static Quaternion GetQuaternion(ThornTable orient)
@@ -231,12 +229,11 @@ namespace LibreLancer.Thn
 
         private ThnEntity GetEntity(ThornTable table, string source)
 		{
-			object o;
 
-			var e = new ThnEntity();
+            var e = new ThnEntity();
 			e.Name = (string)table["entity_name"];
 			e.Type = ThnTypes.Convert<EntityTypes>(table["type"]);
-			if (table.TryGetValue("srt_grp", out o))
+			if (table.TryGetValue("srt_grp", out object o))
 			{
 				e.SortGroup = (int)(float)table["srt_grp"];
 			}
@@ -249,8 +246,7 @@ namespace LibreLancer.Thn
 				e.LightGroup = (int)(float)table["lt_grp"];
 			}
 
-			Vector3 tmp;
-			if (table.TryGetVector3("ambient", out tmp))
+            if (table.TryGetVector3("ambient", out var tmp))
 			{
 				e.Ambient = tmp;
 			}

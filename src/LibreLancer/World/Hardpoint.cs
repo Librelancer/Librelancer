@@ -11,33 +11,35 @@ namespace LibreLancer.World
     public class Hardpoint : IRenderHardpoint
     {
         private Matrix4x4 transform;
-        public RigidModelPart Parent;
+        public RigidModelPart? Parent;
         public string Name;
-        public RevoluteHardpointDefinition Revolute;
+        public RevoluteHardpointDefinition? Revolute;
         public HardpointDefinition Definition;
         public float CurrentRevolution;
         private Quaternion rotation = Quaternion.Identity;
+
         public void Revolve(float val)
         {
-            var clamped = MathHelper.Clamp(val, Revolute.Min, Revolute.Max);
+            var clamped = MathHelper.Clamp(val, Revolute!.Min, Revolute.Max);
             CurrentRevolution = clamped;
             rotation = Quaternion.CreateFromAxisAngle(Revolute.Axis, clamped);
         }
-        public Hardpoint(HardpointDefinition def, RigidModelPart parent)
+
+        public Hardpoint(HardpointDefinition? def, RigidModelPart parent)
         {
             Parent = parent;
             Definition = def;
-            if(Definition == null) Definition = new FixedHardpointDefinition("dummy");
+            if (def == null)
+            {
+                Definition = new FixedHardpointDefinition("dummy");
+            }
+
             Name = def == null ? "Dummy Hardpoint" : def.Name;
             Revolute = def as RevoluteHardpointDefinition;
         }
 
-        public Transform3D HpTransformInfo
-        {
-            get {
-                return Definition.Transform;
-            }
-        }
+        public Transform3D HpTransformInfo => Definition.Transform;
+
         public Transform3D TransformNoRotate
         {
             get
@@ -62,7 +64,7 @@ namespace LibreLancer.World
         }
         public override string ToString()
         {
-            return string.Format("[{0}: {1}]", Name, Revolute != null ? "Rev" : "Fix");
+            return $"[{Name}: {(Revolute != null ? "Rev" : "Fix")}]";
         }
     }
 }

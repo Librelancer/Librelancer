@@ -25,7 +25,7 @@ namespace LibreLancer.Server.Components
         public Pilot Pilot;
         public StateGraph StateGraph;
 
-        private Random random = new Random();
+        private Random random = new();
 
         public float GetStateValue(StateGraphEntry row, StateGraphEntry column, float defaultVal = 0.0f)
         {
@@ -35,7 +35,6 @@ namespace LibreLancer.Server.Components
             if ((int) column >= tableRow.Length) return defaultVal;
             return tableRow[(int) column];
         }
-
 
 
         public SNPCComponent(GameObject parent, NPCManager manager, StateGraph stateGraph) : base(parent)
@@ -68,8 +67,7 @@ namespace LibreLancer.Server.Components
             state?.OnStart(Parent, this);
         }
 
-
-        private Dictionary<GameObjectKind, int> attackPref = new Dictionary<GameObjectKind, int>();
+        private Dictionary<GameObjectKind, int> attackPref = new();
         public void SetPilot(Pilot pilot)
         {
             Pilot = pilot;
@@ -330,7 +328,6 @@ namespace LibreLancer.Server.Components
         }
 
 
-
         private GameObject lastShootAt;
 
         public Vector3 GetAimPosition(GameObject other, WeaponControlComponent weapons, bool isAutoTurret = false)
@@ -355,7 +352,7 @@ namespace LibreLancer.Server.Components
 
         private GameObject GetHostileAndFire(double time)
         {
-            //Get hostile
+            // Get hostile
             GameObject? shootAt = null;
             int shootAtWeight = -1000;
             var myPos = Parent.WorldTransform.Position;
@@ -378,7 +375,7 @@ namespace LibreLancer.Server.Components
                 }
             }
             Parent.GetComponent<SelectedTargetComponent>().Selected = shootAt;
-            //Shoot at hostile
+            // Shoot at hostile
             if (shootAt != null && Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
                 if ("player".Equals(shootAt.Nickname, StringComparison.OrdinalIgnoreCase))
@@ -393,7 +390,7 @@ namespace LibreLancer.Server.Components
                 var missileRange = Pilot?.Missile?.LaunchRange ?? missileMax;
                 if(missileMax < missileRange)
                     missileRange = missileMax;
-                //Fire Missiles
+                // Fire Missiles
                 if ((Pilot?.Missile?.MissileLaunchAllowOutOfRange ?? false) ||
                     dist <= missileRange)
                 {
@@ -406,7 +403,7 @@ namespace LibreLancer.Server.Components
                         missileTimer = Pilot?.Missile?.LaunchIntervalTime ?? 0;
                     }
                 }
-                //Fire guns
+                // Fire guns
                 if (dist < gunRange)
                 {
                     var fireInfo = RunFireTimers((float)time);
@@ -419,8 +416,8 @@ namespace LibreLancer.Server.Components
             }
             else
             {
-                //fireTimer = Pilot?.Gun?.FireIntervalTime ?? 0;
-                //missileTimer = Pilot?.Missile?.LaunchIntervalTime ?? 0;
+                // fireTimer = Pilot?.Gun?.FireIntervalTime ?? 0;
+                // missileTimer = Pilot?.Missile?.LaunchIntervalTime ?? 0;
             }
 
             return shootAt;
@@ -472,7 +469,6 @@ namespace LibreLancer.Server.Components
             return $"Autopilot: {beh}\nShooting At: {ls}\nDirective: {CurrentDirective?.ToString() ?? "null"}\nState: {currentState}\nMax Range: {maxRange}\nPhys Active: {physActive}\nWeapons: {totalGuns} total ({regularGuns} regular, {autoTurrets} auto-turrets)\nTimer: {fireTimer:F2}, Cycle: {fireCycle}\nNPC Base Power: {npcPower} (higher=more inaccuracy)\nAccuracy: Regular=min 5.0, Auto-Turret=10x base power\nInBurst: {inBurst}\n{formation}";
         }
 
-
         private void Transition(params StateGraphEntry[] possible) {
             foreach (var e in possible) {
                 if (random.NextSingle() < GetStateValue(currentState, e)) {
@@ -487,7 +483,6 @@ namespace LibreLancer.Server.Components
         private float evadeZ = 0;
         private Vector3 buzzDirection;
         private bool evadeThrust = false;
-
 
         private void EnterState(StateGraphEntry e)
         {
@@ -527,7 +522,7 @@ namespace LibreLancer.Server.Components
             Parent.TryGetComponent<AutopilotComponent>(out var ap);
             if (ap.CurrentBehavior == AutopilotBehaviors.Undock)
             {
-                return; //no npc yet
+                return; // no npc yet
             }
 
             damageTimer -= time;

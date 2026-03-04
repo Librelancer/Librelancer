@@ -5,7 +5,6 @@ using LibreLancer.Resources;
 using LibreLancer.Shaders;
 using LibreLancer.Utf.Mat;
 
-
 namespace LibreLancer.Render.Materials;
 
 public class AsteroidBandMaterial : RenderMaterial

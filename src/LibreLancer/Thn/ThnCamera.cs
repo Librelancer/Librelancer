@@ -13,7 +13,7 @@ namespace LibreLancer.Thn
 	{
 		public long frameNo = 0;
 
-        public ThnObject? Object = new ThnObject()
+        public ThnObject? Object = new()
         {
             Camera = new ThnCameraProps(),
             Translate = Vector3.Zero,
@@ -60,7 +60,6 @@ namespace LibreLancer.Thn
         public bool FrustumCheck(BoundingSphere sphere) => frustum.Intersects(sphere);
         public bool FrustumCheck(BoundingBox box) => frustum.Intersects(box);
 
-
         private void CalcCameraProps(out float fovV, out float aspectRatio)
         {
             float viewportRatio = (float) viewport.Width / (float) viewport.Height;
@@ -73,13 +72,13 @@ namespace LibreLancer.Thn
 		public void Update()
         {
             CalcCameraProps(out float fovv, out float aspectRatio);
-            //TODO: Tweak clip plane some more - isn't quite right
-			//NOTE: near clip plane can't be too small or it causes z-fighting
+            // TODO: Tweak clip plane some more - isn't quite right
+			// NOTE: near clip plane can't be too small or it causes z-fighting
 			projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, aspectRatio, Object.Camera.Znear, Object.Camera.Zfar);
             ogProjection = projection;
             view = new Transform3D(Object.Translate, Object.Rotate).Inverse().Matrix();
-            //var transform = Object.Rotate * Matrix4x4.CreateTranslation(Object.Translate);
-            //Matrix4x4.Invert(transform, out view);
+            // var transform = Object.Rotate * Matrix4x4.CreateTranslation(Object.Translate);
+            // Matrix4x4.Invert(transform, out view);
 			viewProjection = view * projection;
 			frustum = new BoundingFrustum(viewProjection);
 		}

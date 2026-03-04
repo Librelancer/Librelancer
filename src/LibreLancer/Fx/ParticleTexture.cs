@@ -13,18 +13,18 @@ namespace LibreLancer.Fx
 {
     public class ParticleTexture
     {
-        public string Name;
+        public string? Name;
         public Texture2D? Texture;
         public int FrameCount = 1;
         private bool useShape = false;
         private TextureShape shape;
-        private TexFrameAnimation? frameanim;
+        private TexFrameAnimation? frameAnim;
 
         public Vector4 GetCoordinates(int frame)
         {
-            if (frameanim != null)
+            if (frameAnim != null)
             {
-                var f = frameanim.Frames[frame];
+                var f = frameAnim.Frames[frame];
                 var x = f.UV1.X;
                 var y = (1 - f.UV1.Y);
                 var width = f.UV2.X - f.UV1.X;
@@ -44,11 +44,13 @@ namespace LibreLancer.Fx
                 FrameCount = 1;
             }
 
-            if (Name != name) {
+            if (Name != name)
+            {
                 Texture = null;
-                frameanim = null;
+                frameAnim = null;
                 useShape = false;
             }
+
             Name = name;
 
             if (Texture is { IsDisposed: false })
@@ -56,12 +58,12 @@ namespace LibreLancer.Fx
                 return;
             }
 
-            if (!useShape && frameanim == null && Texture != null)
+            if (!useShape && frameAnim == null && Texture != null)
             {
                 Texture = res.FindTexture(name) as Texture2D;
                 shape.Dimensions = new RectangleF(0, 0, 1, 1);
             }
-            else if (!useShape && frameanim == null)
+            else if (!useShape && frameAnim == null)
             {
                 if (res.TryGetShape(name, out var newShape))
                 {
@@ -69,10 +71,10 @@ namespace LibreLancer.Fx
                     Texture = (Texture2D?)res.FindTexture(shape.Texture);
                     useShape = true;
                 }
-                else if (res.TryGetFrameAnimation(name, out frameanim))
+                else if (res.TryGetFrameAnimation(name, out frameAnim))
                 {
                     Texture = res.FindTexture(name + "_0") as Texture2D;
-                    FrameCount = frameanim!.FrameCount;
+                    FrameCount = frameAnim!.FrameCount;
                 }
                 else
                 {
@@ -84,7 +86,7 @@ namespace LibreLancer.Fx
             {
                 Texture = (Texture2D?)res.FindTexture(shape.Texture);
             }
-            else if (frameanim != null)
+            else if (frameAnim != null)
             {
                 Texture = res.FindTexture(name + "_0") as Texture2D;
             }

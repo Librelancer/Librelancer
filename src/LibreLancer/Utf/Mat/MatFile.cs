@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +28,7 @@ namespace LibreLancer.Utf.Mat
 
 		private void setMaterials (IntermediateNode materialLibraryNode)
 		{
-			//TODO: int count = 0;
+			// TODO: int count = 0;
 			foreach (Node materialNode in materialLibraryNode) {
 				if (materialNode is IntermediateNode) {
 					uint materialId = CrcTool.FLModelCrc (materialNode.Name);

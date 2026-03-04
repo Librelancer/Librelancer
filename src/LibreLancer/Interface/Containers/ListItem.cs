@@ -17,7 +17,7 @@ namespace LibreLancer.Interface
         public float ItemMarginX { get; set; }
         public UiRenderable SelectedBorder { get; set; }
         public UiRenderable HoverBorder { get; set; }
-        
+
         private RectangleF rectangleA;
         private RectangleF rectangleB;
 
@@ -30,8 +30,8 @@ namespace LibreLancer.Interface
             Update(context, myPos);
             myPos = AnimatedPosition(myPos);
             var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            
-            //layout children
+
+            // layout children
             float x = 0;
             if (ItemA != null) {
                 ItemA.Height = Height;
@@ -39,9 +39,9 @@ namespace LibreLancer.Interface
                 ItemA.Y = 0;
                 x = ItemA.Width;
                 if (ItemB == null) ItemA.Width = Width;
-                rectangleA = new RectangleF(myPos.X, myPos.Y, ItemA.Width, Height); 
+                rectangleA = new RectangleF(myPos.X, myPos.Y, ItemA.Width, Height);
             }
-            
+
             x += ItemMarginX;
             if (ItemB != null)
             {

@@ -53,7 +53,7 @@ namespace LibreLancer.Thn.Events
                 {
                     if (Offset != Vector3.Zero)
                     {
-                        //TODO: This can be optimised
+                        // TODO: This can be optimised
                         var off = Offset;
                         if (EntityRelative)
                         {
@@ -80,17 +80,17 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        private class EntityTarget(ThnObject obj, IRenderHardpoint hardpoint, RigidModelPart part)
+        private class EntityTarget(ThnObject obj, IRenderHardpoint? hardpoint, RigidModelPart? part)
         {
             public Transform3D GetTransform()
             {
                 if (part != null)
                 {
-                    return  part.LocalTransform * obj.Object.LocalTransform;
+                    return  part.LocalTransform * obj.Object!.LocalTransform;
                 }
                 if (hardpoint != null)
                 {
-                    return hardpoint.Transform * obj.Object.LocalTransform;
+                    return hardpoint.Transform * obj.Object!.LocalTransform;
                 }
                 return new(obj.Translate, obj.Rotate);
             }
@@ -100,61 +100,70 @@ namespace LibreLancer.Thn.Events
 
         public TargetTypes TargetType;
         public AttachFlags Flags;
-        public string TargetPart;
+        public string? TargetPart;
         public Vector3 Offset;
 
         public AttachEntityEvent(ThornTable table) : base(table)
         {
-            if (GetProps(table, out var props))
+            if (!GetProps(table, out var props))
             {
-                GetValue(props, "target_type", out TargetType);
-                GetValue(props, "flags", out Flags, AttachFlags.Position | AttachFlags.Orientation);
-                GetValue(props, "target_part", out TargetPart);
-                GetValue(props, "offset", out Offset);
+                return;
             }
+
+            GetValue(props, "target_type", out TargetType);
+            GetValue(props, "flags", out Flags, AttachFlags.Position | AttachFlags.Orientation);
+            GetValue(props, "target_part", out TargetPart);
+            GetValue(props, "offset", out Offset);
         }
 
         public override void Run(ThnScriptInstance instance)
         {
-           ThnObject objA;
-            ThnObject objB;
-            if(!instance.Objects.TryGetValue(Targets[0], out objA))
+            if(!instance.Objects.TryGetValue(Targets[0], out var objA))
             {
                 FLLog.Error("Thn", "Object doesn't exist " + Targets[0]);
                 return;
             }
-            if(!instance.Objects.TryGetValue(Targets[1], out objB))
+
+            if(!instance.Objects.TryGetValue(Targets[1], out var objB))
             {
                 FLLog.Error("Thn", "Object doesn't exist " + Targets[1]);
                 return;
             }
 
-            //Attach GameObjects to eachother
+            // Attach GameObjects to eachother
             IRenderHardpoint? hardpoint = null;
             RigidModelPart? part = null;
-            if (TargetType == TargetTypes.Hardpoint && !string.IsNullOrEmpty(TargetPart))
+            switch (TargetType)
             {
-                if (objB.Object == null)
+                case TargetTypes.Hardpoint when !string.IsNullOrEmpty(TargetPart):
                 {
-                    FLLog.Error("Thn", "Could not get hardpoints on " + objB.Name);
-                }
-                else
-                {
-                    hardpoint = GetHardpoint(objB.Object, TargetPart);
-                }
-            }
-            if (TargetType == TargetTypes.Part && !string.IsNullOrEmpty(TargetPart))
-            {
-                if (objB.Object == null || objB.Object.Model == null || objB.Object.Model.RigidModel.Parts == null)
-                {
-                    FLLog.Error("Thn", "Could not get parts on " + objB.Name);
-                }
-                else
-                {
-                    if (!objB.Object.Model.RigidModel.Parts.TryGetPart(TargetPart, out part))
+                    if (objB.Object == null)
                     {
-                        FLLog.Error("Thn", $"Could not find part {TargetPart} on " + objB.Name);
+                        FLLog.Error("Thn", "Could not get hardpoints on " + objB.Name);
                     }
+                    else
+                    {
+                        hardpoint = GetHardpoint(objB.Object, TargetPart);
+                    }
+
+                    break;
+                }
+
+                case TargetTypes.Part when !string.IsNullOrEmpty(TargetPart):
+                {
+                    if (objB.Object?.Model?.RigidModel.Parts == null)
+                    {
+                        FLLog.Error("Thn", "Could not get parts on " + objB.Name);
+                    }
+                    else
+                    {
+                        if (!objB.Object.Model.RigidModel.Parts.TryGetPart(TargetPart, out part))
+                        {
+                            FLLog.Error("Thn", $"Could not find part {TargetPart} on " + objB.Name);
+                        }
+                    }
+
+                    break;
                 }
             }
 

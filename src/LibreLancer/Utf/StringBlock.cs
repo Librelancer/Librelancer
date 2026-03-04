@@ -9,7 +9,7 @@ namespace LibreLancer.Utf
 {
     public class StringBlock
     {
-        private Dictionary<int,string> strings = new Dictionary<int, string>();
+        private Dictionary<int,string> strings = new();
         private byte[] stringBlock;
         private string asciiSource;
         private bool lenPrefixed;
@@ -22,8 +22,7 @@ namespace LibreLancer.Utf
         }
         public string GetString(int nameOffset)
         {
-            string str;
-            if (!strings.TryGetValue(nameOffset, out str))
+            if (!strings.TryGetValue(nameOffset, out var str))
             {
                 if (lenPrefixed)
                 {

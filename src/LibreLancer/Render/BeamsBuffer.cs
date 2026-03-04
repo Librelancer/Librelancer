@@ -38,7 +38,7 @@ namespace LibreLancer.Render
          * 11 - Trail
          */
         private static readonly ushort[] spearIndices =
-        {
+        [
             0,1,2,
             0,1,3,
             0,2,4,
@@ -51,7 +51,7 @@ namespace LibreLancer.Render
             7,9,10,
             8,9,11,
             8,9,10
-        };
+        ];
         /*
          * BeamBolt Indices
          * 0 - Quad Center
@@ -73,7 +73,7 @@ namespace LibreLancer.Render
          * 16 - Tail
          */
         private static readonly ushort[] boltIndices =
-        {
+        [
             0,1,2,
             0,1,3,
             0,2,4,
@@ -82,25 +82,25 @@ namespace LibreLancer.Render
             6,9,15,
             7,9,15,
             8,9,15,
-            //mid to sec-up
+            // mid to sec-up
             5,6,10,
             6,10,11,
-            //mid to sec-down
+            // mid to sec-down
             5,7,10,
             10,12,7,
-            //mid to sec-left
+            // mid to sec-left
             5,8,10,
             10,13,8,
-            //mid to sec-right
+            // mid to sec-right
             5,9,10,
             10,14,9,
-            //sec to tail
+            // sec to tail
             10,11,16,
             10,12,16,
             10,13,16,
             10,14,16
-        };
-        //TODO: Finish BeamBolt
+        ];
+        // TODO: Finish BeamBolt
         private static ushort[] ConstructIndices(ushort[] source, int vcount, int count)
         {
             var indices = new ushort[source.Length * count];
@@ -180,7 +180,7 @@ namespace LibreLancer.Render
 
         public void AddBeamBolt(Vector3 p, Vector3 normal, BeamBolt bolt, float maxTrailLen)
         {
-            //Head
+            // Head
             CoordsFromTexture(bolt.HeadTexture, out var tl, out var tr, out var bl, out var br, out var mid);
             var right = Vector3.Cross(normal, Vector3.UnitY);
             right.Normalize();
@@ -189,47 +189,47 @@ namespace LibreLancer.Render
             var hRad = bolt.HeadWidth / 2;
             var cRad = bolt.CoreWidth / 2;
             var secRad = bolt.SecCoreWidth / 2;
-            //Quad Center
+            // Quad Center
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p, bolt.CoreColor, mid);
-            //Quad TL
+            // Quad TL
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p + (up * hRad) - (right * hRad), bolt.OuterColor, tl);
-            //Quad TR
+            // Quad TR
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p + (up * hRad) + (right * hRad), bolt.OuterColor, tr);
-            //Quad BL
+            // Quad BL
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p - (up * hRad) - (right * hRad), bolt.OuterColor, bl);
-            //Quad BR
+            // Quad BR
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p - (up * hRad) + (right * hRad), bolt.OuterColor, br);
-            //Tip and trail
+            // Tip and trail
             CoordsFromTexture(bolt.TrailTexture, out tl, out tr, out bl, out br, out mid);
-            //Mid-Mid
+            // Mid-Mid
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p, bolt.CoreColor, bl);
-            //Mid-Top
+            // Mid-Top
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p + (up * cRad), bolt.CoreColor, br);
-            //Mid-Bottom
+            // Mid-Bottom
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p - (up * cRad), bolt.CoreColor, br);
-            //Mid-Left
+            // Mid-Left
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p -(right * cRad), bolt.CoreColor, br);
-            //Mid-Right
+            // Mid-Right
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p + (right * cRad), bolt.CoreColor, br);
 
-            //sec
+            // sec
             var coreLen = Math.Min(maxTrailLen, bolt.CoreLength);
             var p2 = p - (normal * coreLen);
-            //Sec-Mid
+            // Sec-Mid
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2, bolt.SecCoreColor, bl);
-            //Sec-Top
+            // Sec-Top
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2 + (up * secRad), bolt.SecOuterColor, br);
-            //Sec-Bottom
+            // Sec-Bottom
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2 - (up * secRad), bolt.SecOuterColor, br);
-            //Sec-Left
+            // Sec-Left
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2 -(right * secRad), bolt.SecOuterColor, br);
-            //Sec-Right
+            // Sec-Right
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p2 + (right * secRad), bolt.SecOuterColor, br);
 
-            //Tip
+            // Tip
             verticesBolt[vertexCountBolt++] =
                 new VertexPositionColorTexture(p + (normal * bolt.TipLength), bolt.TipColor, tr);
-            //Trail
+            // Trail
             var tailLength = Math.Min(maxTrailLen, bolt.TailLength + bolt.CoreLength);
             verticesBolt[vertexCountBolt++] =
                 new VertexPositionColorTexture(p - (normal * tailLength), bolt.TailColor, tr);
@@ -238,7 +238,7 @@ namespace LibreLancer.Render
         public void AddBeamSpear(Vector3 p, Vector3 normal, BeamSpear spear, float maxTrailLen)
         {
             if(!begun) throw new InvalidOperationException();
-            //Head
+            // Head
             CoordsFromTexture(spear.HeadTexture, out var tl, out var tr, out var bl, out var br, out var mid);
             var right = Vector3.Cross(normal, Vector3.UnitY);
             right.Normalize();
@@ -246,32 +246,32 @@ namespace LibreLancer.Render
             up.Normalize();
             var hRad = spear.HeadWidth / 2;
             var cRad = spear.CoreWidth / 2;
-            //Quad Center
+            // Quad Center
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p, spear.CoreColor, mid);
-            //Quad TL
+            // Quad TL
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p + (up * hRad) - (right * hRad), spear.OuterColor, tl);
-            //Quad TR
+            // Quad TR
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p + (up * hRad) + (right * hRad), spear.OuterColor, tr);
-            //Quad BL
+            // Quad BL
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p - (up * hRad) - (right * hRad), spear.OuterColor, bl);
-            //Quad BR
+            // Quad BR
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p - (up * hRad) + (right * hRad), spear.OuterColor, br);
-            //Tip and trail
+            // Tip and trail
             CoordsFromTexture(spear.TrailTexture, out tl, out tr, out bl, out br, out mid);
-            //Mid-Top
+            // Mid-Top
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p + (up * cRad), spear.CoreColor, br);
-            //Mid-Bottom
+            // Mid-Bottom
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p - (up * cRad), spear.CoreColor, br);
-            //Mid-Left
+            // Mid-Left
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p -(right * cRad), spear.CoreColor, br);
-            //Mid-Right
+            // Mid-Right
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p + (right * cRad), spear.CoreColor, br);
-            //Mid-Mid
+            // Mid-Mid
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p, spear.CoreColor, bl);
-            //Tip
+            // Tip
             verticesSpear[vertexCountSpear++] =
                 new VertexPositionColorTexture(p + (normal * spear.TipLength), spear.TipColor, tr);
-            //Trail
+            // Trail
             var tailLength = Math.Min(maxTrailLen, spear.TailLength);
             verticesSpear[vertexCountSpear++] =
                 new VertexPositionColorTexture(p - (normal * tailLength), spear.TailColor, tr);

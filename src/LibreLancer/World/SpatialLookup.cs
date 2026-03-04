@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace LibreLancer.World
@@ -12,8 +13,8 @@ namespace LibreLancer.World
     {
         public const float CELL_SIZE = 15000;
 
-        private Dictionary<int, List<GameObject>> cells = new Dictionary<int, List<GameObject>>();
-        private Dictionary<GameObject,CellRef> objToCell = new Dictionary<GameObject, CellRef>();
+        private Dictionary<int, List<GameObject>> cells = new();
+        private Dictionary<GameObject,CellRef> objToCell = new();
 
         public void AddObject(GameObject obj, Vector3 position)
         {
@@ -21,7 +22,7 @@ namespace LibreLancer.World
             var cell = GetCell(key, true);
             AddToCell(key, cell, obj);
         }
-        
+
         public void RemoveObject(GameObject obj)
         {
             var cell = objToCell[obj];
@@ -52,7 +53,7 @@ namespace LibreLancer.World
             cell.Add(obj);
             objToCell[obj] = r;
         }
-        
+
         public void UpdatePosition(GameObject obj, Vector3 newPosition)
         {
             var newKey = CellKey(Floored(newPosition.X / CELL_SIZE), Floored(newPosition.Z / CELL_SIZE));
@@ -90,23 +91,32 @@ namespace LibreLancer.World
                 var myCellX = Floored(position.X / CELL_SIZE);
                 var myCellZ = Floored(position.Z / CELL_SIZE);
                 var myCell = GetCell(CellKey(myCellX, myCellZ), false);
-                if (myCell != null)
-                    foreach (var obj in myCell) if (obj != self) yield return obj;
+
+                if (myCell == null)
+                {
+                    yield break;
+                }
+
+                foreach (var obj in myCell.Where(obj => obj != self))
+                {
+                    yield return obj;
+                }
             }
         }
-        
+
         public Vector3 GetCellCoordinate(Vector3 pos)
         {
             return new Vector3(MathF.Floor(pos.X / CELL_SIZE), 0,  MathF.Floor(pos.Y / CELL_SIZE));
         }
 
-        private List<GameObject> GetCell(int key, bool create)
+        private List<GameObject>? GetCell(int key, bool create)
         {
             if (!cells.TryGetValue(key, out var cell) && create)
             {
-                cell = new List<GameObject>();
+                cell = [];
                 cells[key] = cell;
             }
+
             return cell;
         }
 

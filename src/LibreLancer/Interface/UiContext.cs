@@ -13,7 +13,7 @@ namespace LibreLancer.Interface
 {
     public class UiContext
     {
-        //State
+        // State
         public float ViewportWidth;
         public float ViewportHeight;
         public float MouseX;
@@ -22,16 +22,16 @@ namespace LibreLancer.Interface
         public double GlobalTime;
 
         public float ScreenWidth => 480 * (ViewportWidth / ViewportHeight);
-        //Rendering
+        // Rendering
         public RenderContext RenderContext;
         public LineRenderer Lines;
-        //Data
+        // Data
         public UiData Data;
 
         public CommandBuffer CommandBuffer;
-        //Ui
+        // Ui
         private object _gameApi;
-        //TODO: Properly reload RigidModels on meshes cleared
+        // TODO: Properly reload RigidModels on meshes cleared
         public int MeshDisposeVersion = 0;
         public object GameApi
         {
@@ -47,7 +47,7 @@ namespace LibreLancer.Interface
         }
 
         private LuaContext lua;
-        //State
+        // State
         private bool mode2d = false;
         private FreelancerGame game;
         public UiContext(UiData data)
@@ -95,7 +95,6 @@ namespace LibreLancer.Interface
         {
             lua.OpenScene(scene);
         }
-
 
 
         private void MouseOnMouseUp(MouseEventArgs e)
@@ -240,16 +239,16 @@ namespace LibreLancer.Interface
             baseWidget?.UnFocus();
         }
 
-        private RectangleF GetRectangle() => new RectangleF(0,0, 480 * (ViewportWidth / ViewportHeight), 480);
+        private RectangleF GetRectangle() => new(0,0, 480 * (ViewportWidth / ViewportHeight), 480);
 
         private UiWidget? baseWidget;
-        private List<ModalState> modals = new List<ModalState>();
+        private List<ModalState> modals = [];
         public void SetWidget(UiWidget widget)
         {
             widget.ApplyStylesheet(Data.Stylesheet);
             foreach (var m in modals)
                 m.Widget.Dispose();
-            modals = new List<ModalState>();
+            modals = [];
             baseWidget = widget;
         }
 

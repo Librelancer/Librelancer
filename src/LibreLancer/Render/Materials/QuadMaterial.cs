@@ -11,7 +11,7 @@ namespace LibreLancer.Render.Materials;
 
 public class QuadMaterial : RenderMaterial
 {
-    public List<(Texture texture, ushort blendMode)> Parameters = new List<(Texture texture, ushort blendMode)>();
+    public List<(Texture texture, ushort blendMode)> Parameters = [];
 
     public int ParameterCount => Parameters.Count;
 

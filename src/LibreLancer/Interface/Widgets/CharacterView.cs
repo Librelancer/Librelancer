@@ -8,7 +8,7 @@ using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using WattleScript.Interpreter;
 
-//TODO: Implement
+// TODO: Implement
 namespace LibreLancer.Interface
 {
     [UiLoadable]
@@ -86,7 +86,7 @@ namespace LibreLancer.Interface
         {
             public Matrix4x4 ViewProjection => Projection;
 
-            public Matrix4x4 Projection => new Matrix4x4(
+            public Matrix4x4 Projection => new(
                 11.43f, 0, 0, 0,
                 0, 11.43f, 0, 0,
                 0, 0, 1.029f, 1,
@@ -99,14 +99,14 @@ namespace LibreLancer.Interface
             public bool FrustumCheck(BoundingBox box) => true;
         }
 
-        private static readonly Matrix4x4 TransformMale = new Matrix4x4(
+        private static readonly Matrix4x4 TransformMale = new(
             -1f, 0f, 0.003f, 0f,
             0f, 1.0f, 0.0f, 0.0f,
             0.003f, 0.0f, 1.0f, 0.000f,
             -0.001f, -0.702f, 2.148f, 1.000f
         );
 
-        private static readonly Matrix4x4 TransformFemale = new Matrix4x4(
+        private static readonly Matrix4x4 TransformFemale = new(
             -1f, 0, -0.005f, 0f,
             0f, 1f, 0, 0f,
             -0.005f, 0f, 1f, 0f,

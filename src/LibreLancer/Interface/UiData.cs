@@ -16,21 +16,21 @@ namespace LibreLancer.Interface
 {
     public class UiData
     {
-        //Data
+        // Data
         public string DataPath;
         public GameResourceManager ResourceManager;
-        public InfocardManager Infocards;
+        public InfocardManager? Infocards;
         public FontManager Fonts;
         public FileSystem FileSystem;
         public Dictionary<string,string> NavbarIcons;
         public SoundManager Sounds;
-        //Ui
+        // Ui
         public Stylesheet Stylesheet;
         public InterfaceResources Resources;
-        //TODO: Make configurable
+        // TODO: Make configurable
         public INavmapIcons NavmapIcons;
         public string? XInterfacePath;
-        //Editor-only
+        // Editor-only
         public string FlDirectory;
         public UiData()
         {
@@ -56,8 +56,7 @@ namespace LibreLancer.Interface
 
         public string GetNavbarIconPath(string icon)
         {
-            string ic;
-            if (!NavbarIcons.TryGetValue(icon, out ic))
+            if (!NavbarIcons.TryGetValue(icon, out var ic))
             {
                 FLLog.Warning("Interface", $"Could not find icon {icon}");
                 ic = NavbarIcons.Values.First();
@@ -110,19 +109,23 @@ namespace LibreLancer.Interface
             }
         }
 
-        public RigidModel? GetModel(string path)
+        public RigidModel? GetModel(string? path)
         {
-            if(string.IsNullOrEmpty(path)) return null;
+            if (string.IsNullOrEmpty(path))
+            {
+                return null;
+            }
+
             try
             {
                 if(FileSystem.FileExists(path))
                 {
-                    return ((IRigidModelFile) ResourceManager.GetDrawable(path).Drawable).CreateRigidModel(true, ResourceManager);
+                    return ((IRigidModelFile?) ResourceManager.GetDrawable(path)?.Drawable)?.CreateRigidModel(true, ResourceManager);
                 }
 
                 if (FileSystem.FileExists(DataPath + path))
                 {
-                    return ((IRigidModelFile)ResourceManager.GetDrawable(DataPath + path).Drawable).CreateRigidModel(
+                    return ((IRigidModelFile?)ResourceManager.GetDrawable(DataPath + path)?.Drawable)?.CreateRigidModel(
                         true, ResourceManager);
                 }
 
@@ -152,7 +155,7 @@ namespace LibreLancer.Interface
             LoadLibraries();
         }
 
-        private InterfaceTextBundle uibundle;
+        private InterfaceTextBundle? uibundle;
 
         private void ReadBundle()
         {
@@ -178,11 +181,9 @@ namespace LibreLancer.Interface
             {
                 return FileSystem.ReadAllText(Path.Combine(XInterfacePath, file));
             }
-            else
-            {
-                ReadBundle();
-                return uibundle.GetStringCompressed(file);
-            }
+
+            ReadBundle();
+            return uibundle!.GetStringCompressed(file);
         }
 
         public bool FileExists(string file)

@@ -10,7 +10,7 @@ namespace LibreLancer.Render
 {
     public unsafe class WorldMatrixBuffer : IDisposable
     {
-        private int MaxMatrices = 131_000; //approx 8MiB
+        private int MaxMatrices = 131_000; // approx 8MiB
         private uint ticks;
         private uint currentIndex = 0;
         private NativeBuffer bufferMemory;

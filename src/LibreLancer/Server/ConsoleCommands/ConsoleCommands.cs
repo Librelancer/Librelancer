@@ -8,8 +8,7 @@ namespace LibreLancer.Server.ConsoleCommands
 {
     public static class ConsoleCommands
     {
-        private static Dictionary<string, IConsoleCommand> commands =
-            new Dictionary<string, IConsoleCommand>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, IConsoleCommand> commands = new(StringComparer.OrdinalIgnoreCase);
         static ConsoleCommands()
         {
             foreach (var type in typeof(ConsoleCommands).Assembly.GetTypes()
@@ -95,7 +94,7 @@ namespace LibreLancer.Server.ConsoleCommands
         {
             string[] split;
             if (types.Length == 1) {
-                split = new[] {s.Trim()};
+                split = [s.Trim()];
             }
             else {
                 split = s.Split(' ', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);

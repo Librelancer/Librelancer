@@ -8,8 +8,8 @@ namespace LibreLancer.Utf.Cmp
 {
 	public class MaterialAnimCollection
 	{
-		public Dictionary<string, MaterialAnim> Anims = new Dictionary<string, MaterialAnim>(StringComparer.OrdinalIgnoreCase);
-        private List<MaterialAnim> updateList = new List<MaterialAnim>();
+		public Dictionary<string, MaterialAnim> Anims = new(StringComparer.OrdinalIgnoreCase);
+        private List<MaterialAnim> updateList = [];
 		public MaterialAnimCollection(IntermediateNode node)
 		{
 			foreach (var n in node)

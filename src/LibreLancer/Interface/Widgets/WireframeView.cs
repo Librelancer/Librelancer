@@ -21,7 +21,6 @@ namespace LibreLancer.Interface
 
         public InterfaceColor WireframeColor { get; set; }
 
-
         private TargetShipWireframe target;
         public void SetWireframe(TargetShipWireframe target)
         {

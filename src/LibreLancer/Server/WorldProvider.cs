@@ -28,7 +28,7 @@ public class WorldProvider
         public ServerWorld World;
     }
 
-    private ConcurrentDictionary<StarSystem, WorldState> worlds = new ConcurrentDictionary<StarSystem, WorldState>();
+    private ConcurrentDictionary<StarSystem, WorldState> worlds = new();
 
     private void LoadWorld(StarSystem system, out WorldState ws, PreloadObject[] preloads)
     {

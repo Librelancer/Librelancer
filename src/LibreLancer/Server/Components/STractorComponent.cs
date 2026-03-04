@@ -11,7 +11,7 @@ public class STractorComponent : GameComponent
 
     private record struct ActiveBeam(GameObject Other, float Distance, float Time);
 
-    private RefList<ActiveBeam> beams = new();
+    private RefList<ActiveBeam> beams = [];
 
     public STractorComponent(TractorEquipment equipment, GameObject parent) : base(parent)
     {
@@ -34,7 +34,6 @@ public class STractorComponent : GameComponent
         beams.Add(new(other, 0, 0));
         Parent.GetWorld().Server.StartTractor(Parent, other);
     }
-
 
     private Vector3 GetBeamOrigin()
     {

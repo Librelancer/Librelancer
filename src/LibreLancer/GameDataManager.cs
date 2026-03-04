@@ -141,7 +141,6 @@ public class GameDataManager
         return Resources.WhiteTexture;
     }
 
-
     private void PreloadSur(IDrawable dr, ResourceManager res)
     {
         if (dr is not IRigidModelFile rm)
@@ -161,10 +160,13 @@ public class GameDataManager
         }
     }
 
-    public void PreloadObjects(PreloadObject[] objs, ResourceManager? resources = null)
+    public void PreloadObjects(PreloadObject[]? objs, ResourceManager? resources = null)
     {
         resources ??= Resources;
-        if (objs == null) return;
+        if (objs == null)
+        {
+            return;
+        }
 
         foreach (var o in objs)
         {
@@ -194,14 +196,11 @@ public class GameDataManager
         if (cursorsDone) return;
         cursorsDone = true;
 
-        Resources.LoadResourceFile(
-            Items.DataPath(Items.Ini.Mouse.TxmFile)
-        );
+        Resources.LoadResourceFile(Items.DataPath(Items.Ini.Mouse.TxmFile!)!);
 
         foreach (var lc in Items.Ini.Mouse.Cursors)
         {
-            var shape = Items.Ini.Mouse.Shapes
-                .Where((arg) => arg.Name.Equals(lc.Shape, StringComparison.OrdinalIgnoreCase)).First();
+            var shape = Items.Ini.Mouse.Shapes.First(arg => arg.Name!.Equals(lc.Shape, StringComparison.OrdinalIgnoreCase));
             var cur = new Cursor();
             cur.Nickname = lc.Nickname;
             cur.Scale = lc.Scale;
@@ -213,7 +212,6 @@ public class GameDataManager
             glResource?.AddCursor(cur, cur.Nickname);
         }
     }
-
 
     public IEnumerable<Data.Schema.Audio.AudioEntry> AllSounds => Items.Ini.Audio.Entries;
 
@@ -230,32 +228,32 @@ public class GameDataManager
         return audio;
     }
 
-    public Stream GetAudioStream(string id)
+    public Stream? GetAudioStream(string id)
     {
         var audio = Items.Ini.Audio.Entries.FirstOrDefault((arg) =>
             arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant());
 
-        if (audio == null)
+        if (audio != null)
         {
-            FLLog.Warning("Audio", $"Audio entry '{id}' not found");
-            return null;
+            return Items.VFS.FileExists(Items.DataPath(audio.File))
+                ? Items.VFS.Open(Items.DataPath(audio.File)!)
+                : null;
         }
 
-        if (Items.VFS.FileExists(Items.DataPath(audio.File)))
-            return Items.VFS.Open(Items.DataPath(audio.File));
+        FLLog.Warning("Audio", $"Audio entry '{id}' not found");
         return null;
+
     }
 
-    public string GetVoicePath(string id)
+    public string? GetVoicePath(string id)
     {
         return Items.DataPath("AUDIO\\" + id + ".utf");
     }
 
-    public string GetInfocardText(int id, FontManager fonts)
+    public string? GetInfocardText(int id, FontManager fonts)
     {
         var res = Items.Ini.Infocards.GetXmlResource(id);
-        if (res == null) return null;
-        return Infocards.RDLParse.Parse(res, fonts).ExtractText();
+        return res == null ? null : Infocards.RDLParse.Parse(res, fonts).ExtractText();
     }
 
     public Infocards.Infocard GetInfocard(int id, FontManager fonts)
@@ -263,17 +261,18 @@ public class GameDataManager
         return Infocards.RDLParse.Parse(Items.Ini.Infocards.GetXmlResource(id), fonts);
     }
 
-    public bool GetRelatedInfocard(int ogId, FontManager fonts, out Infocards.Infocard ic)
+    public bool GetRelatedInfocard(int ogId, FontManager fonts, out Infocards.Infocard? ic)
     {
         ic = null;
 
-        if (Items.Ini.InfocardMap.Map.TryGetValue(ogId, out int newId))
+        if (!Items.Ini.InfocardMap.Map.TryGetValue(ogId, out int newId))
         {
-            ic = GetInfocard(newId, fonts);
-            return true;
+            return false;
         }
 
-        return false;
+        ic = GetInfocard(newId, fonts);
+        return true;
+
     }
 
     public string GetString(int id)
@@ -295,13 +294,15 @@ public class GameDataManager
         }
 #endif
 
-    public IEnumerator<object> LoadSystemResources(StarSystem sys)
+    public IEnumerator<object?> LoadSystemResources(StarSystem sys)
     {
         if (Items.Ini.Stars != null)
         {
-            foreach (var txmfile in Items.Ini.Stars.TextureFiles
+            foreach (var txmFile in Items.Ini.Stars.TextureFiles
                          .SelectMany(x => x.Files))
-                Resources.LoadResourceFile(Items.DataPath(txmfile));
+            {
+                Resources.LoadResourceFile(Items.DataPath(txmFile));
+            }
         }
 
         yield return null;
@@ -315,16 +316,24 @@ public class GameDataManager
         {
             foreach (var obj in sys.Objects)
             {
-                obj.Archetype.ModelFile?.LoadFile(glResource);
-                if (a % 3 == 0) yield return null;
+                obj.Archetype?.ModelFile?.LoadFile(glResource);
+                if (a % 3 == 0)
+                {
+                    yield return null;
+                }
+
                 a++;
             }
         }
 
-        foreach (var resfile in sys.ResourceFiles)
+        foreach (var resFile in sys.ResourceFiles)
         {
-            Resources.LoadResourceFile(resfile);
-            if (a % 3 == 0) yield return null;
+            Resources.LoadResourceFile(resFile);
+            if (a % 3 == 0)
+            {
+                yield return null;
+            }
+
             a++;
         }
     }
@@ -338,39 +347,32 @@ public class GameDataManager
         }
     }
 
-
-    public (ModelResource, float[]) GetSolar(string solar)
+    public (ModelResource?, float[]?) GetSolar(string solar)
     {
         var at = Items.Archetypes.Get(solar);
-        return (at.ModelFile.LoadFile(Resources), at.LODRanges);
+        return (at?.ModelFile?.LoadFile(Resources), at?.LODRanges);
     }
 
-
-    public IDrawable GetProp(string prop)
+    public IDrawable? GetProp(string prop)
     {
-        string f;
-
-        if (Items.Ini.PetalDb.Props.TryGetValue(prop, out f))
+        if (Items.Ini.PetalDb.Props.TryGetValue(prop, out var path))
         {
-            return Resources.GetDrawable(Items.DataPath(f)).Drawable;
+            return Resources.GetDrawable(Items.DataPath(path))?.Drawable;
         }
-        else
-        {
-            FLLog.Error("PetalDb", "No prop exists: " + prop);
-            return null;
-        }
+
+        FLLog.Error("PetalDb", "No prop exists: " + prop);
+        return null;
     }
 
-    public IDrawable GetCart(string cart)
+    public IDrawable? GetCart(string cart)
     {
-        return Resources.GetDrawable(Items.DataPath(Items.Ini.PetalDb.Carts[cart])).Drawable;
+        return Resources.GetDrawable(Items.DataPath(Items.Ini.PetalDb.Carts[cart]))?.Drawable;
     }
 
-    public IDrawable GetRoom(string room)
+    public IDrawable? GetRoom(string room)
     {
-        return Resources.GetDrawable(Items.DataPath(Items.Ini.PetalDb.Rooms[room])).Drawable;
+        return Resources.GetDrawable(Items.DataPath(Items.Ini.PetalDb.Rooms[room]))?.Drawable;
     }
-
 
     public Dictionary<string, string> GetBaseNavbarIcons()
     {
@@ -379,22 +381,20 @@ public class GameDataManager
 
     public List<string> GetIntroMovies()
     {
-        var movies = new List<string>();
-
-        foreach (var file in Items.Ini.Freelancer.StartupMovies)
-        {
-            var path = Items.DataPath(file);
-            if (path != null)
-                movies.Add(path);
-        }
-
-        return movies;
+        return Items.Ini.Freelancer.StartupMovies.Select(file => Items.DataPath(file)).OfType<string>().ToList();
     }
 
-    public bool GetCostume(string costume, out Bodypart body, out Bodypart head, out Bodypart leftHand,
-        out Bodypart rightHand)
+    public bool GetCostume(string costume, out Bodypart? body, out Bodypart? head, out Bodypart? leftHand,
+        out Bodypart? rightHand)
     {
         var cs = Items.Ini.Costumes.FindCostume(costume);
+
+        if (cs is null)
+        {
+            head = body = leftHand = rightHand = null;
+            return false;
+        }
+
         head = Items.Bodyparts.Get(cs.Head);
         body = Items.Bodyparts.Get(cs.Body);
         leftHand = Items.Bodyparts.Get(cs.LeftHand);
@@ -402,7 +402,7 @@ public class GameDataManager
         return true;
     }
 
-    public string GetCostumeForNPC(string npc)
+    public string? GetCostumeForNPC(string npc)
     {
         return Items.Ini.SpecificNPCs.Npcs
             .FirstOrDefault(x => x.Nickname.Equals(npc, StringComparison.OrdinalIgnoreCase))

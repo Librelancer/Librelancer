@@ -15,7 +15,7 @@ namespace LibreLancer.Net
         public GameServer Server;
         public LocalPacketClient Client;
 
-        //Hardcoded delay for single player.
+        // Hardcoded delay for single player.
         public uint EstimateTickDelay() => 2;
 
         public int MaxSequencedSize => int.MaxValue;
@@ -33,7 +33,7 @@ namespace LibreLancer.Net
         public void StartFromSave(string path, byte[] save)
         {
             var sg = Data.Schema.Save.SaveGame.FromBytes(path, save);
-            //This starts the simulation + packet sending
+            // This starts the simulation + packet sending
             Server.Start();
             Server.LoadSaveGame(sg);
         }

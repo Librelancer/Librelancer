@@ -18,7 +18,7 @@ namespace LibreLancer.Utf.Ale
         }
 		public AleFile (IntermediateNode root)
 		{
-			//TODO: This is ugly
+			// TODO: This is ugly
 			foreach (var node in root) {
 				switch (node.Name.ToLowerInvariant ()) {
 				case "aleffectlib":

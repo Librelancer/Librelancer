@@ -22,24 +22,23 @@ namespace LibreLancer.World
         public GameObject LeadShip { get; private set; }
         public IReadOnlyList<GameObject> Followers => _followers;
 
-        private List<GameObject> _followers = new List<GameObject>();
+        private List<GameObject> _followers = [];
 
-        public Vector3[] Offsets = new[]
-        {
+        public Vector3[] Offsets =
+        [
             new Vector3(-60, 0, 0),
             new Vector3(60, 0, 0),
             new Vector3(0, -60, 0),
             new Vector3(0, 60, 0)
-        };
+        ];
 
-
-        private static Vector3[] defaultOffsets = new[]
-        {
+        private static Vector3[] defaultOffsets =
+        [
             new Vector3(-1, 0, 0),
             new Vector3(1, 0, 0),
             new Vector3(0, -1, 0),
             new Vector3(0, 1, 0)
-        };
+        ];
 
         private static Vector3 DefaultOffset(int i)
         {
@@ -86,7 +85,7 @@ namespace LibreLancer.World
         public void Add(GameObject obj)
         {
             _followers.Add(obj);
-            //Sort player to end (SP formations)
+            // Sort player to end (SP formations)
             if (PlayerPosition != null)
             {
                 var pobj = _followers.FirstOrDefault(x => (x.Flags & GameObjectFlags.Player) == GameObjectFlags.Player);
@@ -124,7 +123,7 @@ namespace LibreLancer.World
         public ShipFormation(GameObject lead, FormationDef formation)
         {
             LeadShip = lead;
-            _followers = new List<GameObject>();
+            _followers = [];
             Offsets = formation.Positions.Skip(1).ToArray();
             PlayerPosition = formation.PlayerPosition;
         }

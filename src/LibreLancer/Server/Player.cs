@@ -37,23 +37,22 @@ namespace LibreLancer.Server
 {
     public class Player : IServerPlayer
     {
-        //ID
+        // ID
         public int ID = 0;
         private static int _gid = 0;
-        //Reference
+        // Reference
         public IPacketClient Client;
-        public NetHpidReader HpidReader = new NetHpidReader();
+        public NetHpidReader HpidReader = new();
         public GameServer Game;
-        public SpacePlayer Space;
+        public SpacePlayer? Space;
         public BasesidePlayer Baseside;
 
         private MissionRuntime msnRuntime;
         private PreloadObject[] msnPreload;
-        private readonly DynamicThn thns = new DynamicThn();
+        private readonly DynamicThn thns = new();
 
-
-        private ConcurrentQueue<Action> saveActions = new ConcurrentQueue<Action>();
-        //State
+        private ConcurrentQueue<Action> saveActions = new();
+        // State
         public NetCharacter Character;
 
         public MPlayer MPlayer;
@@ -66,9 +65,9 @@ namespace LibreLancer.Server
         public Quaternion Orientation;
         public NetObjective Objective;
         public StoryProgress Story;
-        //Store so we can choose the correct character from the index
+        // Store so we can choose the correct character from the index
         public List<SelectableCharacter> CharacterList;
-        //Respawn?
+        // Respawn?
         public bool Dead = false;
 
         private Guid playerGuid; //:)
@@ -95,7 +94,6 @@ namespace LibreLancer.Server
             Objective = objective;
             rpcClient.SetObjective(objective, history);
         }
-
 
         public void UpdateMissionRuntime(double elapsed)
         {
@@ -134,7 +132,7 @@ namespace LibreLancer.Server
 
         public void ShipKilledByPlayer(Ship ship)
         {
-            Character.IncrementShipKillCount(ship); //SP only
+            Character.IncrementShipKillCount(ship); // SP only
             using var nc = Character.BeginTransaction();
             switch (ship.ShipType)
             {
@@ -175,7 +173,7 @@ namespace LibreLancer.Server
 
         public void MissionSuccess()
         {
-            loadTriggers = Array.Empty<uint>();
+            loadTriggers = [];
             Story.Advance(this);
         }
 
@@ -184,9 +182,7 @@ namespace LibreLancer.Server
             rpcClient.StoryMissionFailed(ids);
         }
 
-
         public MissionRuntime MissionRuntime => msnRuntime;
-
 
         public void AddRTC(string rtc)
         {
@@ -239,7 +235,6 @@ namespace LibreLancer.Server
             msnRuntime?.StoryNPCSelect(name,room,_base);
         }
 
-
         void IServerPlayer.ClosedPopup(string id)
         {
             msnRuntime?.ClosePopup(id);
@@ -278,7 +273,6 @@ namespace LibreLancer.Server
             }
             return worth;
         }
-
 
         private void BeginGame(NetCharacter c, SaveGame sg)
         {
@@ -355,7 +349,7 @@ namespace LibreLancer.Server
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position, Orientation, world.CurrentTick);
                     world.SpawnPlayer(this, Position, Orientation);
 
-                    //Ensure mission runtime is properly initialized when spawning in space
+                    // Ensure mission runtime is properly initialized when spawning in space
                     HandleSpaceEntry();
                 });
             }, msnPreload);
@@ -383,10 +377,10 @@ namespace LibreLancer.Server
 
         private void PlayerEnterBase()
         {
-            //load base
+            // load base
             Space = null;
             Baseside = new BasesidePlayer(this, Game.GameData.Items.Bases.Get(Base));
-            //fetch news articles
+            // fetch news articles
             var news = new List<NewsArticle>();
             foreach (var x in Game.GameData.Items.News.QueryNews(
                          Baseside.BaseData, Story?.MissionNum ?? (Game.GameData.Items.Ini.Storyline.Items.Count - 1)))
@@ -397,7 +391,7 @@ namespace LibreLancer.Server
                     Logo = x.Logo, Text = x.Text
                 });
             }
-            //update
+            // update
             using (var c = Character.BeginTransaction())
             {
                 c.UpdatePosition(Base, System, Position, Orientation);
@@ -406,7 +400,7 @@ namespace LibreLancer.Server
 
             HandleBaseEntry(Base);
 
-            //send to player
+            // send to player
             lock (thns)
             {
                 rpcClient.UpdateStatistics(Character.Statistics);
@@ -433,7 +427,7 @@ namespace LibreLancer.Server
                 var missionIni = Game.GameData.Items.Ini.LoadMissionIni(Story.CurrentMission);
                 msnRuntime = new MissionRuntime(new(missionIni, Game.GameData.Items), this, loadTriggers);
                 msnPreload = msnRuntime.Script.CalculatePreloads(Game.GameData);
-                //rpcClient.SetPreloads(msnPreload); // TODO: Re-implement
+                // rpcClient.SetPreloads(msnPreload); // TODO: Re-implement
 
                 // Ensure mission runtime is properly initialized
                 msnRuntime.Update(0.0);
@@ -461,7 +455,6 @@ namespace LibreLancer.Server
                 FLLog.Debug("Mission", "No mission to load - CurrentMission is null");
             }
         }
-
 
         public void UpdateProgress()
         {
@@ -520,7 +513,7 @@ namespace LibreLancer.Server
             }
         }
 
-        private Queue<Action> worldActions = new Queue<Action>();
+        private Queue<Action> worldActions = new();
         public void MissionWorldAction(Action a)
         {
             worldActions.Enqueue(a);
@@ -595,7 +588,6 @@ namespace LibreLancer.Server
         public void SendMPUpdate(PackedUpdatePacket update) =>
             Client.SendPacket(update, PacketDeliveryMethod.SequenceA);
 
-
         private BufferBlock<IPacket> inputPackets = new();
         private Task packetQueueTask;
 
@@ -604,7 +596,7 @@ namespace LibreLancer.Server
             inputPackets.Post(packet);
         }
 
-        //Long running task, quits when we finish consuming the collection
+        // Long running task, quits when we finish consuming the collection
         private async Task ProcessPacketQueue()
         {
             while (await inputPackets.OutputAvailableAsync())
@@ -853,7 +845,6 @@ namespace LibreLancer.Server
             Orientation = Character.Orientation;
         }
 
-
         void IServerPlayer.Respawn()
         {
             if (Dead)
@@ -878,13 +869,13 @@ namespace LibreLancer.Server
                 ad.CanTl = MPlayer.CanTl != 0;
                 if (!ad.CanDock)
                 {
-                    ad.DockExceptions = new();
+                    ad.DockExceptions = [];
                     foreach (var ex in MPlayer.DockExceptions)
                         ad.DockExceptions.Add(ex.Hash);
                 }
                 if (!ad.CanTl)
                 {
-                    ad.TlExceptions = new();
+                    ad.TlExceptions = [];
                     foreach (var ex in MPlayer.TlExceptions)
                         ad.TlExceptions.Add(ex.ItemA);
                 }
@@ -984,13 +975,12 @@ namespace LibreLancer.Server
                 completionSource.SetResult(path);
                 if (isAutoSave || ids != 0)
                 {
-                    //For the "load autosave" functionality
+                    // For the "load autosave" functionality
                     rpcClient.SPSetAutosave(path);
                 }
             });
             return completionSource.Task;
         }
-
 
         private void LoggedOut()
         {
@@ -1068,7 +1058,7 @@ namespace LibreLancer.Server
                 else {
                     Position = obj.Position;
                     Orientation = obj.Rotation;
-                    Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
+                    Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; // TODO: This is bad
                 }
                 Baseside = null;
                 Base = null;
@@ -1115,7 +1105,7 @@ namespace LibreLancer.Server
                 {
                     Position = obj.Position;
                     Orientation = obj.Rotation;
-                    Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; //TODO: This is bad
+                    Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) + obj.Position; // TODO: This is bad
                 }
                 Baseside = null;
                 Base = null;

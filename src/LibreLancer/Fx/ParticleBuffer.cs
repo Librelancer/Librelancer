@@ -17,7 +17,6 @@ public class ParticleBuffer
         public int Tail;
     }
 
-
     public ParticleBuffer(int[] counts)
     {
         int total = 0;
@@ -96,7 +95,6 @@ public class ParticleBuffer
             b.Count++;
         return ref backing[b.Start + b.Head];
     }
-
 
     public ref Particle this[int segment, int index]
     {

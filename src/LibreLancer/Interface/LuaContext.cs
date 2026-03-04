@@ -39,9 +39,8 @@ namespace LibreLancer.Interface
             UserData.RegisterType(new WattleVector3());
         }
 
-        //Run static .cctor
+        // Run static .cctor
         public static void Initialize() { }
-
 
 
 
@@ -89,7 +88,7 @@ namespace LibreLancer.Interface
             }
             globalTable["Game"] = context.GameApi;
             globalTable["Events"] = DynValue.NewTable(script);
-            //Functions
+            // Functions
             globalTable["Funcs"] = new ContextFunctions(this);
             StringBuilder globalsCode = new StringBuilder();
             globalsCode.AppendLine("local _f = Funcs");
@@ -131,7 +130,7 @@ namespace LibreLancer.Interface
 
         public void OpenScene(string scene)
         {
-            timers = new List<LuaTimer>();
+            timers = [];
             script.Call(_openscene, scene);
         }
 
@@ -157,7 +156,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        private List<LuaTimer> timers = new List<LuaTimer>();
+        private List<LuaTimer> timers = [];
 
         private class LuaTimer
         {
@@ -189,7 +188,7 @@ namespace LibreLancer.Interface
             public InterfaceModel GetModel(string mdl) => c.uiContext.Data.Resources.Models.First(x => x.Name == mdl);
             public InterfaceImage GetImage(string img) => c.uiContext.Data.Resources.Images.First(x => x.Name == img);
             public string GetNavbarIconPath(string ico) => c.uiContext.Data.GetNavbarIconPath(ico);
-            public Vector3 Vector3(float x, float y, float z) => new Vector3(x, y, z);
+            public Vector3 Vector3(float x, float y, float z) => new(x, y, z);
 
             public string StringFromID(int id) => c.uiContext.Data.Infocards.GetStringResource(id);
             public Infocard GetInfocard(int id) =>

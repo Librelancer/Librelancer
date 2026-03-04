@@ -10,7 +10,7 @@ public class SRepComponent : GameComponent
 {
     public Faction Faction;
 
-    public Dictionary<GameObject, RepAttitude> forcedReps = new Dictionary<GameObject, RepAttitude>();
+    public Dictionary<GameObject, RepAttitude> forcedReps = new();
 
     public void SetAttitude(GameObject go, RepAttitude a)
     {

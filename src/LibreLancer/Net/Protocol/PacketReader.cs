@@ -74,7 +74,7 @@ public struct PacketReader
         long b = reader.GetByte();
         ulong a = (ulong) (b & 0x7f);
         int extraCount = 0;
-        //first extra
+        // first extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -82,7 +82,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //second extra
+        // second extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -90,7 +90,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //third extra
+        // third extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -98,7 +98,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //fourth extra
+        // fourth extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -106,7 +106,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //fifth extra
+        // fifth extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -114,7 +114,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //sixth extra
+        // sixth extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -122,7 +122,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //seventh extra
+        // seventh extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -130,7 +130,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //Full ulong
+        // Full ulong
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -225,7 +225,6 @@ public struct PacketReader
         return g;
     }
 
-
     private bool TryPeekByte(ref int o, out byte v)
     {
         v = 0;
@@ -241,28 +240,28 @@ public struct PacketReader
         if (!TryPeekByte(ref offset, out byte b)) return false;
         a = (uint) (b & 0x7f);
         int extraCount = 0;
-        //first extra
+        // first extra
         if ((b & 0x80) == 0x80)
         {
             if (!TryPeekByte(ref offset, out b)) return false;
             a |= (uint) ((b & 0x7f) << 7);
             extraCount++;
         }
-        //second extra
+        // second extra
         if ((b & 0x80) == 0x80)
         {
             if (!TryPeekByte(ref offset, out b)) return false;
             a |= (uint) ((b & 0x7f) << 7);
             extraCount++;
         }
-        //third extra
+        // third extra
         if ((b & 0x80) == 0x80)
         {
             if (!TryPeekByte(ref offset, out b)) return false;
             a |= (uint) ((b & 0x7f) << 7);
             extraCount++;
         }
-        //fourth extra
+        // fourth extra
         if ((b & 0x80) == 0x80)
         {
             if (!TryPeekByte(ref offset, out b)) return false;

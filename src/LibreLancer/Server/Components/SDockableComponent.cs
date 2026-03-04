@@ -64,8 +64,7 @@ namespace LibreLancer.Server.Components
 
         public DockingPoint[] DockPoints;
         private DockHardpoints hardpoints;
-        private Random r = new Random();
-
+        private Random r = new();
 
         public SDockableComponent(GameObject parent, DockAction action, DockSphere[] dockSpheres) : base(parent)
         {
@@ -73,7 +72,6 @@ namespace LibreLancer.Server.Components
             DockPoints = dockSpheres.Select(x => new DockingPoint(x)).ToArray();
             hardpoints = new(Action, DockPoints);
         }
-
 
         private void TryTriggerAnimation(int i, GameObject obj)
         {
@@ -92,7 +90,6 @@ namespace LibreLancer.Server.Components
                 }
             }
         }
-
 
         private bool CanPlayerTradelane(GameObject ship, string tradelaneNickname)
         {
@@ -158,8 +155,7 @@ namespace LibreLancer.Server.Components
             public string TLHardpoint;
         }
 
-        private List<DockingAction> activeDockings = new List<DockingAction>();
-
+        private List<DockingAction> activeDockings = [];
 
         public void StartDock(GameObject obj, int index)
         {
@@ -206,7 +202,7 @@ namespace LibreLancer.Server.Components
             return new Transform3D(tr.Position, QuaternionEx.LookAt(tr.Position, tr2.Position));
         }
 
-        private List<(GameObject Ship, int Index)> undockers = new();
+        private List<(GameObject Ship, int Index)> undockers = [];
 
         public void UndockShip(GameObject ship, int index)
         {

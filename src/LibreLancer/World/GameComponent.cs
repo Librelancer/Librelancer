@@ -10,7 +10,7 @@ namespace LibreLancer.World
 {
 	public class GameComponent(GameObject parent)
     {
-		public GameObject Parent = parent;
+		public GameObject? Parent = parent;
 
         public virtual void Update(double time)
 		{
@@ -29,20 +29,20 @@ namespace LibreLancer.World
 
         protected SoundManager? GetSoundManager()
         {
-            return Parent.GetWorld()?.Renderer != null ? Parent.GetWorld()!.Renderer!.Game.GetService<SoundManager>() : null;
+            return Parent?.GetWorld()?.Renderer != null ? Parent.GetWorld().Renderer!.Game.GetService<SoundManager>() : null;
         }
 
         protected GameDataManager? GetGameData()
         {
-            var w = Parent.GetWorld();
+            var w = Parent?.GetWorld();
             return w?.Server != null ? w.Server.Server.GameData : w?.Renderer?.Game.GetService<GameDataManager>();
 
         }
 
         protected ResourceManager? GetResourceManager()
         {
-            var w = Parent.GetWorld();
-            return w.Renderer != null ? w.Renderer.ResourceManager : w.Server?.Server.Resources;
+            var w = Parent?.GetWorld();
+            return w?.Renderer != null ? w.Renderer!.ResourceManager : w?.Server?.Server.Resources;
         }
 	}
 }

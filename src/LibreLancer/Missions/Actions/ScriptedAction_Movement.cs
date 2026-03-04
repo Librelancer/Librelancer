@@ -14,7 +14,7 @@ namespace LibreLancer.Missions.Actions
     public class Act_MovePlayer : ScriptedAction
     {
         public Vector3 Position;
-        public float Unknown; //1 in M01A
+        public float Unknown; // 1 in M01A
 
         public Act_MovePlayer()
         {

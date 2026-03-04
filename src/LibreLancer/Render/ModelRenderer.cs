@@ -18,14 +18,14 @@ namespace LibreLancer.Render
 
         private Vector3 pos;
         private bool inited = false;
-        private SystemRenderer sysr;
+        private SystemRenderer? sysr;
 
 		public ModelRenderer(RigidModel model)
 		{
 			Model = model;
 		}
 
-        public float[] LODRanges;
+        public float[]? LODRanges;
         public int CurrentLevel = 0;
         public Vector3 Spin = Vector3.Zero;
 
@@ -89,11 +89,11 @@ namespace LibreLancer.Render
                     if (lvl != -1)
                     {
                         var bsphere = new BoundingSphere(center, part.Mesh.Radius);
-                        if (camera.FrustumCheck(bsphere)) return false; //visible
+                        if (camera.FrustumCheck(bsphere)) return false; // visible
                     }
                 }
             }
-            return true; //not visible
+            return true; // not visible
 		}
 
 		public override void DepthPrepass(ICamera camera, RenderContext rstate)
@@ -118,7 +118,7 @@ namespace LibreLancer.Render
                 return false;
 			}
 			var dsq = Vector3.DistanceSquared(pos, camera.Position);
-			if (LODRanges != null) //Fastest cull
+			if (LODRanges != null) // Fastest cull
 			{
 				var maxd = LODRanges[LODRanges.Length - 1] * sysr.Settings.LodMultiplier;
 				maxd *= maxd;

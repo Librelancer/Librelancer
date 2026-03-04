@@ -12,11 +12,11 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ChatDisplay: UiWidget
     {
-        public ChatSource Chat = new ChatSource();
+        public ChatSource Chat = new();
 
         private BuiltRichText builtText;
         private float builtMultiplier = 0;
-        private ChatSource.DisplayMessage[] buildMessages = Array.Empty<ChatSource.DisplayMessage>();
+        private ChatSource.DisplayMessage[] buildMessages = [];
 
         private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
@@ -29,7 +29,7 @@ namespace LibreLancer.Interface
         {
             lock (Chat.Messages)
             {
-                List<ChatSource.DisplayMessage> ids = new();
+                List<ChatSource.DisplayMessage> ids = [];
                 for (int i = Chat.Messages.Count - 1; i >= 0 && (i >= Chat.Messages.Count - 16); i--)
                 {
                     var msg = Chat.Messages[i];

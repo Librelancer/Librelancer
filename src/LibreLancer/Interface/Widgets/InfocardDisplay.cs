@@ -18,7 +18,7 @@ namespace LibreLancer.Interface
         private int mW = -1;
         private Infocard currInfocard;
 
-        private Scrollbar scrollbar = new Scrollbar() {Smooth = true};
+        private Scrollbar scrollbar = new() {Smooth = true};
         private bool scrollbarVisible = false;
 
         public override void ApplyStylesheet(Stylesheet sheet)
@@ -49,10 +49,10 @@ namespace LibreLancer.Interface
         }
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
-            //TODO: fix up
+            // TODO: fix up
             if (setString != null)
             {
-                Infocard = new Infocard() {Nodes = new List<RichTextNode>()};
+                Infocard = new Infocard() {Nodes = [] };
                 string fontName = setFont ?? "$ListText";
                 if (fontName[0] == '$') fontName = context.Data.Fonts.ResolveNickname(fontName.Substring(1));
                 foreach (var s in setString.Split('\n')) {

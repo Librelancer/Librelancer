@@ -10,19 +10,19 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class UIInventoryItem
     {
-        public int ID; //id - for inventory
-        public string Good; //good nickname - for selling
-        public string Icon; //3db file - from good
-        public int IdsName; //from item def
+        public int ID; // id - for inventory
+        public string? Good; // good nickname - for selling
+        public string? Icon; // 3db file - from good
+        public int IdsName; // from item def
         public int IdsInfo;
-        public double Price; //price per unit
-        public double Volume; //cargo volume per unit
-        public string PriceRank;
-        public string Hardpoint;
+        public double Price; // price per unit
+        public double Volume; // cargo volume per unit
+        public string? PriceRank;
+        public string? Hardpoint;
         public int IdsHardpoint;
         public int IdsHardpointDescription;
         public bool Combinable;
-        public int Count;  //how many do we have in this slot? (set to 0 to not show count)
+        public int Count;  // how many do we have in this slot? (set to 0 to not show count)
         public bool MountIcon;
         public bool CanMount;
         internal int HpSortIndex;

@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -25,7 +24,7 @@ namespace LibreLancer.Utf
             uint nodeBlockLength = reader.ReadUInt32();
             uint dataBlockLength = reader.ReadUInt32();
             var stringBlock = reader.ReadBytes((int)stringBlockLength);
-            //Node block
+            // Node block
             var nodeBlock = reader.ReadBytes((int)nodeBlockLength);
             var dataBlock = reader.ReadBytes((int)dataBlockLength);
             using (BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock)))
@@ -71,7 +70,7 @@ namespace LibreLancer.Utf
             if (!buffer.SequenceEqual("UTF "u8))
                 throw new FileFormatException(path, fileType, FILE_TYPE);
 
-            long fileLength = reader.BaseStream.Length; //This is a syscall, cache.
+            long fileLength = reader.BaseStream.Length; // This is a syscall, cache.
 
             var header = reader.ReadStruct<UtfHeader>();
 
@@ -97,7 +96,6 @@ namespace LibreLancer.Utf
             stringBlock = new byte[header.StringBlockSize];
             reader.BaseStream.Seek(header.StringBlockOffset, SeekOrigin.Begin);
             reader.Read(stringBlock);
-
 
             dataBlock = new byte[(int)(fileLength - header.DataBlockOffset)];
             reader.BaseStream.Seek(header.DataBlockOffset, SeekOrigin.Begin);

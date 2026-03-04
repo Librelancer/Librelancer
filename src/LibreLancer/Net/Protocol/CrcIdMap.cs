@@ -12,5 +12,5 @@ public record struct CrcIdMap(int NetID, uint CRC)
         writer.Put(CRC);
     }
 
-    public static CrcIdMap Read(PacketReader reader) => new CrcIdMap(-(int)(reader.GetVariableUInt32()), reader.GetUInt());
+    public static CrcIdMap Read(PacketReader reader) => new(-(int)(reader.GetVariableUInt32()), reader.GetUInt());
 }

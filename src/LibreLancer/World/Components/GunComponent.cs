@@ -21,7 +21,7 @@ namespace LibreLancer.World.Components
 
         public override int IdsName => Object.IdsName;
 
-        private ProjectileManager projectiles;
+        private ProjectileManager? projectiles;
         private ProjectileData toSpawn;
         private Hardpoint[] hpfires;
 
@@ -30,45 +30,54 @@ namespace LibreLancer.World.Components
             if (!fromServer)
             {
                 CurrentCooldown = Object.Def.RefireDelay;
-                if (Parent.Parent.TryGetComponent<PowerCoreComponent>(out var powercore))
+                if (Parent?.Parent?.TryGetComponent<PowerCoreComponent>(out var powercore) ?? false)
                 {
                     if (powercore.CurrentEnergy < Object.Def.PowerUsage)
+                    {
                         return false;
+                    }
+
                     powercore.CurrentEnergy -= Object.Def.PowerUsage;
                 }
             }
+
             if (projectiles == null)
             {
-                hpfires = Parent.GetHardpoints()
-                    .Where((x) => x.Name.StartsWith("hpfire", StringComparison.CurrentCultureIgnoreCase)).ToArray();
-                projectiles = Parent.GetWorld().Projectiles;
+                hpfires = Parent!.GetHardpoints().Where((x) => x.Name.StartsWith("hpfire", StringComparison.CurrentCultureIgnoreCase)).ToArray();
+                projectiles = Parent.GetWorld().Projectiles!;
                 toSpawn = projectiles.GetData(Object);
             }
 
-            if (Parent.TryGetComponent<CMuzzleFlashComponent>(out var muzzleFlash))
+            if (Parent!.TryGetComponent<CMuzzleFlashComponent>(out var muzzleFlash))
             {
                 muzzleFlash.OnFired();
             }
 
-            var tr = (Parent.Attachment.Transform * Parent.Parent.WorldTransform);
+            var tr = (Parent.Attachment!.Transform * Parent.Parent!.WorldTransform);
             var hp = Parent.Attachment.Name;
             bool retval = false;
-            for (int i = 0; i < hpfires.Length; i++)
+            foreach (var hpFire in hpfires)
             {
-                var x = hpfires[i].Transform * tr;
-                var pos = x.Position;
-                var normal = Vector3.Transform(-Vector3.UnitZ, x.Orientation);
+                var transform = hpFire.Transform * tr;
+                var pos = transform.Position;
+                var normal = Vector3.Transform(-Vector3.UnitZ, transform.Orientation);
                 var heading = (point - pos).Normalized();
 
                 var angle = GetAngle(normal, heading);
-                if (fromServer || angle <= MathHelper.DegreesToRadians(40)) //TODO: MUZZLE_CONE_ANGLE constant
+
+                if (!fromServer && !(angle <= MathHelper.DegreesToRadians(40))) // TODO: MUZZLE_CONE_ANGLE constant
                 {
-                    retval = true;
-                    projectiles.SpawnProjectile(Parent.Parent, hp, toSpawn, pos, heading);
-                    if (!fromServer)
-                        projectiles.QueueFire(Parent.Parent, this, point);
+                    continue;
+                }
+
+                retval = true;
+                projectiles.SpawnProjectile(Parent.Parent, hp, toSpawn, pos, heading);
+                if (!fromServer)
+                {
+                    projectiles.QueueFire(Parent.Parent, this, point);
                 }
             }
+
             return retval;
         }
     }

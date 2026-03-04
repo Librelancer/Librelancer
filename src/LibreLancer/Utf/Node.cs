@@ -53,7 +53,7 @@ namespace LibreLancer.Utf
                 return new LeafNode(peerOffset, name, reader, dataBlock);
             else
             {
-                //throw new FileContentException(UtfFile.FILE_TYPE, "Neither required flag set. Flags: " + flags);
+                // throw new FileContentException(UtfFile.FILE_TYPE, "Neither required flag set. Flags: " + flags);
                 return new LeafNode(peerOffset, name, reader, dataBlock);
             }
         }

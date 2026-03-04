@@ -32,12 +32,12 @@ namespace LibreLancer.World
 
         public ServerWorld? Server;
 
-        private List<GameObject> objects = new List<GameObject>();
-        private Dictionary<int, GameObject> netIDLookup = new Dictionary<int, GameObject>();
+        private List<GameObject> objects = [];
+        private Dictionary<int, GameObject> netIDLookup = new();
 
         public IReadOnlyList<GameObject> Objects => objects;
 
-        public readonly SpatialLookup SpatialLookup = new SpatialLookup();
+        public readonly SpatialLookup SpatialLookup = new();
 
         private Func<double>? timeSource;
 
@@ -110,7 +110,7 @@ namespace LibreLancer.World
 
             if (obj.Dock != null)
             {
-                if (arch.DockSpheres.Count > 0) //Dock with no DockSphere?
+                if (arch.DockSpheres.Count > 0) // Dock with no DockSphere?
                 {
                     if (server)
                     {
@@ -151,7 +151,6 @@ namespace LibreLancer.World
             return g;
         }
 
-
         public void LoadSystem(StarSystem sys, ResourceManager res, SoundManager snd, bool server,
             bool loadRenderer = true)
         {
@@ -161,7 +160,7 @@ namespace LibreLancer.World
             if (Renderer != null && loadRenderer)
                 Renderer.LoadSystem(sys);
 
-            objects = new List<GameObject>();
+            objects = [];
             if (Renderer != null && Projectiles != null)
                 AddObject((new GameObject()
                     { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
@@ -173,7 +172,7 @@ namespace LibreLancer.World
             // so that NPCs can be encoded in fewer bytes
             if (server)
             {
-                toFree = new List<int>();
+                toFree = [];
                 netId = () =>
                 {
                     toFree.Add(Server.IdGenerator.Allocate());
@@ -217,7 +216,7 @@ namespace LibreLancer.World
         }
 #endif
 
-        public List<CrcIdMap> CrcTranslation = new List<CrcIdMap>();
+        public List<CrcIdMap> CrcTranslation = [];
 
         public void SetCrcTranslation(IEnumerable<CrcIdMap> translation)
         {
@@ -280,7 +279,6 @@ namespace LibreLancer.World
                 obj.Register(Physics);
         }
 
-
         public void Update(double t)
         {
             Projectiles?.Update(t);
@@ -333,21 +331,20 @@ namespace LibreLancer.World
             var end = Vector3Ex.UnProject(new Vector3(x, y, 1f), cameraProjection, cameraView, vp);
             var dir = (end - start).Normalized();
 
-            PhysicsObject rb;
             var result = SelectionCast(
                 camera,
                 start,
                 dir,
                 50000,
                 self,
-                out rb
+                out var rb
             );
             if (result && rb.Tag is GameObject)
                 return (GameObject) rb.Tag;
             return null;
         }
 
-        //Select by bounding box, not by mesh
+        // Select by bounding box, not by mesh
         private bool SelectionCast(ICamera camera, Vector3 rayOrigin, Vector3 direction, float maxDist, GameObject self,
             out PhysicsObject body)
         {
@@ -364,7 +361,7 @@ namespace LibreLancer.World
 
                 if (rb.Collider is SphereCollider)
                 {
-                    //Test spheres
+                    // Test spheres
                     var sph = (SphereCollider) rb.Collider;
                     var ray = new Ray(rayOrigin, direction);
                     var sphere = new BoundingSphere(rb.Position, sph.Radius);
@@ -385,7 +382,7 @@ namespace LibreLancer.World
                 }
                 else
                 {
-                    //var tag = rb.Tag as GameObject;
+                    // var tag = rb.Tag as GameObject;
                     var box = rb.GetBoundingBox();
                     if (!rb.GetBoundingBox().RayIntersect(ref rayOrigin, ref jitterDir)) continue;
                     var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
@@ -397,7 +394,7 @@ namespace LibreLancer.World
                     }
                     /*if (tag == null || tag.CmpParts.Count == 0)
                     {
-                        //Single part
+                        // Single part
                         var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
                         if (nd < dist)
                         {
@@ -407,7 +404,7 @@ namespace LibreLancer.World
                     }
                     else
                     {
-                        //Test by cmp parts
+                        // Test by cmp parts
                         var sh = (CompoundSurShape)rb.Shape;
                         for (int i = 0; i < sh.Shapes.Length; i++)
                         {

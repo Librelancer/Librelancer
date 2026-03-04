@@ -58,9 +58,8 @@ namespace LibreLancer.Fx
 				          FxRandom.NextFloat (-d, d)
 			          );
 			var n = RandomInCone(s_min, s_max);
-            Vector3 translate;
-            Quaternion rotate;
-            if(DoTransform(reference, sparam, globaltime, out translate, out rotate)) {
+
+            if(DoTransform(reference, sparam, globaltime, out var translate, out var rotate)) {
                 pos += translate;
                 n = Vector3.Transform(n, rotate);
             }
@@ -69,7 +68,7 @@ namespace LibreLancer.Fx
 			particle.Normal = n * Pressure.GetValue (sparam, 0);
 		}
 
-        //Different direction to FxCubeEmitter
+        // Different direction to FxCubeEmitter
         private static Vector3 RandomInCone(float minspread, float maxspread)
         {
             return Vector3.UnitY;

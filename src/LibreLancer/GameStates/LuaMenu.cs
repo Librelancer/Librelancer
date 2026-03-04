@@ -47,7 +47,7 @@ namespace LibreLancer
             TryRunScript(intro.Scripts);
             FLLog.Info("Thn", "Playing " + intro.ThnName);
             cur = g.ResourceManager.GetCursor("arrow");
-            GC.Collect(); //crap
+            GC.Collect(); // crap
             g.Sound.PlayMusic(intro.Music, 0);
             g.Keyboard.KeyDown += UiKeyDown;
             g.Keyboard.TextInput += UiTextInput;
@@ -123,7 +123,6 @@ namespace LibreLancer
             }
         }
 
-
         private void UiTextInput(string text)
         {
             if(!KeyCaptureContext.Capturing(keyCapture))
@@ -143,7 +142,7 @@ namespace LibreLancer
         [WattleScriptUserData]
         public class ServerList : ITableData
         {
-            public List<LocalServerInfo> Servers = new List<LocalServerInfo>();
+            public List<LocalServerInfo> Servers = [];
             public int Count => Servers.Count;
             public int Selected { get; set; } = -1;
             public string? GetContentString(int row, string column)
@@ -184,7 +183,7 @@ namespace LibreLancer
             public void Reset()
             {
                 Selected = -1;
-                Servers = new List<LocalServerInfo>();
+                Servers = [];
             }
         }
         [WattleScript.Interpreter.WattleScriptUserData]
@@ -300,7 +299,7 @@ namespace LibreLancer
             }
             private GameNetClient netClient;
             private CGameSession netSession;
-            private ServerList serverList = new ServerList();
+            private ServerList serverList = new();
             private CharacterSelectInfo cselInfo;
 
             public CharacterSelectInfo CharacterList() => cselInfo;
@@ -310,7 +309,7 @@ namespace LibreLancer
                 StopNetworking();
                 netClient = new GameNetClient(state.Game);
                 netSession = new CGameSession(state.Game, netClient);
-                netClient.UUID = state.Game.Config.UUID.Value;
+                netClient.UUID = state.Game.Config.UUID;
                 netClient.ServerFound += info => serverList.Servers.Add(info);
                 netClient.Disconnected += NetClientOnDisconnected;
                 netClient.AuthenticationRequired += NetClientOnAuthenticationRequired;
@@ -354,7 +353,6 @@ namespace LibreLancer
                     }
                 }));
 
-
             }
 
             private int delIndex = -1;
@@ -396,7 +394,6 @@ namespace LibreLancer
 
             public void ConnectAddress(string address) => netClient.Connect(address);
 
-
             public void NewCharacter(string name, int index, Closure onError)
             {
                 FLLog.Info("Net", $"Requesting new char: `{name}`");
@@ -422,7 +419,6 @@ namespace LibreLancer
             cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
         }
 
-
         private int uframe = 0;
         private bool newUI = false;
         public override void Update(double delta)
@@ -439,7 +435,7 @@ namespace LibreLancer
             intro = Game.GameData.GetIntroSceneSpecific(index);
             scene?.Dispose();
             TryRunScript(intro.Scripts);
-            scene?.Update(1 / 60.0); //Do all the setup events - smoother entrance
+            scene?.Update(1 / 60.0); // Do all the setup events - smoother entrance
             Game.Sound.PlayMusic(intro.Music, 0);
         }
 
@@ -465,7 +461,7 @@ namespace LibreLancer
 
         public override void Exiting()
         {
-            api.StopNetworking(); //Disconnect
+            api.StopNetworking(); // Disconnect
         }
 
         protected override void OnUnload()

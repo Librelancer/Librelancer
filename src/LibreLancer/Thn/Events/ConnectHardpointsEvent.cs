@@ -18,7 +18,6 @@ namespace LibreLancer.Thn.Events
 
 
 
-
         public ConnectHardpointsEvent(ThornTable table) : base(table)
         {
             if (!GetProps(table, out var props)) return;

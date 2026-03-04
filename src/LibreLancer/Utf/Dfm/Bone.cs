@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -24,7 +23,7 @@ namespace LibreLancer.Utf.Dfm
 		public Bone(string name, IntermediateNode node)
         {
             Name = name;
-			Hardpoints = new List<HardpointDefinition>();
+			Hardpoints = [];
 
 			foreach (Node subNode in node)
 			{

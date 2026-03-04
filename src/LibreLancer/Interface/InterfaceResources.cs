@@ -14,12 +14,12 @@ namespace LibreLancer.Interface
 {
     public class InterfaceResources
     {
-        [XmlElement("Color")] public List<InterfaceColor> Colors = new List<InterfaceColor>();
-        [XmlElement("Model")] public List<InterfaceModel> Models = new List<InterfaceModel>();
-        [XmlElement("Image")] public List<InterfaceImage> Images = new List<InterfaceImage>();
-        [XmlElement("LibraryFile")] public List<string> LibraryFiles = new List<string>();
+        [XmlElement("Color")] public List<InterfaceColor> Colors = [];
+        [XmlElement("Model")] public List<InterfaceModel> Models = [];
+        [XmlElement("Image")] public List<InterfaceImage> Images = [];
+        [XmlElement("LibraryFile")] public List<string> LibraryFiles = [];
 
-        private static XmlSerializer _serializer = new XmlSerializer(typeof(InterfaceResources));
+        private static XmlSerializer _serializer = new(typeof(InterfaceResources));
 
         public string ToXml()
         {
@@ -56,8 +56,8 @@ namespace LibreLancer.Interface
     [WattleScript.Interpreter.WattleScriptUserData]
     public class InterfaceColor
     {
-        public static readonly InterfaceColor White = new InterfaceColor() {Color = Color4.White};
-        public static readonly InterfaceColor Black = new InterfaceColor() {Color = Color4.Black};
+        public static readonly InterfaceColor White = new() {Color = Color4.White};
+        public static readonly InterfaceColor Black = new() {Color = Color4.Black};
         public string Name;
         public Color4 Color;
         public InterfaceColorAnimation Animation;
@@ -119,24 +119,24 @@ namespace LibreLancer.Interface
         [XmlAttribute("originy")] public float OriginY;
         [XmlAttribute("angle")] public float Angle;
         [XmlAttribute("flip")] public bool Flip;
-        [XmlElement("TexCoords")] public InterfacePoints TexCoords = new InterfacePoints();
-        [XmlElement("DisplayCoords")] public InterfacePoints DisplayCoords = new InterfacePoints();
+        [XmlElement("TexCoords")] public InterfacePoints TexCoords = new();
+        [XmlElement("DisplayCoords")] public InterfacePoints DisplayCoords = new();
         [XmlAttribute("animu")] public float AnimU;
         [XmlAttribute("animv")] public float AnimV;
     }
     [WattleScript.Interpreter.WattleScriptUserData]
     public class InterfacePoints
     {
-        //Top left
+        // Top left
         public float X0;
         public float Y0;
-        //Top right
+        // Top right
         public float X1 = 1;
         public float Y1;
-        //Bottom left
+        // Bottom left
         public float X2;
         public float Y2 = 1;
-        //Bottom right
+        // Bottom right
         public float X3 = 1;
         public float Y3 = 1;
     }

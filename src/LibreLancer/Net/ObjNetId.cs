@@ -14,14 +14,13 @@ public struct ObjNetId
 
     public static ObjNetId Read(PacketReader message) => new(message.GetVariableInt32());
 
-
     public static ObjNetId Read(ref BitReader message) => new (message.GetVarInt32());
 
     public void Put(PacketWriter message) => message.PutVariableInt32(Value);
 
     public void Put(BitWriter message) => message.PutVarInt32(Value);
 
-    public override bool Equals(object obj) => obj is ObjNetId other && Equals(other);
+    public override bool Equals(object? obj) => obj is ObjNetId other && Equals(other);
 
     public override int GetHashCode() => Value.GetHashCode();
     public static bool operator ==(ObjNetId left, ObjNetId right) => left.Equals(right);

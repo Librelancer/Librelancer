@@ -23,7 +23,6 @@ namespace LibreLancer.Sounds
 
         private LRUCache<string, LoadedSound> soundCache;
 
-
         private IUIThread ui;
 
         public SoundManager(GameDataManager gameData, AudioManager audio, IUIThread ui)
@@ -148,7 +147,7 @@ namespace LibreLancer.Sounds
             }
             if (loaded.Entry.File.ToLowerInvariant().Replace('\\', '/') == "audio/null.wav")
             {
-                //HACK: Don't bother with sounds using null.wav, makes awful popping noise
+                // HACK: Don't bother with sounds using null.wav, makes awful popping noise
                 loaded.Data = null;
             }
             else
@@ -249,18 +248,13 @@ namespace LibreLancer.Sounds
             return inst;
         }
 
-        private class LazyConcurrentDictionary<TKey, TValue>
+        private class LazyConcurrentDictionary<TKey, TValue> where TKey : notnull
         {
-            private readonly ConcurrentDictionary<TKey, Lazy<TValue>> concurrentDictionary;
-
-            public LazyConcurrentDictionary()
-            {
-                this.concurrentDictionary = new ConcurrentDictionary<TKey, Lazy<TValue>>();
-            }
+            private readonly ConcurrentDictionary<TKey, Lazy<TValue>> concurrentDictionary = new();
 
             public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
             {
-                var lazyResult = this.concurrentDictionary.GetOrAdd(key, k => new Lazy<TValue>(() => valueFactory(k), LazyThreadSafetyMode.ExecutionAndPublication));
+                var lazyResult = concurrentDictionary.GetOrAdd(key, k => new Lazy<TValue>(() => valueFactory(k), LazyThreadSafetyMode.ExecutionAndPublication));
 
                 return lazyResult.Value;
             }
@@ -298,8 +292,7 @@ namespace LibreLancer.Sounds
             return ifo.Attenuation;
         }
 
-
-        private LazyConcurrentDictionary<string, VoiceUtf> voiceUtfs = new LazyConcurrentDictionary<string, VoiceUtf>();
+        private LazyConcurrentDictionary<string, VoiceUtf> voiceUtfs = new();
         public void PlayVoiceLine(string voice, string line, Action? onEnd = null)
         {
             if (isDisposed)

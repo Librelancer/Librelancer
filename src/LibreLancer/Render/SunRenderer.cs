@@ -65,9 +65,9 @@ namespace LibreLancer.Render
 
         public static int GetVertexCount(Sun sun)
         {
-            int count = 4; //glow quad
+            int count = 4; // glow quad
             if (sun.CenterSprite != null)
-                count += 4; //center quad
+                count += 4; // center quad
             if (sun.SpinesSprite != null)
                 count += sun.Spines.Count * 4;
             return count;
@@ -76,16 +76,16 @@ namespace LibreLancer.Render
         public static void CreateVertices(VertexBillboardColor2[] vx, Vector3 pos, Sun sun)
         {
             int idx = 0;
-            //center
+            // center
             if (sun.CenterSprite != null)
                 AddQuad(vx, ref idx, pos, new Vector2(sun.Radius * sun.CenterScale), 0,
                     new Color4(sun.CenterColorInner, 1),
                     new Color4(sun.CenterColorOuter, 1));
-            //glow
+            // glow
             AddQuad(vx, ref idx, pos, new Vector2(sun.Radius * sun.GlowScale), 0,
                 new Color4(sun.GlowColorInner, 1),
                 new Color4(sun.GlowColorOuter, 1));
-            //spines
+            // spines
             if (sun.SpinesSprite != null)
             {
                 double current_angle = 0;
@@ -143,7 +143,7 @@ namespace LibreLancer.Render
             var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1;
             var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
             var idx = bufferIndex;
-            //draw center
+            // draw center
             if (Sun.CenterSprite != null)
             {
                 centerMaterial.SizeMultiplier = new Vector2(dist_scale);
@@ -153,15 +153,15 @@ namespace LibreLancer.Render
                     0, idx, 2, SortLayers.SUN, z);
                 idx += 6;
             }
-            //draw glow
+            // draw glow
             glowMaterial.SizeMultiplier = new Vector2(dist_scale);
             glowMaterial.OuterAlpha = alpha;
             commands.AddCommand(glowMaterial, null, commands.WorldBuffer.Identity,
                 Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,
                 0, idx, 2, SortLayers.SUN, z, null, 1);
-            //next
+            // next
             idx += 6;
-            //draw spines
+            // draw spines
             if (Sun.SpinesSprite != null
                 && Sun.Spines.Count > 0
                 && nr == null)

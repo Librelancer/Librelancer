@@ -26,7 +26,7 @@ public class BinaryChatSegment
 
 public class BinaryChatMessage
 {
-    public List<BinaryChatSegment> Segments = new List<BinaryChatSegment>();
+    public List<BinaryChatSegment> Segments = [];
 
     public override string ToString()
     {
@@ -40,7 +40,7 @@ public class BinaryChatMessage
     {
         var msg = new BinaryChatMessage();
         byte type = reader.GetByte();
-        List<byte> bytes = new List<byte>();
+        List<byte> bytes = [];
         while (type != 0)
         {
             if (type != 0xFF && type != 0xFE)
@@ -107,12 +107,9 @@ public class BinaryChatMessage
     }
 
     public static BinaryChatMessage PlainText(string text) =>
-        new BinaryChatMessage()
+        new()
         {
-            Segments = new List<BinaryChatSegment>()
-            {
-                new BinaryChatSegment() { Contents = text }
-            }
+            Segments = [new() { Contents = text }]
         };
 
     public static BinaryChatMessage ParseBbCode(string code)
@@ -122,7 +119,7 @@ public class BinaryChatMessage
         int underlineCount = 0;
         Stack<OptionalColor> colors = new Stack<OptionalColor>();
         Stack<ChatMessageSize> sizes = new Stack<ChatMessageSize>();
-        List<BinaryChatSegment> segments = new List<BinaryChatSegment>();
+        List<BinaryChatSegment> segments = [];
 
         BinaryChatSegment? current = null;
         StringBuilder? builder = null;
@@ -157,7 +154,6 @@ public class BinaryChatMessage
         }
 
         Span<char> lower = stackalloc char[64];
-
 
         for(int i = 0; i < code.Length; i++) {
             if (code[i] == '[')

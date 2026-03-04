@@ -41,7 +41,7 @@ namespace LibreLancer.Thn.Events
                     return;
                 }
             }
-            if (obj.Object != null && obj.Object.AnimationComponent != null) //Check if object has Cmp animation
+            if (obj.Object != null && obj.Object.AnimationComponent != null) // Check if object has Cmp animation
             {
                 bool loop = (Flags == 2);
                 obj.Object.AnimationComponent.StartAnimation(

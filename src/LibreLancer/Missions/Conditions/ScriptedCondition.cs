@@ -24,7 +24,6 @@ public abstract class ScriptedCondition : TriggerEntry
         self.Condition = this;
     }
 
-
     private class DebugMarker : ConditionStorage
     {
         internal static DebugMarker Instance = new();
@@ -51,7 +50,6 @@ public abstract class ScriptedCondition : TriggerEntry
 
     protected static bool IdEqual(string a, string b) =>
         string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
-
 
     public static readonly TriggerConditions[] Unsupported =
     [
@@ -193,7 +191,7 @@ public class Cnd_WatchTrigger : ScriptedCondition
         GetEnum(nameof(TriggerState), 1, out TriggerState, entry);
     }
 
-    //TODO : ON/OFF == COMPLETED/ACTIVE?
+    // TODO : ON/OFF == COMPLETED/ACTIVE?
     // Including better guess from M01B here.
     public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
     {
@@ -336,7 +334,6 @@ public class Cnd_Timer : ScriptedCondition
     }
 }
 
-
 public class Cnd_TetherBroke : ScriptedCondition
 {
     public string SourceShip;
@@ -377,14 +374,14 @@ public class Cnd_SystemExit : ScriptedCondition
     {
         foreach (var system in entry)
         {
-            if (system.ToString()!.Equals("any", StringComparison.InvariantCultureIgnoreCase))
+            if (system.ToString().Equals("any", StringComparison.InvariantCultureIgnoreCase))
             {
                 Systems = [];
                 Any = true;
                 break;
             }
 
-            Systems.Add(system.ToString()!);
+            Systems.Add(system.ToString());
         }
     }
 
@@ -407,14 +404,14 @@ public class Cnd_SystemEnter : ScriptedCondition
     {
         foreach (var system in entry)
         {
-            if (system.ToString()!.Equals("any", StringComparison.InvariantCultureIgnoreCase))
+            if (system.ToString().Equals("any", StringComparison.InvariantCultureIgnoreCase))
             {
                 Systems = [];
                 Any = true;
                 break;
             }
 
-            Systems.Add(system.ToString()!);
+            Systems.Add(system.ToString());
         }
     }
 
@@ -663,7 +660,7 @@ public class Cnd_NPCSystemExit : ScriptedCondition
         GetString(nameof(System), 0, out System, entry);
         foreach (var value in entry.Skip(1))
         {
-            Ships.Add(value.ToString()!);
+            Ships.Add(value.ToString());
         }
     }
 
@@ -687,7 +684,7 @@ public class Cnd_NPCSystemEnter : EventListenerCondition<SystemEnteredEvent>
         GetString(nameof(System), 0, out System, entry);
         foreach (var value in entry.Skip(1))
         {
-            Ships.Add(value.ToString()!);
+            Ships.Add(value.ToString());
         }
     }
 
@@ -1092,7 +1089,7 @@ public class Cnd_DistVec : ScriptedCondition
         GetFloat(nameof(Distance), 5, out Distance, entry);
 
         if (entry.Count >= 8 &&
-            entry[7].ToString()!.Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
+            entry[7].ToString().Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
         {
             TickAway = entry[6].ToSingle();
         }
@@ -1163,7 +1160,7 @@ public class Cnd_DistShip : ScriptedCondition
         GetFloat(nameof(Distance), 3, out Distance, entry);
 
         if (entry.Count >= 6 &&
-            entry[5].ToString()!.Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
+            entry[5].ToString().Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
         {
             TickAway = entry[4].ToSingle();
         }
@@ -1301,7 +1298,7 @@ public class Cnd_Destroyed :
     {
         if (runtime.Labels.TryGetValue(Label, out var lbl))
         {
-            //FLLog.Debug("Mission", $"Cnd_Destroyed CheckCondition for label '{label}': Count={Count}, Kind={Kind}, DestroyedCount={lbl.DestroyedCount()}, IsAllKilled={lbl.IsAllKilled()}");
+            // FLLog.Debug("Mission", $"Cnd_Destroyed CheckCondition for label '{label}': Count={Count}, Kind={Kind}, DestroyedCount={lbl.DestroyedCount()}, IsAllKilled={lbl.IsAllKilled()}");
             if (Count <= 0)  // Special case for negative Count (e.g. -1, which means "all")
             {
                 if (Kind != CndDestroyedKind.ALL && Kind != CndDestroyedKind.ALL_IGNORE_LANDING)

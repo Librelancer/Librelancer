@@ -43,7 +43,7 @@ namespace LibreLancer.World
             }
 
             var obj = handle(parent, res, snd, type, hardpoint, equip);
-            //Do setup of child attachment, hardpoint, lod inheriting, static position etc.
+            // Do setup of child attachment, hardpoint, lod inheriting, static position etc.
             if (obj != null)
             {
                 obj.Parent = parent;
@@ -71,9 +71,9 @@ namespace LibreLancer.World
                     else if (parent.RenderComponent is ModelRenderer)
                     {
                         var mr = (ModelRenderer)parent.RenderComponent;
-                        //if (mr.Model.Mesh != null && mr.Model.Switch2 != null)
+                        // if (mr.Model.Mesh != null && mr.Model.Switch2 != null)
                          //  obj. RenderComponent.InheritCull = true;
-                        //if(mr.CmpParts != null)
+                        // if(mr.CmpParts != null)
                         //{
                             /*Part? parentPart = null;
                             if (hp.parent != null)

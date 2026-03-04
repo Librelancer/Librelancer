@@ -18,7 +18,7 @@ namespace LibreLancer.Render
         private SystemRenderer sys;
         private LightEquipment equip;
         public bool LightOn = true;
-        private static Random rnd = new Random();
+        private static Random rnd = new();
         public LightEquipRenderer(LightEquipment e)
         {
             equip = e;
@@ -44,7 +44,7 @@ namespace LibreLancer.Render
             {
                 if (sys.ResourceManager.TryGetShape("bulb", out var newBulbShape))
                 {
-                    bulbshape = newBulbShape!.Value;
+                    bulbshape = newBulbShape.Value;
                     bulbtex = (Texture2D?)sys.ResourceManager.FindTexture(bulbshape.Texture);
                 }
                 else
@@ -54,7 +54,7 @@ namespace LibreLancer.Render
 
                 if (sys.ResourceManager.TryGetShape("shine", out var shineShape))
                 {
-                    shineshape = shineShape!.Value;
+                    shineshape = shineShape.Value;
                     shinetex = (Texture2D?)sys.ResourceManager.FindTexture(shineshape.Texture);
                 }
                 else
@@ -138,7 +138,7 @@ namespace LibreLancer.Render
             bool showLight = !equip.Animated || !lt_on;
             if (equip.EmitRange > 0 && showLight && camera.FrustumCheck(new BoundingSphere(pos, equip.EmitRange)))
             {
-                //sys.PointLightDX(pos, equip.EmitRange, new Color4(equip.GlowColor, 1), equip.EmitAttenuation);
+                // sys.PointLightDX(pos, equip.EmitRange, new Color4(equip.GlowColor, 1), equip.EmitAttenuation);
             }
             if (visible) {
                 sys.AddObject(this);

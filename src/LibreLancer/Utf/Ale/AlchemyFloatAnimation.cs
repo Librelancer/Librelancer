@@ -54,11 +54,11 @@ namespace LibreLancer.Utf.Ale
         }
 		public float GetValue(float sparam, float time)
 		{
-			//1 item, 1 value
+			// 1 item, 1 value
 			if (Items.Count == 1) {
 				return Items [0].GetValue (time);
 			}
-			//Find 2 keyframes to interpolate between
+			// Find 2 keyframes to interpolate between
 			AlchemyFloats? f1 = null, f2 = null;
 			for (int i = 0; i < Items.Count - 1; i++) {
 				if (sparam >= Items [i].SParam && sparam <= Items [i + 1].SParam) {
@@ -67,11 +67,11 @@ namespace LibreLancer.Utf.Ale
                     break;
                 }
 			}
-			//We're at the end
+			// We're at the end
 			if (f1 == null) {
 				return Items [Items.Count - 1].GetValue(time);
 			}
-			//Interpolate between SParams
+			// Interpolate between SParams
 			var v1 = f1.GetValue (time);
 			var v2 = f2.GetValue (time);
 			return Easing.Ease (Type, sparam, f1.SParam, f2.SParam, v1, v2);

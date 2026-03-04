@@ -12,11 +12,11 @@ namespace LibreLancer
 	public class ScreenshotManager
 	{
 		public bool Running = true;
-        private ConcurrentQueue<SaveCommand> toSave = new ConcurrentQueue<SaveCommand>();
+        private ConcurrentQueue<SaveCommand> toSave = new();
         private int index = 0;
         private FreelancerGame g;
         private string screenshotdir;
-        private List<string> names = new List<string>();
+        private List<string> names = [];
 		public ScreenshotManager(FreelancerGame game)
 		{
 			Thread thr = new Thread(new ThreadStart(SaveThread));
@@ -50,8 +50,7 @@ namespace LibreLancer
 			{
 				while (toSave.Count > 0)
 				{
-					SaveCommand s;
-					if (toSave.TryDequeue(out s))
+                    if (toSave.TryDequeue(out var s))
                     {
                         using var output = File.Create(s.Filename);
                         ImageLib.PNG.Save(output, s.Width, s.Height, s.Data, true);

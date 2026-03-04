@@ -11,8 +11,8 @@ namespace LibreLancer.Utf.Ale
 	{
 		public string Name;
 		public uint CRC;
-        public List<AlchemyNodeRef> Fx = new();
-        public List<(uint Source, uint Target)> Pairs = new();
+        public List<AlchemyNodeRef> Fx = [];
+        public List<(uint Source, uint Target)> Pairs = [];
 		public ALEffect ()
 		{
 		}

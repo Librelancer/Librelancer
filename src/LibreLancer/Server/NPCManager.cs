@@ -49,7 +49,7 @@ namespace LibreLancer.Server
             World.RemoveSpawnedObject(obj, exploded);
         }
 
-        private Dictionary<string, GameObject> missionNPCs = new Dictionary<string, GameObject>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, GameObject> missionNPCs = new(StringComparer.OrdinalIgnoreCase);
 
         public void NpcDoAction(string nickname, Action<GameObject> act)
         {

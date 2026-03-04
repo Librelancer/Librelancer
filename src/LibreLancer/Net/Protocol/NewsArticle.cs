@@ -9,8 +9,8 @@ namespace LibreLancer.Net.Protocol
     [WattleScriptUserData]
     public class NewsArticle
     {
-        public string Icon;
-        public string Logo;
+        public string Icon = string.Empty;
+        public string Logo = string.Empty;
         public int Headline;
         public int Text;
 

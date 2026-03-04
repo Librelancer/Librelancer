@@ -11,9 +11,9 @@ namespace LibreLancer.Net.Protocol
     {
         public ObjNetId Owner;
         public Vector3 Target;
-        //1 bit set for each gun on owner that fired
+        // 1 bit set for each gun on owner that fired
         public ulong Guns;
-        //1 bit set for each gun not firing at Target
+        // 1 bit set for each gun not firing at Target
         public ulong Unique;
         public Vector3[] OtherTargets;
 

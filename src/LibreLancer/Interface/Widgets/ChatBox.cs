@@ -44,7 +44,7 @@ namespace LibreLancer.Interface
         public int MaxChars = 160;
         public float FontSize { get; set; } = 12f;
 
-        private TextEditBase editBase = new TextEditBase(true)
+        private TextEditBase editBase = new(true)
         {
             Focused = true,
             Wrap = true
@@ -64,7 +64,6 @@ namespace LibreLancer.Interface
             DrawText(context, rect);
             Border?.Draw(context, rect);
         }
-
 
         private void DrawText(UiContext context, RectangleF myRect)
         {

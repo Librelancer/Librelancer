@@ -28,11 +28,11 @@ namespace LibreLancer.Fx
 
         public override void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx, Matrix4x4 transform, float sparam)
 		{
-            //get particles!
+            // get particles!
             var count = instance.Buffer.GetCount(nodeIdx);
             if (count < 2)
                 return;
-            //draw
+            // draw
             var node_tr = GetAttachment(node, transform);
 			Vector2 tl, tr, bl, br;
             var res = instance.Resources;
@@ -44,9 +44,9 @@ namespace LibreLancer.Fx
             tr = new Vector2(texCoords.X + texCoords.Z, texCoords.Y);
             bl = new Vector2(texCoords.X, texCoords.Y + texCoords.W);
             br = new Vector2(texCoords.X + texCoords.Z, texCoords.Y + texCoords.W);
-            //Sorting hack kinda
+            // Sorting hack kinda
 			var z = RenderHelpers.GetZ(instance.Pool.Camera.Position, Vector3.Transform(Vector3.Zero, node_tr));
-			for (int j = 0; j < 2; j++) //two planes
+			for (int j = 0; j < 2; j++) // two planes
 			{
 				instance.Pool.Lines.StartLine(TextureHandler.Texture ?? res.WhiteTexture, BlendInfo);
 				bool odd = true;
@@ -63,7 +63,7 @@ namespace LibreLancer.Fx
 						dir = up;
 						if (j == 1)
 						{
-							//Broken? Doesn't show up
+							// Broken? Doesn't show up
 							var right = Vector3.Cross(up, forward).Normalized();
 							dir = right;
 						}

@@ -172,7 +172,6 @@ namespace LibreLancer.Net.Protocol
             }
         }
 
-
         public void PutNormal(Vector3 v)
         {
             v.Normalize();
@@ -283,7 +282,6 @@ namespace LibreLancer.Net.Protocol
         }
 
         public byte[] Backing => buffer;
-
 
 
         public int ByteLength => (bitOffset + 7) >> 3;

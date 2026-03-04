@@ -15,7 +15,7 @@ public class ScriptSolar : NicknameItem
     public Vector3 Position;
     public Quaternion Orientation = Quaternion.Identity;
     public string Base;
-    public List<string> Labels = new List<string>();
+    public List<string> Labels = [];
     public float Radius;
     public string Voice;
     public CostumeEntry Costume = new();
@@ -24,7 +24,7 @@ public class ScriptSolar : NicknameItem
     public string Pilot;
 
     public static ScriptSolar FromIni(MissionSolar solar, GameItemDb db) =>
-        new ScriptSolar()
+        new()
         {
             Nickname = solar.Nickname,
             Archetype = db.Archetypes.Get(solar.Archetype),
@@ -34,7 +34,7 @@ public class ScriptSolar : NicknameItem
             Position =  solar.Position,
             Orientation = solar.Orientation,
             Base = solar.Base,
-            Labels = new(solar.Labels),
+            Labels = [..solar.Labels],
             Radius = solar.Radius,
             Voice = solar.Voice,
             Costume = new CostumeEntry(solar.Costume, db),

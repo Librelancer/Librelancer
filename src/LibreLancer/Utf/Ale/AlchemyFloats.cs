@@ -26,11 +26,11 @@ namespace LibreLancer.Utf.Ale
 		{
 		}
 		public float GetValue(float time) {
-			//Only have one keyframe? Just return it.
+			// Only have one keyframe? Just return it.
 			if (Keyframes.Count == 1) {
 				return Keyframes [0].Value;
 			}
-			//Locate the keyframes to interpolate between
+			// Locate the keyframes to interpolate between
 			float t1 = float.NegativeInfinity;
 			float t2 = 0, v1 = 0, v2 = 0;
 			for (int i = 0; i < Keyframes.Count - 1; i++) {
@@ -42,11 +42,11 @@ namespace LibreLancer.Utf.Ale
                     break;
                 }
 			}
-			//Time wasn't between any values. Return max.
+			// Time wasn't between any values. Return max.
 			if (t1 == float.NegativeInfinity) {
 				return Keyframes [Keyframes.Count - 1].Value;
 			}
-			//Interpolate!
+			// Interpolate!
 			return Easing.Ease(Type,time, t1, t2, v1, v2);
 		}
 

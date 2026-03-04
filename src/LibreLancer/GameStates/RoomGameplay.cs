@@ -32,7 +32,8 @@ namespace LibreLancer
 {
 	public class RoomGameplay : GameState
 	{
-        private static readonly string[] TOP_IDS = { //IDS that goes up the top?
+        private static readonly string[] TOP_IDS =
+        [ // IDS that goes up the top?
 			"IDS_HOTSPOT_DECK",
 			"IDS_HOTSPOT_EQUIPMENTDEALER_ROOM",
 			"IDS_HOTSPOT_SHIPDEALER_ROOM",
@@ -40,7 +41,7 @@ namespace LibreLancer
 			"IDS_HOTSPOT_BAR",
 			"IDS_HOTSPOT_EXIT",
 			"IDS_HOTSPOT_PLANETSCAPE"
-		};
+        ];
 
         private const string LAUNCH_ACTION = "$LAUNCH";
         private const string INVALID_ACTION = "$INVALID";
@@ -77,7 +78,7 @@ namespace LibreLancer
 
         public RoomGameplay(FreelancerGame g, CGameSession session, string newBase, BaseRoom? room = null, string? virtualRoom = null) : base(g)
         {
-            //Load room data
+            // Load room data
             this.session = session;
 			baseId = newBase;
 			currentBase = g.GameData.Items.Bases.Get(newBase) ?? throw new DataException($"Could not find base: {newBase}");
@@ -130,7 +131,6 @@ namespace LibreLancer
         {
             scene?.Renderer?.Settings = Game.Config.Settings;
         }
-
 
         protected override void OnActionDown(InputAction action)
         {
@@ -367,8 +367,8 @@ namespace LibreLancer
 			scene.Dispose();
 		}
 
-        private HashSet<string> processedPaths = new HashSet<string>();
-        private Queue<StoryCutsceneIni> toPlay = new Queue<StoryCutsceneIni>();
+        private HashSet<string> processedPaths = [];
+        private Queue<StoryCutsceneIni> toPlay = new();
 
         private bool ProcessCutscenes()
         {
@@ -377,7 +377,7 @@ namespace LibreLancer
                 if (processedPaths.Contains(ct.RefPath.ToLowerInvariant())) continue;
                 if (ct.Encounters.Count != 1) continue;
                 var n = ct.Encounters[0].Location;
-                //Force player to new room
+                // Force player to new room
                 if (ct.Encounters[0].StartRoom != null &&
                     n[0].Equals(currentBase.Nickname, StringComparison.OrdinalIgnoreCase) &&
                     !ct.Encounters[0].StartRoom.Equals(currentRoom.Nickname, StringComparison.OrdinalIgnoreCase))
@@ -446,7 +446,6 @@ namespace LibreLancer
         }
 
 
-
         private bool didLaunch = false;
         public void Launch()
         {
@@ -471,7 +470,7 @@ namespace LibreLancer
         {
             if (arg == active) return;
             if (arg == INVALID_ACTION) return;
-            Game.QueueUIThread(() => //Fixes stack trace
+            Game.QueueUIThread(() => // Fixes stack trace
             {
                 if(arg == LAUNCH_ACTION)
                 {
@@ -590,7 +589,7 @@ namespace LibreLancer
             }
             else
             {
-                playerShip = new GameObject(); //Empty
+                playerShip = new GameObject(); // Empty
             }
 
             session.OnUpdatePlayerShip = CreatePlayerEquipment;
@@ -644,7 +643,7 @@ namespace LibreLancer
             public StoryCutsceneIni ini;
             public string npc;
         }
-        private List<RTCHotspot> hotspots = new List<RTCHotspot>();
+        private List<RTCHotspot> hotspots = [];
 
         private RTCHotspot? GetHotspot(int mX, int mY)
         {
@@ -658,7 +657,6 @@ namespace LibreLancer
 
             return null;
         }
-
 
         private void ProcessNextCutscene()
         {
@@ -788,17 +786,17 @@ namespace LibreLancer
             }
         }
 
-        private bool firstFrame = false; //Stops a desync in scene starting
+        private bool firstFrame = false; // Stops a desync in scene starting
 
         private void RoomDoSceneScript(ThnScript sc, ScriptState state)
         {
-            hotspots = new List<RTCHotspot>();
+            hotspots = [];
             firstFrame = true;
             currentState = state;
             if (sc == null) currentState = ScriptState.None;
             waitingForFinish = sc;
-            scene.BeginScene(Scripts(sceneScripts, new[] { sc }));
-            string[] ships = Array.Empty<string>();
+            scene.BeginScene(Scripts(sceneScripts, [sc]));
+            string[] ships = [];
             if (session.Ships != null) {
                 ships = session.Ships.Select(x => Game.GameData.Items.Ships.Get(x.ShipCRC).Nickname).ToArray();
             }
@@ -811,7 +809,7 @@ namespace LibreLancer
                     continue;
                 }
                 var toSellShip = Game.GameData.Items.Ships.Get(ships[i]);
-                //Set up object
+                // Set up object
                 var obj = new GameObject(toSellShip.ModelFile.LoadFile(Game.ResourceManager), Game.ResourceManager, true, false) { Parent = marker.Object };
                 marker.Object.Children.Add(obj);
                 if(obj.HardpointExists("HpMount"))
@@ -858,7 +856,6 @@ namespace LibreLancer
             ui.Update(Game);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
         }
-
 
 
         public override void Draw(double delta)

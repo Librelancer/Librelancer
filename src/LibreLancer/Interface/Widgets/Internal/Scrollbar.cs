@@ -19,7 +19,7 @@ namespace LibreLancer.Interface
         public float ThumbSize { get; set; } = 0.75f;
 
         private bool updateThumb = true;
-        
+
         public void ApplyStyle(Stylesheet stylesheet)
         {
             Style = stylesheet.Lookup<ScrollbarStyle>(null);
@@ -32,18 +32,18 @@ namespace LibreLancer.Interface
                 thumbBottom.SetStyle(Style.ThumbBottom);
             }
         }
-        private Button upbutton = new Button()
+        private Button upbutton = new()
         {
             Anchor = AnchorKind.TopCenter
         };
-        
-        private Button downbutton = new Button()
+
+        private Button downbutton = new()
         {
             Anchor = AnchorKind.BottomCenter
         };
-        private Button thumb = new Button();
-        private Button thumbTop = new Button();
-        private Button thumbBottom = new Button();
+        private Button thumb = new();
+        private Button thumbTop = new();
+        private Button thumbBottom = new();
 
         private void Layout(RectangleF parent, out RectangleF myRectangle, out RectangleF track)
         {
@@ -88,9 +88,9 @@ namespace LibreLancer.Interface
             }
             timer = MathHelper.Clamp(timer, 0, 100);
             Layout(parent, out var myRectangle, out var track);
-            //background
+            // background
             Style?.Background?.Draw(context, myRectangle);
-            //draw buttons
+            // draw buttons
             upbutton.Render(context, myRectangle);
             float tickmult = Smooth ? delta * 8 : 1;
             if (upbutton.HeldDown && (timer <= 0 || Smooth))
@@ -106,13 +106,13 @@ namespace LibreLancer.Interface
                 if (ScrollOffset > 1) ScrollOffset = 1;
                 timer = 1 / 8f;
             }
-            //process non smooth scroll wheel
+            // process non smooth scroll wheel
             ScrollOffset += nextScrollDir * Tick;
             ScrollOffset = MathHelper.Clamp(ScrollOffset, 0, 1);
             nextScrollDir = 0;
-            //draw track
+            // draw track
             Style?.TrackArea?.Draw(context, track);
-            //draw thumb
+            // draw thumb
             thumb.Update(context, track);
             float top = 0, bottom = 0;
             if (Style.ThumbTop != null)
@@ -164,6 +164,6 @@ namespace LibreLancer.Interface
                 nextScrollDir = delta > 0 ? -1 : 1;
             }
         }
-        
+
     }
 }

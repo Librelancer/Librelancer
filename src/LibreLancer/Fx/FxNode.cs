@@ -18,17 +18,23 @@ namespace LibreLancer.Fx
 
 		public FxNode(AlchemyNode ale)
 		{
-			AleParameter temp;
-			if (ale.TryGetParameter (AleProperty.Node_Name, out temp)) {
+            if (ale.TryGetParameter (AleProperty.Node_Name, out var temp))
+            {
 				NodeName = (string)temp.Value;
 				CRC = CrcTool.FLAleCrc(NodeName);
 			}
-			if (ale.TryGetParameter (AleProperty.Node_Transform, out temp)) {
+
+			if (ale.TryGetParameter (AleProperty.Node_Transform, out temp))
+            {
 				Transform = (AlchemyTransform)temp.Value;
-			} else {
+			}
+            else
+            {
 				Transform = new AlchemyTransform ();
 			}
-			if (ale.TryGetParameter (AleProperty.Node_LifeSpan, out temp)) {
+
+			if (ale.TryGetParameter (AleProperty.Node_LifeSpan, out temp))
+            {
 				NodeLifeSpan = (float)temp.Value;
 			}
 		}

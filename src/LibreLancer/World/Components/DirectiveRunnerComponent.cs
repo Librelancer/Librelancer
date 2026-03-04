@@ -15,9 +15,9 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
 
     private int index = -1;
     private int splineIndex = -1;
-    private MissionDirective[] currentDirectives;
+    private MissionDirective[]? currentDirectives;
 
-    public void SetDirectives(MissionDirective[] directives)
+    public void SetDirectives(MissionDirective[]? directives)
     {
         currentDirectives = directives;
         index = directives == null ? -1 : 0;
@@ -33,7 +33,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
     {
         if (CheckDirective())
         {
-            UpdateDirective(currentDirectives[index], time);
+            UpdateDirective(currentDirectives![index], time);
         }
     }
 
@@ -45,12 +45,12 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
     private void StartDirective(MissionDirective directive)
     {
         splineIndex = -1;
-        FLLog.Debug("ObjList", $"{Parent.Nickname} running '{directive}'");
+        FLLog.Debug("ObjList", $"{Parent!.Nickname} running '{directive}'");
         switch (directive)
         {
             case DockDirective dock:
             {
-                var tgt = Parent.World.GetObject(dock.Target);
+                var tgt = Parent!.World!.GetObject(dock.Target)!;
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     if (tgt.TryGetComponent<SDockableComponent>(out var sd))
@@ -69,10 +69,10 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             }
             case GotoShipDirective ship:
             {
-                var tgt = Parent.World.GetObject(ship.Target);
+                var tgt = Parent.World!.GetObject(ship.Target);
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
-                    ap.GotoObject(tgt, ship.CruiseKind, Throttle(ship.MaxThrottle),
+                    ap.GotoObject(tgt!, ship.CruiseKind, Throttle(ship.MaxThrottle),
                         ship.Range);
                 }
 
@@ -121,7 +121,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 }
                 else
                 {
-                    var tgtObject = Parent.World.GetObject(follow.Target);
+                    var tgtObject = Parent.World!.GetObject(follow.Target)!;
                     FormationTools.EnterFormation(Parent, tgtObject, follow.Offset);
                 }
 
@@ -136,7 +136,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 }
                 else
                 {
-                    FormationTools.MakeNewFormation(Parent.World.GetObject("Player"), followPlayer.Formation,
+                    FormationTools.MakeNewFormation(Parent.World!.GetObject("Player")!, followPlayer.Formation,
                         followPlayer.Ships);
                 }
 
@@ -204,7 +204,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         {
             case DockDirective:
             {
-                if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
+                if (Parent!.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     if (ap.CurrentBehavior != AutopilotBehaviors.Dock)
                     {
@@ -226,7 +226,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             }
             case GotoSplineDirective spline:
             {
-                if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
+                if (Parent!.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     if (ap.CurrentBehavior == AutopilotBehaviors.None)
                     {
@@ -297,7 +297,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         return C;
     }
 
-    private static float[] times = { 0, 0.3333f, 0.6667f, 1f };
+    private static float[] times = [0, 0.3333f, 0.6667f, 1f];
 
     private bool CheckDirective()
     {

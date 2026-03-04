@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -76,7 +75,7 @@ namespace LibreLancer.Utf.Vms
             {
 
                 // Read the data header.
-                reader.Skip(8); //MeshType = 0x1, SurfaceType = 0x4
+                reader.Skip(8); // MeshType = 0x1, SurfaceType = 0x4
                 var meshCount = reader.ReadUInt16();
                 var indexCount = reader.ReadUInt16();
                 VertexFormat = new FVFVertex((D3DFVF)reader.ReadUInt16());

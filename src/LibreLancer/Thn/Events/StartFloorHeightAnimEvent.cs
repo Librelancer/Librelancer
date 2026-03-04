@@ -9,7 +9,7 @@ namespace LibreLancer.Thn.Events
 {
     public class StartFloorHeightAnimEvent : ThnEvent
     {
-        //Todo: Second target (marker?)
+        // Todo: Second target (marker?)
 
         public float FloorHeight;
         public string TargetPart;
@@ -49,7 +49,6 @@ namespace LibreLancer.Thn.Events
             {
                 FLLog.Error("Thn", $"({Time}) FlrHeightAnim Unknown second target ({Targets[1]}), ignoring");
             }
-
 
             if (Duration <= 0)
             {

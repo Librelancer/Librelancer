@@ -20,7 +20,7 @@ namespace LibreLancer.Render.Materials
 		public string DtSampler;
 		public SamplerFlags DtFlags;
 		public float Alpha;
-		public float Fade; //TODO: This is unimplemented in shader. Higher values seem to make the effect more intense?
+		public float Fade; // TODO: This is unimplemented in shader. Higher values seem to make the effect more intense?
 		public float Scale;
 
         public AtmosphereMaterial(ResourceManager library) : base(library) { }
@@ -33,7 +33,6 @@ namespace LibreLancer.Render.Materials
             public float Oc;
             public float Fade;
         }
-
 
 		public override unsafe void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{

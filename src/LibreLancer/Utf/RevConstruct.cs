@@ -7,7 +7,6 @@ using System.IO;
 using System.Numerics;
 using LibreLancer.Utf.Anm;
 
-
 namespace LibreLancer.Utf
 {
     public class RevConstruct : AbstractConstruct

@@ -19,7 +19,6 @@ namespace LibreLancer.Fx
             Gravity = new(1);
         }
 
-
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();

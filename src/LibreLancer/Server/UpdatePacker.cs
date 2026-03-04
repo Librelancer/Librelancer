@@ -30,12 +30,11 @@ public class UpdatePacker
 
     private class IdComparer : IComparer<SortedUpdate>
     {
-        public static readonly IdComparer Instance = new IdComparer();
+        public static readonly IdComparer Instance = new();
         private IdComparer() { }
         public int Compare(SortedUpdate x, SortedUpdate y) =>
             x.Update.ID.Value.CompareTo(y.Update.ID.Value);
     }
-
 
     public class UpdatePackerInstance
     {
@@ -77,7 +76,7 @@ public class UpdatePacker
                 }
             }
 
-            //Calculate size + encode deltas
+            // Calculate size + encode deltas
             var deltaWriter = new BitWriter(pk.WorldUpdateBuffer, true);
             int totalSum = 0;
             int totalSorted = 0;
@@ -89,7 +88,7 @@ public class UpdatePacker
                 allUpdates[i].WriteDelta(deltas[i].Update, deltas[i].Tick, packet.Tick, ref deltaWriter);
                 deltaWriter.Align();
                 var len = (deltaWriter.ByteLength - start);
-                totalSum += len + 4; //over-estimate overhead of sending ID
+                totalSum += len + 4; // over-estimate overhead of sending ID
                 sorted[totalSorted++] = new SortedUpdate(deltas[i], len, start, allObjects[i], allUpdates[i]);
             }
 
@@ -98,7 +97,7 @@ public class UpdatePacker
             // Check we are below size
             if (maxPacketSize >= (packet.DataSize + totalSum))
             {
-                //Skip sorting, just shove the packet in
+                // Skip sorting, just shove the packet in
                 var d = new Dictionary<int, ObjectUpdate>();
                 for (int i = 0; i < allUpdates.Length; i++)
                 {
@@ -178,11 +177,11 @@ public class UpdatePacker
                     // we stop
                     int curr = sorted[uIdx].Update.ID.Value;
                     int prev = sorted[uIdx - 1].Update.ID.Value;
-                    if ((packet.DataSize + //authstate + headers
-                         allWriter.ByteLength + //current ID list
-                         dataSum + //size of existing updates
+                    if ((packet.DataSize + // authstate + headers
+                         allWriter.ByteLength + // current ID list
+                         dataSum + // size of existing updates
                          sorted[uIdx].Size +
-                         NetPacking.ByteCountInt64(curr - prev)) //size of ID list add
+                         NetPacking.ByteCountInt64(curr - prev)) // size of ID list add
                         >= maxPacketSize)
                     {
                         break;
@@ -193,8 +192,8 @@ public class UpdatePacker
                     dataSum += sorted[uIdx].Size;
                 }
 
-                pk.PacketUpdatesBuffer[0] = (byte)uIdx; //Set count
-                //copy updates
+                pk.PacketUpdatesBuffer[0] = (byte)uIdx; // Set count
+                // copy updates
                 int offset = allWriter.ByteLength;
                 for (int i = 0; i < uIdx; i++)
                 {

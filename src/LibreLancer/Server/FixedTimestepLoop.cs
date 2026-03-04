@@ -8,9 +8,9 @@ namespace LibreLancer.Server
     {
         private const int SLEEP_TIME_COUNT = 64;
 
-        private CircularBuffer<TimeSpan> sleepTimes = new CircularBuffer<TimeSpan>(SLEEP_TIME_COUNT);
+        private CircularBuffer<TimeSpan> sleepTimes = new(SLEEP_TIME_COUNT);
 
-        //FromSeconds creates an inaccurate timespan
+        // FromSeconds creates an inaccurate timespan
         public TimeSpan TimeStep { get; private set; } = TimeSpan.FromTicks(166667);
 
         public TimeSpan TotalTime { get; private set; }
@@ -57,7 +57,6 @@ namespace LibreLancer.Server
             return diff;
         }
 
-
         public void Start()
         {
             running = true;
@@ -66,8 +65,8 @@ namespace LibreLancer.Server
             while (running)
             {
                 Accumulate();
-                //FNA Sleep Algorithm: Sleep based on worst case thread sleep time,
-                //then use SpinWait
+                // FNA Sleep Algorithm: Sleep based on worst case thread sleep time,
+                // then use SpinWait
                 while (accumulatedTime + sleepPrecision < TimeStep)
                 {
                     Thread.Sleep(1);
@@ -95,7 +94,6 @@ namespace LibreLancer.Server
                 }
             }
         }
-
 
 
 

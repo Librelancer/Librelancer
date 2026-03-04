@@ -57,7 +57,7 @@ namespace LibreLancer.Render
         private int vertexOffset = 0;
         private VertexBillboardColor2* verts;
 
-        private Span<VertexBillboardColor2> gpuVertices => new Span<VertexBillboardColor2>((void*)verts, MAX_QUADS * 4);
+        private Span<VertexBillboardColor2> gpuVertices => new((void*)verts, MAX_QUADS * 4);
 
         public QuadBuffer(RenderContext rstate)
         {
@@ -96,17 +96,17 @@ namespace LibreLancer.Render
             int a = 0;
             DoVertices(new VertexBillboardColor2[]
             {
-                //X Axis
+                // X Axis
                 new(new Vector3(-1, -1, 0), new Vector2(0, 1)),
                 new (new Vector3(+1, -1, 0), new Vector2(1, 1)),
                 new(new Vector3(-1, +1, 0), new Vector2(0, 0)),
                 new(new Vector3(+1, +1, 0), new Vector2(1, 0)),
-                //Z axis
+                // Z axis
                 new(new Vector3(0, -1, -1), new Vector2(0, 1)),
                 new(new Vector3(0, -1, +1), new Vector2(1, 1)),
                 new(new Vector3(0, +1, -1), new Vector2(0, 0)),
                 new(new Vector3(0, +1, +1), new Vector2(0, 1)),
-                //Y Axis
+                // Y Axis
                 new(new Vector3(-1, 0, -1), new Vector2(0, 1)),
                 new(new Vector3(-1, 0, 1), new Vector2(1, 1)),
                 new(new Vector3(+1, 0, -1), new Vector2(0, 0)),

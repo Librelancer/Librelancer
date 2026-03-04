@@ -54,10 +54,10 @@ public class DynamicThn
 
     public void Unpack(NetThnInfo info, GameDataManager gameData)
     {
-        //Reset dictionaries
+        // Reset dictionaries
         rtcs = new(StringComparer.OrdinalIgnoreCase);
         ambients = new(StringComparer.OrdinalIgnoreCase);
-        //Fill
+        // Fill
         if (info.Rtcs != null)
         {
             foreach (var rtc in info.Rtcs)

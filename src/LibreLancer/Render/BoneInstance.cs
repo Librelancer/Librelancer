@@ -17,7 +17,7 @@ namespace LibreLancer.Render
         public Vector3 Origin = Vector3.Zero;
         public Quaternion Rotation = Quaternion.Identity;
         public Vector3 Translation = Vector3.Zero;
-        public List<BoneInstance> Children = new();
+        public List<BoneInstance> Children = [];
         public Transform3D LocalTransform;
         public BoundingBox BoundingBox;
 
