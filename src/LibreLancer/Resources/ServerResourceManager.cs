@@ -15,10 +15,10 @@ namespace LibreLancer.Resources;
 
 public class ServerResourceManager : ResourceManager
 {
-    Dictionary<string, ModelResource> drawables = new Dictionary<string, ModelResource>(StringComparer.OrdinalIgnoreCase);
-    public override Dictionary<string, Texture> TextureDictionary => throw new InvalidOperationException();
-    public override Dictionary<uint, Material> MaterialDictionary => throw new InvalidOperationException();
-    public override Dictionary<string, TexFrameAnimation> AnimationDictionary => throw new InvalidOperationException();
+    private Dictionary<string, ModelResource> drawables = new Dictionary<string, ModelResource>(StringComparer.OrdinalIgnoreCase);
+    public override Dictionary<string, Texture?> TextureDictionary => throw new InvalidOperationException();
+    public override Dictionary<uint, Material?> MaterialDictionary => throw new InvalidOperationException();
+    public override Dictionary<string, TexFrameAnimation?> AnimationDictionary => throw new InvalidOperationException();
 
     public override VertexResource AllocateVertices(FVFVertex format, byte[] vertices, ushort[] indices)
     {
@@ -40,7 +40,7 @@ public class ServerResourceManager : ResourceManager
     public override Texture FindTexture(string name) => throw new InvalidOperationException();
     public override ImageResource FindImage(string name) => throw new InvalidOperationException();
 
-    public override bool TryGetShape(string name, out TextureShape shape) => throw new InvalidOperationException();
+    public override bool TryGetShape(string name, out TextureShape? shape) => throw new InvalidOperationException();
     public override bool TryGetFrameAnimation(string name, out TexFrameAnimation anim) => throw new InvalidOperationException();
 
     public override ModelResource GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)

@@ -18,7 +18,7 @@ public class UpdatePacker
         return new UpdatePackerInstance(this, allUpdates, allObjects);
     }
 
-    record struct SortedUpdate(FetchedDelta Old, int Size, int Offset, GameObject Object, ObjectUpdate Update) : IComparable<SortedUpdate>
+    private record struct SortedUpdate(FetchedDelta Old, int Size, int Offset, GameObject Object, ObjectUpdate Update) : IComparable<SortedUpdate>
     {
         public int CompareTo(SortedUpdate other)
         {
@@ -28,7 +28,7 @@ public class UpdatePacker
         }
     }
 
-    class IdComparer : IComparer<SortedUpdate>
+    private class IdComparer : IComparer<SortedUpdate>
     {
         public static readonly IdComparer Instance = new IdComparer();
         private IdComparer() { }

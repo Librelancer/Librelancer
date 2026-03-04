@@ -15,17 +15,19 @@ namespace LibreLancer.Infocards
 	public static class RDLParse
 	{
 		//Constants and tables
-		static readonly string[] SkipElements = new string[]
+        private static readonly string[] SkipElements = new string[]
 		{
 			"RDL", "PUSH", "POP"
 		};
-		static readonly Dictionary<string, TextAlignment> Aligns = new Dictionary<string, TextAlignment>
+
+        private static readonly Dictionary<string, TextAlignment> Aligns = new Dictionary<string, TextAlignment>
 		{
 			{ "LEFT", TextAlignment.Left },
 			{ "RIGHT", TextAlignment.Right },
 			{ "CENTER", TextAlignment.Center }
 		};
-		static Dictionary<string, uint> NamedColors = new Dictionary<string, uint>
+
+        private static Dictionary<string, uint> NamedColors = new Dictionary<string, uint>
 		{
 			{ "fuchsia", 0xC2008800 },
 			{ "gray", 0x80808000 },
@@ -36,14 +38,15 @@ namespace LibreLancer.Infocards
 			{ "yellow", 0x52EAF500 },
 			{ "white", 0xFFFFFF00 }
 		};
-		const uint TRA_bold = 0x01;
-		const uint TRA_italic = 0x02;
-		const uint TRA_underline = 0x04;
-		const uint TRA_font = 0xF8;
-		const uint TRA_color = 0xFFFFFF00;
+
+        private const uint TRA_bold = 0x01;
+        private const uint TRA_italic = 0x02;
+        private const uint TRA_underline = 0x04;
+        private const uint TRA_font = 0xF8;
+        private const uint TRA_color = 0xFFFFFF00;
 
 		//Utility Functions
-		static int ParseHexDigit(string colorstr, int index)
+        private static int ParseHexDigit(string colorstr, int index)
 		{
 			if (char.IsNumber(colorstr, index))
 			{
@@ -52,7 +55,7 @@ namespace LibreLancer.Infocards
 			return 10 + (int)colorstr[index] - (int)'a';
 		}
 
-		static uint GetColor(string str)
+        private static uint GetColor(string str)
 		{
 			if (NamedColors.ContainsKey(str.ToLowerInvariant()))
 			{
@@ -87,7 +90,7 @@ namespace LibreLancer.Infocards
 				return (uint)int.Parse(str);
 		}
 
-		static RichTextTextNode CopyAttributes(RichTextTextNode src)
+        private static RichTextTextNode CopyAttributes(RichTextTextNode src)
 		{
 			return new RichTextTextNode()
 			{
@@ -122,7 +125,8 @@ namespace LibreLancer.Infocards
                 };
             }
         }
-        static Infocard ParseInternal(string input, FontManager fonts, int defaultFont)
+
+        private static Infocard ParseInternal(string input, FontManager fonts, int defaultFont)
 		{
             var fn = fonts.GetInfocardFont(defaultFont); //default font
 
@@ -144,7 +148,7 @@ namespace LibreLancer.Infocards
 							string elemname = reader.Name.ToUpperInvariant();
 							if (SkipElements.Contains(elemname))
 								continue;
-							Dictionary<string, string> attrs = null;
+							Dictionary<string, string>? attrs = null;
 							if (reader.HasAttributes)
 							{
 								attrs = new Dictionary<string, string>();
@@ -185,14 +189,15 @@ namespace LibreLancer.Infocards
 			return new Infocard() { Nodes = nodes };
 		}
 
-        static uint ParseTRANumber(string num)
+        private static uint ParseTRANumber(string num)
         {
             num = num.Trim();
             if (num.StartsWith("-")) return (uint) int.Parse(num);
             if (num.StartsWith("0x")) return uint.Parse(num.Substring(2), NumberStyles.HexNumber);
             return uint.Parse(num);
         }
-		static void ParseTextRenderAttributes(Dictionary<string, string> attrs, RichTextTextNode node, FontManager fonts, int defaultFont)
+
+        private static void ParseTextRenderAttributes(Dictionary<string, string> attrs, RichTextTextNode node, FontManager fonts, int defaultFont)
 		{
 			uint data = 0;
 			uint mask = 0;

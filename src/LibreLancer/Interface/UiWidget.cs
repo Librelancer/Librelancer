@@ -32,11 +32,12 @@ namespace LibreLancer.Interface
             if (CheckValue(style)) return style.Value;
             return default(T);
         }
-        static bool CheckValue<T>(T? value) where T : struct => !(value is null) && !IsDefault(value.Value);
-        static bool IsDefault<T>(T value) => EqualityComparer<T>.Default.Equals(value, default(T));
+
+        private static bool CheckValue<T>(T? value) where T : struct => !(value is null) && !IsDefault(value.Value);
+        private static bool IsDefault<T>(T value) => EqualityComparer<T>.Default.Equals(value, default(T));
         protected static T Cascade<T>(T style, T style2, T self) where T : class => (self ?? style2 ?? style);
 
-        static TextAlignment CastAlign(HorizontalAlignment h)
+        private static TextAlignment CastAlign(HorizontalAlignment h)
         {
             if (h == HorizontalAlignment.Center) return TextAlignment.Center;
             if (h == HorizontalAlignment.Right) return TextAlignment.Right;
@@ -255,12 +256,17 @@ namespace LibreLancer.Interface
         public virtual void OnKeyDown(UiContext context, Keys key, bool control) { }
         public virtual void OnTextInput(string text) { }
         public virtual Vector2 GetDimensions() => new Vector2(Width, Height);
-        public virtual UiWidget GetElement(string elementID)
+
+        public virtual UiWidget? GetElement(string elementID)
         {
-            if (string.IsNullOrWhiteSpace(elementID)) return null;
-            if (elementID.Equals(ID, StringComparison.OrdinalIgnoreCase)) return this;
-            return null;
+            if (string.IsNullOrWhiteSpace(elementID))
+            {
+                return null;
+            }
+
+            return elementID.Equals(ID, StringComparison.OrdinalIgnoreCase) ? this : null;
         }
+
         public virtual void Dispose()  { }
     }
 }

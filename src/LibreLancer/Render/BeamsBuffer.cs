@@ -16,7 +16,7 @@ namespace LibreLancer.Render
     {
         public int MAX_BEAMS = 500;
 
-        VertexBuffer bufferSpear;
+        private VertexBuffer bufferSpear;
         private VertexBuffer bufferBolt;
         private CommandBuffer commands;
         private ResourceManager res;
@@ -37,7 +37,7 @@ namespace LibreLancer.Render
          * 10 - Tip
          * 11 - Trail
          */
-        static readonly ushort[] spearIndices =
+        private static readonly ushort[] spearIndices =
         {
             0,1,2,
             0,1,3,
@@ -72,7 +72,7 @@ namespace LibreLancer.Render
          * 15 - Tip
          * 16 - Tail
          */
-        static readonly ushort[] boltIndices =
+        private static readonly ushort[] boltIndices =
         {
             0,1,2,
             0,1,3,
@@ -101,7 +101,7 @@ namespace LibreLancer.Render
             10,14,16
         };
         //TODO: Finish BeamBolt
-        static ushort[] ConstructIndices(ushort[] source, int vcount, int count)
+        private static ushort[] ConstructIndices(ushort[] source, int vcount, int count)
         {
             var indices = new ushort[source.Length * count];
             int j = 0;
@@ -278,7 +278,7 @@ namespace LibreLancer.Render
             spearCount++;
         }
 
-        static void CoordsFromTexture(string tex, out Vector2 tl, out Vector2 tr, out Vector2 bl, out Vector2 br, out Vector2 mid)
+        private static void CoordsFromTexture(string tex, out Vector2 tl, out Vector2 tr, out Vector2 bl, out Vector2 br, out Vector2 mid)
         {
             switch (tex)
             {

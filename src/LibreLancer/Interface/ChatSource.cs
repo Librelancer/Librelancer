@@ -19,7 +19,7 @@ namespace LibreLancer.Interface
         [WattleScriptHidden]
         public int Version = 0;
 
-        RichTextNode Convert(BinaryChatSegment msg, string fontName, Color4 defaultColor)
+        private RichTextNode Convert(BinaryChatSegment msg, string fontName, Color4 defaultColor)
         {
             var size = msg.Size switch
             {

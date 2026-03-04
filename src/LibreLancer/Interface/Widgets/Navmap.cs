@@ -6,15 +6,12 @@ using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Xml;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData.World;
-using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Graphics.Vertices;
-using LibreLancer.Render;
 using LibreLancer.Shaders;
 using WattleScript.Interpreter;
 
@@ -24,7 +21,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class Navmap : UiWidget
     {
-        class DrawObject
+        private class DrawObject
         {
             public UiRenderable Renderable;
             public string Name;
@@ -33,24 +30,26 @@ namespace LibreLancer.Interface
             public bool IconZoomedOut;
             public uint Hash;
         }
-        List<DrawObject> objects = new List<DrawObject>();
 
-        class DrawZone
+        private List<DrawObject> objects = new List<DrawObject>();
+
+        private class DrawZone
         {
             public Zone Zone;
             public Color4 Tint;
             public string Texture;
             public float Sort;
         }
-        List<DrawZone> zones = new List<DrawZone>();
 
-        struct Tradelanes
+        private List<DrawZone> zones = new List<DrawZone>();
+
+        private struct Tradelanes
         {
             public Vector2 StartXZ;
             public Vector2 EndXZ;
         }
 
-        List<Tradelanes> tradelanes = new List<Tradelanes>();
+        private List<Tradelanes> tradelanes = new List<Tradelanes>();
         private float navmapscale;
         private const float GridSizeDefault = 240000;
         private string systemName = "";
@@ -61,7 +60,7 @@ namespace LibreLancer.Interface
 
         private VertexBuffer vbo;
 
-        struct ZoneVertex : IVertexType
+        private struct ZoneVertex : IVertexType
         {
             public Vector2 Vertex;
 
@@ -109,7 +108,7 @@ namespace LibreLancer.Interface
                 }
                 if((obj.Visit & VisitFlags.Hidden) == VisitFlags.Hidden) continue;
                 if ((obj.Archetype.SolarRadius <= 0)) continue;
-                UiRenderable renderable = null;
+                UiRenderable? renderable = null;
                 renderable = ctx.Data.NavmapIcons.GetSystemObject(obj.Archetype.NavmapIcon);
 
                 string nm = ctx.Data.Infocards.GetStringResource(obj.IdsName);
@@ -143,7 +142,7 @@ namespace LibreLancer.Interface
                     (zone.Shape != ShapeKind.Sphere && zone.Shape != ShapeKind.Ellipsoid))
                     continue;
                 var tint = zone.PropertyFogColor;
-                string tex = null;
+                string? tex = null;
                 if ((zone.PropertyFlags & ZonePropFlags.Badlands) == ZonePropFlags.Badlands)
                     tex = "nav_terrain_badlands";
                 if ((zone.PropertyFlags & ZonePropFlags.Crystal) == ZonePropFlags.Crystal ||
@@ -197,7 +196,7 @@ namespace LibreLancer.Interface
         public float OffsetY = 0f;
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct NavmapParameters
+        private struct NavmapParameters
         {
             public Vector4 Rectangle;
             public Vector2 Tiling;
@@ -283,7 +282,7 @@ namespace LibreLancer.Interface
             zoneShader.SetUniformBlock(3, ref np);
             foreach (var zone in zones)
             {
-                Texture2D texture = null;
+                Texture2D? texture = null;
                 if (!string.IsNullOrEmpty(zone.Texture))
                     texture = (Texture2D) context.Data.ResourceManager.FindTexture(zone.Texture);
                 texture?.SetWrapModeS(WrapMode.Repeat);
@@ -368,7 +367,7 @@ namespace LibreLancer.Interface
 
         }
 
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             Update(context, myPos);

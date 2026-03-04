@@ -68,13 +68,13 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        class FloorHeightAnimator : ThnEventProcessor
+        private class FloorHeightAnimator : ThnEventProcessor
         {
             public StartFloorHeightAnimEvent Event;
             public float OrigFloorHeight;
             public DfmSkeletonManager Skeleton;
 
-            double time = 0;
+            private double time = 0;
             public override bool Run(double delta)
             {
                 time += delta;

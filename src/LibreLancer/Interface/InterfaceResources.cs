@@ -62,8 +62,7 @@ namespace LibreLancer.Interface
         public Color4 Color;
         public InterfaceColorAnimation Animation;
 
-        [XmlIgnore]
-        float alphaFactor = 1;
+        [XmlIgnore] private float alphaFactor = 1;
 
         public InterfaceColor SetAlpha(float factor)
         {

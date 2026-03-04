@@ -11,7 +11,7 @@ namespace LibreLancer.Interface
 {
     public static class Parser
     {
-        static float InvariantFloat(string s) => float.Parse(s, CultureInfo.InvariantCulture);
+        private static float InvariantFloat(string s) => float.Parse(s, CultureInfo.InvariantCulture);
         public static float Percentage(string s)
         {
             if (s.EndsWith("%"))
@@ -19,14 +19,16 @@ namespace LibreLancer.Interface
             else
                 return InvariantFloat(s);
         }
-        static Dictionary<string, Color4> namedColors = new Dictionary<string, Color4>(StringComparer.InvariantCultureIgnoreCase);
+
+        private static Dictionary<string, Color4> namedColors = new Dictionary<string, Color4>(StringComparer.InvariantCultureIgnoreCase);
         static Parser()
         {
             foreach(var f in typeof(Color4).GetProperties(BindingFlags.Public | BindingFlags.Static)) {
                 namedColors.Add(f.Name, (Color4)f.GetValue(null));
             }
         }
-        static int GetDigit(char c)
+
+        private static int GetDigit(char c)
         {
             var i = (int)c;
             if (i >= '0' && i <= '9')

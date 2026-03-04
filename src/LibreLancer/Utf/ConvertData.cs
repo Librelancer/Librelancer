@@ -13,8 +13,7 @@ namespace LibreLancer
     //We don't use pointers to access data as they can cause data misalignment errors on Armhf
     public static class ConvertData
     {
-
-        static float Float(byte[] data, int start, int idx) => BitConverter.ToSingle(data, start + idx * 4);
+        private static float Float(byte[] data, int start, int idx) => BitConverter.ToSingle(data, start + idx * 4);
 
 
         public static Vector3 ToVector3(byte[] data, int start = 0)

@@ -136,7 +136,7 @@ namespace LibreLancer.Thn
             Events.Sort((x, y) => x.Time.CompareTo(y.Time));
         }
 
-		ThnEvent GetEvent(ThornTable table, string source)
+        private ThnEvent GetEvent(ThornTable table, string source)
 		{
             var t = ThnTypes.Convert<EventTypes>(table[2]);
             switch (t)
@@ -181,7 +181,7 @@ namespace LibreLancer.Thn
             throw new ArgumentException($"event type {t}");
         }
 		//Flags are stored differently internally between Freelancer and Librelancer
-		ThnObjectFlags ConvertFlags(EntityTypes type, ThornTable table)
+        private ThnObjectFlags ConvertFlags(EntityTypes type, ThornTable table)
 		{
 			var val = (int)(float)table["flags"];
 			if (val == 0) return ThnObjectFlags.None;
@@ -218,7 +218,7 @@ namespace LibreLancer.Thn
             ).ExtractRotation();
         }
 
-        static float FuzzyFloat(object o)
+        private static float FuzzyFloat(object o)
         {
             if (o is float f) return f;
             if (o is int i) return i;
@@ -227,9 +227,9 @@ namespace LibreLancer.Thn
             throw new InvalidCastException(o.ToString() + " as float");
         }
 
-        static int FuzzyInt(object o) => (int) FuzzyFloat(o);
+        private static int FuzzyInt(object o) => (int) FuzzyFloat(o);
 
-		ThnEntity GetEntity(ThornTable table, string source)
+        private ThnEntity GetEntity(ThornTable table, string source)
 		{
 			object o;
 

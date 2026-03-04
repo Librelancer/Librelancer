@@ -25,7 +25,8 @@ namespace LibreLancer.Render
             get { return camera;  }
             set { camera = value;  }
         }
-        ICamera camera;
+
+        private ICamera camera;
 
 		public Color4 NullColor = Color4.Black;
         public Color4? BackgroundOverride;
@@ -57,9 +58,9 @@ namespace LibreLancer.Render
         public QuadBuffer QuadBuffer;
         public DfmDrawMode DfmMode = DfmDrawMode.Normal;
         public RenderContext RenderContext => rstate;
-		RenderContext rstate;
-		Game game;
-		Texture2D dot;
+        private RenderContext rstate;
+        private Game game;
+        private Texture2D dot;
 
         public int ZoneVersion = 0;
 
@@ -80,8 +81,8 @@ namespace LibreLancer.Render
         }
 
         public IRendererSettings Settings;
-        Billboards billboards;
-        ResourceManager resman;
+        private Billboards billboards;
+        private ResourceManager resman;
 
 
         public ResourceManager ResourceManager
@@ -202,7 +203,7 @@ namespace LibreLancer.Render
 			return null;
 		}
 
-		NebulaRenderer CheckNebulae()
+        private NebulaRenderer CheckNebulae()
         {
             if (!DrawNebulae) return null;
 			for (int i = 0; i < Nebulae.Count; i++)
@@ -214,12 +215,12 @@ namespace LibreLancer.Render
 			return null;
 		}
 
-		MultisampleTarget msaa;
-		int _mwidth = -1, _mheight = -1;
+        private MultisampleTarget msaa;
+        private int _mwidth = -1, _mheight = -1;
         public CommandBuffer Commands;
-		int _twidth = -1, _theight = -1;
-		int _dwidth = -1, _dheight = -1;
-		DepthMap depthMap;
+        private int _twidth = -1, _theight = -1;
+        private int _dwidth = -1, _dheight = -1;
+        private DepthMap depthMap;
 
         public List<ObjectRenderer> objects = new List<ObjectRenderer>(250);
 
@@ -228,7 +229,7 @@ namespace LibreLancer.Render
             objects.Add(render);
         }
 
-        class TemporaryFx
+        private class TemporaryFx
         {
             public ParticleEffectRenderer Render;
             public Vector3 Position;

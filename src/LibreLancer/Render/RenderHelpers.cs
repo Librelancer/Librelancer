@@ -10,7 +10,7 @@ namespace LibreLancer.Render
 {
 	public static class RenderHelpers
 	{
-        const int MAX_LIGHTS = 8;
+        private const int MAX_LIGHTS = 8;
 		public static float GetZ(Matrix4x4 world, Vector3 cameraPosition, Vector3 vec)
 		{
 			var res =  Vector3.DistanceSquared(Vector3.Transform(vec,world), cameraPosition);
@@ -94,7 +94,7 @@ namespace LibreLancer.Render
 		}
 
 		//Returns whether or not a spotlight can be culled
-		static bool SpotlightTest(ref RenderLight light, Vector3 objPos, float objRadius)
+        private static bool SpotlightTest(ref RenderLight light, Vector3 objPos, float objRadius)
 		{
 			var V = objPos - light.Position;
 			var VLenSq = V.LengthSquared();

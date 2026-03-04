@@ -12,8 +12,8 @@ public class SMissileComponent : GameComponent
 
     public float Speed = 0;
 
-    PIDController pitchControl = new PIDController() { P = 1 };
-    PIDController yawControl = new PIDController() { P = 1 };
+    private PIDController pitchControl = new PIDController() { P = 1 };
+    private PIDController yawControl = new PIDController() { P = 1 };
 
     public SMissileComponent(GameObject parent, MissileEquip missile) : base(parent)
     {
@@ -54,7 +54,7 @@ public class SMissileComponent : GameComponent
         }
     }
 
-    void TurnTowards(double dt, Vector3 targetPoint)
+    private void TurnTowards(double dt, Vector3 targetPoint)
     {
         //Orientation
         var vec = Parent.InverseTransformPoint(targetPoint);
@@ -73,7 +73,7 @@ public class SMissileComponent : GameComponent
     }
 
 
-    void DoMotor(double time)
+    private void DoMotor(double time)
     {
         if (totalTime > Missile.Motor.Lifetime + Missile.Motor.Delay ||
             totalTime < Missile.Motor.Delay)

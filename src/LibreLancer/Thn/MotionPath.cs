@@ -15,15 +15,16 @@ namespace LibreLancer.Thn
     /// </summary>
     public class MotionPath
     {
-        const int OPEN = 1;
-        const int CLOSED = 0;
-        static Dictionary<string, object> env = new Dictionary<string, object>()
+        private const int OPEN = 1;
+        private const int CLOSED = 0;
+
+        private static Dictionary<string, object> env = new Dictionary<string, object>()
         {
             { "OPEN", OPEN },
             { "CLOSED", CLOSED }
         };
 
-        bool loop;
+        private bool loop;
         public bool Closed
         {
             get
@@ -34,13 +35,13 @@ namespace LibreLancer.Thn
 
         public bool HasOrientation { get; }
 
-        Vector3 GetVec(object o)
+        private Vector3 GetVec(object o)
         {
             var tab = (ThornTable)o;
             return new Vector3((float)tab[1], (float)tab[2], (float)tab[3]);
         }
 
-        Quaternion GetQuat(object o)
+        private Quaternion GetQuat(object o)
         {
             var tab = (ThornTable)o;
             return new Quaternion((float)tab[2], (float)tab[3], (float)tab[4], (float)tab[1]);
@@ -95,7 +96,8 @@ namespace LibreLancer.Thn
         private CubicPolynomial[] segments;
         private float[] segmentLengths;
         private float[] lengthPercents;
-        void BuildSegments(List<Vector3> srcPoints)
+
+        private void BuildSegments(List<Vector3> srcPoints)
         {
             var ps = new List<Vector3>(srcPoints.Count + 3);
             if (loop) {
@@ -208,7 +210,7 @@ namespace LibreLancer.Thn
             }
         }
 
-        static CubicPolynomial CRCentripedal(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float tau = 0.5f) {
+        private static CubicPolynomial CRCentripedal(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float tau = 0.5f) {
             float dt0 = (float)Math.Pow((p0 - p1).LengthSquared(), tau);
             float dt1 = (float)Math.Pow((p1 - p2).LengthSquared(), tau);
             float dt2 = (float)Math.Pow((p2 - p3).LengthSquared(), tau);
@@ -227,7 +229,7 @@ namespace LibreLancer.Thn
             return CreateNonUniformCatmullRom(p0, p1, p2, p3, dt0, dt1, dt2);
         }
 
-        static CubicPolynomial CreateNonUniformCatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float dt0, float dt1, float dt2) {
+        private static CubicPolynomial CreateNonUniformCatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float dt0, float dt1, float dt2) {
             // compute tangents when parameterized in [t1,t2]
             Vector3 t1 = (p1 - p0)/dt0 - (p2 - p1)/(dt0 + dt1) + (p2 - p1)/dt1;
             Vector3 t2 = (p2 - p1)/dt1 - (p3 - p1)/(dt1 + dt2) + (p3 - p2)/dt2;
@@ -239,7 +241,7 @@ namespace LibreLancer.Thn
             return CubicPolynomial.Create(p1, t1, p2, t2);
         }
 
-        struct CubicPolynomial {
+        private struct CubicPolynomial {
 
             private readonly Vector3 c0;
             private readonly Vector3 c1;

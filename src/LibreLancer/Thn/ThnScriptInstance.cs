@@ -23,8 +23,8 @@ namespace LibreLancer.Thn
     }
     public class ThnScriptInstance
     {
-        Queue<ThnEvent> events = new Queue<ThnEvent>();
-        List<ThnEventProcessor> processors = new List<ThnEventProcessor>();
+        private Queue<ThnEvent> events = new Queue<ThnEvent>();
+        private List<ThnEventProcessor> processors = new List<ThnEventProcessor>();
 
         public double CurrentTime = 0;
         public double Duration;
@@ -54,7 +54,7 @@ namespace LibreLancer.Thn
             processors.Add(ev);
         }
 
-        bool CheckObject(ThnEntity e, object sub, EntityTypes type, string templateName)
+        private bool CheckObject(ThnEntity e, object sub, EntityTypes type, string templateName)
         {
             return sub != null && type == e.Type && e.Template.Equals(templateName, StringComparison.OrdinalIgnoreCase);
         }
@@ -108,7 +108,7 @@ namespace LibreLancer.Thn
                 {
                     bool getHpMount = false;
                     //Fetch model
-                    IDrawable drawable = null;
+                    IDrawable? drawable = null;
                     float[] lodranges = null;
                     if (!string.IsNullOrEmpty(template))
                     {
@@ -283,7 +283,7 @@ namespace LibreLancer.Thn
                 monitors[i].MonitorIndex = i;
         }
 
-        Queue<ThnEvent> delaySoundEvents = new Queue<ThnEvent>();
+        private Queue<ThnEvent> delaySoundEvents = new Queue<ThnEvent>();
         public void Update(double delta)
         {
             if (CurrentTime > Duration) return;

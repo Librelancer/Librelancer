@@ -19,7 +19,7 @@ namespace LibreLancer.Utf.Mat
 
 		public bool Loaded = true;
 
-		string type;
+        private string type;
 		public string Type
 		{
 			get
@@ -51,7 +51,7 @@ namespace LibreLancer.Utf.Mat
 		/// </summary>
 		public Color4 Dc { get { return _dc; } set { _dc = value; } }
 
-		Color4 _dc = Color4.White;
+        private Color4 _dc = Color4.White;
 
 		/// <summary>
 		/// Emmisive Colour
@@ -157,14 +157,15 @@ namespace LibreLancer.Utf.Mat
         public float? MFactor;
         public float? RFactor;
 
-		static List<string> basicMaterials = new List<string> {
+        private static List<string> basicMaterials = new List<string> {
 			"Dc", //DcDt buggy
 			"DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt", "DcDtBtEc", "DcDtBtEcEt",
 			"DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
 			"DcDtOcOtTwo", "DcDtBt", "DcDtBtTwo", "BtDetailMapMaterial",
 			"DcDtEcOcOtTwo", "DcDtEtTwo", "DcDtEcTwo"
 		};
-		RenderMaterial _rmat;
+
+        private RenderMaterial _rmat;
 		public RenderMaterial Render
 		{
 			get
@@ -173,7 +174,8 @@ namespace LibreLancer.Utf.Mat
 				return _rmat;
 			}
 		}
-		bool isBasic = false;
+
+        private bool isBasic = false;
 
 		protected Material(IntermediateNode node, string type)
 		{

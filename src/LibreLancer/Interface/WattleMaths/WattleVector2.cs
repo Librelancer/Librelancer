@@ -37,7 +37,7 @@ public class WattleVector2 : HardwiredUserDataDescriptor
         ));
     }
 
-    class Negate : HardwiredMethodMemberDescriptor
+    private class Negate : HardwiredMethodMemberDescriptor
     {
         public Negate()
         {
@@ -50,7 +50,8 @@ public class WattleVector2 : HardwiredUserDataDescriptor
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
             -(Vector2) pars[0];
     }
-    class MulScalar : HardwiredMethodMemberDescriptor
+
+    private class MulScalar : HardwiredMethodMemberDescriptor
     {
         public MulScalar()
         {
@@ -65,7 +66,7 @@ public class WattleVector2 : HardwiredUserDataDescriptor
             (Vector2) pars[0] * (float) pars[1];
     }
 
-    class MulVec : HardwiredMethodMemberDescriptor
+    private class MulVec : HardwiredMethodMemberDescriptor
     {
         public MulVec()
         {
@@ -80,7 +81,7 @@ public class WattleVector2 : HardwiredUserDataDescriptor
             (Vector2) pars[0] * (Vector2) pars[1];
     }
 
-    class DivScalar : HardwiredMethodMemberDescriptor
+    private class DivScalar : HardwiredMethodMemberDescriptor
     {
         public DivScalar()
         {
@@ -95,7 +96,7 @@ public class WattleVector2 : HardwiredUserDataDescriptor
             (Vector2) pars[0] / (float) pars[1];
     }
 
-    class DivVec : HardwiredMethodMemberDescriptor
+    private class DivVec : HardwiredMethodMemberDescriptor
     {
         public DivVec()
         {
@@ -110,7 +111,7 @@ public class WattleVector2 : HardwiredUserDataDescriptor
             (Vector2) pars[0] / (Vector2) pars[1];
     }
 
-    class Add : HardwiredMethodMemberDescriptor
+    private class Add : HardwiredMethodMemberDescriptor
     {
         public Add()
         {
@@ -125,7 +126,7 @@ public class WattleVector2 : HardwiredUserDataDescriptor
             (Vector2) pars[0] + (Vector2) pars[1];
     }
 
-    class Sub : HardwiredMethodMemberDescriptor
+    private class Sub : HardwiredMethodMemberDescriptor
     {
         public Sub()
         {
@@ -141,7 +142,7 @@ public class WattleVector2 : HardwiredUserDataDescriptor
     }
 
 
-    class DescX : HardwiredMemberDescriptor
+    private class DescX : HardwiredMemberDescriptor
     {
         public DescX() :
             base(typeof(float), "X",
@@ -160,7 +161,7 @@ public class WattleVector2 : HardwiredUserDataDescriptor
         }
     }
 
-    class DescY : HardwiredMemberDescriptor
+    private class DescY : HardwiredMemberDescriptor
     {
         public DescY() :
             base(typeof(float), "X",

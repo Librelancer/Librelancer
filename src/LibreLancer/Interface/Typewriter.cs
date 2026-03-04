@@ -21,9 +21,9 @@ namespace LibreLancer.Interface
         private const double DISPLAY_MAX = 5;
         private const double FULL_TIME = 3;
         private double time = 0;
-        private string currentString = null;
-        
-        void SetString(string str)
+        private string? currentString = null;
+
+        private void SetString(string str)
         {
             currentString = str;
         }
@@ -61,7 +61,7 @@ namespace LibreLancer.Interface
         public void Render()
         {
             if (!string.IsNullOrEmpty(currentString)) {
-               
+
                 var pct = MathHelper.Clamp(time / FULL_TIME, 0, 1);
                 var str = currentString.Substring(0,
                     MathHelper.Clamp((int) (pct * currentString.Length), 0, currentString.Length));

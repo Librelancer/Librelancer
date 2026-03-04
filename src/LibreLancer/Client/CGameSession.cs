@@ -36,7 +36,7 @@ namespace LibreLancer.Client
         public ulong ShipWorth;
         public long NetWorth;
         public long NextLevelWorth;
-        public Ship PlayerShip;
+        public Ship? PlayerShip;
         public PlayerStats Statistics = new();
         public List<NetCargo> Items = new List<NetCargo>();
         public List<StoryCutsceneIni> ActiveCutscenes = new List<StoryCutsceneIni>();
@@ -65,7 +65,7 @@ namespace LibreLancer.Client
         public double WorldTime => WorldTick * (1 / 60.0f);
 
         public bool Multiplayer => connection is GameNetClient;
-        private string autoSavePath = null;
+        private string? autoSavePath = null;
         private bool paused = false;
 
         public uint WorldTick = 0;
@@ -159,7 +159,7 @@ namespace LibreLancer.Client
 
         private bool hasChanged = false;
 
-        void SceneChangeRequired()
+        private void SceneChangeRequired()
         {
             gameplayActions.Clear();
             if (PlayerBase != null)
@@ -177,7 +177,7 @@ namespace LibreLancer.Client
             }
         }
 
-        SpaceGameplay gp;
+        private SpaceGameplay gp;
 
         public bool Update()
         {
@@ -187,17 +187,17 @@ namespace LibreLancer.Client
             return hasChanged;
         }
 
-        Queue<Action> gameplayActions = new Queue<Action>();
+        private Queue<Action> gameplayActions = new Queue<Action>();
         private Queue<Action> uiActions = new Queue<Action>();
         private Queue<Action> audioActions = new Queue<Action>();
 
-        void UpdateAudio()
+        private void UpdateAudio()
         {
             while (audioActions.TryDequeue(out var act))
                 act();
         }
 
-        void UIUpdate()
+        private void UIUpdate()
         {
             while (uiActions.TryDequeue(out var act))
                 act();
@@ -207,7 +207,7 @@ namespace LibreLancer.Client
         private CircularBuffer<SPUpdatePacket> oldPackets = new CircularBuffer<SPUpdatePacket>(1000);
         public UpdateAck Acks;
 
-        struct PlayerMoveState
+        private struct PlayerMoveState
         {
             public uint Tick;
             public Vector3 Position;
@@ -221,7 +221,7 @@ namespace LibreLancer.Client
             public ProjectileFireCommand? FireCommand;
         }
 
-        NetInputControls FromMoveState(int i)
+        private NetInputControls FromMoveState(int i)
         {
             i++;
             return new NetInputControls()
@@ -323,7 +323,7 @@ namespace LibreLancer.Client
 
         private int jumpTimer = 0;
 
-        void ClockSync(SPUpdatePacket packet)
+        private void ClockSync(SPUpdatePacket packet)
         {
             var tickOffset = (int)((long)packet.InputSequence - (long)packet.Tick);
             LastTickOffset = tickOffset;
@@ -359,7 +359,7 @@ namespace LibreLancer.Client
             };
         }
 
-        ObjectUpdate GetUpdate(uint tick, int id)
+        private ObjectUpdate GetUpdate(uint tick, int id)
         {
             for (int i = 0; i < oldPackets.Count; i++)
             {
@@ -380,9 +380,13 @@ namespace LibreLancer.Client
             throw new Exception($"History {tick} missing");
         }
 
-        SPUpdatePacket GetUpdatePacket(IPacket p)
+        private SPUpdatePacket? GetUpdatePacket(IPacket p)
         {
-            if (p is SPUpdatePacket sp) return sp;
+            if (p is SPUpdatePacket sp)
+            {
+                return sp;
+            }
+
             var mp = (PackedUpdatePacket)p;
             var oldPlayerState = new PlayerAuthState();
             if (mp.OldTick != 0)
@@ -434,7 +438,7 @@ namespace LibreLancer.Client
 
         public int UpdateQueueCount => updatePackets.Count;
 
-        volatile bool processUpdatePackets = false;
+        private volatile bool processUpdatePackets = false;
 
 
         public void WorldReady()
@@ -453,7 +457,7 @@ namespace LibreLancer.Client
         private Queue<IPacket> updatePackets = new Queue<IPacket>();
 
 
-        void Resimulate(int i, SpaceGameplay gp)
+        private void Resimulate(int i, SpaceGameplay gp)
         {
             var physComponent = gp.player.GetComponent<ShipPhysicsComponent>();
             var player = gp.player;
@@ -467,7 +471,7 @@ namespace LibreLancer.Client
             moveState[i].Orientation = player.PhysicsComponent.Body.Orientation;
         }
 
-        void SmoothError(GameObject obj, Vector3 oldPos, Quaternion oldQuat)
+        private void SmoothError(GameObject obj, Vector3 oldPos, Quaternion oldQuat)
         {
             var newPos = obj.PhysicsComponent.Body.Position;
             var newOrient = obj.PhysicsComponent.Body.Orientation;
@@ -485,7 +489,7 @@ namespace LibreLancer.Client
             }
         }
 
-        void ProcessUpdate(SPUpdatePacket p, SpaceGameplay gp, bool resync)
+        private void ProcessUpdate(SPUpdatePacket p, SpaceGameplay gp, bool resync)
         {
             foreach (var update in p.Updates)
                 UpdateObject(update, gp.world);
@@ -552,7 +556,7 @@ namespace LibreLancer.Client
 
         public Action<IPacket> ExtraPackets;
 
-        NetCargo ResolveCargo(NetShipCargo cg)
+        private NetCargo ResolveCargo(NetShipCargo cg)
         {
             var equip = Game.GameData.Items.Equipment.Get(cg.EquipCRC);
             return new NetCargo(cg.ID)
@@ -565,7 +569,7 @@ namespace LibreLancer.Client
         }
 
 
-        void SetSelfLoadout(NetLoadout ld)
+        private void SetSelfLoadout(NetLoadout ld)
         {
             var sh = ld.ArchetypeCrc == 0 ? null : Game.GameData.Items.Ships.Get(ld.ArchetypeCrc);
             PlayerShip = sh;
@@ -818,7 +822,7 @@ namespace LibreLancer.Client
             Chats.Append(null, msg, Color4.LimeGreen, "Arial");
         }
 
-        void RunSync(Action gp) => gameplayActions.Enqueue(gp);
+        private void RunSync(Action gp) => gameplayActions.Enqueue(gp);
 
         public Action OnUpdateInventory;
         public Action OnUpdatePlayerShip;
@@ -1040,7 +1044,7 @@ namespace LibreLancer.Client
 
         private double totalTimeForTick = 0;
 
-        CrcIdMap[] crcMap;
+        private CrcIdMap[] crcMap;
 
         void IClientPlayer.SpawnPlayer(int ID, string system, CrcIdMap[] crcMap, NetObjective objective,
             Vector3 position, Quaternion orientation, uint tick)
@@ -1066,7 +1070,7 @@ namespace LibreLancer.Client
             RunSync(() => gp.world.GetObject(id)?.AnimationComponent?.UpdateAnimations(animations));
         }
 
-        GameObject CreateDebris(ObjectSpawnInfo obj)
+        private GameObject CreateDebris(ObjectSpawnInfo obj)
         {
             ModelResource src;
             List<SeparablePart> sep;
@@ -1188,7 +1192,7 @@ namespace LibreLancer.Client
             RunSync(() => { RunDialog(lines); });
         }
 
-        GameObject missionWaypoint;
+        private GameObject missionWaypoint;
 
         void IClientPlayer.StopShip()
         {
@@ -1230,7 +1234,7 @@ namespace LibreLancer.Client
             }
         });
 
-        void RunDialog(NetDlgLine[] lines, int index = 0)
+        private void RunDialog(NetDlgLine[] lines, int index = 0)
         {
             if (index >= lines.Length) return;
             if (lines[index].TargetIsPlayer)
@@ -1253,7 +1257,7 @@ namespace LibreLancer.Client
         }
 
 
-        void UpdatePackets()
+        private void UpdatePackets()
         {
             IPacket packet;
             while (connection.PollPacket(out packet))
@@ -1310,14 +1314,14 @@ namespace LibreLancer.Client
                 es.Server.SendDebugInfo = on;
         }
 
-        public string GetSelectedDebugInfo()
+        public string? GetSelectedDebugInfo()
         {
             if (connection is EmbeddedServer es)
                 return es.Server.DebugInfo;
             return null;
         }
 
-        public MissionRuntime.TriggerInfo[] GetTriggerInfo()
+        public MissionRuntime.TriggerInfo[]? GetTriggerInfo()
         {
             if (connection is EmbeddedServer es)
             {
@@ -1382,7 +1386,7 @@ namespace LibreLancer.Client
             }
         }
 
-        void UpdateObject(ObjectUpdate update, GameWorld world)
+        private void UpdateObject(ObjectUpdate update, GameWorld world)
         {
             GameObject obj = world.GetObject(update.ID);
             if (obj == null)
@@ -1426,7 +1430,7 @@ namespace LibreLancer.Client
 
         public void Launch() => rpcServer.Launch();
 
-        void AppendBlue(string text)
+        private void AppendBlue(string text)
         {
             Chats.Append(null, BinaryChatMessage.PlainText(text), Color4.CornflowerBlue, "Arial");
         }
@@ -1567,7 +1571,7 @@ namespace LibreLancer.Client
             };
         }
 
-        UIInventoryItem[] BuildScanList(NetLoadout loadout)
+        private UIInventoryItem[] BuildScanList(NetLoadout loadout)
         {
             var list = loadout.Items
                 .Select(ResolveCargo)
@@ -1602,7 +1606,7 @@ namespace LibreLancer.Client
         }
 
 
-        GameObject ObjOrPlayer(int id)
+        private GameObject ObjOrPlayer(int id)
         {
             if (id == 0) return gp.player;
             return gp.world.GetNetObject(id);

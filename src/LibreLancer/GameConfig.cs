@@ -37,7 +37,7 @@ namespace LibreLancer
 		{
 		}
 
-		Func<string> filePath;
+        private Func<string> filePath;
 
 		public static bool CheckFLDirectory(string dir)
         {
@@ -62,7 +62,7 @@ namespace LibreLancer
             }
         }
 
-		public static GameConfig Create(bool loadFile = true, Func<string> filePath = null)
+		public static GameConfig Create(bool loadFile = true, Func<string>? filePath = null)
 		{
             if (!loadFile)
             {
@@ -120,7 +120,7 @@ namespace LibreLancer
 
         public event Action<GameConfig> Saved;
 
-		static string DefaultConfigPath()
+        private static string DefaultConfigPath()
 		{
 			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.ini");
 		}

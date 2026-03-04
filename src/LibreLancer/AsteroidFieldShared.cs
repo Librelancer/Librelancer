@@ -69,7 +69,7 @@ namespace LibreLancer
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 		//return a float between [0,1] for a hash
-		static unsafe float constructFloat(uint m)
+        private static unsafe float constructFloat(uint m)
 		{
 			const uint ieeeMantissa = 0x007FFFFFu;
 			const uint ieeeOne = 0x3F800000u;
@@ -79,7 +79,7 @@ namespace LibreLancer
 			return f - 1.0f;
 		}
 		//simple hash function
-		static uint hash(uint x)
+        private static uint hash(uint x)
 		{
             unchecked
             {

@@ -21,8 +21,8 @@ namespace LibreLancer
 
     public class FontManager
 	{
-        bool _loaded = false;
-        Dictionary<int, FontDescription> infocardFonts = new Dictionary<int, FontDescription>();
+        private bool _loaded = false;
+        private Dictionary<int, FontDescription> infocardFonts = new Dictionary<int, FontDescription>();
         private Dictionary<string, string> nicknames;
         public void ConstructDefaultFonts()
         {
@@ -38,7 +38,7 @@ namespace LibreLancer
             return nicknames["normal"];
         }
 
-        void LoadFonts(RenderContext context, FontsIni fonts, RichFontsIni rf, FileSystem fs, string dataPath)
+        private void LoadFonts(RenderContext context, FontsIni fonts, RichFontsIni rf, FileSystem fs, string dataPath)
         {
             foreach(var f in fonts.FontFiles)
             {

@@ -45,13 +45,13 @@ namespace LibreLancer.Server
 
         public Ship Ship { get; private set; }
         public List<NetCargo> Items = new List<NetCargo>();
-        Dictionary<uint, VisitFlags> visited = new Dictionary<uint, VisitFlags>();
+        private Dictionary<uint, VisitFlags> visited = new Dictionary<uint, VisitFlags>();
         private HashSet<uint> basesVisited = new();
         private HashSet<uint> systemsVisited = new();
         private HashSet<uint> holesVisited = new();
 
         private long charId;
-        GameDataManager gData;
+        private GameDataManager gData;
         private DatabaseCharacter dbChar;
 
         public long ID => charId;
@@ -60,7 +60,7 @@ namespace LibreLancer.Server
 
         // Individual ship kill types are for Single player saves only.
         // In MP we simply store the statistics.
-        Dictionary<uint, int> shipKillCounts = new Dictionary<uint, int>();
+        private Dictionary<uint, int> shipKillCounts = new Dictionary<uint, int>();
         public void IncrementShipKillCount(Ship ship)
         {
             shipKillCounts.TryGetValue(ship.CRC, out var count);
@@ -211,11 +211,11 @@ namespace LibreLancer.Server
                 _comCostume = comCostume;
             }
 
-            private List<long> cargoToDelete = new List<long>();
+            private List<long> cargoToDelete = [];
 
             public void CargoModified() => cargoDirty = true;
 
-            public void AddCargo(Equipment equip, string hardpoint, int count)
+            public void AddCargo(Equipment equip, string? hardpoint, int count)
             {
                 cargoDirty = true;
                 if (equip.Good?.Ini.Combinable ?? false)
@@ -227,7 +227,6 @@ namespace LibreLancer.Server
                     var slot = nc.Items.FirstOrDefault(x => equip.Good.Equipment == x.Equipment);
                     if (slot == null)
                     {
-                        CargoItem dbItem = null;
                         nc.Items.Add(new NetCargo() {Equipment = equip, Count = count });
                     }
                     else
@@ -262,7 +261,7 @@ namespace LibreLancer.Server
                 nc.Rank = rank;
             }
 
-            void Update(Character c, List<(NetCargo cargo, CargoItem dbItem)> newItems)
+            private void Update(Character c, List<(NetCargo cargo, CargoItem dbItem)> newItems)
             {
                 c.Name = nc.Name;
                 c.Base = nc.Base;
@@ -372,7 +371,7 @@ namespace LibreLancer.Server
             }
         }
 
-        static IEnumerable<(Faction fac, float rep)> RepFromSave(GameServer game, SaveGame sg)
+        private static IEnumerable<(Faction fac, float rep)> RepFromSave(GameServer game, SaveGame sg)
         {
             foreach (var h in sg.Player.House)
             {
@@ -382,7 +381,7 @@ namespace LibreLancer.Server
             }
         }
 
-        static NetCharacter FromSaveGameInternal(GameServer game, SaveGame sg, Character db = null)
+        private static NetCharacter FromSaveGameInternal(GameServer game, SaveGame sg, Character? db = null)
         {
             var nc = new NetCharacter();
             nc.gData = game.GameData;
@@ -582,16 +581,19 @@ namespace LibreLancer.Server
     {
         private static int _id;
         public readonly int ID;
+
         public NetCargo()
         {
             ID = Interlocked.Increment(ref _id);
         }
+
         public NetCargo(int id)
         {
             ID = id;
         }
+
         public Equipment Equipment;
-        public string Hardpoint;
+        public string? Hardpoint;
         public float Health;
         public int Count;
         public long DbItemId;

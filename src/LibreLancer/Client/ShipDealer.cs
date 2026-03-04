@@ -29,7 +29,7 @@ namespace LibreLancer.Client
             this.session = session;
         }
 
-        UISoldShip ShipInfo(Ship ship)
+        private UISoldShip ShipInfo(Ship ship)
         {
             ship.ModelFile.LoadFile(session.Game.ResourceManager);
             return new UISoldShip()
@@ -44,7 +44,7 @@ namespace LibreLancer.Client
             };
         }
 
-        public UISoldShip PlayerShip()
+        public UISoldShip? PlayerShip()
         {
             if (session.PlayerShip == null) return null;
             return ShipInfo(session.PlayerShip);
@@ -65,7 +65,7 @@ namespace LibreLancer.Client
 
         private ulong selectedHullPrice;
 
-        class ShipTradeItem
+        private class ShipTradeItem
         {
             public bool Show = true;
             public string Hardpoint;
@@ -79,7 +79,7 @@ namespace LibreLancer.Client
         private int selectedCrc;
         private Ship selectedShip;
 
-        bool CanMount(string hpType, string hardpoint)
+        private bool CanMount(string hpType, string hardpoint)
         {
             if(string.IsNullOrWhiteSpace(hpType)) return false;
             if (!selectedShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
@@ -102,7 +102,7 @@ namespace LibreLancer.Client
             return false;
         }
 
-        class ResolvedInclude
+        private class ResolvedInclude
         {
             public int ID;
             public Equipment Equipment;
@@ -148,7 +148,7 @@ namespace LibreLancer.Client
             });
         }
 
-        double GetPrice(ResolvedGood good)
+        private double GetPrice(ResolvedGood good)
         {
             foreach (var sold in session.Goods)
             {
@@ -269,7 +269,7 @@ namespace LibreLancer.Client
             var equip = (src.Cargo?.Equipment ?? src.Include.Equipment);
             if (equip.Good.Ini.Combinable)
             {
-                ShipTradeItem dst = null;
+                ShipTradeItem? dst = null;
                 if (src.Cargo != null) {
                     dst = playerItems.FirstOrDefault(x => x.Cargo == src.Cargo);
                 }
@@ -312,7 +312,7 @@ namespace LibreLancer.Client
             var equip = (src.Cargo?.Equipment ?? src.Include.Equipment);
             if (equip.Good.Ini.Combinable)
             {
-                ShipTradeItem dst = null;
+                ShipTradeItem? dst = null;
                 if (src.Cargo != null) {
                     dst = dealerItems.FirstOrDefault(x => x.Cargo == src.Cargo);
                 }
@@ -383,7 +383,7 @@ namespace LibreLancer.Client
                 foreach (var item in session.Items) {
                     if (item.Equipment.Good != null)
                     {
-                        string hp = null;
+                        string? hp = null;
                         if (item.Hardpoint != null && CanMount(item.Equipment.HpType, item.Hardpoint))
                             hp = item.Hardpoint;
                         playerItems.Add(new ShipTradeItem() { Cargo = item, Hardpoint = hp , Amount = item.Count });
@@ -393,7 +393,7 @@ namespace LibreLancer.Client
             });
         }
 
-        string FirstAvailableHardpoint(string hptype)
+        private string? FirstAvailableHardpoint(string hptype)
         {
             if(string.IsNullOrWhiteSpace(hptype)) return null;
             if (!selectedShip.PossibleHardpoints.TryGetValue(hptype, out var candidates))

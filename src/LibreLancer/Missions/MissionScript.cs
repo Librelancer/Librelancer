@@ -63,7 +63,7 @@ namespace LibreLancer.Missions
 
         //Set only the first one
         //Without this, order ships spawn in the wrong place in M01A
-        static void Set<T>(Dictionary<string, T> dict, string k, T value)
+        private static void Set<T>(Dictionary<string, T> dict, string k, T value)
         {
             if (!dict.ContainsKey(k)) dict[k] = value;
             else {

@@ -85,15 +85,15 @@ namespace LibreLancer
             fadeDone = toDo;
         }
 
-        bool fading = false;
+        private bool fading = false;
         private bool fadeFirstFrame = true;
-        bool fadeIn = true;
-        double fadeDelay;
-        double fadeTime;
-        double fadeDuration;
-        double totalTime = 0;
+        private bool fadeIn = true;
+        private double fadeDelay;
+        private double fadeTime;
+        private double fadeDuration;
+        private double totalTime = 0;
         private int hitchCount = 0;
-        Action fadeDone;
+        private Action fadeDone;
         protected void DoFade(double delta)
         {
             if (fading)

@@ -22,7 +22,7 @@ public class WorldProvider
         worlds.TryRemove(system, out _);
     }
 
-    struct WorldState
+    private struct WorldState
     {
         public bool Ready;
         public ServerWorld World;
@@ -30,7 +30,7 @@ public class WorldProvider
 
     private ConcurrentDictionary<StarSystem, WorldState> worlds = new ConcurrentDictionary<StarSystem, WorldState>();
 
-    void LoadWorld(StarSystem system, out WorldState ws, PreloadObject[] preloads)
+    private void LoadWorld(StarSystem system, out WorldState ws, PreloadObject[] preloads)
     {
         var x = new WorldState();
         if (worlds.TryAdd(system, new WorldState()))

@@ -12,8 +12,9 @@ namespace LibreLancer.Fx
 {
     public static class FxRandom
     {
-        static int seed = Environment.TickCount;
-        static readonly ThreadLocal<Random> random =
+        private static int seed = Environment.TickCount;
+
+        private static readonly ThreadLocal<Random> random =
             new ThreadLocal<Random>(() => new Random(Interlocked.Increment(ref seed)));
         public static float NextFloat(float min, float max) => random.Value.NextFloat(min, max);
     }
@@ -41,7 +42,7 @@ namespace LibreLancer.Fx
         public ResourceManager Resources;
 
         public EmitterState[] Emitters;
-        double globaltime = 0;
+        private double globaltime = 0;
         public double GlobalTime => globaltime;
 
         public ParticleBuffer Buffer;
@@ -78,7 +79,7 @@ namespace LibreLancer.Fx
 
         public double LastTime => lasttime;
 
-        double lasttime = 0;
+        private double lasttime = 0;
         public Vector3 Position = Vector3.Zero;
 
         public bool Culled = false;

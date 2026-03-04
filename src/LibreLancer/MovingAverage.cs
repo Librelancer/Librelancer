@@ -21,7 +21,7 @@ public class MovingAverage<T> where T : ISignedNumber<T>
 
     public T Average => average;
 
-    void CalculateAverage()
+    private void CalculateAverage()
     {
         double accum = 0;
         for (int i = 0; i < values.Length; i++) {

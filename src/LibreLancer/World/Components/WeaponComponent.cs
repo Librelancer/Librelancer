@@ -30,7 +30,7 @@ namespace LibreLancer.World.Components
             }
         }
 
-        void DoRotation(float x, float y, double time)
+        private void DoRotation(float x, float y, double time)
         {
             var hp = Parent.Attachment;
             var rads = MathHelper.DegreesToRadians(TurnRate);
@@ -52,7 +52,7 @@ namespace LibreLancer.World.Components
                 Angles.X = current;
             }
             //TODO: Finding barrel construct properly?
-            Utf.RevConstruct barrel = null;
+            Utf.RevConstruct? barrel = null;
             foreach (var mdl in Parent.Model.RigidModel.AllParts)
                 if (mdl.Construct is Utf.RevConstruct revCon)
                     barrel = revCon;
@@ -98,7 +98,7 @@ namespace LibreLancer.World.Components
             DoRotation(x, y, time);
         }
 
-        static Vector3 TransformGL(Vector3 position, Matrix4x4 matrix)
+        private static Vector3 TransformGL(Vector3 position, Matrix4x4 matrix)
         {
             return new Vector3(
                 position.X * matrix.M11 + position.Y * matrix.M21 + position.Z * matrix.M31 + matrix.M41,
@@ -114,7 +114,7 @@ namespace LibreLancer.World.Components
 
         protected abstract bool OnFire(Vector3 point, GameObject target, bool server);
 
-        public bool Fire(Vector3 point, GameObject target = null, bool fromServer = false)
+        public bool Fire(Vector3 point, GameObject? target = null, bool fromServer = false)
         {
             if (!fromServer && Parent.Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
                 (flight.EngineState == EngineStates.Cruise || flight.EngineState == EngineStates.CruiseCharging))

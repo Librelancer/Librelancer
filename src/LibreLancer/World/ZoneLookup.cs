@@ -17,7 +17,7 @@ public class ZoneLookup : IDisposable
 
     private List<Zone> zones;
 
-    static void ComputeBounds(Zone zone, out Vector3 min, out Vector3 max)
+    private static void ComputeBounds(Zone zone, out Vector3 min, out Vector3 max)
     {
         switch (zone.Shape)
         {
@@ -42,7 +42,7 @@ public class ZoneLookup : IDisposable
         max += zone.Position;
     }
 
-    static void FillSubtreesForChildren(List<Zone> children, Span<NodeChild> subtrees)
+    private static void FillSubtreesForChildren(List<Zone> children, Span<NodeChild> subtrees)
     {
         for (int i = 0; i < children.Count; ++i)
         {
@@ -60,7 +60,7 @@ public class ZoneLookup : IDisposable
         RebuildTree();
     }
 
-    unsafe void RebuildTree()
+    private unsafe void RebuildTree()
     {
         pool.Clear();
         if (zones.Count == 0)
@@ -97,7 +97,7 @@ public class ZoneLookup : IDisposable
         //tree.RefitAndRefine(pool, frameIndex++);
     }
 
-    struct PointIterator(Action<Zone> cb, ZoneLookup lookup, Vector3 pos) : IBreakableForEach<int>
+    private struct PointIterator(Action<Zone> cb, ZoneLookup lookup, Vector3 pos) : IBreakableForEach<int>
     {
         public bool LoopBody(int i)
         {

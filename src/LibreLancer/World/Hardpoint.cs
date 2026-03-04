@@ -10,13 +10,13 @@ namespace LibreLancer.World
 {
     public class Hardpoint : IRenderHardpoint
     {
-        Matrix4x4 transform;
+        private Matrix4x4 transform;
         public RigidModelPart Parent;
         public string Name;
         public RevoluteHardpointDefinition Revolute;
         public HardpointDefinition Definition;
         public float CurrentRevolution;
-        Quaternion rotation = Quaternion.Identity;
+        private Quaternion rotation = Quaternion.Identity;
         public void Revolve(float val)
         {
             var clamped = MathHelper.Clamp(val, Revolute.Min, Revolute.Max);

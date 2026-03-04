@@ -34,7 +34,7 @@ namespace LibreLancer.Server.Components
             Open = true;
         }
 
-        void Animate(bool close, GameObject parent)
+        private void Animate(bool close, GameObject parent)
         {
             var component = parent.GetComponent<AnimationComponent>();
             if (component == null) return;
@@ -64,7 +64,7 @@ namespace LibreLancer.Server.Components
 
         public DockingPoint[] DockPoints;
         private DockHardpoints hardpoints;
-        Random r = new Random();
+        private Random r = new Random();
 
 
         public SDockableComponent(GameObject parent, DockAction action, DockSphere[] dockSpheres) : base(parent)
@@ -75,7 +75,7 @@ namespace LibreLancer.Server.Components
         }
 
 
-        void TryTriggerAnimation(int i, GameObject obj)
+        private void TryTriggerAnimation(int i, GameObject obj)
         {
             float animRadius = 30;
             if (Action.Kind == DockKinds.Tradelane) animRadius = 300;
@@ -94,7 +94,7 @@ namespace LibreLancer.Server.Components
         }
 
 
-        bool CanPlayerTradelane(GameObject ship, string tradelaneNickname)
+        private bool CanPlayerTradelane(GameObject ship, string tradelaneNickname)
         {
             if (ship.TryGetComponent<SPlayerComponent>(out var player))
             {
@@ -109,7 +109,7 @@ namespace LibreLancer.Server.Components
             return true; // NPCs can always tradelane
         }
 
-        bool CanDock(int i, GameObject obj, string tlHP = null)
+        private bool CanDock(int i, GameObject obj, string? tlHP = null)
         {
             var rad = obj.PhysicsComponent?.Body.Collider.Radius ?? 15;
             var pos = obj.WorldTransform.Position;
@@ -130,7 +130,7 @@ namespace LibreLancer.Server.Components
         private int inactiveTicksRight = 0;
         private const int INACTIVE_TIME = 16;
 
-        void TriggerAnimation(int i)
+        private void TriggerAnimation(int i)
         {
             if (Action.Kind == DockKinds.Tradelane &&
                 DockPoints[i].DockSphere.Hardpoint.Equals("hpleftlane", StringComparison.OrdinalIgnoreCase))
@@ -150,7 +150,7 @@ namespace LibreLancer.Server.Components
             DockPoints[i].TriggerOpen(Parent);
         }
 
-        class DockingAction
+        private class DockingAction
         {
             public int Dock;
             public GameObject Ship;
@@ -179,7 +179,7 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        void StartTradelane(GameObject ship, string tlHardpoint)
+        private void StartTradelane(GameObject ship, string tlHardpoint)
         {
             var movement = new STradelaneMoveComponent(ship, Parent, tlHardpoint);
             ship.AddComponent(movement);

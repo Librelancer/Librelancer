@@ -13,7 +13,7 @@ namespace LibreLancer.Utf
 {
     public abstract class AbstractConstruct
     {
-        const int STR_LENGTH = 64;
+        private const int STR_LENGTH = 64;
         public string ParentName { get; set; }
         public string ChildName { get; set; }
         public Vector3 Origin { get; set; }

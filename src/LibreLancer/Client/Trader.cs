@@ -24,27 +24,28 @@ namespace LibreLancer.Client
         }
 
         private static Dictionary<string, Func<Equipment, bool>> filters = new();
-        static bool AllowAll(Equipment equip) => true;
-        static bool CommodityFilter(Equipment equip) => equip is CommodityEquipment;
-        static bool WeaponFilter(Equipment equip)
+        private static bool AllowAll(Equipment equip) => true;
+        private static bool CommodityFilter(Equipment equip) => equip is CommodityEquipment;
+
+        private static bool WeaponFilter(Equipment equip)
         {
             return equip is GunEquipment ||
                    equip is MissileLauncherEquipment ||
                    equip is CountermeasureEquipment;
         }
 
-        static bool ExternalFilter(Equipment equip)
+        private static bool ExternalFilter(Equipment equip)
         {
             return equip is ThrusterEquipment ||
                    equip is ShieldEquipment;
         }
 
-        static bool AmmoFilter(Equipment equip)
+        private static bool AmmoFilter(Equipment equip)
         {
             return equip is MissileEquip;
         }
 
-        static bool InternalFilter(Equipment equip)
+        private static bool InternalFilter(Equipment equip)
         {
             return equip is ShieldBatteryEquipment ||
                    equip is RepairKitEquipment;
@@ -77,7 +78,7 @@ namespace LibreLancer.Client
 
         private Closure handler;
 
-        void UpdateAction()
+        private void UpdateAction()
         {
             handler.Call();
         }
@@ -166,7 +167,7 @@ namespace LibreLancer.Client
             return traderGoods.ToArray();
         }
 
-        double GetPrice(ResolvedGood good)
+        private double GetPrice(ResolvedGood good)
         {
             foreach (var sold in session.Goods)
             {
@@ -177,7 +178,7 @@ namespace LibreLancer.Client
             return p;
         }
 
-        bool CanMount(string hpType)
+        private bool CanMount(string hpType)
         {
             if(string.IsNullOrWhiteSpace(hpType) || session.PlayerShip == null) return false;
             if (!session.PlayerShip.PossibleHardpoints.TryGetValue(hpType, out var possible))

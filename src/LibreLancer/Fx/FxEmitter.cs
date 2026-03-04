@@ -75,7 +75,8 @@ namespace LibreLancer.Fx
 		{
 
 		}
-        static readonly AlchemyTransform[] transforms = new AlchemyTransform[32];
+
+        private static readonly AlchemyTransform[] transforms = new AlchemyTransform[32];
         protected bool DoTransform(NodeReference reference, float sparam, float t, out Vector3 translate, out Quaternion rotate)
         {
             translate = Vector3.Zero;
@@ -100,7 +101,7 @@ namespace LibreLancer.Fx
             return idx != -1;
         }
 
-        static float Max3(float a, float b, float c) => Math.Max(Math.Max(a, b), c);
+        private static float Max3(float a, float b, float c) => Math.Max(Math.Max(a, b), c);
         public float GetMaxDistance(NodeReference reference)
         {
             var pr = reference;

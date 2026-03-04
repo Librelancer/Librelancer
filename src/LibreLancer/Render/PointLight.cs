@@ -15,6 +15,6 @@ namespace LibreLancer.Render
 		public Vector4 ColorRange;
 		public Vector4 Attenuation;
 
-		Vector4 padding;
+        private Vector4 padding;
 	}
 }

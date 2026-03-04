@@ -35,7 +35,7 @@ namespace LibreLancer.Utf.Vms
 
         public VMeshResource Resource;
 
-        T Read<T>(int offset, int index)
+        private T Read<T>(int offset, int index)
             where T : unmanaged
         {
             var sz = Unsafe.SizeOf<T>();
@@ -111,7 +111,7 @@ namespace LibreLancer.Utf.Vms
             GenerateVertexBuffer(cache);
 		}
 
-        void SetResource(VertexResource res)
+        private void SetResource(VertexResource res)
         {
             Resource = new VMeshResource()
             {
@@ -120,7 +120,8 @@ namespace LibreLancer.Utf.Vms
                 Indices = Indices,
             };
         }
-        void GenerateVertexBuffer(ResourceManager cache)
+
+        private void GenerateVertexBuffer(ResourceManager cache)
         {
             SetResource(cache.AllocateVertices(VertexFormat, VertexBuffer, Indices));
         }

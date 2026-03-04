@@ -12,7 +12,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ChatBox : UiWidget
     {
-        event Action<ChatCategory, string> TextEntered;
+        private event Action<ChatCategory, string> TextEntered;
 
         public void OnTextEntered(WattleScript.Interpreter.Closure handler)
         {
@@ -66,8 +66,7 @@ namespace LibreLancer.Interface
         }
 
 
-
-        void DrawText(UiContext context, RectangleF myRect)
+        private void DrawText(UiContext context, RectangleF myRect)
         {
             var sizeF = context.TextSize(FontSize);
             editBase.LeadingNode  = new RichTextTextNode()
@@ -80,7 +79,8 @@ namespace LibreLancer.Interface
             editBase.SetRectangle(rect.X + 2, rect.Y + 2, rect.Width - 4, rect.Height - 4);
             editBase.Draw(context.RenderContext, context.GlobalTime);
         }
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             Update(context, myPos);

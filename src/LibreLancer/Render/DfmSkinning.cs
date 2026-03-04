@@ -14,9 +14,9 @@ namespace LibreLancer.Render
 {
     public class DfmSkinning
     {
-        DfmFile dfm;
+        private DfmFile dfm;
         private BoneInstance[] instanceArray;
-        List<BoneInstance> starts = new List<BoneInstance>();
+        private List<BoneInstance> starts = new List<BoneInstance>();
         public Dictionary<string, BoneInstance> Bones = new Dictionary<string, BoneInstance>(StringComparer.OrdinalIgnoreCase);
         public int BufferOffset;
         public BoundingBox BoundingBox;
@@ -87,7 +87,7 @@ namespace LibreLancer.Render
             return false;
         }
 
-        void UpdateBounds()
+        private void UpdateBounds()
         {
             var bounds = new BoundingBox();
             bool set = false;
@@ -160,7 +160,7 @@ namespace LibreLancer.Render
             9,10
         };
 
-        void DrawCube(LineRenderer lines, Matrix4x4 world, float scale, Color4 color)
+        private void DrawCube(LineRenderer lines, Matrix4x4 world, float scale, Color4 color)
         {
             for (int i = 0; i < cubeIndices.Length; i += 2)
             {

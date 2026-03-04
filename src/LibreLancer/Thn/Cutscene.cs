@@ -97,17 +97,17 @@ namespace LibreLancer.Thn
         public bool Running => running;
         public double CurrentTime => currentTime;
         //Private variables
-        double currentTime = 0;
+        private double currentTime = 0;
         private Dictionary<string, ThnObject> sceneObjects;
-        Game game;
-        ThnCamera camera;
-        bool spawnObjects = true;
-        List<Tuple<IDrawable, ThnObject>> layers = new List<Tuple<IDrawable, ThnObject>>();
-        ThnDisplayText text;
+        private Game game;
+        private ThnCamera camera;
+        private bool spawnObjects = true;
+        private List<Tuple<IDrawable, ThnObject>> layers = new List<Tuple<IDrawable, ThnObject>>();
+        private ThnDisplayText text;
         private GameDataManager gameData;
         private GameResourceManager resourceManager;
         private SoundManager soundManager;
-        bool hasScene = false;
+        private bool hasScene = false;
         private bool running = false;
 
         public event Action<ThnScript> ScriptFinished;
@@ -145,7 +145,7 @@ namespace LibreLancer.Thn
         }
 
         private ThnScriptContext scriptContext;
-        List<ThnScriptInstance> instances = new List<ThnScriptInstance>();
+        private List<ThnScriptInstance> instances = new List<ThnScriptInstance>();
         public Cutscene(ThnScriptContext context, GameDataManager gameData, GameResourceManager resources, SoundManager sound, Rectangle viewport, Game game)
         {
             scriptContext = context;
@@ -181,7 +181,7 @@ namespace LibreLancer.Thn
             SceneSetup(new[] { scene }, false);
         }
 
-        void SceneSetup(ThnScript[] scripts, bool resetObjects = true)
+        private void SceneSetup(ThnScript[] scripts, bool resetObjects = true)
         {
             hasScene = false;
             currentTime = 0;
@@ -259,7 +259,7 @@ namespace LibreLancer.Thn
 
         private ThnObject[] starSphereObjects;
 
-        void UpdateStarsphere()
+        private void UpdateStarsphere()
         {
             for (int i = 0; i < starSphereObjects.Length; i++)
             {
@@ -325,20 +325,23 @@ namespace LibreLancer.Thn
 			Renderer.Draw(renderWidth, renderHeight);
         }
 
-        public ThnObject GetObject(string name)
+        public ThnObject? GetObject(string name)
         {
-            if (string.IsNullOrEmpty(name)) return null;
-            ThnObject o;
-            if (sceneObjects.TryGetValue(name, out o))
-                return o;
-            return null;
+            if (string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+
+            return sceneObjects.TryGetValue(name, out var o) ? o : null;
         }
+
         public void SetCamera(string name)
         {
             var cam = GetObject(name);
             camera.Object = cam;
             soundManager.ResetListenerVelocity();
         }
+
         public void Dispose()
 		{
 			Renderer.Dispose();

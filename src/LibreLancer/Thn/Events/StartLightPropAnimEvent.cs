@@ -78,7 +78,7 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        class LightPropAnim : ThnEventProcessor
+        private class LightPropAnim : ThnEventProcessor
         {
             public RenderLight Orig;
             public DynamicLight Dst;

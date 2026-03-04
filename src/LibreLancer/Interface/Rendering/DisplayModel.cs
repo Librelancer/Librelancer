@@ -77,7 +77,7 @@ namespace LibreLancer.Interface
             return Matrix4x4.CreateScale(sX, sY, 1) * Matrix4x4.CreateTranslation(tX, tY, 0);
         }
 
-        void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat)
+        private void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat)
         {
             var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             var mesh = context.Data.ResourceManager.FindMesh(wire.MeshCRC);
@@ -161,7 +161,8 @@ namespace LibreLancer.Interface
         }
 
         private int v = 0;
-        bool CanRender(UiContext context)
+
+        private bool CanRender(UiContext context)
         {
             if (!loadable) return false;
             if (v != context.MeshDisposeVersion){ //HACK: Clear models on vmesh dispose

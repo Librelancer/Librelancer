@@ -21,9 +21,9 @@ namespace LibreLancer.World.Components
 
         public override int IdsName => Object.IdsName;
 
-        ProjectileManager projectiles;
-        ProjectileData toSpawn;
-        Hardpoint[] hpfires;
+        private ProjectileManager projectiles;
+        private ProjectileData toSpawn;
+        private Hardpoint[] hpfires;
 
         protected override bool OnFire(Vector3 point, GameObject target, bool fromServer)
         {

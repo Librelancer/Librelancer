@@ -22,7 +22,7 @@ namespace LibreLancer.World.Components
 
         public bool PlayerInput;
 
-        PIDController rollPID = new PIDController() { P = 2 };
+        private PIDController rollPID = new PIDController() { P = 2 };
 
         public ShipSteeringComponent(GameObject parent) : base(parent) { }
 
@@ -60,7 +60,7 @@ namespace LibreLancer.World.Components
         }
 
         //Specific decomposition for roll
-        static void DecomposeOrientation(Matrix4x4 mx, out double xPitch, out double yYaw, out double zRoll)
+        private static void DecomposeOrientation(Matrix4x4 mx, out double xPitch, out double yYaw, out double zRoll)
         {
             xPitch = Math.Asin(-mx.M32);
             double threshold = 0.001; // Hardcoded constant – burn him, he’s a witch

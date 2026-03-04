@@ -156,9 +156,9 @@ namespace LibreLancer.Render
             buffersByType = null;
         }
 
-        class FreeList
+        private class FreeList
         {
-            struct FreeItem
+            private struct FreeItem
             {
                 public int Start;
                 public int Count;
@@ -210,9 +210,9 @@ namespace LibreLancer.Render
             }
         }
 
-        class VertexResourceBuffer : IDisposable
+        private class VertexResourceBuffer : IDisposable
         {
-            const int VERTEX_BUFSIZE = (int)(8 * 1024 * 1024);
+            private const int VERTEX_BUFSIZE = (int)(8 * 1024 * 1024);
 
             private FreeList freeList = new FreeList();
             private int resizeCount = 0;

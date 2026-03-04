@@ -15,7 +15,6 @@ using LibreLancer.Data;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.IO;
 using LibreLancer.Data.Schema.Save;
-using LibreLancer.Data.Schema.Save;
 using LibreLancer.Database;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
@@ -30,7 +29,7 @@ namespace LibreLancer.Server
         public string ServerName = "Librelancer Server";
         public string ServerDescription = "Description of the server is here.";
         public string ServerNews = "News of the server goes here";
-        public string LoginUrl = null;
+        public string? LoginUrl = null;
 
         public bool SendDebugInfo = false;
         public string DebugInfo { get; private set; }
@@ -46,7 +45,7 @@ namespace LibreLancer.Server
 
         public BaselinePriceBundle BaselineGoodPrices;
 
-        volatile bool running = false;
+        private volatile bool running = false;
 
         public GameListener Listener;
         private Thread gameThread;
@@ -165,9 +164,9 @@ namespace LibreLancer.Server
         }
 
 
-        Dictionary<StarSystem, ServerWorld> worlds = new Dictionary<StarSystem, ServerWorld>();
-        ConcurrentQueue<Action> worldRequests = new ConcurrentQueue<Action>();
-        ConcurrentQueue<IPacket> localPackets = new ConcurrentQueue<IPacket>();
+        private Dictionary<StarSystem, ServerWorld> worlds = new Dictionary<StarSystem, ServerWorld>();
+        private ConcurrentQueue<Action> worldRequests = new ConcurrentQueue<Action>();
+        private ConcurrentQueue<IPacket> localPackets = new ConcurrentQueue<IPacket>();
         public readonly ConcurrentQueue<ServerEvent> ServerEvents = new ConcurrentQueue<ServerEvent>();
 
         public void OnLocalPacket(IPacket pkt)
@@ -185,7 +184,7 @@ namespace LibreLancer.Server
             });
         }
 
-        void InitBaselinePrices()
+        private void InitBaselinePrices()
         {
             var bp = new List<BaselinePrice>();
             foreach (var good in GameData.Items.Goods)
@@ -217,7 +216,7 @@ namespace LibreLancer.Server
             }
         }
 
-        IEnumerable<Player> GetConnectedPlayers()
+        private IEnumerable<Player> GetConnectedPlayers()
         {
             lock (ConnectedPlayers)
             {
@@ -242,7 +241,7 @@ namespace LibreLancer.Server
 
         public uint CurrentTick { get; private set; }
 
-        void Process(TimeSpan time, TimeSpan totalTime, uint currentTick)
+        private void Process(TimeSpan time, TimeSpan totalTime, uint currentTick)
         {
             CurrentTick = currentTick;
             var startTime = serverTiming.Elapsed;
@@ -292,7 +291,7 @@ namespace LibreLancer.Server
 
         private Stopwatch serverTiming;
 
-        void GameThread()
+        private void GameThread()
         {
             if (needLoadData)
             {

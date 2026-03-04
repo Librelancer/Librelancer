@@ -23,7 +23,7 @@ namespace LibreLancer.World
         public Projectile[] Projectiles = new Projectile[16384];
         public IdPool Ids = new IdPool(16384 / 32, false);
 
-        GameWorld world;
+        private GameWorld world;
         public ProjectileManager(GameWorld world)
         {
             this.world = world;
@@ -74,7 +74,7 @@ namespace LibreLancer.World
                 _instances.Remove(k);
         }
 
-        Dictionary<string, ProjectileData> datas = new Dictionary<string, ProjectileData>();
+        private Dictionary<string, ProjectileData> datas = new Dictionary<string, ProjectileData>();
         public ProjectileData GetData(GunEquipment gunDef)
         {
             ProjectileData pdata;
@@ -135,7 +135,7 @@ namespace LibreLancer.World
                 {
                     var spawn = new ProjectileSpawn();
                     bool first = true;
-                    List<Vector3> targets = null;
+                    List<Vector3>? targets = null;
                     foreach (var v in x) {
                         if (first) {
                             spawn.Owner = v.NetId;
@@ -163,24 +163,36 @@ namespace LibreLancer.World
 
         public ProjectileFireCommand? GetQueuedRequest()
         {
-            if(requests.Count <= 0)
+            if (requests.Count <= 0)
+            {
                 return null;
+            }
+
             requests.Sort((x,y) => x.Index.CompareTo(y.Index));
             var fireRequest = new ProjectileFireCommand()
             {
                 Target = requests[0].Target
             };
-            List<Vector3> otherTargets = new List<Vector3>();
+
+            List<Vector3> otherTargets = [];
             for (int i = 0; i < requests.Count; i++)
             {
                 fireRequest.Guns |= (1UL << requests[i].Index);
-                if (requests[i].Target != fireRequest.Target) {
-                    fireRequest.Unique |= (1UL << requests[i].Index);
-                    otherTargets.Add(requests[i].Target);
+
+                if (requests[i].Target == fireRequest.Target)
+                {
+                    continue;
                 }
+
+                fireRequest.Unique |= (1UL << requests[i].Index);
+                otherTargets.Add(requests[i].Target);
             }
+
             if (otherTargets.Count > 0)
+            {
                 fireRequest.OtherTargets = otherTargets.ToArray();
+            }
+
             requests.Clear();
             return fireRequest;
         }

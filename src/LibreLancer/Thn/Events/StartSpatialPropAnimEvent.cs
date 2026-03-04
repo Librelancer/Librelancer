@@ -139,7 +139,7 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        abstract class SpatialAnimRoutine : ThnEventProcessor
+        private abstract class SpatialAnimRoutine : ThnEventProcessor
         {
             public StartSpatialPropAnimEvent Event;
             public bool HasPos;
@@ -187,14 +187,16 @@ namespace LibreLancer.Thn.Events
             protected abstract Quaternion QEnd();
             protected abstract Vector3 PosEnd();
         }
-        class StaticSpatialRoutine : SpatialAnimRoutine
+
+        private class StaticSpatialRoutine : SpatialAnimRoutine
         {
             public Vector3 EndPos;
             public Quaternion EndQuat;
             protected override Quaternion QEnd() => EndQuat;
             protected override Vector3 PosEnd() => EndPos;
         }
-        class FollowSpatialRoutine : SpatialAnimRoutine
+
+        private class FollowSpatialRoutine : SpatialAnimRoutine
         {
             public ThnObject Follow;
             protected override Quaternion QEnd()

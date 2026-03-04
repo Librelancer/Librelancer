@@ -61,7 +61,7 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        class SParamAnimation : ThnEventProcessor
+        private class SParamAnimation : ThnEventProcessor
         {
             public ThnObject Object;
             public StartPSysPropAnimEvent Event;

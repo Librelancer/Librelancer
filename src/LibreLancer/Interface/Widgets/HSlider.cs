@@ -64,7 +64,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        void UpdateMinMax()
+        private void UpdateMinMax()
         {
             if (_smooth)
             {
@@ -104,7 +104,8 @@ namespace LibreLancer.Interface
         private Button thumb = new Button();
         private Button thumbleft = new Button();
         private Button thumbright = new Button();
-        void Layout(UiContext context, RectangleF parent, out RectangleF myRectangle, out RectangleF track)
+
+        private void Layout(UiContext context, RectangleF parent, out RectangleF myRectangle, out RectangleF track)
         {
             var height = Cascade(Style?.Height, null, Height);
             var myPos = context.AnchorPosition(parent, Anchor, X, Y, Width, height);

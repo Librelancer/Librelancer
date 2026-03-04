@@ -10,15 +10,16 @@ namespace LibreLancer
 {
     public class LoadingDataState : GameState
 	{
-		Texture2D splash;
+        private Texture2D splash;
         private bool invoked = false;
 		public LoadingDataState(FreelancerGame g) : base(g)
 		{
 			splash = g.GameData.GetSplashScreen();
 		}
-        bool shadersCompiled = false;
+
+        private bool shadersCompiled = false;
         private bool uiLoaded = false;
-        int xCnt = 0;
+        private int xCnt = 0;
         public override void Draw(double delta)
 		{
             xCnt++;

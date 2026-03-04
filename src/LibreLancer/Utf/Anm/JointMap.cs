@@ -15,7 +15,7 @@ namespace LibreLancer.Utf.Anm
         {
         }
 
-        public JointMap(IntermediateNode root, AnmBuffer buffer, StringDeduplication dedup = null)
+        public JointMap(IntermediateNode root, AnmBuffer buffer, StringDeduplication? dedup = null)
         {
 			foreach (Node node in root)
             {

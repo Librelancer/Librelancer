@@ -16,7 +16,7 @@ namespace LibreLancer.World
     /// <summary>
     /// Return a GameObject only if you add one to the parent
     /// </summary>
-    public delegate GameObject MountEquipmentHandler(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip);
+    public delegate GameObject? MountEquipmentHandler(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip);
 
     public enum EquipmentType
     {
@@ -27,11 +27,12 @@ namespace LibreLancer.World
     }
     public class EquipmentObjectManager
     {
-        static Dictionary<Type, MountEquipmentHandler> handlers = new Dictionary<Type, MountEquipmentHandler>();
+        private static Dictionary<Type, MountEquipmentHandler> handlers = new();
         public static void RegisterType<T>(MountEquipmentHandler handler)
         {
             handlers.Add(typeof(T), handler);
         }
+
         public static void InstantiateEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
         {
             var etype = equip.GetType();
@@ -40,6 +41,7 @@ namespace LibreLancer.World
                 FLLog.Error("Equipment", $"Cannot instantiate {etype}");
                 return;
             }
+
             var obj = handle(parent, res, snd, type, hardpoint, equip);
             //Do setup of child attachment, hardpoint, lod inheriting, static position etc.
             if (obj != null)
@@ -51,12 +53,13 @@ namespace LibreLancer.World
                     mrender.LODRanges = equip.LODRanges;
                 if(equip.HPChild != null)
                 {
-                    Hardpoint hpChild = obj.GetHardpoint(equip.HPChild);
+                    var hpChild = obj.GetHardpoint(equip.HPChild);
                     if (hpChild != null)
                     {
                         obj.SetLocalTransform(hpChild.Transform.Inverse());
                     }
                 }
+
                 var hp = parent.GetHardpoint(hardpoint);
                 obj.Attachment = hp;
                 if(obj.RenderComponent is ModelRenderer && parent.RenderComponent != null)
@@ -72,7 +75,7 @@ namespace LibreLancer.World
                          //  obj. RenderComponent.InheritCull = true;
                         //if(mr.CmpParts != null)
                         //{
-                            /*Part parentPart = null;
+                            /*Part? parentPart = null;
                             if (hp.parent != null)
                                 parentPart = mr.CmpParts.Find((o) => o.ObjectName == hp.parent.ChildName);
                             else

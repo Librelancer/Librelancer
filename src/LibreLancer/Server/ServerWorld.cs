@@ -25,17 +25,17 @@ namespace LibreLancer.Server
     public class ServerWorld
     {
         public Dictionary<Player, GameObject> Players = new Dictionary<Player, GameObject>();
-        ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
+        private ConcurrentQueue<Action> actions = new ConcurrentQueue<Action>();
         public GameWorld GameWorld;
         public GameServer Server;
         public StarSystem System;
         public NPCManager NPCs;
         private Random debrisRandom = new();
-        object _idLock = new object();
+        private object _idLock = new object();
 
         public NetIDGenerator IdGenerator = new NetIDGenerator();
 
-        UpdatePacker packer = new UpdatePacker();
+        private UpdatePacker packer = new UpdatePacker();
 
         public bool Paused => paused;
 
@@ -238,7 +238,7 @@ namespace LibreLancer.Server
             return true;
         }
 
-        ObjectSpawnInfo BuildSpawnInfo(GameObject obj, GameObject self)
+        private ObjectSpawnInfo BuildSpawnInfo(GameObject obj, GameObject self)
         {
             var info = new ObjectSpawnInfo();
             info.ID = new ObjNetId(obj.NetID);
@@ -507,11 +507,7 @@ namespace LibreLancer.Server
             });
         }
 
-        public GameObject GetObject(ObjNetId id)
-        {
-            if (id.Value == 0) return null;
-            return GameWorld.GetObject(id);
-        }
+        public GameObject? GetObject(ObjNetId id) => id.Value == 0 ? null : GameWorld.GetObject(id);
 
         public void FireMissiles(MissileFireCmd[] missiles, Player owner)
         {
@@ -546,7 +542,7 @@ namespace LibreLancer.Server
             }
         }
 
-        void UpdateAnimations(GameObject obj, Player player)
+        private void UpdateAnimations(GameObject obj, Player player)
         {
             player.RpcClient.UpdateAnimations(obj, obj.AnimationComponent.Serialize().ToArray());
         }
@@ -561,7 +557,7 @@ namespace LibreLancer.Server
                 UpdateAnimations(obj, p.Key);
         }
 
-        void RemoveObjectInternal(GameObject obj)
+        private void RemoveObjectInternal(GameObject obj)
         {
             obj.Unregister(GameWorld.Physics);
             GameWorld.RemoveObject(obj);
@@ -607,8 +603,8 @@ namespace LibreLancer.Server
             });
         }
 
-        List<GameObject> updatingObjects = new List<GameObject>();
-        List<GameObject> spawnedObjects = new List<GameObject>();
+        private List<GameObject> updatingObjects = new List<GameObject>();
+        private List<GameObject> spawnedObjects = new List<GameObject>();
 
         public GameObject SpawnSolar(string nickname, Archetype arch, string loadout, Faction rep, Vector3 position,
             Quaternion orientation, int idsName = 0, string? dockWith = null)
@@ -653,7 +649,7 @@ namespace LibreLancer.Server
             Equipment good,
             int count,
             Transform3D transform,
-            string nickname = null)
+            string? nickname = null)
         {
             actions.Enqueue(() =>
             {
@@ -851,7 +847,7 @@ namespace LibreLancer.Server
             }
         }
 
-        void UpdateDebugInfo()
+        private void UpdateDebugInfo()
         {
             if (Server.LocalPlayer != null &&
                 Server.SendDebugInfo &&
@@ -866,7 +862,7 @@ namespace LibreLancer.Server
             }
         }
 
-        IEnumerable<GameObject> GetUpdatingObjects()
+        private IEnumerable<GameObject> GetUpdatingObjects()
         {
             foreach (var obj in updatingObjects) yield return obj;
             foreach (var obj in GameWorld.Objects)
@@ -878,7 +874,7 @@ namespace LibreLancer.Server
             }
         }
 
-        record struct SortedUpdate(FetchedDelta Old, int Size, int Offset, GameObject Object, ObjectUpdate Update)
+        private record struct SortedUpdate(FetchedDelta Old, int Size, int Offset, GameObject Object, ObjectUpdate Update)
             : IComparable<SortedUpdate>
         {
             public int CompareTo(SortedUpdate other)
@@ -889,7 +885,7 @@ namespace LibreLancer.Server
             }
         }
 
-        class IdComparer : IComparer<SortedUpdate>
+        private class IdComparer : IComparer<SortedUpdate>
         {
             public static readonly IdComparer Instance = new IdComparer();
 
@@ -902,7 +898,7 @@ namespace LibreLancer.Server
         }
 
         //This could do with some work
-        void SendWorldUpdates(uint tick)
+        private void SendWorldUpdates(uint tick)
         {
             // Update players
             foreach (var player in Players)

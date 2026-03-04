@@ -76,7 +76,7 @@ namespace LibreLancer.Thn
             return (T) System.Convert.ChangeType(integer, Enum.GetUnderlyingType(typeof(T)));
         }
 
-        static Matrix4x4 GetMatrix(ThornTable orient)
+        private static Matrix4x4 GetMatrix(ThornTable orient)
         {
             var m11 = (float) ((ThornTable) orient[0])[0];
             var m12 = (float) ((ThornTable) orient[0])[1];

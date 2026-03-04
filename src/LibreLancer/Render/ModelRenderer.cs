@@ -16,9 +16,9 @@ namespace LibreLancer.Render
 		public NebulaRenderer Nebula;
         private int NebulaVersion = -1;
 
-        Vector3 pos;
-		bool inited = false;
-		SystemRenderer sysr;
+        private Vector3 pos;
+        private bool inited = false;
+        private SystemRenderer sysr;
 
 		public ModelRenderer(RigidModel model)
 		{
@@ -29,9 +29,9 @@ namespace LibreLancer.Render
         public int CurrentLevel = 0;
         public Vector3 Spin = Vector3.Zero;
 
-        double spinX;
-        double spinY;
-        double spinZ;
+        private double spinX;
+        private double spinY;
+        private double spinZ;
 		public override void Update(double elapsed, Vector3 position, Matrix4x4 transform)
 		{
 			if (sysr == null)
@@ -53,7 +53,7 @@ namespace LibreLancer.Render
             }
         }
 
-        int GetLevel(RigidModelPart file, Vector3 center, Vector3 camera)
+        private int GetLevel(RigidModelPart file, Vector3 center, Vector3 camera)
 		{
 			float[] ranges = LODRanges ?? file.Mesh.Switch2;
 			var dsq = Vector3.DistanceSquared(center, camera);
@@ -101,7 +101,7 @@ namespace LibreLancer.Render
 
         }
 
-        Matrix4x4 _worldSph;
+        private Matrix4x4 _worldSph;
         private BitArray128 visibleParts;
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
 		{

@@ -35,9 +35,9 @@ public class AsteroidCubeMesh : IDisposable
 
 public class AsteroidCubeMeshBuilder
 {
-    List<VertexPositionNormalDiffuseTexture> verts;
-    List<ushort> indices;
-    List<int> hashes;
+    private List<VertexPositionNormalDiffuseTexture> verts;
+    private List<ushort> indices;
+    private List<int> hashes;
     private List<CubeDrawcall> cubeDrawCalls;
     private float radius = 0;
 
@@ -109,7 +109,7 @@ public class AsteroidCubeMeshBuilder
         };
     }
 
-    VertexPositionNormalDiffuseTexture GetVertex(VMeshData vms, int index, ref Matrix4x4 world, ref Matrix4x4 normal)
+    private VertexPositionNormalDiffuseTexture GetVertex(VMeshData vms, int index, ref Matrix4x4 world, ref Matrix4x4 normal)
     {
         VertexPositionNormalDiffuseTexture vert = new VertexPositionNormalDiffuseTexture();
         vert.Position = vms.GetPosition(index);
@@ -122,7 +122,7 @@ public class AsteroidCubeMeshBuilder
         return vert;
     }
 
-    void AddAsteroidToBuffer(StaticAsteroid ast, uint matCrc, bool singleMat, List<int> newIndices,
+    private void AddAsteroidToBuffer(StaticAsteroid ast, uint matCrc, bool singleMat, List<int> newIndices,
         ResourceManager resources, float cubeSize)
     {
         var model = (ModelFile)ast.Archetype.ModelFile.LoadFile(resources, MeshLoadMode.CPU).Drawable;

@@ -14,7 +14,7 @@ public class PacketWriter
 
     public NetHpidWriter HpidWriter => hpids;
 
-    public PacketWriter(NetDataWriter writer, NetHpidWriter hpids = null)
+    public PacketWriter(NetDataWriter writer, NetHpidWriter? hpids = null)
     {
         this.writer = writer;
         this.hpids = hpids;

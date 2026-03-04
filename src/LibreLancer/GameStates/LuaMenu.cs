@@ -27,12 +27,12 @@ namespace LibreLancer
 {
     public class LuaMenu : GameState
     {
-        UiContext ui;
+        private UiContext ui;
         private UiWidget widget;
-        IntroScene intro;
-        Cutscene scene;
-        Cursor cur;
-        MenuAPI api;
+        private IntroScene intro;
+        private Cutscene scene;
+        private Cursor cur;
+        private MenuAPI api;
 
         public LuaMenu(FreelancerGame g) : base(g)
         {
@@ -67,7 +67,8 @@ namespace LibreLancer
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             FadeIn(0.1, 0.3);
         }
-        void TryRunScript(List<ResolvedThn> thnScripts)
+
+        private void TryRunScript(List<ResolvedThn> thnScripts)
         {
             var intro = new List<ThnScript>();
             scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.ResourceManager, Game.Sound, Game.RenderContext.CurrentViewport, Game);
@@ -145,7 +146,7 @@ namespace LibreLancer
             public List<LocalServerInfo> Servers = new List<LocalServerInfo>();
             public int Count => Servers.Count;
             public int Selected { get; set; } = -1;
-            public string GetContentString(int row, string column)
+            public string? GetContentString(int row, string column)
             {
                 if (row < 0 || row > Count || string.IsNullOrEmpty(column)) return null;
                 switch (column.ToLowerInvariant())
@@ -189,7 +190,7 @@ namespace LibreLancer
         [WattleScript.Interpreter.WattleScriptUserData]
         public class MenuAPI : UiApi
         {
-            LuaMenu state;
+            private LuaMenu state;
             public MenuAPI(LuaMenu m)
             {
                 state = m;
@@ -244,7 +245,7 @@ namespace LibreLancer
 
             public UiNewCharacter[] GetNewCharacters() => newCharacters;
 
-            void ResolveNicknames(SelectableCharacter c)
+            private void ResolveNicknames(SelectableCharacter c)
             {
                 c.Ship = state.Game.GameData.GetString(state.Game.GameData.Items.Ships.Get(c.Ship).IdsName);
                 c.Location = state.Game.GameData.GetString(state.Game.GameData.Items.Systems.Get(c.Location).IdsName);
@@ -299,7 +300,7 @@ namespace LibreLancer
             }
             private GameNetClient netClient;
             private CGameSession netSession;
-            ServerList serverList = new ServerList();
+            private ServerList serverList = new ServerList();
             private CharacterSelectInfo cselInfo;
 
             public CharacterSelectInfo CharacterList() => cselInfo;
@@ -422,8 +423,8 @@ namespace LibreLancer
         }
 
 
-        int uframe = 0;
-        bool newUI = false;
+        private int uframe = 0;
+        private bool newUI = false;
         public override void Update(double delta)
         {
             ui.Update(Game);

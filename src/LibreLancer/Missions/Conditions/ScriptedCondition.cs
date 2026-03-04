@@ -25,7 +25,7 @@ public abstract class ScriptedCondition : TriggerEntry
     }
 
 
-    class DebugMarker : ConditionStorage
+    private class DebugMarker : ConditionStorage
     {
         internal static DebugMarker Instance = new();
     }
@@ -537,7 +537,7 @@ public class Cnd_ProjHit : EventListenerCondition<ProjectileHitEvent>
     {
     }
 
-    class HitCounter : ConditionStorage
+    private class HitCounter : ConditionStorage
     {
         public int Remaining;
     }

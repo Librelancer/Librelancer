@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace LibreLancer.Net.Protocol;
 
-static class BitPrimitives
+internal static class BitPrimitives
 {
     [DoesNotReturn]
     public static void ThrowArgumentOutOfRangeException() => throw new ArgumentOutOfRangeException();

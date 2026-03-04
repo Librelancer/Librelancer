@@ -91,7 +91,7 @@ namespace LibreLancer.Thn
             ThornTable.EnumReverse.Add("NegZAxis", "NEG_Z_AXIS");
         }
 
-        public static string Decompile(string file, ReadFileCallback readCallback = null)
+        public static string Decompile(string file, ReadFileCallback? readCallback = null)
         {
             Init();
             var builder = new StringBuilder();
@@ -118,7 +118,8 @@ namespace LibreLancer.Thn
             }
             return builder.ToString();
         }
-        static void ProcessEntities(ThornTable t, string source)
+
+        private static void ProcessEntities(ThornTable t, string source)
         {
             //Make sure flags aren't integers
             object o;
@@ -138,7 +139,8 @@ namespace LibreLancer.Thn
                     ent["up"] = ThnTypes.ConvertAxis(ent["up"], source);
             }
         }
-        static ThnObjectFlags ConvertFlags(EntityTypes type, ThornTable table)
+
+        private static ThnObjectFlags ConvertFlags(EntityTypes type, ThornTable table)
         {
             if (!(table["flags"] is float)) return (ThnObjectFlags)table["flags"];
             var val = (int)(float)table["flags"];
@@ -149,7 +151,8 @@ namespace LibreLancer.Thn
             }
             return tp;
         }
-        static void ProcessEvents(ThornTable t)
+
+        private static void ProcessEvents(ThornTable t)
         {
             foreach(var e in t.Values)
             {

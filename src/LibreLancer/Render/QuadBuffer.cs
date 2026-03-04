@@ -53,11 +53,11 @@ namespace LibreLancer.Render
     {
         public const int MAX_QUADS = 400;
         public VertexBuffer VertexBuffer;
-        ElementBuffer ibo;
-        int vertexOffset = 0;
+        private ElementBuffer ibo;
+        private int vertexOffset = 0;
         private VertexBillboardColor2* verts;
 
-        Span<VertexBillboardColor2> gpuVertices => new Span<VertexBillboardColor2>((void*)verts, MAX_QUADS * 4);
+        private Span<VertexBillboardColor2> gpuVertices => new Span<VertexBillboardColor2>((void*)verts, MAX_QUADS * 4);
 
         public QuadBuffer(RenderContext rstate)
         {
@@ -91,7 +91,7 @@ namespace LibreLancer.Render
 
         public const int NebulaFillPrimCount = 6;
 
-        void NebulaFill()
+        private void NebulaFill()
         {
             int a = 0;
             DoVertices(new VertexBillboardColor2[]

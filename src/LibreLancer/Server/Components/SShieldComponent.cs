@@ -16,7 +16,7 @@ namespace LibreLancer.Server.Components
             set => _health = value;
         }
 
-        float _health;
+        private float _health;
 
         public ShieldEquipment Equip;
 

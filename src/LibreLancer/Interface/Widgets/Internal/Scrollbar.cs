@@ -44,7 +44,8 @@ namespace LibreLancer.Interface
         private Button thumb = new Button();
         private Button thumbTop = new Button();
         private Button thumbBottom = new Button();
-        void Layout(RectangleF parent, out RectangleF myRectangle, out RectangleF track)
+
+        private void Layout(RectangleF parent, out RectangleF myRectangle, out RectangleF track)
         {
             myRectangle = new RectangleF(parent.X + parent.Width - Style.Width, parent.Y, Style.Width, parent.Height);
             var widthAdjust = (Style?.ButtonMarginX ?? 0) * 2;

@@ -15,8 +15,8 @@ namespace LibreLancer.Server
     [WattleScriptUserData]
     public class NPCWattleScripting
     {
-        NPCManager manager;
-        Script script;
+        private NPCManager manager;
+        private Script script;
         [WattleScriptHidden]
         public GameDataManager GameData;
 
@@ -94,11 +94,11 @@ namespace LibreLancer.Server
         }
 
 
-        NPCWattleInstance DoSpawn(string loadout, string pilot, float x, float y, float z, string arrivalObj)
+        private NPCWattleInstance DoSpawn(string loadout, string pilot, float x, float y, float z, string arrivalObj)
         {
             if (!manager.World.Server.GameData.Items.TryGetLoadout(loadout, out var resolved))
                 throw new ScriptRuntimeException($"Could not get loadout {loadout}");
-            Pilot p = null;
+            Pilot? p = null;
             if (pilot != null)
                 p = manager.World.Server.GameData.Items.GetPilot(pilot);
             var position = new Vector3(x, y, z);

@@ -21,16 +21,20 @@ namespace LibreLancer.Net.Protocol
         public int BitsLeft => (array.Length * 8) - bitsOffset;
         public NetHpidReader HpidReader;
 
-        public BitReader(ReadOnlySpan<byte> array, int bitsOffset, NetHpidReader hpidReader = null)
+        public BitReader(ReadOnlySpan<byte> array, int bitsOffset, NetHpidReader? hpidReader = null)
         {
             this.array = array;
             this.bitsOffset = bitsOffset;
             this.HpidReader = hpidReader;
         }
 
-        public string GetHpid()
+        public string? GetHpid()
         {
-            if (HpidReader == null) throw new InvalidOperationException();
+            if (HpidReader == null)
+            {
+                throw new InvalidOperationException();
+            }
+
             var idx = GetVarUInt32();
             if (idx == 0) return null;
             else if (idx == 1) return "";
@@ -43,7 +47,7 @@ namespace LibreLancer.Net.Protocol
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        struct F2I
+        private struct F2I
         {
             [FieldOffset(0)] public float f;
             [FieldOffset(0)] public uint i;

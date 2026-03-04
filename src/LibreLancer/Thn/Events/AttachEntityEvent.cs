@@ -20,7 +20,7 @@ namespace LibreLancer.Thn.Events
      */
     public class AttachEntityEvent : ThnEvent
     {
-        class AttachEntityProcessor : ThnEventProcessor
+        private class AttachEntityProcessor : ThnEventProcessor
         {
             public float Duration;
             public ThnObject Child;
@@ -32,8 +32,8 @@ namespace LibreLancer.Thn.Events
             public bool OrientationRelative;
             public bool EntityRelative;
             public bool LookAt;
-            Func<Vector3> lookFunc;
-            double t = 0;
+            private Func<Vector3> lookFunc;
+            private double t = 0;
 
             public override bool Run(double delta)
             {
@@ -80,7 +80,7 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        class EntityTarget(ThnObject obj, IRenderHardpoint hardpoint, RigidModelPart part)
+        private class EntityTarget(ThnObject obj, IRenderHardpoint hardpoint, RigidModelPart part)
         {
             public Transform3D GetTransform()
             {
@@ -130,8 +130,8 @@ namespace LibreLancer.Thn.Events
             }
 
             //Attach GameObjects to eachother
-            IRenderHardpoint hardpoint = null;
-            RigidModelPart part = null;
+            IRenderHardpoint? hardpoint = null;
+            RigidModelPart? part = null;
             if (TargetType == TargetTypes.Hardpoint && !string.IsNullOrEmpty(TargetPart))
             {
                 if (objB.Object == null)

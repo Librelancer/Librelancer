@@ -18,7 +18,8 @@ namespace LibreLancer.Server.Components
         public SFuseRunnerComponent(GameObject parent) : base(parent)
         {
         }
-        class FuseInstance
+
+        private class FuseInstance
         {
             public Queue<FuseAction> actions;
             public FuseResources Fuse;
@@ -55,7 +56,7 @@ namespace LibreLancer.Server.Components
 
         private uint fxID = 1;
 
-        void Update(double time, FuseInstance instance)
+        private void Update(double time, FuseInstance instance)
         {
             instance.T += time / instance.Fuse.Fuse.Lifetime;
             FuseAction act;

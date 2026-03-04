@@ -18,7 +18,7 @@ namespace LibreLancer.Interface
     public class IniNavmapIcons : INavmapIcons
     {
         private NavmapIni ini;
-        Dictionary<string, UiRenderable> renderables = new Dictionary<string, UiRenderable>();
+        private Dictionary<string, UiRenderable> renderables = new Dictionary<string, UiRenderable>();
         public IniNavmapIcons(NavmapIni ini)
         {
             this.ini = ini;
@@ -89,7 +89,7 @@ namespace LibreLancer.Interface
         //TODO: Turn this into directory lookup + .3db like vanilla
         private const string DIR = "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/SPACEOBJECTS/";
 
-        Dictionary<string, UiRenderable> renderables = new Dictionary<string, UiRenderable>();
+        private Dictionary<string, UiRenderable> renderables = new Dictionary<string, UiRenderable>();
 
         public IEnumerable<string> Libraries()
         {

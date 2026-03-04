@@ -1,6 +1,6 @@
 namespace LibreLancer.Input;
 
-static class VKMap
+internal static class VKMap
 {
     public static UserInput Map(int input, KeyModifiers modifiers)
     {
@@ -27,7 +27,7 @@ static class VKMap
         return UserInput.FromKey(modifiers, GetKey((VK)input));
     }
 
-    static Keys GetKey(VK vk)
+    private static Keys GetKey(VK vk)
     {
         switch (vk)
         {
@@ -168,8 +168,8 @@ static class VKMap
         return Keys.Unknown;
     }
 
-   
-    enum VK : int
+
+    private enum VK : int
     {
         LeftButton = 0x01,
         RightButton = 0x02,

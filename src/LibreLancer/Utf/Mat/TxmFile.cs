@@ -37,7 +37,7 @@ namespace LibreLancer.Utf.Mat
                         FLLog.Warning("Txm", "Skipping invalid node " + tnode.Name);
                     continue;
                 }
-                LeafNode child = null;
+                LeafNode? child = null;
 				bool isTexture = true;
 				bool isTgaMips = false;
 				if (textureNode.Count == 1)

@@ -43,13 +43,13 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        class SoundRoutine : ThnEventProcessor
+        private class SoundRoutine : ThnEventProcessor
         {
             public ThnSoundInstance Sound;
             public string Name;
             public ThnScriptInstance SI;
             public double Duration;
-            double time;
+            private double time;
             public override bool Run(double delta)
             {
                 if (Sound.Instance == null) return false;

@@ -47,12 +47,14 @@ namespace LibreLancer.World.Components
 
         public override int IdsName => Object.IdsName;
 
-        GameObject GetTarget()
+        private GameObject? GetTarget()
         {
-            if (Parent?.Parent == null) return null;
-            if (Parent.Parent.TryGetComponent<SelectedTargetComponent>(out var selection))
-                return selection.Selected;
-            return null;
+            if (Parent?.Parent == null)
+            {
+                return null;
+            }
+
+            return Parent.Parent.TryGetComponent<SelectedTargetComponent>(out var selection) ? selection?.Selected : null;
         }
 
         private Hardpoint hpFire;

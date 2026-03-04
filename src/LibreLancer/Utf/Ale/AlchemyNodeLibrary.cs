@@ -38,7 +38,7 @@ namespace LibreLancer.Utf.Ale
 							break;
 						AleTypes type = (AleTypes)(id & 0x7FFF);
 						prop = (AleProperty)reader.ReadUInt32 ();
-						object value = null;
+						object? value = null;
 						switch (type) {
 						case AleTypes.Boolean:
 							value = (id & 0x8000) != 0 ? true : false;

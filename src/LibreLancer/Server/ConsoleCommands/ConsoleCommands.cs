@@ -91,7 +91,7 @@ namespace LibreLancer.Server.ConsoleCommands
             }
         }
 
-        static bool ParseString(string s, out object[] values, params Type[] types)
+        private static bool ParseString(string s, out object[] values, params Type[] types)
         {
             string[] split;
             if (types.Length == 1) {

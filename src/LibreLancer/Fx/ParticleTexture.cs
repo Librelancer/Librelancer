@@ -14,11 +14,11 @@ namespace LibreLancer.Fx
     public class ParticleTexture
     {
         public string Name;
-        public Texture2D Texture;
+        public Texture2D? Texture;
         public int FrameCount = 1;
         private bool useShape = false;
-        TextureShape shape;
-        TexFrameAnimation frameanim;
+        private TextureShape shape;
+        private TexFrameAnimation? frameanim;
 
         public Vector4 GetCoordinates(int frame)
         {
@@ -31,6 +31,7 @@ namespace LibreLancer.Fx
                 var height = (1 - f.UV2.Y) - y;
                 return new Vector4(x, y, width, height);
             }
+
             return new Vector4(0, 0, 1, 1);
         }
 
@@ -49,39 +50,43 @@ namespace LibreLancer.Fx
                 useShape = false;
             }
             Name = name;
-            if (Texture == null || Texture.IsDisposed)
+
+            if (Texture is { IsDisposed: false })
             {
-                if (useShape == false && frameanim == null && Texture != null)
+                return;
+            }
+
+            if (!useShape && frameanim == null && Texture != null)
+            {
+                Texture = res.FindTexture(name) as Texture2D;
+                shape.Dimensions = new RectangleF(0, 0, 1, 1);
+            }
+            else if (!useShape && frameanim == null)
+            {
+                if (res.TryGetShape(name, out var newShape))
+                {
+                    shape = newShape!.Value;
+                    Texture = (Texture2D?)res.FindTexture(shape.Texture);
+                    useShape = true;
+                }
+                else if (res.TryGetFrameAnimation(name, out frameanim))
+                {
+                    Texture = res.FindTexture(name + "_0") as Texture2D;
+                    FrameCount = frameanim!.FrameCount;
+                }
+                else
                 {
                     Texture = res.FindTexture(name) as Texture2D;
                     shape.Dimensions = new RectangleF(0, 0, 1, 1);
                 }
-                else if (useShape == false && frameanim == null)
-                {
-                    if (res.TryGetShape(name, out shape))
-                    {
-                        Texture = (Texture2D) res.FindTexture(shape.Texture);
-                        useShape = true;
-                    }
-                    else if (res.TryGetFrameAnimation(name, out frameanim))
-                    {
-                        Texture = res.FindTexture(name + "_0") as Texture2D;
-                        FrameCount = frameanim.FrameCount;
-                    }
-                    else
-                    {
-                        Texture = res.FindTexture(name) as Texture2D;
-                        shape.Dimensions = new RectangleF(0, 0, 1, 1);
-                    }
-                }
-                else if (useShape)
-                {
-                    Texture = (Texture2D) res.FindTexture(shape.Texture);
-                }
-                else if (frameanim != null)
-                {
-                    Texture = res.FindTexture(name + "_0") as Texture2D;
-                }
+            }
+            else if (useShape)
+            {
+                Texture = (Texture2D?)res.FindTexture(shape.Texture);
+            }
+            else if (frameanim != null)
+            {
+                Texture = res.FindTexture(name + "_0") as Texture2D;
             }
         }
     }

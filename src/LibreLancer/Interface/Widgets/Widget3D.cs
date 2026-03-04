@@ -23,7 +23,7 @@ namespace LibreLancer.Interface
         }
 
         protected Vector2 OrbitPan;
-        Vector2 dragStart = Vector2.Zero;
+        private Vector2 dragStart = Vector2.Zero;
         private bool dragging = false;
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)

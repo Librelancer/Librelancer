@@ -75,13 +75,13 @@ namespace LibreLancer.Thn.Events
             });
         }
 
-        class ProcessConnection : ThnEventProcessor
+        private class ProcessConnection : ThnEventProcessor
         {
             public ThnObject Parent;
             public ThnObject Child;
             public IRenderHardpoint ParentHardpoint;
             public IRenderHardpoint ChildHardpoint;
-            double time = 0;
+            private double time = 0;
             public double Duration;
 
             public override bool Run(double delta)

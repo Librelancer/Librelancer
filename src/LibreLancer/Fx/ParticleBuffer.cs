@@ -8,7 +8,7 @@ public class ParticleBuffer
     private Particle[] backing;
     private SegmentInfo[] segments;
 
-    struct SegmentInfo
+    private struct SegmentInfo
     {
         public int Start;
         public int Capacity;

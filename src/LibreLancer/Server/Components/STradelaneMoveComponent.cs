@@ -17,8 +17,8 @@ namespace LibreLancer.Server.Components
         private const float TRADELANE_SPEED = 2500;
         private const float DISRUPTION_DISTANCE = 3000;
 
-        GameObject currenttradelane;
-        string lane;
+        private GameObject currenttradelane;
+        private string lane;
 
         public STradelaneMoveComponent(GameObject parent, GameObject tradelane, string lane) : base(parent)
         {
@@ -26,7 +26,7 @@ namespace LibreLancer.Server.Components
             this.lane = lane;
         }
 
-        bool TryGetMissionRuntime(out MissionRuntime msn, out bool player)
+        private bool TryGetMissionRuntime(out MissionRuntime msn, out bool player)
         {
             if (Parent.TryGetComponent<SPlayerComponent>(out var p) &&
                 p.Player.MissionRuntime != null)
@@ -67,7 +67,7 @@ namespace LibreLancer.Server.Components
             return true;
         }
 
-        void DisruptOther(GameObject go)
+        private void DisruptOther(GameObject go)
         {
             if (go.TryGetComponent<STradelaneMoveComponent>(out var tlmov) &&
                 tlmov.currenttradelane == currenttradelane)

@@ -21,9 +21,9 @@ namespace LibreLancer.Utf.Cmp
     public class ModelFile : UtfFile, IRigidModelFile
     {
         public string Path { get; set; }
-        public VmsFile VMeshLibrary { get; private set; }
-        public MatFile MaterialLibrary { get; private set; }
-        public TxmFile TextureLibrary { get; private set; }
+        public VmsFile? VMeshLibrary { get; private set; }
+        public MatFile? MaterialLibrary { get; private set; }
+        public TxmFile? TextureLibrary { get; private set; }
 		public MaterialAnimCollection MaterialAnim { get; private set; }
 
         public List<HardpointDefinition> Hardpoints { get; private set; }

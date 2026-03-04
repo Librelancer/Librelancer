@@ -26,7 +26,7 @@ namespace LibreLancer.Fx
 
         }
 
-        static readonly AlchemyTransform[] transforms = new AlchemyTransform[32];
+        private static readonly AlchemyTransform[] transforms = new AlchemyTransform[32];
         public bool TransformParticle(NodeReference reference, float sparam, float t1, float t2, out Vector3 translate, out Quaternion rotate)
         {
             translate = Vector3.Zero;

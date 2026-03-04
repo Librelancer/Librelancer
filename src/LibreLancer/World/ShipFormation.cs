@@ -11,7 +11,7 @@ namespace LibreLancer.World
 {
     public class ShipFormation
     {
-        static uint _counter;
+        private static uint _counter;
 
         public uint ID { get; } = Interlocked.Increment(ref _counter);
 
@@ -22,7 +22,7 @@ namespace LibreLancer.World
         public GameObject LeadShip { get; private set; }
         public IReadOnlyList<GameObject> Followers => _followers;
 
-        List<GameObject> _followers = new List<GameObject>();
+        private List<GameObject> _followers = new List<GameObject>();
 
         public Vector3[] Offsets = new[]
         {
@@ -33,8 +33,7 @@ namespace LibreLancer.World
         };
 
 
-
-        static Vector3[] defaultOffsets = new[]
+        private static Vector3[] defaultOffsets = new[]
         {
             new Vector3(-1, 0, 0),
             new Vector3(1, 0, 0),
@@ -42,7 +41,7 @@ namespace LibreLancer.World
             new Vector3(0, 1, 0)
         };
 
-        static Vector3 DefaultOffset(int i)
+        private static Vector3 DefaultOffset(int i)
         {
             var dir = defaultOffsets[i % 4];
             var len = 60 + (i / 4) * 20;
@@ -136,7 +135,7 @@ namespace LibreLancer.World
             _followers = new List<GameObject>(follow);
         }
 
-        static int GetId(GameObject obj, GameObject self)
+        private static int GetId(GameObject obj, GameObject self)
         {
             if (obj == self) return 0;
             return obj.NetID;

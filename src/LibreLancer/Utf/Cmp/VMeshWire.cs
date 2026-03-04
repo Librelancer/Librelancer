@@ -31,7 +31,8 @@ namespace LibreLancer.Utf.Cmp
         
 
         public const int HEADER_SIZE = 16;
-        unsafe void ReadWireData(ArraySegment<byte> data)
+
+        private unsafe void ReadWireData(ArraySegment<byte> data)
         {
             if (data.Count < HEADER_SIZE)
                 throw new Exception("Invalid VWireData Node (size<HEADER_SIZE)");

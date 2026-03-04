@@ -9,7 +9,7 @@ namespace LibreLancer.Utf
 {
     public class StringBlock
     {
-        Dictionary<int,string> strings = new Dictionary<int, string>();
+        private Dictionary<int,string> strings = new Dictionary<int, string>();
         private byte[] stringBlock;
         private string asciiSource;
         private bool lenPrefixed;

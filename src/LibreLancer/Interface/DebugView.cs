@@ -65,7 +65,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        private ObjectRenderer lastHighlight = null;
+        private ObjectRenderer? lastHighlight = null;
         private bool lastAmbient;
         private bool lastDynamic;
 
@@ -73,7 +73,7 @@ namespace LibreLancer.Interface
         {
             ImGui.SetNextWindowSize(new Vector2(300, 500), ImGuiCond.FirstUseEver);
             ImGui.Begin("Objects");
-            ObjectRenderer toHighlight = null;
+            ObjectRenderer? toHighlight = null;
             foreach (var obj in objects)
             {
                 ImGui.Selectable(obj.ToString());
@@ -105,7 +105,7 @@ namespace LibreLancer.Interface
             ImGui.End();
         }
 
-        public void Draw(double elapsed, Action debugWindow = null, Action otherWindows = null)
+        public void Draw(double elapsed, Action? debugWindow = null, Action? otherWindows = null)
         {
             if (Enabled)
             {

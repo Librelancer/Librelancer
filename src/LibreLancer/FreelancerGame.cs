@@ -40,7 +40,7 @@ namespace LibreLancer
 		public bool InitialLoadComplete = false;
         public Stopwatch LoadTimer;
         public InputMap InputMap;
-		GameState currentState;
+        private GameState currentState;
 
 		public GameConfig Config
 		{
@@ -49,7 +49,8 @@ namespace LibreLancer
 				return _cfg;
 			}
 		}
-		GameConfig _cfg;
+
+        private GameConfig _cfg;
 		public FreelancerGame(GameConfig config) : base(config.BufferWidth, config.BufferHeight, false)
 		{
 			//DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
@@ -192,9 +193,9 @@ namespace LibreLancer
             Typewriter.Update(elapsed);
         }
 
-		const double FPS_INTERVAL = 0.25;
-		double fps_updatetimer = 0;
-		int drawCallsPerFrame = 0;
+        private const double FPS_INTERVAL = 0.25;
+        private double fps_updatetimer = 0;
+        private int drawCallsPerFrame = 0;
 		protected override void Draw (double elapsed)
 		{
 			RenderContext.ReplaceViewport(0, 0, Width, Height);
@@ -211,7 +212,7 @@ namespace LibreLancer
 			VertexBuffer.TotalDrawcalls = 0;
         }
 
-		void FreelancerGame_ScreenshotSave(string filename, int width, int height, Bgra8[] data)
+        private void FreelancerGame_ScreenshotSave(string filename, int width, int height, Bgra8[] data)
 		{
 			Screenshots.Save(filename, width, height, data);
 		}

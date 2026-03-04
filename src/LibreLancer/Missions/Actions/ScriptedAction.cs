@@ -734,7 +734,7 @@ namespace LibreLancer.Missions.Actions
             section.Entry("Act_GiveObjList", Target, List);
         }
 
-        void GiveObjList(GameObject obj, MissionDirective[] directives)
+        private void GiveObjList(GameObject obj, MissionDirective[] directives)
         {
             if (obj.TryGetComponent<SPlayerComponent>(out var player))
             {

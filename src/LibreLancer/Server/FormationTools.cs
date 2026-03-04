@@ -32,7 +32,7 @@ public class FormationTools
     {
         //TODO: Gross
         var formDef = obj.World.Server.Server.GameData.Items.GetFormation(formation);
-        GameObject player = null;
+        GameObject? player = null;
         bool playerLead = false;
         // Preserve player (required)
         if (obj.Formation != null)

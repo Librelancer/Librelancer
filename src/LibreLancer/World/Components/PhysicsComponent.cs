@@ -13,15 +13,15 @@ namespace LibreLancer.World.Components
 {
     public class PhysicsComponent : GameComponent
     {
-        public PhysicsObject Body;
+        public PhysicsObject? Body;
         public float Mass; //0 mass means it can't move
         public Vector3? Inertia = null;
         public CollisionMeshHandle SurPath;
         public float SphereRadius = -1;
-        Collider collider;
-        ConvexMeshCollider _convexMesh;
+        private Collider collider;
+        private ConvexMeshCollider _convexMesh;
         public uint PlainCrc = 0;
-        PhysicsWorld pworld;
+        private PhysicsWorld pworld;
 
         public bool SetTransform = true;
 
@@ -33,14 +33,14 @@ namespace LibreLancer.World.Components
         {
         }
 
-        bool partRemoved = false;
+        private bool partRemoved = false;
         public void DisablePart(RigidModelPart part)
         {
             _convexMesh?.RemovePart(part);
             partRemoved = true;
         }
 
-        List<Hardpoint> hardpoints = new List<Hardpoint>();
+        private List<Hardpoint> hardpoints = new List<Hardpoint>();
 
         public bool ActivateHardpoint(Hardpoint hardpoint)
         {
@@ -115,7 +115,7 @@ namespace LibreLancer.World.Components
         {
             if (pworld == physics) return;
             pworld = physics;
-            Collider cld = null;
+            Collider? cld = null;
             if(!SurPath.Valid)
             { //sphere
                 cld = new SphereCollider(SphereRadius);

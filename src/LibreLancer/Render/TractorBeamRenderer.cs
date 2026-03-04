@@ -47,8 +47,8 @@ public partial class TractorBeamRenderer : ObjectRenderer
         lines.FinishQuadLine(zVal);
     }
 
-    const float CULL_DISTANCE = 20000;
-    const float CULL = CULL_DISTANCE * CULL_DISTANCE;
+    private const float CULL_DISTANCE = 20000;
+    private const float CULL = CULL_DISTANCE * CULL_DISTANCE;
 
     public Vector3 Origin;
 

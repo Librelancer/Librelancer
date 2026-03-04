@@ -9,7 +9,7 @@ namespace LibreLancer
 {
     public class FlyOutRight : UiAnimation
     {
-        Vector2 finalPos;
+        private Vector2 finalPos;
         public float To;
         private float ctrlWidth;
         public FlyOutRight(Vector2 final, float aspect, float controlWidth, double start, double time) : base(start, time)

@@ -93,7 +93,7 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        class FogPropAnim : ThnEventProcessor
+        private class FogPropAnim : ThnEventProcessor
         {
             public StartFogPropAnimEvent Event;
             public SystemLighting Lights;

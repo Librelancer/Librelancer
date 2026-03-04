@@ -12,8 +12,8 @@ namespace LibreLancer.Render
     public class ProjectileRenderer : ObjectRenderer
     {
         public ProjectileManager Projectiles;
-        Projectile[] toRender;
-        int renderCount = 0;
+        private Projectile[] toRender;
+        private int renderCount = 0;
         private BeamsBuffer beams;
         public ProjectileRenderer(ProjectileManager projs)
         {

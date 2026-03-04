@@ -24,7 +24,7 @@ public class InputMap
         FilePath = filePath;
     }
 
-    static readonly Dictionary<string, KeyModifiers> modifierTable =
+    private static readonly Dictionary<string, KeyModifiers> modifierTable =
         new (StringComparer.OrdinalIgnoreCase)
         {
             { "control", KeyModifiers.Control },
@@ -32,7 +32,7 @@ public class InputMap
             { "alt", KeyModifiers.Alt }
         };
 
-    static UserInput ParseKey(string[] key)
+    private static UserInput ParseKey(string[] key)
     {
         KeyModifiers mods = KeyModifiers.None;
         if (key.Length > 1) {
@@ -47,7 +47,7 @@ public class InputMap
         return VKMap.Map(vk, mods);
     }
 
-    IEnumerable<InputAction> ParseGroup(IEnumerable<string> group)
+    private IEnumerable<InputAction> ParseGroup(IEnumerable<string> group)
     {
         foreach (var g in group)
         {

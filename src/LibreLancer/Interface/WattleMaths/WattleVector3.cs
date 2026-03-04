@@ -6,7 +6,7 @@ using WattleScript.Interpreter.Interop.StandardDescriptors.HardwiredDescriptors;
 
 namespace LibreLancer.Interface.WattleMaths;
 
-class WattleVector3 : HardwiredUserDataDescriptor
+internal class WattleVector3 : HardwiredUserDataDescriptor
 {
     public WattleVector3() : base(typeof(Vector3))
     {
@@ -25,7 +25,7 @@ class WattleVector3 : HardwiredUserDataDescriptor
         tbl["cross"] = (Vector3.Cross);
     }
 
-    class DescX : HardwiredMemberDescriptor
+    private class DescX : HardwiredMemberDescriptor
     {
         public DescX() :
             base(typeof(float), "X",
@@ -44,7 +44,7 @@ class WattleVector3 : HardwiredUserDataDescriptor
         }
     }
 
-    class DescY : HardwiredMemberDescriptor
+    private class DescY : HardwiredMemberDescriptor
     {
         public DescY() :
             base(typeof(float), "Y",
@@ -63,7 +63,7 @@ class WattleVector3 : HardwiredUserDataDescriptor
         }
     }
 
-    class DescZ : HardwiredMemberDescriptor
+    private class DescZ : HardwiredMemberDescriptor
     {
         public DescZ() :
             base(typeof(float), "Z",

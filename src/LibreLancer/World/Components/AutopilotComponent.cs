@@ -18,7 +18,7 @@ namespace LibreLancer.World.Components
         Undock
 	}
 
-    abstract class AutopilotBehavior
+    internal abstract class AutopilotBehavior
     {
         private bool hasTriggeredCruise = false;
 
@@ -188,7 +188,7 @@ namespace LibreLancer.World.Components
 
     }
 
-    sealed class DockBehavior(AutopilotComponent c) : AutopilotBehavior(c)
+    internal sealed class DockBehavior(AutopilotComponent c) : AutopilotBehavior(c)
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Dock;
 
@@ -230,7 +230,7 @@ namespace LibreLancer.World.Components
         }
     }
 
-    sealed class UndockBehavior(AutopilotComponent c, int index) : AutopilotBehavior(c)
+    internal sealed class UndockBehavior(AutopilotComponent c, int index) : AutopilotBehavior(c)
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Undock;
 
@@ -278,7 +278,7 @@ namespace LibreLancer.World.Components
         }
     }
 
-    sealed class GotoBehavior(AutopilotComponent c) : AutopilotBehavior(c)
+    internal sealed class GotoBehavior(AutopilotComponent c) : AutopilotBehavior(c)
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Goto;
 
@@ -291,7 +291,7 @@ namespace LibreLancer.World.Components
         }
     }
 
-    sealed class FormationBehavior(AutopilotComponent c) : AutopilotBehavior(c)
+    internal sealed class FormationBehavior(AutopilotComponent c) : AutopilotBehavior(c)
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Formation;
         public override bool Update(ShipSteeringComponent control, ShipInputComponent input, double time)
@@ -365,7 +365,7 @@ namespace LibreLancer.World.Components
 
         public BehaviorChangedCallback BehaviorChanged;
 
-        void SetInstance(AutopilotBehavior i)
+        private void SetInstance(AutopilotBehavior i)
         {
             var old = CurrentBehavior;
             instance = i;

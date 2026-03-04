@@ -70,7 +70,7 @@ namespace LibreLancer.Fx
 		}
 
         //Different direction to FxCubeEmitter
-        static Vector3 RandomInCone(float minspread, float maxspread)
+        private static Vector3 RandomInCone(float minspread, float maxspread)
         {
             return Vector3.UnitY;
             var direction = Vector3.UnitY;
@@ -85,7 +85,7 @@ namespace LibreLancer.Fx
             return output;
         }
 
-        static Vector3 RandomCube(float minspread, float maxspread)
+        private static Vector3 RandomCube(float minspread, float maxspread)
 		{
 			//(sqrt(1 - z^2) * cosϕ, sqrt(1 - z^2) * sinϕ, z)
             var halfspread = maxspread / 2;

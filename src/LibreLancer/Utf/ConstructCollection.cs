@@ -50,13 +50,14 @@ namespace LibreLancer.Utf
 			return newcol;
 		}
 
-        public AbstractConstruct Find(string name)
+        public AbstractConstruct? Find(string name)
         {
             for(int i = 0; i < constructs.Count; i++)
             {
                 if (constructs[i].ChildName.Equals(name, StringComparison.OrdinalIgnoreCase))
                     return constructs[i];
             }
+
             return null;
         }
 

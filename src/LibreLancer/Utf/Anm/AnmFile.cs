@@ -56,7 +56,8 @@ namespace LibreLancer.Utf.Anm
             Load(root, new StringDeduplication(), constructs);
             Buffer.Shrink();
         }
-        void Load(IntermediateNode root, StringDeduplication strings, ConstructCollection constructs)
+
+        private void Load(IntermediateNode root, StringDeduplication strings, ConstructCollection constructs)
         {
             if(Scripts == null) Scripts = new Dictionary<string, Script>(root.Count, StringComparer.OrdinalIgnoreCase);
             foreach (Node node in root)

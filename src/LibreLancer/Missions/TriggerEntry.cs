@@ -9,7 +9,7 @@ public abstract class TriggerEntry
     protected static void WarnMissing(string name, int index, Entry e) =>
         FLLog.Warning("Mission", $"Missing arg #{index+1} {name} in {e.Name} (line {e.Line})");
 
-    static bool CheckArg(string name, int index, Entry e)
+    private static bool CheckArg(string name, int index, Entry e)
     {
         if (e.Count > index)
             return true;

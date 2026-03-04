@@ -51,7 +51,7 @@ namespace LibreLancer.Interface
         private string _loadedPath;
         private RigidModel model;
 
-        void LoadModel(UiContext context)
+        private void LoadModel(UiContext context)
         {
             if (string.IsNullOrWhiteSpace(ModelPath))
             {

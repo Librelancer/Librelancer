@@ -36,7 +36,7 @@ public class TextEditBase
         }
     }
 
-    void SetText(string v)
+    private void SetText(string v)
     {
         _text = v;
         breaks = GraphemeBreaks.Get(_text);
@@ -103,7 +103,7 @@ public class TextEditBase
 
     private RichTextNode[] nodes;
 
-    void TrySetValue(ref string target, string value)
+    private void TrySetValue(ref string target, string value)
     {
         if (target != value)
         {
@@ -114,7 +114,7 @@ public class TextEditBase
             CaretPosition = _text.Length;
     }
 
-    void TrySetValue(ref float target, float value)
+    private void TrySetValue(ref float target, float value)
     {
         if (target != value)
         {
@@ -123,7 +123,7 @@ public class TextEditBase
         }
     }
 
-    void TrySetValue(ref Color4 target, Color4 value)
+    private void TrySetValue(ref Color4 target, Color4 value)
     {
         if (target != value)
         {
@@ -132,7 +132,7 @@ public class TextEditBase
         }
     }
 
-    void TrySetValue(ref OptionalColor target, OptionalColor value)
+    private void TrySetValue(ref OptionalColor target, OptionalColor value)
     {
         if (target != value)
         {
@@ -218,7 +218,7 @@ public class TextEditBase
         }
     }
 
-    int GetNextCaret()
+    private int GetNextCaret()
     {
         var x = CaretPosition - 1;
         x++;
@@ -295,7 +295,7 @@ public class TextEditBase
         this.height = height;
     }
 
-    void Update(RichTextEngine engine)
+    private void Update(RichTextEngine engine)
     {
         if (richTextDirty || (_wrap && richTextWidth != width)) {
             richText?.Dispose();

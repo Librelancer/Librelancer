@@ -117,7 +117,7 @@ public class KeyCaptureContext
         this.captureFinish = onFinish;
     }
 
-    InputAction FindAction(UserInput input)
+    private InputAction FindAction(UserInput input)
     {
         for (int i = 0; i < map.Length; i++)
         {
@@ -128,7 +128,7 @@ public class KeyCaptureContext
         return InputAction.COUNT;
     }
 
-    void SetOverwrite(UserInput input)
+    private void SetOverwrite(UserInput input)
     {
         for (int i = 0; i < map.Length; i++)
         {

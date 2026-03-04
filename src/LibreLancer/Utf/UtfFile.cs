@@ -13,7 +13,7 @@ namespace LibreLancer.Utf
     public abstract class UtfFile
     {
         public const string FILE_TYPE = "UTF ";
-        const int TAG_LEN = 4;
+        private const int TAG_LEN = 4;
         public const int FILE_VERSION = 257;
 
         protected static IntermediateNode ParseV2(string path, BinaryReader reader)
@@ -39,7 +39,7 @@ namespace LibreLancer.Utf
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct UtfHeader
+        private struct UtfHeader
         {
             public int FormatVersion;
             public int NodeBlockOffset;

@@ -41,7 +41,7 @@ namespace LibreLancer.Interface
             Border?.Draw(context, rect);
         }
 
-        void DrawWires(UiContext context)
+        private void DrawWires(UiContext context)
         {
             if (target.Model.Source == RigidModelSource.Sphere)
             {
@@ -67,7 +67,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat)
+        private void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat)
         {
             var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             var mesh = context.Data.ResourceManager.FindMesh(wire.MeshCRC);

@@ -22,7 +22,7 @@ namespace LibreLancer.Client.Components
 
         private List<ParticleEffectRenderer> spawned = new List<ParticleEffectRenderer>();
 
-        void Spawn(SpawnedEffect effect)
+        private void Spawn(SpawnedEffect effect)
         {
             var fx = Parent.World.Renderer.Game.GetService<GameDataManager>().Items.Effects.Get(effect.Effect);
             if (fx == null) return;

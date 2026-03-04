@@ -13,10 +13,10 @@ public sealed class DestructibleModel
     public IEnumerable<Hardpoint> Hardpoints => hardpoints.Values;
     public event Action<Hardpoint> HardpointDestroyed;
 
-    HashSet<uint> destroyed = new HashSet<uint>();
+    private HashSet<uint> destroyed = new HashSet<uint>();
     private HashSet<uint> destroyedChildren = new HashSet<uint>();
-    Dictionary<string, Hardpoint> hardpoints = new(StringComparer.OrdinalIgnoreCase);
-    Dictionary<string, RigidModelPart> hpToPart = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, Hardpoint> hardpoints = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, RigidModelPart> hpToPart = new(StringComparer.OrdinalIgnoreCase);
 
     public List<SeparablePart> SeparableParts;
 
@@ -42,7 +42,7 @@ public sealed class DestructibleModel
 
     public bool IsPartDestroyed(uint crc) => destroyed.Contains(crc);
 
-    void CascadeDestroy(RigidModelPart part)
+    private void CascadeDestroy(RigidModelPart part)
     {
         foreach (var c in part.Children)
         {

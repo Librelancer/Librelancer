@@ -17,13 +17,13 @@ namespace LibreLancer.Client.Components
 {
 	public class  CEngineComponent : SEngineComponent
 	{
-        List<ParticleEffectRenderer> fireFx = new List<ParticleEffectRenderer>();
+        private List<ParticleEffectRenderer> fireFx = new List<ParticleEffectRenderer>();
         private AttachedSound rumble;
         private AttachedSound character;
         private AttachedSound cruiseLoop;
         private AttachedSound cruiseStart;
         private AttachedSound cruiseEnd;
-		GameObject Ship;
+        private GameObject Ship;
 
         private bool _active = true;
 
@@ -47,20 +47,20 @@ namespace LibreLancer.Client.Components
 			Engine = engine;
         }
 
-        float PitchFromRange(Vector2 range)
+        private float PitchFromRange(Vector2 range)
         {
             if (range == Vector2.Zero) return 1;
             return 1.0f + MathHelper.Lerp(range.X, range.Y, Speed) / 100f;
         }
 
-        float AttenFromRange(Vector2 range)
+        private float AttenFromRange(Vector2 range)
         {
             if (range == Vector2.Zero) return 0;
             return MathHelper.Lerp(range.X, range.Y, Speed);
         }
 
         private bool triggeredStart = false;
-        bool triggeredEnd = false;
+        private bool triggeredEnd = false;
 
 		public override void Update(double time)
         {
@@ -158,13 +158,13 @@ namespace LibreLancer.Client.Components
             {
                 var resman = GetResourceManager();
                 var hps = Ship.GetHardpoints();
-                ParticleEffect trailFx = null;
+                ParticleEffect? trailFx = null;
                 string trailFxName = Engine.Def.TrailEffect;
                 if (Parent.Tag == GameObject.ClientPlayerTag && !string.IsNullOrEmpty(Engine.Def.TrailEffectPlayer))
                     trailFxName = Engine.Def.TrailEffectPlayer;
                 if(!string.IsNullOrEmpty(trailFxName))
                     trailFx = gameData.Items.Effects.Get(trailFxName).GetEffect(resman);
-                ParticleEffect flameFx = null;
+                ParticleEffect? flameFx = null;
                 if(!string.IsNullOrEmpty(Engine.Def.FlameEffect))
                     flameFx = gameData.Items.Effects.Get(Engine.Def.FlameEffect).GetEffect(resman);
                 foreach (var hp in hps)

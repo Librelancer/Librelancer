@@ -15,13 +15,13 @@ namespace LibreLancer.Render
 {
 	public class LineRenderer :  IDisposable, Physics.IDebugRenderer
 	{
-		const int MAX_LINES = 8192;
-		VertexPositionColor[] lines = new VertexPositionColor[MAX_LINES * 2];
-		VertexBuffer linebuffer;
-		int lineVertices = 0;
+        private const int MAX_LINES = 8192;
+        private VertexPositionColor[] lines = new VertexPositionColor[MAX_LINES * 2];
+        private VertexBuffer linebuffer;
+        private int lineVertices = 0;
         public string SkeletonHighlight;
 
-		Shader shader;
+        private Shader shader;
 		public LineRenderer(RenderContext rstate)
         {
             AllShaders.CompilePhysicsDebug(rstate);
@@ -29,7 +29,7 @@ namespace LibreLancer.Render
 			linebuffer = new VertexBuffer(rstate, typeof(VertexPositionColor), MAX_LINES * 2, true);
 		}
 
-		RenderContext rstate;
+        private RenderContext rstate;
 		public void StartFrame(RenderContext rs)
 		{
 			rstate = rs;
@@ -103,7 +103,7 @@ namespace LibreLancer.Render
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct MaterialParameters
+        private struct MaterialParameters
         {
             public Color4 Dc;
             public float Oc;

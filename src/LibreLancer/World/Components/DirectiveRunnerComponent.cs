@@ -37,12 +37,12 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         }
     }
 
-    static float Throttle(float inThrottle) =>
+    private static float Throttle(float inThrottle) =>
         inThrottle <= 0
             ? 1
             : inThrottle / 100.0f;
 
-    void StartDirective(MissionDirective directive)
+    private void StartDirective(MissionDirective directive)
     {
         splineIndex = -1;
         FLLog.Debug("ObjList", $"{Parent.Nickname} running '{directive}'");
@@ -198,7 +198,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         }
     }
 
-    void UpdateDirective(MissionDirective directive, double time)
+    private void UpdateDirective(MissionDirective directive, double time)
     {
         switch (directive)
         {
@@ -266,14 +266,14 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         }
     }
 
-    static Vector3 EvalSpline(float t, GotoSplineDirective spline)
+    private static Vector3 EvalSpline(float t, GotoSplineDirective spline)
     {
         var val = CatmullRom(spline.PointA, spline.PointB, spline.PointC, spline.PointD, t);
         FLLog.Debug("GotoSpline", $"heading to point t={t} - {val}");
         return val;
     }
 
-    static float GetT(float t, float alpha, Vector3 p0, Vector3 p1)
+    private static float GetT(float t, float alpha, Vector3 p0, Vector3 p1)
     {
         var d = p1 - p0;
         var a = Vector3.Dot(d, d);
@@ -281,7 +281,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         return (b + t);
     }
 
-    static Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t, float alpha = 0.5f)
+    private static Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t, float alpha = 0.5f)
     {
         float t0 = 0.0f;
         float t1 = GetT(t0, alpha, p0, p1);
@@ -299,7 +299,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
 
     private static float[] times = { 0, 0.3333f, 0.6667f, 1f };
 
-    bool CheckDirective()
+    private bool CheckDirective()
     {
         if (currentDirectives == null)
         {
@@ -316,7 +316,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         return true;
     }
 
-    void NextDirective()
+    private void NextDirective()
     {
         index++;
         if (CheckDirective())

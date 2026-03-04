@@ -29,7 +29,7 @@ namespace LibreLancer.Interface
             this.data = data;
         }
 
-        int ScrollCount()
+        private int ScrollCount()
         {
             if (data == null) return 0;
             int c = data.Count - DisplayRowCount;
@@ -44,7 +44,7 @@ namespace LibreLancer.Interface
             Scrollbar.ApplyStyle(sheet);
         }
 
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             Update(context, myPos);
@@ -53,7 +53,7 @@ namespace LibreLancer.Interface
             return myRect;
         }
 
-        RectangleF GetCell(RectangleF parentRect, int row)
+        private RectangleF GetCell(RectangleF parentRect, int row)
         {
             var lineHeight = parentRect.Height / DisplayRowCount;
             var y = parentRect.Y + row * lineHeight;
@@ -61,7 +61,7 @@ namespace LibreLancer.Interface
             return new RectangleF(parentRect.X + 1, y + 1, width - 2, lineHeight - 2);
         }
 
-        bool CanRender()
+        private bool CanRender()
         {
             return Width > 0 && Height > 0 &&
                    Visible;
@@ -157,7 +157,7 @@ namespace LibreLancer.Interface
                             hovered = true;
                         }
                     }
-                    InterfaceColor textColor = null;
+                    InterfaceColor? textColor = null;
                     switch (data.GetAttitude(row + childOffset)) {
                         case RepAttitude.Friendly:
                             textColor = FriendlyColor;

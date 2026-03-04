@@ -13,11 +13,11 @@ namespace LibreLancer.Render
 {
 	public unsafe class PolylineRender : IDisposable
 	{
-		const int MAX_VERTICES = 32768;
+        private const int MAX_VERTICES = 32768;
 
-        VertexPositionColorTexture* vertices;
-		VertexBuffer vbo;
-        CommandBuffer buffer;
+        private VertexPositionColorTexture* vertices;
+        private VertexBuffer vbo;
+        private CommandBuffer buffer;
         private QuadMaterial material;
 		public PolylineRender(RenderContext rstate, CommandBuffer buffer)
         {
@@ -40,10 +40,11 @@ namespace LibreLancer.Render
 			texture = tex;
 			this.blend = blend;
 		}
-		ushort blend;
-		Texture2D texture;
-		int vertexCount = 0;
-		int pointsCount = 0;
+
+        private ushort blend;
+        private Texture2D texture;
+        private int vertexCount = 0;
+        private int pointsCount = 0;
 		public void AddPoint(Vector3 a, Vector3 b, Vector2 uv1, Vector2 uv2, Color4 color)
         {
             if (vertices == (VertexPositionColorTexture*) 0)

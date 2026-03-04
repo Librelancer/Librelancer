@@ -5,7 +5,7 @@
 namespace LibreLancer.Interface
 {
     //Helper class for using Strids with fallback
-    class InfoTextAccessor
+    internal class InfoTextAccessor
     {
         private int _strid;
         private int _infoid;
@@ -44,8 +44,8 @@ namespace LibreLancer.Interface
                 _idsText = null;
             }
         }
-        
-        private string _idsText = null;
+
+        private string? _idsText = null;
         private bool _idsTried = false;
         public string GetText(UiContext context)
         {

@@ -18,14 +18,14 @@ namespace LibreLancer.Interface
         private float builtMultiplier = 0;
         private ChatSource.DisplayMessage[] buildMessages = Array.Empty<ChatSource.DisplayMessage>();
 
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
             return myRectangle;
         }
 
-        ChatSource.DisplayMessage[] GetMessageIds()
+        private ChatSource.DisplayMessage[] GetMessageIds()
         {
             lock (Chat.Messages)
             {
@@ -40,7 +40,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        bool IdChanged(ChatSource.DisplayMessage[] src)
+        private bool IdChanged(ChatSource.DisplayMessage[] src)
         {
             if (src.Length != buildMessages.Length) return true;
             for (int i = 0; i < src.Length; i++) {

@@ -12,8 +12,8 @@ namespace LibreLancer.Render
 	{
 		public float SParam = 0f;
 		public bool Active = true;
-		SystemRenderer sys;
-		ParticleEffectInstance fx;
+        private SystemRenderer sys;
+        private ParticleEffectInstance fx;
         public bool Finished = false;
         public int Index; //needed to fix fuses spawning multiple fx on top of each-other
         public Hardpoint Attachment;
@@ -29,7 +29,7 @@ namespace LibreLancer.Render
             fx.Reset();
         }
 
-        Vector3 cameraPos;
+        private Vector3 cameraPos;
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
             if (fx == null) return false;
@@ -47,11 +47,12 @@ namespace LibreLancer.Render
             fx.Pool = null;
             return false;
         }
-		Matrix4x4 tr;
-		Vector3 pos;
-        float dist = float.MaxValue;
-		const float CULL_DISTANCE = 20000;
-		const float CULL = CULL_DISTANCE * CULL_DISTANCE;
+
+        private Matrix4x4 tr;
+        private Vector3 pos;
+        private float dist = float.MaxValue;
+        private const float CULL_DISTANCE = 20000;
+        private const float CULL = CULL_DISTANCE * CULL_DISTANCE;
 		public override void Update(double time, Vector3 position, Matrix4x4 transform)
 		{
             if (fx == null) return;

@@ -72,7 +72,7 @@ public static class AllShaders
         FLLog.Debug("Shaders", "Compile complete");
     }
 
-    static ShaderBundle Compile(RenderContext context, string name)
+    private static ShaderBundle Compile(RenderContext context, string name)
     {
         FLLog.Debug("Shaders", $"Compiling {name}");
         return ShaderBundle.FromResource<FreelancerGame>(context, $"{name}.bin");

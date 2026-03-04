@@ -24,35 +24,35 @@ namespace LibreLancer.Net
 
     public static class HttpAuthentication
     {
-        record LoginResult(string token);
+        private record LoginResult(string token);
 
-        record VerifyResult(Guid guid);
+        private record VerifyResult(Guid guid);
 
-        static string Combine(string baseUrl, string relUrl)
+        private static string Combine(string baseUrl, string relUrl)
         {
             return $"{baseUrl.TrimEnd('/')}/{relUrl.TrimStart('/')}";
         }
 
-        abstract class ProtectedRequest
+        private abstract class ProtectedRequest
         {
-            static string ComputeSHA256(string rawData)  
-            {  
-                // Create a SHA256   
-                using (SHA256 sha256Hash = SHA256.Create())  
-                {  
-                    // ComputeHash - returns byte array  
-                    byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));  
-  
-                    // Convert byte array to a string   
-                    StringBuilder builder = new StringBuilder();  
-                    for (int i = 0; i < bytes.Length; i++)  
-                    {  
-                        builder.Append(bytes[i].ToString("x2"));  
-                    }  
-                    return builder.ToString();  
-                }  
+            private static string ComputeSHA256(string rawData)
+            {
+                // Create a SHA256
+                using (SHA256 sha256Hash = SHA256.Create())
+                {
+                    // ComputeHash - returns byte array
+                    byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+
+                    // Convert byte array to a string
+                    StringBuilder builder = new StringBuilder();
+                    for (int i = 0; i < bytes.Length; i++)
+                    {
+                        builder.Append(bytes[i].ToString("x2"));
+                    }
+                    return builder.ToString();
+                }
             }
-            
+
             public string utctime { get; set; }
             public string nonce { get; set; }
             public string hash { get; set; }
@@ -82,7 +82,8 @@ namespace LibreLancer.Net
                 }
             }
         }
-        class UsernamePasswordRequest : ProtectedRequest
+
+        private class UsernamePasswordRequest : ProtectedRequest
         {
             public string username { get; set; }
             public string password { get; set; }
@@ -97,7 +98,7 @@ namespace LibreLancer.Net
             }
         }
 
-        public static async Task<string> Login(this HttpClient client, AuthInfo info, string username, string password)
+        public static async Task<string?> Login(this HttpClient client, AuthInfo info, string username, string password)
         {
             try
             {
@@ -112,7 +113,7 @@ namespace LibreLancer.Net
                 }
                 var login = await result.Content.ReadFromJsonAsync<LoginResult>();
                 FLLog.Info("Http", $"Login success for {username}");
-                return login.token;
+                return login?.token;
             }
             catch (Exception e)
             {
@@ -129,12 +130,14 @@ namespace LibreLancer.Net
                 var request = new UsernamePasswordRequest(username, password);
                 await request.Validate(info.RegisterDifficulty);
                 var result = await client.PostAsync(Combine(info.Url, "/register"), JsonContent.Create(request));
-                if (!result.IsSuccessStatusCode)
+
+                if (result.IsSuccessStatusCode)
                 {
-                    FLLog.Error("Http", $"Register failed for {username}");
-                    return false;
+                    return true;
                 }
-                return true;
+
+                FLLog.Error("Http", $"Register failed for {username}");
+                return false;
             }
             catch (Exception e)
             {
@@ -142,8 +145,8 @@ namespace LibreLancer.Net
                 return false;
             }
         }
-        
-        public static async Task<AuthInfo> LoginServerInfo(this HttpClient client, string url)
+
+        public static async Task<AuthInfo?> LoginServerInfo(this HttpClient client, string url)
         {
             try
             {
@@ -157,13 +160,15 @@ namespace LibreLancer.Net
                     FLLog.Error("Http", "Response:\n" + await result.Content.ReadAsStringAsync());
                     return null;
                 }
+
                 var appInfo = await result.Content.ReadFromJsonAsync<AuthInfo>();
-                if (appInfo.Application == "authserver")
+                if (appInfo?.Application == "authserver")
                 {
                     FLLog.Info("Http", $"Found login server {url}");
                     appInfo.Url = url;
                     return appInfo;
                 }
+
                 FLLog.Error("Http", $"info.application != authserver");
                 return null;
             }
@@ -173,7 +178,7 @@ namespace LibreLancer.Net
                 return null;
             }
         }
-        
+
         public static async Task<Guid> VerifyToken(this HttpClient client, string url, string token)
         {
             try

@@ -64,7 +64,7 @@ namespace LibreLancer.Utf.Ale
             return Keyframes[Keyframes.Count - 1].Value;
 		}
 
-        static float ValueAt(CurveKeyframe a, CurveKeyframe b, float t)
+        private static float ValueAt(CurveKeyframe a, CurveKeyframe b, float t)
         {
             var dt = b.Time - a.Time;
             var dt2 = dt * 0.5f;

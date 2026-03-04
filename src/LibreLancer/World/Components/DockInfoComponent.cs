@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
+using System.Data;
 using System.Numerics;
 using LibreLancer.Data.GameData.World;
 
@@ -16,8 +17,8 @@ namespace LibreLancer.World.Components
 
     public class UndockInfo
     {
-        public Hardpoint Start;
-        public Hardpoint End;
+        public Hardpoint? Start;
+        public Hardpoint? End;
     }
 
 	public class DockInfoComponent : GameComponent
@@ -25,18 +26,16 @@ namespace LibreLancer.World.Components
 		public DockAction Action;
         public DockSphere[] Spheres;
 
-		string tlHP;
+        private string tlHP;
 		public DockInfoComponent(GameObject parent) : base(parent)
 		{
 		}
 
-        public DockCameraInfo GetDockCamera(int index)
+        public DockCameraInfo? GetDockCamera(int index)
         {
             var hpname = Spheres[index].Hardpoint.Replace("DockMount", "DockCam");
             var hp = Parent.GetHardpoint(hpname);
-            if (hp == null)
-                return null;
-            return new DockCameraInfo() { DockHardpoint = hp, Parent = Parent };
+            return hp == null ? null : new DockCameraInfo() { DockHardpoint = hp, Parent = Parent };
         }
 
         public UndockInfo GetUndockInfo(int index)
@@ -44,6 +43,7 @@ namespace LibreLancer.World.Components
             var hpname = Spheres[index].Hardpoint.Replace("DockMount", "DockPoint");
             var start = Parent.GetHardpoint(Spheres[index].Hardpoint);
             var end = Parent.GetHardpoint(hpname + "02");
+
             return new UndockInfo() { Start = start, End = end };
         }
 

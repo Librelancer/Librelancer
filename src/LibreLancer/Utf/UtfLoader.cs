@@ -13,10 +13,10 @@ namespace LibreLancer.Utf
 {
 	public class UtfLoader : UtfFile
 	{
-		public static IDrawable GetDrawable(IntermediateNode root, ResourceManager resources, string path = "/")
+		public static IDrawable? GetDrawable(IntermediateNode root, ResourceManager resources, string path = "/")
 		{
-			bool cmpnd = false;
-			bool model = false;
+			var cmpnd = false;
+			var model = false;
 			foreach (var node in root)
 			{
                 switch (node.Name.ToLowerInvariant())
@@ -36,23 +36,35 @@ namespace LibreLancer.Utf
                         return new DfmFile(root);
                 }
 			}
+
 			if (cmpnd)
-				return new CmpFile(root);
-			if (model)
-				return new ModelFile(root);
-            return null;
-		}
-		public static IDrawable LoadDrawable(Stream file, string filename, ResourceManager resources)
+            {
+                return new CmpFile(root);
+            }
+
+            return model ? new ModelFile(root) : null;
+
+        }
+		public static IDrawable? LoadDrawable(Stream file, string filename, ResourceManager resources)
 		{
 			var root = parseFile(filename, file);
             var dr = GetDrawable(root, resources, filename);
-			if (dr is ModelFile) ((ModelFile)dr).Path = filename;
-			if (dr is CmpFile) ((CmpFile)dr).Path = filename;
-            if (dr == null)
-                FLLog.Error("Utf", filename + " is not valid IDrawable");
-			return dr;
+			switch (dr)
+            {
+                case ModelFile modelFile:
+                    modelFile.Path = filename;
+                    break;
+                case CmpFile cmpFile:
+                    cmpFile.Path = filename;
+                    break;
+                case null:
+                    FLLog.Error("Utf", filename + " is not valid IDrawable");
+                    break;
+            }
+
+            return dr;
 		}
-		public static bool LoadResourceNode(IntermediateNode root, ResourceManager library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
+		public static bool LoadResourceNode(IntermediateNode root, ResourceManager library, out MatFile? materials, out TxmFile? textures, out Vms.VmsFile? vms)
 		{
             materials = null;
             textures = null;
@@ -92,7 +104,7 @@ namespace LibreLancer.Utf
             }
             return true;
 		}
-		public static void LoadResourceFile(Stream stream, string file, ResourceManager library, out MatFile materials, out TxmFile textures, out Vms.VmsFile vms)
+		public static void LoadResourceFile(Stream stream, string file, ResourceManager library, out MatFile? materials, out TxmFile? textures, out Vms.VmsFile? vms)
 		{
 			materials = null;
 			textures = null;

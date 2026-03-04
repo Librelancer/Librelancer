@@ -11,7 +11,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class TextEntry : UiWidget
     {
-        event Action<string> TextEntered;
+        private event Action<string> TextEntered;
 
         public void OnTextEntered(WattleScript.Interpreter.Closure handler)
         {
@@ -89,7 +89,7 @@ namespace LibreLancer.Interface
 
         private CachedRenderString renderCache;
 
-        void DrawText(UiContext context, RectangleF myRect)
+        private void DrawText(UiContext context, RectangleF myRect)
         {
             //Padding
             myRect.X += 2;
@@ -111,7 +111,8 @@ namespace LibreLancer.Interface
             editBase.Focused = hasFocus;
             editBase.Draw(context.RenderContext, context.GlobalTime);
         }
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             Update(context, myPos);

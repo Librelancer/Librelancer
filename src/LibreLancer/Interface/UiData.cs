@@ -29,7 +29,7 @@ namespace LibreLancer.Interface
         public InterfaceResources Resources;
         //TODO: Make configurable
         public INavmapIcons NavmapIcons;
-        public string XInterfacePath;
+        public string? XInterfacePath;
         //Editor-only
         public string FlDirectory;
         public UiData()
@@ -78,23 +78,30 @@ namespace LibreLancer.Interface
             };
         }
 
-        Dictionary<string, Texture2D> loadedFiles = new Dictionary<string,Texture2D>();
-        public Texture2D GetTextureFile(string filename)
+        private Dictionary<string, Texture2D?> loadedFiles = new();
+        public Texture2D? GetTextureFile(string filename)
         {
             try
             {
                 var file = DataPath + filename;
-                if (!loadedFiles.ContainsKey(file))
+
+                if (loadedFiles.TryGetValue(file, out var textureFile))
                 {
-                    var f = ImageLib.Generic.TextureFromStream(ResourceManager.GLWindow.RenderContext, FileSystem.Open(file));
-                    if (f is Texture2D t2d)
-                        loadedFiles[file] = t2d;
-                    else
-                    {
-                        f?.Dispose();
-                        loadedFiles[file] = null;
-                    }
+                    return textureFile;
                 }
+
+                var f = ImageLib.Generic.TextureFromStream(ResourceManager.GLWindow.RenderContext, FileSystem.Open(file));
+
+                if (f is Texture2D t2d)
+                {
+                    loadedFiles[file] = t2d;
+                }
+                else
+                {
+                    f?.Dispose();
+                    loadedFiles[file] = null;
+                }
+
                 return loadedFiles[file];
             }
             catch (Exception)
@@ -103,18 +110,23 @@ namespace LibreLancer.Interface
             }
         }
 
-        public RigidModel GetModel(string path)
+        public RigidModel? GetModel(string path)
         {
             if(string.IsNullOrEmpty(path)) return null;
             try
             {
                 if(FileSystem.FileExists(path))
+                {
                     return ((IRigidModelFile) ResourceManager.GetDrawable(path).Drawable).CreateRigidModel(true, ResourceManager);
-                else if (FileSystem.FileExists(DataPath + path))
+                }
+
+                if (FileSystem.FileExists(DataPath + path))
+                {
                     return ((IRigidModelFile)ResourceManager.GetDrawable(DataPath + path).Drawable).CreateRigidModel(
                         true, ResourceManager);
-                else
-                    return null;
+                }
+
+                return null;
             }
             catch (Exception e)
             {
@@ -134,7 +146,7 @@ namespace LibreLancer.Interface
             OpenResources();
         }
 
-        void OpenResources()
+        private void OpenResources()
         {
             Resources = InterfaceResources.FromXml(ReadAllText("resources.xml"));
             LoadLibraries();
@@ -142,7 +154,7 @@ namespace LibreLancer.Interface
 
         private InterfaceTextBundle uibundle;
 
-        void ReadBundle()
+        private void ReadBundle()
         {
             if (uibundle == null)
             {

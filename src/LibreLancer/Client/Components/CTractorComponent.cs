@@ -41,7 +41,7 @@ public class CTractorComponent : GameComponent
         }
     }
 
-    Vector3 GetBeamOrigin()
+    private Vector3 GetBeamOrigin()
     {
         if (Parent.TryGetComponent<ShipComponent>(out var ship) &&
             !string.IsNullOrWhiteSpace(ship.Ship.TractorSource))

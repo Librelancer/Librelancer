@@ -14,7 +14,7 @@ namespace LibreLancer.Server;
 public class BasesidePlayer : IBasesidePlayer
 {
     public Player Player;
-    public Base BaseData;
+    public Base? BaseData;
 
     public BasesidePlayer(Player player, Base baseData)
     {
@@ -22,25 +22,37 @@ public class BasesidePlayer : IBasesidePlayer
         Player = player;
     }
 
-    string FirstAvailableHardpoint(string hptype)
+    private string? FirstAvailableHardpoint(string? hptype)
     {
-        if (string.IsNullOrWhiteSpace(hptype)) return null;
-        if (!Player.Character.Ship.PossibleHardpoints.TryGetValue(hptype, out var candidates))
+        if (string.IsNullOrWhiteSpace(hptype))
+        {
             return null;
-        int currIndex = int.MaxValue;
-        string currValue = null;
+        }
+
+        if (!Player.Character.Ship.PossibleHardpoints.TryGetValue(hptype, out var candidates))
+        {
+            return null;
+        }
+
+        var currIndex = int.MaxValue;
+        string? currValue = null;
         foreach (var possible in candidates)
         {
-            if (!Player.Character.Items.Any(x => possible.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
+            if (Player.Character.Items.Any(x => possible.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
             {
-                var index = Player.Character.Ship.HardpointTypes[possible].OrderBy(x => x.SortIndex)
-                    .FirstOrDefault().SortIndex;
-                if (index < currIndex)
-                {
-                    currIndex = index;
-                    currValue = possible;
-                }
+                continue;
             }
+
+            var index = Player.Character.Ship.HardpointTypes[possible].OrderBy(x => x.SortIndex)
+                .FirstOrDefault().SortIndex;
+
+            if (index >= currIndex)
+            {
+                continue;
+            }
+
+            currIndex = index;
+            currValue = possible;
         }
 
         return currValue;
@@ -48,38 +60,53 @@ public class BasesidePlayer : IBasesidePlayer
 
     public Task<bool> PurchaseGood(string item, int count)
     {
-        if (BaseData == null) return Task.FromResult(false);
-        var g = BaseData.SoldGoods.FirstOrDefault(x =>
-            x.Good.Equipment.Nickname.Equals(item, StringComparison.OrdinalIgnoreCase));
-        if (g.Good == null) return Task.FromResult(false);
-        var cost = (long) (g.Price * (ulong) count);
-        if (Player.Character.Credits >= cost)
+        if (BaseData == null)
         {
-            string hp = count == 1
-                ? FirstAvailableHardpoint(g.Good.Equipment.HpType)
-                : null;
-            if (hp == null &&
-                count > CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship, g.Good.Equipment))
-            {
-                FLLog.Error("Player", $"{Player.Name} tried to overfill cargo hold");
-                return Task.FromResult(false);
-            }
-
-            using (var c = Player.Character.BeginTransaction())
-            {
-                if (hp != null)
-                    c.AddCargo(g.Good.Equipment, hp, 1);
-                else
-                    c.AddCargo(g.Good.Equipment, null, count);
-                c.UpdateCredits(Player.Character.Credits - cost);
-            }
-
-            Player.UpdateCurrentInventory();
-
-            return Task.FromResult(true);
+            return Task.FromResult(false);
         }
 
-        return Task.FromResult(false);
+        var g = BaseData.SoldGoods.FirstOrDefault(x =>
+            x.Good.Equipment.Nickname.Equals(item, StringComparison.OrdinalIgnoreCase));
+        if (g.Good == null)
+        {
+            return Task.FromResult(false);
+        }
+
+        var cost = (long) (g.Price * (ulong) count);
+
+        if (Player.Character.Credits < cost)
+        {
+            return Task.FromResult(false);
+        }
+
+        var hp = count == 1
+            ? FirstAvailableHardpoint(g.Good.Equipment.HpType)
+            : null;
+        if (hp == null &&
+            count > CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship, g.Good.Equipment))
+        {
+            FLLog.Error("Player", $"{Player.Name} tried to overfill cargo hold");
+            return Task.FromResult(false);
+        }
+
+        using (var c = Player.Character.BeginTransaction())
+        {
+            if (hp != null)
+            {
+                c.AddCargo(g.Good.Equipment, hp, 1);
+            }
+            else
+            {
+                c.AddCargo(g.Good.Equipment, null, count);
+            }
+
+            c.UpdateCredits(Player.Character.Credits - cost);
+        }
+
+        Player.UpdateCurrentInventory();
+
+        return Task.FromResult(true);
+
     }
 
     public Task<bool> SellGood(int id, int count)
@@ -103,9 +130,12 @@ public class BasesidePlayer : IBasesidePlayer
             return Task.FromResult(false);
         }
 
-        ulong unitPrice = BaseData.GetUnitPrice(slot.Equipment);
+        var unitPrice = BaseData.GetUnitPrice(slot.Equipment);
         if (slot.Equipment is not CommodityEquipment)
+        {
             unitPrice = (ulong) (unitPrice * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+        }
+
         using (var c = Player.Character.BeginTransaction())
         {
             c.RemoveCargo(slot, count);
@@ -141,7 +171,11 @@ public class BasesidePlayer : IBasesidePlayer
         SellCount[] sellPackage)
     {
         var resolved = Player.Game.GameData.Items.GetShipPackage((uint) package);
-        if (resolved == null) return Task.FromResult(ShipPurchaseStatus.Fail);
+        if (resolved == null)
+        {
+            return Task.FromResult(ShipPurchaseStatus.Fail);
+        }
+
         if (BaseData.SoldShips.All(x => x.Package != resolved))
         {
             FLLog.Error("Player", $"{Player.Name} tried to purchase ship package not available on base");
@@ -151,27 +185,45 @@ public class BasesidePlayer : IBasesidePlayer
         var included = new List<PackageAddon>();
         foreach (var a in resolved.Addons)
             included.Add(new PackageAddon() {Equipment = a.Equipment, Amount = a.Amount});
-        long shipPrice = resolved.BasePrice;
+        var shipPrice = resolved.BasePrice;
         //Sell included Items
         foreach (var item in sellPackage)
         {
             var a = included[item.ID];
-            if (a == null) return Task.FromResult(ShipPurchaseStatus.Fail);
-            if (item.Count > a.Amount) return Task.FromResult(ShipPurchaseStatus.Fail);
+            if (a == null)
+            {
+                return Task.FromResult(ShipPurchaseStatus.Fail);
+            }
+
+            if (item.Count > a.Amount)
+            {
+                return Task.FromResult(ShipPurchaseStatus.Fail);
+            }
+
             var price = BaseData.GetUnitPrice(a.Equipment);
             shipPrice -= (long) price * item.Count;
             a.Amount -= item.Count;
             if (a.Amount <= 0)
+            {
                 included[item.ID] = null;
+            }
         }
 
-        if (shipPrice < 0) shipPrice = 0;
+        if (shipPrice < 0)
+        {
+            shipPrice = 0;
+        }
+
         //Deduct ship worth
         shipPrice -= (long) Player.GetShipWorth();
         //Add price of rest of items
         foreach (var a in included)
         {
-            if (a == null) continue;
+            if (a == null)
+            {
+                continue;
+            }
+
             var price = BaseData.GetUnitPrice(a.Equipment);
             shipPrice += (long) price * a.Amount;
         }
@@ -187,7 +239,7 @@ public class BasesidePlayer : IBasesidePlayer
                 return Task.FromResult(ShipPurchaseStatus.Fail);
             }
 
-            if (!counts.TryGetValue(slot.ID, out int count))
+            if (!counts.TryGetValue(slot.ID, out var count))
             {
                 count = counts[slot.ID] = slot.Count;
             }
@@ -201,7 +253,10 @@ public class BasesidePlayer : IBasesidePlayer
 
             var price = BaseData.GetUnitPrice(slot.Equipment);
             if (slot.Equipment is not CommodityEquipment)
+            {
                 price = (ulong) (price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+            }
+
             shipPrice -= (long) price * item.Count;
             counts[slot.ID] = (count - item.Count);
         }
@@ -290,7 +345,11 @@ public class BasesidePlayer : IBasesidePlayer
 
         foreach (var item in included)
         {
-            if (item == null) continue;
+            if (item == null)
+            {
+                continue;
+            }
+
             volume += item.Equipment.Volume * item.Amount;
         }
 
@@ -315,7 +374,9 @@ public class BasesidePlayer : IBasesidePlayer
             {
                 item.Hardpoint = null;
                 if (item.Equipment.Good == null)
+                {
                     toRemove.Add(item);
+                }
             }
 
             foreach (var item in toRemove)
@@ -338,7 +399,11 @@ public class BasesidePlayer : IBasesidePlayer
 
             foreach (var item in included)
             {
-                if (item == null) continue;
+                if (item == null)
+                {
+                    continue;
+                }
+
                 c.AddCargo(item.Equipment, item.Equipment.Good == null ? item.Hardpoint : null,
                     item.Amount);
             }
@@ -392,7 +457,7 @@ public class BasesidePlayer : IBasesidePlayer
             return Task.FromResult(false);
         }
 
-        string hp = FirstAvailableHardpoint(slot.Equipment.HpType);
+        var hp = FirstAvailableHardpoint(slot.Equipment.HpType);
         if (hp == null)
         {
             FLLog.Error("Player",

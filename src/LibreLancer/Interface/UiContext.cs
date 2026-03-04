@@ -45,7 +45,8 @@ namespace LibreLancer.Interface
                 lua?.SetGameApi(_gameApi);
             }
         }
-        LuaContext lua;
+
+        private LuaContext lua;
         //State
         private bool mode2d = false;
         private FreelancerGame game;
@@ -236,13 +237,13 @@ namespace LibreLancer.Interface
 
         public void OnFocus()
         {
-            baseWidget.UnFocus();
+            baseWidget?.UnFocus();
         }
 
-        RectangleF GetRectangle() => new RectangleF(0,0, 480 * (ViewportWidth / ViewportHeight), 480);
+        private RectangleF GetRectangle() => new RectangleF(0,0, 480 * (ViewportWidth / ViewportHeight), 480);
 
-        private UiWidget baseWidget;
-        List<ModalState> modals = new List<ModalState>();
+        private UiWidget? baseWidget;
+        private List<ModalState> modals = new List<ModalState>();
         public void SetWidget(UiWidget widget)
         {
             widget.ApplyStylesheet(Data.Stylesheet);
@@ -296,19 +297,22 @@ namespace LibreLancer.Interface
             Data.Sounds?.PlayVoiceLine(voice, line, null);
         }
 
-        class ModalState
+        private class ModalState
         {
             public UiWidget Widget;
             public int Handle;
         }
 
         public bool Visible = true;
-        UiWidget GetActive()
+
+        private UiWidget? GetActive()
         {
-            if (modals.Count > 0) return modals[modals.Count - 1].Widget;
-            if(!Visible) return null;
-            if (baseWidget == null) return null;
-            return baseWidget;
+            if (modals.Count > 0)
+            {
+                return modals[modals.Count - 1].Widget;
+            }
+
+            return !Visible ? null : baseWidget;
         }
 
         public void ChatboxEvent() => Event("Chatbox");
@@ -334,7 +338,7 @@ namespace LibreLancer.Interface
 
         public void OnMouseWheel(float delta) => GetActive()?.OnMouseWheel(this, GetRectangle(), delta);
 
-        private UiWidget textFocusWidget = null;
+        private UiWidget? textFocusWidget = null;
 
         internal void SetTextFocus(UiWidget widget) => textFocusWidget = widget;
 

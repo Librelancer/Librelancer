@@ -19,7 +19,7 @@ namespace LibreLancer.Render.Materials
         public Color4 Dc = Color4.White;
         public NebulaMaterial(ResourceManager library) : base(library) { }
 
-		Shader GetShader(IVertexType vtype)
+        private Shader GetShader(IVertexType vtype)
         {
             if (vtype is FVFVertex fvf && fvf.Diffuse)
                 return AllShaders.NebulaMaterial.Get(1);

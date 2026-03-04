@@ -16,10 +16,10 @@ namespace LibreLancer.Render
     public class SunRenderer : ObjectRenderer
 	{
         public Sun Sun { get; private set; }
-		Vector3 pos;
-		SystemRenderer sysr;
-        int ID;
-        VertexBillboardColor2[] vertices;
+        private Vector3 pos;
+        private SystemRenderer sysr;
+        private int ID;
+        private VertexBillboardColor2[] vertices;
 
         private SunSpineMaterial spineMaterial;
         private SunRadialMaterial centerMaterial;
@@ -31,7 +31,7 @@ namespace LibreLancer.Render
             pos = Vector3.Zero;
         }
 
-        static void AddQuad(VertexBillboardColor2[] vx, ref int i, Vector3 pos, Vector2 size, float angle, Color4 c1, Color4 c2)
+        private static void AddQuad(VertexBillboardColor2[] vx, ref int i, Vector3 pos, Vector2 size, float angle, Color4 c1, Color4 c2)
         {
             vx[i++] = new VertexBillboardColor2(
                 pos, -0.5f * size.X, -0.5f * size.Y, angle,

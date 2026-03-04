@@ -17,7 +17,7 @@ namespace LibreLancer.Sur
     {
         public List<SurfacePart> Surfaces = new List<SurfacePart>();
 
-		Dictionary<uint, ConvexMesh[]> shapes = new Dictionary<uint, ConvexMesh[]>();
+        private Dictionary<uint, ConvexMesh[]> shapes = new Dictionary<uint, ConvexMesh[]>();
 
         public bool TryGetHardpoint(uint meshId, uint hpId, out ConvexMesh[] mesh)
         {

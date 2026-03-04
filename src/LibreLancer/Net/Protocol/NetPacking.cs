@@ -157,7 +157,7 @@ namespace LibreLancer.Net.Protocol
             #endif
         }
 
-        static float WrapMinMax(float x, float min, float max)
+        private static float WrapMinMax(float x, float min, float max)
         {
             var m = max - min;
             var y = (x - min);

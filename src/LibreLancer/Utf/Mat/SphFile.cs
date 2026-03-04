@@ -24,21 +24,22 @@ namespace LibreLancer.Utf.Mat
 
         private ResourceManager library;
 
-		public MatFile MaterialLibrary;
-		public TxmFile TextureLibrary;
-		public VmsFile VMeshLibrary;
+		public MatFile? MaterialLibrary;
+		public TxmFile? TextureLibrary;
+		public VmsFile? VMeshLibrary;
         public float Radius { get; private set; }
 
         private List<string> sideMaterialNames;
         private Material[] sideMaterials;
         public class SphMaterials
         {
-            SphFile sph;
+            private SphFile sph;
             internal SphMaterials(SphFile sph)
             {
                 this.sph = sph;
             }
-            void CheckNullArray()
+
+            private void CheckNullArray()
             {
                 if (sph.sideMaterials == null)
                 {
@@ -78,7 +79,7 @@ namespace LibreLancer.Utf.Mat
 
         }
 
-        SphMaterials materialsAccessor;
+        private SphMaterials materialsAccessor;
         public SphMaterials SideMaterials => materialsAccessor;
 
 		public List<string> SideMaterialNames
@@ -145,7 +146,7 @@ namespace LibreLancer.Utf.Mat
             }
         }
 
-        static CubeMapFace[] faces = new CubeMapFace[] {
+        private static CubeMapFace[] faces = new CubeMapFace[] {
 			CubeMapFace.PositiveZ,
 			CubeMapFace.PositiveX,
 			CubeMapFace.NegativeZ,

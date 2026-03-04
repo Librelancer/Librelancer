@@ -40,7 +40,7 @@ namespace LibreLancer.Interface
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void LR(UiContext context, RectangleF client, float pos, float w, int alphaSide, Color4 color) {
+        private static void LR(UiContext context, RectangleF client, float pos, float w, int alphaSide, Color4 color) {
             var r = new RectangleF(client.X + pos, client.Y + w * 1.5f, w, client.Height - 3f * w);
             var alphaZero = new Color4(color.R, color.G, color.B, 0);
             Color4 left = alphaSide == 0 ? alphaZero : color;
@@ -49,7 +49,7 @@ namespace LibreLancer.Interface
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void TB(UiContext context, RectangleF client, float pos, float w, int alphaSide, Color4 color) {
+        private static void TB(UiContext context, RectangleF client, float pos, float w, int alphaSide, Color4 color) {
             var r = new RectangleF(client.X + 1.5f * w, client.Y + pos, client.Width - 3f * w, w);
             var alphaZero = new Color4(color.R, color.G, color.B, 0);
             Color4 top = alphaSide == 0 ? alphaZero : color;

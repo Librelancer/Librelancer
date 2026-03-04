@@ -82,7 +82,7 @@ namespace LibreLancer.Thn
 			}
 		}
 
-        static float EvaluateFreeform(Vector4 pa, Vector4 pb, float time)
+        private static float EvaluateFreeform(Vector4 pa, Vector4 pb, float time)
         {
             var period = (pb.X - pa.X);
             var aval = pa.Y;

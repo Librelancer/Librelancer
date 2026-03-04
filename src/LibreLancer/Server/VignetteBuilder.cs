@@ -56,7 +56,7 @@ public class VignetteInfo
 
 public static class VignetteBuilder
 {
-    static void Error(VignetteAst ast, string error)
+    private static void Error(VignetteAst ast, string error)
     {
         FLLog.Error("VignetteParams", $"{error} at id={ast.Id}");
     }

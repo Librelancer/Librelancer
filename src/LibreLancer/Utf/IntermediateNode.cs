@@ -78,17 +78,11 @@ namespace LibreLancer.Utf
 
         public Node this[int index]
         {
-            get
-            {
-                return children[index];
-            }
-            set
-            {
-                throw new NotSupportedException();
-            }
+            get => children[index];
+            set => throw new NotSupportedException();
         }
 
-        public Node this[string name]
+        public Node? this[string name]
         {
             get
             {

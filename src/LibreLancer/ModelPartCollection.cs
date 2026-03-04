@@ -7,8 +7,8 @@ namespace LibreLancer;
 
 public sealed class ModelPartCollection : IEnumerable<KeyValuePair<string, RigidModelPart>>
 {
-    Dictionary<string, RigidModelPart> partsByName = new (StringComparer.OrdinalIgnoreCase);
-    Dictionary<uint, RigidModelPart> partsByCrc = new ();
+    private Dictionary<string, RigidModelPart> partsByName = new (StringComparer.OrdinalIgnoreCase);
+    private Dictionary<uint, RigidModelPart> partsByCrc = new ();
     public void Add(RigidModelPart part)
     {
         partsByName.Add(part.Name, part);

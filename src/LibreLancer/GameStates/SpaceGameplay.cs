@@ -33,7 +33,7 @@ namespace LibreLancer
 {
 	public class SpaceGameplay : GameState
     {
-        const string DEBUG_TEXT =
+        private const string DEBUG_TEXT =
 @"{3} ({4})
 Camera Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
 C# Memory Usage: {5}
@@ -46,36 +46,36 @@ Mouse Flight: {11}
 World Time: {12:F2}
 ";
 		private const float ROTATION_SPEED = 1f;
-		StarSystem sys;
+        private StarSystem sys;
 		public GameWorld world;
         public FreelancerGame FlGame => Game;
 
-		SystemRenderer sysrender;
-		bool wireframe = false;
-		bool textEntry = false;
-		string currentText = "";
+        private SystemRenderer sysrender;
+        private bool wireframe = false;
+        private bool textEntry = false;
+        private string currentText = "";
 		public GameObject player;
-		ShipPhysicsComponent control;
-        ShipSteeringComponent steering;
-        ShipInputComponent shipInput;
-        WeaponControlComponent weapons;
-		PowerCoreComponent powerCore;
-        CHealthComponent playerHealth;
+        private ShipPhysicsComponent control;
+        private ShipSteeringComponent steering;
+        private ShipInputComponent shipInput;
+        private WeaponControlComponent weapons;
+        private PowerCoreComponent powerCore;
+        private CHealthComponent playerHealth;
         public DirectiveRunnerComponent Directives;
         public SelectedTargetComponent Selection;
         private ContactList contactList;
 
 		public float Velocity = 0f;
-		const float MAX_VELOCITY = 80f;
-        Cursor cur_arrow;
-		Cursor cur_cross;
-		Cursor cur_reticle;
-		Cursor current_cur;
-		CGameSession session;
-        CPlayerCargoComponent cargo;
-        bool loading = true;
-        LoadingScreen loader;
-        public Cutscene Thn;
+        private const float MAX_VELOCITY = 80f;
+        private Cursor cur_arrow;
+        private Cursor cur_cross;
+        private Cursor cur_reticle;
+        private Cursor current_cur;
+        private CGameSession session;
+        private CPlayerCargoComponent cargo;
+        private bool loading = true;
+        private LoadingScreen loader;
+        public Cutscene? Thn;
         private UiContext ui;
         private UiWidget widget;
         private LuaAPI uiApi;
@@ -103,13 +103,12 @@ World Time: {12:F2}
         }
 
 
-
-        ChaseCamera _chaseCamera;
-        TurretViewCamera _turretViewCamera;
-        ICamera activeCamera;
+        private ChaseCamera _chaseCamera;
+        private TurretViewCamera _turretViewCamera;
+        private ICamera activeCamera;
         private bool isTurretView = false;
 
-        void FinishLoad()
+        private void FinishLoad()
         {
             Game.Saves.Selected = -1;
             //Set up player object + camera
@@ -205,8 +204,7 @@ World Time: {12:F2}
             sysrender.Settings = Game.Config.Settings;
 
 
-
-        bool CanRecharge()
+        private bool CanRecharge()
         {
             var first = cargo.FirstOf<ShieldBatteryEquipment>();
             if (first == null)
@@ -218,7 +216,8 @@ World Time: {12:F2}
                 return false;
             return true;
         }
-        void UseShieldBatteries()
+
+        private void UseShieldBatteries()
         {
             if (CanRecharge())
             {
@@ -231,7 +230,7 @@ World Time: {12:F2}
             }
         }
 
-        bool CanRepair()
+        private bool CanRepair()
         {
             var first = cargo.FirstOf<RepairKitEquipment>();
             if (first == null)
@@ -241,7 +240,7 @@ World Time: {12:F2}
             return true;
         }
 
-        void UseRepairKits()
+        private void UseRepairKits()
         {
             if (CanRepair())
             {
@@ -295,7 +294,7 @@ World Time: {12:F2}
             }
         }
 
-        RepAttitude GetRepToPlayer(GameObject obj)
+        private RepAttitude GetRepToPlayer(GameObject obj)
         {
             if ((obj.Flags & GameObjectFlags.Friendly) == GameObjectFlags.Friendly) return RepAttitude.Friendly;
             if ((obj.Flags & GameObjectFlags.Neutral) == GameObjectFlags.Neutral) return RepAttitude.Neutral;
@@ -315,7 +314,7 @@ World Time: {12:F2}
 
         public class ContactList : IContactListData
         {
-            readonly record struct Contact(GameObject obj, float distance, string display);
+            private readonly record struct Contact(GameObject obj, float distance, string display);
 
             private Contact[] Contacts = Array.Empty<Contact>();
             private SpaceGameplay game;
@@ -327,7 +326,7 @@ World Time: {12:F2}
                 contactFilter = AllFilter;
             }
 
-            string GetDistanceString(float distance)
+            private string GetDistanceString(float distance)
             {
                 if (distance < 1000)
                     return $"{(int)distance}m";
@@ -340,7 +339,7 @@ World Time: {12:F2}
             }
 
 
-            Contact GetContact(GameObject obj)
+            private Contact GetContact(GameObject obj)
             {
                 var distance = Vector3.Distance(playerPos, obj.WorldTransform.Position);
                 var name = obj.Name.GetName(game.Game.GameData, playerPos);
@@ -355,13 +354,13 @@ World Time: {12:F2}
             }
 
 
-            bool AllFilter(GameObject o) => true;
-            bool ShipFilter(GameObject o) => o.Kind == GameObjectKind.Ship;
-            bool StationFilter(GameObject o) => o.Kind == GameObjectKind.Solar;
+            private bool AllFilter(GameObject o) => true;
+            private bool ShipFilter(GameObject o) => o.Kind == GameObjectKind.Ship;
+            private bool StationFilter(GameObject o) => o.Kind == GameObjectKind.Solar;
 
-            bool LootFilter(GameObject o) => o.Kind == GameObjectKind.Loot;
+            private bool LootFilter(GameObject o) => o.Kind == GameObjectKind.Loot;
 
-            bool ImportantFilter(GameObject o)
+            private bool ImportantFilter(GameObject o)
             {
                 return game.Selection.Selected == o ||
                        (o.Flags & GameObjectFlags.Important) == GameObjectFlags.Important ||
@@ -467,7 +466,7 @@ World Time: {12:F2}
         [WattleScriptUserData]
         public class LuaAPI
         {
-            SpaceGameplay g;
+            private SpaceGameplay g;
             public CallbackWidget IndicatorLayer;
 
             public LuaAPI(SpaceGameplay gameplay)
@@ -476,18 +475,17 @@ World Time: {12:F2}
                 IndicatorLayer = new CallbackWidget();
             }
 
-            private Container lastContainer;
+            private Container? lastContainer;
 
             public void SetIndicatorLayer(Container container)
             {
-                if (lastContainer != null)
-                    lastContainer.Children.Remove(IndicatorLayer);
+                lastContainer?.Children.Remove(IndicatorLayer);
                 container.Children.Add(IndicatorLayer);
             }
 
             public UIInventoryItem[] GetScannedInventory(string filter) => g.session.GetScannedInventory(filter);
 
-            public Infocard GetScannedShipInfocard()
+            public Infocard? GetScannedShipInfocard()
             {
                 if (g.Selection.Selected == null) return null;
                 if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
@@ -647,17 +645,19 @@ World Time: {12:F2}
                 return g.Game.GameData.GetManeuvers().ToArray();
             }
 
-            public Infocard CurrentInfocard()
+            public Infocard? CurrentInfocard()
             {
-                if (g.Selection.Selected?.SystemObject != null)
+                if (g.Selection.Selected?.SystemObject == null)
                 {
-                    int ids = g.Selection.Selected.SystemObject.IdsInfo;
-                    return g.Game.GameData.GetInfocard(ids, g.Game.Fonts);
+                    return null;
                 }
-                return null;
+
+                var ids = g.Selection.Selected.SystemObject.IdsInfo;
+                return g.Game.GameData.GetInfocard(ids, g.Game.Fonts);
+
             }
 
-            public string CurrentInfoString() => g.Selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);
+            public string? CurrentInfoString() => g.Selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);
 
             public string SelectionName()
             {
@@ -792,7 +792,7 @@ World Time: {12:F2}
             }
         }
 
-        private DockCameraInfo dockCameraInfo = null;
+        private DockCameraInfo? dockCameraInfo = null;
         public void SetDockCam(DockCameraInfo info)
         {
             this.dockCameraInfo = info;
@@ -808,7 +808,7 @@ World Time: {12:F2}
             world?.Dispose();
 		}
 
-		void Keyboard_KeyDown(KeyEventArgs e)
+        private void Keyboard_KeyDown(KeyEventArgs e)
 		{
             if (ui.KeyboardGrabbed)
             {
@@ -835,15 +835,15 @@ World Time: {12:F2}
             }
         }
 
-		void Game_TextInput(string text)
+        private void Game_TextInput(string text)
 		{
 			ui.OnTextEntry(text);
 		}
 
-		bool dogoto = false;
-		public AutopilotComponent pilotcomponent = null;
+        private bool dogoto = false;
+		public AutopilotComponent? pilotcomponent = null;
 
-        bool ManeuverSelect(string e)
+        private bool ManeuverSelect(string e)
 		{
 			switch (e)
 			{
@@ -884,7 +884,8 @@ World Time: {12:F2}
 
 
         private double accum = 0;
-        void TimeDilatedUpdate(double delta)
+
+        private void TimeDilatedUpdate(double delta)
         {
             accum += delta;
             double updateInterval = 1 / 60.0 * session.AdjustedInterval;
@@ -923,7 +924,7 @@ World Time: {12:F2}
             GameFOV = true
         };
 
-        ICamera GetCurrentCamera()
+        private ICamera GetCurrentCamera()
         {
             if (Thn != null && Thn.Running)
             {
@@ -938,7 +939,8 @@ World Time: {12:F2}
                 return activeCamera;
             }
         }
-        bool IsSpecialCamera() => GetCurrentCamera() != activeCamera;
+
+        private bool IsSpecialCamera() => GetCurrentCamera() != activeCamera;
 
         public override void Update(double delta)
 		{
@@ -1009,7 +1011,7 @@ World Time: {12:F2}
             player.TryGetComponent<ScannerComponent>(out scanner);
 		}
 
-        void TractorSelected()
+        private void TractorSelected()
         {
             if (!canTractorAny)
             {
@@ -1018,7 +1020,7 @@ World Time: {12:F2}
             session.SpaceRpc.Tractor(Selection.Selected);
         }
 
-        void TractorAll()
+        private void TractorAll()
         {
             if (!canTractorAll)
             {
@@ -1038,9 +1040,9 @@ World Time: {12:F2}
         private bool canTractorAll;
         private float maxTractorDistance;
 
-		bool thrust = false;
+        private bool thrust = false;
 
-		void UpdateCamera(double delta)
+        private void UpdateCamera(double delta)
         {
             activeCamera = isTurretView ? _turretViewCamera : _chaseCamera;
             _chaseCamera.Viewport = Game.RenderContext.CurrentViewport;
@@ -1079,7 +1081,7 @@ World Time: {12:F2}
             }
         }
 
-		bool mouseFlight = false;
+        private bool mouseFlight = false;
 
         protected override void OnActionUp(InputAction action)
         {
@@ -1101,7 +1103,7 @@ World Time: {12:F2}
         private bool isLeftDown = false;
         private double leftDownTimer = 0;
 
-        void Mouse_MouseDown(MouseEventArgs e)
+        private void Mouse_MouseDown(MouseEventArgs e)
         {
             if((e.Buttons & MouseButtons.Left) > 0)
             {
@@ -1171,7 +1173,7 @@ World Time: {12:F2}
             steering.Cruise = false;
         }
 
-        bool GetCrosshair(out Vector2 screenPos, out Vector3 worldPos)
+        private bool GetCrosshair(out Vector2 screenPos, out Vector3 worldPos)
         {
             screenPos = Vector2.Zero;
             worldPos = Vector3.Zero;
@@ -1193,7 +1195,8 @@ World Time: {12:F2}
         }
 
         private bool crosshairHit = false;
-        Vector3 GetAimPoint()
+
+        private Vector3 GetAimPoint()
         {
             crosshairHit = false;
             var m = new Vector2(Game.Mouse.X, Game.Mouse.Y);
@@ -1218,7 +1221,7 @@ World Time: {12:F2}
             return tgt;
         }
 
-		void ProcessInput(double delta)
+        private void ProcessInput(double delta)
         {
             if (Dead) {
                 current_cur = cur_arrow;
@@ -1355,7 +1358,7 @@ World Time: {12:F2}
             }
 
             Accessory acc = costume.Helmet;
-            RigidModel accModel = null;
+            RigidModel? accModel = null;
             if (acc != null)
             {
                 accModel = (costume.Helmet?.ModelFile.LoadFile(Game.ResourceManager).Drawable as IRigidModelFile)
@@ -1370,7 +1373,7 @@ World Time: {12:F2}
                 Male = string.Equals(costume.Body?.Sex, "male", StringComparison.OrdinalIgnoreCase),
                 Scripts = scripts
             };
-            string factionName = null;
+            string? factionName = null;
             if (obj.TryGetComponent<CFactionComponent>(out var fac) &&
                 fac?.Faction != null)
             {
@@ -1404,18 +1407,18 @@ World Time: {12:F2}
         }
 
 
-        void GetCameraMatrices(out Matrix4x4 view, out Matrix4x4 projection)
+        private void GetCameraMatrices(out Matrix4x4 view, out Matrix4x4 projection)
         {
             view = activeCamera.View;
             projection = activeCamera.Projection;
         }
 
-        void GetViewProjection(out Matrix4x4 vp)
+        private void GetViewProjection(out Matrix4x4 vp)
         {
             vp = activeCamera.ViewProjection;
         }
 
-        (Vector2 pos, bool visible) ScreenPosition(Vector3 worldPos)
+        private (Vector2 pos, bool visible) ScreenPosition(Vector3 worldPos)
         {
             GetViewProjection(out var vp);
             var clipSpace = Vector4.Transform(new Vector4(worldPos, 1), vp);
@@ -1435,14 +1438,14 @@ World Time: {12:F2}
             return (windowSpace, visible && ndc.Z < 1);
         }
 
-        (Vector2 pos, bool visible) ScreenPosition(GameObject obj)
+        private (Vector2 pos, bool visible) ScreenPosition(GameObject obj)
         {
             return ScreenPosition(obj.WorldTransform.Position);
         }
 
         private GameObject missionWaypoint;
 
-        void UpdateObjectiveObjects()
+        private void UpdateObjectiveObjects()
         {
             if (missionWaypoint != null)
             {
@@ -1474,7 +1477,7 @@ World Time: {12:F2}
 
         private TargetShipWireframe targetWireframe = new TargetShipWireframe();
 
-        int CrosshairSize()
+        private int CrosshairSize()
         {
             float size = 14;
             float ratio = (Game.Height / 480f);
@@ -1643,7 +1646,7 @@ World Time: {12:F2}
             DoFade(delta);
 		}
 
-        (Vector2, float) ArrowPosition(Vector2 pos)
+        private (Vector2, float) ArrowPosition(Vector2 pos)
         {
             var screenCenter = new Vector2(ui.ScreenWidth, 480) / 2f;
             pos -= screenCenter;
@@ -1673,7 +1676,7 @@ World Time: {12:F2}
             return (pos, angle);
         }
 
-        void DrawSelectedArrow(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
+        private void DrawSelectedArrow(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
         {
             var rep = GetRepToPlayer(obj) switch
             {
@@ -1688,7 +1691,7 @@ World Time: {12:F2}
             );
         }
 
-        void DrawUnselectedArrow(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
+        private void DrawUnselectedArrow(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
         {
             var rep = GetRepToPlayer(obj) switch
             {
@@ -1703,13 +1706,13 @@ World Time: {12:F2}
                 );
         }
 
-        void DrawShipReticle(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
+        private void DrawShipReticle(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
         {
            // var rep = GetRepToPlayer(obj);
 
         }
 
-        void IndicatorLayerOnRender(UiContext context, RectangleF parentRectangle)
+        private void IndicatorLayerOnRender(UiContext context, RectangleF parentRectangle)
         {
             foreach (var obj in world.Objects) {
                 if (obj == Selection.Selected)

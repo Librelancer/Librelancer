@@ -49,7 +49,7 @@ namespace LibreLancer.Net.Protocol
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        struct F2I
+        private struct F2I
         {
             [FieldOffset(0)] public float f;
             [FieldOffset(0)] public uint i;
@@ -258,7 +258,7 @@ namespace LibreLancer.Net.Protocol
             }
         }
 
-        void CheckSize(int nBits)
+        private void CheckSize(int nBits)
         {
             int byteLen = (nBits + 7) >> 3;
             if (buffer.Length < byteLen)

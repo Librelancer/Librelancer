@@ -24,7 +24,7 @@ public class ChatHistory : UiWidget
         scrollbar.ApplyStyle(sheet);
     }
 
-    RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+    private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
     {
         var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
         var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);

@@ -152,7 +152,7 @@ namespace LibreLancer.Server
             return compSrc.Task;
         }
 
-        async Task ProcessTaskQueue()
+        private async Task ProcessTaskQueue()
         {
             while (await actions.OutputAvailableAsync())
             {
@@ -278,7 +278,7 @@ namespace LibreLancer.Server
             });
         }
 
-        public async Task<List<SelectableCharacter>> PlayerLogin(Guid playerGuid)
+        public async Task<List<SelectableCharacter>?> PlayerLogin(Guid playerGuid)
         {
             return await Run(async () =>
             {
@@ -287,39 +287,39 @@ namespace LibreLancer.Server
                 var acc = ctx.Accounts.Where(x => x.AccountIdentifier == playerGuid)
                     .Include(x => x.Characters)
                     .FirstOrDefault();
+
                 if (acc == null)
                 {
-                    var utcnow = DateTime.UtcNow;
+                    var utcNow = DateTime.UtcNow;
                     acc = new Account()
                     {
                         AccountIdentifier = playerGuid,
-                        LastLogin = utcnow,
-                        CreationDate = utcnow
+                        LastLogin = utcNow,
+                        CreationDate = utcNow
                     };
                     ctx.Accounts.Add(acc);
                     ctx.SaveChanges();
-                    return new List<SelectableCharacter>();
+                    return [];
                 }
+
                 if (acc.BanExpiry.HasValue && acc.BanExpiry > DateTime.UtcNow)
                 {
                     return null;
                 }
+
                 ctx.Entry(acc).Property(x => x.LastLogin).CurrentValue = DateTime.UtcNow;
                 ctx.SaveChanges();
-                var characters = new List<SelectableCharacter>();
-                foreach (var c in acc.Characters)
-                {
-                    characters.Add(new SelectableCharacter()
+
+                return acc.Characters.Select(c => new SelectableCharacter()
                     {
                         Location = c.System,
                         Funds = c.Money,
                         Name = c.Name,
-                        Rank = (int)c.Rank,
+                        Rank = (int) c.Rank,
                         Ship = c.Ship,
                         Id = c.Id
-                    });
-                }
-                return characters;
+                    })
+                    .ToList();
             });
 
         }

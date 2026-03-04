@@ -24,7 +24,7 @@ namespace LibreLancer.Interface
 
         public float MarginRight { get; set; }
 
-        InfoTextAccessor txtAccess = new InfoTextAccessor();
+        private InfoTextAccessor txtAccess = new InfoTextAccessor();
         public string Text
         {
             get => txtAccess.Text;
@@ -58,13 +58,13 @@ namespace LibreLancer.Interface
         }
 
         private bool lastFrameMouseInside = false;
-        string GetText(UiContext context) => txtAccess.GetText(context);
+        private string GetText(UiContext context) => txtAccess.GetText(context);
 
         private CachedRenderString textCache;
 
         internal void Draw(UiContext context, RectangleF myRectangle, bool hover, bool pressed, bool selected, bool enabled)
         {
-            ButtonAppearance activeStyle = null;
+            ButtonAppearance? activeStyle = null;
             if(selected) activeStyle = style.Selected;
             if (hover) activeStyle = style?.Hover;
             if (pressed) activeStyle = style?.Pressed ?? style?.Hover;
@@ -110,7 +110,7 @@ namespace LibreLancer.Interface
         {
             if (!Visible) return;
             Update(context, parentRectangle);
-            ButtonAppearance activeStyle = null;
+            ButtonAppearance? activeStyle = null;
             var myRectangle = GetMyRectangle(context, parentRectangle);
             if (myRectangle.Contains(context.MouseX, context.MouseY)) {
                 activeStyle = style?.Hover;
@@ -156,7 +156,7 @@ namespace LibreLancer.Interface
             border?.Draw(context, myRectangle);
         }
 
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var width = Cascade(style?.Width, null, Width);
             var height = Cascade(style?.Height, null, Height);
@@ -197,7 +197,7 @@ namespace LibreLancer.Interface
         }
 
 
-        event Action Clicked;
+        private event Action Clicked;
 
         public void OnClick(WattleScript.Interpreter.Closure handler)
         {

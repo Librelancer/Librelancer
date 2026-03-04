@@ -19,15 +19,15 @@ namespace LibreLancer.Fx
         public const int MaxParticles = 30_000;
         public const int MaxParticlesPerCall = 2000;
 
-        VertexBuffer vbo;
-        ElementBuffer ebo;
+        private VertexBuffer vbo;
+        private ElementBuffer ebo;
 
-        VertexPositionColorTexture* vertices;
-        CommandBuffer cmd;
+        private VertexPositionColorTexture* vertices;
+        private CommandBuffer cmd;
 
         private QuadMaterial basicMaterial = new(null);
 
-        void CreateQuad(Vector3 p, Vector2 size, Color4 color, float angle, ParticleTexture texture, float frame,
+        private void CreateQuad(Vector3 p, Vector2 size, Color4 color, float angle, ParticleTexture texture, float frame,
             Vector3 src_right, Vector3 src_up, bool flipU, bool flipV)
         {
             var frameNo = (int)Math.Floor((texture.FrameCount - 1) * frame);
@@ -96,7 +96,7 @@ namespace LibreLancer.Fx
             vbo.SetElementBuffer(ebo);
         }
 
-        ICamera camera;
+        private ICamera camera;
 
         public ICamera Camera => camera;
 

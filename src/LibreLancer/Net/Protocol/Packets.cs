@@ -20,8 +20,8 @@ namespace LibreLancer.Net.Protocol
 
     public static class Packets
     {
-        static List<Func<PacketReader, object>> parsers = new List<Func<PacketReader,object>>();
-        static List<Type> packetTypes = new List<Type>();
+        private static List<Func<PacketReader, object>> parsers = new List<Func<PacketReader,object>>();
+        private static List<Type> packetTypes = new List<Type>();
         public static void Register<T>(Func<PacketReader,object> parser) where T : IPacket
         {
             packetTypes.Add(typeof(T));
@@ -165,7 +165,7 @@ namespace LibreLancer.Net.Protocol
     public struct ObjectSpawnInfo
     {
         [Flags]
-        enum SpawnHeader : ushort
+        private enum SpawnHeader : ushort
         {
             //match ObjectSpawnFlags
             Debris = (1 << 0),
@@ -313,7 +313,7 @@ namespace LibreLancer.Net.Protocol
             }
         }
 
-        static DockAction GetDock(PacketReader message)
+        private static DockAction GetDock(PacketReader message)
         {
             var k = message.GetByte();
             if (k == 0) return null;
@@ -327,7 +327,7 @@ namespace LibreLancer.Net.Protocol
             };
         }
 
-        static void PutDock(PacketWriter message, DockAction dock)
+        private static void PutDock(PacketWriter message, DockAction dock)
         {
             if (dock != null)
             {
@@ -767,7 +767,7 @@ namespace LibreLancer.Net.Protocol
             return pa;
         }
 
-        static void EncodeFloat(ref BitWriter writer, float old, float current, bool force)
+        private static void EncodeFloat(ref BitWriter writer, float old, float current, bool force)
         {
             var diff = current - old;
             if (!force && diff >= -32 && diff < 31) {
@@ -780,19 +780,19 @@ namespace LibreLancer.Net.Protocol
             }
         }
 
-        static void EncodeVec3(ref BitWriter writer, Vector3 old, Vector3 current, bool force)
+        private static void EncodeVec3(ref BitWriter writer, Vector3 old, Vector3 current, bool force)
         {
             EncodeFloat(ref writer, old.X, current.X, force);
             EncodeFloat(ref writer, old.Y, current.Y, force);
             EncodeFloat(ref writer, old.Z, current.Z, force);
         }
 
-        static float DecodeFloat(ref BitReader reader, float old) =>
+        private static float DecodeFloat(ref BitReader reader, float old) =>
             reader.GetBool()
                 ? old + reader.GetRangedFloat(-32, 31, 24)
                 : reader.GetFloat();
 
-        static Vector3 DecodeVector3(ref BitReader reader, Vector3 old) =>
+        private static Vector3 DecodeVector3(ref BitReader reader, Vector3 old) =>
             new Vector3(DecodeFloat(ref reader, old.X), DecodeFloat(ref reader, old.Y), DecodeFloat(ref reader, old.Z));
 
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
@@ -869,7 +869,7 @@ namespace LibreLancer.Net.Protocol
         public NetInputControls HistoryC;
 
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
-        static void WriteDelta(ref BitWriter writer, ref NetInputControls baseline, ref NetInputControls cur)
+        private static void WriteDelta(ref BitWriter writer, ref NetInputControls baseline, ref NetInputControls cur)
         {
             writer.PutVarInt32((int)((long)cur.Tick - baseline.Tick));
             writer.PutUInt((uint)cur.Strafe, 4);
@@ -887,7 +887,7 @@ namespace LibreLancer.Net.Protocol
             WriteFireCommand(ref writer, ref cur);
         }
 
-        static ProjectileFireCommand? ReadFireCommand(ref BitReader reader, ref NetInputControls controls)
+        private static ProjectileFireCommand? ReadFireCommand(ref BitReader reader, ref NetInputControls controls)
         {
             if (!reader.GetBool())
                 return null;
@@ -909,7 +909,7 @@ namespace LibreLancer.Net.Protocol
             return fc;
         }
 
-        static void WriteFireCommand(ref BitWriter writer, ref NetInputControls controls)
+        private static void WriteFireCommand(ref BitWriter writer, ref NetInputControls controls)
         {
             if (controls.FireCommand == null) {
                 writer.PutBool(false);
@@ -933,7 +933,7 @@ namespace LibreLancer.Net.Protocol
             }
         }
 
-        static NetInputControls ReadDelta(ref BitReader reader, ref NetInputControls baseline)
+        private static NetInputControls ReadDelta(ref BitReader reader, ref NetInputControls baseline)
         {
             var nc = new NetInputControls();
             nc.Tick = (uint) (baseline.Tick + reader.GetVarInt32());

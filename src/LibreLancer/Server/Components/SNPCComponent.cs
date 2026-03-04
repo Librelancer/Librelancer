@@ -93,7 +93,7 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        int GetHostileWeight(GameObject obj)
+        private int GetHostileWeight(GameObject obj)
         {
             if ("player".Equals(obj.Nickname, StringComparison.OrdinalIgnoreCase) &&
                 manager.AttackingPlayer > 2)
@@ -115,7 +115,7 @@ namespace LibreLancer.Server.Components
             return false;
         }
 
-        float ValueWithVariance(float? value, float? variance)
+        private float ValueWithVariance(float? value, float? variance)
         {
             if (value == null) return 0;
             var b = value.Value;
@@ -292,7 +292,7 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        Vector3 AddInaccuracy(Vector3 target, Vector3 myPos, float distance, float maxRange, bool isAutoTurret = false)
+        private Vector3 AddInaccuracy(Vector3 target, Vector3 myPos, float distance, float maxRange, bool isAutoTurret = false)
         {
             if (Pilot?.Gun == null || distance <= 0)
                 return target;
@@ -353,10 +353,10 @@ namespace LibreLancer.Server.Components
             return AddInaccuracy(otherPos, myPos, staticDist, maxRange, isAutoTurret);
         }
 
-        GameObject GetHostileAndFire(double time)
+        private GameObject GetHostileAndFire(double time)
         {
             //Get hostile
-            GameObject shootAt = null;
+            GameObject? shootAt = null;
             int shootAtWeight = -1000;
             var myPos = Parent.WorldTransform.Position;
             foreach (var other in Parent.GetWorld().SpatialLookup
@@ -473,7 +473,7 @@ namespace LibreLancer.Server.Components
         }
 
 
-        void Transition(params StateGraphEntry[] possible) {
+        private void Transition(params StateGraphEntry[] possible) {
             foreach (var e in possible) {
                 if (random.NextSingle() < GetStateValue(currentState, e)) {
                     EnterState(e);
@@ -489,7 +489,7 @@ namespace LibreLancer.Server.Components
         private bool evadeThrust = false;
 
 
-        void EnterState(StateGraphEntry e)
+        private void EnterState(StateGraphEntry e)
         {
             currentState = e;
             timeInState = 0;

@@ -19,7 +19,7 @@ namespace LibreLancer.Missions
     public class MissionRuntime
     {
         public Player Player;
-        object _msnLock = new object();
+        private object _msnLock = new object();
 
         public MissionScript Script;
         public Random Random = new();
@@ -229,14 +229,14 @@ namespace LibreLancer.Missions
         }
 
         public TriggerInfo[] ActiveTriggersInfo = new TriggerInfo[0];
-        void UpdateUiTriggers()
+
+        private void UpdateUiTriggers()
         {
             ActiveTriggersInfo = GetTriggerInfo().ToArray();
         }
 
 
-
-        IEnumerable<TriggerInfo> GetTriggerInfo()
+        private IEnumerable<TriggerInfo> GetTriggerInfo()
         {
             foreach (var t in activeTriggers)
             {
@@ -264,7 +264,7 @@ namespace LibreLancer.Missions
 
         private List<ActiveTrigger> activeTriggers = new List<ActiveTrigger>();
 
-        void MsnEvent<T>(T e) where T : struct
+        private void MsnEvent<T>(T e) where T : struct
         {
             lock (_msnLock) {
                 foreach (var tr in activeTriggers) {
@@ -330,7 +330,7 @@ namespace LibreLancer.Missions
             MsnEvent(new LaunchCompleteEvent(nickname));
         }
 
-        void OnProjectileHit(GameObject victim, GameObject attacker)
+        private void OnProjectileHit(GameObject victim, GameObject attacker)
         {
             MsnEvent(new ProjectileHitEvent(victim.Nickname, attacker.Nickname));
         }
@@ -411,7 +411,7 @@ namespace LibreLancer.Missions
         }
 
 
-        void DoTrigger(ScriptedTrigger tr)
+        private void DoTrigger(ScriptedTrigger tr)
         {
             FLLog.Info("Mission", "Running trigger " + tr.Nickname);
             foreach(var act in tr.Actions)
@@ -433,12 +433,14 @@ namespace LibreLancer.Missions
                 }
             }
         }
-        class PendingLine
+
+        private class PendingLine
         {
             public uint Hash;
             public string Line;
         }
-        List<PendingLine> waitingLines = new List<PendingLine>();
+
+        private List<PendingLine> waitingLines = new List<PendingLine>();
 
         public void EnqueueLine(uint hash, string line)
         {

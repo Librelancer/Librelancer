@@ -16,7 +16,7 @@ namespace LibreLancer.World.Components
     {
         private Dictionary<Script, ActiveAnimation> active = new();
 
-		class ActiveAnimation
+        private class ActiveAnimation
 		{
 			public string Name;
 			public Script Script;
@@ -38,7 +38,7 @@ namespace LibreLancer.World.Components
                 ScriptDuration = GetScriptDuration(script);
             }
 
-            float GetScriptDuration(Script sc)
+            private float GetScriptDuration(Script sc)
             {
                 float duration = 0;
                 foreach (var jm in sc.JointMaps)
@@ -49,10 +49,10 @@ namespace LibreLancer.World.Components
             }
         }
 
-		AnmFile anm;
+        private AnmFile anm;
         private RigidModel rm;
-		List<ActiveAnimation> animations = new List<ActiveAnimation>();
-        List<ActiveAnimation> completeAnimations = new List<ActiveAnimation>();
+        private List<ActiveAnimation> animations = new List<ActiveAnimation>();
+        private List<ActiveAnimation> completeAnimations = new List<ActiveAnimation>();
 
         private Func<double> getTotalTime;
 
@@ -240,7 +240,7 @@ namespace LibreLancer.World.Components
             if (c > 0) rm?.UpdateTransform();
         }
 
-		bool ProcessAnimation(ActiveAnimation a)
+        private bool ProcessAnimation(ActiveAnimation a)
 		{
 			bool finished = true;
             float ts = a.TimeScale <= 0 ? 1 : a.TimeScale;
@@ -258,12 +258,12 @@ namespace LibreLancer.World.Components
 		}
 
 
-		bool ProcessObjectMap(ref ObjectMap om, ref int cur, double startTime, float timeScale, bool loop)
+        private bool ProcessObjectMap(ref ObjectMap om, ref int cur, double startTime, float timeScale, bool loop)
 		{
 			return false;
 		}
 
-		bool ProcessJointMap(ref JointMap jm, ref int cur, double startTime, float timeScale, bool loop, bool reverse)
+        private bool ProcessJointMap(ref JointMap jm, ref int cur, double startTime, float timeScale, bool loop, bool reverse)
         {
             var mdl = Parent == null ? rm : Parent.Model.RigidModel;
             var joint = mdl.Parts[jm.ChildName].Construct;

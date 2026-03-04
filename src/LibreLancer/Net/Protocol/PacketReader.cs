@@ -15,7 +15,7 @@ public struct PacketReader
 
     public int Size => reader.RawDataSize;
 
-    public PacketReader(NetDataReader reader, NetHpidReader hpids = null)
+    public PacketReader(NetDataReader reader, NetHpidReader? hpids = null)
     {
         this.reader = reader;
         this.hpids = hpids;
@@ -226,7 +226,7 @@ public struct PacketReader
     }
 
 
-    bool TryPeekByte(ref int o, out byte v)
+    private bool TryPeekByte(ref int o, out byte v)
     {
         v = 0;
         if (reader.AvailableBytes < o) return false;

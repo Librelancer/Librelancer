@@ -22,7 +22,7 @@ namespace LibreLancer.Interface
 
     public partial class LuaContext : IDisposable
     {
-        Script script;
+        private Script script;
 
         private object _callevent;
         private object _openscene;
@@ -135,7 +135,7 @@ namespace LibreLancer.Interface
             script.Call(_openscene, scene);
         }
 
-        double lastTime;
+        private double lastTime;
         public void DoTimers(double globalTime)
         {
             if (lastTime == 0)
@@ -158,7 +158,8 @@ namespace LibreLancer.Interface
         }
 
         private List<LuaTimer> timers = new List<LuaTimer>();
-        class LuaTimer
+
+        private class LuaTimer
         {
             public double Time;
             public object Function;
@@ -212,7 +213,7 @@ namespace LibreLancer.Interface
         {
         }
 
-        class UiScriptLoader : ScriptLoaderBase
+        private class UiScriptLoader : ScriptLoaderBase
         {
             private UiContext context;
             public UiScriptLoader(UiContext ctx)

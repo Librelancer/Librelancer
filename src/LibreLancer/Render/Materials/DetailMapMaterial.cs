@@ -15,7 +15,7 @@ namespace LibreLancer.Render.Materials
 	public class DetailMapMaterial : RenderMaterial
 	{
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct MaterialParameters
+        private struct MaterialParameters
         {
             public Color4 Ac;
             public Color4 Dc;

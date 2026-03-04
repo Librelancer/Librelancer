@@ -39,7 +39,7 @@ namespace LibreLancer
             return "[invalid]";
         }
 
-        string GetDescription(int row)
+        private string GetDescription(int row)
         {
             return files[row].Description ??
                    infocards.GetStringResource(files[row].DescriptionStrid);
@@ -73,11 +73,11 @@ namespace LibreLancer
                 .ThenByDescending(x => x.Timestamp).ToList();
         }
 
-        static IEnumerable<MetaSave> LoadFiles(string folder)
+        private static IEnumerable<MetaSave> LoadFiles(string folder)
         {
             foreach (var f in Directory.GetFiles(folder, "*.fl"))
             {
-                MetaSave sg = null;
+                MetaSave? sg = null;
                 try
                 {
                     sg = MetaSave.FromFile(f);

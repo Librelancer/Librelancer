@@ -62,7 +62,7 @@ namespace LibreLancer.Client.Components
             else if (Rolling == 1) steering.InRoll = 1;
         }
 
-        void TurnTowards(Vector3 gotoPos,double dt)
+        private void TurnTowards(Vector3 gotoPos,double dt)
         {
             var vec = Parent.InverseTransformPoint(gotoPos);
             //normalize it
@@ -72,7 +72,7 @@ namespace LibreLancer.Client.Components
             steering.InPitch = -MathHelper.Clamp((float)PitchControl.Update(0, -vec.Y, dt), -1, 1);
         }
 
-        void BankShip(Vector3 upVector, double dt)
+        private void BankShip(Vector3 upVector, double dt)
         {
             float bankInfluence = (MousePosition.X - (Viewport.X * 0.5f)) / (Viewport.X * 0.5f);
             bankInfluence = MathHelper.Clamp(bankInfluence, -1, 1);
@@ -88,7 +88,7 @@ namespace LibreLancer.Client.Components
         }
 
         //My math lib seems to be lacking at the moment
-        Vector3 CalcDir(Quaternion mat, Vector3 v)
+        private Vector3 CalcDir(Quaternion mat, Vector3 v)
         {
             var v0 = Vector3.Transform(Vector3.Zero, mat);
             var v1 = Vector3.Transform(v, mat);

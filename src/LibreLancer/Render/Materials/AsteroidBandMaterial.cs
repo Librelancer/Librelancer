@@ -16,7 +16,7 @@ public class AsteroidBandMaterial : RenderMaterial
     public float TextureAspect;
     public string Texture;
 
-    static void Init(RenderContext rstate)
+    private static void Init(RenderContext rstate)
     {
         if (shader != null) return;
         shader = AllShaders.AsteroidBand.Get(0);
@@ -25,7 +25,7 @@ public class AsteroidBandMaterial : RenderMaterial
     public AsteroidBandMaterial(ResourceManager library) : base(library) { }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct BandParameters
+    private struct BandParameters
     {
         public Color4 ColorShift;
         public float TextureAspect;

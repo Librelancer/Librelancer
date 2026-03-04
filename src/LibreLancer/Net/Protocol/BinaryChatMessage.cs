@@ -124,8 +124,8 @@ public class BinaryChatMessage
         Stack<ChatMessageSize> sizes = new Stack<ChatMessageSize>();
         List<BinaryChatSegment> segments = new List<BinaryChatSegment>();
 
-        BinaryChatSegment current = null;
-        StringBuilder builder = null;
+        BinaryChatSegment? current = null;
+        StringBuilder? builder = null;
 
         void Push()
         {

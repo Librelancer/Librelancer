@@ -239,7 +239,7 @@ namespace LibreLancer.Utf.Dfm
 			ready = true;
 		}
 
-        public void DrawBuffer(CommandBuffer buffer, Matrix4x4 world, Lighting light, Material overrideMat = null)
+        public void DrawBuffer(CommandBuffer buffer, Matrix4x4 world, Lighting light, Material? overrideMat = null)
         {
             var wh = buffer.WorldBuffer.SubmitMatrix(ref world);
 			foreach (FaceGroup faceGroup in FaceGroups)

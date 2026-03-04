@@ -16,53 +16,47 @@ namespace LibreLancer.Utf.Cmp
         private Dictionary<string, CmpCameraInfo> cameras;
         private ConstructCollection constructs;
 
-        private string objectName;
-		public string ObjectName
-		{
-			get
-			{
-				return objectName;
-			}
-		}
-        private AbstractConstruct construct;
-        public AbstractConstruct Construct
+        public string ObjectName { get; }
+
+        public AbstractConstruct? Construct
         {
             get
             {
-                if (construct == null) construct = constructs.Find(objectName);
-                return construct;
+                if (field == null) field = constructs.Find(ObjectName);
+                return field;
             }
         }
 
         private string fileName;
-        private ModelFile model;
-        public ModelFile Model
+
+        public ModelFile? Model
         {
             get
             {
-                if (model == null) model = models[fileName];
-                return model;
+                field ??= models[fileName];
+                return field;
             }
         }
 
-        private CmpCameraInfo camera;
-        bool cameraTried = false;
-        public CmpCameraInfo Camera
+        private bool cameraTried = false;
+        public CmpCameraInfo? Camera
         {
             get
             {
-                if (camera == null && !cameraTried) {
-                    cameraTried = true;
-                    cameras.TryGetValue(fileName, out camera);
+                if (field != null || cameraTried)
+                {
+                    return field;
                 }
-                return camera;
+
+                cameraTried = true;
+                cameras.TryGetValue(fileName, out field);
+
+                return field;
             }
         }
 
-        public string FileName
-        {
-            get { return fileName; }
-        }
+        public string FileName => fileName;
+
         public bool IsBroken()
         {
             return !cameras.ContainsKey(fileName) && !models.ContainsKey(fileName);
@@ -73,7 +67,7 @@ namespace LibreLancer.Utf.Cmp
             this.models = models;
             this.cameras = cams;
             this.constructs = constructs;
-            this.objectName = objectName;
+            this.ObjectName = objectName;
             this.fileName = fileName;
         }
     }

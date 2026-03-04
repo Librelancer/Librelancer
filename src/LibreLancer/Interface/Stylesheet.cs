@@ -24,7 +24,8 @@ namespace LibreLancer.Interface
             if (correct is null) return DefaultStyle<T>();
             return correct;
         }
-        T DefaultStyle<T>() where T:  XmlStyle => Styles.OfType<T>().FirstOrDefault(x => string.IsNullOrEmpty(x.Name));
+
+        private T DefaultStyle<T>() where T:  XmlStyle => Styles.OfType<T>().FirstOrDefault(x => string.IsNullOrEmpty(x.Name));
     }
 
     public class XmlStyle

@@ -21,10 +21,10 @@ namespace LibreLancer.Utf.Cmp
     {
         public string Path { get; set; }
 
-        public VmsFile VMeshLibrary { get; private set; }
-        public AnmFile Animation { get; set; }
-        public MatFile MaterialLibrary { get; private set; }
-        public TxmFile TextureLibrary { get; private set; }
+        public VmsFile? VMeshLibrary { get; private set; }
+        public AnmFile? Animation { get; set; }
+        public MatFile? MaterialLibrary { get; private set; }
+        public TxmFile? TextureLibrary { get; private set; }
 		public MaterialAnimCollection MaterialAnim { get; private set; }
 
 		public List<Part> Parts { get; private set; }
@@ -39,22 +39,18 @@ namespace LibreLancer.Utf.Cmp
 
         public IEnumerable<Part> ModelParts() => Parts.Where(x => x.Camera == null);
 
-        public Part GetRootPart()
+        public Part? GetRootPart()
         {
-            foreach (var part in Parts)
-            {
-                if (part.ObjectName.Equals("Root", StringComparison.OrdinalIgnoreCase)) return part;
-            }
-            return null;
+            return Parts.FirstOrDefault(part => part.ObjectName.Equals("Root", StringComparison.OrdinalIgnoreCase));
         }
 
         public CmpFile(IntermediateNode rootnode)
         {
             Models = new Dictionary<string, ModelFile>();
             Cameras = new Dictionary<string, CmpCameraInfo>();
-            Constructs = new ConstructCollection();
-            Parts = new List<Part>();
-            List<string> modelNames = new List<string>();
+            Constructs = [];
+            Parts = [];
+            List<string> modelNames = [];
 			foreach (Node node in rootnode)
             {
                 switch (node.Name.ToLowerInvariant())
@@ -152,7 +148,7 @@ namespace LibreLancer.Utf.Cmp
                 }
             }
             //FL handles cmpnd nodes that point to non-existant models: fix up here
-            List<Part> broken = new List<Part>();
+            List<Part> broken = [];
             for (int i = 0; i < Parts.Count; i++) {
                 if (Parts[i].IsBroken()) broken.Add(Parts[i]);
             }
@@ -164,7 +160,7 @@ namespace LibreLancer.Utf.Cmp
             var mdl = new RigidModel() {Path = Path, Source = RigidModelSource.Compound};
             mdl.Parts = new ModelPartCollection();
             var rp = GetRootPart();
-            List<RigidModelPart> allParts = new List<RigidModelPart>();
+            List<RigidModelPart> allParts = [];
             foreach (var p in Parts)
             {
                 if (p.Camera != null) continue;
@@ -175,7 +171,7 @@ namespace LibreLancer.Utf.Cmp
                 {
                     mdlPart.Construct = p.Construct.Clone();
                 }
-                mdlPart.Children = new List<RigidModelPart>();
+                mdlPart.Children = [];
                 allParts.Add(mdlPart);
             }
             foreach (var p in allParts)

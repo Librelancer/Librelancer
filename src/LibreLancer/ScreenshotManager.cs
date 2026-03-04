@@ -12,11 +12,11 @@ namespace LibreLancer
 	public class ScreenshotManager
 	{
 		public bool Running = true;
-		ConcurrentQueue<SaveCommand> toSave = new ConcurrentQueue<SaveCommand>();
-		int index = 0;
-		FreelancerGame g;
-		string screenshotdir;
-		List<string> names = new List<string>();
+        private ConcurrentQueue<SaveCommand> toSave = new ConcurrentQueue<SaveCommand>();
+        private int index = 0;
+        private FreelancerGame g;
+        private string screenshotdir;
+        private List<string> names = new List<string>();
 		public ScreenshotManager(FreelancerGame game)
 		{
 			Thread thr = new Thread(new ThreadStart(SaveThread));
@@ -43,7 +43,8 @@ namespace LibreLancer
 		{
 			toSave.Enqueue(new SaveCommand() { Data = data, Filename = filename, Width = width, Height = height });
 		}
-		void SaveThread()
+
+        private void SaveThread()
 		{
 			while (Running)
 			{
@@ -63,7 +64,8 @@ namespace LibreLancer
 		{
 			Running = false;
 		}
-		class SaveCommand
+
+        private class SaveCommand
 		{
 			public int Width;
 			public int Height;

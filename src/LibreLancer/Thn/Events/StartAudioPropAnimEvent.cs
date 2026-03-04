@@ -19,7 +19,7 @@ namespace LibreLancer.Thn.Events
         public AnimFlags SetFlags;
         public float Attenuation;
 
-        class SoundPropAnim : ThnEventProcessor
+        private class SoundPropAnim : ThnEventProcessor
         {
             public StartAudioPropAnimEvent Event;
             public ThnSound Sound;

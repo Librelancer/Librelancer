@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Numerics;
@@ -31,7 +32,7 @@ namespace LibreLancer
 {
 	public class RoomGameplay : GameState
 	{
-		static readonly string[] TOP_IDS = { //IDS that goes up the top?
+        private static readonly string[] TOP_IDS = { //IDS that goes up the top?
 			"IDS_HOTSPOT_DECK",
 			"IDS_HOTSPOT_EQUIPMENTDEALER_ROOM",
 			"IDS_HOTSPOT_SHIPDEALER_ROOM",
@@ -40,27 +41,29 @@ namespace LibreLancer
 			"IDS_HOTSPOT_EXIT",
 			"IDS_HOTSPOT_PLANETSCAPE"
 		};
-        const string LAUNCH_ACTION = "$LAUNCH";
+
+        private const string LAUNCH_ACTION = "$LAUNCH";
         private const string INVALID_ACTION = "$INVALID";
-		Base currentBase;
-        private StarSystem sys;
-        BaseRoom currentRoom;
-		Cutscene scene;
+        private Base currentBase;
+        private StarSystem starSystem;
+        private BaseRoom currentRoom;
+        private Cutscene scene;
         private UiContext ui;
 
-		CGameSession session;
-		string baseId;
-        string active;
-		Cursor cursor;
+        private CGameSession session;
+        private string baseId;
+        private string active;
+        private Cursor cursor;
         private Cursor talk_story;
-		string virtualRoom;
-        List<BaseHotspot> tophotspots;
+        private string? virtualRoom;
+        private List<BaseHotspot> tophotspots;
         private ThnScript[] sceneScripts;
         private ThnScript waitingForFinish;
         private StoryCutsceneIni currentCutscene;
         private ScriptState currentState = ScriptState.None;
         private Infocard roomInfocard;
-        enum ScriptState
+
+        private enum ScriptState
         {
             None,
             Cutscene,
@@ -72,32 +75,40 @@ namespace LibreLancer
 
         private int nextObjectiveUpdate = 0;
 
-        public RoomGameplay(FreelancerGame g, CGameSession session, string newBase, BaseRoom room = null, string virtualRoom = null) : base(g)
+        public RoomGameplay(FreelancerGame g, CGameSession session, string newBase, BaseRoom? room = null, string? virtualRoom = null) : base(g)
         {
             //Load room data
             this.session = session;
 			baseId = newBase;
-			currentBase = g.GameData.Items.Bases.Get(newBase);
+			currentBase = g.GameData.Items.Bases.Get(newBase) ?? throw new DataException($"Could not find base: {newBase}");
 			currentRoom = room ?? currentBase.StartRoom;
             currentRoom.InitForDisplay();
-            var rm = virtualRoom ?? currentRoom.Nickname;
+
+            var roomNickname = virtualRoom ?? currentRoom.Nickname;
             this.virtualRoom = virtualRoom;
-            //Find infocard
-            sys = g.GameData.Items.Systems.Get(currentBase.System);
-            var obj = sys.Objects.FirstOrDefault((o) => o.Base == currentBase);
-            int ids = obj?.IdsInfo ?? 0;
+
+            starSystem = g.GameData.Items.Systems.Get(currentBase.System) ?? throw new DataException($"Could not find system: {currentBase.System}");
+            var systemObject = starSystem.Objects.FirstOrDefault((o) => o.Base == currentBase);
+
+            // Find infocard
+            var ids = systemObject?.IdsInfo ?? 0;
             roomInfocard = g.GameData.GetInfocard(ids, g.Fonts);
+
             if (g.GameData.GetRelatedInfocard(ids, g.Fonts, out var ic2))
             {
                 roomInfocard.Nodes.Add(new RichTextParagraphNode());
                 roomInfocard.Nodes.AddRange(ic2.Nodes);
             }
-            //Create user interface
-            tophotspots = new List<BaseHotspot>();
-            foreach (var hp in currentRoom.Hotspots)
-                if (TOP_IDS.Contains(hp.Name))
-                    tophotspots.Add(hp);
-            SetActiveHotspot(rm);
+
+            // Create user interface
+            tophotspots = [];
+
+            foreach (var hp in currentRoom.Hotspots.Where(hp => TOP_IDS.Contains(hp.Name)))
+            {
+                tophotspots.Add(hp);
+            }
+
+            SetActiveHotspot(roomNickname);
             Game.Keyboard.TextInput += Game_TextInput;
             Game.Keyboard.KeyDown += Keyboard_KeyDown;
             Game.Mouse.MouseDown += MouseOnMouseDown;
@@ -108,7 +119,8 @@ namespace LibreLancer
             session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjective.Ids;
             ui.GameApi = new BaseUiApi(this);
             ui.OpenScene("baseside");
-            //Set up THN
+
+            // Setup thorn scene
             SwitchToRoom(room == null && session.PlayerShip != null);
             FadeIn(0.8, 1.7);
             GC.Collect();
@@ -116,14 +128,17 @@ namespace LibreLancer
 
         public override void OnSettingsChanged()
         {
-            if (scene?.Renderer != null)
-                scene.Renderer.Settings = Game.Config.Settings;
+            scene?.Renderer?.Settings = Game.Config.Settings;
         }
 
 
         protected override void OnActionDown(InputAction action)
         {
-            if (ui.KeyboardGrabbed) return;
+            if (ui.KeyboardGrabbed)
+            {
+                return;
+            }
+
             switch (action)
             {
                 case InputAction.USER_CHAT:
@@ -141,19 +156,19 @@ namespace LibreLancer
             }
         }
 
-        void MissionAccepted()
+        private void MissionAccepted()
         {
             session.RpcServer.RTCMissionAccepted();
             PlayScript(currentCutscene, CutsceneState.Accept);
         }
 
-        void MissionRejected()
+        private void MissionRejected()
         {
             session.RpcServer.RTCMissionRejected();
             PlayScript(currentCutscene, CutsceneState.Reject);
         }
 
-        void SetActiveHotspot(string rm)
+        private void SetActiveHotspot(string rm)
         {
             foreach (var hp in tophotspots) {
                 if (hp.SetVirtualRoom == rm) {
@@ -172,7 +187,7 @@ namespace LibreLancer
         [WattleScript.Interpreter.WattleScriptUserData]
         public class BaseUiApi : UiApi
         {
-            RoomGameplay g;
+            private RoomGameplay g;
             private NewsArticle[] articles;
             public BaseUiApi(RoomGameplay g)
             {
@@ -275,11 +290,11 @@ namespace LibreLancer
 
             public void PopulateNavmap(Navmap navmap)
             {
-                navmap.PopulateIcons(g.ui, g.sys);
+                navmap.PopulateIcons(g.ui, g.starSystem);
                 navmap.SetVisitFunction(g.session.IsVisited);
             }
 
-            bool IsVisited(uint hash)
+            private bool IsVisited(uint hash)
             {
                 if (!g.session.Visits.TryGetValue(hash, out var visit))
                     return false;
@@ -354,7 +369,8 @@ namespace LibreLancer
 
         private HashSet<string> processedPaths = new HashSet<string>();
         private Queue<StoryCutsceneIni> toPlay = new Queue<StoryCutsceneIni>();
-        bool ProcessCutscenes()
+
+        private bool ProcessCutscenes()
         {
             foreach (var ct in session.ActiveCutscenes)
             {
@@ -388,7 +404,7 @@ namespace LibreLancer
             return false;
         }
 
-        enum CutsceneState
+        private enum CutsceneState
         {
             None,
             Offer,
@@ -399,7 +415,8 @@ namespace LibreLancer
         }
 
         private CutsceneState cState = CutsceneState.None;
-        void PlayScript(StoryCutsceneIni ct, CutsceneState state)
+
+        private void PlayScript(StoryCutsceneIni ct, CutsceneState state)
         {
             ui.Visible = false;
             cState = CutsceneState.Regular;
@@ -443,14 +460,14 @@ namespace LibreLancer
             }
         }
 
-        void SendLaunch()
+        private void SendLaunch()
         {
             if (didLaunch) return;
             session.Launch();
             didLaunch = true;
         }
 
-        void Hud_OnManeuverSelected(string arg)
+        private void Hud_OnManeuverSelected(string arg)
         {
             if (arg == active) return;
             if (arg == INVALID_ACTION) return;
@@ -476,7 +493,7 @@ namespace LibreLancer
             });
 		}
 
-		void Keyboard_KeyDown(KeyEventArgs e)
+        private void Keyboard_KeyDown(KeyEventArgs e)
         {
             if (KeyCaptureContext.Capturing(Input.KeyCapture)) return;
 			if (ui.KeyboardGrabbed)
@@ -510,14 +527,14 @@ namespace LibreLancer
 			}
 		}
 
-		void Game_TextInput(string text)
+        private void Game_TextInput(string text)
 		{
             ui.OnTextEntry(text);
 		}
 
         private GameObject playerShip;
 
-        void CreatePlayerEquipment()
+        private void CreatePlayerEquipment()
         {
             if (playerShip.RenderComponent != null)
             {
@@ -530,7 +547,7 @@ namespace LibreLancer
             }
         }
 
-        IEnumerable<ThnScript> GetMsnAmbients()
+        private IEnumerable<ThnScript> GetMsnAmbients()
         {
             var r = virtualRoom ?? currentRoom.Nickname;
             var b = currentBase.Nickname;
@@ -538,7 +555,7 @@ namespace LibreLancer
                          x.Base.Equals(b, StringComparison.OrdinalIgnoreCase) &&
                          x.Room.Equals(r, StringComparison.OrdinalIgnoreCase)))
             {
-                ThnScript script = null;
+                ThnScript? script = null;
                 try
                 {
                     script = new ThnScript(session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.Items.DataPath(x.Script)), session.Game.GameData.Items.ThornReadCallback, x.Script);
@@ -552,7 +569,7 @@ namespace LibreLancer
             }
         }
 
-		void SwitchToRoom(bool dolanding)
+        private void SwitchToRoom(bool dolanding)
         {
             Game.Saves.Selected = -1;
             session.RoomEntered(virtualRoom ?? currentRoom.Nickname, currentBase.Nickname);
@@ -609,7 +626,7 @@ namespace LibreLancer
             }
         }
 
-        Vector2 ScreenPosition(Vector3 worldPos)
+        private Vector2 ScreenPosition(Vector3 worldPos)
         {
             var clipSpace = Vector4.Transform(new Vector4(worldPos, 1), scene.CameraHandle.ViewProjection);
             var ndc = clipSpace / clipSpace.W;
@@ -621,7 +638,7 @@ namespace LibreLancer
             return windowSpace;
         }
 
-        class RTCHotspot
+        private class RTCHotspot
         {
             public ThnObject obj;
             public StoryCutsceneIni ini;
@@ -629,7 +646,7 @@ namespace LibreLancer
         }
         private List<RTCHotspot> hotspots = new List<RTCHotspot>();
 
-        RTCHotspot GetHotspot(int mX, int mY)
+        private RTCHotspot? GetHotspot(int mX, int mY)
         {
             foreach (var hp in hotspots)
             {
@@ -643,8 +660,7 @@ namespace LibreLancer
         }
 
 
-
-        void ProcessNextCutscene()
+        private void ProcessNextCutscene()
         {
             var ct = toPlay.Dequeue();
             int position = 0;
@@ -741,7 +757,7 @@ namespace LibreLancer
         private double letterboxAmount = 1;
         private bool animatingLetterbox = false;
 
-        IEnumerable<ThnScript> Scripts(params IEnumerable<ThnScript>[] objects)
+        private IEnumerable<ThnScript> Scripts(params IEnumerable<ThnScript>[] objects)
         {
             foreach (var obj in objects)
             {
@@ -754,7 +770,7 @@ namespace LibreLancer
             }
         }
 
-        void SetRoomCameraAndShip()
+        private void SetRoomCameraAndShip()
         {
             if (currentRoom.Camera != null)
                 scene.SetCamera(currentRoom.Camera);
@@ -773,7 +789,8 @@ namespace LibreLancer
         }
 
         private bool firstFrame = false; //Stops a desync in scene starting
-        void RoomDoSceneScript(ThnScript sc, ScriptState state)
+
+        private void RoomDoSceneScript(ThnScript sc, ScriptState state)
         {
             hotspots = new List<RTCHotspot>();
             firstFrame = true;

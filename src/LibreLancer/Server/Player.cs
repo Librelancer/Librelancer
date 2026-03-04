@@ -21,8 +21,6 @@ using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema.Save;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Data.Schema.Ships;
-using LibreLancer.Data.Schema.Solar;
-using LibreLancer.Data.Schema.Universe;
 using LibreLancer.Missions;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
@@ -73,7 +71,7 @@ namespace LibreLancer.Server
         //Respawn?
         public bool Dead = false;
 
-        Guid playerGuid; //:)
+        private Guid playerGuid; //:)
         public Guid AccountId => playerGuid;
         public NetResponseHandler ResponseHandler;
 
@@ -282,7 +280,7 @@ namespace LibreLancer.Server
         }
 
 
-        void BeginGame(NetCharacter c, SaveGame sg)
+        private void BeginGame(NetCharacter c, SaveGame sg)
         {
             Character = c;
             MPlayer = sg?.MPlayer ?? new() { CanDock = 1, CanTl = 1 };
@@ -345,7 +343,7 @@ namespace LibreLancer.Server
             }
         }
 
-        void SpaceInitialSpawn(SaveGame sg)
+        private void SpaceInitialSpawn(SaveGame sg)
         {
             ClearScan();
             var sys = Game.GameData.Items.Systems.Get(System);
@@ -363,7 +361,7 @@ namespace LibreLancer.Server
             }, msnPreload);
         }
 
-        IEnumerable<NetSoldShip> GetSoldShips()
+        private IEnumerable<NetSoldShip> GetSoldShips()
         {
             var b = Game.GameData.Items.Bases.Get(Base);
             foreach (var s in b.SoldShips)
@@ -383,7 +381,7 @@ namespace LibreLancer.Server
             }
         }
 
-        void PlayerEnterBase()
+        private void PlayerEnterBase()
         {
             //load base
             Space = null;
@@ -470,7 +468,7 @@ namespace LibreLancer.Server
             rpcClient.UpdateCharacterProgress((int)Character.Rank, (long)(Story?.NextLevelWorth ?? -1));
         }
 
-        void InitStory(SaveGame sg)
+        private void InitStory(SaveGame sg)
         {
             var msn = sg.StoryInfo?.Mission ?? "No_Mission";
             var missionNum = sg.StoryInfo?.MissionNum ?? 0;
@@ -607,7 +605,7 @@ namespace LibreLancer.Server
         }
 
         //Long running task, quits when we finish consuming the collection
-        async Task ProcessPacketQueue()
+        private async Task ProcessPacketQueue()
         {
             while (await inputPackets.OutputAvailableAsync())
             {
@@ -733,7 +731,7 @@ namespace LibreLancer.Server
             if (!Game.Database.NameInUse(name))
             {
                 FLLog.Info("Player", $"New char: {name}");
-                SelectableCharacter sel = null;
+                SelectableCharacter? sel = null;
                 long id = await Game.Database.AddCharacter(playerGuid, (db) =>
                 {
                     NetCharacter.SaveToDbCharacter(Game, Game.NewCharacter(name, index), db);
@@ -801,7 +799,7 @@ namespace LibreLancer.Server
             }
         }
 
-        void UpdateCurrentReputations()
+        private void UpdateCurrentReputations()
         {
             rpcClient.UpdateReputations(Character.Reputation.Reputations.Select(x => new NetReputation()
             {
@@ -929,7 +927,7 @@ namespace LibreLancer.Server
 
         private const string SAVE_ALPHABET = "23456789bcdfghjlmnpqrstvwxyz";
 
-        static string EncodeTime(long number)
+        private static string EncodeTime(long number)
         {
             if (number < 0)
                 throw new ArgumentException();
@@ -994,9 +992,7 @@ namespace LibreLancer.Server
         }
 
 
-
-
-        void LoggedOut()
+        private void LoggedOut()
         {
             if (Character != null)
             {
@@ -1126,7 +1122,7 @@ namespace LibreLancer.Server
                 world.EnqueueAction(() =>
                 {
                     GameObject undockFrom = world.GameWorld.GetObject(obj.Nickname);
-                    SDockableComponent sd = null;
+                    SDockableComponent? sd = null;
                     int undockIndex = 0;
                     if (undockFrom?.TryGetComponent(out sd) ?? false)
                     {

@@ -73,7 +73,7 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        class CameraPropAnim : ThnEventProcessor
+        private class CameraPropAnim : ThnEventProcessor
         {
             public StartCameraPropAnimEvent Event;
             public ThnCameraProps Camera;

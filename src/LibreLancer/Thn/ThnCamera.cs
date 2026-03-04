@@ -13,7 +13,7 @@ namespace LibreLancer.Thn
 	{
 		public long frameNo = 0;
 
-        public ThnObject Object = new ThnObject()
+        public ThnObject? Object = new ThnObject()
         {
             Camera = new ThnCameraProps(),
             Translate = Vector3.Zero,
@@ -21,12 +21,12 @@ namespace LibreLancer.Thn
             Name = "DEFAULT_OBJECT_UNINITED"
         };
 
-		Matrix4x4 view;
-		Matrix4x4 projection;
+        private Matrix4x4 view;
+        private Matrix4x4 projection;
         private Matrix4x4 ogProjection;
-		Matrix4x4 viewProjection;
-		BoundingFrustum frustum;
-		Rectangle viewport;
+        private Matrix4x4 viewProjection;
+        private BoundingFrustum frustum;
+        private Rectangle viewport;
 
         private float screenAspect = 1f;
 
@@ -61,8 +61,7 @@ namespace LibreLancer.Thn
         public bool FrustumCheck(BoundingBox box) => frustum.Intersects(box);
 
 
-
-        void CalcCameraProps(out float fovV, out float aspectRatio)
+        private void CalcCameraProps(out float fovV, out float aspectRatio)
         {
             float viewportRatio = (float) viewport.Width / (float) viewport.Height;
             float fovh = Object.Camera.FovH;

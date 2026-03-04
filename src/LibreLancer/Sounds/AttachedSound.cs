@@ -25,7 +25,7 @@ namespace LibreLancer.Sounds
             this.manager = manager;
         }
 
-        void UpdateProperties()
+        private void UpdateProperties()
         {
             if (Instance != null)
             {

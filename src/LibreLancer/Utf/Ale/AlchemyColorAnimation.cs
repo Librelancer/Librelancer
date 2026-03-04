@@ -45,7 +45,7 @@ namespace LibreLancer.Utf.Ale
 				return Items [0].GetValue (time);
 			}
 			//Find 2 keyframes to interpolate between
-			AlchemyColors c1 = null, c2 = null;
+			AlchemyColors? c1 = null, c2 = null;
 			for (int i = 0; i < Items.Count - 1; i++) {
 				if (sparam >= Items [i].SParam && sparam <= Items [i + 1].SParam) {
 					c1 = Items [i];

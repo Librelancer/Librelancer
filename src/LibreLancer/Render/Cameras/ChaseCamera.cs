@@ -23,7 +23,8 @@ namespace LibreLancer.Render.Cameras
 				UpdateProjection();
 			}
 		}
-		Rectangle _vp;
+
+        private Rectangle _vp;
 
 		public Vector3 ChasePosition { get; set; }
 		public Matrix4x4 ChaseOrientation { get; set; }
@@ -38,8 +39,8 @@ namespace LibreLancer.Render.Cameras
         //Camera Values
 		public Matrix4x4 Projection { get; private set; }
 		public Matrix4x4 View { get; private set; }
-		Matrix4x4 viewprojection;
-		bool _vpdirty = true;
+        private Matrix4x4 viewprojection;
+        private bool _vpdirty = true;
         private BoundingFrustum _frustum;
 
         public bool FrustumCheck(BoundingSphere sphere)
@@ -55,7 +56,7 @@ namespace LibreLancer.Render.Cameras
         }
 
 
-		void UpdateVp()
+        private void UpdateVp()
 		{
 			viewprojection = View * Projection;
 			_frustum = new BoundingFrustum(viewprojection);
@@ -74,7 +75,7 @@ namespace LibreLancer.Render.Cameras
 			}
 		}
 
-		Vector3 _position;
+        private Vector3 _position;
 		public Vector3 Position
 		{
 			get
@@ -122,18 +123,19 @@ namespace LibreLancer.Render.Cameras
                 return fnum;
             }
         }
-		Vector3 lookAt = Vector3.Zero;
 
-        Quaternion rigRotate = Quaternion.Identity;
-        Quaternion targetRigRotate = Quaternion.Identity;
-        Quaternion lookAhead = Quaternion.Identity;
+        private Vector3 lookAt = Vector3.Zero;
+
+        private Quaternion rigRotate = Quaternion.Identity;
+        private Quaternion targetRigRotate = Quaternion.Identity;
+        private Quaternion lookAhead = Quaternion.Identity;
 
         public Vector2 MousePosition;
 
-        long fnum = 0;
+        private long fnum = 0;
         public bool MouseFlight = true;
 
-        void UpdateLookAhead(double delta)
+        private void UpdateLookAhead(double delta)
         {
             // Normalize screen positions so that the range is -1 to 1. Makes the math easier.
             var mouseScreenX = (MousePosition.X - (Viewport.Width * 0.5f)) / (Viewport.Width * 0.5f);
@@ -152,7 +154,7 @@ namespace LibreLancer.Render.Cameras
             lookAhead = DampS(lookAhead, Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(horizontal), MathHelper.DegreesToRadians(vertical), 0), SmoothSpeed, (float)delta);
         }
 
-        void UpdateRotateTarget(double delta)
+        private void UpdateRotateTarget(double delta)
         {
             if (MouseFlight)
             {
@@ -199,7 +201,7 @@ namespace LibreLancer.Render.Cameras
             _vpdirty = true;
 		}
 
-        Vector3 CalcDir(ref Matrix4x4 mat, Vector3 v)
+        private Vector3 CalcDir(ref Matrix4x4 mat, Vector3 v)
         {
             var v0 = Vector3.Transform(Vector3.Zero, mat);
             var v1 = Vector3.Transform(v, mat);
@@ -209,7 +211,7 @@ namespace LibreLancer.Render.Cameras
 
         public Vector3 CameraForward;
         //Stable way of interpolating quaternions with variable timestep
-        static Quaternion DampS(Quaternion a, Quaternion b, float lambda, float dt)
+        private static Quaternion DampS(Quaternion a, Quaternion b, float lambda, float dt)
         {
             return Quaternion.Slerp(a, b, 1 - (float)Math.Exp(-lambda * dt));
         }

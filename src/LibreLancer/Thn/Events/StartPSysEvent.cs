@@ -36,9 +36,9 @@ namespace LibreLancer.Thn.Events
             instance.AddProcessor(new StopPSys() { Duration = Duration, Fx = r });
         }
 
-        class StopEngine : ThnEventProcessor
+        private class StopEngine : ThnEventProcessor
         {
-            double time;
+            private double time;
             public double Duration;
             public CEngineComponent Fx;
             public override bool Run(double delta)
@@ -53,9 +53,9 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        class StopPSys : ThnEventProcessor
+        private class StopPSys : ThnEventProcessor
         {
-            double time;
+            private double time;
             public double Duration;
             public ParticleEffectRenderer Fx;
             public override bool Run(double delta)

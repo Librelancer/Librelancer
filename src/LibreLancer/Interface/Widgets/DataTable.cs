@@ -21,7 +21,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class TableColumn
     {
-        InfoTextAccessor txtAccess = new InfoTextAccessor();
+        private InfoTextAccessor txtAccess = new InfoTextAccessor();
         public string Label
         {
             get => txtAccess.Text;
@@ -73,7 +73,8 @@ namespace LibreLancer.Interface
 
         private ITableData data;
         private float[] dividerPositions;
-        void GenerateDividerPositions()
+
+        private void GenerateDividerPositions()
         {
             if (Columns.Count < 1)
             {
@@ -99,7 +100,7 @@ namespace LibreLancer.Interface
             this.data = data;
         }
 
-        class WattleData : ITableData
+        private class WattleData : ITableData
         {
             private Closure getCount;
             private Closure getSelected;
@@ -148,7 +149,7 @@ namespace LibreLancer.Interface
             SetData(new WattleData(table));
         }
 
-        int ScrollCount()
+        private int ScrollCount()
         {
             if (data == null) return 0;
             int c = data.Count - DisplayRowCount;
@@ -159,7 +160,7 @@ namespace LibreLancer.Interface
 
         private int dragging = -1;
 
-        RectangleF GetDividerRect(int index, RectangleF rect)
+        private RectangleF GetDividerRect(int index, RectangleF rect)
         {
             var realPos = rect.X + dividerPositions[index] * rect.Width;
             var dragRect = new RectangleF(
@@ -198,7 +199,8 @@ namespace LibreLancer.Interface
                 }
             }
         }
-        bool CanDragTo(int i, float pos, RectangleF rect)
+
+        private bool CanDragTo(int i, float pos, RectangleF rect)
         {
             float posm1 = (i - 1 < 0) ? 0 : dividerPositions[i - 1];
             float pos1 = (i + 1 >= dividerPositions.Length) ? 1 : dividerPositions[i + 1];
@@ -210,7 +212,7 @@ namespace LibreLancer.Interface
                    (x1 - x) > 6;
         }
 
-        bool CanInteract()
+        private bool CanInteract()
         {
             if (Width <= 0 || Height <= 0) return false;
             if (!Visible) return false;
@@ -299,7 +301,7 @@ namespace LibreLancer.Interface
             Scrollbar.ApplyStyle(sheet);
         }
 
-        RectangleF GetCell(RectangleF parentRect, int row, int column)
+        private RectangleF GetCell(RectangleF parentRect, int row, int column)
         {
             var lineHeight = parentRect.Height / (DisplayRowCount + 1);
             var y = parentRect.Y + (row + 1) * lineHeight;
@@ -421,7 +423,7 @@ namespace LibreLancer.Interface
                     var y1 = rect.Y;
                     var y2 = rect.Y + rect.Height;
                     InterfaceColor dragCol = (dragging == i) ? LineDown : null;
-                    InterfaceColor overCol = null;
+                    InterfaceColor? overCol = null;
                     var dragRect = GetDividerRect(i, rect);
                     if (dragRect.Contains(context.MouseX, context.MouseY)) overCol = LineHover;
                     var color =
@@ -451,7 +453,8 @@ namespace LibreLancer.Interface
             }
             Border?.Draw(context, rect);
         }
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             Update(context, myPos);

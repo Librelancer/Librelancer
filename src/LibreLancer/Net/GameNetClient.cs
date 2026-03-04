@@ -20,9 +20,9 @@ namespace LibreLancer.Net
 {
     public class GameNetClient : IPacketConnection
     {
-        bool running = false;
-        IUIThread mainThread;
-        Thread networkThread;
+        private bool running = false;
+        private IUIThread mainThread;
+        private Thread networkThread;
         private NetManager client;
         public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
 
@@ -31,7 +31,7 @@ namespace LibreLancer.Net
         public event Action<bool> AuthenticationRequired;
         public event Action<DisconnectReason> Disconnected;
         public Guid UUID;
-        ConcurrentQueue<IPacket> packets = new ConcurrentQueue<IPacket>();
+        private ConcurrentQueue<IPacket> packets = new ConcurrentQueue<IPacket>();
         private HttpClient http;
         private NetHpidWriter hpidWrite;
 
@@ -122,13 +122,13 @@ namespace LibreLancer.Net
             //HTTP?
         }
 
-        bool connecting = true;
+        private bool connecting = true;
         public void Connect(IPEndPoint endPoint)
         {
             ConnectInternal(endPoint, null);
         }
 
-        void ConnectInternal(IPEndPoint endPoint, string token)
+        private void ConnectInternal(IPEndPoint endPoint, string token)
         {
             hpidWrite = new NetHpidWriter();
             hpidWrite.OnAddString += s => {
@@ -162,7 +162,7 @@ namespace LibreLancer.Net
             });
         }
 
-        static bool ParseEP(string str, out IPEndPoint endpoint)
+        private static bool ParseEP(string str, out IPEndPoint endpoint)
         {
             endpoint = new IPEndPoint(IPAddress.None, 0);
             IPAddress ip;
@@ -202,7 +202,7 @@ namespace LibreLancer.Net
             return false;
         }
 
-        static bool TryResolve(string str, out IPAddress addr)
+        private static bool TryResolve(string str, out IPAddress addr)
         {
             addr = IPAddress.None;
             try
@@ -221,8 +221,8 @@ namespace LibreLancer.Net
             }
         }
 
-        Stopwatch sw;
-        List<LocalServerInfo> srvinfo = new List<LocalServerInfo>();
+        private Stopwatch sw;
+        private List<LocalServerInfo> srvinfo = new List<LocalServerInfo>();
 
         private AuthInfo loginServer;
         private IPEndPoint loginEndpoint;
@@ -247,7 +247,7 @@ namespace LibreLancer.Net
 
         public NetHpidReader HpidReader => hpidReader;
 
-        void NetworkThread()
+        private void NetworkThread()
         {
             sw = Stopwatch.StartNew();
             http = new HttpClient();

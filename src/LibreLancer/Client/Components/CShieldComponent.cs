@@ -33,7 +33,7 @@ namespace LibreLancer.Client.Components
             this.Health = equip.Def.MaxCapacity;
         }
 
-        public void SetShieldHealth(float value, Action<ShieldUpdate> callback = null)
+        public void SetShieldHealth(float value, Action<ShieldUpdate>? callback = null)
         {
             //Notify important changes
             if (Health <= -1 && value > 0) {

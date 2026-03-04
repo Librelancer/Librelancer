@@ -77,8 +77,9 @@ namespace LibreLancer.Render
         }
 
         //Scripting
-        List<ScriptInstance> RunningScripts = new List<ScriptInstance>();
-        struct ResolvedJoint
+        private List<ScriptInstance> RunningScripts = new List<ScriptInstance>();
+
+        private struct ResolvedJoint
         {
             public BoneInstance Bone;
             public int JointMapIndex;
@@ -90,7 +91,7 @@ namespace LibreLancer.Render
             }
         }
 
-        struct BoneBlendData
+        private struct BoneBlendData
         {
             public Quaternion Rotation;
             public Vector3 Translation;
@@ -98,7 +99,7 @@ namespace LibreLancer.Render
             public float TranslationWeight;
         }
 
-        struct BonePose
+        private struct BonePose
         {
             public Quaternion Rotation;
             public Vector3 Translation;
@@ -136,9 +137,9 @@ namespace LibreLancer.Render
                 data.Translation = translation;
             }
             else
-            {              
+            {
                 var t = weight / (data.TranslationWeight + weight);
-                data.Translation = Vector3.Lerp(data.Translation, translation, t);                
+                data.Translation = Vector3.Lerp(data.Translation, translation, t);
             }
             data.TranslationWeight += weight;
         }
@@ -158,7 +159,7 @@ namespace LibreLancer.Render
         private const float DefaultPoseRotationEpsilon = 0.01f;
         private const float DefaultPoseTranslationEpsilon = 0.01f;
 
-        class ScriptInstance
+        private class ScriptInstance
         {
             public double T;
             public float StartTime;
@@ -184,7 +185,7 @@ namespace LibreLancer.Render
                 lastFt = StartTime = startTime;
             }
 
-            float GetBlendWeight()
+            private float GetBlendWeight()
             {
                 float weight = 1f;
                 var t = (float)T;
@@ -204,7 +205,7 @@ namespace LibreLancer.Render
                 return weight;
             }
 
-            bool EvaluateRoot(float ft, out Quaternion rotate, out Vector3 translate)
+            private bool EvaluateRoot(float ft, out Quaternion rotate, out Vector3 translate)
             {
                 rotate = Quaternion.Identity;
                 translate = Vector3.Zero;
@@ -308,7 +309,7 @@ namespace LibreLancer.Render
         {
             result = Matrix4x4.Identity;
             //Invert source hardpoint
-            Hardpoint srcHardpoint = null;
+            Hardpoint? srcHardpoint = null;
             foreach (var part in model.AllParts)
             {
                 foreach (var hp in part.Hardpoints)
@@ -350,7 +351,7 @@ namespace LibreLancer.Render
             return false;
         }
 
-        void AddHardpoints(DfmSkinning skinning, Connection connection)
+        private void AddHardpoints(DfmSkinning skinning, Connection connection)
         {
             foreach (var hp in skinning.GetHardpoints())
                 Hardpoints[hp.def.Name] = new DfmHardpoint()
@@ -360,7 +361,7 @@ namespace LibreLancer.Render
                     Connection = connection,
                 };
         }
-        public DfmSkeletonManager(DfmFile body, DfmFile head = null, DfmFile leftHand = null, DfmFile rightHand = null)
+        public DfmSkeletonManager(DfmFile body, DfmFile? head = null, DfmFile? leftHand = null, DfmFile? rightHand = null)
         {
             Body = body;
             BodySkinning = new DfmSkinning(body);
@@ -392,7 +393,7 @@ namespace LibreLancer.Render
         public BoundingBox Bounds;
 
 
-        void UpdateBounds()
+        private void UpdateBounds()
         {
             Bounds = BodySkinning.BoundingBox;
             GetTransforms(Matrix4x4.Identity,

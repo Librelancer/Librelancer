@@ -23,8 +23,8 @@ namespace LibreLancer.Interface
 
         public bool Selected = false;
         public bool DoSelect = false;
-        
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             Update(context, myPos);

@@ -26,8 +26,8 @@ namespace LibreLancer.Interface
             scrollbar.ApplyStyle(sheet);
         }
 
-        private string setString = null;
-        private string setFont = null;
+        private string? setString = null;
+        private string? setFont = null;
         private int setSize = 0;
         public void SetString(string str)
         {
@@ -41,7 +41,7 @@ namespace LibreLancer.Interface
             this.setSize = size;
         }
 
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);

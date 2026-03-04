@@ -15,7 +15,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class CharacterView : Widget3D
     {
-        DfmSkeletonManager Skeleton;
+        private DfmSkeletonManager Skeleton;
         private Accessory accessory;
         private RigidModel accessoryModel;
         private bool male = true;
@@ -48,7 +48,7 @@ namespace LibreLancer.Interface
 
         public bool HeadOnly { get; set; } = true;
 
-        ICamera View(UiContext context, RectangleF rect)
+        private ICamera View(UiContext context, RectangleF rect)
         {
             if (!HeadOnly)
                 return GetCamera(3f, context, rect);
@@ -82,7 +82,7 @@ namespace LibreLancer.Interface
             commLighting.Ambient = new Color3f(0.079f, 0.079f, 0.079f);
         }
 
-        class HeadCamera : ICamera
+        private class HeadCamera : ICamera
         {
             public Matrix4x4 ViewProjection => Projection;
 
@@ -99,7 +99,7 @@ namespace LibreLancer.Interface
             public bool FrustumCheck(BoundingBox box) => true;
         }
 
-        static readonly Matrix4x4 TransformMale = new Matrix4x4(
+        private static readonly Matrix4x4 TransformMale = new Matrix4x4(
             -1f, 0f, 0.003f, 0f,
             0f, 1.0f, 0.0f, 0.0f,
             0.003f, 0.0f, 1.0f, 0.000f,

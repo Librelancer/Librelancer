@@ -42,60 +42,69 @@ namespace LibreLancer.Utf.Cmp
 
         public VMeshRef(ArraySegment<byte> data)
         {
-            if (data == null) throw new ArgumentNullException("data");
+            using BinaryReader reader = new BinaryReader(data.GetReadStream());
 
-            using (BinaryReader reader = new BinaryReader(data.GetReadStream()))
-            {
+            HeaderSize = reader.ReadUInt32();
+            vMeshLibId = reader.ReadUInt32();
+            StartVertex = reader.ReadUInt16();
+            VertexCount = reader.ReadUInt16();
+            StartIndex = reader.ReadUInt16();
+            IndexCount = reader.ReadUInt16();
+            StartMesh = reader.ReadUInt16();
+            MeshCount = reader.ReadUInt16();
 
-                HeaderSize = reader.ReadUInt32();
-                vMeshLibId = reader.ReadUInt32();
-                StartVertex = reader.ReadUInt16();
-                VertexCount = reader.ReadUInt16();
-                StartIndex = reader.ReadUInt16();
-                IndexCount = reader.ReadUInt16();
-                StartMesh = reader.ReadUInt16();
-                MeshCount = reader.ReadUInt16();
+            Vector3 max = Vector3.Zero;
+            Vector3 min = Vector3.Zero;
 
-                Vector3 max = Vector3.Zero;
-                Vector3 min = Vector3.Zero;
+            max.X = reader.ReadSingle();
+            min.X = reader.ReadSingle();
+            max.Y = reader.ReadSingle();
+            min.Y = reader.ReadSingle();
+            max.Z = reader.ReadSingle();
+            min.Z = reader.ReadSingle();
 
-                max.X = reader.ReadSingle();
-                min.X = reader.ReadSingle();
-                max.Y = reader.ReadSingle();
-                min.Y = reader.ReadSingle();
-                max.Z = reader.ReadSingle();
-                min.Z = reader.ReadSingle();
+            BoundingBox = new BoundingBox(min, max);
 
-                BoundingBox = new BoundingBox(min, max);
+            Center = ConvertData.ToVector3(reader);
+            Radius = reader.ReadSingle();
 
-                Center = ConvertData.ToVector3(reader);
-                Radius = reader.ReadSingle();
+            endMesh = StartMesh + MeshCount;
 
-                endMesh = StartMesh + MeshCount;
-            }
         }
 
-        public MeshLevel CreateLevel(ResourceManager resources)
+        public MeshLevel? CreateLevel(ResourceManager resources)
         {
-            if (MeshCrc == 0) return null;
-            var res = resources.FindMesh(vMeshLibId);
-            if (res == null) return null;
-            var (opt, dcs) = res.Optimize(StartMesh, (ushort)endMesh, StartVertex, resources);
-            if (dcs == null)
+            if (MeshCrc == 0)
             {
-                dcs = new MeshDrawcall[MeshCount];
-                for (int i = 0; i < MeshCount; i++)
-                {
-                    var t = res.Meshes[i + StartMesh];
-                    dcs[i] = new MeshDrawcall()
-                    {
-                        MaterialCrc = t.MaterialCrc,
-                        BaseVertex = StartVertex + t.StartVertex,
-                        StartIndex = t.TriangleStart,
-                        PrimitiveCount = t.NumRefVertices / 3,
-                    };
-                }
+                return null;
             }
+
+            var res = resources.FindMesh(vMeshLibId);
+            if (res == null)
+            {
+                return null;
+            }
+
+            var (opt, dcs) = res.Optimize(StartMesh, (ushort)endMesh, StartVertex, resources);
+
+            if (dcs != null)
+            {
+                return new MeshLevel() { Drawcalls = dcs, Optimize = opt, Resource = res };
+            }
+
+            dcs = new MeshDrawcall[MeshCount];
+            for (var i = 0; i < MeshCount; i++)
+            {
+                var t = res.Meshes[i + StartMesh];
+                dcs[i] = new MeshDrawcall()
+                {
+                    MaterialCrc = t.MaterialCrc,
+                    BaseVertex = StartVertex + t.StartVertex,
+                    StartIndex = t.TriangleStart,
+                    PrimitiveCount = t.NumRefVertices / 3,
+                };
+            }
+
             return new MeshLevel() {Drawcalls = dcs, Optimize = opt, Resource = res};
         }
 

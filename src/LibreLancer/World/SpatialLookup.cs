@@ -28,7 +28,7 @@ namespace LibreLancer.World
             RemoveFromCell(cell, obj);
         }
 
-        struct CellRef
+        private struct CellRef
         {
             public int Key;
             public List<GameObject> Cell;
@@ -40,13 +40,13 @@ namespace LibreLancer.World
             }
         }
 
-        void RemoveFromCell(CellRef r, GameObject obj)
+        private void RemoveFromCell(CellRef r, GameObject obj)
         {
             r.Cell.Remove(obj);
             if (r.Cell.Count == 0) cells.Remove(r.Key);
         }
 
-        void AddToCell(int key, List<GameObject> cell, GameObject obj)
+        private void AddToCell(int key, List<GameObject> cell, GameObject obj)
         {
             var r = new CellRef(key, cell);
             cell.Add(obj);
@@ -100,7 +100,7 @@ namespace LibreLancer.World
             return new Vector3(MathF.Floor(pos.X / CELL_SIZE), 0,  MathF.Floor(pos.Y / CELL_SIZE));
         }
 
-        List<GameObject> GetCell(int key, bool create)
+        private List<GameObject> GetCell(int key, bool create)
         {
             if (!cells.TryGetValue(key, out var cell) && create)
             {
@@ -110,9 +110,9 @@ namespace LibreLancer.World
             return cell;
         }
 
-        int Floored(float f) => (int) MathF.Floor(f);
-        
-        int CellKey(int cellX, int cellZ)
+        private int Floored(float f) => (int) MathF.Floor(f);
+
+        private int CellKey(int cellX, int cellZ)
         {
             return (cellX * 73856093) ^ (cellZ * 19349663);
         }

@@ -21,12 +21,12 @@ namespace LibreLancer.Interface
         [UiContent]
         public List<ListItem> Children { get; set; } = new List<ListItem>();
 
-        int MaxDisplayChildren()
+        private int MaxDisplayChildren()
         {
             return (int) (Height / ItemHeight);
         }
 
-        int ScrollCount()
+        private int ScrollCount()
         {
             int c = Children.Count - MaxDisplayChildren();
             return c <= 0 ? 0 : c;
@@ -48,8 +48,8 @@ namespace LibreLancer.Interface
                     Children[selectedIndex].Selected = true;
             }
         }
-        
-        event Action SelectedIndexChanged;
+
+        private event Action SelectedIndexChanged;
 
         public void OnSelectedIndexChanged(WattleScript.Interpreter.Closure handler)
         {
@@ -59,7 +59,7 @@ namespace LibreLancer.Interface
             };
         }
 
-        void UnselectAll()
+        private void UnselectAll()
         {
             foreach (var c in Children) c.Selected = false;
         }

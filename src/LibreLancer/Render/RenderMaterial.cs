@@ -41,13 +41,12 @@ namespace LibreLancer.Render
 		public abstract bool IsTransparent { get; }
         public virtual bool DisableCull {  get { return false; } }
         public bool DoubleSided = false;
-		Texture2D[] textures = new Texture2D[8];
-		bool[] loaded = new bool[8];
+        private Texture2D[] textures = new Texture2D[8];
+        private bool[] loaded = new bool[8];
 
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-
-        struct PackedLight
+        private struct PackedLight
         {
             public Vector3 Position;
             public float Type;
@@ -66,7 +65,7 @@ namespace LibreLancer.Render
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct ShaderLighting
+        private struct ShaderLighting
         {
             public Vector2 FogRange;
             public float UseLighting;
@@ -87,7 +86,7 @@ namespace LibreLancer.Render
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct WorldBuffer
+        private struct WorldBuffer
         {
             public Matrix4x4 WorldMatrix;
             public Matrix4x4 NormalMatrix;
@@ -195,7 +194,7 @@ namespace LibreLancer.Render
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct Flags2
+        private struct Flags2
         {
             public Vector4i A;
             public Vector4i B;
@@ -221,7 +220,7 @@ namespace LibreLancer.Render
             }
         }
 
-		protected void BindTexture(RenderContext rstate, int cacheidx, string tex, int unit, SamplerFlags flags, string nullName = null)
+		protected void BindTexture(RenderContext rstate, int cacheidx, string tex, int unit, SamplerFlags flags, string? nullName = null)
 		{
 			if (tex == null)
 			{

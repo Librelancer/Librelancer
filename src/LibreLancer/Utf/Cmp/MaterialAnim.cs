@@ -71,10 +71,10 @@ namespace LibreLancer.Utf.Cmp
 		//u scale velocity
 		//v scale velocity
 
-		float uOffset = 0;
-		float vOffset = 0;
-		float uScale = 1;
-		float vScale = 1;
+        private float uOffset = 0;
+        private float vOffset = 0;
+        private float uScale = 1;
+        private float vScale = 1;
 		/// <summary>
 		/// Update the MaterialAnim.
 		/// </summary>

@@ -41,13 +41,13 @@ namespace LibreLancer.Thn.Events
             });
         }
 
-        class PathAnimation : ThnEventProcessor
+        private class PathAnimation : ThnEventProcessor
         {
             public ThnObject Object;
             public ThnObject Path;
             public StartPathAnimationEvent Event;
 
-            double time = 0;
+            private double time = 0;
 
             public override bool Run(double delta)
             {
@@ -56,7 +56,7 @@ namespace LibreLancer.Thn.Events
                 return true;
             }
 
-            void Process(float t)
+            private void Process(float t)
             {
                 float pct = MathHelper.Lerp(Event.StartPercent, Event.StopPercent, t);
                 var path = Path.Entity.Path;

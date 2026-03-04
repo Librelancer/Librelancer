@@ -103,7 +103,7 @@ namespace LibreLancer.Sur
             }
         }
 
-        void WriteSurf(BinaryWriter writer)
+        private void WriteSurf(BinaryWriter writer)
         {
             var startOffset = 4 + (int)writer.BaseStream.Position;
             //skip section size and header
@@ -195,8 +195,7 @@ namespace LibreLancer.Sur
         }
 
 
-
-        void ReadSurf(BinaryReader reader)
+        private void ReadSurf(BinaryReader reader)
         {
             var size = reader.ReadInt32(); //size of the section from AFTER this field
             var startOffset = (int)reader.BaseStream.Position;
@@ -221,8 +220,8 @@ namespace LibreLancer.Sur
             var leftOffset = 0;
             var hullOffset = 0;
 
-            SurfaceNode parentNode = null;
-            SurfaceNode currentNode = null;
+            SurfaceNode? parentNode = null;
+            SurfaceNode? currentNode = null;
 
             var queue = new Stack<(SurfaceNode node, int offset)>();
             queue.Push((null, nodesStartOffset));

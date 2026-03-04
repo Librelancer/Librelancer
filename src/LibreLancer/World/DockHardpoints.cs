@@ -20,7 +20,7 @@ public class DockHardpoints
         Hardpoints = new (Hardpoint[] Dock, Hardpoint[] Undock)[DockPoints.Length];
     }
 
-    Hardpoint[] CacheDockHardpoints(GameObject parent, int index, bool reverse)
+    private Hardpoint[] CacheDockHardpoints(GameObject parent, int index, bool reverse)
     {
         var hpname = DockPoints[index].DockSphere.Hardpoint.Replace("DockMount", "DockPoint");
         var hp0 = parent.GetHardpoint(DockPoints[index].DockSphere.Hardpoint);
@@ -37,7 +37,7 @@ public class DockHardpoints
     }
 
     private Hardpoint[] leftLane;
-    Hardpoint[] rightLane;
+    private Hardpoint[] rightLane;
 
     public Hardpoint[] GetDockHardpoints(GameObject parent, int index, Vector3 position, bool reverse)
     {

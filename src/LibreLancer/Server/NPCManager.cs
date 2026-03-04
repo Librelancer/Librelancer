@@ -121,12 +121,12 @@ namespace LibreLancer.Server
             Quaternion orient,
             string arrivalObj,
             int arrivalIndex,
-            MissionRuntime msn = null
+            MissionRuntime? msn = null
             )
         {
             var ship = World.Server.GameData.Items.Ships.Get(loadout.Archetype);
             GameObject spawnPoint = World.GameWorld.GetObject(arrivalObj);
-            SDockableComponent sdock = null;
+            SDockableComponent? sdock = null;
             if (spawnPoint?.TryGetComponent<SDockableComponent>(out sdock) ?? false)
             {
                 if (arrivalIndex == 0)

@@ -13,37 +13,55 @@ namespace LibreLancer.Render
 {
     public class LightEquipRenderer : ObjectRenderer
     {
-        const float BASE_SIZE = 10f;
-        Vector3 pos;
-        SystemRenderer sys;
-        LightEquipment equip;
+        private const float BASE_SIZE = 10f;
+        private Vector3 pos;
+        private SystemRenderer sys;
+        private LightEquipment equip;
         public bool LightOn = true;
-        static Random rnd = new Random();
+        private static Random rnd = new Random();
         public LightEquipRenderer(LightEquipment e)
         {
             equip = e;
             colorBulb = equip.Color;
             colorGlow = equip.GlowColor;
         }
-        static TextureShape bulbshape = new (ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));
-        static Texture2D bulbtex = null;
-        static TextureShape shineshape = new (ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));
-        static Texture2D shinetex = null;
-        static bool frameStart = false;
+
+        private static TextureShape bulbshape = new (ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));
+        private static Texture2D? bulbtex = null;
+        private static TextureShape shineshape = new (ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));
+        private static Texture2D? shinetex = null;
+        private static bool frameStart = false;
         public static void FrameStart()
         {
             frameStart = true;
         }
-        const float CULL_DISTANCE = 20000;
-        const float CULL = CULL_DISTANCE * CULL_DISTANCE;
+
+        private const float CULL_DISTANCE = 20000;
+        private const float CULL = CULL_DISTANCE * CULL_DISTANCE;
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
             if (frameStart)
             {
-                sys.ResourceManager.TryGetShape("bulb", out bulbshape);
-                bulbtex = (Texture2D)sys.ResourceManager.FindTexture(bulbshape.Texture);
-                sys.ResourceManager.TryGetShape("shine", out shineshape);
-                shinetex = (Texture2D)sys.ResourceManager.FindTexture(shineshape.Texture);
+                if (sys.ResourceManager.TryGetShape("bulb", out var newBulbShape))
+                {
+                    bulbshape = newBulbShape!.Value;
+                    bulbtex = (Texture2D?)sys.ResourceManager.FindTexture(bulbshape.Texture);
+                }
+                else
+                {
+                    bulbtex = null;
+                }
+
+                if (sys.ResourceManager.TryGetShape("shine", out var shineShape))
+                {
+                    shineshape = shineShape!.Value;
+                    shinetex = (Texture2D?)sys.ResourceManager.FindTexture(shineshape.Texture);
+                }
+                else
+                {
+                    shinetex = null;
+                }
+
                 frameStart = false;
             }
             if (bulbtex == null || shinetex == null)
@@ -77,10 +95,10 @@ namespace LibreLancer.Render
 
         }
 
-        double timer = 0;
-        bool lt_on = true;
-        Color3f colorBulb;
-        Color3f colorGlow;
+        private double timer = 0;
+        private bool lt_on = true;
+        private Color3f colorBulb;
+        private Color3f colorGlow;
         public override void Update(double time, Vector3 position, Matrix4x4 transform)
         {
             if (!LightOn || sys == null)

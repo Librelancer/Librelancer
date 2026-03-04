@@ -52,7 +52,7 @@ namespace LibreLancer.Fx
             Scale = new(1);
         }
 
-		Vector3 Project(Billboards billboards, Vector3 pt)
+        private Vector3 Project(Billboards billboards, Vector3 pt)
 		{
 			var mvp = billboards.Camera.ViewProjection;
             return Vector3.Transform(pt, mvp).Normalized();

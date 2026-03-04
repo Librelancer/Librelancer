@@ -24,7 +24,8 @@ namespace LibreLancer.Thn
             lastTranslate = Object.Translate;
             Instance.Play(loop, time_offset / 1000f);
         }
-        Vector3 lastTranslate;
+
+        private Vector3 lastTranslate;
         public void Update(double delta)
         {
             if (Instance != null)
@@ -57,7 +58,8 @@ namespace LibreLancer.Thn
                 Attenuation = props.Attenuation;
             }
         }
-        SoundManager man;
+
+        private SoundManager man;
         public ThnSoundInstance CreateInstance(bool oneShot)
         {
             var inst = man.GetInstance(SoundName, Attenuation, Props.Dmin, Props.Dmax,

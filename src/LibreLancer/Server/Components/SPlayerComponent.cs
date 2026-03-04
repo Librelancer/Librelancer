@@ -24,7 +24,7 @@ namespace LibreLancer.Server.Components
     {
         private PriorityQueue<NetInputControls, uint> inputs = new();
 
-        record SavedTick(uint Tick, PlayerAuthState Player, Dictionary<int, ObjectUpdate> Updates);
+        private record SavedTick(uint Tick, PlayerAuthState Player, Dictionary<int, ObjectUpdate> Updates);
 
         //Used for compressing delta info
         private CircularBuffer<SavedTick> oldStates = new(64);
@@ -156,7 +156,7 @@ namespace LibreLancer.Server.Components
             LatestReceived = input.Current.Tick;
         }
 
-        void Enqueue(NetInputControls controls)
+        private void Enqueue(NetInputControls controls)
         {
             if (controls.Tick == 0)
                 return;
@@ -164,10 +164,10 @@ namespace LibreLancer.Server.Components
                 inputs.Enqueue(controls, controls.Tick);
         }
 
-        uint GetCurrentTick() => Parent.World.Server.CurrentTick;
+        private uint GetCurrentTick() => Parent.World.Server.CurrentTick;
 
 
-        bool GetInput(out NetInputControls packet)
+        private bool GetInput(out NetInputControls packet)
         {
             NetInputControls currentTick = default;
             bool found = false;
@@ -207,7 +207,7 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        bool TryScan(GameObject obj, out NetLoadout loadout)
+        private bool TryScan(GameObject obj, out NetLoadout loadout)
         {
             loadout = null;
             return Parent.TryGetComponent<ScannerComponent>(out var scanner) &&

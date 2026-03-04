@@ -21,8 +21,8 @@ namespace LibreLancer.Utf.Dfm
 	{
 		public string Path { get; private set; }
 
-        public MatFile MaterialLibrary;
-        public TxmFile TextureLibrary;
+        public MatFile? MaterialLibrary;
+        public TxmFile? TextureLibrary;
 
 		public Dictionary<int, DfmMesh> Levels { get; private set; }
 		public float[] Fractions { get; private set; }
@@ -168,7 +168,7 @@ namespace LibreLancer.Utf.Dfm
 				Levels [0].Initialize (cache, rstate);
 		}
 
-        public void DrawBuffer(CommandBuffer buffer, Matrix4x4 world, ref Lighting light, Material overrideMat = null)
+        public void DrawBuffer(CommandBuffer buffer, Matrix4x4 world, ref Lighting light, Material? overrideMat = null)
 		{
 			Levels[0].DrawBuffer(buffer, world, light,overrideMat);
 		}
@@ -178,7 +178,7 @@ namespace LibreLancer.Utf.Dfm
             Levels[0].SetSkinning(skinning);
         }
         //HACK: dfm can't have radius without skinning
-        float radius = -1;
+        private float radius = -1;
 		public float GetRadius()
 		{
 			if(radius == -1)

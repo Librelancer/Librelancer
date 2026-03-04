@@ -12,7 +12,7 @@ namespace LibreLancer.Render
 	{
 		public const int MAX_LIGHTS = 9;
 		public static Lighting Empty = new Lighting() { Enabled = false };
-        byte _enabled;
+        private byte _enabled;
         public bool Enabled
         {
             get { return _enabled == 1; }

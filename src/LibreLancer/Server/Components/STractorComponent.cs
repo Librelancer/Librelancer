@@ -9,7 +9,7 @@ public class STractorComponent : GameComponent
 {
     public TractorEquipment Equipment;
 
-    record struct ActiveBeam(GameObject Other, float Distance, float Time);
+    private record struct ActiveBeam(GameObject Other, float Distance, float Time);
 
     private RefList<ActiveBeam> beams = new();
 
@@ -36,7 +36,7 @@ public class STractorComponent : GameComponent
     }
 
 
-    Vector3 GetBeamOrigin()
+    private Vector3 GetBeamOrigin()
     {
         if (Parent.TryGetComponent<ShipComponent>(out var ship) &&
             !string.IsNullOrWhiteSpace(ship.Ship.TractorSource))

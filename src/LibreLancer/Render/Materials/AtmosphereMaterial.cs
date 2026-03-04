@@ -26,7 +26,7 @@ namespace LibreLancer.Render.Materials
         public AtmosphereMaterial(ResourceManager library) : base(library) { }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct AtmosphereParameters
+        private struct AtmosphereParameters
         {
             public Color4 Dc;
             public Color4 Ac;

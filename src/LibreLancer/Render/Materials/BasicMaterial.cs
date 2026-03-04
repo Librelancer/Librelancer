@@ -56,7 +56,7 @@ namespace LibreLancer.Render.Materials
 
 
         [Flags]
-        enum PBRFeatures : uint
+        private enum PBRFeatures : uint
         {
             NORMALMAP = (1 << 0),
             METALMAP = (1 << 1),
@@ -65,7 +65,7 @@ namespace LibreLancer.Render.Materials
             VERTEX_TEXTURE2 = (1 << 4)
         }
 
-        Shader GetPBRShader(IVertexType vertexType)
+        private Shader GetPBRShader(IVertexType vertexType)
         {
             var caps = (PBRFeatures)0;
             if (!string.IsNullOrEmpty(RtSampler))
@@ -88,7 +88,7 @@ namespace LibreLancer.Render.Materials
         }
 
         [Flags]
-        enum ShaderFeatures : uint
+        private enum ShaderFeatures : uint
         {
             VERTEX_LIGHTING = (1 << 0),
             ALPHATEST_ENABLED = (1 << 1),
@@ -98,7 +98,8 @@ namespace LibreLancer.Render.Materials
             VERTEX_DIFFUSE = (1 << 5),
             VERTEX_TEXTURE2 = (1 << 6)
         }
-        Shader GetRegularShader(IVertexType vertexType)
+
+        private Shader GetRegularShader(IVertexType vertexType)
         {
             var caps = (ShaderFeatures)0;
             if (VertexLighting)
@@ -158,7 +159,7 @@ namespace LibreLancer.Render.Materials
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct BasicParameters
+        private struct BasicParameters
         {
             public Color4 Dc;
             public Color4 Ec;
@@ -167,7 +168,7 @@ namespace LibreLancer.Render.Materials
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct PBRParameters
+        private struct PBRParameters
         {
             public Color4 Dc;
             public Color4 Ec;
@@ -259,7 +260,7 @@ namespace LibreLancer.Render.Materials
         }
 
 
-        bool GetDxt1()
+        private bool GetDxt1()
         {
             var tex = GetTexture(0, DtSampler);
             if (tex != null) return tex.Dxt1;

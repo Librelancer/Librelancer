@@ -13,7 +13,7 @@ namespace LibreLancer.Utf
 {
     public class FixConstruct : AbstractConstruct
     {
-		Transform3D fixtransform;
+        private Transform3D fixtransform;
         public override Transform3D LocalTransform { get { return internalGetTransform(fixtransform); } }
 
         public FixConstruct() : base()

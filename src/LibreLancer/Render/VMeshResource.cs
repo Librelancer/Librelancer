@@ -56,9 +56,9 @@ public class VMeshResource
     public TMeshHeader[] Meshes;
     public ushort[] Indices;
 
-    private Dictionary<VMeshOptimizeInfo, (IndexResource, MeshDrawcall[])?> optimized;
+    private Dictionary<VMeshOptimizeInfo, (IndexResource, MeshDrawcall[])?>? optimized;
 
-    public (VMeshOptimizeInfo, MeshDrawcall[]) Optimize(ushort startMesh, ushort endMesh, ushort startVertex, ResourceManager resources)
+    public (VMeshOptimizeInfo, MeshDrawcall[]?) Optimize(ushort startMesh, ushort endMesh, ushort startVertex, ResourceManager resources)
     {
         var vmo = new VMeshOptimizeInfo(true, startMesh, endMesh, startVertex);
         if (endMesh - startMesh <= 3) return (new VMeshOptimizeInfo(), null);
@@ -74,22 +74,31 @@ public class VMeshResource
         var counts = new List<(uint Material, int Count)>();
         for(int i = startMesh; i < endMesh; i++) {
             var crc = Meshes[i].MaterialCrc;
-            bool add = true;
-            for(int j = 0; j < counts.Count; j++) {
-                if (counts[j].Material == crc)
+            var add = true;
+            for(var j = 0; j < counts.Count; j++)
+            {
+                if (counts[j].Material != crc)
                 {
-                    counts[j] = (counts[j].Material, counts[j].Count + 1);
-                    add = false;
-                    break;
+                    continue;
                 }
+
+                counts[j] = (counts[j].Material, counts[j].Count + 1);
+                add = false;
+                break;
             }
+
             if(add)
+            {
                 counts.Add((crc, 1));
+            }
         }
-        if (!counts.Any(x => x.Count > 1)){
+
+        if (!counts.Any(x => x.Count > 1))
+        {
             optimized[vmo] = null;
             return (new VMeshOptimizeInfo(), null);
         }
+
         //Optimize
         List<MeshDrawcall> drawcalls = new List<MeshDrawcall>();
         List<(uint MaterialCrc, List<int> Indices)> merged = new List<(uint MaterialCrc, List<int> Indices)>();
@@ -114,7 +123,7 @@ public class VMeshResource
                     m = (Meshes[i].MaterialCrc, new List<int>());
                     merged.Add(m);
                 }
-                for (int j = Meshes[i].TriangleStart; j < (Meshes[i].TriangleStart + Meshes[i].NumRefVertices); j++) {
+                for (var j = Meshes[i].TriangleStart; j < (Meshes[i].TriangleStart + Meshes[i].NumRefVertices); j++) {
                     m.Indices.Add(Indices[j] + startVertex + Meshes[i].StartVertex);
                 }
             }
@@ -130,7 +139,7 @@ public class VMeshResource
         var baseVertex = indexBuffer.Min();
         var newIndices = indexBuffer.Select(x => checked ((ushort) (x - baseVertex))).ToArray();
         var indexResource = VertexResource.Allocator.AllocateIndex(newIndices);
-        int startIndex = indexResource.StartIndex - VertexResource.StartIndex;
+        var startIndex = indexResource.StartIndex - VertexResource.StartIndex;
         foreach (var b in merged) {
             drawcalls.Add(new MeshDrawcall()
             {

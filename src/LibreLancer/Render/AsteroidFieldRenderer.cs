@@ -21,21 +21,21 @@ namespace LibreLancer.Render
 {
     public class AsteroidFieldRenderer : IDisposable
     {
-        const int SIDES = 20;
+        private const int SIDES = 20;
 
-        AsteroidField field;
-        bool renderBand = false;
-        Matrix4x4 bandTransform;
-        OpenCylinder bandCylinder;
-        Vector3 cameraPos;
-        float lightingRadius;
-        float renderDistSq;
-        Random rand = new Random();
-        SystemRenderer sys;
+        private AsteroidField field;
+        private bool renderBand = false;
+        private Matrix4x4 bandTransform;
+        private OpenCylinder bandCylinder;
+        private Vector3 cameraPos;
+        private float lightingRadius;
+        private float renderDistSq;
+        private Random rand = new Random();
+        private SystemRenderer sys;
         private AsteroidBandMaterial bandMaterial;
         private AsteroidCubeMesh cubeMesh;
 
-        TextureShape billboardShape;
+        private TextureShape billboardShape;
 
         public AsteroidFieldRenderer(AsteroidField field, SystemRenderer sys)
         {
@@ -73,7 +73,7 @@ namespace LibreLancer.Render
         }
 
 
-        void SetBillboardShape()
+        private void SetBillboardShape()
         {
             var col = new TexturePanelCollection();
             foreach (var f in field.TexturePanels)
@@ -84,7 +84,6 @@ namespace LibreLancer.Render
 
             billboardShape = col.GetShape(field.BillboardShape);
         }
-
 
         public void Dispose()
         {
@@ -97,25 +96,18 @@ namespace LibreLancer.Render
         {
             _camera = camera;
             cameraPos = camera.Position;
-            if (Vector3.DistanceSquared(cameraPos, field.Zone.Position) <= renderDistSq)
+            if (Vector3.DistanceSquared(cameraPos, field.Zone!.Position) <= renderDistSq)
             {
-                if (field.Cube.Count > 0)
+                if (field.Cube!.Count > 0)
                     asteroidsTask = Task.Run(() => CalculateAsteroidsTask(camera));
                 if (field.BillboardCount != -1)
                     billboardTask = Task.Run(() => CalculateBillboards(camera));
             }
         }
 
-        AsteroidExclusionZone GetExclusionZone(Vector3 pt)
-        {
-            for (int i = 0; i < field.ExclusionZones.Count; i++) {
-                var f = field.ExclusionZones [i];
-                if (f.Zone.ContainsPoint (pt))
-                    return f;
-            }
-            return null;
-        }
-        struct AsteroidBillboard : IComparable<AsteroidBillboard>
+        private AsteroidExclusionZone? GetExclusionZone(Vector3 pt) => field.ExclusionZones.FirstOrDefault(f => f.Zone!.ContainsPoint(pt));
+
+        private struct AsteroidBillboard : IComparable<AsteroidBillboard>
         {
             public Vector3 Position;
             public float Size;
@@ -147,7 +139,8 @@ namespace LibreLancer.Render
         private int billboardCount = 0;
         private Task billboardTask;
         private bool warnedTooManyBillboards = false;
-        void CalculateBillboards(ICamera camera)
+
+        private void CalculateBillboards(ICamera camera)
         {
             billboardCount = 0;
             var position = camera.Position;
@@ -200,17 +193,17 @@ namespace LibreLancer.Render
             }
         }
 
-        struct CalculatedCube
+        private struct CalculatedCube
         {
             public Vector3 pos;
             public Matrix4x4 tr;
             public CalculatedCube(Vector3 p, Transform3D r) { pos = p; tr = r.Matrix(); }
         }
         private Task asteroidsTask;
-        int cubeCount = -1;
-        CalculatedCube[] cubes;
+        private int cubeCount = -1;
+        private CalculatedCube[] cubes;
 
-        void CalculateAsteroidsTask(ICamera cam)
+        private void CalculateAsteroidsTask(ICamera cam)
         {
             cubeCount = 0;
             var position = cam.Position;
@@ -245,8 +238,10 @@ namespace LibreLancer.Render
                 }
             }
         }
-        Texture2D billboardTex;
-        static readonly Vector2[][] billboardCoords =  {
+
+        private Texture2D billboardTex;
+
+        private static readonly Vector2[][] billboardCoords =  {
             new []{ new Vector2(0.5f,0.5f), new Vector2(0,0),  new Vector2(1,0) },
             new []{ new Vector2(0.5f,0.5f), new Vector2(0,0),  new Vector2(0,1) },
             new []{ new Vector2(0.5f,0.5f), new Vector2(0,1),  new Vector2(1,1) },
@@ -363,7 +358,8 @@ namespace LibreLancer.Render
                 }
             }
         }
-        void CalculateBandTransform()
+
+        private void CalculateBandTransform()
         {
             Vector3 sz = Vector3.Zero;
             if (field.Zone.Shape == ShapeKind.Sphere)
@@ -379,7 +375,8 @@ namespace LibreLancer.Render
                 Matrix4x4.CreateTranslation(field.Zone.Position)
             );
         }
-        float BillboardAlpha(float dist)
+
+        private float BillboardAlpha(float dist)
         {
             if (dist >= field.BillboardDistance) {
                 //Fade out from billboard_distance to filldist

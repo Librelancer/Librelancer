@@ -15,7 +15,7 @@ namespace LibreLancer.Client.Components
 {
 	public class CThrusterComponent : ThrusterComponent
 	{
-        List<ParticleEffectRenderer> fireFx = new List<ParticleEffectRenderer>();
+        private List<ParticleEffectRenderer> fireFx = new List<ParticleEffectRenderer>();
 		public CThrusterComponent(GameObject parent, ThrusterEquipment equip) : base(parent, equip) { }
 
 		public override void Update(double time)

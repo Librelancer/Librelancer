@@ -21,7 +21,7 @@ public class SRepComponent : GameComponent
         }
     }
 
-    static RepAttitude FromNumber(float a)
+    private static RepAttitude FromNumber(float a)
     {
         if (a <= Faction.HostileThreshold)
             return RepAttitude.Hostile;

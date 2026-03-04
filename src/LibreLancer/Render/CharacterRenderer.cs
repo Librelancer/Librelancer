@@ -18,7 +18,7 @@ namespace LibreLancer.Render
 			this.Skeleton = skeleton;
 		}
 
-		Matrix4x4 transform;
+        private Matrix4x4 transform;
         public override void Update(double time, Vector3 position, Matrix4x4 transform)
         {
             this.transform = transform;

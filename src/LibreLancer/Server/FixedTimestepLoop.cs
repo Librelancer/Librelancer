@@ -26,9 +26,9 @@ namespace LibreLancer.Server
             this.onStep = onStep;
         }
 
-        TimeSpan sleepPrecision = TimeSpan.FromMilliseconds(1);
+        private TimeSpan sleepPrecision = TimeSpan.FromMilliseconds(1);
 
-        void UpdateSleepPrecision(TimeSpan sleepTime)
+        private void UpdateSleepPrecision(TimeSpan sleepTime)
         {
             if (sleepTime > TimeSpan.FromMilliseconds(5))
                 sleepTime = TimeSpan.FromMilliseconds(5);
@@ -48,7 +48,7 @@ namespace LibreLancer.Server
         private TimeSpan accumulatedTime;
         private TimeSpan lastTime;
 
-        TimeSpan Accumulate()
+        private TimeSpan Accumulate()
         {
             var current = timer.Elapsed;
             var diff = (current - lastTime);

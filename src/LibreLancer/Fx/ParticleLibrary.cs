@@ -36,7 +36,7 @@ namespace LibreLancer.Fx
                 List<FieldReference> fields = new List<FieldReference>();
 				foreach (var noderef in effect.Fx)
 				{
-					FxNode node = null;
+					FxNode? node = null;
 					if (!noderef.IsAttachmentNode)
 					{
                         if(!nodesByCrc.TryGetValue(noderef.CRC, out node))
@@ -98,7 +98,7 @@ namespace LibreLancer.Fx
 			}
 		}
 
-        static FxNode NodeFromAle(AlchemyNode ale) => ale.ClassName switch
+        private static FxNode NodeFromAle(AlchemyNode ale) => ale.ClassName switch
         {
             "FxNode" => new FxNode(ale),
             "FLBeamAppearance" => new FLBeamAppearance(ale),
@@ -123,7 +123,7 @@ namespace LibreLancer.Fx
         };
 
         private HashSet<uint> errored;
-		public ParticleEffect FindEffect(uint crc)
+		public ParticleEffect? FindEffect(uint crc)
 		{
 			if (Effects.Count == 1)
 				return Effects.First(); //Work around buggy mods
