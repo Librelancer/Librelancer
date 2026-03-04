@@ -9,17 +9,18 @@ namespace LibreLancer.Physics
 {
     public abstract class PhysicsObject : IDisposable
     {
-        public object Tag;
-        internal int Id;
+        public object? Tag;
+        internal readonly int Id;
 
-        protected PhysicsObject(int id)
+        protected PhysicsObject(int id, Collider collider)
         {
             Id = id;
+            Collider = collider;
         }
 
         public abstract bool Static { get; }
         public abstract bool Active { get; }
-        public Collider Collider { get; internal set;  }
+        public Collider Collider { get; init;  }
 
         public abstract void SetOrientation(Quaternion orientation);
 
