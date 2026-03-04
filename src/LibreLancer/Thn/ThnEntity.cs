@@ -28,7 +28,7 @@ namespace LibreLancer.Thn
         public float FloorHeight = 0;
 		public ThnLightProps LightProps;
         public ThnAudioProps AudioProps;
-        public ThnDisplayText DisplayText;
+        public ThnDisplayText? DisplayText;
         public MotionPath Path;
 		public ThnObjectFlags ObjectFlags;
 		public bool NoFog = false;

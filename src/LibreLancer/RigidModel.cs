@@ -80,7 +80,7 @@ namespace LibreLancer
         public Vector3 Center;
         public BoundingBox BoundingBox;
         public MeshLevel?[]? Levels;
-        public float[] Switch2;
+        public float[]? Switch2;
 
         public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, int userData = 0, Material? overrideMat = null)
         {

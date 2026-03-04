@@ -32,7 +32,7 @@ namespace LibreLancer.Render
         public Color4? BackgroundOverride;
 
         public GameWorld World { get; set; }
-		public List<AsteroidFieldRenderer> AsteroidFields { get; private set; }
+		public List<AsteroidFieldRenderer>? AsteroidFields { get; private set; }
 		public List<NebulaRenderer> Nebulae { get; private set; }
 
 		private StarSystem starSystem;
@@ -45,7 +45,7 @@ namespace LibreLancer.Render
         // Global Renderer Options
 		public bool ExtraLights = false; // See comments in Draw() before enabling
 
-		public RigidModel[] StarSphereModels;
+		public RigidModel[]? StarSphereModels;
 		public Matrix4x4[] StarSphereWorlds;
         public Lighting[] StarSphereLightings;
 		public LineRenderer DebugRenderer;
@@ -112,10 +112,13 @@ namespace LibreLancer.Render
             Beams = new BeamsBuffer(resources, rstate);
 		}
 
-        public void LoadZones(IList<AsteroidField> asteroids, IList<Nebula> nebulae)
+        public void LoadZones(IList<AsteroidField>? asteroids, IList<Nebula>? nebulae)
         {
             if (AsteroidFields != null)
+            {
                 foreach (var f in AsteroidFields) f.Dispose();
+            }
+
             AsteroidFields = [];
             Nebulae = [];
             if (asteroids != null)
@@ -139,18 +142,23 @@ namespace LibreLancer.Render
                 StarSphereModels = [];
             }
             List<RigidModel> starSphereRenderData = [];
-            void AddModel(ResolvedModel mdl)
-            {
-                if (mdl == null) return;
-                var loaded = (mdl.LoadFile(resman)?.Drawable as IRigidModelFile);
-                if (loaded == null) return;
-                starSphereRenderData.Add(loaded.CreateRigidModel(true, resman));
-            }
             AddModel(system.StarsBasic);
             AddModel(system.StarsComplex);
             AddModel(system.StarsNebula);
 
             StarSphereModels = starSphereRenderData.ToArray();
+            return;
+
+            void AddModel(ResolvedModel? mdl)
+            {
+                var loaded = mdl?.LoadFile(resman)?.Drawable as IRigidModelFile;
+                if (loaded == null)
+                {
+                    return;
+                }
+
+                starSphereRenderData.Add(loaded.CreateRigidModel(true, resman));
+            }
         }
 
         public void LoadLights(StarSystem system)
@@ -196,20 +204,28 @@ namespace LibreLancer.Render
 			{
 				var n = Nebulae[i];
 				if (n.Nebula.Zone.ContainsPoint(position))
-					return n;
-			}
+                {
+                    return n;
+                }
+            }
 			return null;
 		}
 
-        private NebulaRenderer CheckNebulae()
+        private NebulaRenderer? CheckNebulae()
         {
-            if (!DrawNebulae) return null;
-			for (int i = 0; i < Nebulae.Count; i++)
+            if (!DrawNebulae)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < Nebulae.Count; i++)
 			{
 				var n = Nebulae[i];
 				if (n.Nebula.Zone.ContainsPoint(camera.Position))
-					return n;
-			}
+                {
+                    return n;
+                }
+            }
 			return null;
 		}
 
@@ -218,7 +234,7 @@ namespace LibreLancer.Render
         public CommandBuffer Commands;
         private int _twidth = -1, _theight = -1;
         private int _dwidth = -1, _dheight = -1;
-        private DepthMap depthMap;
+        private DepthMap? depthMap;
 
         public List<ObjectRenderer> objects = new(250);
 
@@ -247,7 +263,10 @@ namespace LibreLancer.Render
 		{
             if (renderWidth == 0 || renderHeight == 0)
                 // Don't render on Width/Height = 0
+            {
                 return;
+            }
+
             RenderTarget restoreTarget = rstate.RenderTarget;
 			if (Settings.SelectedMSAA > 0)
 			{
@@ -266,13 +285,16 @@ namespace LibreLancer.Render
 			}
             rstate.PreferredFilterLevel = Settings.SelectedFiltering;
             rstate.AnisotropyLevel = Settings.SelectedAnisotropy;
-			NebulaRenderer nr = CheckNebulae(); // are we in a nebula?
+			var nr = CheckNebulae(); // are we in a nebula?
             rstate.SetCamera(camera);
             Commands.Camera = camera;
 			bool transitioned = false;
 			if (nr != null)
-				transitioned = nr.FogTransitioned() && DrawNebulae;
-			rstate.DepthEnabled = true;
+            {
+                transitioned = nr.FogTransitioned() && DrawNebulae;
+            }
+
+            rstate.DepthEnabled = true;
             Commands.BonesMax = Commands.BonesOffset = 0;
             Commands.BonesBuffer.BeginStreaming();
             QuadBuffer.BeginUpload();
@@ -330,7 +352,9 @@ namespace LibreLancer.Render
                     for (int i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(Commands);
                 }
                 else
+                {
                     nr.Draw(Commands);
+                }
             }
             billboards.End();
 			FxPool.EndFrame();
@@ -348,19 +372,33 @@ namespace LibreLancer.Render
                 for (int i = 0; i < StarSphereModels.Length; i++)
                 {
                     Matrix4x4 ssworld = Matrix4x4.CreateTranslation(camera.Position);
-                    if (StarSphereWorlds != null) ssworld = StarSphereWorlds[i] * ssworld;
+                    if (StarSphereWorlds != null)
+                    {
+                        ssworld = StarSphereWorlds[i] * ssworld;
+                    }
+
                     var lighting = Lighting.Empty;
-                    if (StarSphereLightings != null) lighting = StarSphereLightings[i];
+                    if (StarSphereLightings != null)
+                    {
+                        lighting = StarSphereLightings[i];
+                    }
+
                     // We frustum cull to save on fill rate for low end devices (pi)
                     var mdl = StarSphereModels[i];
                     for (int j = 0; j < mdl.AllParts.Length; j++)
                     {
-                        if (!mdl.AllParts[j].Active || mdl.AllParts[j].Mesh == null) continue;
+                        if (!mdl.AllParts[j].Active || mdl.AllParts[j].Mesh == null)
+                        {
+                            continue;
+                        }
+
                         var p = mdl.AllParts[j];
                         var w = p.LocalTransform.Matrix() * ssworld;
                         var bsphere = new BoundingSphere(Vector3.Transform(p.Mesh.Center, w), p.Mesh.Radius);
                         if (camera.FrustumCheck(bsphere))
+                        {
                             p.Mesh.DrawImmediate(0, resman, rstate, w, ref lighting, mdl.MaterialAnims, BasicMaterial.ForceAlpha);
+                        }
                     }
                 }
                 if (camera is ThnCamera thn2 && !ZOverride) {
@@ -401,11 +439,15 @@ namespace LibreLancer.Render
 			{
                 rstate.PopViewport();
                 rstate.PopScissor();
-                if (restoreTarget == null) {
-                    msaa.BlitToScreen(new Point(rstate.CurrentViewport.X, rstate.CurrentViewport.Y));
+                if (restoreTarget == null)
+                {
+                    msaa?.BlitToScreen(new Point(rstate.CurrentViewport.X, rstate.CurrentViewport.Y));
                 }
                 else
-                    msaa.BlitToRenderTarget(restoreTarget as RenderTarget2D);
+                {
+                    msaa?.BlitToRenderTarget((restoreTarget as RenderTarget2D)!);
+                }
+
                 rstate.RenderTarget = restoreTarget;
 			}
             rstate.DepthEnabled = true;
@@ -417,8 +459,12 @@ namespace LibreLancer.Render
             if (msaa != null) {
                 msaa.Dispose();
             }
-			if (depthMap != null) depthMap.Dispose();
-			Polyline.Dispose();
+			if (depthMap != null)
+            {
+                depthMap.Dispose();
+            }
+
+            Polyline.Dispose();
             FxPool.Dispose();
 			DebugRenderer.Dispose();
             QuadBuffer.Dispose();

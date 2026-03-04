@@ -16,16 +16,18 @@ namespace LibreLancer.Interface
         [UiContent]
         public List<XmlStyle> Styles { get; set; } = [];
 
-        public T Lookup<T>(string? name) where T : XmlStyle
+        public T? Lookup<T>(string? name) where T : XmlStyle
         {
             if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
+            {
                 return DefaultStyle<T>();
+            }
+
             var correct = Styles.OfType<T>().FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-            if (correct is null) return DefaultStyle<T>();
-            return correct;
+            return correct ?? DefaultStyle<T>();
         }
 
-        private T DefaultStyle<T>() where T:  XmlStyle => Styles.OfType<T>().FirstOrDefault(x => string.IsNullOrEmpty(x.Name));
+        private T? DefaultStyle<T>() where T:  XmlStyle => Styles.OfType<T>().FirstOrDefault(x => string.IsNullOrEmpty(x.Name));
     }
 
     public class XmlStyle

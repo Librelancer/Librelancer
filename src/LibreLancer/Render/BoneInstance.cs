@@ -10,7 +10,7 @@ namespace LibreLancer.Render
     public class BoneInstance
     {
         public string Name;
-        public BoneInstance Parent;
+        public BoneInstance? Parent;
         public Transform3D InvBindPose;
         public Matrix4x4 BoneMatrix = Matrix4x4.Identity;
         public Quaternion OriginalRotation = Quaternion.Identity;

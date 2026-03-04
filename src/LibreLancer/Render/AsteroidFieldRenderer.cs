@@ -42,13 +42,13 @@ namespace LibreLancer.Render
             this.field = field;
             this.sys = sys;
             // Set up renderDistSq
-            float rdist = Math.Max (Math.Max (field.Zone.Size.X, field.Zone.Size.Y), field.Zone.Size.Z);
+            float rdist = Math.Max(Math.Max(field.Zone.Size.X, field.Zone.Size.Y), field.Zone.Size.Z);
 
             if (field.BillboardCount != -1)
             {
                 SetBillboardShape();
                 billboardCube = new AsteroidBillboard[field.BillboardCount];
-                for(int i = 0; i < field.BillboardCount; i++)
+                for (int i = 0; i < field.BillboardCount; i++)
                     billboardCube[i].Spawn(this);
                 calculatedBillboards = new AsteroidBillboard[field.BillboardCount];
             }
@@ -56,18 +56,26 @@ namespace LibreLancer.Render
             rdist += field.FillDist;
             renderDistSq = rdist * rdist;
             cubes = new CalculatedCube[4000];
-            if (field.Cube.Count > 0)
+
+            if (field.Cube!.Count > 0)
             {
                 cubeMesh = new AsteroidCubeMeshBuilder().CreateMesh(sys.RenderContext, field, sys.ResourceManager);
             }
+
             // Set up band
             if (field.Band == null ||
                 (field.Zone.Shape != ShapeKind.Sphere && field.Zone.Shape != ShapeKind.Ellipsoid))
+            {
                 return;
-            bandMaterial = new AsteroidBandMaterial(sys.ResourceManager);
-            bandMaterial.Texture = field.Band.Shape;
-            bandMaterial.ColorShift = field.Band.ColorShift;
-            bandMaterial.TextureAspect = field.Band.TextureAspect;
+            }
+
+            bandMaterial = new AsteroidBandMaterial(sys.ResourceManager)
+            {
+                Texture = field.Band.Shape!,
+                ColorShift = field.Band.ColorShift,
+                TextureAspect = field.Band.TextureAspect
+            };
+
             renderBand = true;
             bandCylinder = sys.ResourceManager.GetOpenCylinder(SIDES);
         }
@@ -75,6 +83,7 @@ namespace LibreLancer.Render
         private void SetBillboardShape()
         {
             var col = new TexturePanelCollection();
+
             foreach (var f in field.TexturePanels)
             {
                 f.Load(sys.ResourceManager);
@@ -91,20 +100,28 @@ namespace LibreLancer.Render
 
         private float lastFog = float.MaxValue;
         private ICamera _camera;
+
         public void Update(ICamera camera)
         {
             _camera = camera;
             cameraPos = camera.Position;
+
             if (Vector3.DistanceSquared(cameraPos, field.Zone!.Position) <= renderDistSq)
             {
                 if (field.Cube!.Count > 0)
+                {
                     asteroidsTask = Task.Run(() => CalculateAsteroidsTask(camera));
+                }
+
                 if (field.BillboardCount != -1)
+                {
                     billboardTask = Task.Run(() => CalculateBillboards(camera));
+                }
             }
         }
 
-        private AsteroidExclusionZone? GetExclusionZone(Vector3 pt) => field.ExclusionZones.FirstOrDefault(f => f.Zone!.ContainsPoint(pt));
+        private AsteroidExclusionZone? GetExclusionZone(Vector3 pt) =>
+            field.ExclusionZones.FirstOrDefault(f => f.Zone!.ContainsPoint(pt));
 
         private struct AsteroidBillboard : IComparable<AsteroidBillboard>
         {
@@ -112,21 +129,23 @@ namespace LibreLancer.Render
             public float Size;
             public int Texture;
             public float Distance;
+
             public void Spawn(AsteroidFieldRenderer r)
             {
                 var min = 0;
                 var p = new Vector3(
-                    r.rand.NextFloat(-1,1),
-                    r.rand.NextFloat(-1,1),
-                    r.rand.NextFloat(-1,1)
+                    r.rand.NextFloat(-1, 1),
+                    r.rand.NextFloat(-1, 1),
+                    r.rand.NextFloat(-1, 1)
                 );
                 Position = (p * r.field.FillDist);
-                Size = r.rand.NextFloat (r.field.BillboardSize.X, r.field.BillboardSize.Y) * 2;
-                Texture = r.rand.Next (0, 3);
+                Size = r.rand.NextFloat(r.field.BillboardSize.X, r.field.BillboardSize.Y) * 2;
+                Texture = r.rand.Next(0, 3);
             }
 
             public int CompareTo(AsteroidBillboard other) => Distance.CompareTo(other.Distance);
         }
+
         /*
          * Asteroid billboards are generated in a cube of size fillDist * 2
          * This is up to billboard_count billboards
@@ -143,9 +162,10 @@ namespace LibreLancer.Render
         {
             billboardCount = 0;
             var position = camera.Position;
-            var close = AsteroidFieldShared.GetCloseCube(position, (int)(field.FillDist * 2));
+            var close = AsteroidFieldShared.GetCloseCube(position, (int) (field.FillDist * 2));
             var checkRad = field.FillDist + field.BillboardSize.Y;
             int checkCount = 0;
+
             for (var x = -1; x <= 1; x++)
             {
                 for (int y = -1; y <= 1; y++)
@@ -154,17 +174,31 @@ namespace LibreLancer.Render
                     {
                         var center = close + new Vector3(x, y, z) * (field.FillDist * 2);
                         // early bail for billboards too far
-                        if (Vector3.Distance(position, center) - checkRad > field.FillDist) continue;
+                        if (Vector3.Distance(position, center) - checkRad > field.FillDist)
+                        {
+                            continue;
+                        }
+
                         // bail billboards outside of zone - avoids popping
-                        if (field.Zone.ScaledDistance(center) > 1.1f) continue;
+                        if (field.Zone.ScaledDistance(center) > 1.1f)
+                        {
+                            continue;
+                        }
+
                         // rotate
                         var rotation =
-                            AsteroidCubeRotation.Default.GetRotation((int)(AsteroidFieldShared.PositionHash(center) * 63));
+                            AsteroidCubeRotation.Default.GetRotation((int) (AsteroidFieldShared.PositionHash(center) *
+                                                                            63));
+
                         for (int i = 0; i < billboardCube.Length; i++)
                         {
                             var spritepos = center + Vector3.Transform(billboardCube[i].Position, rotation);
                             // cull individual billboards too far
-                            if(Vector3.Distance(position, spritepos) > field.FillDist) continue;
+                            if (Vector3.Distance(position, spritepos) > field.FillDist)
+                            {
+                                continue;
+                            }
+
                             billboardBuffer[checkCount] = billboardCube[i];
                             billboardBuffer[checkCount].Position = spritepos;
                             billboardBuffer[checkCount++].Distance = Vector3.DistanceSquared(center, position);
@@ -172,22 +206,30 @@ namespace LibreLancer.Render
                     }
                 }
             }
+
             // Highly unlikely this check will succeed. If it does there's something wrong with the cube code
-            if (checkCount > field.BillboardCount) {
+            if (checkCount > field.BillboardCount)
+            {
                 if (!warnedTooManyBillboards)
                 {
                     warnedTooManyBillboards = true;
                     FLLog.Warning("Asteroids", "Too many billboards in sort task for field " + field.Zone.Nickname);
                 }
+
                 Array.Sort(billboardBuffer, 0, checkCount); // Get closest
                 checkCount = field.BillboardCount;
             }
+
             // Cull ones that aren't on screen
             for (int i = 0; i < checkCount; i++)
             {
                 var billboard = billboardBuffer[i];
                 var sphere = new BoundingSphere(billboard.Position, billboard.Size * 1.5f);
-                if (!camera.FrustumCheck(sphere)) continue;
+                if (!camera.FrustumCheck(sphere))
+                {
+                    continue;
+                }
+
                 calculatedBillboards[billboardCount++] = billboard;
             }
         }
@@ -196,8 +238,14 @@ namespace LibreLancer.Render
         {
             public Vector3 pos;
             public Matrix4x4 tr;
-            public CalculatedCube(Vector3 p, Transform3D r) { pos = p; tr = r.Matrix(); }
+
+            public CalculatedCube(Vector3 p, Transform3D r)
+            {
+                pos = p;
+                tr = r.Matrix();
+            }
         }
+
         private Task asteroidsTask;
         private int cubeCount = -1;
         private CalculatedCube[] cubes;
@@ -206,28 +254,41 @@ namespace LibreLancer.Render
         {
             cubeCount = 0;
             var position = cam.Position;
-            var close = AsteroidFieldShared.GetCloseCube (cameraPos, field.CubeSize);
-            int amountCubes = (int)Math.Floor((field.FillDist / field.CubeSize)) + 1;
-            for (int x = -amountCubes; x <= amountCubes; x++) {
-                for (int y = -amountCubes; y <= amountCubes; y++) {
+            var close = AsteroidFieldShared.GetCloseCube(cameraPos, field.CubeSize);
+            int amountCubes = (int) Math.Floor((field.FillDist / field.CubeSize)) + 1;
+
+            for (int x = -amountCubes; x <= amountCubes; x++)
+            {
+                for (int y = -amountCubes; y <= amountCubes; y++)
+                {
                     for (int z = -amountCubes; z <= amountCubes; z++)
                     {
-                        var center = close + new Vector3(x,y,z) * field.CubeSize;
+                        var center = close + new Vector3(x, y, z) * field.CubeSize;
                         var closestDistance = (Vector3.Distance(center, position) - cubeMesh.Radius);
-                        if (closestDistance >= field.FillDist || closestDistance >= lastFog) continue;
-                        if (!field.Zone.ContainsPoint(center)) {
+                        if (closestDistance >= field.FillDist || closestDistance >= lastFog)
+                        {
                             continue;
                         }
 
-                        var cubeSphere = new BoundingSphere(center,  cubeMesh.Radius);
-                        if (!cam.FrustumCheck(cubeSphere)) {
+                        if (!field.Zone.ContainsPoint(center))
+                        {
                             continue;
                         }
 
-                        if (!AsteroidFieldShared.CubeExists(center, field.EmptyCubeFrequency, out var tval)){
+                        var cubeSphere = new BoundingSphere(center, cubeMesh.Radius);
+
+                        if (!cam.FrustumCheck(cubeSphere))
+                        {
                             continue;
                         }
-                        if (GetExclusionZone(center) != null) {
+
+                        if (!AsteroidFieldShared.CubeExists(center, field.EmptyCubeFrequency, out var tval))
+                        {
+                            continue;
+                        }
+
+                        if (GetExclusionZone(center) != null)
+                        {
                             continue;
                         }
 
@@ -238,44 +299,57 @@ namespace LibreLancer.Render
             }
         }
 
-        private Texture2D billboardTex;
+        private Texture2D? billboardTex;
 
         private static readonly Vector2[][] billboardCoords =
         [
-            [new Vector2(0.5f,0.5f), new Vector2(0,0),  new Vector2(1,0)],
-            [new Vector2(0.5f,0.5f), new Vector2(0,0),  new Vector2(0,1)],
-            [new Vector2(0.5f,0.5f), new Vector2(0,1),  new Vector2(1,1)],
-            [new Vector2(0.5f,0.5f), new Vector2(1,0),  new Vector2(1,1)]
+            [new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(1, 0)],
+            [new Vector2(0.5f, 0.5f), new Vector2(0, 0), new Vector2(0, 1)],
+            [new Vector2(0.5f, 0.5f), new Vector2(0, 1), new Vector2(1, 1)],
+            [new Vector2(0.5f, 0.5f), new Vector2(1, 0), new Vector2(1, 1)]
         ];
+
         public void Draw(ResourceManager res, SystemLighting lighting, CommandBuffer buffer, NebulaRenderer nr)
         {
             // Asteroids!
-            if (Vector3.DistanceSquared (cameraPos, field.Zone.Position) <= renderDistSq)
+            if (Vector3.DistanceSquared(cameraPos, field.Zone.Position) <= renderDistSq)
             {
                 float fadeNear = field.FillDist - 100f;
                 float fadeFar = field.FillDist;
+
                 if (field.Cube.Count > 0)
                 {
                     if (cubeCount == -1)
+                    {
                         return;
+                    }
+
                     asteroidsTask.Wait();
                     var lt = RenderHelpers.ApplyLights(lighting, 0, cameraPos, field.FillDist, nr);
                     lt.Ambient += field.AmbientIncrease.Rgb;
                     lt.Ambient *= field.AmbientColor.Rgb;
                     if (lt.FogMode == FogModes.Linear)
+                    {
                         lastFog = lt.FogRange.Y;
+                    }
                     else
+                    {
                         lastFog = float.MaxValue;
+                    }
+
                     int fadeCount = 0;
                     int regCount = 0;
+
                     for (int j = 0; j < cubeCount; j++)
                     {
                         var center = cubes[j].pos;
                         var z = RenderHelpers.GetZ(cameraPos, center);
+
                         for (int i = 0; i < cubeMesh.Drawcalls.Length; i++)
                         {
                             var dc = cubeMesh.Drawcalls[i];
                             var mat = res.FindMaterial(dc.MaterialCrc);
+
                             if ((Vector3.Distance(center, cameraPos) + cubeMesh.Radius) < fadeNear)
                             {
                                 buffer.AddCommand(
@@ -313,44 +387,60 @@ namespace LibreLancer.Render
                         }
                     }
                 }
+
                 if (field.BillboardCount != -1)
                 {
                     var cameraLights = RenderHelpers.ApplyLights(lighting, 0, cameraPos, 1, nr);
                     if (billboardTex == null || billboardTex.IsDisposed)
-                        billboardTex = (Texture2D)res.FindTexture (billboardShape.Texture);
+                    {
+                        billboardTex = (Texture2D?)res.FindTexture(billboardShape.Texture);
+                    }
+
                     billboardTask.Wait();
+
                     for (int i = 0; i < billboardCount; i++)
                     {
                         var alpha = BillboardAlpha(Vector3.Distance(calculatedBillboards[i].Position, cameraPos));
-                        if(alpha <= 0) continue;
-                        var coords = billboardCoords [calculatedBillboards [i].Texture];
-                        sys.Billboards.DrawTri (
+                        if (alpha <= 0)
+                        {
+                            continue;
+                        }
+
+                        var coords = billboardCoords[calculatedBillboards[i].Texture];
+                        sys.Billboards.DrawTri(
                             billboardTex,
-                            calculatedBillboards [i].Position,
+                            calculatedBillboards[i].Position,
                             calculatedBillboards[i].Size,
                             new Color4(field.BillboardTint * cameraLights.Ambient, alpha),
                             coords[0], coords[2], coords[1],
                             0,
                             SortLayers.OBJECT
-                         );
+                        );
                     }
                 }
 
             }
+
             // Band is last
             if (renderBand)
             {
                 CalculateBandTransform();
                 if (!_camera.FrustumCheck(new BoundingSphere(field.Zone.Position, lightingRadius)))
+                {
                     return;
+                }
+
                 var bandHandle = buffer.WorldBuffer.SubmitMatrix(ref bandTransform);
+
                 for (int i = 0; i < SIDES; i++)
                 {
                     var p = bandCylinder.GetSidePosition(i);
                     var zcoord = RenderHelpers.GetZ(bandTransform, cameraPos, p);
                     p = Vector3.Transform(p, bandTransform);
                     var lt = RenderHelpers.ApplyLights(lighting, 0, p, lightingRadius, nr);
-                    if (lt.FogMode != FogModes.Linear || Vector3.DistanceSquared(cameraPos, p) <= (lightingRadius + lt.FogRange.Y) * (lightingRadius + lt.FogRange.Y))
+
+                    if (lt.FogMode != FogModes.Linear || Vector3.DistanceSquared(cameraPos, p) <=
+                        (lightingRadius + lt.FogRange.Y) * (lightingRadius + lt.FogRange.Y))
                     {
                         buffer.AddCommand(bandMaterial, null, bandHandle, lt, bandCylinder.VertexBuffer,
                             PrimitiveTypes.TriangleList, 0, i * 6, 2, SortLayers.OBJECT, zcoord);
@@ -363,9 +453,14 @@ namespace LibreLancer.Render
         {
             Vector3 sz = Vector3.Zero;
             if (field.Zone.Shape == ShapeKind.Sphere)
+            {
                 sz = new Vector3(field.Zone.Size.X);
+            }
             else
+            {
                 sz = field.Zone.Size;
+            }
+
             sz.X -= field.Band.OffsetDistance;
             sz.Z -= field.Band.OffsetDistance;
             lightingRadius = Math.Max(sz.X, sz.Z);
@@ -378,17 +473,21 @@ namespace LibreLancer.Render
 
         private float BillboardAlpha(float dist)
         {
-            if (dist >= field.BillboardDistance) {
+            if (dist >= field.BillboardDistance)
+            {
                 // Fade out from billboard_distance to filldist
                 return (field.FillDist - dist) / (field.FillDist - field.BillboardDistance);
             }
+
             // visible from start_dist - start_dist * fade percentage
             var fadeNear = field.BillboardDistance - (field.BillboardDistance * field.BillboardFadePercentage);
+
             if (dist >= fadeNear)
             {
                 var max = field.BillboardDistance * field.BillboardFadePercentage;
                 return (dist - fadeNear) / max;
             }
+
             // Too close to the camera: invisible
             return 0;
         }

@@ -327,7 +327,7 @@ namespace LibreLancer.Net.Protocol
             };
         }
 
-        private static void PutDock(PacketWriter message, DockAction dock)
+        private static void PutDock(PacketWriter message, DockAction? dock)
         {
             if (dock != null)
             {
@@ -411,12 +411,12 @@ namespace LibreLancer.Net.Protocol
             return HashCode.Combine(ID, EquipCRC, Hardpoint, Health, Count);
         }
 
-        public static bool operator ==(NetShipCargo left, NetShipCargo right)
+        public static bool operator ==(NetShipCargo? left, NetShipCargo? right)
         {
             return Equals(left, right);
         }
 
-        public static bool operator !=(NetShipCargo left, NetShipCargo right)
+        public static bool operator !=(NetShipCargo? left, NetShipCargo? right)
         {
             return !Equals(left, right);
         }
@@ -537,9 +537,9 @@ namespace LibreLancer.Net.Protocol
         public bool ApplyHealth;
         public uint Archetype;
         public float Health;
-        public List<ItemDiff> Items;
+        public List<ItemDiff>? Items;
 
-        public record struct ItemDiff(int SourceIndex, NetShipCargo NewCargo);
+        public record struct ItemDiff(int SourceIndex, NetShipCargo? NewCargo);
 
         public NetLoadout Apply(NetLoadout a)
         {

@@ -67,19 +67,23 @@ namespace LibreLancer.Interface
             return renderable;
         }
 
-        private UiRenderable background;
+        private UiRenderable? background;
         public UiRenderable GetBackground()
         {
-            if (background == null) {
-                background = new UiRenderable();
-                background.AddElement(new DisplayImage()
-                {
-                    Image = new InterfaceImage()
-                    {
-                        TexName = ini.Background?.Texture ?? "NAV_zoomedliberty.tga"
-                    }
-                });
+            if (background != null)
+            {
+                return background;
             }
+
+            background = new UiRenderable();
+            background.AddElement(new DisplayImage()
+            {
+                Image = new InterfaceImage()
+                {
+                    TexName = ini.Background?.Texture ?? "NAV_zoomedliberty.tga"
+                }
+            });
+
             return background;
         }
     }
@@ -113,19 +117,22 @@ namespace LibreLancer.Interface
             return renderable;
         }
 
-        private UiRenderable background;
+        private UiRenderable? background;
         public UiRenderable GetBackground()
         {
-            if (background == null) {
-                background = new UiRenderable();
-                background.AddElement(new DisplayImage()
-                {
-                    Image = new InterfaceImage()
-                    {
-                        TexName = "NAV_zoomedliberty.tga"
-                    }
-                });
+            if (background != null)
+            {
+                return background;
             }
+
+            background = new UiRenderable();
+            background.AddElement(new DisplayImage()
+            {
+                Image = new InterfaceImage()
+                {
+                    TexName = "NAV_zoomedliberty.tga"
+                }
+            });
             return background;
         }
     }

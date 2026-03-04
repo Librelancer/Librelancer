@@ -26,12 +26,12 @@ namespace LibreLancer.Sur
             return HashCode.Combine(Point, Mesh);
         }
 
-        public static bool operator ==(SurfacePoint left, SurfacePoint right)
+        public static bool operator ==(SurfacePoint? left, SurfacePoint? right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(SurfacePoint left, SurfacePoint right)
+        public static bool operator !=(SurfacePoint? left, SurfacePoint? right)
         {
             return !left.Equals(right);
         }

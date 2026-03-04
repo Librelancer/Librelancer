@@ -7,7 +7,7 @@ namespace LibreLancer.Server.Components;
 public class SMissileComponent : GameComponent
 {
     public MissileEquip Missile;
-    public GameObject Target;
+    public GameObject? Target;
     public GameObject Owner;
 
     public float Speed = 0;

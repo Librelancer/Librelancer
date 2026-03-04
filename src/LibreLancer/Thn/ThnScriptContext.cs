@@ -12,7 +12,7 @@ namespace LibreLancer.Thn
     public class ThnScriptContext
     {
         public ThnScript? SetScript;
-        public GameObject PlayerShip;
+        public GameObject? PlayerShip;
         public CEngineComponent PlayerEngine;
         public GameObject MainObject;
         public Dictionary<string,string> Substitutions = new(StringComparer.OrdinalIgnoreCase);

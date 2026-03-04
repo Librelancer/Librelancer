@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Client.Components;
@@ -90,16 +91,26 @@ namespace LibreLancer.World
             var loadout = changeLoadout ? newLoadout : obj.Loadout;
             g.InitWithArchetype(arch, sun, res, Renderer != null);
             if (obj.IdsLeft != 0 && obj.IdsRight != 0)
+            {
                 g.Name = new TradelaneName(g, obj.IdsLeft, obj.IdsRight);
+            }
             else
+            {
                 g.Name = new ObjectName(obj.IdsName);
+            }
+
             g.Nickname = obj.Nickname;
             g.SystemObject = obj;
             g.SetLocalTransform(new Transform3D(obj.Position, obj.Rotation));
             if (loadout != null)
+            {
                 g.SetLoadout(loadout, snd);
+            }
             else if (arch?.Loadout != null)
+            {
                 g.SetLoadout(arch.Loadout, snd);
+            }
+
             g.World = this;
 
             if (g.RenderComponent is ModelRenderer mr)
@@ -129,7 +140,9 @@ namespace LibreLancer.World
             {
                 g.AddComponent(new SHealthComponent(g) { InfiniteHealth = true, CurrentHealth = 100, MaxHealth = 100 });
                 if (arch.IsUpdatableSolar() || obj.Faction != null)
+                {
                     g.AddComponent(new SSolarComponent(g) { Faction = obj.Faction });
+                }
 
                 if (netId != null)
                 {
@@ -158,12 +171,16 @@ namespace LibreLancer.World
                 g.Unregister(Physics);
 
             if (Renderer != null && loadRenderer)
+            {
                 Renderer.LoadSystem(sys);
+            }
 
             objects = [];
             if (Renderer != null && Projectiles != null)
+            {
                 AddObject((new GameObject()
                     { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
+            }
 
             Func<int>? netId = null;
             List<int>? toFree = null;
@@ -235,16 +252,25 @@ namespace LibreLancer.World
             obj.World = this;
             objects.Add(obj);
             if (timeSource != null)
+            {
                 obj.AnimationComponent?.SetTimeSource(timeSource);
+            }
+
             if (obj.NetID != 0)
+            {
                 netIDLookup.Add(obj.NetID, obj);
+            }
+
             SpatialLookup.AddObject(obj, obj.WorldTransform.Position);
         }
 
         public void RemoveObject(GameObject obj)
         {
             if (obj.NetID != 0)
+            {
                 netIDLookup.Remove(obj.NetID);
+            }
+
             objects.Remove(obj);
             SpatialLookup.RemoveObject(obj);
         }
@@ -320,7 +346,7 @@ namespace LibreLancer.World
                 objects[i].RenderUpdate(t);
         }
 
-        public GameObject GetSelection(ICamera camera, GameObject self, float x, float y, float vpWidth, float vpHeight)
+        public GameObject? GetSelection(ICamera camera, GameObject self, float x, float y, float vpWidth, float vpHeight)
         {
 
             var cameraProjection = camera.Projection;
@@ -339,59 +365,82 @@ namespace LibreLancer.World
                 self,
                 out var rb
             );
-            if (result && rb.Tag is GameObject)
-                return (GameObject) rb.Tag;
-            return null;
+
+            return result && rb.Tag is GameObject tag ? tag : null;
         }
 
         // Select by bounding box, not by mesh
         private bool SelectionCast(ICamera camera, Vector3 rayOrigin, Vector3 direction, float maxDist, GameObject self,
-            out PhysicsObject body)
+            [MaybeNullWhen(false)] out PhysicsObject body)
         {
             float dist = float.MaxValue;
             body = null;
             var jitterDir = direction * maxDist;
             var md2 = maxDist * maxDist;
 
-            foreach (var rb in Physics.Objects)
+            foreach (var rb in Physics!.Objects)
             {
-                if (rb.Tag == self) continue;
-                if (rb.Tag is GameObject go && go.Kind == GameObjectKind.Debris) continue;
-                if (Vector3.DistanceSquared(rb.Position, camera.Position) > md2) continue;
+                if (rb.Tag == self)
+                {
+                    continue;
+                }
 
-                if (rb.Collider is SphereCollider)
+                if (rb.Tag is GameObject { Kind: GameObjectKind.Debris })
+                {
+                    continue;
+                }
+
+                if (Vector3.DistanceSquared(rb.Position, camera.Position) > md2)
+                {
+                    continue;
+                }
+
+                if (rb.Collider is SphereCollider sphereCollider)
                 {
                     // Test spheres
-                    var sph = (SphereCollider) rb.Collider;
                     var ray = new Ray(rayOrigin, direction);
-                    var sphere = new BoundingSphere(rb.Position, sph.Radius);
+                    var sphere = new BoundingSphere(rb.Position, sphereCollider.Radius);
                     var res = ray.Intersects(sphere);
 
-                    if (res != null)
+                    if (res == null)
                     {
-                        var p2 = rayOrigin + (direction * res.Value);
-                        if (res == 0.0) p2 = rb.Position;
-                        var nd = Vector3.DistanceSquared(p2, camera.Position);
-
-                        if (nd < dist)
-                        {
-                            dist = nd;
-                            body = rb;
-                        }
+                        continue;
                     }
+
+                    var p2 = rayOrigin + (direction * res.Value);
+                    if (res == 0.0)
+                    {
+                        p2 = rb.Position;
+                    }
+
+                    var nd = Vector3.DistanceSquared(p2, camera.Position);
+
+                    if (!(nd < dist))
+                    {
+                        continue;
+                    }
+
+                    dist = nd;
+                    body = rb;
                 }
                 else
                 {
                     // var tag = rb.Tag as GameObject;
                     var box = rb.GetBoundingBox();
-                    if (!rb.GetBoundingBox().RayIntersect(ref rayOrigin, ref jitterDir)) continue;
+                    if (!rb.GetBoundingBox().RayIntersect(ref rayOrigin, ref jitterDir))
+                    {
+                        continue;
+                    }
+
                     var nd = Vector3.DistanceSquared(rb.Position, camera.Position);
 
-                    if (nd < dist)
+                    if (!(nd < dist))
                     {
-                        dist = nd;
-                        body = rb;
+                        continue;
                     }
+
+                    dist = nd;
+                    body = rb;
                     /*if (tag == null || tag.CmpParts.Count == 0)
                     {
                         // Single part

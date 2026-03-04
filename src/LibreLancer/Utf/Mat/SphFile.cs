@@ -29,7 +29,7 @@ namespace LibreLancer.Utf.Mat
         public float Radius { get; private set; }
 
         private List<string> sideMaterialNames;
-        private Material[] sideMaterials;
+        private Material?[]? sideMaterials;
         public class SphMaterials
         {
             private SphFile sph;
@@ -57,22 +57,23 @@ namespace LibreLancer.Utf.Mat
                     return sph.sideMaterials.Length;
                 }
             }
-            public Material this[int i]
+            public Material? this[int i]
             {
                 get
                 {
                     CheckNullArray();
-                    if (sph.sideMaterials[i] == null)
+                    if (sph.sideMaterials?[i] == null)
                     {
                         var crc = CrcTool.FLModelCrc(sph.sideMaterialNames[i]);
-                        sph.sideMaterials[i] = sph.library.FindMaterial(CrcTool.FLModelCrc(sph.sideMaterialNames[i]));
+                        sph.sideMaterials?[i] = sph.library.FindMaterial(CrcTool.FLModelCrc(sph.sideMaterialNames[i]));
                     }
-                    return sph.sideMaterials[i];
+
+                    return sph.sideMaterials?[i];
                 }
                 set
                 {
                     CheckNullArray();
-                    sph.sideMaterials[i] = value;
+                    sph.sideMaterials?[i] = value;
                 }
             }
 

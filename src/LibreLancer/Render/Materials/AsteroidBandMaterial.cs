@@ -9,19 +9,25 @@ namespace LibreLancer.Render.Materials;
 
 public class AsteroidBandMaterial : RenderMaterial
 {
-    private static Shader shader;
+    private static Shader? shader;
 
     public Color4 ColorShift;
     public float TextureAspect;
-    public string Texture;
+    public required string Texture;
 
     private static void Init(RenderContext rstate)
     {
-        if (shader != null) return;
+        if (shader != null)
+        {
+            return;
+        }
+
         shader = AllShaders.AsteroidBand.Get(0);
     }
 
-    public AsteroidBandMaterial(ResourceManager library) : base(library) { }
+    public AsteroidBandMaterial(ResourceManager library) : base(library)
+    {
+    }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     private struct BandParameters
@@ -33,9 +39,9 @@ public class AsteroidBandMaterial : RenderMaterial
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
         Init(rstate);
-        SetWorld(shader);
+        SetWorld(shader!);
         var p = new BandParameters() { ColorShift = ColorShift, TextureAspect = TextureAspect };
-        shader.SetUniformBlock(3, ref p);
+        shader!.SetUniformBlock(3, ref p);
         SetLights(shader, ref lights, rstate.FrameNumber);
         BindTexture(rstate, 0, Texture, 0, SamplerFlags.Default);
         rstate.BlendMode = BlendMode.Normal;
@@ -45,5 +51,4 @@ public class AsteroidBandMaterial : RenderMaterial
     public override bool IsTransparent => true;
 
     public override bool DisableCull => true;
-
 }

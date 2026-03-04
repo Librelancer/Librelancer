@@ -32,7 +32,7 @@ namespace LibreLancer.Utf.Vms
         /// A list of triangles in the mesh data
         /// </summary>
 
-        public VMeshResource Resource;
+        public VMeshResource? Resource;
 
         private T Read<T>(int offset, int index)
             where T : unmanaged

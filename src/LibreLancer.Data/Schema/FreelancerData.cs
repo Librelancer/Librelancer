@@ -73,7 +73,7 @@ public class FreelancerData
     public FactionPropIni FactionProps = null!;
     public FormationsIni Formations = null!;
     public EmpathyIni Empathy = null!;
-    public NavmapIni Navmap = null!; //Extension
+    public NavmapIni? Navmap = null!; //Extension
     public NPCShipIni? NPCShips;
     public PilotsIni Pilots = null!;
     public StateGraphDb StateGraphDb = null!;

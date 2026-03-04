@@ -43,7 +43,7 @@ namespace LibreLancer.Server
 
         public ReputationCollection Reputation = new();
 
-        public Ship Ship { get; private set; }
+        public Ship? Ship { get; private set; }
         public List<NetCargo> Items = [];
         private Dictionary<uint, VisitFlags> visited = new();
         private HashSet<uint> basesVisited = [];
@@ -97,7 +97,7 @@ namespace LibreLancer.Server
         public class CharacterTransaction : IDisposable
         {
             private NetCharacter nc;
-            private Character newEntity;
+            private Character? newEntity;
             private bool cargoDirty = false;
             private Dictionary<uint, Visit> updatedVisits = new();
             private Dictionary<Faction, float> updatedReputations = new();

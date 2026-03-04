@@ -7,7 +7,7 @@ namespace LibreLancer.Missions;
 
 public class ScriptLoot : NicknameItem
 {
-    public Equipment Archetype;
+    public Equipment? Archetype;
     public int StringId;
     public Vector3 Position;
     public string RelPosObj;

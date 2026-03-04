@@ -24,7 +24,7 @@ namespace LibreLancer.Render
             this.transform = transform;
         }
 
-        private SystemRenderer sysren;
+        private SystemRenderer sysren = null!;
 
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
@@ -44,6 +44,7 @@ namespace LibreLancer.Render
                 );
                 Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
                 Skeleton.Body.DrawBuffer(commands, transform, ref lighting);
+
                 if (Skeleton.Head != null)
                 {
                     Skeleton.Head.SetSkinning(Skeleton.HeadSkinning);

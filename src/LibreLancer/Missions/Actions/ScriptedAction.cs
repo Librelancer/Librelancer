@@ -846,7 +846,7 @@ namespace LibreLancer.Missions.Actions
     public class Act_CallThorn : ScriptedAction
     {
         public string Thorn = string.Empty;
-        public string MainObject = string.Empty;
+        public string? MainObject = string.Empty;
 
         public Act_CallThorn()
         {

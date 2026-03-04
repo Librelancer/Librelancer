@@ -586,7 +586,7 @@ namespace LibreLancer.Client
             }
         }
 
-        public Action<IPacket> ExtraPackets;
+        public Action<IPacket>? ExtraPackets;
 
         private NetCargo ResolveCargo(NetShipCargo cg)
         {
@@ -965,7 +965,7 @@ namespace LibreLancer.Client
                     spaceGameplay.SetDockCam(dock.GetDockCamera(index)!);
                 }
 
-                spaceGameplay.pilotcomponent!.Undock(obj, index);
+                spaceGameplay.pilotComponent!.Undock(obj, index);
             });
         }
 
@@ -1442,19 +1442,19 @@ namespace LibreLancer.Client
             return null;
         }
 
-        void IClientPlayer.CallThorn(string thorn, ObjNetId mainObject)
+        void IClientPlayer.CallThorn(string? thorn, ObjNetId mainObject)
         {
             RunSync(() =>
             {
                 if (thorn == null)
                 {
-                    spaceGameplay.Thn = null;
+                    spaceGameplay?.Thn = null;
                 }
                 else
                 {
-                    var thn = new ThnScript(Game.GameData.VFS.ReadAllBytes(Game.GameData.Items.DataPath(thorn)),
+                    var thn = new ThnScript(Game.GameData.VFS.ReadAllBytes(Game.GameData.Items.DataPath(thorn)!),
                         Game.GameData.Items.ThornReadCallback, thorn);
-                    var mo = spaceGameplay.world.GetObject(mainObject);
+                    var mo = spaceGameplay?.world.GetObject(mainObject);
                     if (mo != null)
                     {
                         FLLog.Info("Client", "Found thorn mainObject");
@@ -1630,8 +1630,8 @@ namespace LibreLancer.Client
         private static int NEW_PLAYER = 393298;
         private static int DEPARTING_PLAYER = 393299;
 
-        private string newPlayerStr;
-        private string departingPlayerStr;
+        private string? newPlayerStr;
+        private string? departingPlayerStr;
 
         void IClientPlayer.OnPlayerJoin(int id, string name)
         {
@@ -1777,9 +1777,9 @@ namespace LibreLancer.Client
                 {
                     FLLog.Debug("Client", "Formation cleared");
                     spaceGameplay.player.Formation = null;
-                    if (spaceGameplay.pilotcomponent.CurrentBehavior == AutopilotBehaviors.Formation)
+                    if (spaceGameplay.pilotComponent.CurrentBehavior == AutopilotBehaviors.Formation)
                     {
-                        spaceGameplay.pilotcomponent.Cancel();
+                        spaceGameplay.pilotComponent.Cancel();
                     }
                 }
                 else
@@ -1794,17 +1794,17 @@ namespace LibreLancer.Client
                     if (spaceGameplay.player.Formation.LeadShip != spaceGameplay.player)
                     {
                         FLLog.Debug("Client", "Starting follow");
-                        spaceGameplay.pilotcomponent.StartFormation();
+                        spaceGameplay.pilotComponent.StartFormation();
                     }
                 }
             });
         }
 
-        private AllowedDocking allowedDocking;
+        private AllowedDocking? allowedDocking;
 
-        void IClientPlayer.UpdateAllowedDocking(AllowedDocking allowedDocking)
+        void IClientPlayer.UpdateAllowedDocking(AllowedDocking docking)
         {
-            this.allowedDocking = allowedDocking;
+            this.allowedDocking = docking;
         }
 
         public bool DockAllowed(GameObject gameObject)
@@ -1820,25 +1820,24 @@ namespace LibreLancer.Client
                 {
                     return true;
                 }
-                if (gameObject.TryGetComponent<DockInfoComponent>(out var di)
-                    && di.Action.Kind == DockKinds.Tradelane)
+
+                if (gameObject.TryGetComponent<DockInfoComponent>(out var dockInfo) && dockInfo.Action.Kind == DockKinds.Tradelane)
                 {
                     return false;
                 }
             }
-            if (!allowedDocking.CanDock)
+
+            if (allowedDocking.CanDock)
             {
-                if (allowedDocking.DockExceptions.Contains(gameObject.NicknameCRC))
-                {
-                    return true;
-                }
-                if (gameObject.TryGetComponent<DockInfoComponent>(out var di)
-                    && di.Action.Kind != DockKinds.Tradelane)
-                {
-                    return false;
-                }
+                return true;
             }
-            return true;
+
+            if (allowedDocking.DockExceptions.Contains(gameObject.NicknameCRC))
+            {
+                return true;
+            }
+
+            return !gameObject.TryGetComponent<DockInfoComponent>(out var di) || di.Action.Kind == DockKinds.Tradelane;
         }
 
         public void Disconnected()

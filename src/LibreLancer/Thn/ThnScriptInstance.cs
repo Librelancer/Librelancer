@@ -54,7 +54,7 @@ namespace LibreLancer.Thn
             processors.Add(ev);
         }
 
-        private bool CheckObject(ThnEntity e, object sub, EntityTypes type, string templateName)
+        private bool CheckObject(ThnEntity e, object? sub, EntityTypes type, string templateName)
         {
             return sub != null && type == e.Type && e.Template.Equals(templateName, StringComparison.OrdinalIgnoreCase);
         }

@@ -117,13 +117,13 @@ World Time: {12:F2}
             control = new ShipPhysicsComponent(player) {Ship = session.PlayerShip};
             shipInput = new ShipInputComponent(player) {BankLimit = session.PlayerShip.MaxBankAngle};
             weapons = new WeaponControlComponent(player);
-            pilotcomponent = new AutopilotComponent(player) { LocalPlayer = true };
+            pilotComponent = new AutopilotComponent(player) { LocalPlayer = true };
             steering = new ShipSteeringComponent(player);
             Selection = new SelectedTargetComponent(player);
             Directives = new DirectiveRunnerComponent(player);
             player.AddComponent(Selection);
             // Order components in terms of inputs (very important)
-            player.AddComponent(pilotcomponent);
+            player.AddComponent(pilotComponent);
             player.AddComponent(shipInput);
             // takes input from pilot and shipinput
             player.AddComponent(steering);
@@ -153,7 +153,11 @@ World Time: {12:F2}
                 EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, Game.Sound, EquipmentType.LocalPlayer, equipment.Hardpoint, equipment.Equipment);
             }
             powerCore = player.GetComponent<PowerCoreComponent>();
-            if (powerCore == null) throw new Exception("Player launched without a powercore equipped!");
+            if (powerCore == null)
+            {
+                throw new Exception("Player launched without a powercore equipped!");
+            }
+
             _chaseCamera = new ChaseCamera(Game.RenderContext.CurrentViewport, Game.GameData.Items.Ini.Cameras);
             _turretViewCamera = new TurretViewCamera(Game.RenderContext.CurrentViewport, Game.GameData.Items.Ini.Cameras);
             _turretViewCamera.CameraOffset = new Vector3(0, 0, session.PlayerShip.ChaseOffset.Length());
@@ -163,11 +167,20 @@ World Time: {12:F2}
 
             _chaseCamera.DesiredPositionOffset = offset;
             if (session.PlayerShip.CameraHorizontalTurnAngle > 0)
+            {
                 _chaseCamera.HorizontalTurnAngle = session.PlayerShip.CameraHorizontalTurnAngle;
+            }
+
             if (session.PlayerShip.CameraVerticalTurnUpAngle > 0)
+            {
                 _chaseCamera.VerticalTurnUpAngle = session.PlayerShip.CameraVerticalTurnUpAngle;
+            }
+
             if (session.PlayerShip.CameraVerticalTurnDownAngle > 0)
+            {
                 _chaseCamera.VerticalTurnDownAngle = session.PlayerShip.CameraVerticalTurnDownAngle;
+            }
+
             _chaseCamera.Reset();
 
             activeCamera = _chaseCamera;
@@ -191,7 +204,7 @@ World Time: {12:F2}
             Game.Mouse.MouseDown += Mouse_MouseDown;
             Game.Mouse.MouseUp += Mouse_MouseUp;
             player.World = world;
-            pilotcomponent.BehaviorChanged += BehaviorChanged;
+            pilotComponent.BehaviorChanged += BehaviorChanged;
             Game.Sound.ResetListenerVelocity();
             contactList = new ContactList(this);
             ui.OpenScene("hud");
@@ -206,12 +219,21 @@ World Time: {12:F2}
         {
             var first = cargo.FirstOf<ShieldBatteryEquipment>();
             if (first == null)
+            {
                 return false;
+            }
+
             var shield = player.GetFirstChildComponent<CShieldComponent>();
             if (shield == null)
+            {
                 return false;
+            }
+
             if (shield.Equip.Def.MaxCapacity - shield.Health < 100)
+            {
                 return false;
+            }
+
             return true;
         }
 
@@ -232,9 +254,15 @@ World Time: {12:F2}
         {
             var first = cargo.FirstOf<RepairKitEquipment>();
             if (first == null)
+            {
                 return false;
+            }
+
             if (playerHealth.MaxHealth - playerHealth.CurrentHealth < 100)
+            {
                 return false;
+            }
+
             return true;
         }
 
@@ -294,14 +322,33 @@ World Time: {12:F2}
 
         private RepAttitude GetRepToPlayer(GameObject obj)
         {
-            if ((obj.Flags & GameObjectFlags.Friendly) == GameObjectFlags.Friendly) return RepAttitude.Friendly;
-            if ((obj.Flags & GameObjectFlags.Neutral) == GameObjectFlags.Neutral) return RepAttitude.Neutral;
-            if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile) return RepAttitude.Hostile;
+            if ((obj.Flags & GameObjectFlags.Friendly) == GameObjectFlags.Friendly)
+            {
+                return RepAttitude.Friendly;
+            }
+
+            if ((obj.Flags & GameObjectFlags.Neutral) == GameObjectFlags.Neutral)
+            {
+                return RepAttitude.Neutral;
+            }
+
+            if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile)
+            {
+                return RepAttitude.Hostile;
+            }
+
             if (obj.SystemObject != null)
             {
                 var rep = session.PlayerReputations.GetReputation(obj.SystemObject.Reputation);
-                if (rep <= Faction.HostileThreshold) return RepAttitude.Hostile;
-                if (rep >= Faction.FriendlyThreshold) return RepAttitude.Friendly;
+                if (rep <= Faction.HostileThreshold)
+                {
+                    return RepAttitude.Hostile;
+                }
+
+                if (rep >= Faction.FriendlyThreshold)
+                {
+                    return RepAttitude.Friendly;
+                }
             }
             return RepAttitude.Neutral;
         }
@@ -327,13 +374,21 @@ World Time: {12:F2}
             private string GetDistanceString(float distance)
             {
                 if (distance < 1000)
+                {
                     return $"{(int)distance}m";
+                }
                 else if (distance < 10000)
+                {
                     return string.Format("{0:F1}k", distance / 1000);
+                }
                 else if (distance < 90000)
+                {
                     return $"{((int) distance) / 1000}k";
+                }
                 else
+                {
                     return "FAR";
+                }
             }
 
             private Contact GetContact(GameObject obj)
@@ -345,7 +400,9 @@ World Time: {12:F2}
                 {
                     var fn = game.Game.GameData.GetString(fac.Faction.IdsShortName);
                     if(!string.IsNullOrWhiteSpace(fn))
+                    {
                         name = $"{fn} - {name}";
+                    }
                 }
                 return new Contact(obj, distance, $"{GetDistanceString(distance)} - {name}");
             }
@@ -482,7 +539,11 @@ World Time: {12:F2}
 
             public Infocard? GetScannedShipInfocard()
             {
-                if (g.Selection.Selected == null) return null;
+                if (g.Selection.Selected == null)
+                {
+                    return null;
+                }
+
                 if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
                 {
                     return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo, g.Game.Fonts);
@@ -493,7 +554,10 @@ World Time: {12:F2}
             public bool CanScanSelected()
             {
                 if (g.Selection.Selected == null)
+                {
                     return false;
+                }
+
                 return g.scanner.CanScan(g.Selection.Selected);
             }
 
@@ -667,24 +731,42 @@ World Time: {12:F2}
 
             public float SelectionHealth()
             {
-                if (g.Selection.Selected == null) return -1;
-                if (!g.Selection.Selected.TryGetComponent<CHealthComponent>(out var health))
+                if (g.Selection.Selected == null)
+                {
                     return -1;
+                }
+
+                if (!g.Selection.Selected.TryGetComponent<CHealthComponent>(out var health))
+                {
+                    return -1;
+                }
+
                 return MathHelper.Clamp(health.CurrentHealth / health.MaxHealth, 0, 1);
             }
 
             public float SelectionShield()
             {
-                if (g.Selection.Selected == null) return -1;
+                if (g.Selection.Selected == null)
+                {
+                    return -1;
+                }
+
                 CShieldComponent shield;
-                if ((shield = g.Selection.Selected.GetFirstChildComponent<CShieldComponent>()) == null) return -1;
+                if ((shield = g.Selection.Selected.GetFirstChildComponent<CShieldComponent>()) == null)
+                {
+                    return -1;
+                }
+
                 return shield.ShieldPercent;
             }
 
             public string SelectionReputation()
             {
                 if (g.Selection.Selected == null)
+                {
                     return "neutral";
+                }
+
                 var rep = g.GetRepToPlayer(g.Selection.Selected);
                 return rep switch
                 {
@@ -696,7 +778,11 @@ World Time: {12:F2}
 
             public Vector2 SelectionPosition()
             {
-                if (g.Selection.Selected == null) return new Vector2(-1000, -1000);
+                if (g.Selection.Selected == null)
+                {
+                    return new Vector2(-1000, -1000);
+                }
+
                 var (pos, _) = g.ScreenPosition(g.Selection.Selected);
                 return new Vector2(
                     g.ui.PixelsToPoints(pos.X),
@@ -724,7 +810,7 @@ World Time: {12:F2}
 
             private string activeManeuver = "FreeFlight";
 
-            public string GetActiveManeuver() => g.pilotcomponent.CurrentBehavior switch
+            public string GetActiveManeuver() => g.pilotComponent.CurrentBehavior switch
             {
                 AutopilotBehaviors.Dock => "Dock",
                 AutopilotBehaviors.Formation => "Formation",
@@ -816,7 +902,10 @@ World Time: {12:F2}
                 {
                     pausemenu = true;
                     if(!session.Multiplayer)
+                    {
                         paused = true;
+                    }
+
                     session.Pause();
                     ui.Event("Pause");
                 }
@@ -833,18 +922,22 @@ World Time: {12:F2}
 		}
 
         private bool dogoto = false;
-		public AutopilotComponent? pilotcomponent = null;
+		public AutopilotComponent? pilotComponent = null;
 
         private bool ManeuverSelect(string e)
 		{
 			switch (e)
 			{
 				case "FreeFlight":
-                    pilotcomponent.Cancel();
+                    pilotComponent.Cancel();
 					return true;
 				case "Dock":
-					if (Selection.Selected == null) return false;
-					DockInfoComponent d;
+					if (Selection.Selected == null)
+                    {
+                        return false;
+                    }
+
+                    DockInfoComponent d;
 					if ((d = Selection.Selected.GetComponent<DockInfoComponent>()) != null)
                     {
                         if (!session.DockAllowed(Selection.Selected))
@@ -852,14 +945,18 @@ World Time: {12:F2}
                             Game.Sound.PlayVoiceLine(VoiceLines.NnVoiceName, VoiceLines.NnVoice.DockingNotAllowed);
                             return false;
                         }
-                        pilotcomponent.StartDock(Selection.Selected, GotoKind.Goto);
+                        pilotComponent.StartDock(Selection.Selected, GotoKind.Goto);
                         session.SpaceRpc.RequestDock(Selection.Selected);
 						return true;
 					}
 					return false;
 				case "Goto":
-					if (Selection.Selected == null) return false;
-                    pilotcomponent.GotoObject(Selection.Selected, GotoKind.Goto);
+					if (Selection.Selected == null)
+                    {
+                        return false;
+                    }
+
+                    pilotComponent.GotoObject(Selection.Selected, GotoKind.Goto);
 					return true;
                 case "Formation":
                     session.SpaceRpc.EnterFormation(Selection.Selected.NetID);
@@ -885,7 +982,11 @@ World Time: {12:F2}
                 double FixedDelta = 1 / 60.0;
 
                 world.Update(paused ? 0 : FixedDelta);
-                if (session.Update()) return;
+                if (session.Update())
+                {
+                    return;
+                }
+
                 if (updateStartDelay == 0)
                 {
                     session.GameplayUpdate(this, FixedDelta);
@@ -897,7 +998,11 @@ World Time: {12:F2}
 
                     if (!musicTriggered)
                     {
-                        if (!RtcMusic) Game.Sound.PlayMusic(sys.MusicSpace, 0);
+                        if (!RtcMusic)
+                        {
+                            Game.Sound.PlayMusic(sys.MusicSpace, 0);
+                        }
+
                         musicTriggered = true;
                     }
                 }
@@ -920,7 +1025,7 @@ World Time: {12:F2}
             {
                 return Thn.CameraHandle;
             }
-            else if (dockCameraInfo != null && pilotcomponent.CurrentBehavior == AutopilotBehaviors.Undock)
+            else if (dockCameraInfo != null && pilotComponent.CurrentBehavior == AutopilotBehaviors.Undock)
             {
                 return undockCamera;
             }
@@ -970,12 +1075,19 @@ World Time: {12:F2}
                 {
                     FLLog.Debug("Space", "Displaying popup");
                     if(!session.Multiplayer)
+                    {
                         paused = true;
+                    }
+
                     session.Pause();
                     ui.Event("Popup", popup.Title, popup.Contents, popup.ID);
                 }
             }
-            if (Selection.Selected != null && !Selection.Selected.Flags.HasFlag(GameObjectFlags.Exists)) Selection.Selected = null; // Object has been blown up/despawned
+            if (Selection.Selected != null && !Selection.Selected.Flags.HasFlag(GameObjectFlags.Exists))
+            {
+                Selection.Selected = null; // Object has been blown up/despawned
+            }
+
             // do tractor beam things
             if (player.TryGetComponent<CTractorComponent>(out var tractor))
             {
@@ -1038,7 +1150,9 @@ World Time: {12:F2}
             _chaseCamera.Viewport = Game.RenderContext.CurrentViewport;
             _turretViewCamera.Viewport = Game.RenderContext.CurrentViewport;
             if(!IsSpecialCamera())
-			    ProcessInput(delta);
+            {
+                ProcessInput(delta);
+            }
             else if (ui.HasModal)
             {
                 current_cur = cur_arrow;
@@ -1047,7 +1161,7 @@ World Time: {12:F2}
             // Has to be here or glitches
             if (!Dead)
             {
-                if (dockCameraInfo != null && pilotcomponent.CurrentBehavior == AutopilotBehaviors.Undock)
+                if (dockCameraInfo != null && pilotComponent?.CurrentBehavior == AutopilotBehaviors.Undock)
                 {
                     var tr = dockCameraInfo.DockHardpoint.Transform * dockCameraInfo.Parent.WorldTransform;
                     undockCamera.Update(Game.Width, Game.Height, tr.Position, player.LocalTransform.Position);
@@ -1059,8 +1173,7 @@ World Time: {12:F2}
 
             _turretViewCamera.Update(delta);
             _chaseCamera.Update(delta);
-            if ((Thn == null ||
-                 !Thn.Running)) // HACK: Cutscene also updates the listener so we don't do it if one is running
+            if (Thn is not { Running: true }) // HACK: Cutscene also updates the listener so we don't do it if one is running
             {
                 Game.Sound.UpdateListener(delta, _chaseCamera.Position, _chaseCamera.CameraForward, _chaseCamera.CameraUp);
             }
@@ -1075,8 +1188,12 @@ World Time: {12:F2}
 
         protected override void OnActionUp(InputAction action)
         {
-			if (ui.KeyboardGrabbed || paused) return;
-			switch (action)
+			if (ui.KeyboardGrabbed || paused)
+            {
+                return;
+            }
+
+            switch (action)
 			{
 				case InputAction.USER_CRUISE:
                     steering.Cruise = !steering.Cruise;
@@ -1100,7 +1217,10 @@ World Time: {12:F2}
                 if(!(Game.Debug.CaptureMouse) && !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
                 {
                     var newSelection = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
-                    if (newSelection != null) Selection.Selected = newSelection;
+                    if (newSelection != null)
+                    {
+                        Selection.Selected = newSelection;
+                    }
 
                     if (!isLeftDown)
                     {
@@ -1157,7 +1277,7 @@ World Time: {12:F2}
             shipInput.MouseFlight = false;
             _chaseCamera.MouseFlight = false;
             _turretViewCamera.PanControls = Vector2.Zero;
-            pilotcomponent.Cancel();
+            pilotComponent.Cancel();
             steering.Thrust = false;
             shipInput.Reverse = false;
             steering.Cruise = false;
@@ -1168,10 +1288,16 @@ World Time: {12:F2}
             screenPos = Vector2.Zero;
             worldPos = Vector3.Zero;
             if (Selection.Selected?.PhysicsComponent == null)
+            {
                 return false;
+            }
+
             if (Selection.Selected.Kind != GameObjectKind.Ship ||
                 (Selection.Selected.Flags & GameObjectFlags.Exists) != GameObjectFlags.Exists)
+            {
                 return false;
+            }
+
             var myPos = player.PhysicsComponent.Body.Position;
             var myVel = player.PhysicsComponent.Body.LinearVelocity;
             var otherPos = Selection.Selected.PhysicsComponent.Body.Position;
@@ -1217,7 +1343,11 @@ World Time: {12:F2}
                 current_cur = cur_arrow;
                 return;
             }
-            if (paused) return;
+            if (paused)
+            {
+                return;
+            }
+
             Input.Update();
 
             if (!ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
@@ -1247,10 +1377,25 @@ World Time: {12:F2}
 			StrafeControls strafe = StrafeControls.None;
             if (!ui.KeyboardGrabbed)
 			{
-				if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_LEFT)) strafe |= StrafeControls.Left;
-				if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_RIGHT)) strafe |= StrafeControls.Right;
-				if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_UP)) strafe |= StrafeControls.Up;
-				if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_DOWN)) strafe |= StrafeControls.Down;
+				if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_LEFT))
+                {
+                    strafe |= StrafeControls.Left;
+                }
+
+                if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_RIGHT))
+                {
+                    strafe |= StrafeControls.Right;
+                }
+
+                if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_UP))
+                {
+                    strafe |= StrafeControls.Up;
+                }
+
+                if (Input.IsActionDown(InputAction.USER_MANEUVER_SLIDE_EVADE_DOWN))
+                {
+                    strafe |= StrafeControls.Down;
+                }
             }
 
 			var pc = player.PhysicsComponent;
@@ -1289,7 +1434,9 @@ World Time: {12:F2}
 
             var obj = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
             if (ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
+            {
                 current_cur = cur_arrow;
+            }
             else {
                 current_cur = obj == null ? cur_cross : cur_reticle;
             }
@@ -1297,13 +1444,21 @@ World Time: {12:F2}
             weapons.AimPoint = GetAimPoint();
 
             if (Input.IsActionDown(InputAction.USER_FIRE_WEAPONS))
+            {
                 weapons.FireAll();
+            }
+
             if(Input.IsActionDown(InputAction.USER_LAUNCH_MISSILES))
+            {
                 weapons.FireMissiles();
+            }
+
             for (int i = 0; i < 10; i++)
             {
                 if (Input.IsActionDown(InputAction.USER_FIRE_WEAPON1 + i))
+                {
                     weapons.FireIndex(i);
+                }
             }
 
             if (world.Projectiles.HasMissilesQueued)
@@ -1342,7 +1497,9 @@ World Time: {12:F2}
             foreach (var s in voiceData.Scripts)
             {
                 if(canim.Scripts.TryGetValue(s, out var sc))
+                {
                     scripts.Add(sc);
+                }
             }
 
             Accessory acc = costume.Helmet;
@@ -1361,15 +1518,16 @@ World Time: {12:F2}
                 Male = string.Equals(costume.Body?.Sex, "male", StringComparison.OrdinalIgnoreCase),
                 Scripts = scripts
             };
+
             string? factionName = null;
-            if (obj.TryGetComponent<CFactionComponent>(out var fac) &&
-                fac?.Faction != null)
+            if (obj.TryGetComponent<CFactionComponent>(out var fac) && fac?.Faction != null)
             {
                 factionName = Game.GameData.GetString(fac.Faction.IdsName);
             }
+
             ui.Event("Comm", new CommData()
             {
-                Source = obj.Name.GetName(Game.GameData, Vector3.Zero),
+                Source = obj.Name!.GetName(Game.GameData, Vector3.Zero)!,
                 Affiliation = factionName,
                 Appearance = app
             });
@@ -1379,7 +1537,7 @@ World Time: {12:F2}
         {
             player.GetComponent<ShipPhysicsComponent>().Active = false;
             player.GetComponent<WeaponControlComponent>().Enabled = false;
-            pilotcomponent.Cancel();
+            pilotComponent.Cancel();
         }
 
         public void TradelaneDisrupted()
@@ -1421,7 +1579,10 @@ World Time: {12:F2}
                 windowSpace.Y >= 0 &&
                 windowSpace.Y <= Game.Height;
             if (clipSpace.Z < 0)
+            {
                 windowSpace *= -1;
+            }
+
             return (windowSpace, visible && ndc.Z < 1);
         }
 
@@ -1437,7 +1598,10 @@ World Time: {12:F2}
             if (missionWaypoint != null)
             {
                 if (Selection.Selected == missionWaypoint)
+                {
                     Selection.Selected = null;
+                }
+
                 world.RemoveObject(missionWaypoint);
                 missionWaypoint = null;
             }
@@ -1511,9 +1675,15 @@ World Time: {12:F2}
             {
                 updateStartDelay--;
                 if (updateStartDelay == 0)
+                {
                     session.UpdateStart(this);
+                }
             }
-            if (waitObjectiveFrames > 0) waitObjectiveFrames--;
+            if (waitObjectiveFrames > 0)
+            {
+                waitObjectiveFrames--;
+            }
+
             world.RenderUpdate(delta);
             sysrender.DebugRenderer.StartFrame(Game.RenderContext);
 
@@ -1559,9 +1729,14 @@ World Time: {12:F2}
                 if (Selection.Selected != null)
                 {
                     if (Selection.Selected.Name == null)
+                    {
                         sel_obj = "unknown object";
+                    }
                     else
+                    {
                         sel_obj = Selection.Selected.Name?.GetName(Game.GameData, player.PhysicsComponent.Body.Position) ?? "unknown object";
+                    }
+
                     sel_obj = $"{sel_obj} ({Selection.Selected.Nickname ?? "null nickname"})";
                 }
                 var systemName = Game.GameData.GetString(sys.IdsName);
@@ -1572,7 +1747,10 @@ World Time: {12:F2}
                 ImGui.Text($"crosshairHit: {crosshairHit}");
                 var dbgT = session.GetSelectedDebugInfo();
                 if(!string.IsNullOrWhiteSpace(dbgT))
+                {
                     ImGui.Text(dbgT);
+                }
+
                 if (Selection.Selected?.PhysicsComponent?.Body?.Collider is ConvexMeshCollider cvx)
                 {
                     ImGui.Text($"selected compound children: {cvx.BepuChildCount}");
@@ -1609,9 +1787,14 @@ World Time: {12:F2}
                 ImGui.Checkbox("Draw raycasts", ref world.Physics.ShowRaycasts);
                 ImGui.EndDisabled();
                 if (hasDebug)
+                {
                     world.Physics.DebugRenderer = sysrender.DebugRenderer;
+                }
                 else
+                {
                     world.Physics.DebugRenderer = null;
+                }
+
                 ImGui.Text($"Free Audio Voices: {Game.Audio.FreeSources}");
                 ImGui.Text($"Playing Sounds: {Game.Audio.PlayingInstances}");
                 ImGui.Text($"Audio Update Time: {Game.Audio.UpdateTime:0.000}ms");
@@ -1624,7 +1807,9 @@ World Time: {12:F2}
             {
                 Game.Debug.MissionWindow(session.GetTriggerInfo());
                 if(showObjectList)
+                {
                     Game.Debug.ObjectsWindow(world.Objects);
+                }
             });
             if ((!IsSpecialCamera() && ShowHud) || Game.Debug.Enabled || ui.HasModal)
             {
@@ -1711,16 +1896,23 @@ World Time: {12:F2}
                     if (!visible && (
                         (obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
                         (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important))
+                    {
                         DrawUnselectedArrow(obj, pos, context, parentRectangle);
+                    }
+
                     if(visible)
+                    {
                         DrawShipReticle(obj, pos, context, parentRectangle);
+                    }
                 }
                 else if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
                          (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important)
                 {
                     var (pos, visible) = ScreenPosition(obj);
                     if (!visible)
+                    {
                         DrawUnselectedArrow(obj, pos, context, parentRectangle);
+                    }
                 }
             }
 

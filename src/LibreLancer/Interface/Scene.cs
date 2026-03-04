@@ -21,8 +21,8 @@ namespace LibreLancer.Interface
                 base.Render(context, parentRectangle);
             }
         }
-        
-        private Stylesheet currentSheet;
+
+        private Stylesheet? currentSheet;
         public void ApplyStyles()
         {
             if(currentSheet != null) ApplyStylesheet(currentSheet);

@@ -65,9 +65,13 @@ namespace LibreLancer.Server
         }
 
         // Should be replaced with Faction class creating a random def
-        public ObjectName RandomName(Faction fac)
+        public ObjectName RandomName(Faction? fac)
         {
-            if (fac == null) return new ObjectName("NULL");
+            if (fac == null)
+            {
+                return new ObjectName("NULL");
+            }
+
             var rand = new Random();
             ValueRange<int>? firstName = null;
             if (fac.Properties.FirstNameMale != null &&
@@ -111,15 +115,15 @@ namespace LibreLancer.Server
 
         public GameObject DoSpawn(
             ObjectName name,
-            string nickname,
-            Faction affiliation,
-            string stateGraph,
-            CostumeEntry costume,
+            string? nickname,
+            Faction? affiliation,
+            string? stateGraph,
+            CostumeEntry? costume,
             ObjectLoadout loadout,
-            Pilot pilot,
+            Pilot? pilot,
             Vector3 position,
             Quaternion orient,
-            string arrivalObj,
+            string? arrivalObj,
             int arrivalIndex,
             MissionRuntime? msn = null
             )
@@ -130,7 +134,10 @@ namespace LibreLancer.Server
             if (spawnPoint?.TryGetComponent<SDockableComponent>(out sdock) ?? false)
             {
                 if (arrivalIndex == 0)
+                {
                     arrivalIndex = sdock.GetUndockIndex();
+                }
+
                 var p = sdock.GetSpawnPoint(arrivalIndex);
                 position = p.Position;
                 orient = p.Orientation;
@@ -174,7 +181,11 @@ namespace LibreLancer.Server
                 sdock.UndockShip(obj, arrivalIndex);
                 obj.GetComponent<AutopilotComponent>().Undock(spawnPoint, arrivalIndex);
             }
-            if (nickname != null) missionNPCs[nickname] = obj;
+            if (nickname != null)
+            {
+                missionNPCs[nickname] = obj;
+            }
+
             return obj;
         }
     }

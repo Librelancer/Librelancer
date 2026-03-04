@@ -54,17 +54,18 @@ public partial class TractorBeamRenderer : ObjectRenderer
 
     public RefList<VisibleBeam> TractorBeams = [];
     public Color3f Color;
-    private SystemRenderer sysr;
+    private SystemRenderer? sysr;
 
-    public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
+    public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer? sys, bool forceCull)
     {
-        if(Vector3.DistanceSquared(camera.Position, pos) < CULL)
+        if (!(Vector3.DistanceSquared(camera.Position, pos) < CULL))
         {
-            sys.AddObject(this);
-            sysr = sys;
-            return true;
+            return false;
         }
-        return false;
+
+        sys?.AddObject(this);
+        sysr = sys;
+        return true;
     }
 
     private Vector3 pos;
@@ -80,9 +81,9 @@ public partial class TractorBeamRenderer : ObjectRenderer
         {
             return;
         }
-        for (int i = 0; i < TractorBeams.Count; i++)
+
+        foreach (var beam in TractorBeams)
         {
-            var beam = TractorBeams[i];
             var tgtPos = beam.Target.WorldTransform.Position;
             var len = (tgtPos - Origin).Length();
             var dir = (tgtPos - Origin).Normalized();

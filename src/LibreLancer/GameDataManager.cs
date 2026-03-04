@@ -109,12 +109,12 @@ public class GameDataManager
 
         if (glResource.TextureExists(splashTextureFileNameLarge))
         {
-            return (Texture2D) Resources.FindTexture(splashTextureFileNameLarge);
+            return (Texture2D?)Resources.FindTexture(splashTextureFileNameLarge);
         }
 
         if (glResource.TextureExists(splashTextureFileName))
         {
-            return (Texture2D) Resources.FindTexture(splashTextureFileName);
+            return (Texture2D?)Resources.FindTexture(splashTextureFileName);
         }
 
         if (Items.VFS.FileExists(Items.Ini.Freelancer.DataPath + $"INTERFACE/INTRO/IMAGES/{splashTextureFileNameLarge}"))

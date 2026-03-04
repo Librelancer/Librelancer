@@ -9,10 +9,10 @@ namespace LibreLancer.Server;
 
 public class SpacePlayer : ISpacePlayer
 {
-    public ServerWorld World => world;
+    public ServerWorld? World => world;
     public Player Player => player;
 
-    private ServerWorld world;
+    private ServerWorld? world;
     private Player player;
 
     public SpacePlayer(ServerWorld world, Player player)

@@ -22,10 +22,10 @@ public class CPlayerCargoComponent : AbstractCargoComponent
         return slot.Count > maxCount ? maxCount : slot.Count;
     }
 
-    public override T FirstOf<T>()
+    public override T? FirstOf<T>() where T : class
     {
         var slot = session.Items.FirstOrDefault(x => x.Equipment is T);
-        return (T) slot?.Equipment;
+        return (T?)slot?.Equipment;
     }
 
     public override int TryAdd(Equipment equipment, int maxCount)

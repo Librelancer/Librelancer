@@ -7,5 +7,5 @@ public class CommData
 {
     public CommAppearance Appearance;
     public string Source;
-    public string Affiliation;
+    public string? Affiliation;
 }

@@ -10,7 +10,7 @@ namespace LibreLancer.Interface
 {
     public class Scrollbar
     {
-        public ScrollbarStyle Style;
+        public ScrollbarStyle? Style;
 
         public float ScrollOffset { get; set; }
         public float Tick { get; set; } = 0.1f;
@@ -23,14 +23,17 @@ namespace LibreLancer.Interface
         public void ApplyStyle(Stylesheet stylesheet)
         {
             Style = stylesheet.Lookup<ScrollbarStyle>(null);
-            if (Style != null)
+
+            if (Style == null)
             {
-                upbutton.SetStyle(Style.UpButton);
-                downbutton.SetStyle(Style.DownButton);
-                thumb.SetStyle(Style.Thumb);
-                thumbTop.SetStyle(Style.ThumbTop);
-                thumbBottom.SetStyle(Style.ThumbBottom);
+                return;
             }
+
+            upbutton.SetStyle(Style.UpButton);
+            downbutton.SetStyle(Style.DownButton);
+            thumb.SetStyle(Style.Thumb);
+            thumbTop.SetStyle(Style.ThumbTop);
+            thumbBottom.SetStyle(Style.ThumbBottom);
         }
         private Button upbutton = new()
         {
@@ -47,7 +50,7 @@ namespace LibreLancer.Interface
 
         private void Layout(RectangleF parent, out RectangleF myRectangle, out RectangleF track)
         {
-            myRectangle = new RectangleF(parent.X + parent.Width - Style.Width, parent.Y, Style.Width, parent.Height);
+            myRectangle = new RectangleF(parent.X + parent.Width - Style!.Width, parent.Y, Style.Width, parent.Height);
             var widthAdjust = (Style?.ButtonMarginX ?? 0) * 2;
             upbutton.Width = myRectangle.Width - widthAdjust;
             downbutton.Width = myRectangle.Width - widthAdjust;
@@ -115,13 +118,14 @@ namespace LibreLancer.Interface
             // draw thumb
             thumb.Update(context, track);
             float top = 0, bottom = 0;
-            if (Style.ThumbTop != null)
+            if (Style?.ThumbTop != null)
             {
                 top = Style.ThumbTop.Height;
                 var rect = new RectangleF(track.X, track.Y + thumb.Y, track.Width, top + 1);
                 thumbTop.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
-            if (Style.ThumbBottom != null)
+
+            if (Style?.ThumbBottom != null)
             {
                 bottom = Style.ThumbBottom.Height;
                 var rect = new RectangleF(track.X, track.Y + thumb.Y + thumb.Height - bottom - 1, track.Width, bottom + 1);

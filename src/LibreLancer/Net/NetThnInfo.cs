@@ -7,8 +7,8 @@ public record struct NetAmbientInfo(string Script, uint RoomId, uint BaseId);
 
 public struct NetThnInfo
 {
-    public MissionRtc[] Rtcs;
-    public NetAmbientInfo[] Ambients;
+    public MissionRtc[]? Rtcs;
+    public NetAmbientInfo[]? Ambients;
 
     public static NetThnInfo Read(PacketReader reader)
     {

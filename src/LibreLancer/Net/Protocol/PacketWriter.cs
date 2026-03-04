@@ -30,7 +30,7 @@ public class PacketWriter
         return pw.writer;
     }
 
-    public void Put(ObjectName on)
+    public void Put(ObjectName? on)
     {
         if (on == null)
         {
@@ -216,25 +216,31 @@ public class PacketWriter
         writer.Put(vec.Z);
     }
 
-    public void PutHpid(string hpid)
+    public void PutHpid(string? hpid)
     {
-        if (hpids == null) throw new InvalidOperationException();
-        if(hpid == null) PutVariableUInt32(0);
-        else if(hpid == "") PutVariableUInt32(1);
-        else PutVariableUInt32(hpids.GetIndex(hpid) + 2);
+        if (hpids == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        switch (hpid)
+        {
+            case null:
+                PutVariableUInt32(0);
+                break;
+            case "":
+                PutVariableUInt32(1);
+                break;
+            default:
+                PutVariableUInt32(hpids.GetIndex(hpid) + 2);
+                break;
+        }
     }
 
     public void Put(DateTime time)
     {
         Put(time.Kind == DateTimeKind.Local);
-        if (time.Kind == DateTimeKind.Local)
-        {
-            PutVariableInt64(time.ToUniversalTime().Ticks);
-        }
-        else
-        {
-            PutVariableInt64(time.Ticks);
-        }
+        PutVariableInt64(time.Kind == DateTimeKind.Local ? time.ToUniversalTime().Ticks : time.Ticks);
     }
 
     public void Put(double d)
@@ -242,7 +248,7 @@ public class PacketWriter
         writer.Put(d);
     }
 
-    public void Put(string s)
+    public void Put(string? s)
     {
         if (s == null)
         {

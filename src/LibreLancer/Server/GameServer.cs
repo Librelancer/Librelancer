@@ -47,11 +47,11 @@ namespace LibreLancer.Server
 
         private volatile bool running = false;
 
-        public GameListener Listener;
+        public GameListener? Listener;
         private Thread gameThread;
 
         public List<Player> ConnectedPlayers = [];
-        public Player LocalPlayer;
+        public Player? LocalPlayer;
 
         public ConcurrentHashSet<long> CharactersInUse = [];
 
@@ -223,7 +223,7 @@ namespace LibreLancer.Server
 
         public IEnumerable<Player> AllPlayers => GetConnectedPlayers();
 
-        public Player GetConnectedPlayer(string name) =>
+        public Player? GetConnectedPlayer(string name) =>
             GetConnectedPlayers().FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
         public void LoadSaveGame(SaveGame sg) => worldRequests.Enqueue(() =>

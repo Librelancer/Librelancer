@@ -11,12 +11,12 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ListItem : UiWidget
     {
-        public Panel ItemA { get; set; }
-        public Panel ItemB { get; set; }
+        public Panel? ItemA { get; set; }
+        public Panel? ItemB { get; set; }
 
         public float ItemMarginX { get; set; }
-        public UiRenderable SelectedBorder { get; set; }
-        public UiRenderable HoverBorder { get; set; }
+        public UiRenderable? SelectedBorder { get; set; }
+        public UiRenderable? HoverBorder { get; set; }
 
         private RectangleF rectangleA;
         private RectangleF rectangleB;

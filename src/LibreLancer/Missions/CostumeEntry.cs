@@ -11,13 +11,15 @@ public class CostumeEntry
 
     public CostumeEntry() { }
 
-    public CostumeEntry(string[] source, GameItemDb db)
+    public CostumeEntry(string[]? source, GameItemDb db)
     {
-        if (source != null)
+        if (source == null)
         {
-            if (source.Length > 0 && source[0] != "no_head") Head = db.Bodyparts.Get(source[0]);
-            if (source.Length > 1) Body = db.Bodyparts.Get(source[1]);
-            if (source.Length > 2) Accessory = db.Accessories.Get(source[2]);
+            return;
         }
+
+        if (source.Length > 0 && source[0] != "no_head") Head = db.Bodyparts.Get(source[0])!;
+        if (source.Length > 1) Body = db.Bodyparts.Get(source[1])!;
+        if (source.Length > 2) Accessory = db.Accessories.Get(source[2])!;
     }
 }

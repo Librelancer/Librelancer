@@ -42,12 +42,12 @@ public struct NetObjective
         return hashCode.ToHashCode();
     }
 
-    public static bool operator ==(NetObjective left, NetObjective right)
+    public static bool operator ==(NetObjective? left, NetObjective? right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(NetObjective left, NetObjective right)
+    public static bool operator !=(NetObjective? left, NetObjective? right)
     {
         return !left.Equals(right);
     }

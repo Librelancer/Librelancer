@@ -31,12 +31,25 @@ namespace LibreLancer.Net.Protocol
             this.canResize = canResize;
         }
 
-        public void PutHpid(string hpid)
+        public void PutHpid(string? hpid)
         {
-            if (HpidWriter == null) throw new InvalidOperationException();
-            if (hpid == null) PutVarUInt32(0);
-            else if (hpid == "") PutVarUInt32(1);
-            else PutVarUInt32(HpidWriter.GetIndex(hpid) + 2);
+            if (HpidWriter == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            switch (hpid)
+            {
+                case null:
+                    PutVarUInt32(0);
+                    break;
+                case "":
+                    PutVarUInt32(1);
+                    break;
+                default:
+                    PutVarUInt32(HpidWriter.GetIndex(hpid) + 2);
+                    break;
+            }
         }
 
         public void PutInt(int i) => PutUInt((uint) i, 32);

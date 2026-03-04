@@ -11,7 +11,7 @@ namespace LibreLancer.Thn
     {
         public ThnObject Object;
         public bool Spatial;
-        public Media.SoundInstance Instance;
+        public Media.SoundInstance? Instance;
 
         public ThnSoundInstance(ThnSound snd, Media.SoundInstance ms)
         {
@@ -46,7 +46,7 @@ namespace LibreLancer.Thn
         public bool Spatial;
         public string SoundName;
         public float Attenuation;
-        public ThnAudioProps Props;
+        public ThnAudioProps? Props;
         public ThnSound(string soundname, SoundManager man, ThnAudioProps props, ThnObject obj)
         {
             Object = obj;
@@ -60,7 +60,7 @@ namespace LibreLancer.Thn
         }
 
         private SoundManager man;
-        public ThnSoundInstance CreateInstance(bool oneShot)
+        public ThnSoundInstance? CreateInstance(bool oneShot)
         {
             var inst = man.GetInstance(SoundName, Attenuation, Props.Dmin, Props.Dmax,
                 Spatial ? (Vector3?) Object.Translate : null);

@@ -10,42 +10,44 @@ using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Utf.Mat
 {
-	public class MatFile : UtfFile
+    public class MatFile : UtfFile
     {
+        public Dictionary<uint, Material> Materials { get; private set; } = new();
 
-        public Dictionary<uint, Material> Materials { get; private set; } = new ();
+        public TxmFile? TextureLibrary { get; private set; }
 
-		public TxmFile TextureLibrary { get; private set; }
+        public MatFile()
+        {
+        }
 
-		public MatFile ()
-		{
-		}
+        public MatFile(IntermediateNode materialLibraryNode)
+        {
+            setMaterials(materialLibraryNode);
+        }
 
-		public MatFile (IntermediateNode materialLibraryNode)
-		{
-			setMaterials (materialLibraryNode);
-		}
+        private void setMaterials(IntermediateNode materialLibraryNode)
+        {
+            // TODO: int count = 0;
+            foreach (Node materialNode in materialLibraryNode)
+            {
+                if (materialNode is IntermediateNode)
+                {
+                    uint materialId = CrcTool.FLModelCrc(materialNode.Name);
 
-		private void setMaterials (IntermediateNode materialLibraryNode)
-		{
-			// TODO: int count = 0;
-			foreach (Node materialNode in materialLibraryNode) {
-				if (materialNode is IntermediateNode) {
-					uint materialId = CrcTool.FLModelCrc (materialNode.Name);
                     if (!Materials.ContainsKey(materialId))
                     {
                         try
                         {
                             var mat = Material.FromNode(materialNode as IntermediateNode);
-                            Materials.Add (materialId, Material.FromNode (materialNode as IntermediateNode));
+                            Materials.Add(materialId, Material.FromNode(materialNode as IntermediateNode));
                         }
                         catch (Exception e)
                         {
                             FLLog.Error("Mat", $"Error loading material {materialNode.Name}: {e}");
                         }
                     }
-				}
+                }
             }
         }
-	}
+    }
 }

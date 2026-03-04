@@ -28,7 +28,7 @@ public class FormationTools
         }
     }
 
-    public static void MakeNewFormation(GameObject obj, string formation, List<string> others)
+    public static void MakeNewFormation(GameObject obj, string formation, List<string>? others)
     {
         // TODO: Gross
         var formDef = obj.World.Server.Server.GameData.Items.GetFormation(formation);

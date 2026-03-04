@@ -11,7 +11,7 @@ public class StayInRangeDirective : MissionDirective
     public override ObjListCommands Command => ObjListCommands.StayInRange;
 
     public bool UseObject; // Mostly for editor use
-    public string Object = "";
+    public string? Object = "";
     public Vector3 Point;
     public float Range;
     public bool Unknown;

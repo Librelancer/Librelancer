@@ -10,7 +10,7 @@ namespace LibreLancer
 {
     public class LoadingDataState : GameState
 	{
-        private Texture2D splash;
+        private Texture2D? splash;
         private bool invoked = false;
 		public LoadingDataState(FreelancerGame g) : base(g)
 		{
@@ -30,7 +30,8 @@ namespace LibreLancer
                 Shaders.AllShaders.Compile(Game.RenderContext);
                 shadersCompiled = true;
             }
-            if (xCnt >= 3&& Game.InisLoaded && !uiLoaded)
+
+            if (xCnt >= 3 && Game.InisLoaded && !uiLoaded)
             {
                 Game.Fonts.LoadFontsFromGameData(Game.RenderContext, Game.GameData);
                 Game.Ui = new UiContext(Game);
@@ -40,19 +41,20 @@ namespace LibreLancer
             }
         }
 		public override void Update(double delta)
-		{
-            if (Game.InitialLoadComplete && shadersCompiled && uiLoaded && !invoked)
+        {
+            if (!Game.InitialLoadComplete || !shadersCompiled || !uiLoaded || invoked)
             {
-                invoked = true;
-                FadeOut(0.1, () =>
-                {
-                    if (Game.Config.CustomState != null)
-                        Game.ChangeState(Game.Config.CustomState(Game));
-                    else
-                        Game.ChangeState(new LuaMenu(Game));
-                });
+                return;
             }
-		}
+
+            invoked = true;
+            FadeOut(0.1, () =>
+            {
+                Game.ChangeState(Game.Config.CustomState != null
+                    ? Game.Config.CustomState(Game)
+                    : new LuaMenu(Game));
+            });
+        }
     }
 }
 

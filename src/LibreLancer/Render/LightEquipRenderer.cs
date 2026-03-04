@@ -15,7 +15,7 @@ namespace LibreLancer.Render
     {
         private const float BASE_SIZE = 10f;
         private Vector3 pos;
-        private SystemRenderer sys;
+        private SystemRenderer? sys;
         private LightEquipment equip;
         public bool LightOn = true;
         private static Random rnd = new();

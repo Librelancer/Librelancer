@@ -251,7 +251,11 @@ namespace LibreLancer
             }
             internal void _Update()
             {
-                if (netClient == null) return;
+                if (netClient == null)
+                {
+                    return;
+                }
+
                 while (netClient.PollPacket(out var pkt))
                 {
                     switch (pkt)
@@ -297,7 +301,7 @@ namespace LibreLancer
 
                 }
             }
-            private GameNetClient netClient;
+            private GameNetClient? netClient;
             private CGameSession netSession;
             private ServerList serverList = new();
             private CharacterSelectInfo cselInfo;

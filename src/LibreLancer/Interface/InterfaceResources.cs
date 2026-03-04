@@ -58,9 +58,9 @@ namespace LibreLancer.Interface
     {
         public static readonly InterfaceColor White = new() {Color = Color4.White};
         public static readonly InterfaceColor Black = new() {Color = Color4.Black};
-        public string Name;
+        public string Name = "";
         public Color4 Color;
-        public InterfaceColorAnimation Animation;
+        public InterfaceColorAnimation? Animation;
 
         [XmlIgnore] private float alphaFactor = 1;
 

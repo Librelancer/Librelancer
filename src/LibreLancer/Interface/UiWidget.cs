@@ -12,15 +12,15 @@ namespace LibreLancer.Interface
 {
     public abstract class UiWidget : IDisposable
     {
-        public string ID { get; set;  }
-        public string ClassName { get; set; }
+        public string? ID { get; set;  }
+        public string? ClassName { get; set; }
         public AnchorKind Anchor { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
         public float Width { get; set; }
         public float Height { get; set; }
-        public UiRenderable Background { get; set; }
-        public UiRenderable Border { get; set; }
+        public UiRenderable? Background { get; set; }
+        public UiRenderable? Border { get; set; }
 
         public bool Visible { get; set; } = true;
         public bool Enabled { get; set; } = true;
@@ -50,7 +50,7 @@ namespace LibreLancer.Interface
             float textSize,
             string font,
             InterfaceColor textColor,
-            InterfaceColor shadowColor,
+            InterfaceColor? shadowColor,
             HorizontalAlignment horizontalAlign,
             VerticalAlignment verticalAlign,
             bool clip,
@@ -127,7 +127,7 @@ namespace LibreLancer.Interface
         }
         public abstract void Render(UiContext context, RectangleF parentRectangle);
 
-        private Stylesheet _lastSheet;
+        private Stylesheet? _lastSheet;
         public virtual void ApplyStylesheet(Stylesheet sheet)
         {
             _lastSheet = sheet;
@@ -141,40 +141,48 @@ namespace LibreLancer.Interface
         {
         }
 
-        protected UiAnimation CurrentAnimation;
+        protected UiAnimation? CurrentAnimation;
         private float aspectRatio = 1;
         protected void Update(UiContext context, Vector2 myPos)
         {
             aspectRatio = context.ViewportWidth / context.ViewportHeight;
             double delta = context.DeltaTime;
-            callback?.Invoke(delta);
-            if (CurrentAnimation != null) {
-                CurrentAnimation.SetWidgetPosition(myPos);
-                CurrentAnimation.Update(delta, aspectRatio);
-                if (!CurrentAnimation.Running)
-                {
-                    if (CurrentAnimation.FinalPositionSet.HasValue)
-                    {
-                        animSetPos = CurrentAnimation.FinalPositionSet.Value;
-                    }
-                    CurrentAnimation = null;
-                }
+            Callback?.Invoke(delta);
+
+            if (CurrentAnimation == null)
+            {
+                return;
             }
+
+            CurrentAnimation.SetWidgetPosition(myPos);
+            CurrentAnimation.Update(delta, aspectRatio);
+
+            if (CurrentAnimation.Running)
+            {
+                return;
+            }
+
+            if (CurrentAnimation.FinalPositionSet.HasValue)
+            {
+                animSetPos = CurrentAnimation.FinalPositionSet.Value;
+            }
+
+            CurrentAnimation = null;
         }
 
-        private event Action<double> callback;
+        private event Action<double>? Callback;
         public void OnUpdate(Closure handler)
         {
-            callback += (x) =>
+            Callback += (x) =>
             {
                 handler.Call(x);
             };
         }
 
-        private event Action escapePressed;
+        private event Action? EscapePressed;
         public void OnEscape(Closure handler)
         {
-            escapePressed += () => handler.Call();
+            EscapePressed += () => handler.Call();
         }
 
         private Vector2? animSetPos;
@@ -235,13 +243,13 @@ namespace LibreLancer.Interface
         }
 
         [WattleScriptHidden]
-        public virtual bool WantsEscape() => Visible && escapePressed != null;
+        public virtual bool WantsEscape() => Visible && EscapePressed != null;
 
         [WattleScriptHidden]
         public virtual void OnEscapePressed()
         {
             if(Visible)
-                escapePressed?.Invoke();
+                EscapePressed?.Invoke();
         }
 
         public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle) { }

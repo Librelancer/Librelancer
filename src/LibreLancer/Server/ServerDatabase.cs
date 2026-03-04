@@ -22,7 +22,7 @@ namespace LibreLancer.Server
     {
         public long Id;
         private ServerDatabase db;
-        private Character cached;
+        private Character? cached;
 
         internal DatabaseCharacter(Character c, ServerDatabase db)
         {

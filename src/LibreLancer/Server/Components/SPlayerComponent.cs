@@ -47,7 +47,7 @@ namespace LibreLancer.Server.Components
         private Dictionary<int, int> priorities = new();
         private BitArray found = new(512);
 
-        private MissionDirective[] directives;
+        private MissionDirective[]? directives;
         public void SetDirectives(MissionDirective[] directives)
         {
             this.directives = directives;
@@ -184,7 +184,7 @@ namespace LibreLancer.Server.Components
             return found;
         }
 
-        public GameObject Scanning;
+        public GameObject? Scanning;
 
         public void StopScan()
         {

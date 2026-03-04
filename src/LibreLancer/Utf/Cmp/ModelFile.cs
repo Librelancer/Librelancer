@@ -26,7 +26,7 @@ namespace LibreLancer.Utf.Cmp
 		public MaterialAnimCollection MaterialAnim { get; private set; }
 
         public List<HardpointDefinition> Hardpoints { get; private set; }
-        public VMeshRef[] Levels { get; private set; }
+        public VMeshRef?[] Levels { get; private set; }
         public float[] Switch2 { get; private set; }
         public VMeshWire VMeshWire { get; private set; }
 

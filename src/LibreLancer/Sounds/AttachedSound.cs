@@ -11,14 +11,14 @@ namespace LibreLancer.Sounds
     public class AttachedSound
     {
         public string Sound;
-        public AudioEntry Entry;
+        public AudioEntry? Entry;
         public Vector3 Position;
         public Vector3 Velocity;
         public Vector3? Cone;
         public float Pitch = 1f;
         public float Attenuation = 0;
-        public SoundInstance Instance;
-        private SoundManager manager;
+        public SoundInstance? Instance;
+        private SoundManager? manager;
 
         public AttachedSound(SoundManager manager)
         {

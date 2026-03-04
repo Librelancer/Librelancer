@@ -29,40 +29,44 @@ namespace LibreLancer.Interface
         public bool Enabled = false;
         public bool CaptureMouse = false;
 
-        public void MissionWindow(MissionRuntime.TriggerInfo[] triggers)
+        public void MissionWindow(MissionRuntime.TriggerInfo[]? triggers)
         {
-            if (triggers != null)
+            if (triggers == null)
             {
-                var fsize = ImGui.GetFrameHeightWithSpacing();
-
-                ImGui.SetNextWindowSize(new Vector2(600, 500), ImGuiCond.FirstUseEver);
-                ImGui.Begin("Triggers");
-                int i = 0;
-                foreach (var t in triggers)
-                {
-                    float height = fsize * 3 + (t.Conditions.Count * fsize) + (t.Actions.Count * fsize);
-                    ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, height), ImGuiChildFlags.Borders);
-                    ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
-                    ImGui.Text(t.Name);
-                    ImGui.PopFont();
-                    ImGui.Text("Conditions");
-                    ImGui.Separator();
-                    for(int j = 0; j < t.Conditions.Count; j++)
-                    {
-                        if(t.Satisfied[j])
-                            ImGui.TextColored(Color4.Green, t.Conditions[j]);
-                        else
-                            ImGui.Text(t.Conditions[j]);
-                    }
-                    ImGui.Separator();
-                    ImGui.Text("Actions");
-                    ImGui.Separator();
-                    foreach (var a in t.Actions)
-                        ImGui.Text(a);
-                    ImGui.EndChild();
-                }
-                ImGui.End();
+                return;
             }
+
+            var fsize = ImGui.GetFrameHeightWithSpacing();
+
+            ImGui.SetNextWindowSize(new Vector2(600, 500), ImGuiCond.FirstUseEver);
+            ImGui.Begin("Triggers");
+            int i = 0;
+            foreach (var t in triggers)
+            {
+                float height = fsize * 3 + (t.Conditions.Count * fsize) + (t.Actions.Count * fsize);
+                ImGui.BeginChild($"{t.Name};{i++}", new Vector2(-1, height), ImGuiChildFlags.Borders);
+                ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
+                ImGui.Text(t.Name);
+                ImGui.PopFont();
+                ImGui.Text("Conditions");
+                ImGui.Separator();
+                for(int j = 0; j < t.Conditions.Count; j++)
+                {
+                    if(t.Satisfied[j])
+                        ImGui.TextColored(Color4.Green, t.Conditions[j]);
+                    else
+                        ImGui.Text(t.Conditions[j]);
+                }
+
+                ImGui.Separator();
+                ImGui.Text("Actions");
+                ImGui.Separator();
+                foreach (var a in t.Actions)
+                    ImGui.Text(a);
+                ImGui.EndChild();
+            }
+            
+            ImGui.End();
         }
 
         private ObjectRenderer? lastHighlight = null;

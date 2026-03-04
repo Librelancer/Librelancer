@@ -38,7 +38,7 @@ namespace LibreLancer
         public LineRenderer Lines;
 		public List<string> IntroMovies;
 		public bool InitialLoadComplete = false;
-        public Stopwatch LoadTimer;
+        public Stopwatch? LoadTimer;
         public InputMap InputMap;
         private GameState? currentState;
 

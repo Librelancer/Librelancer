@@ -216,7 +216,7 @@ namespace LibreLancer.Render
 
             private FreeList freeList = new();
             private int resizeCount = 0;
-            public VertexBuffer VertexBuffer;
+            public VertexBuffer? VertexBuffer;
 
             private ElementBuffer elementBuffer;
             private FVFVertex type;

@@ -26,7 +26,7 @@ namespace LibreLancer
 		public Guid UUID = Guid.Empty;
 
         [XmlIgnore]
-		public Func<FreelancerGame, GameState> CustomState;
+		public Func<FreelancerGame, GameState>? CustomState;
 
 		private GameConfig(Func<string> filePath)
 		{

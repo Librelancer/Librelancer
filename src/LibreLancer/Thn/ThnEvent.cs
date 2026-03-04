@@ -14,7 +14,7 @@ namespace LibreLancer.Thn
 		public float Time;
         public string[] Targets;
         public EventTypes Type;
-		public ParameterCurve ParamCurve;
+		public ParameterCurve? ParamCurve;
 
         protected ThnEvent()
         {

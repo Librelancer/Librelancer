@@ -59,18 +59,21 @@ namespace LibreLancer.Server
             }
         }
 
-        internal GameObject LookupObject(DynValue id, string funcName, int argIndex)
+        internal GameObject? LookupObject(DynValue id, string funcName, int argIndex)
         {
-            if (id.ToObject() is NPCWattleInstance wi) return wi.Object;
-            if (id.Type == DataType.String) {
-                return manager.World.GameWorld.Objects.FirstOrDefault(x =>
-                    id.String.Equals(x.Nickname, StringComparison.OrdinalIgnoreCase));
-            } else if (id.Type == DataType.Number) {
-                return manager.World.GameWorld.Objects.FirstOrDefault(x => x.NetID == (int)id.Number);
+            if (id.ToObject() is NPCWattleInstance wi)
+            {
+                return wi.Object;
             }
-            else {
-                throw ScriptRuntimeException.BadArgument(argIndex, funcName, DataType.String, id.Type, false);
-            }
+
+            return id.Type switch
+            {
+                DataType.String => manager.World.GameWorld.Objects.FirstOrDefault(x =>
+                    id.String.Equals(x.Nickname, StringComparison.OrdinalIgnoreCase)),
+                DataType.Number => manager.World.GameWorld.Objects.FirstOrDefault(x => x.NetID == (int) id.Number),
+                _ => throw ScriptRuntimeException.BadArgument(argIndex, funcName, DataType.String, id.Type, false)
+            };
+
         }
 
         // Meant to be called from WattleScript
@@ -93,15 +96,18 @@ namespace LibreLancer.Server
             return DoSpawn(loadout, pilot, 0, 0, 0, arrivalObj);
         }
 
-        private NPCWattleInstance DoSpawn(string loadout, string pilot, float x, float y, float z, string arrivalObj)
+        private NPCWattleInstance DoSpawn(string loadout, string? pilot, float x, float y, float z, string arrivalObj)
         {
             if (!manager.World.Server.GameData.Items.TryGetLoadout(loadout, out var resolved))
                 throw new ScriptRuntimeException($"Could not get loadout {loadout}");
             Pilot? p = null;
             if (pilot != null)
+            {
                 p = manager.World.Server.GameData.Items.GetPilot(pilot);
+            }
+
             var position = new Vector3(x, y, z);
-            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount),null, null,  "FIGHTER", null, resolved, p, position, Quaternion.Identity, arrivalObj, 0);
+            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount), null, null,  "FIGHTER", null, resolved, p, position, Quaternion.Identity, arrivalObj, 0);
             return new NPCWattleInstance(obj, this);
         }
     }

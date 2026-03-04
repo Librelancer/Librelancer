@@ -57,6 +57,7 @@ public class DynamicThn
         // Reset dictionaries
         rtcs = new(StringComparer.OrdinalIgnoreCase);
         ambients = new(StringComparer.OrdinalIgnoreCase);
+
         // Fill
         if (info.Rtcs != null)
         {

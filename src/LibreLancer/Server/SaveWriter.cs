@@ -18,13 +18,13 @@ namespace LibreLancer.Server
 
         public static SaveGame CreateSave(
             NetCharacter ch,
-            string description,
+            string? description,
             int ids,
             DateTime? timeStamp,
-            GameDataManager gameData,
-            IEnumerable<MissionRtc> rtcs,
-            IEnumerable<AmbientInfo> ambients,
-            StoryProgress story)
+            GameDataManager? gameData,
+            IEnumerable<MissionRtc>? rtcs,
+            IEnumerable<AmbientInfo>? ambients,
+            StoryProgress? story)
         {
             var sg = new SaveGame();
             sg.Player = new SavePlayer();

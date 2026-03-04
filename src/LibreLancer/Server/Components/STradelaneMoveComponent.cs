@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using LibreLancer.Client.Components;
 using LibreLancer.Missions;
 using LibreLancer.World;
@@ -26,7 +27,7 @@ namespace LibreLancer.Server.Components
             this.lane = lane;
         }
 
-        private bool TryGetMissionRuntime(out MissionRuntime msn, out bool player)
+        private bool TryGetMissionRuntime([MaybeNullWhen(false)] out MissionRuntime msn, out bool player)
         {
             if (Parent.TryGetComponent<SPlayerComponent>(out var p) &&
                 p.Player.MissionRuntime != null)
@@ -55,7 +56,9 @@ namespace LibreLancer.Server.Components
             {
                 SDockableComponent cmp = currenttradelane.GetComponent<SDockableComponent>();
                 if (cmp is null)
+                {
                     return false;
+                }
 
                 msn.TradelaneEntered(
                     isPlayer ? "Player" : Parent.Nickname,
@@ -77,10 +80,12 @@ namespace LibreLancer.Server.Components
         }
 
         private float totalTime = 0;
+
         public override void Update(double time)
         {
             var cmp = currenttradelane.GetComponent<SDockableComponent>();
-            var tradelaneComponent = Parent.GetWorld().GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);
+            var tradelaneComponent = Parent.GetWorld()
+                .GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);
 
             if (tradelaneComponent is null)
             {
@@ -96,14 +101,20 @@ namespace LibreLancer.Server.Components
                 // Do it to all the ships
                 if (Parent.Formation != null)
                 {
-                    if (Parent.Formation.LeadShip != Parent) {
+                    if (Parent.Formation.LeadShip != Parent)
+                    {
                         DisruptOther(Parent.Formation.LeadShip);
                     }
-                    foreach (var f in Parent.Formation.Followers) {
-                        if(f != Parent)
+
+                    foreach (var f in Parent.Formation.Followers)
+                    {
+                        if (f != Parent)
+                        {
                             DisruptOther(f);
+                        }
                     }
                 }
+
                 TradeLaneDisruption();
                 // tradelaneComponent.Parent.Formation.Remove(tradelaneComponent.Parent); TODO: Once formation triggers work or wandering npcs are added this can be tested.
                 return;
@@ -112,14 +123,16 @@ namespace LibreLancer.Server.Components
             {
                 currenttradelane = tradelaneComponent;
                 if (!LaneEntered())
+                {
                     ExitTradelane();
+                }
 
                 return;
             }
 
             MoveShip(CalculateCurrentTradelane(), position, direction);
 
-            totalTime += (float)time;
+            totalTime += (float) time;
         }
 
         private void MoveShip(Vector3 sourcePoint, Vector3 targetPoint, Vector3 direction)
@@ -135,16 +148,20 @@ namespace LibreLancer.Server.Components
         private Vector3 CalculateCurrentTradelane()
         {
             var offset = Vector3.Zero;
+
             if (Parent.Formation is not null)
             {
                 offset = Parent.Formation.GetShipOffset(Parent);
             }
+
             return (currenttradelane.GetHardpoint(lane).TransformNoRotate * currenttradelane.WorldTransform)
                 .Transform(offset);
         }
+
         private (Vector3, Vector3) CalculateNextTradelane(GameObject tradelaneComponent)
         {
             var offset = Vector3.Zero;
+
             if (Parent.Formation is not null)
             {
                 offset = Parent.Formation.GetShipOffset(Parent);
@@ -152,7 +169,9 @@ namespace LibreLancer.Server.Components
 
             CEngineComponent eng = Parent.GetComponent<CEngineComponent>();
             if (eng is not null)
+            {
                 eng.Speed = 0.9f;
+            }
 
             var targetPosition =
                 (tradelaneComponent.GetHardpoint(lane).TransformNoRotate * tradelaneComponent.WorldTransform)
@@ -170,24 +189,35 @@ namespace LibreLancer.Server.Components
         private void TradeLaneDisruption()
         {
             ExitTradelane();
-            if (Parent.TryGetComponent<SPlayerComponent>(out var pc))
+            if (Parent!.TryGetComponent<SPlayerComponent>(out var pc))
+            {
                 pc.Player.TradelaneDisrupted();
+            }
         }
 
         private void ExitTradelane()
         {
-            var ctrl = Parent.GetComponent<ShipPhysicsComponent>();
-            if (ctrl != null)
+            if (Parent!.TryGetComponent<ShipPhysicsComponent>(out var ctrl))
             {
                 ctrl.EnginePower = 0.4f;
                 ctrl.Active = true;
             }
+
             if (Parent.TryGetComponent<SPlayerComponent>(out var player))
+            {
                 player.Player.EndTradelane();
-            if(Parent.TryGetComponent<AutopilotComponent>(out var ap))
+            }
+
+            if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
+            {
                 ap.Cancel();
-            if (TryGetMissionRuntime(out var msn, out var isPlayer) && msn is not null)
+            }
+
+            if (TryGetMissionRuntime(out var msn, out var isPlayer))
+            {
                 msn.TradelaneExited(isPlayer ? "Player" : Parent.Nickname, currenttradelane.Nickname);
+            }
+
             Parent.RemoveComponent(this);
         }
     }

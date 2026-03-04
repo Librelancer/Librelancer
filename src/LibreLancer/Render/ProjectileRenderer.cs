@@ -38,7 +38,11 @@ namespace LibreLancer.Render
                     toRender[renderCount++] = Projectiles.Projectiles[i];
                 }
             }
-            if (renderCount > 0) sys.AddObject(this);
+            if (renderCount > 0)
+            {
+                sys.AddObject(this);
+            }
+
             return true;
         }
         public override bool OutOfView(ICamera camera)
@@ -59,13 +63,17 @@ namespace LibreLancer.Render
             {
                 var p = toRender[i];
                 var currDist = (p.Position - p.Start).Length();
-                if(p.Data.Munition.ConstEffect_Spear != null)
+                if (p.Data.Munition.ConstEffect_Spear != null)
+                {
                     beams.AddBeamSpear(p.Position, p.Normal.Normalized(), p.Data.Munition.ConstEffect_Spear, currDist);
-                if(p.Data.Munition.ConstEffect_Bolt != null)
-                    beams.AddBeamBolt(p.Position, p.Normal.Normalized(), p.Data.Munition.ConstEffect_Bolt, currDist);
-                if (p.Effect != null) {
-                    p.Effect.Draw(Matrix4x4.CreateTranslation(p.Position), 0);
                 }
+
+                if (p.Data.Munition.ConstEffect_Bolt != null)
+                {
+                    beams.AddBeamBolt(p.Position, p.Normal.Normalized(), p.Data.Munition.ConstEffect_Bolt, currDist);
+                }
+
+                p.Effect?.Draw(Matrix4x4.CreateTranslation(p.Position), 0);
             }
         }
     }

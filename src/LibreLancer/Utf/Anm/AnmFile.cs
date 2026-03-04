@@ -27,7 +27,7 @@ namespace LibreLancer.Utf.Anm
                 }
             }
         }
-        public Dictionary<string, Script> Scripts { get; private set; }
+        public Dictionary<string, Script>? Scripts { get; private set; }
 
         public AnmFile(string path, Stream stream)
         {

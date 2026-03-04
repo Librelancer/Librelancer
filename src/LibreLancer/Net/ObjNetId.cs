@@ -23,9 +23,9 @@ public struct ObjNetId
     public override bool Equals(object? obj) => obj is ObjNetId other && Equals(other);
 
     public override int GetHashCode() => Value.GetHashCode();
-    public static bool operator ==(ObjNetId left, ObjNetId right) => left.Equals(right);
+    public static bool operator ==(ObjNetId? left, ObjNetId? right) => left.Equals(right);
 
-    public static bool operator !=(ObjNetId left, ObjNetId right) => !left.Equals(right);
+    public static bool operator !=(ObjNetId? left, ObjNetId? right) => !left.Equals(right);
 
     public static implicit operator ObjNetId(GameObject obj)
     {

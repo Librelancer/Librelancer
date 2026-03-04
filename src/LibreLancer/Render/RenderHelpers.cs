@@ -21,10 +21,13 @@ namespace LibreLancer.Render
 			var res = Vector3.DistanceSquared(vec, cameraPosition);
 			return res;
 		}
-		public static Lighting ApplyLights(SystemLighting src, int lightGroup, Vector3 c, float r, NebulaRenderer nebula, bool lambient = true, bool ldynamic = true, bool nofog = false)
+		public static Lighting ApplyLights(SystemLighting src, int lightGroup, Vector3 c, float r, NebulaRenderer? nebula, bool lambient = true, bool ldynamic = true, bool nofog = false)
 		{
             if (!ldynamic && !lambient)
+            {
                 return Lighting.Empty;
+            }
+
             ldynamic = true;
             var lights = Lighting.Create();
             lights.Ambient = lambient ? new Color3f(src.Ambient.R, src.Ambient.G, src.Ambient.B) : Color3f.Black;
@@ -38,10 +41,14 @@ namespace LibreLancer.Render
 				lights.FogMode = src.FogMode;
                 lights.FogColor = new Color3f(src.FogColor.R, src.FogColor.G, src.FogColor.B);
                 if (src.FogMode == FogModes.Linear)
+                {
                     lights.FogRange = src.FogRange;
+                }
                 else
+                {
                     lights.FogRange = new Vector2(src.FogDensity, 0);
-			}
+                }
+            }
             int lc = 0;
 			if (ldynamic)
 			{
@@ -50,42 +57,75 @@ namespace LibreLancer.Render
 				{
 
 					if (src.Lights[i].LightGroup != lightGroup)
-						continue;
-					if (!src.Lights[i].Active)
-						continue;
-					var l = src.Lights[i].Light;
+                    {
+                        continue;
+                    }
+
+                    if (!src.Lights[i].Active)
+                    {
+                        continue;
+                    }
+
+                    var l = src.Lights[i].Light;
 					var r2 = r + l.Range;
 					// l.Kind > 0 - test if not directional
 					if (l.Kind > 0 && Vector3.DistanceSquared(l.Position, c) > (r2 * r2))
-						continue;
-					// Advanced spotlight cull
+                    {
+                        continue;
+                    }
+
+                    // Advanced spotlight cull
 					if ((l.Kind == LightKind.Spotlight) && SpotlightTest(ref l, c, r))
-						continue;
-                    if ((lc + 1) > MAX_LIGHTS) throw new Exception("Too many lights!");
-                    if ((lc + 1) > MAX_LIGHTS) break;
+                    {
+                        continue;
+                    }
+
+                    if ((lc + 1) > MAX_LIGHTS)
+                    {
+                        throw new Exception("Too many lights!");
+                    }
+
+                    if ((lc + 1) > MAX_LIGHTS)
+                    {
+                        break;
+                    }
+
                     lc++;
                     lights.Lights.SourceEnabled[i] = true;
 				}
 			}
-			if (nebula != null)
-			{
-                nebula.GetLighting(out var fogenabled, out var ambient, out var fogrange, out var fogcolor, out var lightning);
-                if (ambient != null)
-                    lights.Ambient = new Color3f(ambient.Value.R, ambient.Value.G, ambient.Value.B);
-				if (fogenabled)
-				{
-					lights.FogMode = FogModes.Linear;
-                    lights.FogColor = new Color3f(fogcolor.R, fogcolor.G, fogcolor.B);
-					lights.FogRange = fogrange;
-				}
-				if (lightning != null && src.NumberOfTilesX == -1)
-				{
-                    if ((lc + 1) > MAX_LIGHTS) throw new Exception("Too many lights!");
-                    lights.Lights.Nebula0 = lightning.Value;
-                    lights.Lights.NebulaCount = 1;
-				}
-			}
-			return lights;
+
+            if (nebula == null)
+            {
+                return lights;
+            }
+
+            nebula.GetLighting(out var fogenabled, out var ambient, out var fogrange, out var fogcolor, out var lightning);
+            if (ambient != null)
+            {
+                lights.Ambient = new Color3f(ambient.Value.R, ambient.Value.G, ambient.Value.B);
+            }
+
+            if (fogenabled)
+            {
+                lights.FogMode = FogModes.Linear;
+                lights.FogColor = new Color3f(fogcolor.R, fogcolor.G, fogcolor.B);
+                lights.FogRange = fogrange;
+            }
+
+            if (lightning == null || src.NumberOfTilesX != -1)
+            {
+                return lights;
+            }
+
+            if ((lc + 1) > MAX_LIGHTS)
+            {
+                throw new Exception("Too many lights!");
+            }
+
+            lights.Lights.Nebula0 = lightning.Value;
+            lights.Lights.NebulaCount = 1;
+            return lights;
 		}
 
 		// Returns whether or not a spotlight can be culled

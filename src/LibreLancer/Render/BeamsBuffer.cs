@@ -151,13 +151,13 @@ namespace LibreLancer.Render
             begun = true;
         }
 
-        private static Texture2D code_beam;
+        private static Texture2D? code_beam;
         public void End()
         {
             if(!begun) throw new InvalidOperationException();
             begun = false;
             if(code_beam == null || code_beam.IsDisposed)
-                code_beam = (Texture2D) res.FindTexture("code_beam");
+                code_beam = (Texture2D?)res.FindTexture("code_beam");
             bufferSpear.EndStreaming(vertexCountSpear);
             bufferBolt.EndStreaming(vertexCountBolt);
             if (vertexCountSpear > 0)

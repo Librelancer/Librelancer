@@ -342,12 +342,12 @@ public struct UpdateVector : IEquatable<UpdateVector>
         return HashCode.Combine(precision, min, max, x, y, z);
     }
 
-    public static bool operator ==(UpdateVector left, UpdateVector right)
+    public static bool operator ==(UpdateVector? left, UpdateVector? right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(UpdateVector left, UpdateVector right)
+    public static bool operator !=(UpdateVector? left, UpdateVector? right)
     {
         return !left.Equals(right);
     }
@@ -363,7 +363,7 @@ public class ObjectUpdate
     // Info
     public CruiseThrustState CruiseThrust;
     public bool EngineKill;
-    public GunOrient[] Guns;
+    public GunOrient[]? Guns;
 
     public long HullValue;
 

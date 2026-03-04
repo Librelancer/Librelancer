@@ -27,9 +27,9 @@ namespace LibreLancer.Net
         public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
 
         public int MaxSequencedSize => 500;  // Min safe UDP packet size - 8 bytes overhead
-        public event Action<LocalServerInfo> ServerFound;
-        public event Action<bool> AuthenticationRequired;
-        public event Action<DisconnectReason> Disconnected;
+        public event Action<LocalServerInfo>? ServerFound;
+        public event Action<bool>? AuthenticationRequired;
+        public event Action<DisconnectReason>? Disconnected;
         public Guid UUID;
         private ConcurrentQueue<IPacket> packets = new();
         private HttpClient http;

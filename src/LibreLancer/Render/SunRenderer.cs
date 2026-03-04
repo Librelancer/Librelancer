@@ -17,9 +17,9 @@ namespace LibreLancer.Render
 	{
         public Sun Sun { get; private set; }
         private Vector3 pos;
-        private SystemRenderer sysr;
+        private SystemRenderer? sysr;
         private int ID;
-        private VertexBillboardColor2[] vertices;
+        private VertexBillboardColor2[]? vertices;
 
         private SunSpineMaterial spineMaterial;
         private SunRadialMaterial centerMaterial;
@@ -110,14 +110,22 @@ namespace LibreLancer.Render
         {
             if (sysr == null)
             {
-                spineMaterial = new SunSpineMaterial(sys.ResourceManager);
-                spineMaterial.Texture = Sun.SpinesSprite;
-                spineMaterial.SizeMultiplier = Vector2.One;
-                centerMaterial = new SunRadialMaterial(sys.ResourceManager);
-                centerMaterial.Texture = Sun.CenterSprite;
-                centerMaterial.Additive = true;
-                glowMaterial = new SunRadialMaterial(sys.ResourceManager);
-                glowMaterial.Texture = Sun.GlowSprite;
+                spineMaterial = new SunSpineMaterial(sys.ResourceManager)
+                {
+                    Texture = Sun.SpinesSprite!,
+                    SizeMultiplier = Vector2.One
+                };
+
+                centerMaterial = new SunRadialMaterial(sys.ResourceManager)
+                {
+                    Texture = Sun.CenterSprite!,
+                    Additive = true
+                };
+
+                glowMaterial = new SunRadialMaterial(sys.ResourceManager)
+                {
+                    Texture = Sun.GlowSprite!
+                };
             }
 
             sysr = sys;
@@ -133,20 +141,26 @@ namespace LibreLancer.Render
             return true;
         }
 
-        public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
+        public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer? nr)
         {
             if (sysr == null || vertices == null || bufferIndex == -1)
+            {
                 return;
+            }
+
             float z = RenderHelpers.GetZ(Matrix4x4.Identity, camera.Position, pos);
             if (z > 900000) // Reduce artefacts from fast Z-sort calculation. This'll probably cause issues somewhere else
+            {
                 z = 900000;
-            var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1;
+            }
+
+            var distScale = nr != null ? nr.Nebula.SunBurnthroughScale : 1;
             var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
             var idx = bufferIndex;
             // draw center
             if (Sun.CenterSprite != null)
             {
-                centerMaterial.SizeMultiplier = new Vector2(dist_scale);
+                centerMaterial.SizeMultiplier = new Vector2(distScale);
                 centerMaterial.OuterAlpha = alpha;
                 commands.AddCommand(centerMaterial, null, commands.WorldBuffer.Identity,
                     Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,
@@ -154,7 +168,7 @@ namespace LibreLancer.Render
                 idx += 6;
             }
             // draw glow
-            glowMaterial.SizeMultiplier = new Vector2(dist_scale);
+            glowMaterial.SizeMultiplier = new Vector2(distScale);
             glowMaterial.OuterAlpha = alpha;
             commands.AddCommand(glowMaterial, null, commands.WorldBuffer.Identity,
                 Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,
@@ -162,9 +176,7 @@ namespace LibreLancer.Render
             // next
             idx += 6;
             // draw spines
-            if (Sun.SpinesSprite != null
-                && Sun.Spines.Count > 0
-                && nr == null)
+            if (Sun is { SpinesSprite: not null, Spines.Count: > 0 } && nr == null)
             {
                 commands.AddCommand(spineMaterial, null, commands.WorldBuffer.Identity,
                     Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,

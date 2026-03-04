@@ -45,7 +45,7 @@ namespace LibreLancer.Net.Protocol
             message.Put(Hardpoint);
         }
     }
-    
+
     public struct IncludedGood
     {
         public uint EquipCRC;
@@ -66,12 +66,12 @@ namespace LibreLancer.Net.Protocol
             message.PutHpid(Hardpoint);
             message.PutVariableUInt32((uint)Amount);
         }
-        
+
     }
-    
+
     public class ShipPackageInfo
     {
-        public IncludedGood[] Included;
+        public IncludedGood[]? Included;
         public static ShipPackageInfo Read(PacketReader message)
         {
             var p = new ShipPackageInfo();
@@ -85,7 +85,7 @@ namespace LibreLancer.Net.Protocol
 
         public void Put(PacketWriter message)
         {
-            if (Included != null) 
+            if (Included != null)
             {
                 message.PutVariableUInt32((uint)(Included.Length + 1));
                 foreach(var inc in Included) inc.Put(message);

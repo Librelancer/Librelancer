@@ -331,7 +331,7 @@ namespace LibreLancer.World
     public struct Projectile
     {
         public ProjectileData Data;
-        public ParticleEffectInstance Effect;
+        public ParticleEffectInstance? Effect;
         public GameObject Owner;
         public bool Alive;
         public float Time;

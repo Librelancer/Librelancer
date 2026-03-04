@@ -303,7 +303,7 @@ public struct PacketReader
         return true;
     }
 
-    public string GetString()
+    public string? GetString()
     {
         var len = GetVariableUInt32();
         if (len == 0) return null;

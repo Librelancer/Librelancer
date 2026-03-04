@@ -13,26 +13,34 @@ namespace LibreLancer.Render
 		public float SParam = 0f;
 		public bool Active = true;
         private SystemRenderer sys;
-        private ParticleEffectInstance fx;
+        private ParticleEffectInstance? fx;
         public bool Finished = false;
         public int Index; // needed to fix fuses spawning multiple fx on top of each-other
-        public Hardpoint Attachment;
+        public Hardpoint? Attachment;
 
-		public ParticleEffectRenderer(ParticleEffect effect)
+		public ParticleEffectRenderer(ParticleEffect? effect)
 		{
-            if (effect == null) return;
-			fx = new ParticleEffectInstance(effect);
+            if (effect == null)
+            {
+                return;
+            }
+
+            fx = new ParticleEffectInstance(effect);
 		}
 
         public void Restart()
         {
-            fx.Reset();
+            fx?.Reset();
         }
 
         private Vector3 cameraPos;
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
-            if (fx == null) return false;
+            if (fx == null)
+            {
+                return false;
+            }
+
             this.sys = sys;
             cameraPos = camera.Position;
             dist = Vector3.DistanceSquared(pos, camera.Position);
@@ -55,33 +63,48 @@ namespace LibreLancer.Render
         private const float CULL = CULL_DISTANCE * CULL_DISTANCE;
 		public override void Update(double time, Vector3 position, Matrix4x4 transform)
 		{
-            if (fx == null) return;
+            if (fx == null)
+            {
+                return;
+            }
+
             if (Attachment != null) {
                 transform = Attachment.Transform.Matrix() * transform;
                 position = Vector3.Transform(Vector3.Zero, transform);
             }
 			pos = position;
             dist = Vector3.DistanceSquared(position, cameraPos);
-			if (Active && dist < CULL)
-			{
-				tr = transform;
-				fx.Update(time, transform, SParam);
-                fx.DrawIndex = Index;
-                if (fx.IsFinished()) Finished = true;
+
+            if (!Active || !(dist < CULL))
+            {
+                return;
+            }
+
+            tr = transform;
+            fx.Update(time, transform, SParam);
+            fx.DrawIndex = Index;
+            if (fx.IsFinished())
+            {
+                Finished = true;
             }
         }
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
-            if (fx == null) return;
+            if (fx == null)
+            {
+                return;
+            }
+
             if(!fx.Culled)
-			    fx.Draw(tr,SParam);
-		}
+            {
+                fx.Draw(tr,SParam);
+            }
+        }
 
         // nice name in debugger window
         public override string ToString()
         {
-            if (fx == null) return "Null ParticleFx";
-            return $"[{this.GetType().Name}] {fx.Effect.Nickname}";
+            return fx == null ? "Null ParticleFx" : $"[{this.GetType().Name}] {fx.Effect.Nickname}";
         }
     }
 }

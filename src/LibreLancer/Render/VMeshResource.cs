@@ -36,12 +36,12 @@ public struct VMeshOptimizeInfo
         return obj is VMeshOptimizeInfo other && Equals(other);
     }
 
-    public static bool operator ==(VMeshOptimizeInfo left, VMeshOptimizeInfo right)
+    public static bool operator ==(VMeshOptimizeInfo? left, VMeshOptimizeInfo? right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(VMeshOptimizeInfo left, VMeshOptimizeInfo right)
+    public static bool operator !=(VMeshOptimizeInfo? left, VMeshOptimizeInfo? right)
     {
         return !left.Equals(right);
     }

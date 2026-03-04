@@ -8,7 +8,7 @@ namespace LibreLancer.Server.Components;
 // Base component for determining reputations between objects server-side
 public class SRepComponent : GameComponent
 {
-    public Faction Faction;
+    public Faction? Faction;
 
     public Dictionary<GameObject, RepAttitude> forcedReps = new();
 

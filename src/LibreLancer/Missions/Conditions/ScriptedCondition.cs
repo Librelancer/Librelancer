@@ -275,7 +275,7 @@ public class Cnd_TLEntered :
     SingleEventListenerCondition<TLEnteredEvent>
 {
     public string StartRing = string.Empty;
-    public string NextRing = string.Empty;
+    public string? NextRing = string.Empty;
     public string Source = string.Empty;
 
     public Cnd_TLEntered()
