@@ -54,12 +54,20 @@ namespace LibreLancer.Interface
         public LuaContext(UiContext context)
         {
             uiContext = context;
-            script = new Script(CoreModules.Preset_SoftSandboxWattle | CoreModules.LoadMethods);
-            script.Options.Syntax = ScriptSyntax.Wattle;
-            script.Options.DebugPrint = s => FLLog.Info("WattleScript", s);
-            script.Globals["HorizontalAlignment"] = UserData.CreateStatic<HorizontalAlignment>();
-            script.Globals["VerticalAlignment"] = UserData.CreateStatic<VerticalAlignment>();
-            script.Globals["AnchorKind"] = UserData.CreateStatic<AnchorKind>();
+            script = new Script(CoreModules.Preset_SoftSandboxWattle | CoreModules.LoadMethods)
+            {
+                Options =
+                {
+                    Syntax = ScriptSyntax.Wattle,
+                    DebugPrint = s => FLLog.Info("WattleScript", s)
+                },
+                Globals =
+                {
+                    ["HorizontalAlignment"] = UserData.CreateStatic<HorizontalAlignment>(),
+                    ["VerticalAlignment"] = UserData.CreateStatic<VerticalAlignment>(),
+                    ["AnchorKind"] = UserData.CreateStatic<AnchorKind>()
+                }
+            };
             var debugTable = DynValue.NewTable(script);
             debugTable.Table["traceback"] = DebugModule.traceback;
             script.Globals["debug"] = debugTable;
@@ -190,12 +198,12 @@ namespace LibreLancer.Interface
             public string GetNavbarIconPath(string ico) => c.uiContext.Data.GetNavbarIconPath(ico);
             public Vector3 Vector3(float x, float y, float z) => new(x, y, z);
 
-            public string StringFromID(int id) => c.uiContext.Data.Infocards.GetStringResource(id);
+            public string StringFromID(int id) => c.uiContext.Data.Infocards!.GetStringResource(id);
             public Infocard GetInfocard(int id) =>
-                RDLParse.Parse(c.uiContext.Data.Infocards.GetXmlResource(id), c.uiContext.Data.Fonts);
+                RDLParse.Parse(c.uiContext.Data.Infocards!.GetXmlResource(id), c.uiContext.Data.Fonts);
             public string NumberToStringCS(double num, string fmt) => num.ToString(fmt);
         }
-        public void CallEvent(string ev, params object[] p)
+        public void CallEvent(string ev, params object?[] p)
         {
             try
             {

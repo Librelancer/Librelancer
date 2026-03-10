@@ -1,6 +1,7 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
+
 using System;
 using System.Numerics;
 using LibreLancer.Data.GameData;
@@ -15,53 +16,70 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class CharacterView : Widget3D
     {
-        private DfmSkeletonManager Skeleton;
-        private Accessory accessory;
-        private RigidModel accessoryModel;
+        private DfmSkeletonManager? Skeleton;
+        private Accessory? accessory;
+        private RigidModel? accessoryModel;
         private bool male = true;
-        public void SetCharacter(CommAppearance comm)
+        public bool HeadOnly { get; set; } = true;
+        private static Lighting commLighting;
+
+        public void SetCharacter(CommAppearance? comm)
         {
             if (comm == null)
-                Skeleton = null;
-            else
             {
-                male = comm.Male;
-                Skeleton = new DfmSkeletonManager(comm.Body, comm.Head);
-                foreach (var sc in comm.Scripts)
-                    Skeleton.StartScript(sc, 0, 1, 0, true);
-                accessory = comm.Accessory;
-                accessoryModel = comm.AccessoryModel;
+                Skeleton = null;
+                return;
             }
+
+            male = comm.Male;
+            Skeleton = new DfmSkeletonManager(comm.Body, comm.Head);
+
+            foreach (var sc in comm.Scripts)
+            {
+                Skeleton.StartScript(sc, 0, 1, 0, true);
+            }
+
+            accessory = comm.Accessory;
+            accessoryModel = comm.AccessoryModel;
         }
 
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
-            if (!Visible) return;
-            if (Width < 2 || Height < 2) return;
+            if (!Visible)
+            {
+                return;
+            }
+
+            if (Width < 2 || Height < 2)
+            {
+                return;
+            }
+
             var rect = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, rect);
-            if (Skeleton != null) {
+
+            if (Skeleton != null)
+            {
                 Draw3DViewport(context, rect);
             }
+
             Border?.Draw(context, rect);
         }
-
-        public bool HeadOnly { get; set; } = true;
 
         private ICamera View(UiContext context, RectangleF rect)
         {
             if (!HeadOnly)
+            {
                 return GetCamera(3f, context, rect);
+            }
+
             return new HeadCamera();
         }
 
-        private static Lighting commLighting;
-        private static SystemLighting commSource;
-
         static CharacterView()
         {
-            commSource = new SystemLighting();
-            commSource.Lights.Add(new DynamicLight()
+            var commSource1 = new SystemLighting();
+            commSource1.Lights.Add(new DynamicLight()
             {
                 Active = true,
                 Light = new RenderLight()
@@ -74,10 +92,14 @@ namespace LibreLancer.Interface
                     Kind = LightKind.Point
                 }
             });
-            commLighting = new Lighting();
-            commLighting.Enabled = true;
-            commLighting.NumberOfTilesX = -1;
-            commLighting.Lights.SourceLighting = commSource;
+
+            commLighting = new Lighting
+            {
+                Enabled = true,
+                NumberOfTilesX = -1
+            };
+
+            commLighting.Lights.SourceLighting = commSource1;
             commLighting.Lights.SourceEnabled[0] = true;
             commLighting.Ambient = new Color3f(0.079f, 0.079f, 0.079f);
         }
@@ -92,6 +114,7 @@ namespace LibreLancer.Interface
                 0, 0, 1.029f, 1,
                 0, 0, -1.44f, 0
             );
+
             public Matrix4x4 View => Matrix4x4.Identity;
             public Vector3 Position => Vector3.Zero;
             public bool FrustumCheck(BoundingSphere sphere) => true;
@@ -115,15 +138,18 @@ namespace LibreLancer.Interface
 
         protected override void Draw3DContent(UiContext context, RectangleF rect)
         {
-            Skeleton.UpdateScripts(context.DeltaTime);
+            Skeleton!.UpdateScripts(context.DeltaTime);
             context.CommandBuffer.StartFrame(context.RenderContext);
+
             var bodyTransform = !HeadOnly ? Matrix4x4.Identity :
                 male ? TransformMale : TransformFemale;
+
             Skeleton.GetTransforms(bodyTransform,
                 out var headTransform,
                 out var leftTransform,
                 out var rightTransform
             );
+
             var cam = View(context, rect);
             context.RenderContext.SetCamera(cam);
             context.CommandBuffer.Camera = cam;
@@ -137,30 +163,32 @@ namespace LibreLancer.Interface
 
             if (Skeleton.Head != null)
             {
-                Skeleton.Head.SetSkinning(Skeleton.HeadSkinning);
+                Skeleton.Head.SetSkinning(Skeleton.HeadSkinning!);
                 Skeleton.Head.DrawBuffer(context.CommandBuffer, headTransform, ref lighting);
             }
 
             if (Skeleton.LeftHand != null)
             {
-                Skeleton.LeftHand.SetSkinning(Skeleton.LeftHandSkinning);
+                Skeleton.LeftHand.SetSkinning(Skeleton.LeftHandSkinning!);
                 Skeleton.LeftHand.DrawBuffer(context.CommandBuffer, leftTransform, ref lighting);
             }
 
             if (Skeleton.RightHand != null)
             {
-                Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning);
+                Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning!);
                 Skeleton.RightHand.DrawBuffer(context.CommandBuffer, rightTransform, ref lighting);
             }
 
             if (accessoryModel != null && Skeleton.GetAccessoryTransform(
                     accessoryModel,
-                    accessory.Hardpoint,
-                    accessory.BodyHardpoint,
+                    accessory!.Hardpoint!,
+                    accessory.BodyHardpoint!,
                     bodyTransform,
-                        out var accessoryTransform)) {
+                    out var accessoryTransform))
+            {
                 accessoryModel.Update(context.GlobalTime);
-                accessoryModel.DrawBuffer(0, context.CommandBuffer, context.Data.ResourceManager, accessoryTransform, ref lighting);
+                accessoryModel.DrawBuffer(0, context.CommandBuffer, context.Data.ResourceManager, accessoryTransform,
+                    ref lighting);
             }
 
             context.CommandBuffer.DrawOpaque(context.RenderContext);

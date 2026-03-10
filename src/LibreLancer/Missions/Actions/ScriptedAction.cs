@@ -161,6 +161,7 @@ namespace LibreLancer.Missions.Actions
         public Act_SetNNObj(MissionAction act) : base(act)
         {
             Objective = act.Entry[0].ToString();
+
             if (act.Entry.Count > 1 &&
                 act.Entry[1].ToString().Equals("OBJECTIVE_HISTORY", StringComparison.OrdinalIgnoreCase))
             {
@@ -208,7 +209,7 @@ namespace LibreLancer.Missions.Actions
                             v.ExplanationIds,
                             v.System,
                             v.SolarNickname
-                            ), History);
+                        ), History);
                     break;
             }
 
@@ -246,6 +247,7 @@ namespace LibreLancer.Missions.Actions
         public Act_DeactTrig()
         {
         }
+
         public Act_DeactTrig(MissionAction act) : base(act)
         {
             GetString(nameof(Trigger), 0, out Trigger, act.Entry);
@@ -299,6 +301,7 @@ namespace LibreLancer.Missions.Actions
         public Act_RemoveRTC()
         {
         }
+
         public Act_RemoveRTC(MissionAction act) : base(act)
         {
             GetString(nameof(RTC), 0, out RTC, act.Entry);
@@ -350,6 +353,7 @@ namespace LibreLancer.Missions.Actions
         public Act_RemoveAmbient()
         {
         }
+
         public Act_RemoveAmbient(MissionAction act) : base(act)
         {
             GetString(nameof(Script), 0, out Script, act.Entry);
@@ -382,9 +386,9 @@ namespace LibreLancer.Missions.Actions
             GetString(nameof(Object), 0, out Object, act.Entry);
             GetBoolean(nameof(Invulnerable), 1, out Invulnerable, act.Entry);
             Unknown = Invulnerable;
-            if(act.Entry.Count > 2)
+            if (act.Entry.Count > 2)
                 Unknown = act.Entry[2].ToBoolean();
-            if(act.Entry.Count > 3)
+            if (act.Entry.Count > 3)
                 Threshold = act.Entry[3].ToSingle();
         }
 
@@ -402,7 +406,8 @@ namespace LibreLancer.Missions.Actions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var tgt = runtime.Player.Space.World.GameWorld.GetObject(Object);
+                var tgt = runtime.Player.Space!.World.GameWorld.GetObject(Object);
+
                 if (tgt != null && tgt.TryGetComponent<SHealthComponent>(out var health))
                 {
                     health.Invulnerable = Invulnerable;
@@ -436,41 +441,46 @@ namespace LibreLancer.Missions.Actions
             if (Ship.Equals("none", StringComparison.OrdinalIgnoreCase))
             {
                 var p = runtime.Player;
-                using (var c = p.Character.BeginTransaction())
+
+                using (var c = p.Character!.BeginTransaction())
                 {
                     c.UpdateShip(null);
                     c.ClearAllCargo();
                     p.Character.Items = [];
                 }
+
                 runtime.Player.UpdateCurrentInventory();
             }
             else
             {
                 var p = runtime.Player;
+
                 if (p.Game.GameData.Items.TryGetLoadout(Loadout, out var loadout))
                 {
-                    using (var c = p.Character.BeginTransaction())
+                    using var c = p.Character!.BeginTransaction();
+
+                    c.UpdateShip(p.Game.GameData.Items.Ships.Get(Ship)!);
+                    p.Character.Items = [];
+                    c.ClearAllCargo();
+
+                    foreach (var equip in loadout.Items)
                     {
-                        c.UpdateShip(p.Game.GameData.Items.Ships.Get(Ship));
-                        p.Character.Items = [];
-                        c.ClearAllCargo();
-                        foreach (var equip in loadout.Items)
+                        p.Character.Items.Add(new NetCargo()
                         {
-                            p.Character.Items.Add(new NetCargo()
-                            {
-                                Equipment = equip.Equipment,
-                                Hardpoint = string.IsNullOrEmpty(equip.Hardpoint) ? "internal" : equip.Hardpoint,
-                                Health = 1f,
-                                Count = 1
-                            });
-                        }
+                            Equipment = equip.Equipment,
+                            Hardpoint = string.IsNullOrEmpty(equip.Hardpoint) ? "internal" : equip.Hardpoint,
+                            Health = 1f,
+                            Count = 1
+                        });
                     }
 
                 }
+
                 runtime.Player.UpdateCurrentInventory();
             }
         }
     }
+
     public class Act_PlaySoundEffect : ScriptedAction
     {
         public string Effect;
@@ -515,18 +525,20 @@ namespace LibreLancer.Missions.Actions
         public Act_PlayMusic(MissionAction act) : base(act)
         {
             if (act.Entry[0].ToString()
-                .Equals("no_params", StringComparison.OrdinalIgnoreCase)) {
+                .Equals("no_params", StringComparison.OrdinalIgnoreCase))
+            {
                 Reset = true;
                 return;
             }
+
             GetString(nameof(Space), 0, out Space, act.Entry);
             GetString(nameof(Danger), 1, out Danger, act.Entry);
             GetString(nameof(Battle), 2, out Battle, act.Entry);
-            if(act.Entry.Count > 3)
+            if (act.Entry.Count > 3)
                 Motif = act.Entry[3].ToString();
             if (act.Entry.Count > 4)
                 Fade = act.Entry[4].ToSingle();
-            if(act.Entry.Count > 5)
+            if (act.Entry.Count > 5)
                 Unknown = act.Entry[5].ToBoolean();
         }
 
@@ -535,6 +547,7 @@ namespace LibreLancer.Missions.Actions
             var space = Space == "" ? "none" : Space;
             var danger = Danger == "" ? "none" : Danger;
             var battle = Battle == "" ? "none" : Battle;
+
             if (Reset)
             {
                 section.Entry("Act_PlayMusic", "no_params");
@@ -542,23 +555,27 @@ namespace LibreLancer.Missions.Actions
             else
             {
                 List<ValueBase> values = [space, danger, battle];
+
                 if (!string.IsNullOrWhiteSpace(Motif))
                 {
                     values.Add(Motif);
+
                     if (Fade != 0)
                     {
                         values.Add(Fade);
                     }
+
                     if (Unknown)
                         values.Add(true);
                 }
+
                 section.Entry("Act_PlayMusic", values.ToArray());
             }
         }
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            if(!Reset)
+            if (!Reset)
                 runtime.Player.RpcClient.PlayMusic(Motif == "" ? Battle : Motif, Fade);
         }
     }
@@ -611,6 +628,7 @@ namespace LibreLancer.Missions.Actions
             {
                 var gameObj = runtime.Player.Space.World.GameWorld.GetObject(Tradelane);
                 var firstChild = gameObj.GetFirstChildComponent<SShieldComponent>();
+
                 if (firstChild != null)
                 {
                     firstChild.Damage(float.MaxValue);
@@ -669,16 +687,19 @@ namespace LibreLancer.Missions.Actions
             {
                 var fuse = runtime.Player.Space.World.Server.GameData.Items.Fuses.Get(Fuse);
                 var gameObj = runtime.Player.Space.World.GameWorld.GetObject(Target);
+
                 if (gameObj == null)
                 {
                     FLLog.Error("Mission", $"Act_LightFuse can't find target {Target}");
                     return;
                 }
+
                 if (!gameObj.TryGetComponent<SFuseRunnerComponent>(out var fr))
                 {
                     fr = new SFuseRunnerComponent(gameObj);
                     gameObj.AddComponent(fr);
                 }
+
                 fr.Run(fuse);
             });
         }
@@ -693,6 +714,7 @@ namespace LibreLancer.Missions.Actions
         public Act_PopupDialog()
         {
         }
+
         public Act_PopupDialog(MissionAction act) : base(act)
         {
             GetInt(nameof(Title), 0, out Title, act.Entry);
@@ -746,6 +768,7 @@ namespace LibreLancer.Missions.Actions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             MissionDirective[] ol;
+
             if ("no_ol".Equals(List, StringComparison.OrdinalIgnoreCase))
             {
                 ol = null;
@@ -757,6 +780,7 @@ namespace LibreLancer.Missions.Actions
                     FLLog.Error("Mission", $"Could not find objlist {List}");
                     return;
                 }
+
                 ol = script.ObjLists[List].Directives.ToArray();
             }
 
@@ -765,7 +789,7 @@ namespace LibreLancer.Missions.Actions
                 foreach (var s in formation.Ships)
                 {
                     runtime.Player.Space.World.NPCs.NpcDoAction(s.Nickname,
-                            (npc) => { GiveObjList(npc, ol); });
+                        (npc) => { GiveObjList(npc, ol); });
                 }
             }
             else
@@ -773,6 +797,7 @@ namespace LibreLancer.Missions.Actions
                 runtime.Player.Space.World.EnqueueAction(() =>
                 {
                     var tgt = runtime.Player.Space.World.GameWorld.GetObject(Target);
+
                     if (tgt == null)
                     {
                         FLLog.Error("Server", $"Act_GiveObjList can't find '{Target}'");
@@ -805,7 +830,7 @@ namespace LibreLancer.Missions.Actions
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
-            if(Ids == 0)
+            if (Ids == 0)
                 section.Entry("Act_ChangeState", Succeed ? "SUCCEED" : "FAILED");
             else
                 section.Entry("Act_ChangeState", Succeed ? "SUCCEED" : "FAIL", Ids);
@@ -830,7 +855,9 @@ namespace LibreLancer.Missions.Actions
         {
         }
 
-        public Act_RevertCam(MissionAction act) : base(act) { }
+        public Act_RevertCam(MissionAction act) : base(act)
+        {
+        }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
@@ -851,6 +878,7 @@ namespace LibreLancer.Missions.Actions
         public Act_CallThorn()
         {
         }
+
         public Act_CallThorn(MissionAction act) : base(act)
         {
             GetString(nameof(Thorn), 0, out Thorn, act.Entry);
@@ -862,6 +890,7 @@ namespace LibreLancer.Missions.Actions
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
             List<ValueBase> values = [Thorn];
+
             if (!string.IsNullOrEmpty(MainObject))
             {
                 values.Add(MainObject);
@@ -876,15 +905,16 @@ namespace LibreLancer.Missions.Actions
             runtime.Player.MissionWorldAction(() =>
             {
                 ObjNetId mainObject = default;
+
                 if (MainObject != null)
                 {
-                    var gameObj = runtime.Player.Space.World.GameWorld.GetObject(MainObject);
+                    var gameObj = runtime.Player.Space!.World.GameWorld.GetObject(MainObject)!;
                     mainObject = gameObj;
                 }
+
                 FLLog.Info("Server", $"Calling Thorn {Thorn} with mainObject `{mainObject}`");
                 runtime.Player.RpcClient.CallThorn(Thorn, mainObject);
             });
         }
     }
-
 }

@@ -82,7 +82,7 @@ namespace LibreLancer.Render
 			{
 				unchecked
 				{
-					int hash = 17;
+					var hash = 17;
 					hash += hash * 23 + Texture.GetHashCode();
 					hash += hash * 23 + BlendMode.GetHashCode();
 					return hash;

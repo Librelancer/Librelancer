@@ -16,17 +16,16 @@ public class CSoundEffectComponent : GameComponent
 
         if (snd != null)
         {
-            sound = new AttachedSound(snd)
-            {
-                Sound = soundName
-            };
+            sound = new AttachedSound(snd, soundName);
         }
     }
 
     public override void Update(double time)
     {
         if (sound == null)
+        {
             return;
+        }
 
         var tr = parent.WorldTransform;
         var pos = tr.Position;
@@ -43,5 +42,5 @@ public class CSoundEffectComponent : GameComponent
         sound.Update();
     }
 
-    public override void Unregister(PhysicsWorld physics) => sound?.Stop();
+    public override void Unregister(PhysicsWorld? physics) => sound?.Stop();
 }

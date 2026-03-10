@@ -11,6 +11,9 @@ public class NetHpidWriter
     private List<string> strings = [];
     private int compressedRevision = -1;
     private int revision = 0;
+    private byte[] compressed = [];
+    public event Action<string>? OnAddString;
+    private object sync = new();
 
     public int Revision
     {
@@ -22,7 +25,6 @@ public class NetHpidWriter
         }
     }
 
-    private byte[] compressed;
 
     public byte[] GetData()
     {
@@ -40,35 +42,37 @@ public class NetHpidWriter
                 brotli.Write(bytes);
                 brotli.Flush();
             }
+
             compressed = mem.ToArray();
             compressedRevision = revision;
             return compressed;
         }
     }
 
-    private object sync = new();
-        
     public NetHpidWriter()
     {
         strings = new List<string>(NetPacking.DefaultHpidData);
         indices = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
-        for(int i = 0; i < NetPacking.DefaultHpidData.Length; i++)
+        for (int i = 0; i < NetPacking.DefaultHpidData.Length; i++)
+        {
             indices.Add(NetPacking.DefaultHpidData[i], (uint)i);
+        }
     }
-
-    public event Action<string> OnAddString;
 
     public uint GetIndex(string str)
     {
         lock (sync)
         {
             if (indices.TryGetValue(str, out uint idx))
+            {
                 return idx;
+            }
+
             revision++;
             strings.Add(str);
             idx = (uint) indices.Count;
             indices.Add(str, idx);
-            OnAddString(str);
+            OnAddString?.Invoke(str);
             return idx;
         }
     }

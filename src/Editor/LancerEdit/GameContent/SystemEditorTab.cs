@@ -1002,14 +1002,14 @@ public class SystemEditorTab : GameContentTab
         if (curveName != null && light.Light.Kind != LightKind.PointAttenCurve)
         {
             UndoBuffer.Commit(EditorAggregateAction.Create([
-                new SysLightSetKind(light, light.Light.Kind, LightKind.PointAttenCurve, LightsList),
+                new SysLightSetKind(light, light.Light.Kind, LightKind.PointAttenCurve),
                 new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, curveName, attenuation, LightsList)
             ]));
         }
         else if (curveName == null && light.Light.Kind == LightKind.PointAttenCurve)
         {
             UndoBuffer.Commit(EditorAggregateAction.Create([
-                new SysLightSetKind(light, light.Light.Kind, LightKind.Point, LightsList),
+                new SysLightSetKind(light, light.Light.Kind, LightKind.Point),
                 new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, curveName, attenuation, LightsList)
             ]));
         }
@@ -1024,13 +1024,13 @@ public class SystemEditorTab : GameContentTab
         if (light.Light.Kind == LightKind.PointAttenCurve) {
             UndoBuffer.Commit(EditorAggregateAction.Create(new EditorAction[]
             {
-                new SysLightSetKind(light, light.Light.Kind, newKind, LightsList),
+                new SysLightSetKind(light, light.Light.Kind, newKind),
                 new SysLightSetAttenuation(light, light.AttenuationCurveName, light.Light.Attenuation, null, new Vector3(1,0,0), LightsList)
             }));
         }
         else
         {
-            UndoBuffer.Commit(new SysLightSetKind(light, light.Light.Kind, newKind, LightsList));
+            UndoBuffer.Commit(new SysLightSetKind(light, light.Light.Kind, newKind));
         }
     }
 

@@ -23,10 +23,10 @@ namespace LibreLancer.World.Components
 
 	public class DockInfoComponent : GameComponent
 	{
-		public DockAction Action;
-        public DockSphere[] Spheres;
+		public required DockAction Action;
+        public required DockSphere[] Spheres;
 
-        private string tlHP;
+        private string? tlHP;
 		public DockInfoComponent(GameObject parent) : base(parent)
 		{
 		}
@@ -57,24 +57,24 @@ namespace LibreLancer.World.Components
 			if (Action.Kind != DockKinds.Tradelane)
 			{
 				var hpname = Spheres[index].Hardpoint.Replace("DockMount", "DockPoint");
-				yield return Parent.GetHardpoint(hpname + "02");
-				yield return Parent.GetHardpoint(hpname + "01");
-				yield return Parent.GetHardpoint(Spheres[index].Hardpoint);
+				yield return Parent.GetHardpoint(hpname + "02")!;
+				yield return Parent.GetHardpoint(hpname + "01")!;
+				yield return Parent.GetHardpoint(Spheres[index].Hardpoint)!;
 			}
 			else if (Action.Kind == DockKinds.Tradelane)
 			{
-				var heading = position - Parent.PhysicsComponent.Body.Position;
+				var heading = position - Parent.PhysicsComponent!.Body.Position;
                 var fwd = Vector3.Transform(-Vector3.UnitZ, Parent.PhysicsComponent.Body.Orientation);
 				var dot = Vector3.Dot(heading, fwd);
 				if (dot > 0)
 				{
 					tlHP = "HpLeftLane";
-					yield return Parent.GetHardpoint("HpLeftLane");
+					yield return Parent.GetHardpoint("HpLeftLane")!;
 				}
 				else
 				{
 					tlHP = "HpRightLane";
-					yield return Parent.GetHardpoint("HpRightLane");
+					yield return Parent.GetHardpoint("HpRightLane")!;
 				}
 			}
 		}

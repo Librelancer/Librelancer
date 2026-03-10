@@ -419,7 +419,7 @@ public class Act_NagDistLeaving : ScriptedAction
 
             if (NagType is not null)
             {
-                list.Add(NagType.ToString());
+                list.Add(NagType.ToString()!);
             }
         }
 
@@ -566,7 +566,7 @@ public class Act_NagDistTowards : ScriptedAction
 
             if (NagType is not null)
             {
-                list.Add(NagType.ToString());
+                list.Add(NagType.ToString()!);
             }
         }
 

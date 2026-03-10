@@ -17,7 +17,11 @@ namespace LibreLancer.Render.Materials
 		public string DtSampler;
 		public SamplerFlags DtFlags;
         public Color4 Dc = Color4.White;
-        public NebulaMaterial(ResourceManager library) : base(library) { }
+
+        public NebulaMaterial(ResourceManager library, string dtSampler) : base(library)
+        {
+            DtSampler = dtSampler;
+        }
 
         private Shader GetShader(IVertexType vtype)
         {

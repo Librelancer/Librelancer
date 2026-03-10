@@ -12,10 +12,14 @@ namespace LibreLancer.Client.Components
         public CUpdateSParamComponent(GameObject parent) : base(parent)
         {
         }
-        
+
         public override void Update(double time)
         {
-            if (Parent.RenderComponent == null) return;
+            if (Parent?.RenderComponent == null)
+            {
+                return;
+            }
+
             float sparam = 0;
 
             CEngineComponent? eng = Parent.Parent?.GetComponent<CEngineComponent>();
@@ -25,7 +29,7 @@ namespace LibreLancer.Client.Components
                 sparam = eng.Speed;
             }
 
-            ((ParticleEffectRenderer)Parent.RenderComponent).SParam = sparam;
+            ((ParticleEffectRenderer) Parent.RenderComponent).SParam = sparam;
         }
     }
 }

@@ -24,8 +24,8 @@ namespace LibreLancer.Net.Protocol
 
         public static NewsArticle Read(PacketReader message) => new()
         {
-            Icon = message.GetString(),
-            Logo = message.GetString(),
+            Icon = message.GetString()!,
+            Logo = message.GetString()!,
             Headline = (int)message.GetVariableUInt32(),
             Text = (int)message.GetVariableUInt32()
         };

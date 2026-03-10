@@ -33,7 +33,7 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            runtime.Player.MissionWorldAction(() => runtime.Player.Space.ForceMove(Position));
+            runtime.Player.MissionWorldAction(() => runtime.Player.Space?.ForceMove(Position));
         }
     }
 
@@ -61,7 +61,7 @@ namespace LibreLancer.Missions.Actions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var obj = runtime.Player.Space.World.GameWorld.GetObject(Target);
+                var obj = runtime.Player.Space?.World.GameWorld.GetObject(Target);
                 if (obj == null)
                 {
                     return;
@@ -120,7 +120,7 @@ namespace LibreLancer.Missions.Actions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             runtime.Player.MissionWorldAction(() =>
-                runtime.Player.Space.ForceMove(Position, Orientation));
+                runtime.Player.Space?.ForceMove(Position, Orientation));
         }
     }
 
@@ -164,13 +164,13 @@ namespace LibreLancer.Missions.Actions
         {
             if (Ship.Equals("player", StringComparison.OrdinalIgnoreCase))
             {
-                runtime.Player.MissionWorldAction(() => runtime.Player.Space.ForceMove(Position, Orientation));
+                runtime.Player.MissionWorldAction(() => runtime.Player.Space!.ForceMove(Position, Orientation));
             }
             else if (script.Ships.ContainsKey(Ship))
             {
                 runtime.Player.MissionWorldAction(() =>
                 {
-                    var obj = runtime.Player.Space.World.GameWorld.GetObject(Ship);
+                    var obj = runtime.Player.Space!.World.GameWorld.GetObject(Ship)!;
                     var quat = Orientation ?? obj.LocalTransform.Orientation;
                     obj.SetLocalTransform(new Transform3D(Position, quat));
                 });

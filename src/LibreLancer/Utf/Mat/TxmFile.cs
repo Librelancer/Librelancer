@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using LibreLancer.Utf.Vms;
 
 namespace LibreLancer.Utf.Mat
@@ -27,15 +27,15 @@ namespace LibreLancer.Utf.Mat
 
         private void setTextures(IntermediateNode textureLibraryNode)
         {
-            foreach (Node tnode in textureLibraryNode)
+            foreach (var textureNode in textureLibraryNode.OfType<IntermediateNode>())
             {
-                var textureNode = tnode as IntermediateNode;
-                if (tnode is LeafNode)
+                if (textureNode is LeafNode)
                 {
-                    if(!tnode.Name.Equals("texture count", StringComparison.OrdinalIgnoreCase))
-                        FLLog.Warning("Txm", "Skipping invalid node " + tnode.Name);
+                    if(!textureNode.Name.Equals("texture count", StringComparison.OrdinalIgnoreCase))
+                        FLLog.Warning("Txm", "Skipping invalid node " + textureNode.Name);
                     continue;
                 }
+
                 LeafNode? child = null;
 				bool isTexture = true;
 				bool isTgaMips = false;
@@ -73,6 +73,7 @@ namespace LibreLancer.Utf.Mat
 						}
 					}
 				}
+
 				if (isTexture)
 				{
 					if (child == null) throw new Exception("Invalid texture library");
@@ -86,12 +87,11 @@ namespace LibreLancer.Utf.Mat
 					if (data == null) throw new Exception("Invalid texture library");
 
 					string key = textureNode.Name;
-					if (Textures.ContainsKey(key))
+					if (!Textures.TryAdd(key, data))
 					{
 						FLLog.Error("Txm", "Duplicate texture " + key + " in texture library");
-					} else
-						Textures.Add(key, data);
-				}
+					}
+                }
 				else {
 					Animations.Add(textureNode.Name, new TexFrameAnimation(textureNode));
 				}

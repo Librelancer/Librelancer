@@ -5,17 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 namespace LibreLancer.Utf.Ale
 {
-	public class ALEffect
-	{
-		public string Name;
-		public uint CRC;
+    public class ALEffect
+    {
+        public string Name;
+        public uint CRC;
         public List<AlchemyNodeRef> Fx = [];
         public List<(uint Source, uint Target)> Pairs = [];
-		public ALEffect ()
-		{
-		}
-	}
-}
 
+        public ALEffect(string name)
+        {
+            Name = name;
+        }
+    }
+}

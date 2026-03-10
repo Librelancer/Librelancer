@@ -1,4 +1,5 @@
-﻿using LibreLancer.Graphics;
+﻿using System.Diagnostics.CodeAnalysis;
+using LibreLancer.Graphics;
 
 namespace LibreLancer.Shaders;
 
@@ -6,28 +7,30 @@ public static class AllShaders
 {
     private static bool iscompiled = false;
 
-    public static ShaderBundle AsteroidBand;
-    public static ShaderBundle Atmosphere;
-    public static ShaderBundle Basic_PositionColor;
-    public static ShaderBundle Basic_FVF;
-    public static ShaderBundle Basic_PositionTexture;
-    public static ShaderBundle Basic_Skinned;
-    public static ShaderBundle Billboard;
-    public static ShaderBundle DetailMap2Dm1Msk2PassMaterial;
-    public static ShaderBundle DetailMapMaterial;
-    public static ShaderBundle IllumDetailMapMaterial;
-    public static ShaderBundle Masked2DetailMapMaterial;
-    public static ShaderBundle Navmap;
-    public static ShaderBundle NebulaExtPuff;
-    public static ShaderBundle NebulaInterior;
-    public static ShaderBundle NebulaMaterial;
-    public static ShaderBundle Nomad;
-    public static ShaderBundle PBR;
-    public static ShaderBundle PhysicsDebug;
-    public static ShaderBundle Sprite;
-    public static ShaderBundle SunRadial;
-    public static ShaderBundle SunSpine;
-    public static ShaderBundle ZoneVolume;
+    public static ShaderBundle AsteroidBand = null!;
+    public static ShaderBundle Atmosphere = null!;
+    public static ShaderBundle Basic_PositionColor = null!;
+    public static ShaderBundle Basic_FVF = null!;
+    public static ShaderBundle Basic_PositionTexture = null!;
+    public static ShaderBundle Basic_Skinned = null!;
+    public static ShaderBundle Billboard = null!;
+    public static ShaderBundle DetailMap2Dm1Msk2PassMaterial = null!;
+    public static ShaderBundle DetailMapMaterial = null!;
+    public static ShaderBundle IllumDetailMapMaterial = null!;
+    public static ShaderBundle Masked2DetailMapMaterial = null!;
+    public static ShaderBundle Navmap = null!;
+    public static ShaderBundle NebulaExtPuff = null!;
+    public static ShaderBundle NebulaInterior = null!;
+    public static ShaderBundle NebulaMaterial = null!;
+    public static ShaderBundle Nomad = null!;
+    public static ShaderBundle PBR = null!;
+    public static ShaderBundle PhysicsDebug = null!;
+    public static ShaderBundle Sprite = null!;
+    public static ShaderBundle SunRadial = null!;
+    public static ShaderBundle SunSpine = null!;
+    public static ShaderBundle ZoneVolume = null!;
+
+    // ReSharper disable NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
 
     public static void CompileBillboard(RenderContext context) =>
         Billboard ??= Compile(context, "Billboard");
@@ -68,6 +71,8 @@ public static class AllShaders
         SunRadial ??= Compile(context, "SunRadial");
         SunSpine ??= Compile(context, "SunSpine");
         ZoneVolume ??= Compile(context, "ZoneVolume");
+        // ReSharper restore NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
+
 
         FLLog.Debug("Shaders", "Compile complete");
     }

@@ -43,7 +43,6 @@ namespace LibreLancer.Client
         public Dictionary<uint, VisitFlags> Visits = new();
         public DynamicThn Thns = new();
         public FreelancerGame Game;
-        public string PlayerSystem;
         public ReputationCollection PlayerReputations = new();
         public int PlayerNetID;
         public string? PlayerBase;
@@ -69,6 +68,8 @@ namespace LibreLancer.Client
 
         public uint WorldTick = 0;
 
+        public string PlayerSystem = null!;
+
         public CircularBuffer<int> UpdatePacketSizes = new(200);
 
         public EmbeddedServer? EmbeddedServer => connection as EmbeddedServer;
@@ -76,6 +77,7 @@ namespace LibreLancer.Client
         private Queue<Action> gameplayActions = new();
         private Queue<Action> uiActions = new();
         private Queue<Action> audioActions = new();
+        public Action? ObjectiveUpdated;
 
         public string? AutoSavePath { get; private set; }
         private CircularBuffer<PlayerMoveState> moveState = new(128);
@@ -85,6 +87,20 @@ namespace LibreLancer.Client
         private int tickSyncCounter = 0;
         public int LastTickOffset = 0;
 
+        public SoldGood[] Goods = null!;
+        public NetSoldShip[]? Ships = null!;
+        private ObjNetId? scanId;
+        private NetLoadout? scanLoadout;
+        private UIInventoryItem[] scannedInventory = [];
+        private readonly Queue<IPacket> updatePackets = new();
+        private AllowedDocking? allowedDocking;
+
+        private static int NEW_PLAYER = 393298;
+        private static int DEPARTING_PLAYER = 393299;
+
+        private string? newPlayerStr;
+        private string? departingPlayerStr;
+
         public void Pause()
         {
             if (connection is not EmbeddedServer es)
@@ -92,7 +108,7 @@ namespace LibreLancer.Client
                 return;
             }
 
-            es.Server.LocalPlayer.Space?.World.Pause();
+            es.Server.LocalPlayer?.Space?.World?.Pause();
             paused = true;
         }
 
@@ -103,7 +119,7 @@ namespace LibreLancer.Client
                 return;
             }
 
-            es.Server.LocalPlayer.Space?.World.Resume();
+            es.Server.LocalPlayer?.Space?.World?.Resume();
             paused = false;
         }
 
@@ -134,11 +150,13 @@ namespace LibreLancer.Client
         {
             Thns.Unpack(info, Game.GameData);
             ActiveCutscenes = [];
+
             foreach (var path in Thns.Rtcs)
             {
-                var rtc = new StoryCutsceneIni(Game.GameData.Items.Ini.Freelancer.DataPath + path.Script, Game.GameData.VFS)
+                var rtc = new StoryCutsceneIni(Game.GameData.Items.Ini.Freelancer.DataPath + path.Script,
+                    Game.GameData.VFS)
                 {
-                    RefPath = path.Script
+                    RefPath = path.Script!
                 };
 
                 ActiveCutscenes.Add(rtc);
@@ -159,7 +177,8 @@ namespace LibreLancer.Client
         void IClientPlayer.UpdateStatistics(NetPlayerStatistics stats)
         {
             Statistics.TotalMissions = stats.TotalMissions;
-            Statistics.TotalKills = (stats.FightersKilled + stats.FreightersKilled + stats.TransportsKilled + stats.BattleshipsKilled);
+            Statistics.TotalKills = (stats.FightersKilled + stats.FreightersKilled + stats.TransportsKilled +
+                                     stats.BattleshipsKilled);
             Statistics.SystemsVisited = stats.SystemsVisited;
             Statistics.BasesVisited = stats.BasesVisited;
             Statistics.JumpHolesFound = stats.JumpHolesFound;
@@ -176,6 +195,7 @@ namespace LibreLancer.Client
         private void SceneChangeRequired()
         {
             gameplayActions.Clear();
+
             if (PlayerBase != null)
             {
                 Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
@@ -243,7 +263,7 @@ namespace LibreLancer.Client
 
         public void UpdateStart(SpaceGameplay gp)
         {
-            var elapsed = (uint)((Game.TotalTime - totalTimeForTick) / (1 / 60.0f));
+            var elapsed = (uint) ((Game.TotalTime - totalTimeForTick) / (1 / 60.0f));
             FLLog.Info("Player", $"{elapsed} ticks elapsed after load");
             WorldTick += elapsed;
         }
@@ -252,15 +272,18 @@ namespace LibreLancer.Client
         {
             WorldTick++;
             UpdateAudio();
+
             while (gameplayActions.TryDequeue(out var act))
+            {
                 act();
+            }
 
             if (!paused)
             {
                 var player = gp.player;
-                var phys = player.GetComponent<ShipPhysicsComponent>();
-                var steering = player.GetComponent<ShipSteeringComponent>();
-                var wp = player.GetComponent<WeaponControlComponent>();
+                var phys = player.GetComponent<ShipPhysicsComponent>()!;
+                var steering = player.GetComponent<ShipSteeringComponent>()!;
+                var wp = player.GetComponent<WeaponControlComponent>()!;
                 moveState.Enqueue(new PlayerMoveState()
                 {
                     Tick = WorldTick,
@@ -281,6 +304,7 @@ namespace LibreLancer.Client
                     Current = FromMoveState(0),
                     Acks = Acks,
                 };
+
                 if (gp.Selection.Selected != null)
                 {
                     ip.SelectedObject = gp.Selection.Selected;
@@ -306,9 +330,11 @@ namespace LibreLancer.Client
                 if (processUpdatePackets)
                 {
                     List<SPUpdatePacket> toUpdate = [];
+
                     while (updatePackets.TryDequeue(out var pkt))
                     {
                         var sp = GetUpdatePacket(pkt);
+
                         if (sp != null)
                         {
                             toUpdate.Add(sp);
@@ -342,9 +368,10 @@ namespace LibreLancer.Client
 
         private void ClockSync(SPUpdatePacket packet)
         {
-            var tickOffset = (int)((long)packet.InputSequence - (long)packet.Tick);
+            var tickOffset = (int) ((long) packet.InputSequence - (long) packet.Tick);
             LastTickOffset = tickOffset;
             jumpTimer--;
+
             if (jumpTimer < 0)
             {
                 jumpTimer = 0;
@@ -359,6 +386,7 @@ namespace LibreLancer.Client
             }
 
             ticks.AddValue(tickOffset);
+
             if (tickOffset < 0)
             {
                 ticks.ForceSetAverage(tickOffset);
@@ -410,11 +438,13 @@ namespace LibreLancer.Client
                 return sp;
             }
 
-            var mp = (PackedUpdatePacket)p;
+            var mp = (PackedUpdatePacket) p;
             var oldPlayerState = new PlayerAuthState();
+
             if (mp.OldTick != 0)
             {
                 int i;
+
                 for (i = 0; i < oldPackets.Count; i++)
                 {
                     if (oldPackets[i].Tick != mp.OldTick)
@@ -435,17 +465,22 @@ namespace LibreLancer.Client
             }
 
             UpdatePacketSizes.Enqueue(mp.DataSize);
+
+            var updates = mp.GetUpdates(oldPlayerState, GetUpdate);
             var nsp = new SPUpdatePacket
             {
                 Tick = mp.Tick,
-                InputSequence = mp.InputSequence
+                InputSequence = mp.InputSequence,
+                PlayerState = updates.AuthState,
+                Updates = updates.Updates
             };
 
-            (nsp.PlayerState, nsp.Updates) = mp.GetUpdates(oldPlayerState, GetUpdate);
+
             oldPackets.Enqueue(nsp);
             // Create new acknowledgement history
             var prevAcks = Acks;
             Acks = new UpdateAck(mp.Tick, 0);
+
             for (uint i = 1; i < 64; i++)
             {
                 uint tick = mp.Tick - i;
@@ -471,6 +506,7 @@ namespace LibreLancer.Client
         public void WorldReady()
         {
             spaceGameplay!.world.SetCrcTranslation(crcMap);
+
             while (gameplayActions.TryDequeue(out var act))
             {
                 act();
@@ -483,13 +519,11 @@ namespace LibreLancer.Client
             moveState = new CircularBuffer<PlayerMoveState>(128);
         }
 
-        private Queue<IPacket> updatePackets = new();
-
         private void Resimulate(int i, SpaceGameplay gameplay)
         {
             var physComponent = gameplay.player.GetComponent<ShipPhysicsComponent>();
             var player = gameplay.player;
-            physComponent.CurrentStrafe = moveState[i].Strafe;
+            physComponent!.CurrentStrafe = moveState[i].Strafe;
             physComponent.EnginePower = moveState[i].Throttle;
             physComponent.Steering = moveState[i].Steering;
             physComponent.ThrustEnabled = moveState[i].Thrust;
@@ -503,6 +537,7 @@ namespace LibreLancer.Client
         {
             var newPos = obj.PhysicsComponent!.Body!.Position;
             var newOrient = obj.PhysicsComponent.Body.Orientation;
+
             if ((oldPos - newPos).Length() >
                 obj.PhysicsComponent.Body.LinearVelocity.Length() * 0.33f)
             {
@@ -523,6 +558,7 @@ namespace LibreLancer.Client
                 UpdateObject(update, gp.world);
             var hp = gp.player.GetComponent<CHealthComponent>();
             var state = p.PlayerState;
+
             if (hp != null)
             {
                 hp.CurrentHealth = state.Health;
@@ -544,7 +580,7 @@ namespace LibreLancer.Client
 
                 var errorPos = state.Position - moveState[i].Position;
                 var errorQuat = MathHelper.QuatError(state.Orientation, moveState[i].Orientation);
-                var phys = gp.player.GetComponent<ShipPhysicsComponent>();
+                var phys = gp.player.GetComponent<ShipPhysicsComponent>()!;
 
                 if (p.PlayerState.CruiseAccelPct > 0 || p.PlayerState.CruiseChargePct > 0)
                 {
@@ -561,9 +597,9 @@ namespace LibreLancer.Client
                     // This is much faster than stepping the entire simulation again
                     FLLog.Info("Client",
                         $"Applying correction at tick {p.InputSequence}. Errors ({errorPos.Length()},{errorQuat})");
-                    var tr = gp.player.LocalTransform;
-                    var predictedPos = tr.Position;
-                    var predictedOrient = tr.Orientation;
+                    var transform = gp.player.LocalTransform;
+                    var predictedPos = transform.Position;
+                    var predictedOrient = transform.Orientation;
                     moveState[i].Position = state.Position;
                     moveState[i].Orientation = state.Orientation;
                     // Set states
@@ -572,6 +608,7 @@ namespace LibreLancer.Client
                     gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
                     phys.ChargePercent = state.CruiseChargePct;
                     phys.CruiseAccelPct = state.CruiseAccelPct;
+
                     // simulate inputs - only outside a tradelane. we go back in time for a tradelane a bit
                     for (i = i + 1; i < moveState.Count; i++)
                     {
@@ -606,6 +643,7 @@ namespace LibreLancer.Client
             PlayerShip = sh;
 
             Items = new List<NetCargo>(ld.Items.Count);
+
             if (sh != null)
             {
                 foreach (var cg in ld.Items)
@@ -626,15 +664,16 @@ namespace LibreLancer.Client
         void IClientPlayer.UpdateVisits(VisitBundle bundle)
         {
             Visits = new();
+
             foreach (var b in bundle.Visits)
             {
-                Visits[b.Obj.Hash] = (VisitFlags)b.Visit;
+                Visits[b.Obj.Hash] = (VisitFlags) b.Visit;
             }
         }
 
         void IClientPlayer.VisitObject(uint hash, byte flags)
         {
-            Visits[hash] = (VisitFlags)flags;
+            Visits[hash] = (VisitFlags) flags;
         }
 
         public bool IsVisited(uint hash)
@@ -666,6 +705,7 @@ namespace LibreLancer.Client
             {
                 var src = spaceGameplay!.world.GetObject(ship);
                 var dst = spaceGameplay.world.GetObject(target);
+
                 if (src != null &&
                     dst != null &&
                     src.TryGetComponent<CTractorComponent>(out var tractor))
@@ -679,8 +719,9 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                var src = spaceGameplay.world.GetObject(ship);
+                var src = spaceGameplay!.world.GetObject(ship);
                 var dst = spaceGameplay.world.GetObject(target);
+
                 if (src != null &&
                     dst != null &&
                     src.TryGetComponent<CTractorComponent>(out var tractor))
@@ -699,12 +740,13 @@ namespace LibreLancer.Client
         void IClientPlayer.UpdateLootObject(ObjNetId id, NetBasicCargo[] cargo)
         {
             var newCargo = cargo.Select(x
-                    => new BasicCargo(Game.GameData.Items.Equipment.Get(x.EquipCRC), x.Count))
+                    => new BasicCargo(Game.GameData.Items.Equipment.Get(x.EquipCRC)!, x.Count))
                 .Where(x => x.Item != null)
                 .ToList();
             RunSync(() =>
             {
-                var loot = spaceGameplay.world.GetObject(id);
+                var loot = spaceGameplay!.world.GetObject(id)!;
+
                 if (loot.TryGetComponent<LootComponent>(out var l))
                 {
                     l.Cargo = newCargo;
@@ -718,7 +760,8 @@ namespace LibreLancer.Client
             {
                 foreach (var p in projectiles)
                 {
-                    var owner = spaceGameplay.world.GetObject(p.Owner);
+                    var owner = spaceGameplay!.world.GetObject(p.Owner);
+
                     if (owner == spaceGameplay.player)
                     {
                         continue;
@@ -727,12 +770,13 @@ namespace LibreLancer.Client
                     if (owner != null && owner.TryGetComponent<WeaponControlComponent>(out var wc))
                     {
                         int tgtUnique = 0;
+
                         if (wc.NetOrderWeapons == null)
                         {
                             wc.UpdateNetWeapons();
                         }
 
-                        for (int i = 0; i < wc.NetOrderWeapons.Length; i++)
+                        for (int i = 0; i < wc.NetOrderWeapons!.Length; i++)
                         {
                             if ((p.Guns & (1UL << i)) == 0)
                             {
@@ -740,6 +784,7 @@ namespace LibreLancer.Client
                             }
 
                             var target = p.Target;
+
                             if ((p.Unique & (1UL << i)) != 0)
                             {
                                 target = p.OtherTargets[tgtUnique++];
@@ -756,7 +801,7 @@ namespace LibreLancer.Client
         {
             public int Title;
             public int Contents;
-            public string ID;
+            public required string ID;
         }
 
         public ConcurrentQueue<Popup> Popups = new();
@@ -772,11 +817,10 @@ namespace LibreLancer.Client
             FLLog.Warning("Client", "Jump tunnel unimplemented");
         }
 
-        public Action ObjectiveUpdated;
-
         void IClientPlayer.SetObjective(NetObjective objective, bool history)
         {
             CurrentObjective = objective;
+
             if (!history)
             {
                 ObjectiveUpdated?.Invoke();
@@ -785,7 +829,7 @@ namespace LibreLancer.Client
 
         void IClientPlayer.Killed()
         {
-            RunSync(() => { spaceGameplay.Killed(); });
+            RunSync(() => { spaceGameplay?.Killed(); });
         }
 
         void IClientPlayer.SpawnMissile(int id, bool playSound, uint equip, Vector3 position, Quaternion orientation)
@@ -793,26 +837,30 @@ namespace LibreLancer.Client
             RunSync(() =>
             {
                 var eq = Game.GameData.Items.Equipment.Get(equip);
-                if (eq is MissileEquip mn)
-                {
-                    var go = new GameObject(mn.ModelFile.LoadFile(Game.ResourceManager),
-                        Game.ResourceManager);
-                    go.SetLocalTransform(new Transform3D(position, orientation));
-                    go.NetID = id;
-                    go.Kind = GameObjectKind.Missile;
-                    go.PhysicsComponent.Mass = 1;
-                    if (mn.Def.ConstEffect != null)
-                    {
-                        var fx = Game.GameData.Items.Effects.Get(mn.Def.ConstEffect)?
-                            .GetEffect(Game.ResourceManager);
-                        var ren = new ParticleEffectRenderer(fx) { Attachment = go.GetHardpoint(mn.Def.HpTrailParent) };
-                        go.ExtraRenderers.Add(ren);
-                    }
 
-                    go.AddComponent(new CMissileComponent(go, mn));
-                    spaceGameplay.world.AddObject(go);
-                    go.Register(go.World.Physics);
+                if (eq is not MissileEquip mn)
+                {
+                    return;
                 }
+
+                var go = new GameObject(mn.ModelFile!.LoadFile(Game.ResourceManager)!,
+                    Game.ResourceManager);
+                go.SetLocalTransform(new Transform3D(position, orientation));
+                go.NetID = id;
+                go.Kind = GameObjectKind.Missile;
+                go.PhysicsComponent?.Mass = 1;
+
+                if (mn.Def.ConstEffect != null)
+                {
+                    var fx = Game.GameData.Items.Effects.Get(mn.Def.ConstEffect)?
+                        .GetEffect(Game.ResourceManager);
+                    var ren = new ParticleEffectRenderer(fx) { Attachment = go.GetHardpoint(mn.Def.HpTrailParent) };
+                    go.ExtraRenderers.Add(ren);
+                }
+
+                go.AddComponent(new CMissileComponent(go, mn));
+                spaceGameplay!.world.AddObject(go);
+                go.Register(go.World!.Physics);
             });
         }
 
@@ -820,13 +868,14 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                var despawn = spaceGameplay.world.GetNetObject(id);
+                var despawn = spaceGameplay!.world.GetNetObject(id);
+
                 if (despawn != null)
                 {
                     if (explode && despawn.TryGetComponent<CMissileComponent>(out var ms)
                                 && ms.Missile?.ExplodeFx != null)
                     {
-                        spaceGameplay.world.Renderer.SpawnTempFx(ms.Missile.ExplodeFx.GetEffect(Game.ResourceManager),
+                        spaceGameplay.world.Renderer!.SpawnTempFx(ms.Missile.ExplodeFx.GetEffect(Game.ResourceManager),
                             despawn.LocalTransform.Position);
                     }
 
@@ -849,6 +898,7 @@ namespace LibreLancer.Client
                 while (connection.PollPacket(out var packet))
                 {
                     HandlePacket(packet);
+
                     if (packet is IClientPlayer_BaseEnterPacket || packet is IClientPlayer_SpawnPlayerPacket)
                     {
                         started = true;
@@ -863,6 +913,7 @@ namespace LibreLancer.Client
         {
             FLLog.Info("Console", text);
             var msg = BinaryChatMessage.PlainText(text);
+
             if (text.Length > 200)
             {
                 msg.Segments[0].Size = ChatMessageSize.Small;
@@ -881,6 +932,7 @@ namespace LibreLancer.Client
             foreach (var r in reps)
             {
                 var f = Game.GameData.Items.Factions.Get(r.FactionHash);
+
                 if (f != null)
                 {
                     PlayerReputations.Reputations[f] = r.Reputation;
@@ -889,12 +941,13 @@ namespace LibreLancer.Client
         }
 
         private PlayerInventory lastInventory = new();
+
         void IClientPlayer.UpdateInventory(PlayerInventoryDiff diff)
         {
             lastInventory = diff.Apply(lastInventory);
             Credits = lastInventory.Credits;
             ShipWorth = lastInventory.ShipWorth;
-            NetWorth = (long)lastInventory.NetWorth;
+            NetWorth = (long) lastInventory.NetWorth;
             SetSelfLoadout(lastInventory.Loadout);
 
             if (OnUpdateInventory == null)
@@ -903,6 +956,7 @@ namespace LibreLancer.Client
             }
 
             uiActions.Enqueue(OnUpdateInventory);
+
             if (spaceGameplay == null && OnUpdatePlayerShip != null)
             {
                 uiActions.Enqueue(OnUpdatePlayerShip);
@@ -929,6 +983,7 @@ namespace LibreLancer.Client
         public void DeleteSlot(int slot)
         {
             var cargo = Items.FirstOrDefault(x => x.ID == slot);
+
             if (cargo != null)
             {
                 Items.Remove(cargo);
@@ -945,9 +1000,6 @@ namespace LibreLancer.Client
         public void UpdateWeaponGroups(NetWeaponGroup[] wg)
         {
         }
-
-        private ObjNetId undockFromTarget = default;
-        private uint undockFromTick;
 
         void IClientPlayer.UndockFrom(ObjNetId netId, int index)
         {
@@ -972,10 +1024,7 @@ namespace LibreLancer.Client
         void IClientPlayer.RunDirectives(MissionDirective[] directives)
         {
             FLLog.Debug("Client", "Received directives for player");
-            RunSync(() =>
-            {
-                spaceGameplay!.Directives.SetDirectives(directives);
-            });
+            RunSync(() => { spaceGameplay!.Directives.SetDirectives(directives); });
         }
 
         void IClientPlayer.SpawnObjects(ObjectSpawnInfo[] objects)
@@ -984,65 +1033,82 @@ namespace LibreLancer.Client
             {
                 foreach (var objInfo in objects)
                 {
-                    GameObject newobj;
+                    GameObject? newObj;
+
                     if ((objInfo.Flags & ObjectSpawnFlags.Debris) == ObjectSpawnFlags.Debris)
                     {
-                        newobj = CreateDebris(objInfo);
+                        newObj = CreateDebris(objInfo);
                     }
                     else if ((objInfo.Flags & ObjectSpawnFlags.Solar) == ObjectSpawnFlags.Solar)
                     {
-                        var solar = Game.GameData.Items.Archetypes.Get(objInfo.Loadout.ArchetypeCrc);
-                        newobj = new GameObject(solar, null, Game.ResourceManager, true, true);
+                        var solar = Game.GameData.Items.Archetypes.Get(objInfo.Loadout.ArchetypeCrc)!;
+                        newObj = new GameObject(solar, null, Game.ResourceManager, true, true);
+
                         if (objInfo.Dock != null && solar.DockSpheres.Count > 0)
                         {
-                            newobj.AddComponent(new DockInfoComponent(newobj)
+                            newObj.AddComponent(new DockInfoComponent(newObj)
                             {
                                 Action = objInfo.Dock,
                                 Spheres = solar.DockSpheres.ToArray()
                             });
                         }
+
                         if (solar.Hitpoints > 0)
                         {
-                            newobj.AddComponent(new CHealthComponent(newobj)
+                            newObj.AddComponent(new CHealthComponent(newObj)
                                 { CurrentHealth = objInfo.Loadout.Health, MaxHealth = solar.Hitpoints });
                         }
                     }
                     else if ((objInfo.Flags & ObjectSpawnFlags.Loot) == ObjectSpawnFlags.Loot)
                     {
-                        var crate = (LootCrateEquipment)Game.GameData.Items.Equipment.Get(objInfo.Loadout.ArchetypeCrc);
-                        var model = crate.ModelFile.LoadFile(Game.ResourceManager);
-                        newobj = new GameObject(model, Game.ResourceManager);
-                        newobj.Kind = GameObjectKind.Loot;
-                        newobj.PhysicsComponent.Mass = crate.Mass;
-                        newobj.ArchetypeName = crate.Nickname;
-                        newobj.AddComponent(new CHealthComponent(newobj)
+                        var crate =
+                            (LootCrateEquipment) Game.GameData.Items.Equipment.Get(objInfo.Loadout.ArchetypeCrc)!;
+                        var model = crate.ModelFile!.LoadFile(Game.ResourceManager)!;
+                        newObj = new GameObject(model, Game.ResourceManager)
+                        {
+                            Kind = GameObjectKind.Loot,
+                            PhysicsComponent =
+                            {
+                                Mass = crate.Mass
+                            },
+                            ArchetypeName = crate.Nickname
+                        };
+                        newObj.AddComponent(new CHealthComponent(newObj)
                             { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
-                        newobj.Name = new LootName(newobj);
+                        newObj.Name = new LootName(newObj);
                     }
                     else
                     {
-                        var shp = Game.GameData.Items.Ships.Get((int)objInfo.Loadout.ArchetypeCrc);
-                        newobj = new GameObject(shp, Game.ResourceManager, true, true);
-                        newobj.AddComponent(new CHealthComponent(newobj)
+                        var shp = Game.GameData.Items.Ships.Get((int) objInfo.Loadout.ArchetypeCrc)!;
+                        newObj = new GameObject(shp, Game.ResourceManager, true, true);
+                        newObj.AddComponent(new CHealthComponent(newObj)
                             { CurrentHealth = objInfo.Loadout.Health, MaxHealth = shp.Hitpoints });
-                        newobj.AddComponent(new CExplosionComponent(newobj, shp.Explosion));
+                        newObj.AddComponent(new CExplosionComponent(newObj, shp.Explosion!));
+                    }
+
+                    if (newObj is null)
+                    {
+                        FLLog.Warning("Client", "Unable to spawn new object");
+                        return;
                     }
 
                     // disable parts
                     foreach (var p in objInfo.DestroyedParts)
                     {
-                        newobj.DisableCmpPart(p, Game.ResourceManager, out _);
+                        newObj.DisableCmpPart(p, Game.ResourceManager, out _);
                     }
-                    newobj.Name ??= objInfo.Name;
-                    newobj.NetID = objInfo.ID.Value;
-                    newobj.Nickname = objInfo.Nickname;
-                    newobj.SetLocalTransform(new Transform3D(objInfo.Position, objInfo.Orientation));
+
+                    newObj.Name ??= objInfo.Name;
+                    newObj.NetID = objInfo.ID.Value;
+                    newObj.Nickname = objInfo.Nickname;
+                    newObj.SetLocalTransform(new Transform3D(objInfo.Position, objInfo.Orientation));
                     var head = Game.GameData.Items.Bodyparts.Get(objInfo.CommHead);
                     var body = Game.GameData.Items.Bodyparts.Get(objInfo.CommBody);
                     var helmet = Game.GameData.Items.Accessories.Get(objInfo.CommHelmet);
+
                     if (head != null || body != null)
                     {
-                        newobj.AddComponent(new CostumeComponent(newobj)
+                        newObj.AddComponent(new CostumeComponent(newObj)
                         {
                             Head = head,
                             Body = body,
@@ -1051,45 +1117,54 @@ namespace LibreLancer.Client
                     }
 
                     var fac = Game.GameData.Items.Factions.Get(objInfo.Affiliation);
+
                     if (fac != null)
                     {
-                        newobj.AddComponent(new CFactionComponent(newobj, fac));
+                        newObj.AddComponent(new CFactionComponent(newObj, fac));
                     }
 
                     if ((objInfo.Flags & ObjectSpawnFlags.Friendly) == ObjectSpawnFlags.Friendly)
                     {
-                        newobj.Flags |= GameObjectFlags.Friendly;
+                        newObj.Flags |= GameObjectFlags.Friendly;
                     }
+
                     if ((objInfo.Flags & ObjectSpawnFlags.Hostile) == ObjectSpawnFlags.Hostile)
                     {
-                        newobj.Flags |= GameObjectFlags.Hostile;
+                        newObj.Flags |= GameObjectFlags.Hostile;
                     }
+
                     if ((objInfo.Flags & ObjectSpawnFlags.Neutral) == ObjectSpawnFlags.Neutral)
                     {
-                        newobj.Flags |= GameObjectFlags.Neutral;
+                        newObj.Flags |= GameObjectFlags.Neutral;
                     }
+
                     if ((objInfo.Flags & ObjectSpawnFlags.Important) == ObjectSpawnFlags.Important)
                     {
-                        newobj.Flags |= GameObjectFlags.Important;
+                        newObj.Flags |= GameObjectFlags.Important;
                     }
+
                     foreach (var eq in objInfo.Loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                     {
                         var equip = Game.GameData.Items.Equipment.Get(eq.EquipCRC);
+
                         if (equip == null)
                         {
                             continue;
                         }
 
-                        EquipmentObjectManager.InstantiateEquipment(newobj, Game.ResourceManager, Game.Sound,
+                        EquipmentObjectManager.InstantiateEquipment(newObj, Game.ResourceManager, Game.Sound,
                             EquipmentType.LocalPlayer, eq.Hardpoint, equip);
                     }
-                    if (newobj.Kind == GameObjectKind.Loot)
+
+                    if (newObj.Kind == GameObjectKind.Loot)
                     {
-                        var lt = new LootComponent(newobj);
-                        newobj.AddComponent(lt);
+                        var lt = new LootComponent(newObj);
+                        newObj.AddComponent(lt);
+
                         foreach (var eq in objInfo.Loadout.Items.Where(x => string.IsNullOrWhiteSpace(x.Hardpoint)))
                         {
                             var equip = Game.GameData.Items.Equipment.Get(eq.EquipCRC);
+
                             if (equip == null)
                             {
                                 continue;
@@ -1098,33 +1173,36 @@ namespace LibreLancer.Client
                             lt.Cargo.Add(new BasicCargo(equip, eq.Count));
                         }
                     }
-                    spaceGameplay.world.AddObject(newobj);
-                    newobj.Register(spaceGameplay.world.Physics);
+
+                    spaceGameplay!.world.AddObject(newObj);
+                    newObj.Register(spaceGameplay.world.Physics);
+
                     if ((objInfo.Flags & ObjectSpawnFlags.Debris) == ObjectSpawnFlags.Debris ||
                         (objInfo.Flags & ObjectSpawnFlags.Loot) == ObjectSpawnFlags.Loot)
                     {
-                        newobj.PhysicsComponent.Body.SetDamping(0.5f, 0.2f);
+                        newObj.PhysicsComponent!.Body.SetDamping(0.5f, 0.2f);
                     }
                     else
                     {
-                        newobj.AddComponent(new WeaponControlComponent(newobj));
+                        newObj.AddComponent(new WeaponControlComponent(newObj));
                     }
+
                     // add fx
                     if (objInfo.Effects is { Length: > 0 })
                     {
-                        var fx = new CNetEffectsComponent(newobj);
-                        newobj.AddComponent(fx);
+                        var fx = new CNetEffectsComponent(newObj);
+                        newObj.AddComponent(fx);
                         fx.UpdateEffects(objInfo.Effects);
                     }
 
-                    FLLog.Debug("Client", $"Spawned {newobj.NetID}");
+                    FLLog.Debug("Client", $"Spawned {newObj.NetID}");
                 }
             });
         }
 
         private double totalTimeForTick = 0;
 
-        private CrcIdMap[] crcMap;
+        private CrcIdMap[] crcMap = [];
 
         void IClientPlayer.SpawnPlayer(int ID, string system, CrcIdMap[] crcMap, NetObjective objective,
             Vector3 position, Quaternion orientation, uint tick)
@@ -1155,6 +1233,7 @@ namespace LibreLancer.Client
             ModelResource? src;
             List<SeparablePart>? sep;
             float[]? lodranges;
+
             if ((obj.Flags & ObjectSpawnFlags.Solar) == ObjectSpawnFlags.Solar)
             {
                 var solar = Game.GameData.Items.Archetypes.Get(obj.Loadout.ArchetypeCrc);
@@ -1170,7 +1249,7 @@ namespace LibreLancer.Client
                 lodranges = ship?.LODRanges;
             }
 
-            if (src is null || sep is null ||  lodranges is null)
+            if (src is null || sep is null || lodranges is null)
             {
                 return null;
             }
@@ -1178,9 +1257,9 @@ namespace LibreLancer.Client
 #pragma warning disable CS8670
 
             var collider = src.Collision;
-            var mdl = ((IRigidModelFile)src.Drawable)?.CreateRigidModel(true, Game.ResourceManager);
+            var mdl = ((IRigidModelFile) src.Drawable)?.CreateRigidModel(true, Game.ResourceManager);
             var newmodel = mdl!.Parts![obj.DebrisPart].CloneAsRoot(mdl);
-            var partName = newmodel.Root.Name;
+            var partName = newmodel.Root.Name!;
             var sepInfo = sep.FirstOrDefault(x => x.Part.Equals(partName, StringComparison.OrdinalIgnoreCase));
             var go = new GameObject(newmodel, collider, Game.ResourceManager, partName, sepInfo?.Mass ?? 1, true)
             {
@@ -1197,25 +1276,26 @@ namespace LibreLancer.Client
             {
                 mr.LODRanges = lodranges;
             }
+
             // Child damage cap
-            if (sepInfo is { ChildDamageCap: not null } && go.Model.TryGetHardpoint(sepInfo.ChildDamageCapHardpoint, out var capHp))
+            if (sepInfo is { ChildDamageCap: not null } &&
+                go.Model.TryGetHardpoint(sepInfo.ChildDamageCapHardpoint, out var capHp))
             {
-                var dcap = GameObject.WithModel(sepInfo.ChildDamageCap.Model, true, Game.ResourceManager);
+                var dcap = GameObject.WithModel(sepInfo.ChildDamageCap.Model!, true, Game.ResourceManager);
                 dcap.Attachment = capHp;
                 dcap.Parent = go;
-                dcap.RenderComponent.InheritCull = false;
-                if (dcap.Model.TryGetHardpoint("DpConnect", out var dpConnect))
+                dcap.RenderComponent!.InheritCull = false;
+
+                if (dcap.Model!.TryGetHardpoint("DpConnect", out var dpConnect))
                 {
                     dcap.SetLocalTransform(dpConnect.Transform.Inverse());
                 }
 
                 go.Children.Add(dcap);
             }
+
             return go;
         }
-
-        public SoldGood[] Goods;
-        public NetSoldShip[] Ships;
 
         void IClientPlayer.BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news,
             SoldGood[] goods, NetSoldShip[] ships)
@@ -1254,7 +1334,8 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                var despawn = spaceGameplay.world.GetNetObject(id);
+                var despawn = spaceGameplay!.world.GetNetObject(id);
+
                 if (despawn != null)
                 {
                     if (explode)
@@ -1280,7 +1361,7 @@ namespace LibreLancer.Client
 
         void IClientPlayer.DestroyPart(ObjNetId id, uint part)
         {
-            RunSync(() => { spaceGameplay.world.GetObject(id)?.DisableCmpPart(part, Game.ResourceManager, out _); });
+            RunSync(() => { spaceGameplay!.world.GetObject(id)?.DisableCmpPart(part, Game.ResourceManager, out _); });
         }
 
         void IClientPlayer.RunMissionDialog(NetDlgLine[] lines)
@@ -1288,19 +1369,18 @@ namespace LibreLancer.Client
             RunSync(() => { RunDialog(lines); });
         }
 
-        private GameObject missionWaypoint;
-
         void IClientPlayer.StopShip()
         {
             FLLog.Debug("Mission", "StopShip() call received");
-            RunSync(() => spaceGameplay.StopShip());
+            RunSync(() => spaceGameplay!.StopShip());
         }
 
         void IClientPlayer.MarkImportant(int id, bool important)
         {
             RunSync(() =>
             {
-                var o = spaceGameplay.world.GetNetObject(id);
+                var o = spaceGameplay!.world.GetNetObject(id);
+
                 if (o == null)
                 {
                     FLLog.Warning("Client", $"Could not find obj {id} to mark as important");
@@ -1342,21 +1422,23 @@ namespace LibreLancer.Client
 
             if (lines[index].TargetIsPlayer)
             {
-                var obj = spaceGameplay.world.GetObject(new ObjNetId(lines[index].Source));
+                var obj = spaceGameplay!.world.GetObject(new ObjNetId(lines[index].Source));
+
                 if (obj != null)
                 {
-                    spaceGameplay.OpenComm(obj, lines[index].Voice);
+                    spaceGameplay.OpenComm(obj, lines[index].Voice!);
                 }
             }
 
-            Game.Sound.PlayVoiceLine(lines[index].Voice, lines[index].Hash, () =>
+            Game.Sound.PlayVoiceLine(lines[index].Voice!, lines[index].Hash, () =>
             {
                 RunSync(() =>
                 {
                     rpcServer.LineSpoken(lines[index].Hash);
+
                     if (lines[index].TargetIsPlayer)
                     {
-                        spaceGameplay.ClearComm();
+                        spaceGameplay!.ClearComm();
                     }
 
                     RunDialog(lines, index + 1);
@@ -1376,18 +1458,22 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                var obj = spaceGameplay.world.GetObject(id);
+                var obj = spaceGameplay!.world.GetObject(id);
+
                 if (obj != null)
                 {
                     obj.Flags &= ~(GameObjectFlags.Reputations);
+
                     if (attitude == RepAttitude.Friendly)
                     {
                         obj.Flags |= GameObjectFlags.Friendly;
                     }
+
                     if (attitude == RepAttitude.Neutral)
                     {
                         obj.Flags |= GameObjectFlags.Neutral;
                     }
+
                     if (attitude == RepAttitude.Hostile)
                     {
                         obj.Flags |= GameObjectFlags.Hostile;
@@ -1400,7 +1486,8 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                var obj = spaceGameplay.world.GetObject(id);
+                var obj = spaceGameplay!.world.GetObject(id);
+
                 if (obj != null)
                 {
                     if (!obj.TryGetComponent<CNetEffectsComponent>(out var fx))
@@ -1455,6 +1542,7 @@ namespace LibreLancer.Client
                     var thn = new ThnScript(Game.GameData.VFS.ReadAllBytes(Game.GameData.Items.DataPath(thorn)!),
                         Game.GameData.Items.ThornReadCallback, thorn);
                     var mo = spaceGameplay?.world.GetObject(mainObject);
+
                     if (mo != null)
                     {
                         FLLog.Info("Client", "Found thorn mainObject");
@@ -1462,9 +1550,10 @@ namespace LibreLancer.Client
                     else
                     {
                         FLLog.Info("Client", $"Did not find mainObject with ID `{mainObject}. Assume player`");
-                        mo = spaceGameplay.player;
+                        mo = spaceGameplay!.player;
                     }
-                    spaceGameplay.Thn = new Cutscene(new ThnScriptContext(null) { MainObject = mo }, spaceGameplay);
+
+                    spaceGameplay!.Thn = new Cutscene(new ThnScriptContext(null) { MainObject = mo }, spaceGameplay);
                     spaceGameplay.Thn.BeginScene(thn);
                 }
             });
@@ -1481,6 +1570,7 @@ namespace LibreLancer.Client
 
             var hcp = GeneratedProtocol.HandleIClientPlayer(pkt, this, connection);
             hcp.Wait();
+
             if (hcp.Result)
             {
                 return;
@@ -1517,7 +1607,8 @@ namespace LibreLancer.Client
 
         private void UpdateObject(ObjectUpdate update, GameWorld world)
         {
-            GameObject obj = world.GetObject(update.ID);
+            GameObject? obj = world.GetObject(update.ID);
+
             if (obj == null)
             {
                 return;
@@ -1527,8 +1618,11 @@ namespace LibreLancer.Client
             if (obj.TryGetComponent<CEngineComponent>(out var eng))
             {
                 eng.Speed = update.Throttle;
+
                 foreach (var comp in obj.GetChildComponents<CThrusterComponent>())
+                {
                     comp.Enabled = (update.CruiseThrust == CruiseThrustState.Thrusting);
+                }
             }
 
             if (obj.TryGetComponent<CHealthComponent>(out var health))
@@ -1548,19 +1642,21 @@ namespace LibreLancer.Client
                     weapons.UpdateNetWeapons();
                 }
 
-                weapons.SetRotations(update.Guns);
+                weapons.SetRotations(update.Guns!);
             }
 
-            if (obj.SystemObject == null)
+            if (obj.SystemObject != null)
             {
-                var oldPos = obj.LocalTransform.Position;
-                var oldQuat = obj.LocalTransform.Orientation;
-                obj.PhysicsComponent.Body.LinearVelocity = update.LinearVelocity.Vector;
-                obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity.Vector;
-                obj.PhysicsComponent.Body.Activate();
-                obj.PhysicsComponent.Body.SetTransform(new Transform3D(update.Position, update.Orientation.Quaternion));
-                SmoothError(obj, oldPos, oldQuat);
+                return;
             }
+
+            var oldPos = obj.LocalTransform.Position;
+            var oldQuat = obj.LocalTransform.Orientation;
+            obj.PhysicsComponent!.Body.LinearVelocity = update.LinearVelocity.Vector;
+            obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity.Vector;
+            obj.PhysicsComponent.Body.Activate();
+            obj.PhysicsComponent.Body.SetTransform(new Transform3D(update.Position, update.Orientation.Quaternion));
+            SmoothError(obj, oldPos, oldQuat);
         }
 
         public void Launch() => rpcServer.Launch();
@@ -1576,7 +1672,7 @@ namespace LibreLancer.Client
             {
                 if (connection is GameNetClient nc)
                 {
-                    string stats = $"Ping: {nc.Ping}, Loss {nc.LossPercent}%";
+                    var stats = $"Ping: {nc.Ping}, Loss {nc.LossPercent}%";
                     AppendBlue(stats);
                     AppendBlue(
                         $"Sent: {DebugDrawing.SizeSuffix(nc.BytesSent)}, Received: {DebugDrawing.SizeSuffix(nc.BytesReceived)}");
@@ -1592,20 +1688,15 @@ namespace LibreLancer.Client
             }
             else if (str.TrimEnd() == "/pos")
             {
-                if (spaceGameplay != null)
-                {
-                    ((IClientPlayer)this).OnConsoleMessage(spaceGameplay.player.LocalTransform.Position.ToString());
-                }
-                else
-                {
-                    ((IClientPlayer)this).OnConsoleMessage("null");
-                }
+                ((IClientPlayer) this).OnConsoleMessage(spaceGameplay != null
+                    ? spaceGameplay.player.LocalTransform.Position.ToString()
+                    : "null");
             }
             else
             {
                 BinaryChatMessage msg;
-                if (str[0] == '/' ||
-                    !Admin)
+
+                if (str[0] == '/' || !Admin)
                 {
                     msg = BinaryChatMessage.PlainText(str);
                 }
@@ -1627,17 +1718,11 @@ namespace LibreLancer.Client
             Chats.Append(player, message, category.GetColor(), "Arial");
         }
 
-        private static int NEW_PLAYER = 393298;
-        private static int DEPARTING_PLAYER = 393299;
-
-        private string? newPlayerStr;
-        private string? departingPlayerStr;
-
         void IClientPlayer.OnPlayerJoin(int id, string name)
         {
             if (newPlayerStr == null)
             {
-                newPlayerStr = Game.GameData.GetInfocardText(NEW_PLAYER, Game.Fonts).TrimEnd('\n');
+                newPlayerStr = Game.GameData.GetInfocardText(NEW_PLAYER, Game.Fonts)!.TrimEnd('\n');
             }
 
             Chats.Append(null, BinaryChatMessage.PlainText($"{newPlayerStr}{name}"), Color4.DarkRed, "Arial");
@@ -1647,7 +1732,7 @@ namespace LibreLancer.Client
         {
             if (departingPlayerStr == null)
             {
-                departingPlayerStr = Game.GameData.GetInfocardText(DEPARTING_PLAYER, Game.Fonts).TrimEnd('\n');
+                departingPlayerStr = Game.GameData.GetInfocardText(DEPARTING_PLAYER, Game.Fonts)!.TrimEnd('\n');
             }
 
             Chats.Append(null, BinaryChatMessage.PlainText($"{departingPlayerStr}{name}"), Color4.DarkRed, "Arial");
@@ -1657,16 +1742,18 @@ namespace LibreLancer.Client
         {
             gameplayActions.Enqueue(() =>
             {
-                if (spaceGameplay.world.GetObject(id)?.TryGetComponent<CTradelaneComponent>(out var tl) ?? false)
+                if (!(spaceGameplay!.world.GetObject(id)?.TryGetComponent<CTradelaneComponent>(out var tl) ?? false))
                 {
-                    if (left)
-                    {
-                        tl.ActivateLeft();
-                    }
-                    else
-                    {
-                        tl.ActivateRight();
-                    }
+                    return;
+                }
+
+                if (left)
+                {
+                    tl.ActivateLeft();
+                }
+                else
+                {
+                    tl.ActivateRight();
                 }
             });
         }
@@ -1675,29 +1762,28 @@ namespace LibreLancer.Client
         {
             gameplayActions.Enqueue(() =>
             {
-                if (spaceGameplay.world.GetObject(id)?.TryGetComponent<CTradelaneComponent>(out var tl) ?? false)
+                if (!(spaceGameplay!.world.GetObject(id)?.TryGetComponent<CTradelaneComponent>(out var tl) ?? false))
                 {
-                    if (left)
-                    {
-                        tl.DeactivateLeft();
-                    }
-                    else
-                    {
-                        tl.DeactivateRight();
-                    }
+                    return;
+                }
+
+                if (left)
+                {
+                    tl.DeactivateLeft();
+                }
+                else
+                {
+                    tl.DeactivateRight();
                 }
             });
         }
 
-        private ObjNetId scanId;
-        private NetLoadout scanLoadout;
-        private UIInventoryItem[] scannedInventory = [];
         void IClientPlayer.ClearScan()
         {
             scanLoadout = null;
             scanId = null;
             scannedInventory = [];
-            gameplayActions.Enqueue(() => spaceGameplay.ClearScan());
+            gameplayActions.Enqueue(() => spaceGameplay!.ClearScan());
         }
 
         void IClientPlayer.UpdateScan(ObjNetId id, NetLoadoutDiff diff)
@@ -1706,7 +1792,7 @@ namespace LibreLancer.Client
             scanId = id;
             scanLoadout = diff.Apply(scanLoadout);
             scannedInventory = BuildScanList(scanLoadout);
-            gameplayActions.Enqueue(() => { spaceGameplay.UpdateScan(); });
+            gameplayActions.Enqueue(() => { spaceGameplay?.UpdateScan(); });
         }
 
         public static UIInventoryItem FromNetCargo(NetCargo item)
@@ -1715,7 +1801,7 @@ namespace LibreLancer.Client
             {
                 ID = item.ID,
                 Count = item.Count,
-                Icon = item.Equipment.Good.Ini.ItemIcon,
+                Icon = item.Equipment!.Good!.Ini.ItemIcon,
                 Good = item.Equipment.Good.Ini.Nickname,
                 IdsInfo = item.Equipment.IdsInfo,
                 IdsName = item.Equipment.IdsName,
@@ -1731,9 +1817,10 @@ namespace LibreLancer.Client
         {
             var list = loadout.Items
                 .Select(ResolveCargo)
-                .Where(x => x.Equipment.Good != null)
+                .Where(x => x.Equipment?.Good != null)
                 .Select(FromNetCargo)
                 .ToList();
+
             Trader.SortGoods(this, list);
             return list.ToArray();
         }
@@ -1741,7 +1828,7 @@ namespace LibreLancer.Client
         public UIInventoryItem[] GetScannedInventory(string filter)
         {
             var predicate = Trader.GetFilter(filter);
-            return scannedInventory.Where(x => predicate(x.Equipment)).ToArray();
+            return scannedInventory.Where(x => predicate(x.Equipment!)).ToArray();
         }
 
         void IClientPlayer.UpdatePlayTime(double time, DateTime startTime)
@@ -1754,7 +1841,7 @@ namespace LibreLancer.Client
         {
             RunSync(() =>
             {
-                spaceGameplay.StoryFail(failedIds);
+                spaceGameplay!.StoryFail(failedIds);
                 Pause();
             });
         }
@@ -1763,20 +1850,26 @@ namespace LibreLancer.Client
         {
             if (id == 0)
             {
-                return spaceGameplay.player;
+                return spaceGameplay!.player;
             }
 
-            return spaceGameplay.world.GetNetObject(id);
+            return spaceGameplay!.world.GetNetObject(id)!;
         }
 
         void IClientPlayer.UpdateFormation(NetFormation form)
         {
+            if (spaceGameplay?.pilotComponent is null)
+            {
+                return;
+            }
+
             gameplayActions.Enqueue(() =>
             {
                 if (!form.Exists)
                 {
                     FLLog.Debug("Client", "Formation cleared");
                     spaceGameplay.player.Formation = null;
+
                     if (spaceGameplay.pilotComponent.CurrentBehavior == AutopilotBehaviors.Formation)
                     {
                         spaceGameplay.pilotComponent.Cancel();
@@ -1788,9 +1881,13 @@ namespace LibreLancer.Client
                     spaceGameplay.player.Formation = new ShipFormation(
                         ObjOrPlayer(form.LeadShip),
                         form.Followers.Select(ObjOrPlayer).ToArray()
-                    );
-                    spaceGameplay.player.Formation.PlayerPosition = form.YourPosition;
+                    )
+                    {
+                        PlayerPosition = form.YourPosition
+                    };
+
                     FLLog.Debug("Client", $"Formation offset {form.YourPosition}");
+
                     if (spaceGameplay.player.Formation.LeadShip != spaceGameplay.player)
                     {
                         FLLog.Debug("Client", "Starting follow");
@@ -1799,8 +1896,6 @@ namespace LibreLancer.Client
                 }
             });
         }
-
-        private AllowedDocking? allowedDocking;
 
         void IClientPlayer.UpdateAllowedDocking(AllowedDocking docking)
         {
@@ -1821,7 +1916,8 @@ namespace LibreLancer.Client
                     return true;
                 }
 
-                if (gameObject.TryGetComponent<DockInfoComponent>(out var dockInfo) && dockInfo.Action.Kind == DockKinds.Tradelane)
+                if (gameObject.TryGetComponent<DockInfoComponent>(out var dockInfo) &&
+                    dockInfo.Action.Kind == DockKinds.Tradelane)
                 {
                     return false;
                 }

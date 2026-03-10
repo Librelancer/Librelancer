@@ -23,16 +23,15 @@ namespace LibreLancer.Thn.Events
         private class AttachEntityProcessor : ThnEventProcessor
         {
             public float Duration;
-            public ThnObject Child;
+            public ThnObject Child = null!;
             public Vector3 Offset;
-            public EntityTarget Parent;
+            public EntityTarget Parent = null!;
             public Quaternion LastRotate;
             public bool Position;
             public bool Orientation;
             public bool OrientationRelative;
             public bool EntityRelative;
             public bool LookAt;
-            private Func<Vector3> lookFunc;
             private double t = 0;
 
             public override bool Run(double delta)

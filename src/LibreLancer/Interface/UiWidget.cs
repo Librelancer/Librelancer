@@ -27,20 +27,40 @@ namespace LibreLancer.Interface
         // Style resolution code
         protected static T Cascade<T>(T? style, T? style2, T self) where T : struct
         {
-            if (!IsDefault(self)) return self;
-            if (CheckValue(style2)) return style2.Value;
-            if (CheckValue(style)) return style.Value;
-            return default(T);
+            if (!IsDefault(self))
+            {
+                return self;
+            }
+
+            if (CheckValue(style2))
+            {
+                return style2!.Value;
+            }
+
+            if (CheckValue(style))
+            {
+                return style!.Value;
+            }
+
+            return default;
         }
 
-        private static bool CheckValue<T>(T? value) where T : struct => !(value is null) && !IsDefault(value.Value);
+        private static bool CheckValue<T>(T? value) where T : struct => value is not null && !IsDefault(value.Value);
         private static bool IsDefault<T>(T value) => EqualityComparer<T>.Default.Equals(value, default(T));
-        protected static T Cascade<T>(T style, T style2, T self) where T : class => (self ?? style2 ?? style);
+        protected static T? Cascade<T>(T? style, T? style2, T? self) where T : class => (self ?? style2 ?? style);
 
         private static TextAlignment CastAlign(HorizontalAlignment h)
         {
-            if (h == HorizontalAlignment.Center) return TextAlignment.Center;
-            if (h == HorizontalAlignment.Right) return TextAlignment.Right;
+            if (h == HorizontalAlignment.Center)
+            {
+                return TextAlignment.Center;
+            }
+
+            if (h == HorizontalAlignment.Right)
+            {
+                return TextAlignment.Right;
+            }
+
             return TextAlignment.Left;
         }
         protected void DrawText(
@@ -48,8 +68,8 @@ namespace LibreLancer.Interface
             ref CachedRenderString cache,
             RectangleF myRectangle,
             float textSize,
-            string font,
-            InterfaceColor textColor,
+            string? font,
+            InterfaceColor? textColor,
             InterfaceColor? shadowColor,
             HorizontalAlignment horizontalAlign,
             VerticalAlignment verticalAlign,
@@ -59,13 +79,33 @@ namespace LibreLancer.Interface
             bool wrap = false
          )
         {
-            if (string.IsNullOrEmpty(text)) return;
-            if (myRectangle.Width <= 1 || myRectangle.Height <= 1) return;
-            if (string.IsNullOrEmpty(font)) font = "$Normal";
-            if (textSize <= 0) textSize = 10;
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            if (myRectangle.Width <= 1 || myRectangle.Height <= 1)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(font))
+            {
+                font = "$Normal";
+            }
+
+            if (textSize <= 0)
+            {
+                textSize = 10;
+            }
+
             var color = (textColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             color.A *= alpha;
-            if (color.A < float.Epsilon) return;
+            if (color.A < float.Epsilon)
+            {
+                return;
+            }
+
             var fnt = context.Data.GetFont(font);
             var size = context.TextSize(textSize);
             var lineHeight = context.RenderContext.Renderer2D.LineHeight(fnt, size);
@@ -74,7 +114,11 @@ namespace LibreLancer.Interface
                 wrap ? drawRect.Width : 0);
             // workaround for font substitution causing layout issues - e.g. CJK
             // TODO: How to get max lineheight of fonts in string?
-            if (sz.Y > lineHeight && sz.Y < (lineHeight * 2)) lineHeight = sz.Y;
+            if (sz.Y > lineHeight && sz.Y < (lineHeight * 2))
+            {
+                lineHeight = sz.Y;
+            }
+
             float drawX, drawY;
             if (!wrap)
             {
@@ -119,11 +163,16 @@ namespace LibreLancer.Interface
             bool restoreClip = false;
             Rectangle restoreRect = default;
             if (clip && !context.RenderContext.PushScissor(drawRect))
+            {
                 return;
+            }
+
             context.RenderContext.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false, shadow, CastAlign(horizontalAlign),
                 wrap ? drawRect.Width : 0);
             if (clip)
+            {
                 context.RenderContext.PopScissor();
+            }
         }
         public abstract void Render(UiContext context, RectangleF parentRectangle);
 
@@ -135,7 +184,10 @@ namespace LibreLancer.Interface
 
         public void ReloadStyle()
         {
-            if(_lastSheet != null) ApplyStylesheet(_lastSheet);
+            if(_lastSheet != null)
+            {
+                ApplyStylesheet(_lastSheet);
+            }
         }
         public virtual void UnFocus()
         {
@@ -189,7 +241,10 @@ namespace LibreLancer.Interface
         protected Vector2 AnimatedPosition(Vector2 myPos)
         {
             if (CurrentAnimation != null && CurrentAnimation.Running)
+            {
                 return CurrentAnimation.CurrentPosition;
+            }
+
             return animSetPos ?? myPos;
         }
 
@@ -198,8 +253,10 @@ namespace LibreLancer.Interface
             switch (name.ToLowerInvariant())
             {
                 case "flyinleft":
-                    var left = new FlyInLeft(Vector2.Zero, offsetTime, duration);
-                    left.From = -GetDimensions().X - 10;
+                    var left = new FlyInLeft(Vector2.Zero, offsetTime, duration)
+                    {
+                        From = -GetDimensions().X - 10
+                    };
                     CurrentAnimation = left;
                     CurrentAnimation.Begin(aspectRatio);
                     break;
@@ -209,8 +266,10 @@ namespace LibreLancer.Interface
                     CurrentAnimation.Begin(aspectRatio);
                     break;
                 case "flyoutleft":
-                    var outleft = new FlyOutLeft(Vector2.Zero, offsetTime, duration);
-                    outleft.To = -GetDimensions().X - 10;
+                    var outleft = new FlyOutLeft(Vector2.Zero, offsetTime, duration)
+                    {
+                        To = -GetDimensions().X - 10
+                    };
                     CurrentAnimation = outleft;
                     CurrentAnimation.Begin(aspectRatio);
                     break;
@@ -249,7 +308,9 @@ namespace LibreLancer.Interface
         public virtual void OnEscapePressed()
         {
             if(Visible)
+            {
                 EscapePressed?.Invoke();
+            }
         }
 
         public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle) { }

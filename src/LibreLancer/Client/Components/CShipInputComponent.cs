@@ -30,7 +30,7 @@ namespace LibreLancer.Client.Components
         public PIDController RollControl = new() { P = 4f };
         public override void Update(double time)
         {
-            steering ??= Parent.GetComponent<ShipSteeringComponent>();
+            steering ??= Parent!.GetComponent<ShipSteeringComponent>();
             if (Camera == null || steering == null)
             {
                 return;
@@ -71,9 +71,9 @@ namespace LibreLancer.Client.Components
             };
         }
 
-        private void TurnTowards(Vector3 gotoPos,double dt)
+        private void TurnTowards(Vector3 gotoPos, double dt)
         {
-            var vec = Parent.InverseTransformPoint(gotoPos);
+            var vec = Parent!.InverseTransformPoint(gotoPos);
             // normalize it
             vec.Normalize();
             // update pitch/yaw
@@ -83,16 +83,16 @@ namespace LibreLancer.Client.Components
 
         private void BankShip(Vector3 upVector, double dt)
         {
-            float bankInfluence = (MousePosition.X - (Viewport.X * 0.5f)) / (Viewport.X * 0.5f);
+            var bankInfluence = (MousePosition.X - (Viewport.X * 0.5f)) / (Viewport.X * 0.5f);
             bankInfluence = MathHelper.Clamp(bankInfluence, -1, 1);
 
             bankInfluence *= Throttle;
-            float bankTarget = MathHelper.DegreesToRadians(-(bankInfluence * BankLimit));
-            var tr = Parent.PhysicsComponent!.Body!.Orientation;
+            var bankTarget = MathHelper.DegreesToRadians(-(bankInfluence * BankLimit));
+            var tr = Parent!.PhysicsComponent!.Body!.Orientation;
             var transformUp = CalcDir(tr, Vector3.UnitY);
             var transformForward = CalcDir(tr, -Vector3.UnitZ);
-            float signedAngle = Vector3Ex.SignedAngle(transformUp, upVector, transformForward);
-            float bankError = (signedAngle - bankTarget) * 0.1f;
+            var signedAngle = Vector3Ex.SignedAngle(transformUp, upVector, transformForward);
+            var bankError = (signedAngle - bankTarget) * 0.1f;
             steering?.InRoll = (float)MathHelper.Clamp(RollControl.Update(bankTarget * 0.5f, signedAngle * 0.5f, dt), -1, 1);
         }
 

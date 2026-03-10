@@ -30,9 +30,11 @@ namespace LibreLancer.Utf
 		protected FixConstruct(FixConstruct cf) : base(cf) { }
 		public override AbstractConstruct Clone()
 		{
-			var newc = new FixConstruct(this);
-			newc.fixtransform = fixtransform;
-			return newc;
+			var newc = new FixConstruct(this)
+            {
+                fixtransform = fixtransform
+            };
+            return newc;
 		}
         public override void Reset()
         {

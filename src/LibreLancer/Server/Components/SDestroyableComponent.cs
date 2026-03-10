@@ -6,7 +6,7 @@ namespace LibreLancer.Server.Components;
 public class SDestroyableComponent : GameComponent
 {
     public ServerWorld Server;
-    public Action OnKilled;
+    public Action? OnKilled;
 
     public SDestroyableComponent(GameObject parent, ServerWorld server) : base(parent)
     {

@@ -117,7 +117,7 @@ namespace LibreLancer.Interface
             Background?.Draw(context, myRectangle);
             ItemA?.Render(context, myRectangle);
             ItemB?.Render(context, myRectangle);
-            UiRenderable border = Border;
+            UiRenderable? border = Border;
             if (Enabled)
             {
                 if (Selected) border = SelectedBorder ?? border;

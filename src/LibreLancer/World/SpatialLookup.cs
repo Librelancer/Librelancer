@@ -14,12 +14,12 @@ namespace LibreLancer.World
         public const float CELL_SIZE = 15000;
 
         private Dictionary<int, List<GameObject>> cells = new();
-        private Dictionary<GameObject,CellRef> objToCell = new();
+        private Dictionary<GameObject, CellRef> objToCell = new();
 
         public void AddObject(GameObject obj, Vector3 position)
         {
             int key = CellKey(Floored(position.X / CELL_SIZE), Floored(position.Z / CELL_SIZE));
-            var cell = GetCell(key, true);
+            var cell = GetCell(key, true)!;
             AddToCell(key, cell, obj);
         }
 
@@ -57,13 +57,17 @@ namespace LibreLancer.World
         public void UpdatePosition(GameObject obj, Vector3 newPosition)
         {
             var newKey = CellKey(Floored(newPosition.X / CELL_SIZE), Floored(newPosition.Z / CELL_SIZE));
-            var newCell = GetCell(newKey, true);
+            var newCell = GetCell(newKey, true)!;
             var oldCell = objToCell[obj];
-            if (oldCell.Cell == newCell) return;
-            #if DEBUG
+
+            if (oldCell.Cell == newCell)
+            {
+                return;
+            }
+#if DEBUG
             /* Check our state is still valid */
             if (!oldCell.Cell.Contains(obj)) throw new Exception("SpatialLookup corrupted");
-            #endif
+#endif
             RemoveFromCell(oldCell, obj);
             AddToCell(newKey, newCell, obj);
         }
@@ -76,13 +80,16 @@ namespace LibreLancer.World
                 int maxX = Floored((position.X + range) / CELL_SIZE);
                 int minZ = Floored((position.Z - range) / CELL_SIZE);
                 int maxZ = Floored((position.Z + range) / CELL_SIZE);
+
                 for (int x = minX; x <= maxX; x++)
                 {
                     for (int z = minZ; z <= maxZ; z++)
                     {
                         var cell = GetCell(CellKey(x, z), false);
-                        if(cell != null)
-                            foreach (var obj in cell) if(obj != self) yield return obj;
+                        if (cell != null)
+                            foreach (var obj in cell)
+                                if (obj != self)
+                                    yield return obj;
                     }
                 }
             }
@@ -106,7 +113,7 @@ namespace LibreLancer.World
 
         public Vector3 GetCellCoordinate(Vector3 pos)
         {
-            return new Vector3(MathF.Floor(pos.X / CELL_SIZE), 0,  MathF.Floor(pos.Y / CELL_SIZE));
+            return new Vector3(MathF.Floor(pos.X / CELL_SIZE), 0, MathF.Floor(pos.Y / CELL_SIZE));
         }
 
         private List<GameObject>? GetCell(int key, bool create)

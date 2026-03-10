@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Graphics;
@@ -24,7 +25,7 @@ namespace LibreLancer.Render
         public DfmSkinning(DfmFile dfm)
         {
             this.dfm = dfm;
-            int length = (dfm.Parts.Keys.Max() + 1);
+            var length = (dfm.Parts.Keys.Max() + 1);
             instanceArray = new BoneInstance[length];
 
             foreach (var kv in dfm.Parts)
@@ -66,11 +67,11 @@ namespace LibreLancer.Render
             }
         }
 
-        public IEnumerable<(HardpointDefinition def, BoneInstance bone)> GetHardpoints()
+        public IEnumerable<(HardpointDefinition def, BoneInstance? bone)> GetHardpoints()
         {
             foreach (var hp in dfm.GetHardpoints())
             {
-                if (Bones.TryGetValue(hp.Part.objectName, out BoneInstance bi))
+                if (Bones.TryGetValue(hp.Part.objectName, out var bi))
                 {
                     yield return (hp.Hp, bi);
                 }
@@ -81,7 +82,7 @@ namespace LibreLancer.Render
             }
         }
 
-        public bool GetHardpoint(string hp, out HardpointDefinition def, out BoneInstance bone)
+        public bool GetHardpoint(string hp, [MaybeNullWhen(false)] out HardpointDefinition def, [MaybeNullWhen(false)] out BoneInstance bone)
         {
             var hardpoint = dfm.GetHardpoints()
                 .FirstOrDefault(x => x.Hp.Name.Equals(hp, StringComparison.OrdinalIgnoreCase));
@@ -93,7 +94,7 @@ namespace LibreLancer.Render
                 return false;
             }
 
-            if (Bones.TryGetValue(hardpoint.Part.objectName, out BoneInstance bi))
+            if (Bones.TryGetValue(hardpoint.Part.objectName, out var bi))
             {
                 def = hardpoint.Hp;
                 bone = bi;
@@ -108,9 +109,9 @@ namespace LibreLancer.Render
         private void UpdateBounds()
         {
             var bounds = new BoundingBox();
-            bool set = false;
+            var set = false;
 
-            for (int i = 0; i < instanceArray.Length; i++)
+            for (var i = 0; i < instanceArray.Length; i++)
             {
                 if (instanceArray[i] == null)
                 {
@@ -120,11 +121,11 @@ namespace LibreLancer.Render
                 if (!set)
                 {
                     set = true;
-                    bounds = instanceArray[i].BoundingBox;
+                    bounds = instanceArray[i]!.BoundingBox;
                 }
                 else
                 {
-                    bounds = BoundingBox.CreateMerged(bounds, instanceArray[i].BoundingBox);
+                    bounds = BoundingBox.CreateMerged(bounds, instanceArray[i]!.BoundingBox);
                 }
             }
 
@@ -143,7 +144,7 @@ namespace LibreLancer.Render
         {
             var cb = connectionBone ?? Transform3D.Identity;
 
-            for (int i = 0; i < instanceArray.Length; i++)
+            for (var i = 0; i < instanceArray.Length; i++)
             {
                 if (instanceArray[i] != null)
                 {
@@ -196,7 +197,7 @@ namespace LibreLancer.Render
 
         private void DrawCube(LineRenderer lines, Matrix4x4 world, float scale, Color4 color)
         {
-            for (int i = 0; i < cubeIndices.Length; i += 2)
+            for (var i = 0; i < cubeIndices.Length; i += 2)
             {
                 var a = Vector3.Transform(cubeVerts[cubeIndices[i]] * scale, world);
                 var b = Vector3.Transform(cubeVerts[cubeIndices[i + 1]] * scale, world);

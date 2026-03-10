@@ -46,9 +46,10 @@ namespace LibreLancer.Client
 
         public UISoldShip[] SoldShips()
         {
-            return session.Ships.Select(x =>
+            return session!.Ships!.Select(x =>
             {
                 var ship = session.Game.GameData.Items.Ships.Get(x.ShipCRC);
+
                 if (ship is null)
                 {
                     return null;
@@ -72,36 +73,38 @@ namespace LibreLancer.Client
             public int Amount;
         }
 
-        private List<ShipTradeItem> playerItems;
-        private List<ShipTradeItem> dealerItems;
+        private List<ShipTradeItem> playerItems = [];
+        private List<ShipTradeItem> dealerItems = [];
         private int selectedCrc;
-        private Ship selectedShip;
+        private Ship? selectedShip;
 
         private bool CanMount(string? hpType, string? hardpoint)
         {
-            if(string.IsNullOrWhiteSpace(hpType))
+            if (string.IsNullOrWhiteSpace(hpType))
             {
                 return false;
             }
 
-            if (!selectedShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
+            if (!selectedShip!.PossibleHardpoints.TryGetValue(hpType, out var possible))
             {
                 return false;
             }
 
             if (hardpoint != null)
             {
-                return !playerItems.Any(x => hardpoint.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)) && possible.Any(x => x.Equals(hardpoint, StringComparison.OrdinalIgnoreCase));
+                return !playerItems.Any(x => hardpoint.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)) &&
+                       possible.Any(x => x.Equals(hardpoint, StringComparison.OrdinalIgnoreCase));
             }
 
-            return possible.Any(hp => !playerItems.Any(x => hp.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)));
+            return possible.Any(hp =>
+                !playerItems.Any(x => hp.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)));
         }
 
         private class ResolvedInclude
         {
-            public int ID;
-            public Equipment Equipment;
-            public int Amount;
+            public required int ID;
+            public required Equipment Equipment;
+            public required int Amount;
         }
 
         public void Purchase(Closure callback)
@@ -110,23 +113,35 @@ namespace LibreLancer.Client
             List<SellCount> sellPackage = [];
             List<MountId> mountPlayer = [];
             List<MountId> mountPackage = [];
-            foreach (var item in dealerItems) {
-                if (item.Cargo != null) {
+
+            foreach (var item in dealerItems)
+            {
+                if (item.Cargo != null)
+                {
                     sellPlayer.Add(new SellCount() { Count = item.Amount, ID = item.Cargo.ID });
                 }
-                if (item.Include != null) {
+
+                if (item.Include != null)
+                {
                     sellPackage.Add(new SellCount() { Count = item.Amount, ID = item.Include.ID });
                 }
             }
-            foreach (var item in playerItems) {
-                if (item.Hardpoint != null)
+
+            foreach (var item in playerItems)
+            {
+                if (item.Hardpoint == null)
                 {
-                    if (item.Cargo != null) {
-                        mountPlayer.Add(new MountId() { Hardpoint = item.Hardpoint, ID = item.Cargo.ID });
-                    }
-                    if (item.Include != null) {
-                        mountPackage.Add(new MountId() { Hardpoint = item.Hardpoint, ID = item.Include.ID });
-                    }
+                    continue;
+                }
+
+                if (item.Cargo != null)
+                {
+                    mountPlayer.Add(new MountId() { Hardpoint = item.Hardpoint, ID = item.Cargo.ID });
+                }
+
+                if (item.Include != null)
+                {
+                    mountPackage.Add(new MountId() { Hardpoint = item.Hardpoint, ID = item.Include.ID });
                 }
             }
 
@@ -136,9 +151,13 @@ namespace LibreLancer.Client
                 sellPlayer.ToArray(),
                 sellPackage.ToArray()).ContinueWith(task =>
             {
-                string status = "fail";
-                if (task.Result == ShipPurchaseStatus.Success) status = "success";
-                if (task.Result == ShipPurchaseStatus.SuccessGainCredits) status = "successprofit";
+                var status = task.Result switch
+                {
+                    ShipPurchaseStatus.Success => "success",
+                    ShipPurchaseStatus.SuccessGainCredits => "successprofit",
+                    _ => "fail"
+                };
+
                 session.EnqueueAction(() => callback.Call(status));
             });
         }
@@ -147,10 +166,17 @@ namespace LibreLancer.Client
         {
             foreach (var sold in session.Goods)
             {
-                if (sold.GoodCRC == good.CRC) return sold.Price;
+                if (sold.GoodCRC == good.CRC)
+                {
+                    return sold.Price;
+                }
             }
+
             if (!session.BaselinePrices.TryGetValue(good.CRC, out ulong p))
+            {
                 return good.Ini.Price;
+            }
+
             return p;
         }
 
@@ -158,33 +184,55 @@ namespace LibreLancer.Client
         {
             List<UIInventoryItem> inventory = [];
             var filterfunc = Trader.GetFilter(filter);
-            foreach (var hardpoint in selectedShip.HardpointTypes)
+
+            foreach (var hardpoint in selectedShip!.HardpointTypes)
             {
-                var ui = new UIInventoryItem() {Hardpoint = hardpoint.Key, Price = -1 };
+                var ui = new UIInventoryItem() { Hardpoint = hardpoint.Key, Price = -1 };
                 var hptype = hardpoint.Value.OrderByDescending(x => x.Class).First();
-                switch (filter.ToLowerInvariant()) {
+
+                switch (filter.ToLowerInvariant())
+                {
                     case "commodity":
                     case "ammo":
                         continue;
                     case "weapons":
-                        if (hptype.Category != HpCategory.Weapon) continue;
+                        if (hptype.Category != HpCategory.Weapon)
+                        {
+                            continue;
+                        }
+
                         break;
                     case "internal":
-                        if (hptype.Category != HpCategory.Internal) continue;
+                        if (hptype.Category != HpCategory.Internal)
+                        {
+                            continue;
+                        }
+
                         break;
                     case "external":
-                        if (hptype.Category != HpCategory.External) continue;
+                        if (hptype.Category != HpCategory.External)
+                        {
+                            continue;
+                        }
+
                         break;
                 }
+
                 ui.IdsHardpoint = hptype.IdsName;
                 ui.HpSortIndex = hptype.SortIndex;
                 ui.IdsHardpointDescription = hptype.IdsHpDescription;
                 var mounted = playerItems.FirstOrDefault(x =>
                     hardpoint.Key.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase));
+
                 if (mounted != null)
                 {
                     var equip = (mounted.Cargo?.Equipment ?? mounted.Include?.Equipment);
-                    if (equip == null || equip.Good == null) continue;
+
+                    if (equip == null || equip.Good == null)
+                    {
+                        continue;
+                    }
+
                     ui.ID = playerItems.IndexOf(mounted);
                     ui.Count = 1;
                     ui.Good = equip.Good.Ini.Nickname;
@@ -194,21 +242,44 @@ namespace LibreLancer.Client
                     ui.Price = GetPrice(equip.Good);
                     ui.MountIcon = true;
                     ui.CanMount = true;
+
                     if (equip is not CommodityEquipment && mounted.Cargo != null)
+                    {
                         ui.Price = (ulong) (ui.Price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                    }
                 }
+
                 inventory.Add(ui);
             }
-            for(int i = 0; i < playerItems.Count; i++)
+
+            for (int i = 0; i < playerItems.Count; i++)
             {
                 var item = playerItems[i];
-                if (!item.Show || item.Hardpoint != null) continue;
-                var g = (item.Cargo?.Equipment ?? item.Include.Equipment).Good;
-                if (g == null) continue;
-                if (!filterfunc(g.Equipment)) continue;
+
+                if (!item.Show || item.Hardpoint != null)
+                {
+                    continue;
+                }
+
+                var g = (item.Cargo?.Equipment ?? item.Include!.Equipment).Good;
+
+                if (g == null)
+                {
+                    continue;
+                }
+
+                if (!filterfunc(g.Equipment))
+                {
+                    continue;
+                }
+
                 var price = GetPrice(g);
+
                 if (g.Equipment is not CommodityEquipment && item.Cargo != null)
+                {
                     price = (ulong) (price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                }
+
                 inventory.Add(new UIInventoryItem()
                 {
                     ID = i,
@@ -223,6 +294,7 @@ namespace LibreLancer.Client
                     Price = price
                 });
             }
+
             Trader.SortGoods(session, inventory);
             return inventory.ToArray();
         }
@@ -230,17 +302,36 @@ namespace LibreLancer.Client
         public UIInventoryItem[] GetDealerGoods(string filter)
         {
             List<UIInventoryItem> traderGoods = [];
-            var filterfunc = Trader.GetFilter(filter);
-            for(int i = 0; i < dealerItems.Count; i++)
+            var filterFunc = Trader.GetFilter(filter);
+
+            for (int i = 0; i < dealerItems.Count; i++)
             {
                 var item = dealerItems[i];
-                if (!item.Show) continue;
-                var g = (item.Cargo?.Equipment ?? item.Include.Equipment).Good;
-                if (g == null) continue;
-                if (!filterfunc(g.Equipment)) continue;
+
+                if (!item.Show)
+                {
+                    continue;
+                }
+
+                var g = (item.Cargo?.Equipment ?? item.Include!.Equipment).Good;
+
+                if (g == null)
+                {
+                    continue;
+                }
+
+                if (!filterFunc(g.Equipment))
+                {
+                    continue;
+                }
+
                 var price = GetPrice(g);
+
                 if (g.Equipment is not CommodityEquipment && item.Cargo != null)
+                {
                     price = (ulong) (price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                }
+
                 traderGoods.Add(new UIInventoryItem()
                 {
                     ID = i,
@@ -253,6 +344,7 @@ namespace LibreLancer.Client
                     Price = price
                 });
             }
+
             Trader.SortGoods(session, traderGoods);
             return traderGoods.ToArray();
         }
@@ -260,18 +352,25 @@ namespace LibreLancer.Client
         public void TransferToPlayer(UIInventoryItem item, int count, Closure onSuccess)
         {
             var src = dealerItems[item.ID];
-            if (count > src.Amount) return;
-            var equip = (src.Cargo?.Equipment ?? src.Include.Equipment);
-            if (equip.Good.Ini.Combinable)
+
+            if (count > src.Amount)
+            {
+                return;
+            }
+
+            var equip = (src.Cargo?.Equipment ?? src.Include!.Equipment);
+
+            if (equip.Good!.Ini.Combinable)
             {
                 ShipTradeItem? dst = null;
-                if (src.Cargo != null) {
+
+                if (src.Cargo != null || src.Include != null)
+                {
                     dst = playerItems.FirstOrDefault(x => x.Cargo == src.Cargo);
                 }
-                else if (src.Include != null) {
-                    dst = playerItems.FirstOrDefault(x => x.Cargo == src.Cargo);
-                }
-                if (dst != null) {
+
+                if (dst != null)
+                {
                     dst = new ShipTradeItem()
                     {
                         Cargo = src.Cargo,
@@ -281,7 +380,8 @@ namespace LibreLancer.Client
                     };
                     playerItems.Add(dst);
                 }
-                dst.Amount += count;
+
+                dst!.Amount += count;
             }
             else
             {
@@ -294,27 +394,43 @@ namespace LibreLancer.Client
                     Include = src.Include
                 });
             }
+
             src.Amount -= count;
+
             if (src.Amount <= 0)
+            {
                 dealerItems.Remove(src);
+            }
+
             onSuccess.Call();
         }
 
         public void SellToDealer(UIInventoryItem item, int count, Closure onSuccess)
         {
             var src = playerItems[item.ID];
-            if (count > src.Amount) return;
-            var equip = (src.Cargo?.Equipment ?? src.Include.Equipment);
-            if (equip.Good.Ini.Combinable)
+
+            if (count > src.Amount)
+            {
+                return;
+            }
+
+            var equip = (src.Cargo?.Equipment ?? src.Include!.Equipment);
+
+            if (equip.Good!.Ini.Combinable)
             {
                 ShipTradeItem? dst = null;
-                if (src.Cargo != null) {
+
+                if (src.Cargo != null)
+                {
                     dst = dealerItems.FirstOrDefault(x => x.Cargo == src.Cargo);
                 }
-                else if (src.Include != null) {
+                else if (src.Include != null)
+                {
                     dst = dealerItems.FirstOrDefault(x => x.Cargo == src.Cargo);
                 }
-                if (dst == null) {
+
+                if (dst == null)
+                {
                     dst = new ShipTradeItem()
                     {
                         Cargo = src.Cargo,
@@ -324,6 +440,7 @@ namespace LibreLancer.Client
                     };
                     dealerItems.Add(dst);
                 }
+
                 dst.Amount += count;
             }
             else
@@ -337,9 +454,14 @@ namespace LibreLancer.Client
                     Include = src.Include
                 });
             }
+
             src.Amount -= count;
+
             if (src.Amount <= 0)
+            {
                 playerItems.Remove(src);
+            }
+
             onSuccess.Call();
         }
 
@@ -347,10 +469,12 @@ namespace LibreLancer.Client
         {
             session.BaseRpc.GetShipPackage(ship.Server.PackageCRC).ContinueWith(task =>
             {
-                if (task.Result != null) {
+                if (task.Result != null)
+                {
                     selectedHullPrice = ship.Server.HullPrice;
                 }
-                else {
+                else
+                {
                     return;
                 }
 
@@ -358,10 +482,11 @@ namespace LibreLancer.Client
                 selectedShip = ship.Ship;
                 playerItems = [];
                 dealerItems = [];
-                for (int i = 0; i < task.Result.Included.Length; i++)
+
+                for (int i = 0; i < task.Result.Included!.Length; i++)
                 {
                     var item = task.Result.Included[i];
-                    var eq = session.Game.GameData.Items.Equipment.Get(item.EquipCRC);
+                    var eq = session.Game.GameData.Items.Equipment.Get(item.EquipCRC)!;
                     playerItems.Add(new ShipTradeItem()
                     {
                         Show = eq.Good != null,
@@ -375,75 +500,120 @@ namespace LibreLancer.Client
                         Amount = item.Amount
                     });
                 }
-                foreach (var item in session.Items) {
-                    if (item.Equipment.Good != null)
+
+                foreach (var item in session.Items)
+                {
+                    if (item.Equipment!.Good != null)
                     {
                         string? hp = null;
+
                         if (item.Hardpoint != null && CanMount(item.Equipment.HpType, item.Hardpoint))
+                        {
                             hp = item.Hardpoint;
-                        playerItems.Add(new ShipTradeItem() { Cargo = item, Hardpoint = hp , Amount = item.Count });
+                        }
+
+                        playerItems.Add(new ShipTradeItem() { Cargo = item, Hardpoint = hp, Amount = item.Count });
                     }
                 }
+
                 session.EnqueueAction(() => callback.Call());
             });
         }
 
         private string? FirstAvailableHardpoint(string? hptype)
         {
-            if (string.IsNullOrWhiteSpace(hptype)) return null;
-            if (!selectedShip.PossibleHardpoints.TryGetValue(hptype, out var candidates))
-                return null;
-            foreach (var possible in candidates)
+            if (string.IsNullOrWhiteSpace(hptype))
             {
-                if(!playerItems.Any(x => possible.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
-                    return possible;
+                return null;
             }
-            return null;
+
+
+            if (!selectedShip!.PossibleHardpoints.TryGetValue(hptype, out var candidates))
+            {
+                return null;
+            }
+
+            return candidates.FirstOrDefault(possible =>
+                !playerItems.Any(x => possible.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)));
         }
 
         public double GetRequiredCredits()
         {
-            var price = (long)selectedHullPrice;
+            var price = (long) selectedHullPrice;
+
             foreach (var item in dealerItems)
             {
                 var eq = item.Cargo?.Equipment ?? item.Include?.Equipment;
-                if (eq.Good == null) continue;
+                if (eq?.Good == null)
+                {
+                    continue;
+                }
+
                 var unitPrice = GetPrice(eq.Good);
+
                 if (eq is not CommodityEquipment && item.Cargo != null)
+                {
                     unitPrice *= TradeConstants.EQUIP_RESALE_MULTIPLIER;
+                }
+
                 price -= (long) unitPrice * item.Amount;
             }
+
             foreach (var item in playerItems)
             {
-                if (item.Include?.Equipment?.Good == null) continue;
+                if (item.Include?.Equipment?.Good == null)
+                {
+                    continue;
+                }
+
                 var unitPrice = GetPrice(item.Include.Equipment.Good);
                 price += (long) unitPrice * item.Amount;
             }
-            price -= (long)session.ShipWorth;
-            if (price > session.Credits) {
+
+            price -= (long) session.ShipWorth;
+
+            if (price > session.Credits)
+            {
                 return price - session.Credits;
             }
+
             return 0;
         }
 
         public double GetShipDisplayPrice()
         {
-            var price = (long)selectedHullPrice;
+            var price = (long) selectedHullPrice;
+
             foreach (var item in dealerItems)
             {
                 var eq = item.Cargo?.Equipment ?? item.Include?.Equipment;
-                if (eq.Good == null) continue;
+
+                if (eq?.Good == null)
+                {
+                    continue;
+                }
+
                 var unitPrice = GetPrice(eq.Good);
+
                 if (eq is not CommodityEquipment && item.Cargo != null)
+                {
                     unitPrice *= TradeConstants.EQUIP_RESALE_MULTIPLIER;
+                }
+
                 price -= (long) unitPrice * item.Amount;
             }
+
             foreach (var item in playerItems)
             {
-                if (item.Include?.Equipment?.Good == null) continue;
+                if (item.Include?.Equipment?.Good == null)
+                {
+                    continue;
+                }
+
                 var unitPrice = GetPrice(item.Include.Equipment.Good);
                 price += (long) unitPrice * item.Amount;
             }
+
             return price < 0 ? 0 : price;
         }
 
@@ -457,13 +627,16 @@ namespace LibreLancer.Client
             else
             {
                 var x = playerItems[item.ID];
-                var eq = (x.Cargo?.Equipment ?? x.Include.Equipment);
-                var hp = FirstAvailableHardpoint(eq.HpType);
-                if (hp != null)
+                var eq = (x.Cargo?.Equipment ?? x.Include?.Equipment);
+                var hp = FirstAvailableHardpoint(eq?.HpType);
+
+                if (hp == null)
                 {
-                    playerItems[item.ID].Hardpoint = hp;
-                    onsuccess.Call("mount");
+                    return;
                 }
+
+                playerItems[item.ID].Hardpoint = hp;
+                onsuccess.Call("mount");
             }
         }
     }

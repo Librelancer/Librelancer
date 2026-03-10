@@ -131,7 +131,7 @@ namespace LibreLancer.Render.Materials
             {
                 if (fvf.Normal)
                 {
-                    bool normalMap = !string.IsNullOrEmpty(NmSampler);
+                    var normalMap = !string.IsNullOrEmpty(NmSampler);
 
                     if (fvf.Diffuse)
                     {
@@ -189,9 +189,9 @@ namespace LibreLancer.Render.Materials
 
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
         {
-            bool pbr = (!string.IsNullOrWhiteSpace(RtSampler) ||
-                        !string.IsNullOrWhiteSpace(MtSampler) || Metallic != null || Roughness != null) &&
-                       lights.Enabled;
+            var pbr = (!string.IsNullOrWhiteSpace(RtSampler) ||
+                       !string.IsNullOrWhiteSpace(MtSampler) || Metallic != null || Roughness != null) &&
+                      lights.Enabled;
             var dxt1 = GetDxt1();
 
             var shader = pbr ? GetPBRShader(vertextype) : GetRegularShader(vertextype);

@@ -13,11 +13,11 @@ namespace LibreLancer.Fx
     {
         public bool QuadTexture = true;
         public bool MotionBlur;
-        public AlchemyColorAnimation? Color;
-        public AlchemyFloatAnimation? Alpha;
+        public AlchemyColorAnimation Color;
+        public AlchemyFloatAnimation Alpha = null!;
         public AlchemyFloatAnimation? HToVAspect;
         public AlchemyFloatAnimation? Rotate;
-        public AlchemyFloatAnimation? Size;
+        public AlchemyFloatAnimation Size;
         public ushort BlendInfo = BlendMode.Normal;
         public string Texture = "";
         public bool UseCommonTexFrame = false;
@@ -36,8 +36,8 @@ namespace LibreLancer.Fx
             }
 
             MotionBlur = ale.GetBoolean(AleProperty.BasicApp_MotionBlur);
-            Color = ale.GetColorAnimation(AleProperty.BasicApp_Color);
-            Alpha = ale.GetFloatAnimation(AleProperty.BasicApp_Alpha);
+            Color = ale.GetColorAnimation(AleProperty.BasicApp_Color)!;
+            Alpha = ale.GetFloatAnimation(AleProperty.BasicApp_Alpha)!;
             HToVAspect = ale.GetFloatAnimation(AleProperty.BasicApp_HToVAspect, false);
             Rotate = ale.GetFloatAnimation(AleProperty.BasicApp_Rotate, false);
             Texture = ale.GetString(AleProperty.BasicApp_TexName) ?? "";
@@ -46,7 +46,7 @@ namespace LibreLancer.Fx
             CommonTexFrame = ale.GetCurveAnimation(AleProperty.BasicApp_CommonTexFrame, false);
             FlipHorizontal = ale.GetBoolean(AleProperty.BasicApp_FlipTexU);
             FlipVertical = ale.GetBoolean(AleProperty.BasicApp_FlipTexV);
-            Size = ale.GetFloatAnimation(AleProperty.BasicApp_Size);
+            Size = ale.GetFloatAnimation(AleProperty.BasicApp_Size)!;
 
             if (ale.TryGetParameter(AleProperty.BasicApp_BlendInfo, out var temp))
             {
@@ -78,25 +78,15 @@ namespace LibreLancer.Fx
                 n.Parameters.Add(new(AleProperty.BasicApp_MotionBlur, true));
             }
 
-            if (Color is not null)
-            {
-                n.Parameters.Add(new(AleProperty.BasicApp_Color, Color));
-            }
-
-            if (Alpha != null)
-            {
-                n.Parameters.Add(new(AleProperty.BasicApp_Alpha, Alpha));
-            }
+            n.Parameters.Add(new(AleProperty.BasicApp_Color, Color));
+            n.Parameters.Add(new(AleProperty.BasicApp_Alpha, Alpha));
 
             if (HToVAspect != null)
             {
                 n.Parameters.Add(new(AleProperty.BasicApp_HToVAspect, HToVAspect));
             }
 
-            if (Size != null)
-            {
-                n.Parameters.Add(new(AleProperty.BasicApp_Size, Size));
-            }
+            n.Parameters.Add(new(AleProperty.BasicApp_Size, Size));
 
             if (Rotate != null)
             {
@@ -151,13 +141,13 @@ namespace LibreLancer.Fx
                 ref var particle = ref instance.Buffer[nodeIdx, i];
                 var time = particle.TimeAlive / particle.LifeSpan;
                 var p = Vector3.Transform(Vector3.Transform(particle.Position, particle.Orientation), nodeTr);
-                var c = Color?.GetValue(sparam, time);
-                var a = Alpha?.GetValue(sparam, time) ?? 1f;
+                var c = Color.GetValue(sparam, time);
+                var a = Alpha.GetValue(sparam, time);
                 instance.Pool?.AddBasic(
                     TextureHandler,
                     p,
                     new Vector2(Size?.GetValue(sparam, time) ?? 1.0f) * 2,
-                    new Color4(c ?? Color3f.White, a),
+                    new Color4(c, a),
                     GetFrame((float) instance.GlobalTime, sparam, ref particle),
                     Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
                     FlipHorizontal, FlipVertical
@@ -167,7 +157,7 @@ namespace LibreLancer.Fx
             instance.Pool?.DrawBuffer(this, instance.Resources!, transform, (instance.DrawIndex << 11) + nodeIdx);
         }
 
-        public ParticleTexture TextureHandler = new();
+        public readonly ParticleTexture TextureHandler = new();
 
         protected float GetFrame(float globaltime, float sparam, ref Particle particle)
         {

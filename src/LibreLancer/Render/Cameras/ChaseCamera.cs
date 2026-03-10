@@ -145,8 +145,8 @@ namespace LibreLancer.Render.Cameras
 
             if (!MouseFlight) mouseScreenX = mouseScreenY = 0;
 
-            float horizontal = 0f;
-            float vertical = 0f;
+            var horizontal = 0f;
+            var vertical = 0f;
             horizontal = HorizontalTurnAngle * mouseScreenX;
             vertical = (mouseScreenY < 0.0f) ? VerticalTurnUpAngle * mouseScreenY : VerticalTurnDownAngle * mouseScreenY;
 

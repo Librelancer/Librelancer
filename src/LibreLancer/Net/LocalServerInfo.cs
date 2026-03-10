@@ -9,13 +9,13 @@ namespace LibreLancer.Net
 {
 	public class LocalServerInfo
 	{
-		public string Name;
-        public Guid Unique;
-		public string Description;
-        public string DataVersion;
-		public int CurrentPlayers;
-		public int MaxPlayers;
-		public IPEndPoint EndPoint;
+		public required string Name;
+        public required Guid Unique;
+		public required string Description;
+        public required string DataVersion;
+		public required int CurrentPlayers;
+		public required int MaxPlayers;
+		public required IPEndPoint EndPoint;
         public int Ping = -1;
         internal long LastPingTime;
 	}

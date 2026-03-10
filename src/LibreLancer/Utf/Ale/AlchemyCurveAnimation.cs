@@ -30,10 +30,12 @@ namespace LibreLancer.Utf.Ale
 			int scount = reader.ReadByte ();
 			Items = new List<AlchemyCurve> (scount);
 			for (int i = 0; i < scount; i++) {
-				var cpkf = new AlchemyCurve ();
-				cpkf.SParam = reader.ReadSingle ();
-				cpkf.Value = reader.ReadSingle ();
-				ushort loop = reader.ReadUInt16 ();
+				var cpkf = new AlchemyCurve
+                {
+                    SParam = reader.ReadSingle (),
+                    Value = reader.ReadSingle ()
+                };
+                ushort loop = reader.ReadUInt16 ();
 				cpkf.Flags = (LoopFlags)loop;
 				ushort lcnt = reader.ReadUInt16 ();
 				if (loop != 0 || lcnt != 0) {

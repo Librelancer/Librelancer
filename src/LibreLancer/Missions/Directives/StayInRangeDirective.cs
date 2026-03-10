@@ -67,7 +67,7 @@ public class StayInRangeDirective : MissionDirective
         var vb = new List<ValueBase>();
         if (UseObject)
         {
-            vb.Add(new StringValue(Object));
+            vb.Add(new StringValue(Object!));
         }
         else
         {

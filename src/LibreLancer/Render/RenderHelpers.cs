@@ -49,11 +49,11 @@ namespace LibreLancer.Render
                     lights.FogRange = new Vector2(src.FogDensity, 0);
                 }
             }
-            int lc = 0;
+            var lc = 0;
 			if (ldynamic)
 			{
                 lights.Lights.SourceLighting = src;
-				for (int i = 0; i < src.Lights.Count; i++)
+				for (var i = 0; i < src.Lights.Count; i++)
 				{
 
 					if (src.Lights[i].LightGroup != lightGroup)

@@ -50,8 +50,10 @@ namespace LibreLancer.Sur
 
         public static SurfacePart Read(BinaryReader reader)
         {
-            var surf = new SurfacePart();
-            surf.Crc = reader.ReadUInt32();
+            var surf = new SurfacePart
+            {
+                Crc = reader.ReadUInt32()
+            };
             uint sectionCount = reader.ReadUInt32();
             while (sectionCount-- > 0) {
                 var sectionId = reader.ReadUInt32();

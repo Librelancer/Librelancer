@@ -8,24 +8,26 @@ namespace LibreLancer.Utf.Anm
 {
     public struct ObjectMap
     {
-        public string ParentName;
-        public string ChildName;
+        public string ParentName = null!;
+        public string ChildName = null!;
         public Channel Channel;
 
         public ObjectMap(IntermediateNode root, AnmBuffer buffer, StringDeduplication? dedup = null)
         {
             foreach (Node node in root)
             {
+                var leaf = (node as LeafNode)!;
+                var intermediate = (node as IntermediateNode)!;
                 if (node.Name.Equals("parent name", StringComparison.OrdinalIgnoreCase))
                     ParentName = dedup == null
-                        ? (node as LeafNode).StringData
-                        : dedup.Get((node as LeafNode).StringData);
+                        ? leaf.StringData
+                        : dedup.Get(leaf.StringData);
                 else if (node.Name.Equals("child name", StringComparison.OrdinalIgnoreCase))
                     ChildName = dedup == null
-                    ? (node as LeafNode).StringData
-                    : dedup.Get((node as LeafNode).StringData);
+                        ? leaf.StringData
+                        : dedup.Get(leaf.StringData);
                 else if (node.Name.Equals("channel", StringComparison.OrdinalIgnoreCase))
-                    Channel = new Channel(node as IntermediateNode, buffer);
+                    Channel = new Channel(intermediate, buffer);
             }
         }
     }

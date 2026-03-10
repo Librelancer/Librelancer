@@ -29,9 +29,9 @@ namespace LibreLancer.World
     {
         public readonly PhysicsWorld? Physics;
         public readonly SystemRenderer? Renderer;
-        public readonly ProjectileManager? Projectiles;
+        public readonly ProjectileManager Projectiles = null!;
 
-        public ServerWorld? Server;
+        public ServerWorld Server = null!;
 
         private List<GameObject> objects = [];
         private Dictionary<int, GameObject> netIDLookup = new();
@@ -47,7 +47,7 @@ namespace LibreLancer.World
             EquipmentHandlers.Register();
         }
 
-        public GameWorld(SystemRenderer? render, ResourceManager resources, Func<double> timeSource,
+        public GameWorld(SystemRenderer? render, ResourceManager resources, Func<double>? timeSource,
             bool initPhys = true)
         {
             if (initPhys)
@@ -74,7 +74,7 @@ namespace LibreLancer.World
             }
         }
 
-        public void InitObject(GameObject g, bool reinit, SystemObject obj, ResourceManager res, SoundManager snd,
+        public void InitObject(GameObject g, bool reinit, SystemObject obj, ResourceManager res, SoundManager? snd,
             bool server,
             bool changeLoadout = false, ObjectLoadout? newLoadout = null, Archetype? changedArch = null,
             OptionalArgument<Sun> changedStar = default,
@@ -86,10 +86,11 @@ namespace LibreLancer.World
                 g.ClearAll(Physics);
             }
 
-            var arch = changedArch ?? obj.Archetype;
-            var sun = changedStar.Get(obj.Star);
+            var arch = (changedArch ?? obj.Archetype)!;
+            var sun = changedStar.Get(obj.Star!);
             var loadout = changeLoadout ? newLoadout : obj.Loadout;
             g.InitWithArchetype(arch, sun, res, Renderer != null);
+
             if (obj.IdsLeft != 0 && obj.IdsRight != 0)
             {
                 g.Name = new TradelaneName(g, obj.IdsLeft, obj.IdsRight);
@@ -102,11 +103,12 @@ namespace LibreLancer.World
             g.Nickname = obj.Nickname;
             g.SystemObject = obj;
             g.SetLocalTransform(new Transform3D(obj.Position, obj.Rotation));
+
             if (loadout != null)
             {
                 g.SetLoadout(loadout, snd);
             }
-            else if (arch?.Loadout != null)
+            else if (arch.Loadout != null)
             {
                 g.SetLoadout(arch.Loadout, snd);
             }
@@ -119,26 +121,25 @@ namespace LibreLancer.World
                 mr.Spin = obj.Spin;
             }
 
-            if (obj.Dock != null)
+            // Dock with no DockSphere?
+            if (obj.Dock != null && arch.DockSpheres.Count > 0)
             {
-                if (arch.DockSpheres.Count > 0) // Dock with no DockSphere?
+                if (server)
                 {
-                    if (server)
-                    {
-                        g.AddComponent(new SDockableComponent(g, obj.Dock, arch.DockSpheres.ToArray()));
-                    }
-
-                    g.AddComponent(new DockInfoComponent(g)
-                    {
-                        Action = obj.Dock,
-                        Spheres = arch.DockSpheres.ToArray()
-                    });
+                    g.AddComponent(new SDockableComponent(g, obj.Dock, arch.DockSpheres.ToArray()));
                 }
+
+                g.AddComponent(new DockInfoComponent(g)
+                {
+                    Action = obj.Dock,
+                    Spheres = arch.DockSpheres.ToArray()
+                });
             }
 
             if (server)
             {
                 g.AddComponent(new SHealthComponent(g) { InfiniteHealth = true, CurrentHealth = 100, MaxHealth = 100 });
+
                 if (arch.IsUpdatableSolar() || obj.Faction != null)
                 {
                     g.AddComponent(new SSolarComponent(g) { Faction = obj.Faction });
@@ -155,20 +156,24 @@ namespace LibreLancer.World
             g.Register(Physics);
         }
 
-        public GameObject NewObject(SystemObject obj, ResourceManager res, SoundManager snd, bool server,
+        public void NewObject(SystemObject obj, ResourceManager res, SoundManager? snd, bool server,
             bool changeLoadout = false, ObjectLoadout? newLoadout = null, Archetype? changedArch = null,
             OptionalArgument<Sun> changedStar = default, Func<int>? netId = null)
         {
             var g = new GameObject();
             InitObject(g, false, obj, res, snd, server, changeLoadout, newLoadout, changedArch, changedStar, netId);
-            return g;
         }
 
-        public void LoadSystem(StarSystem sys, ResourceManager res, SoundManager snd, bool server,
+        public void LoadSystem(StarSystem sys, ResourceManager res, SoundManager? snd, bool server,
             bool loadRenderer = true)
         {
-            foreach (var g in objects)
-                g.Unregister(Physics);
+            if (Physics is not null)
+            {
+                foreach (var g in objects)
+                {
+                    g.Unregister(Physics);
+                }
+            }
 
             if (Renderer != null && loadRenderer)
             {
@@ -176,23 +181,23 @@ namespace LibreLancer.World
             }
 
             objects = [];
-            if (Renderer != null && Projectiles != null)
+
+            if (Renderer != null)
             {
                 AddObject((new GameObject()
                     { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
             }
 
             Func<int>? netId = null;
-            List<int>? toFree = null;
+            List<int> toFree = [];
 
             // Allocate netIds for system objects, use even numbers only
             // so that NPCs can be encoded in fewer bytes
             if (server)
             {
-                toFree = [];
                 netId = () =>
                 {
-                    toFree.Add(Server.IdGenerator.Allocate());
+                    toFree.Add(Server!.IdGenerator.Allocate());
                     return Server.IdGenerator.Allocate();
                 };
             }
@@ -205,13 +210,17 @@ namespace LibreLancer.World
             if (server)
             {
                 foreach (var id in toFree)
-                    Server.IdGenerator.Free(id);
+                {
+                    Server!.IdGenerator.Free(id);
+                }
             }
 
             foreach (var field in sys.AsteroidFields)
             {
-                var g = new GameObject();
-                g.Resources = res;
+                var g = new GameObject
+                {
+                    Resources = res
+                };
                 g.AddComponent(new AsteroidFieldComponent(field, res, g));
                 AddObject(g);
                 g.Register(Physics);
@@ -241,7 +250,7 @@ namespace LibreLancer.World
 
             foreach (var tr in CrcTranslation)
             {
-                var obj = GetObject(tr.CRC);
+                var obj = GetObject(tr.CRC)!;
                 obj.NetID = tr.NetID;
                 netIDLookup.Add(tr.NetID, obj);
             }
@@ -251,6 +260,7 @@ namespace LibreLancer.World
         {
             obj.World = this;
             objects.Add(obj);
+
             if (timeSource != null)
             {
                 obj.AnimationComponent?.SetTimeSource(timeSource);
@@ -275,6 +285,7 @@ namespace LibreLancer.World
             SpatialLookup.RemoveObject(obj);
         }
 
+        // TODO: Update calls to use TryGet when can be null, remove nullability from below function
         public GameObject? GetNetObject(int id)
         {
             netIDLookup.TryGetValue(id, out var go);
@@ -307,46 +318,47 @@ namespace LibreLancer.World
 
         public void Update(double t)
         {
-            Projectiles?.Update(t);
-
-            for (int i = 0; i < objects.Count; i++)
+            if (Physics is not null)
             {
-                objects[i].PhysicsComponent?.SetOldTransform();
-                objects[i].Update(t);
+                Projectiles.Update(t);
+            }
+
+            foreach (var obj in objects)
+            {
+                obj.PhysicsComponent?.SetOldTransform();
+                obj.Update(t);
             }
 
             Physics?.StepSimulation((float) t);
 
-            for (int i = 0; i < objects.Count; i++)
+            foreach (var obj in objects)
             {
-                objects[i].PhysicsComponent?.Update(t);
-                SpatialLookup.UpdatePosition(objects[i], objects[i].WorldTransform.Position);
+                obj.PhysicsComponent?.Update(t);
+                SpatialLookup.UpdatePosition(obj, obj.WorldTransform.Position);
             }
         }
 
         public void UpdateInterpolation(float fraction)
         {
-            for (int i = 0; i < objects.Count; i++)
+            foreach (var obj in objects)
             {
-                objects[i].PhysicsComponent?.UpdateInterpolation(fraction);
+                obj.PhysicsComponent?.UpdateInterpolation(fraction);
             }
         }
 
         public void RenderUpdate(double t)
         {
-            if (Renderer != null)
-            {
 #if DEBUG
-                Renderer.UseDebugPoints(DebugPoints);
+            Renderer?.UseDebugPoints(DebugPoints);
 #endif
-                Renderer.Update(t);
-            }
+            Renderer?.Update(t);
 
-            for (int i = 0; i < objects.Count; i++)
-                objects[i].RenderUpdate(t);
+            foreach (var obj in objects)
+                obj.RenderUpdate(t);
         }
 
-        public GameObject? GetSelection(ICamera camera, GameObject self, float x, float y, float vpWidth, float vpHeight)
+        public GameObject? GetSelection(ICamera camera, GameObject self, float x, float y, float vpWidth,
+            float vpHeight)
         {
 
             var cameraProjection = camera.Projection;
@@ -357,16 +369,12 @@ namespace LibreLancer.World
             var end = Vector3Ex.UnProject(new Vector3(x, y, 1f), cameraProjection, cameraView, vp);
             var dir = (end - start).Normalized();
 
-            var result = SelectionCast(
-                camera,
-                start,
-                dir,
-                50000,
-                self,
-                out var rb
-            );
+            if (!SelectionCast(camera, start, dir, 50000, self, out var rb))
+            {
+                return null;
+            }
 
-            return result && rb.Tag is GameObject tag ? tag : null;
+            return rb.Tag as GameObject;
         }
 
         // Select by bounding box, not by mesh
@@ -408,6 +416,7 @@ namespace LibreLancer.World
                     }
 
                     var p2 = rayOrigin + (direction * res.Value);
+
                     if (res == 0.0)
                     {
                         p2 = rb.Position;
@@ -427,6 +436,7 @@ namespace LibreLancer.World
                 {
                     // var tag = rb.Tag as GameObject;
                     var box = rb.GetBoundingBox();
+
                     if (!rb.GetBoundingBox().RayIntersect(ref rayOrigin, ref jitterDir))
                     {
                         continue;

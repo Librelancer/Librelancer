@@ -41,12 +41,14 @@ namespace LibreLancer.Utf
 		protected PrisConstruct(PrisConstruct cloneFrom) : base(cloneFrom) { }
 		public override AbstractConstruct Clone()
 		{
-			var newc = new PrisConstruct(this);
-			newc.Offset = Offset;
-			newc.AxisTranslation = AxisTranslation;
-			newc.Min = Min;
-			newc.Max = Max;
-			return newc;
+			var newc = new PrisConstruct(this)
+            {
+                Offset = Offset,
+                AxisTranslation = AxisTranslation,
+                Min = Min,
+                Max = Max
+            };
+            return newc;
 		}
         public override void Reset()
         {

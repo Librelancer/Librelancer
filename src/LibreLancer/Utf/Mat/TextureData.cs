@@ -11,8 +11,6 @@ namespace LibreLancer.Utf.Mat
 {
 	public class TextureData
 	{
-        public static bool Bitch = false;
-
 		private string type;
 		private string texname;
         private ArraySegment<byte>? data;
@@ -55,8 +53,6 @@ namespace LibreLancer.Utf.Mat
 						var tga = ImageLib.TGA.TextureFromStream(context, stream, levels != null);
                         if(tga == null) {
                             FLLog.Error("Mat","Texture " + texname + "\\MIP0" + " is bad");
-                            if (Bitch) throw new Exception("Your texture data is bad, fix it!\n" +
-                                                           texname + "\\MIP0 to be exact");
                             Texture = null;
                             return;
                         }

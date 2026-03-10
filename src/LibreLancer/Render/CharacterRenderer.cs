@@ -42,24 +42,25 @@ namespace LibreLancer.Render
                     Vector3.Transform(center, transform), radius, nr,
                     LitAmbient, LitDynamic, NoFog
                 );
+
                 Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
                 Skeleton.Body.DrawBuffer(commands, transform, ref lighting);
 
                 if (Skeleton.Head != null)
                 {
-                    Skeleton.Head.SetSkinning(Skeleton.HeadSkinning);
+                    Skeleton.Head.SetSkinning(Skeleton.HeadSkinning!);
                     Skeleton.Head.DrawBuffer(commands, headTransform, ref lighting);
                 }
 
                 if (Skeleton.LeftHand != null)
                 {
-                    Skeleton.LeftHand.SetSkinning(Skeleton.LeftHandSkinning);
+                    Skeleton.LeftHand.SetSkinning(Skeleton.LeftHandSkinning!);
                     Skeleton.LeftHand.DrawBuffer(commands, leftTransform, ref lighting);
                 }
 
                 if (Skeleton.RightHand != null)
                 {
-                    Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning);
+                    Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning!);
                     Skeleton.RightHand.DrawBuffer(commands, rightTransform, ref lighting);
                 }
             }

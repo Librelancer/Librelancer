@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using LibreLancer.Data;
@@ -76,8 +77,7 @@ public class GameDataManager
                      .OfType<string>())
         {
             using var stream = Items.VFS.Open(path);
-            AnmFile.ParseToTable(characterAnimations.Scripts, characterAnimations.Buffer, stringTable, stream,
-                path);
+            AnmFile.ParseToTable(characterAnimations.Scripts, characterAnimations.Buffer, stringTable, stream, path);
         }
 
         characterAnimations.Buffer.Shrink();
@@ -99,8 +99,8 @@ public class GameDataManager
 
     public Texture2D? GetSplashScreen()
     {
-        const string splashTextureFileName = "__startupscreen.tga";
-        const string splashTextureFileNameLarge = "__startupscreen_1280.tga";
+        const string splashTextureFileName = "startupscreen.tga";
+        const string splashTextureFileNameLarge = "startupscreen_1280.tga";
 
         if (glResource is null)
         {
@@ -109,12 +109,12 @@ public class GameDataManager
 
         if (glResource.TextureExists(splashTextureFileNameLarge))
         {
-            return (Texture2D?)Resources.FindTexture(splashTextureFileNameLarge);
+            return Resources.FindTexture(splashTextureFileNameLarge) as Texture2D;
         }
 
         if (glResource.TextureExists(splashTextureFileName))
         {
-            return (Texture2D?)Resources.FindTexture(splashTextureFileName);
+            return Resources.FindTexture(splashTextureFileName) as Texture2D;
         }
 
         if (Items.VFS.FileExists(Items.Ini.Freelancer.DataPath + $"INTERFACE/INTRO/IMAGES/{splashTextureFileNameLarge}"))
@@ -124,7 +124,7 @@ public class GameDataManager
                 Items.DataPath($"INTERFACE/INTRO/IMAGES/{splashTextureFileNameLarge}")!
             );
 
-            return (Texture2D)glResource.FindTexture(splashTextureFileNameLarge);
+            return glResource.FindTexture(splashTextureFileNameLarge) as Texture2D;
         }
 
         if (Items.VFS.FileExists(Items.Ini.Freelancer.DataPath + $"INTERFACE/INTRO/IMAGES/{splashTextureFileName}"))
@@ -134,7 +134,7 @@ public class GameDataManager
                 Items.DataPath($"INTERFACE/INTRO/IMAGES/{splashTextureFileName}")!
             );
 
-            return (Texture2D)glResource.FindTexture(splashTextureFileName);
+            return glResource.FindTexture(splashTextureFileName) as Texture2D;
         }
 
         FLLog.Error("Splash", "Splash screen not found");
@@ -144,15 +144,23 @@ public class GameDataManager
     private void PreloadSur(IDrawable dr, ResourceManager res)
     {
         if (dr is not IRigidModelFile rm)
+        {
             return;
+        }
+
         var mdl = rm.CreateRigidModel(res is GameResourceManager, res);
         var surpath = Path.ChangeExtension(mdl.Path, ".sur");
         if (!File.Exists(surpath))
+        {
             return;
+        }
+
         var cvx = res.ConvexCollection.UseFile(surpath);
 
         if (mdl.Source == RigidModelSource.SinglePart)
+        {
             res.ConvexCollection.CreateShape(cvx, new ConvexMeshId(0, 0));
+        }
         else
         {
             foreach (var p in mdl.AllParts)
@@ -170,20 +178,27 @@ public class GameDataManager
 
         foreach (var o in objs)
         {
-            if (o.Type == PreloadType.Ship)
+            switch (o.Type)
             {
-                foreach (var v in o.Values)
+                case PreloadType.Ship:
                 {
-                    var sh = Items.Ships.Get(v);
-                    sh?.ModelFile?.LoadFile(resources);
+                    foreach (var v in o.Values)
+                    {
+                        var sh = Items.Ships.Get(v);
+                        sh?.ModelFile?.LoadFile(resources);
+                    }
+
+                    break;
                 }
-            }
-            else if (o.Type == PreloadType.Equipment)
-            {
-                foreach (var v in o.Values)
+                case PreloadType.Equipment:
                 {
-                    var eq = Items.Equipment.Get(v);
-                    eq?.ModelFile?.LoadFile(resources);
+                    foreach (var v in o.Values)
+                    {
+                        var eq = Items.Equipment.Get(v);
+                        eq?.ModelFile?.LoadFile(resources);
+                    }
+
+                    break;
                 }
             }
         }
@@ -193,7 +208,11 @@ public class GameDataManager
 
     public void PopulateCursors()
     {
-        if (cursorsDone) return;
+        if (cursorsDone)
+        {
+            return;
+        }
+
         cursorsDone = true;
 
         Resources.LoadResourceFile(Items.DataPath(Items.Ini.Mouse.TxmFile!)!);
@@ -201,14 +220,17 @@ public class GameDataManager
         foreach (var lc in Items.Ini.Mouse.Cursors)
         {
             var shape = Items.Ini.Mouse.Shapes.First(arg => arg.Name!.Equals(lc.Shape, StringComparison.OrdinalIgnoreCase));
-            var cur = new Cursor();
-            cur.Nickname = lc.Nickname;
-            cur.Scale = lc.Scale;
-            cur.Spin = lc.Spin;
-            cur.Color = lc.Color;
-            cur.Hotspot = lc.Hotspot;
-            cur.Dimensions = shape.Dimensions;
-            cur.Texture = Items.Ini.Mouse.TextureName;
+            var cur = new Cursor
+            {
+                Nickname = lc.Nickname,
+                Scale = lc.Scale,
+                Spin = lc.Spin,
+                Color = lc.Color,
+                Hotspot = lc.Hotspot,
+                Dimensions = shape.Dimensions,
+                Texture = Items.Ini.Mouse.TextureName
+            };
+
             glResource?.AddCursor(cur, cur.Nickname);
         }
     }
@@ -231,7 +253,7 @@ public class GameDataManager
     public Stream? GetAudioStream(string id)
     {
         var audio = Items.Ini.Audio.Entries.FirstOrDefault((arg) =>
-            arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant());
+            string.Equals(arg.Nickname, id, StringComparison.InvariantCultureIgnoreCase));
 
         if (audio != null)
         {
@@ -261,7 +283,7 @@ public class GameDataManager
         return Infocards.RDLParse.Parse(Items.Ini.Infocards.GetXmlResource(id), fonts);
     }
 
-    public bool GetRelatedInfocard(int ogId, FontManager fonts, out Infocards.Infocard? ic)
+    public bool GetRelatedInfocard(int ogId, FontManager fonts, [MaybeNullWhen(false)] out Infocards.Infocard ic)
     {
         ic = null;
 
@@ -377,11 +399,6 @@ public class GameDataManager
     public Dictionary<string, string> GetBaseNavbarIcons()
     {
         return Items.Ini.BaseNavBar.Navbar;
-    }
-
-    public List<string> GetIntroMovies()
-    {
-        return Items.Ini.Freelancer.StartupMovies.Select(file => Items.DataPath(file)).OfType<string>().ToList();
     }
 
     public bool GetCostume(string costume, out Bodypart? body, out Bodypart? head, out Bodypart? leftHand,

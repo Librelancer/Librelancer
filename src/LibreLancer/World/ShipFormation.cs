@@ -19,7 +19,7 @@ namespace LibreLancer.World
 
         public ulong Hash => (ulong)Version | (((ulong)ID) << 32);
 
-        public GameObject LeadShip { get; private set; }
+        public GameObject LeadShip { get; private set; } = null!;
         public IReadOnlyList<GameObject> Followers => _followers;
 
         private List<GameObject> _followers = [];
@@ -142,11 +142,13 @@ namespace LibreLancer.World
 
         public NetFormation ToNetFormation(GameObject self)
         {
-            var nf = new NetFormation();
-            nf.Exists = true;
-            nf.LeadShip = GetId(LeadShip, self);
-            nf.Followers = Followers.Select(x => GetId(x, self)).ToArray();
-            nf.YourPosition = PlayerPosition ?? GetShipOffset(self);
+            var nf = new NetFormation
+            {
+                Exists = true,
+                LeadShip = GetId(LeadShip, self),
+                Followers = Followers.Select(x => GetId(x, self)).ToArray(),
+                YourPosition = PlayerPosition ?? GetShipOffset(self)
+            };
             return nf;
         }
 

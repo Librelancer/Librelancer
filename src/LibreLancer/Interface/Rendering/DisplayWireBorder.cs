@@ -9,7 +9,7 @@ namespace LibreLancer.Interface
     public class DisplayWireBorder : DisplayElement
     {
         public float Width { get; set; } = 1;
-        public InterfaceColor Color { get; set; }
+        public InterfaceColor? Color { get; set; }
 
         public override void Render(UiContext context, RectangleF clientRectangle)
         {

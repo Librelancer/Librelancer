@@ -28,27 +28,38 @@ public class CMuzzleFlashComponent : GameComponent
         }
     }
 
-    public override void Register(PhysicsWorld physics)
+    public override void Register(PhysicsWorld? physics)
     {
-        if (Object.FlashEffect == null || GetResourceManager() == null) return;
-        var pfx = Object.FlashEffect.GetEffect(GetResourceManager());
-        if (pfx == null) return;
+        var resManager = GetResourceManager();
+        if (Object.FlashEffect == null || resManager == null)
+        {
+            return;
+        }
 
-        var hpfires = Parent.GetHardpoints()
-            .Where((x) => x.Name.StartsWith("hpfire", StringComparison.CurrentCultureIgnoreCase)).ToArray();
+        var pfx = Object.FlashEffect.GetEffect(resManager);
+        if (pfx == null)
+        {
+            return;
+        }
+
+        var hpfires = Parent.GetHardpoints().Where((x) => x.Name.StartsWith("hpfire", StringComparison.CurrentCultureIgnoreCase)).ToArray();
         foreach (var fire in hpfires)
         {
-            var pr = new ParticleEffectRenderer(pfx);
-            pr.Active = false;
-            pr.Attachment = fire;
+            var pr = new ParticleEffectRenderer(pfx)
+            {
+                Active = false,
+                Attachment = fire
+            };
             Parent.ExtraRenderers.Add(pr);
         }
 
     }
 
-    public override void Unregister(Physics.PhysicsWorld physics)
+    public override void Unregister(PhysicsWorld? physics)
     {
-        for (int i = 0; i < Renderers.Count; i++)
-            Parent.ExtraRenderers.Remove(Renderers[i]);
+        foreach (var renderer in Renderers)
+        {
+            Parent.ExtraRenderers.Remove(renderer);
+        }
     }
 }

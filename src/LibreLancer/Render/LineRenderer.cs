@@ -19,17 +19,20 @@ namespace LibreLancer.Render
         private VertexPositionColor[] lines = new VertexPositionColor[MAX_LINES * 2];
         private VertexBuffer linebuffer;
         private int lineVertices = 0;
-        public string SkeletonHighlight;
+        public string SkeletonHighlight = "";
 
         private Shader shader;
+        private RenderContext rstate;
+
 		public LineRenderer(RenderContext rstate)
         {
+            this.rstate = rstate;
+
             AllShaders.CompilePhysicsDebug(rstate);
             shader = AllShaders.PhysicsDebug.Get(0);
 			linebuffer = new VertexBuffer(rstate, typeof(VertexPositionColor), MAX_LINES * 2, true);
 		}
 
-        private RenderContext rstate;
 		public void StartFrame(RenderContext rs)
 		{
 			rstate = rs;
@@ -43,6 +46,7 @@ namespace LibreLancer.Render
                 Render();
                 lineVertices = 0;
             }
+
             lines[lineVertices++] = new VertexPositionColor(start, color);
             lines[lineVertices++] = new VertexPositionColor(end, color);
         }
@@ -60,7 +64,7 @@ namespace LibreLancer.Render
 
         public void DrawTriangleMesh(Matrix4x4 mat, Vector3[] positions, int[] indices, Color4 color)
         {
-            for(int i = 1; i < indices.Length; i++)
+            for(var i = 1; i < indices.Length; i++)
             {
                 var p1 = positions[indices[i - 1]];
                 var p2 = positions[indices[i]];
@@ -94,7 +98,7 @@ namespace LibreLancer.Render
 
         public void DrawCube(Matrix4x4 world, float scale, Color4 color)
         {
-            for (int i = 0; i < cubeIndices.Length; i += 2)
+            for (var i = 0; i < cubeIndices.Length; i += 2)
             {
                 var a = Vector3.Transform(cubeVerts[cubeIndices[i]] * scale, world);
                 var b = Vector3.Transform(cubeVerts[cubeIndices[i + 1]] * scale, world);

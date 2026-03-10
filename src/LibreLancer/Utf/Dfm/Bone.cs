@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Utf.Cmp;
 
@@ -30,23 +31,23 @@ namespace LibreLancer.Utf.Dfm
 				switch (subNode.Name.ToLowerInvariant())
 				{
 				case "bone to root":
-                        BoneToRoot = (subNode as LeafNode).MatrixData4x3.Value;
+                        BoneToRoot = ((subNode as LeafNode)!).MatrixData4x3!.Value;
 					break;
 				case "lod bits":
-                    LodBits = (subNode as LeafNode).DataSegment.AtIndex(0);
+                    LodBits = ((subNode as LeafNode)!).DataSegment.AtIndex(0);
 					break;
 				case "hardpoints":
-					IntermediateNode hardpointsNode = subNode as IntermediateNode;
-					foreach (IntermediateNode hardpointTypeNode in hardpointsNode)
+					IntermediateNode hardpointsNode = (subNode as IntermediateNode)!;
+					foreach (var hardpointTypeNode in hardpointsNode.OfType<IntermediateNode>())
 					{
 						switch (hardpointTypeNode.Name.ToLowerInvariant())
 						{
 						case "fixed":
-							foreach (IntermediateNode fixedNode in hardpointTypeNode)
+							foreach (var fixedNode in hardpointTypeNode.OfType<IntermediateNode>())
 								Hardpoints.Add(new FixedHardpointDefinition(fixedNode));
 							break;
 						case "revolute":
-							foreach (IntermediateNode revoluteNode in hardpointTypeNode)
+							foreach (var revoluteNode in hardpointTypeNode.OfType<IntermediateNode>())
 								Hardpoints.Add(new RevoluteHardpointDefinition(revoluteNode));
 							break;
 						default: throw new Exception("Invalid node in " + hardpointsNode.Name + ": " + hardpointTypeNode.Name);

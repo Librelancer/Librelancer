@@ -14,7 +14,7 @@ namespace LibreLancer.Fx
 		public string NodeName = "LIBRELANCER:UNNAMED_NODE";
 		public uint CRC;
 		public float NodeLifeSpan = float.MaxValue;
-		public AlchemyTransform Transform;
+		public AlchemyTransform Transform = null!;
 
 		public FxNode(AlchemyNode ale)
 		{

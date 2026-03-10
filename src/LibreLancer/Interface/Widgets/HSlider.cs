@@ -18,8 +18,7 @@ namespace LibreLancer.Interface
             UpdateMinMax();
         }
 
-        [WattleScriptHidden]
-        public HSliderStyle Style;
+        [WattleScriptHidden] public HSliderStyle? Style;
 
         private float ScrollOffset;
         private float Tick = 0.1f;
@@ -29,7 +28,9 @@ namespace LibreLancer.Interface
         public bool Smooth
         {
             get { return _smooth; }
-            set { _smooth = value;
+            set
+            {
+                _smooth = value;
                 UpdateMinMax();
             }
         }
@@ -41,13 +42,21 @@ namespace LibreLancer.Interface
         public float Min
         {
             get { return _min; }
-            set { _min = value; UpdateMinMax(); }
+            set
+            {
+                _min = value;
+                UpdateMinMax();
+            }
         }
 
         public float Max
         {
             get { return _max; }
-            set { _max = value; UpdateMinMax(); }
+            set
+            {
+                _max = value;
+                UpdateMinMax();
+            }
         }
 
         public float Value
@@ -58,10 +67,7 @@ namespace LibreLancer.Interface
                 if (!_smooth) val = (int) val;
                 return MathHelper.Clamp(val, Min, Max);
             }
-            set
-            {
-                ScrollOffset = (value - Min) / (Max - Min);
-            }
+            set { ScrollOffset = (value - Min) / (Max - Min); }
         }
 
         private void UpdateMinMax()
@@ -83,6 +89,7 @@ namespace LibreLancer.Interface
         public override void ApplyStylesheet(Stylesheet stylesheet)
         {
             Style = stylesheet.Lookup<HSliderStyle>(null);
+
             if (Style != null)
             {
                 leftbutton.SetStyle(Style.LeftButton);
@@ -92,6 +99,7 @@ namespace LibreLancer.Interface
                 thumbright.SetStyle(Style.ThumbRight);
             }
         }
+
         private Button leftbutton = new()
         {
             Anchor = AnchorKind.CenterLeft
@@ -101,6 +109,7 @@ namespace LibreLancer.Interface
         {
             Anchor = AnchorKind.CenterRight
         };
+
         private Button thumb = new();
         private Button thumbleft = new();
         private Button thumbright = new();
@@ -116,6 +125,7 @@ namespace LibreLancer.Interface
             track = myRectangle;
             track.X += leftbutton.GetDimensions().X;
             track.Width -= (leftbutton.GetDimensions().X + rightbutton.GetDimensions().X);
+
             if (Style != null)
             {
                 track.X += Style.TrackMarginX;
@@ -123,9 +133,11 @@ namespace LibreLancer.Interface
                 track.Y += Style.TrackMarginY;
                 track.Height -= Style.TrackMarginY * 2;
             }
+
             thumb.Width = track.Width * ThumbSize;
             thumb.X = ScrollOffset * (track.Width - thumb.Width);
             thumb.Height = track.Height;
+
             if (thumb.Dragging && (track.Width - thumb.Width) >= 0.01f)
             {
                 var newX = MathHelper.Clamp(thumb.DragOffset.X + dragXStart, 0, track.Width - thumb.Width);
@@ -136,19 +148,24 @@ namespace LibreLancer.Interface
         private double lastTime = 0;
         private float timer = 1 / 8f;
         private int nextScrollDir = 0;
+
         public override void Render(UiContext context, RectangleF parent)
         {
-            if(!Visible) return;
+            if (!Visible) return;
             float delta = 0;
-            if (lastTime == 0) {
+
+            if (lastTime == 0)
+            {
                 lastTime = context.GlobalTime;
             }
-            else {
+            else
+            {
                 var newTime = context.GlobalTime - lastTime;
                 lastTime = context.GlobalTime;
                 delta = (float) newTime;
                 timer -= delta;
             }
+
             timer = MathHelper.Clamp(timer, 0, 100);
             Layout(context, parent, out var myRectangle, out var track);
             // background
@@ -156,19 +173,23 @@ namespace LibreLancer.Interface
             //draw buttons
             leftbutton.Render(context, myRectangle);
             float tickmult = Smooth ? delta * 8 : 1;
+
             if (leftbutton.HeldDown && (timer <= 0 || Smooth))
             {
                 ScrollOffset -= Tick * tickmult;
                 if (ScrollOffset < 0) ScrollOffset = 0;
                 timer = 1 / 8f;
             }
+
             rightbutton.Render(context, myRectangle);
+
             if (rightbutton.HeldDown && (timer <= 0 || Smooth))
             {
                 ScrollOffset += Tick * tickmult;
                 if (ScrollOffset > 1) ScrollOffset = 1;
                 timer = 1 / 8f;
             }
+
             //process non smooth scroll wheel
             ScrollOffset += nextScrollDir * Tick;
             ScrollOffset = MathHelper.Clamp(ScrollOffset, 0, 1);
@@ -178,24 +199,29 @@ namespace LibreLancer.Interface
             //draw thumb
             thumb.Update(context, track);
             float left = 0, right = 0;
+
             if (Style.ThumbLeft != null)
             {
                 left = Style.ThumbLeft.Width;
                 var rect = new RectangleF(track.X + thumb.X, track.Y + thumb.Y, left + 1, track.Height);
                 thumbleft.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
+
             if (Style.ThumbRight != null)
             {
                 //bottom = Style.ThumbBottom.Height;
                 right = Style.ThumbRight.Width;
-                var rect = new RectangleF(track.X + thumb.X + thumb.Width - right - 1, thumb.Y + track.Y, right + 1, track.Height);
+                var rect = new RectangleF(track.X + thumb.X + thumb.Width - right - 1, thumb.Y + track.Y, right + 1,
+                    track.Height);
                 thumbright.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
+
             var thumbRect = new RectangleF(track.X + thumb.X + left, track.Y, thumb.Width - left - right, thumb.Height);
             thumb.Draw(context, thumbRect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
         }
 
         private float dragXStart;
+
         public override void OnMouseDown(UiContext context, RectangleF parent)
         {
             if (!Visible) return;
@@ -221,6 +247,7 @@ namespace LibreLancer.Interface
         {
             if (!Visible) return;
             Layout(context, parentRectangle, out _, out var track);
+
             if (track.Contains(context.MouseX, context.MouseY))
             {
                 if (Smooth)

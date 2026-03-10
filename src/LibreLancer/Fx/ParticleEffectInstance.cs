@@ -16,7 +16,7 @@ namespace LibreLancer.Fx
         private static int seed = Environment.TickCount;
 
         private static readonly ThreadLocal<Random> random = new(() => new Random(Interlocked.Increment(ref seed)));
-        public static float NextFloat(float min, float max) => random.Value.NextFloat(min, max);
+        public static float NextFloat(float min, float max) => random.Value!.NextFloat(min, max);
     }
 
     public struct EmitterState
@@ -37,9 +37,9 @@ namespace LibreLancer.Fx
 
         public int DrawIndex; // needed to fix multiple fx spawned by fuse
 
-        public ParticleEffectPool? Pool;
+        public ParticleEffectPool Pool = null!;
+        public ResourceManager Resources = null!;
         public ParticleEffect Effect;
-        public ResourceManager? Resources;
 
         public EmitterState[] Emitters;
         private double globaltime = 0;
@@ -95,7 +95,7 @@ namespace LibreLancer.Fx
 
         public void Update(double delta, Matrix4x4 transform, float sparam)
         {
-            if (Pool == null)
+            if ((ParticleEffectPool?)Pool == null)
             {
                 return;
             }
@@ -140,7 +140,7 @@ namespace LibreLancer.Fx
 
         public void Draw(Matrix4x4 transform, float sparam)
         {
-            if (Pool == null)
+            if ((ParticleEffectPool?)Pool == null)
             {
                 return;
             }

@@ -42,7 +42,7 @@ namespace LibreLancer.Render
         {
             if (frameStart)
             {
-                if (sys.ResourceManager.TryGetShape("bulb", out var newBulbShape))
+                if (sys!.ResourceManager.TryGetShape("bulb", out var newBulbShape))
                 {
                     bulbshape = newBulbShape.Value;
                     bulbtex = (Texture2D?)sys.ResourceManager.FindTexture(bulbshape.Texture);
@@ -135,7 +135,7 @@ namespace LibreLancer.Render
                 camera.FrustumCheck(new BoundingSphere(pos, equip.BulbSize * 3))
             );
             this.sys = sys;
-            bool showLight = !equip.Animated || !lt_on;
+            var showLight = !equip.Animated || !lt_on;
             if (equip.EmitRange > 0 && showLight && camera.FrustumCheck(new BoundingSphere(pos, equip.EmitRange)))
             {
                 // sys.PointLightDX(pos, equip.EmitRange, new Color4(equip.GlowColor, 1), equip.EmitAttenuation);

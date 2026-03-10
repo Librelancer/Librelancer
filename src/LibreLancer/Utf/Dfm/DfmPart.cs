@@ -27,7 +27,7 @@ namespace LibreLancer.Utf.Dfm
             }
 		}
 
-		public DfmPart(string objectName, string fileName, Dictionary<string, Bone> models, ConstructCollection constructs)
+		public DfmPart(string objectName, string fileName, Dictionary<string, Bone> models)
 		{
 			this.bones = models;
 			// this.constructs = constructs;

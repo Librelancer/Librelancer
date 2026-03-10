@@ -24,7 +24,7 @@ namespace LibreLancer.Server.Components
 
         private bool isKilled = false;
 
-        public Action<GameObject, GameObject> ProjectileHitHook;
+        public Action<GameObject, GameObject>? ProjectileHitHook;
 
         public void OnProjectileHit(GameObject attacker)
         {

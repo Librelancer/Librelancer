@@ -7,8 +7,8 @@ namespace LibreLancer.Missions;
 
 public class ScriptShip : NicknameItem
 {
-    public string System;
-    public ScriptNPC NPC;
+    public string? System;
+    public ScriptNPC? NPC;
     public List<string> Labels = []; // Multiple labels?
     public Vector3 Position;
     public Quaternion Orientation = Quaternion.Identity;
@@ -17,14 +17,11 @@ public class ScriptShip : NicknameItem
     public bool Jumper;
 
     public ArrivalObj ArrivalObj = new("", 0);
-    public string InitObjectives;
+    public string? InitObjectives;
     public MissionRelativePosition RelativePosition;
     public List<MissionShipCargo> Cargo = [];
 
-    public static ScriptShip FromIni(
-        MissionShip ship,
-        GameItemDb db,
-        Dictionary<string, ScriptNPC> npcs)
+    public static ScriptShip FromIni(MissionShip ship, GameItemDb db, Dictionary<string, ScriptNPC> npcs)
     {
         var x = new ScriptShip()
         {
@@ -41,8 +38,8 @@ public class ScriptShip : NicknameItem
             RelativePosition = ship.RelativePosition,
             Cargo = new(ship.Cargo)
         };
-        npcs.TryGetValue(ship.NPC, out x.NPC);
+        
+        npcs.TryGetValue(ship.NPC!, out x.NPC);
         return x;
     }
-
 }

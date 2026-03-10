@@ -16,6 +16,7 @@ public class ModelImageRenderer
         lighting = Lighting.Create();
         lighting.Enabled = true;
         lighting.Ambient = Color3f.Black;
+
         var src = new SystemLighting();
         src.Lights.Add(new DynamicLight()
         {
@@ -26,6 +27,7 @@ public class ModelImageRenderer
                 Color = Color3f.White
             }
         });
+
         src.Lights.Add(new DynamicLight()
         {
             Light = new RenderLight()
@@ -35,6 +37,7 @@ public class ModelImageRenderer
                 Color = Color3f.White
             }
         });
+
         lighting.Lights.SourceLighting = src;
         lighting.Lights.SourceEnabled[0] = true;
         lighting.Lights.SourceEnabled[1] = true;
@@ -47,10 +50,12 @@ public class ModelImageRenderer
         var commandBuffer = new CommandBuffer(renderContext);
         var restoreTarget = renderContext.RenderTarget;
         var renderTarget = new RenderTarget2D(resources.GLWindow.RenderContext, width, height);
+
         renderContext.RenderTarget = renderTarget;
         renderContext.PushViewport(0,0,width,height);
         renderContext.ClearColor = Color4.Transparent;
         renderContext.ClearAll();
+
         //Set camera
         var mat = Matrix4x4.CreateFromYawPitchRoll(2.62f, -0.24f, 0);
         var res = Vector3.Transform(new Vector3(0, 0, model.GetRadius() * 2.1f), mat);
@@ -58,9 +63,11 @@ public class ModelImageRenderer
         camera.Update(width, height, res, Vector3.Zero);
         renderContext.SetCamera(camera);
         commandBuffer.Camera = camera;
+
         //Set model
         model.Update(0);
         model.UpdateTransform();
+
         //Draw
         commandBuffer.StartFrame(renderContext);
         model.DrawBuffer(0, commandBuffer, resources, Matrix4x4.Identity, ref lighting);

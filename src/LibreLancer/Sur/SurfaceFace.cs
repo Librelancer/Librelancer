@@ -50,9 +50,10 @@ namespace LibreLancer.Sur
 
         public static SurfaceFace Read(BinaryReader reader, ref int longCount)
         {
-            var f = new SurfaceFace();
-
-            f.Data = reader.ReadUInt32();
+            var f = new SurfaceFace
+            {
+                Data = reader.ReadUInt32()
+            };
 
             (f.Points.A, f.Flags.A, f.Shared.A) = ReadSide(reader, ref longCount);
             (f.Points.B, f.Flags.B, f.Shared.B) = ReadSide(reader, ref longCount);

@@ -12,7 +12,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ChatBox : UiWidget
     {
-        private event Action<ChatCategory, string> TextEntered;
+        private event Action<ChatCategory, string>? TextEntered;
 
         public void OnTextEntered(WattleScript.Interpreter.Closure handler)
         {

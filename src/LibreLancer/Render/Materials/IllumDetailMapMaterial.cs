@@ -49,7 +49,13 @@ namespace LibreLancer.Render.Materials
 		public string Dm1Sampler;
 		public SamplerFlags Dm1Flags;
 
-        public IllumDetailMapMaterial(ResourceManager library) : base(library) { }
+        public IllumDetailMapMaterial(ResourceManager library, string dtSampler, string dm0Sampler, string dm1Sampler) :
+            base(library)
+        {
+            DtSampler = dtSampler;
+            Dm0Sampler = dm0Sampler;
+            Dm1Sampler = dm1Sampler;
+        }
 
 		public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{

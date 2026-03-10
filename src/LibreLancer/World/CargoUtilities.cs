@@ -9,7 +9,7 @@ namespace LibreLancer.World;
 
 public static class CargoUtilities
 {
-    public static float GetUsedVolume(List<NetCargo> items) => items.Select(x => x.Count * x.Equipment.Volume).Sum();
+    public static float GetUsedVolume(List<NetCargo> items) => items.Select(x => x.Count * x.Equipment!.Volume).Sum();
 
     public static int ItemCount(List<NetCargo> items, Equipment e) =>
         items.Where(x => x.Equipment == e).Sum(x => x.Count);

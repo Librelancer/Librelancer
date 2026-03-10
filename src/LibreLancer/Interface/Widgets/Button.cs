@@ -196,7 +196,7 @@ namespace LibreLancer.Interface
             DragStart = DragOffset = Vector2.Zero;
         }
 
-        private event Action Clicked;
+        private event Action? Clicked;
 
         public void OnClick(WattleScript.Interpreter.Closure handler)
         {

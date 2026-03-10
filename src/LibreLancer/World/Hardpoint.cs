@@ -25,16 +25,11 @@ namespace LibreLancer.World
             rotation = Quaternion.CreateFromAxisAngle(Revolute.Axis, clamped);
         }
 
-        public Hardpoint(HardpointDefinition? def, RigidModelPart parent)
+        public Hardpoint(HardpointDefinition def, RigidModelPart parent)
         {
             Parent = parent;
             Definition = def;
-            if (def == null)
-            {
-                Definition = new FixedHardpointDefinition("dummy");
-            }
-
-            Name = def == null ? "Dummy Hardpoint" : def.Name;
+            Name = def.Name;
             Revolute = def as RevoluteHardpointDefinition;
         }
 

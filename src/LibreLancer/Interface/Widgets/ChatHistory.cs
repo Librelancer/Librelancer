@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
+#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
 
 namespace LibreLancer.Interface;
 
@@ -11,7 +12,7 @@ public class ChatHistory : UiWidget
 {
     public ChatSource Chat = new();
 
-    private BuiltRichText builtText;
+    private BuiltRichText? builtText;
     private float builtMultiplier = 0;
     private int builtVersion;
     private float lastHeight = 0;
@@ -35,7 +36,7 @@ public class ChatHistory : UiWidget
     {
         var myRectangle = GetMyRectangle(context, parentRectangle);
         Background?.Draw(context, myRectangle);
-        myRectangle.Width -= scrollbar.Style.Width;
+        myRectangle.Width -= scrollbar.Style!.Width;
         var textMultiplier = (context.ViewportHeight / 480) * 0.5f;
         var displayRect = context.PointsToPixels(myRectangle);
 

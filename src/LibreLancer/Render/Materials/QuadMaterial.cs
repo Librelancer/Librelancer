@@ -23,7 +23,7 @@ public class QuadMaterial : RenderMaterial
         return Parameters.Count - 1;
     }
 
-    public QuadMaterial(ResourceManager library) : base(library) { }
+    public QuadMaterial(ResourceManager? library) : base(library) { }
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {

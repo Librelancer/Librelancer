@@ -69,7 +69,7 @@ namespace LibreLancer.Render
 				return;
 			}
 
-			int startPos = vertexCount - (pointsCount * 2);
+			var startPos = vertexCount - (pointsCount * 2);
 
 			buffer.AddCommand(
                 material, null, buffer.WorldBuffer.Identity, Lighting.Empty,
@@ -156,7 +156,7 @@ namespace LibreLancer.Render
 
         public void FinishQuadLine(float z)
         {
-            int startPos = vertexCount - pointsCount;
+            var startPos = vertexCount - pointsCount;
 
             buffer.AddCommand(
                 material, null, buffer.WorldBuffer.Identity, Lighting.Empty,

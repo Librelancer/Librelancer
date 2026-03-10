@@ -7,7 +7,7 @@ namespace LibreLancer.Interface;
 
 public class TextEditBase
 {
-    private BuiltRichText richText;
+    private BuiltRichText? richText;
     private bool richTextDirty = true;
     private int richTextWidth = -1;
 

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Fx;
+using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.Server.Components;
@@ -152,7 +153,7 @@ namespace LibreLancer.Client.Components
                 fx.SParam = MathHelper.Clamp(Speed, 0, 1);
             }
         }
-		public override void Register(Physics.PhysicsWorld physics)
+		public override void Register(PhysicsWorld? physics)
         {
             GameDataManager? gameData = GetGameData();
             if (gameData is not null)
@@ -161,7 +162,7 @@ namespace LibreLancer.Client.Components
                 var hps = Ship.GetHardpoints();
                 ParticleEffect? trailFx = null;
                 var trailFxName = Engine.Def.TrailEffect;
-                if (Parent.Tag == GameObject.ClientPlayerTag && !string.IsNullOrEmpty(Engine.Def.TrailEffectPlayer))
+                if (Parent!.Tag == GameObject.ClientPlayerTag && !string.IsNullOrEmpty(Engine.Def.TrailEffectPlayer))
                     trailFxName = Engine.Def.TrailEffectPlayer;
                 if (!string.IsNullOrEmpty(trailFxName))
                 {
@@ -208,9 +209,8 @@ namespace LibreLancer.Client.Components
 
             if (!string.IsNullOrWhiteSpace(Engine.Def.RumbleSound))
             {
-                rumble = new AttachedSound(sound)
+                rumble = new AttachedSound(sound, Engine.Def.RumbleSound)
                 {
-                    Sound = Engine.Def.RumbleSound,
                     Cone = cone
                 };
                 rumble.PlayIfInactive(true);
@@ -218,9 +218,8 @@ namespace LibreLancer.Client.Components
 
             if (!string.IsNullOrWhiteSpace(Engine.Def.CharacterLoopSound))
             {
-                character = new AttachedSound(sound)
+                character = new AttachedSound(sound, Engine.Def.CharacterLoopSound)
                 {
-                    Sound = Engine.Def.CharacterLoopSound,
                     Cone = cone
                 };
                 character.PlayIfInactive(true);
@@ -228,27 +227,24 @@ namespace LibreLancer.Client.Components
 
             if (!string.IsNullOrWhiteSpace(Engine.Def.CruiseLoopSound))
             {
-                cruiseLoop = new AttachedSound(sound)
+                cruiseLoop = new AttachedSound(sound, Engine.Def.CruiseLoopSound)
                 {
-                    Sound = Engine.Def.CruiseLoopSound,
                     Cone = cone
                 };
             }
 
             if (!string.IsNullOrWhiteSpace(Engine.Def.CruiseStartSound))
             {
-                cruiseStart = new AttachedSound(sound)
+                cruiseStart = new AttachedSound(sound, Engine.Def.CruiseStartSound)
                 {
-                    Sound = Engine.Def.CruiseStartSound,
                     Cone = cone
                 };
             }
 
             if (!string.IsNullOrWhiteSpace(Engine.Def.CruiseStopSound))
             {
-                cruiseEnd = new AttachedSound(sound)
+                cruiseEnd = new AttachedSound(sound, Engine.Def.CruiseStopSound)
                 {
-                    Sound = Engine.Def.CruiseStopSound,
                     Cone = cone
                 };
             }
@@ -263,17 +259,17 @@ namespace LibreLancer.Client.Components
                     continue;
                 }
 
-                Parent.ExtraRenderers.Remove(fireFx[i]);
+                Parent!.ExtraRenderers.Remove(fireFx[i]);
                 fireFx.RemoveAt(i);
                 i--;
             }
         }
 
-        public override void Unregister(Physics.PhysicsWorld physics)
+        public override void Unregister(PhysicsWorld? physics)
 		{
             foreach (var fx in fireFx)
             {
-                Parent.ExtraRenderers.Remove(fx);
+                Parent!.ExtraRenderers.Remove(fx);
             }
 
             rumble?.Stop();

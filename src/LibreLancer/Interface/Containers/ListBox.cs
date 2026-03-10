@@ -49,7 +49,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        private event Action SelectedIndexChanged;
+        private event Action? SelectedIndexChanged;
 
         public void OnSelectedIndexChanged(WattleScript.Interpreter.Closure handler)
         {
@@ -91,7 +91,7 @@ namespace LibreLancer.Interface
             {
                 var child = Children[i];
                 child.Height = ItemHeight;
-                child.Width = Math.Max(Width - ((scrollCount > 0 || AlwaysShowScrollbar) ? Scrollbar.Style.Width + 2 : 0), 3);
+                child.Width = Math.Max(Width - ((scrollCount > 0 || AlwaysShowScrollbar) ? Scrollbar.Style!.Width + 2 : 0), 3);
                 child.X = 0;
                 child.Y = ItemHeight * (i - childOffset);
                 child.Render(context, myRectangle);

@@ -56,7 +56,7 @@ namespace LibreLancer.Server
         private ConcurrentQueue<Action> saveActions = new();
 
         // State
-        public NetCharacter Character;
+        public NetCharacter? Character;
 
         public MPlayer MPlayer;
         public DateTime StartTime;
@@ -885,7 +885,7 @@ namespace LibreLancer.Server
             Story?.Update(this);
         }
 
-        public void ForceLand(string target)
+        public void ForceLand(string? target)
         {
             Space?.Leave(false);
             Space = null;
@@ -933,9 +933,11 @@ namespace LibreLancer.Server
                 rpcClient.UpdateAllowedDocking(new());
             else
             {
-                var ad = new AllowedDocking();
-                ad.CanDock = MPlayer.CanDock != 0;
-                ad.CanTl = MPlayer.CanTl != 0;
+                var ad = new AllowedDocking
+                {
+                    CanDock = MPlayer.CanDock != 0,
+                    CanTl = MPlayer.CanTl != 0
+                };
 
                 if (!ad.CanDock)
                 {
@@ -1009,7 +1011,7 @@ namespace LibreLancer.Server
                 builder.Length - 4, 4));
         }
 
-        public Task<string> SaveSP(string description, int ids, bool isAutoSave, DateTime? timeStamp)
+        public Task<string> SaveSP(string? description, int ids, bool isAutoSave, DateTime? timeStamp)
         {
             var completionSource = new TaskCompletionSource<string>();
             saveActions.Enqueue(() =>
@@ -1119,17 +1121,20 @@ namespace LibreLancer.Server
         {
             rpcClient.StartJumpTunnel();
             FLLog.Debug("Player", $"Jumping to {system} - {target}");
-            if (Space != null) Space.Leave(false);
+            if (Space != null)
+            {
+                Space.Leave(false);
+            }
+
             Space = null;
             ClearScan();
-            var sys = Game.GameData.Items.Systems.Get(system);
+            var sys = Game.GameData.Items.Systems.Get(system)!
+                ;
             Game.Worlds.RequestWorld(sys, (world) =>
             {
                 Space = new SpacePlayer(world, this);
-                var obj = sys.Objects.FirstOrDefault((o) =>
-                {
-                    return o.Nickname.Equals(target, StringComparison.OrdinalIgnoreCase);
-                });
+                var obj = sys.Objects.FirstOrDefault((o) => o.Nickname.Equals(target, StringComparison.OrdinalIgnoreCase));
+
                 System = system;
                 Base = null;
                 Position = Vector3.Zero;
@@ -1170,7 +1175,7 @@ namespace LibreLancer.Server
             }
 
             ClearScan();
-            var b = Game.GameData.Items.Bases.Get(Base);
+            var b = Game.GameData.Items.Bases.Get(Base)!;
             var sys = Game.GameData.Items.Systems.Get(b.System);
             Game.Worlds.RequestWorld(sys, (world) =>
             {
@@ -1179,9 +1184,9 @@ namespace LibreLancer.Server
                 {
                     return (o.Dock != null &&
                             o.Dock.Kind == DockKinds.Base &&
-                            o.Dock.Target.Equals(Base, StringComparison.OrdinalIgnoreCase));
+                            o.Dock.Target!.Equals(Base, StringComparison.OrdinalIgnoreCase));
                 });
-                System = b.System;
+                System = b.System!;
                 Orientation = Quaternion.Identity;
                 Position = Vector3.Zero;
 
@@ -1201,13 +1206,13 @@ namespace LibreLancer.Server
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    GameObject undockFrom = world.GameWorld.GetObject(obj.Nickname);
+                    var undockFrom = world.GameWorld.GetObject(obj?.Nickname);
                     SDockableComponent? sd = null;
-                    int undockIndex = 0;
+                    var undockIndex = 0;
 
                     if (undockFrom?.TryGetComponent(out sd) ?? false)
                     {
-                        undockIndex = sd.GetUndockIndex();
+                        undockIndex = sd!.GetUndockIndex();
                         var tr = sd.GetSpawnPoint(undockIndex);
                         Position = tr.Position;
                         Orientation = tr.Orientation;

@@ -321,7 +321,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         index++;
         if (CheckDirective())
         {
-            StartDirective(currentDirectives[index]);
+            StartDirective(currentDirectives![index]);
         }
     }
 }

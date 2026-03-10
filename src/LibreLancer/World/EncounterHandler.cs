@@ -57,16 +57,17 @@ public static class EncounterHandler
                 var v = faction.NpcVoices[r.Next(faction.NpcVoices.Count)];
                 ValueRange<int>? firstName = null;
                 var g = v?.Gender ?? FLGender.unset;
-                if (faction.Properties.FirstNameFemale != null && g == FLGender.female)
+                if (faction.Properties?.FirstNameFemale != null && g == FLGender.female)
                 {
                     firstName = faction.Properties.FirstNameFemale;
                 }
-                else if (faction.Properties.FirstNameMale != null)
+
+                else if (faction.Properties?.FirstNameMale != null)
                 {
                     firstName = faction.Properties.FirstNameMale;
                 }
                 var fn = firstName != null ? r.Next(firstName.Value) : 0;
-                var ln = r.Next(faction.Properties.LastName);
+                var ln = r.Next(faction.Properties!.LastName);
                 int[] ids = [fn, ln];
                 var name = new ObjectName(ids.Where(x => x != 0).ToArray());
                 ei.Ships.Add(new(name, v, arch));

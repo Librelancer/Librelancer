@@ -29,8 +29,10 @@ public class NetHpidReader
             var reader = new PacketReader(new NetDataReader(buffer));
             var length = reader.GetVariableUInt32();
             strings = new List<string>((int)length);
-            while(length-- > 0)
-                strings.Add(reader.GetString());
+            while (length-- > 0)
+            {
+                strings.Add(reader.GetString()!);
+            }
         }
     }
 

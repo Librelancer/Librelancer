@@ -52,18 +52,17 @@ namespace LibreLancer.Server.Components
 
         public bool LaneEntered()
         {
-            if (TryGetMissionRuntime(out var msn, out var isPlayer) && msn is not null)
+            if (TryGetMissionRuntime(out var msn, out var isPlayer))
             {
-                SDockableComponent cmp = currenttradelane.GetComponent<SDockableComponent>();
-                if (cmp is null)
+                if (!currenttradelane.TryGetComponent<SDockableComponent>(out var cmp))
                 {
                     return false;
                 }
 
                 msn.TradelaneEntered(
-                    isPlayer ? "Player" : Parent.Nickname,
-                    currenttradelane.Nickname,
-                    lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft
+                    isPlayer ? "Player" : Parent.Nickname!,
+                    currenttradelane.Nickname!,
+                    (lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft)!
                 );
             }
 
@@ -83,7 +82,7 @@ namespace LibreLancer.Server.Components
 
         public override void Update(double time)
         {
-            var cmp = currenttradelane.GetComponent<SDockableComponent>();
+            var cmp = currenttradelane.GetComponent<SDockableComponent>()!;
             var tradelaneComponent = Parent.GetWorld()
                 .GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);
 
@@ -154,7 +153,7 @@ namespace LibreLancer.Server.Components
                 offset = Parent.Formation.GetShipOffset(Parent);
             }
 
-            return (currenttradelane.GetHardpoint(lane).TransformNoRotate * currenttradelane.WorldTransform)
+            return (currenttradelane.GetHardpoint(lane)!.TransformNoRotate * currenttradelane.WorldTransform)
                 .Transform(offset);
         }
 
@@ -167,16 +166,15 @@ namespace LibreLancer.Server.Components
                 offset = Parent.Formation.GetShipOffset(Parent);
             }
 
-            CEngineComponent eng = Parent.GetComponent<CEngineComponent>();
-            if (eng is not null)
+            if (Parent.TryGetComponent<CEngineComponent>(out var eng))
             {
                 eng.Speed = 0.9f;
             }
 
             var targetPosition =
-                (tradelaneComponent.GetHardpoint(lane).TransformNoRotate * tradelaneComponent.WorldTransform)
+                (tradelaneComponent.GetHardpoint(lane)!.TransformNoRotate * tradelaneComponent.WorldTransform)
                 .Transform(offset);
-            var direction = (targetPosition - Parent.PhysicsComponent.Body.Position);
+            var direction = (targetPosition - Parent.PhysicsComponent!.Body.Position);
 
             return (targetPosition, direction);
         }

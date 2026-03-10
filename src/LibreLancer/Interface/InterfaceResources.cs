@@ -23,9 +23,12 @@ namespace LibreLancer.Interface
 
         public string ToXml()
         {
-            var settings = new XmlWriterSettings();
-            settings.OmitXmlDeclaration = true;
-            settings.Indent = true;
+            var settings = new XmlWriterSettings
+            {
+                OmitXmlDeclaration = true,
+                Indent = true
+            };
+
             using (StringWriter sw = new StringWriter())
             using (XmlWriter writer = XmlWriter.Create(sw, settings))
             {
@@ -40,7 +43,7 @@ namespace LibreLancer.Interface
         {
             using (var reader = new StringReader(xml))
             {
-                return (InterfaceResources) _serializer.Deserialize(reader);
+                return (InterfaceResources) _serializer.Deserialize(reader)!;
             }
         }
 
@@ -48,7 +51,7 @@ namespace LibreLancer.Interface
         {
             using (var stream = File.OpenRead(file))
             {
-                return (InterfaceResources) _serializer.Deserialize(stream);
+                return (InterfaceResources) _serializer.Deserialize(stream)!;
             }
         }
     }
@@ -56,8 +59,8 @@ namespace LibreLancer.Interface
     [WattleScript.Interpreter.WattleScriptUserData]
     public class InterfaceColor
     {
-        public static readonly InterfaceColor White = new() {Color = Color4.White};
-        public static readonly InterfaceColor Black = new() {Color = Color4.Black};
+        public static readonly InterfaceColor White = new() { Color = Color4.White };
+        public static readonly InterfaceColor Black = new() { Color = Color4.Black };
         public string Name = "";
         public Color4 Color;
         public InterfaceColorAnimation? Animation;
@@ -66,7 +69,8 @@ namespace LibreLancer.Interface
 
         public InterfaceColor SetAlpha(float factor)
         {
-            return new InterfaceColor() {
+            return new InterfaceColor()
+            {
                 Color = Color,
                 Animation = Animation,
                 alphaFactor = factor
@@ -107,6 +111,7 @@ namespace LibreLancer.Interface
         Triangle,
         Quad
     }
+
     [WattleScript.Interpreter.WattleScriptUserData]
     public class InterfaceImage
     {
@@ -124,18 +129,25 @@ namespace LibreLancer.Interface
         [XmlAttribute("animu")] public float AnimU;
         [XmlAttribute("animv")] public float AnimV;
     }
+
     [WattleScript.Interpreter.WattleScriptUserData]
     public class InterfacePoints
     {
         // Top left
         public float X0;
+
         public float Y0;
+
         // Top right
         public float X1 = 1;
+
         public float Y1;
+
         // Bottom left
         public float X2;
+
         public float Y2 = 1;
+
         // Bottom right
         public float X3 = 1;
         public float Y3 = 1;
@@ -153,8 +165,8 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class InterfaceModel
     {
-        [XmlAttribute("name")] public string Name;
-        [XmlAttribute("path")] public string Path;
+        [XmlAttribute("name")] public string? Name;
+        [XmlAttribute("path")] public string? Path;
         [XmlAttribute("x")] public float X;
         [XmlAttribute("y")] public float Y;
         [XmlAttribute("xscale")] public float XScale = 1;

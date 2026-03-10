@@ -18,7 +18,7 @@ namespace LibreLancer.World.Components
     public class AsteroidFieldComponent : GameComponent
     {
         public AsteroidField Field;
-        private ConvexMeshCollider? shape;
+        private ConvexMeshCollider shape = null!;
 
         public AsteroidFieldComponent(AsteroidField field, ResourceManager res, GameObject parent) : base(parent)
         {
@@ -65,7 +65,7 @@ namespace LibreLancer.World.Components
             {
                 foreach (var asteroid in Field.Cube)
                 {
-                    var sur = asteroid.Archetype?.ModelFile?.LoadFile(resourceManager, MeshLoadMode.CPU).Collision;
+                    var sur = asteroid.Archetype?.ModelFile?.LoadFile(resourceManager, MeshLoadMode.CPU)!.Collision;
 
                     if (sur is not null && sur.Value.Valid)
                     {
@@ -79,7 +79,7 @@ namespace LibreLancer.World.Components
             spawnedB = new QuickList<SpawnedCube>(64, physics.BufferPool);
         }
 
-        public override void Unregister(PhysicsWorld physics)
+        public override void Unregister(PhysicsWorld? physics)
         {
             shape?.Dispose();
 
@@ -92,11 +92,11 @@ namespace LibreLancer.World.Components
             var oldList = useA ? ref spawnedA : ref spawnedB;
             for (var i = 0; i < oldList.Count; i++)
             {
-                physics.RemoveUnmanagedStatic(ref oldList[i].Object);
+                physics?.RemoveUnmanagedStatic(ref oldList[i].Object);
             }
 
-            spawnedA.Dispose(physics.BufferPool);
-            spawnedB.Dispose(physics.BufferPool);
+            spawnedA.Dispose(physics?.BufferPool);
+            spawnedB.Dispose(physics?.BufferPool);
         }
 
         private const float COLLIDE_DISTANCE = 600;
@@ -127,9 +127,13 @@ namespace LibreLancer.World.Components
                 set
                 {
                     if (value)
+                    {
                         items[index >> 6] |= (1L << (index & 0x3F));
+                    }
                     else
+                    {
                         items[index >> 6] &= ~(1L << (index & 0x3F));
+                    }
                 }
             }
         }
@@ -137,7 +141,9 @@ namespace LibreLancer.World.Components
         public override void Update(double time)
         {
             if (phys == null)
+            {
                 return;
+            }
 
             var world = Parent.GetWorld();
 
@@ -150,7 +156,10 @@ namespace LibreLancer.World.Components
             {
                 var pos = pobj.Position;
                 if (Vector3.DistanceSquared(Field.Zone!.Position, pos) > activateDist)
+                {
                     continue;
+                }
+
                 var c = AsteroidFieldShared.GetCloseCube(pos, Field.CubeSize);
                 var mind = c - new Vector3(amountCubes * Field.CubeSize);
                 var maxd = c + new Vector3(amountCubes * Field.CubeSize);
@@ -168,7 +177,9 @@ namespace LibreLancer.World.Components
                 }
 
                 if (add)
+                {
                     fillBoxes.Add((objbox, default), phys.BufferPool);
+                }
             }
 
             // Merge bounding boxes second pass
@@ -190,11 +201,15 @@ namespace LibreLancer.World.Components
                     }
 
                     if (changed)
+                    {
                         break;
+                    }
                 }
 
                 if (!changed)
+                {
                     break;
+                }
             }
 
             // Clear out everything if we have no bounding boxes

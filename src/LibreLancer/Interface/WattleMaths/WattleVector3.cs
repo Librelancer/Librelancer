@@ -17,8 +17,10 @@ internal class WattleVector3 : HardwiredUserDataDescriptor
 
     public static void CreateTable(Script script)
     {
-        var tbl = new Table(script);
-        tbl.Kind = TableKind.Class;
+        var tbl = new Table(script)
+        {
+            Kind = TableKind.Class
+        };
         script.Globals["Vector3"] = tbl;
         tbl["new"] = (float x, float y, float z) => new Vector3(x, y, z);
         tbl["dot"] = (Vector3.Dot);

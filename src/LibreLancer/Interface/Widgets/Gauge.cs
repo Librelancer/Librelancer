@@ -11,9 +11,9 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class Gauge : UiWidget
     {
-        public UiRenderable Fill { get; set; }
+        public UiRenderable? Fill { get; set; }
         public float PercentFilled { get; set; }
-        
+
         public bool Reverse { get; set; }
 
         public override void Render(UiContext context, RectangleF parentRectangle)
@@ -27,6 +27,7 @@ namespace LibreLancer.Interface
             if (Reverse) {
                 fillRect.X = myPos.X + Width - fillRect.Width;
             }
+
             Fill?.DrawWithClip(context, myRectangle, fillRect);
             Border?.Draw(context,myRectangle);
         }

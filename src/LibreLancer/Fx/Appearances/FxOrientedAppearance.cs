@@ -20,7 +20,7 @@ namespace LibreLancer.Fx
 
         public FxOrientedAppearance(string name) : base(name)
         {
-            Size = null;
+            Size = null!;
             Width = new(1);
             Height = new(1);
         }

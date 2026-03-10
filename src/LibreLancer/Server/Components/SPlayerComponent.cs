@@ -15,6 +15,7 @@ using LiteNetLib;
 namespace LibreLancer.Server.Components
 {
     public record struct FetchedDelta(int Priority, uint Tick, ObjectUpdate Update);
+
     /*
      * Component that handles a remote player controlling this GameObject
      * Stores a reference to the Player class, buffers input
@@ -48,6 +49,7 @@ namespace LibreLancer.Server.Components
         private BitArray found = new(512);
 
         private MissionDirective[]? directives;
+
         public void SetDirectives(MissionDirective[] directives)
         {
             this.directives = directives;
@@ -62,6 +64,7 @@ namespace LibreLancer.Server.Components
                 FLLog.Warning("Player", $"Tried to run invalid directive index: {index}");
                 return;
             }
+
             if (directives[index] is MakeNewFormationDirective form)
             {
                 FormationTools.MakeNewFormation(Parent, form.Formation, form.Ships);
@@ -79,33 +82,43 @@ namespace LibreLancer.Server.Components
 
         public void GetUpdates(GameObject[] objs, FetchedDelta[] deltas)
         {
-            if(objs.Length > found.Length)
+            if (objs.Length > found.Length)
                 found = new BitArray(found.Length);
             found.SetAll(false);
             int foundCount = 0;
-            if (deltas.Length != objs.Length) {
+
+            if (deltas.Length != objs.Length)
+            {
                 throw new InvalidOperationException("Bad number of updates");
             }
-            for (int i = 0; i < deltas.Length; i++) {
+
+            for (int i = 0; i < deltas.Length; i++)
+            {
                 deltas[i] = new FetchedDelta(100, 0, ObjectUpdate.Blank);
-                if (objs[i] == Parent) {
+
+                if (objs[i] == Parent)
+                {
                     found[i] = true;
                     foundCount++;
                 }
             }
+
             for (int i = 0; i < oldStates.Count; i++)
             {
                 if (!MostRecentAck[oldStates[i].Tick])
                     continue;
+
                 for (int j = 0; j < objs.Length; j++)
                 {
                     if (found[j]) continue;
+
                     if (oldStates[i].Updates.TryGetValue(objs[j].Unique, out var upd))
                     {
                         priorities.TryGetValue(objs[j].Unique, out var priority);
                         deltas[j] = new FetchedDelta(priority, oldStates[i].Tick, upd);
                         found[j] = true;
                         foundCount++;
+
                         if (foundCount == objs.Length)
                         {
                             priorities.Clear();
@@ -114,6 +127,7 @@ namespace LibreLancer.Server.Components
                     }
                 }
             }
+
             priorities.Clear();
         }
 
@@ -127,7 +141,9 @@ namespace LibreLancer.Server.Components
             ackTick = 0;
             authState = new PlayerAuthState();
             if (MostRecentAck.Tick == 0) return;
-            for (int i = 0; i < oldStates.Count; i++) {
+
+            for (int i = 0; i < oldStates.Count; i++)
+            {
                 if (oldStates[i].Tick == MostRecentAck.Tick)
                 {
                     ackTick = MostRecentAck.Tick;
@@ -148,7 +164,7 @@ namespace LibreLancer.Server.Components
         {
             MostRecentAck = input.Acks;
             // Select object immediately
-            SelectedObject = Parent.World.GetObject( input.SelectedObject);
+            SelectedObject = Parent.World.GetObject(input.SelectedObject);
             Enqueue(input.HistoryC);
             Enqueue(input.HistoryB);
             Enqueue(input.HistoryA);
@@ -160,7 +176,7 @@ namespace LibreLancer.Server.Components
         {
             if (controls.Tick == 0)
                 return;
-            if(controls.Tick >= GetCurrentTick())
+            if (controls.Tick >= GetCurrentTick())
                 inputs.Enqueue(controls, controls.Tick);
         }
 
@@ -171,15 +187,21 @@ namespace LibreLancer.Server.Components
             NetInputControls currentTick = default;
             bool found = false;
             var tick = GetCurrentTick();
-            while (inputs.TryDequeue(out var entry, out _)) {
-                if (entry.Tick == tick) {
+
+            while (inputs.TryDequeue(out var entry, out _))
+            {
+                if (entry.Tick == tick)
+                {
                     currentTick = entry;
                     found = true;
-                } else if (entry.Tick > tick) {
+                }
+                else if (entry.Tick > tick)
+                {
                     inputs.Enqueue(entry, entry.Tick);
                     break;
                 }
             }
+
             packet = currentTick;
             return found;
         }
@@ -215,14 +237,17 @@ namespace LibreLancer.Server.Components
         }
 
         private ulong formationHash = 0;
+
         public override void Update(double time)
         {
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var phys))
             {
                 var wpc = Parent.GetComponent<WeaponControlComponent>();
+
                 if (GetInput(out var input))
                 {
                     wpc.AimPoint = input.AimPoint;
+
                     if (Player.InTradelane)
                     {
                         phys.Steering = Vector3.Zero;
@@ -238,14 +263,15 @@ namespace LibreLancer.Server.Components
                         phys.EnginePower = input.Throttle;
                         phys.ThrustEnabled = input.Thrust;
                         phys.CruiseEnabled = input.Cruise;
-                        if(input.FireCommand != null)
+                        if (input.FireCommand != null)
                             Parent.GetWorld().Server.FireProjectiles(input.FireCommand.Value, Player);
                     }
                 }
             }
+
             if (Parent.Formation == null)
             {
-                if(formationHash != 0)
+                if (formationHash != 0)
                     Player.RpcClient.UpdateFormation(new NetFormation());
                 formationHash = 0;
             }
@@ -280,10 +306,11 @@ namespace LibreLancer.Server.Components
         public override int TryConsume(Equipment item, int maxCount = 1)
         {
             var slot = Player.Character.Items.FirstOrDefault(x => x.Equipment == item);
+
             if (slot != null)
             {
                 var c = slot.Count;
-                if(slot.Count <= maxCount)
+                if (slot.Count <= maxCount)
                     Player.RpcClient.DeleteSlot(slot.ID);
                 else
                     Player.RpcClient.UpdateSlotCount(slot.ID, slot.Count - maxCount);
@@ -291,6 +318,7 @@ namespace LibreLancer.Server.Components
                 t.RemoveCargo(slot, 1);
                 return c > maxCount ? maxCount : c;
             }
+
             return 0;
         }
 
@@ -298,14 +326,17 @@ namespace LibreLancer.Server.Components
         {
             var limit = CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship, equipment);
             var count = Math.Min(limit, maxCount);
+
             if (count == 0)
             {
                 return 0;
             }
+
             using (var c = Player.Character.BeginTransaction())
             {
                 c.AddCargo(equipment, null, count);
             }
+
             Player.UpdateCurrentInventory();
             return count;
         }
@@ -313,7 +344,7 @@ namespace LibreLancer.Server.Components
         public override T FirstOf<T>()
         {
             var slot = Player.Character.Items.FirstOrDefault(x => x.Equipment is T);
-            return (T)slot?.Equipment;
+            return (T) slot?.Equipment;
         }
 
         public override IEnumerable<NetShipCargo> GetCargo(int firstId)

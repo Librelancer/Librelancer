@@ -20,6 +20,7 @@ namespace LibreLancer.World.Components
         public Vector3 AimPoint = Vector3.Zero;
         public bool Enabled { get; set; } = true;
         private double DryFireTimer { get; set; }
+        public WeaponComponent[]? NetOrderWeapons;
 
         public WeaponControlComponent(GameObject parent) : base(parent)
         {
@@ -42,23 +43,21 @@ namespace LibreLancer.World.Components
             }
         }
 
-        public WeaponComponent[]? NetOrderWeapons;
-
         public void UpdateNetWeapons()
         {
-            NetOrderWeapons = Parent?.GetChildComponents<WeaponComponent>()
-                .OrderBy(x => x.Parent?.Attachment?.Name.ToLowerInvariant())
+            NetOrderWeapons = Parent.GetChildComponents<WeaponComponent>()!
+                .OrderBy(x => x.Parent.Attachment?.Name.ToLowerInvariant())
                 .ToArray();
         }
 
-        public override void Register(PhysicsWorld physics)
+        public override void Register(PhysicsWorld? physics)
         {
             UpdateNetWeapons();
         }
 
         public void SetRotations(GunOrient[] orients)
         {
-            for (int i = 0; i < orients.Length && i < NetOrderWeapons?.Length; i++)
+            for (var i = 0; i < orients.Length && i < NetOrderWeapons!.Length; i++)
             {
                 NetOrderWeapons[i].RotateTowards(orients[i].AngleRot, orients[i].AnglePitch);
             }
@@ -76,7 +75,7 @@ namespace LibreLancer.World.Components
         public float GetAverageGunSpeed()
         {
             float accum = 0;
-            int count = 0;
+            var count = 0;
 
             foreach (var wp in Parent!.GetChildComponents<GunComponent>())
             {
@@ -89,34 +88,17 @@ namespace LibreLancer.World.Components
 
         public float GetGunMaxRange()
         {
-            float range = 0;
-
-            foreach (var wp in Parent!.GetChildComponents<GunComponent>())
-            {
-                var r = wp!.MaxRange;
-                if (r > range) range = r;
-            }
-
-            return range;
+            return Parent.GetChildComponents<GunComponent>().Select(wp => wp.MaxRange).Prepend(0).Max();
         }
 
         public float GetMissileMaxRange()
         {
-            float range = 0;
-
-            foreach (var wp in Parent!.GetChildComponents<MissileLauncherComponent>())
-            {
-                var r = wp!.MaxRange;
-                if (r > range) range = r;
-            }
-
-            return range;
+            return Parent!.GetChildComponents<MissileLauncherComponent>().Select(wp => wp.MaxRange).Prepend(0).Max();
         }
 
         public bool CanFireWeapons()
         {
-            if (Enabled &&
-                (Parent!.Flags & GameObjectFlags.Cloaked) != GameObjectFlags.Cloaked &&
+            if (Enabled && (Parent!.Flags & GameObjectFlags.Cloaked) != GameObjectFlags.Cloaked &&
                 (!Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) ||
                  (flight.EngineState != EngineStates.Cruise && flight.EngineState != EngineStates.CruiseCharging)))
             {

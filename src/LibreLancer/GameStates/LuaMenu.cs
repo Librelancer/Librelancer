@@ -28,11 +28,10 @@ namespace LibreLancer
     public class LuaMenu : GameState
     {
         private UiContext ui;
-        private UiWidget widget;
-        private IntroScene intro;
-        private Cutscene scene;
-        private Cursor cur;
+        private readonly Cursor cur;
+        private Cutscene? scene;
         private MenuAPI api;
+        private KeyCaptureContext keyCapture = null!;
 
         public LuaMenu(FreelancerGame g) : base(g)
         {
@@ -43,12 +42,12 @@ namespace LibreLancer
             ui.OpenScene("mainmenu");
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
-            intro = g.GameData.GetIntroScene();
-            TryRunScript(intro.Scripts);
-            FLLog.Info("Thn", "Playing " + intro.ThnName);
-            cur = g.ResourceManager.GetCursor("arrow");
+            var intro1 = g.GameData.GetIntroScene();
+            TryRunScript(intro1.Scripts);
+            FLLog.Info("Thn", "Playing " + intro1.ThnName);
+            cur = g.ResourceManager.GetCursor("arrow")!;
             GC.Collect(); // crap
-            g.Sound.PlayMusic(intro.Music, 0);
+            g.Sound.PlayMusic(intro1.Music!, 0);
             g.Keyboard.KeyDown += UiKeyDown;
             g.Keyboard.TextInput += UiTextInput;
 #if DEBUG
@@ -89,13 +88,13 @@ namespace LibreLancer
                 intro.Add(s.LoadScript());
                 #endif
             }
+
             scene.BeginScene(intro);
         }
 
         public override void OnSettingsChanged()
         {
-            if (scene?.Renderer != null)
-                scene.Renderer.Settings = Game.Config.Settings;
+            scene?.Renderer?.Settings = Game.Config.Settings;
         }
 
         private void Mouse_MouseUp(MouseEventArgs e)
@@ -106,20 +105,21 @@ namespace LibreLancer
             }
         }
 
-        private KeyCaptureContext keyCapture;
         private void Keyboard_OnKeyUp(KeyEventArgs e)
         {
-            if (KeyCaptureContext.Capturing(keyCapture))
+            if (!KeyCaptureContext.Capturing(keyCapture))
             {
-                if (e.Key != Keys.Escape &&
-                    e.Key != Keys.F1)
-                {
-                    keyCapture.Set(UserInput.FromKey(e.Modifiers, e.Key));
-                }
-                else
-                {
-                    keyCapture.Cancel();
-                }
+                return;
+            }
+
+            if (e.Key != Keys.Escape &&
+                e.Key != Keys.F1)
+            {
+                keyCapture.Set(UserInput.FromKey(e.Modifiers, e.Key));
+            }
+            else
+            {
+                keyCapture.Cancel();
             }
         }
 
@@ -131,12 +131,17 @@ namespace LibreLancer
 
         private void UiKeyDown(KeyEventArgs e)
         {
-            if (!KeyCaptureContext.Capturing(keyCapture))
+            if (KeyCaptureContext.Capturing(keyCapture))
             {
-                if (e.Key == Keys.Escape)
-                    ui.OnEscapePressed();
-                ui.OnKeyDown(e.Key, (e.Modifiers & KeyModifiers.Control) != 0);
+                return;
             }
+
+            if (e.Key == Keys.Escape)
+            {
+                ui.OnEscapePressed();
+            }
+
+            ui.OnKeyDown(e.Key, (e.Modifiers & KeyModifiers.Control) != 0);
         }
 
         [WattleScriptUserData]
@@ -145,6 +150,7 @@ namespace LibreLancer
             public List<LocalServerInfo> Servers = [];
             public int Count => Servers.Count;
             public int Selected { get; set; } = -1;
+
             public string? GetContentString(int row, string column)
             {
                 if (row < 0 || row > Count || string.IsNullOrEmpty(column)) return null;
@@ -171,21 +177,25 @@ namespace LibreLancer
                         return null;
                 }
             }
+
             public string CurrentDescription()
             {
                 if (Selected < 0 || Selected >= Count) return "";
                 return Servers[Selected].Description;
             }
+
             public bool ValidSelection()
             {
                 return (Selected >= 0 && Selected < Count);
             }
+
             public void Reset()
             {
                 Selected = -1;
                 Servers = [];
             }
         }
+
         [WattleScript.Interpreter.WattleScriptUserData]
         public class MenuAPI : UiApi
         {
@@ -223,7 +233,7 @@ namespace LibreLancer
                     var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager,
                         state.Game.GetSaveFolder());
                     var session = new CGameSession(state.Game, embeddedServer);
-                    embeddedServer.StartFromSave(state.Game.Saves.SelectedFile, File.ReadAllBytes(state.Game.Saves.SelectedFile));
+                    embeddedServer.StartFromSave(state.Game.Saves.SelectedFile!, File.ReadAllBytes(state.Game.Saves.SelectedFile!));
                     state.Game.ChangeState(new NetWaitState(session, state.Game));
                 });
             }
@@ -240,15 +250,16 @@ namespace LibreLancer
                 });
             }
 
-            private UiNewCharacter[] newCharacters;
+            private UiNewCharacter[] newCharacters = null!;
 
             public UiNewCharacter[] GetNewCharacters() => newCharacters;
 
             private void ResolveNicknames(SelectableCharacter c)
             {
-                c.Ship = state.Game.GameData.GetString(state.Game.GameData.Items.Ships.Get(c.Ship).IdsName);
-                c.Location = state.Game.GameData.GetString(state.Game.GameData.Items.Systems.Get(c.Location).IdsName);
+                c.Ship = state.Game.GameData.GetString(state.Game.GameData.Items.Ships.Get(c.Ship)!.IdsName);
+                c.Location = state.Game.GameData.GetString(state.Game.GameData.Items.Systems.Get(c.Location)!.IdsName);
             }
+
             internal void _Update()
             {
                 if (netClient == null)
@@ -278,16 +289,16 @@ namespace LibreLancer
                             {
                                 var package = ncdb.Packages.First(x =>
                                     x.Nickname.Equals(ncdb.Factions[i].Package, StringComparison.OrdinalIgnoreCase));
-                                var ship = state.Game.GameData.Items.Ships.Get(package.Ship);
-                                ship.ModelFile.LoadFile(state.Game.ResourceManager);
-                                var loc = state.Game.GameData.GetString(state.Game.GameData.Items.Bases.Get(ncdb.Factions[i].Base).IdsName);
+                                var ship = state.Game.GameData.Items.Ships.Get(package.Ship)!;
+                                ship.ModelFile!.LoadFile(state.Game.ResourceManager);
+                                var loc = state.Game.GameData.GetString(state.Game.GameData.Items.Bases.Get(ncdb.Factions[i].Base)!.IdsName);
                                 newCharacters[i] = new UiNewCharacter()
                                 {
                                     Money = package.Money,
                                     StridDesc = package.StridDesc,
                                     StridName = package.StridName,
                                     ShipName = state.Game.GameData.GetString(ship.IdsName),
-                                    ShipModel = ship.ModelFile.ModelFile,
+                                    ShipModel = ship.ModelFile!.ModelFile!,
                                     Location = loc
                                 };
                             }
@@ -302,9 +313,9 @@ namespace LibreLancer
                 }
             }
             private GameNetClient? netClient;
-            private CGameSession netSession;
+            private CGameSession netSession = null!;
             private ServerList serverList = new();
-            private CharacterSelectInfo cselInfo;
+            private CharacterSelectInfo cselInfo = null!;
 
             public CharacterSelectInfo CharacterList() => cselInfo;
             public ServerList ServerList() => serverList;
@@ -345,7 +356,7 @@ namespace LibreLancer
                     {
                         state.FadeOut(0.2, () =>
                         {
-                            netClient.Disconnected += (reason) => netSession.Disconnected();
+                            netClient!.Disconnected += (reason) => netSession.Disconnected();
                             netClient.Disconnected -= NetClientOnDisconnected;
                             netClient = null;
                             state.Game.ChangeState(new NetWaitState(netSession, state.Game));
@@ -385,18 +396,18 @@ namespace LibreLancer
             public void RefreshServers()
             {
                 serverList.Reset();
-                netClient.DiscoverLocalPeers();
+                netClient!.DiscoverLocalPeers();
             }
 
             public void ConnectSelection()
             {
                 if(serverList.Selected != -1)
                 {
-                    netClient.Connect(serverList.Servers[serverList.Selected].EndPoint);
+                    netClient!.Connect(serverList.Servers[serverList.Selected].EndPoint);
                 }
             }
 
-            public void ConnectAddress(string address) => netClient.Connect(address);
+            public void ConnectAddress(string address) => netClient!.Connect(address);
 
             public void NewCharacter(string name, int index, Closure onError)
             {

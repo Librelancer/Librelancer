@@ -9,7 +9,6 @@ using LibreLancer.Data;
 
 namespace LibreLancer.Fx
 {
-
     public abstract class NodeReference
     {
         public NodeReference? Parent;
@@ -22,11 +21,13 @@ namespace LibreLancer.Fx
             get => MathHelper.GetFlag(flags, 0);
             set => MathHelper.SetFlag(ref flags, 0, value);
         }
+
         public bool Enabled
         {
             get => MathHelper.GetFlag(flags, 1);
             set => MathHelper.SetFlag(ref flags, 1, value);
         }
+
         public abstract FxNode Node { get; }
 
         public static NodeReference Create(FxNode node) => node switch
@@ -36,7 +37,6 @@ namespace LibreLancer.Fx
             FxField fld => new FieldReference(fld),
             _ => new EmptyNodeReference(node)
         };
-
     }
 
     public class EmptyNodeReference(FxNode n) : NodeReference
@@ -67,33 +67,38 @@ namespace LibreLancer.Fx
         public override FxNode Node => Field;
     }
 
-	public class ParticleEffect : IdentifiableItem
+    public class ParticleEffect : IdentifiableItem
     {
         // Tree for editor use
         public List<NodeReference> Tree;
+
         // Emitters and appearances
         public List<EmitterReference> Emitters;
         public List<AppearanceReference> Appearances;
+
         // Calculated info
-        public int[] ParticleCounts;
+        public int[] ParticleCounts = null!;
         public float Radius;
 
         public void CalculateInfo()
         {
             ParticleCounts = new int[Appearances.Count];
             float radius = 0;
+
             foreach (var emitNode in Emitters)
             {
                 var emitter = (FxEmitter) emitNode.Node;
-                if(emitNode.Linked == null) continue;
+                if (emitNode.Linked == null) continue;
                 emitNode.AppBufIdx = Appearances.IndexOf(emitNode.Linked);
                 int maxParticles = 500;
+
                 if (emitter.MaxParticles != null)
                 {
                     var max1 = (int) Math.Ceiling(emitter.MaxParticles.GetMax(false));
                     if (max1 < maxParticles)
                         maxParticles = max1;
                 }
+
                 if (emitter.Frequency != null &&
                     emitter.InitLifeSpan != null)
                 {
@@ -104,14 +109,16 @@ namespace LibreLancer.Fx
                 }
 
                 ParticleCounts[emitNode.AppBufIdx] += maxParticles;
+
                 if (emitNode.Linked.Parent == null)
                 {
                     radius = float.PositiveInfinity;
                 }
                 else if (float.IsFinite(radius))
                 {
-                    var r = emitter.Pressure.GetMax(true) * emitter.InitLifeSpan.GetMax(false);
+                    var r = emitter.Pressure!.GetMax(true) * emitter.InitLifeSpan!.GetMax(false);
                     r += emitter.GetMaxDistance(emitNode);
+
                     if (emitNode.Linked.Appearance is FxPerpAppearance perp)
                     {
                         r += perp.Size.GetMax(false);
@@ -122,8 +129,8 @@ namespace LibreLancer.Fx
                     }
                     else if (emitNode.Linked.Appearance is FxRectAppearance rect)
                     {
-                        var w = rect.Width.GetMax(false);
-                        var h = rect.Length.GetMax(false);
+                        var w = rect.Width!.GetMax(false);
+                        var h = rect.Length!.GetMax(false);
                         r += w > h ? w : h;
                     }
                     else if (emitNode.Linked.Appearance is FxOrientedAppearance orient)
@@ -136,19 +143,16 @@ namespace LibreLancer.Fx
                     {
                         r += basic.Size.GetMax(false);
                     }
+
                     if (r > radius) radius = r;
                 }
             }
+
             Radius = radius;
         }
 
-		public ParticleEffect (
-            uint crc,
-            string nickname,
-            List<EmitterReference> emitters,
-            List<AppearanceReference> appearances,
-            List<NodeReference> tree
-            )
+        public ParticleEffect(uint crc, string nickname, List<EmitterReference> emitters,
+            List<AppearanceReference> appearances, List<NodeReference> tree)
         {
             CRC = crc;
             Nickname = nickname;
@@ -157,7 +161,5 @@ namespace LibreLancer.Fx
             Tree = tree;
             CalculateInfo();
         }
-
-	}
+    }
 }
-

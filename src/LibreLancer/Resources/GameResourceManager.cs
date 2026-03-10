@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using LibreLancer.Data;
@@ -86,8 +87,10 @@ public class GameResourceManager : ResourceManager, IDisposable
     {
         GLWindow = g;
         vertexResourceAllocator = new VertexResourceAllocator(g.RenderContext);
-        DefaultMaterial = new Material(this);
-        DefaultMaterial.Name = "$LL_DefaultMaterialName";
+        DefaultMaterial = new Material(this)
+        {
+            Name = "$LL_DefaultMaterialName"
+        };
         DefaultMaterial.Initialize(this);
 
         NullTexture = new Texture2D(g.RenderContext, 1, 1, false, SurfaceFormat.Bgra8);
@@ -144,14 +147,14 @@ public class GameResourceManager : ResourceManager, IDisposable
         return shapes.TryGetValue(name, out shape);
     }
 
-    public override bool TryGetFrameAnimation(string name, out TexFrameAnimation? anim)
+    public override bool TryGetFrameAnimation(string name, [MaybeNullWhen(false)] out TexFrameAnimation anim)
     {
         return frameanims.TryGetValue(name, out anim);
     }
 
     public void AddPreload(IEnumerable<string> files)
     {
-        preloadFiles.AddRange(files);
+        preloadFiles?.AddRange(files);
     }
 
     public bool TextureExists(string name)
@@ -402,6 +405,11 @@ public class GameResourceManager : ResourceManager, IDisposable
             throw new ObjectDisposedException(nameof(GameResourceManager));
         }
 
+        if (string.IsNullOrEmpty(filename))
+        {
+            return null;
+        }
+
         if (particlelibs.TryGetValue(filename, out var lib))
         {
             return lib;
@@ -419,6 +427,11 @@ public class GameResourceManager : ResourceManager, IDisposable
         if (isDisposed)
         {
             throw new ObjectDisposedException(nameof(GameResourceManager));
+        }
+
+        if (string.IsNullOrEmpty(filename))
+        {
+            return;
         }
 
         var fn = filename.ToLowerInvariant();
@@ -522,8 +535,13 @@ public class GameResourceManager : ResourceManager, IDisposable
         }
     }
 
-    public override ModelResource? GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
+    public override ModelResource? GetDrawable(string? filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
     {
+        if (filename is null)
+        {
+            return null;
+        }
+
         if (isDisposed)
         {
             throw new ObjectDisposedException(nameof(GameResourceManager));

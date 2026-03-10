@@ -21,9 +21,12 @@ namespace LibreLancer.Render
         private int ID;
         private VertexBillboardColor2[]? vertices;
 
-        private SunSpineMaterial spineMaterial;
-        private SunRadialMaterial centerMaterial;
-        private SunRadialMaterial glowMaterial;
+        private SunSpineMaterial spineMaterial = null!;
+        private SunRadialMaterial centerMaterial = null!;
+        private SunRadialMaterial glowMaterial = null!;
+
+        private Vector3 genPos;
+        private int bufferIndex;
 
 		public SunRenderer (Sun sun)
 		{
@@ -55,9 +58,6 @@ namespace LibreLancer.Render
             );
         }
 
-        private Vector3 genPos;
-        private int bufferIndex;
-
         public override void Update(double elapsed, Vector3 position, Matrix4x4 transform)
         {
             pos = position;
@@ -65,17 +65,17 @@ namespace LibreLancer.Render
 
         public static int GetVertexCount(Sun sun)
         {
-            int count = 4; // glow quad
+            var count = 4; // glow quad
             if (sun.CenterSprite != null)
                 count += 4; // center quad
             if (sun.SpinesSprite != null)
-                count += sun.Spines.Count * 4;
+                count += sun.Spines!.Count * 4;
             return count;
         }
 
         public static void CreateVertices(VertexBillboardColor2[] vx, Vector3 pos, Sun sun)
         {
-            int idx = 0;
+            var idx = 0;
             // center
             if (sun.CenterSprite != null)
                 AddQuad(vx, ref idx, pos, new Vector2(sun.Radius * sun.CenterScale), 0,
@@ -85,12 +85,13 @@ namespace LibreLancer.Render
             AddQuad(vx, ref idx, pos, new Vector2(sun.Radius * sun.GlowScale), 0,
                 new Color4(sun.GlowColorInner, 1),
                 new Color4(sun.GlowColorOuter, 1));
+
             // spines
             if (sun.SpinesSprite != null)
             {
                 double current_angle = 0;
-                double delta_angle = (2 * Math.PI) / sun.Spines.Count;
-                for (int i = 0; i < sun.Spines.Count; i++)
+                var delta_angle = (2 * Math.PI) / sun.Spines!.Count;
+                for (var i = 0; i < sun.Spines.Count; i++)
                 {
                     current_angle += delta_angle;
                     var s = sun.Spines[i];
@@ -110,11 +111,7 @@ namespace LibreLancer.Render
         {
             if (sysr == null)
             {
-                spineMaterial = new SunSpineMaterial(sys.ResourceManager)
-                {
-                    Texture = Sun.SpinesSprite!,
-                    SizeMultiplier = Vector2.One
-                };
+                spineMaterial = new SunSpineMaterial(sys.ResourceManager, Sun.SpinesSprite!, Vector2.One);
 
                 centerMaterial = new SunRadialMaterial(sys.ResourceManager)
                 {
@@ -148,7 +145,7 @@ namespace LibreLancer.Render
                 return;
             }
 
-            float z = RenderHelpers.GetZ(Matrix4x4.Identity, camera.Position, pos);
+            var z = RenderHelpers.GetZ(Matrix4x4.Identity, camera.Position, pos);
             if (z > 900000) // Reduce artefacts from fast Z-sort calculation. This'll probably cause issues somewhere else
             {
                 z = 900000;

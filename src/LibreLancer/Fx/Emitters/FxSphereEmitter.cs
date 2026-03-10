@@ -15,8 +15,8 @@ namespace LibreLancer.Fx
 
 		public FxSphereEmitter (AlchemyNode ale) : base(ale)
         {
-            MinRadius = ale.GetCurveAnimation(AleProperty.SphereEmitter_MinRadius);
-            MaxRadius = ale.GetCurveAnimation(AleProperty.SphereEmitter_MaxRadius);
+            MinRadius = ale.GetCurveAnimation(AleProperty.SphereEmitter_MinRadius)!;
+            MaxRadius = ale.GetCurveAnimation(AleProperty.SphereEmitter_MaxRadius)!;
 		}
 
         public FxSphereEmitter(string name) : base(name)
@@ -52,7 +52,7 @@ namespace LibreLancer.Fx
                 p += translate;
                 n = Vector3.Transform(n, rotate);
             }
-			n *= Pressure.GetValue(sparam, 0);
+			n *= Pressure!.GetValue(sparam, 0);
 			var pr = p * radius;
 			particle.Position = pr;
 			particle.Normal = n;

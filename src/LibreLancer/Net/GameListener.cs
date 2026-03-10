@@ -24,7 +24,7 @@ namespace LibreLancer.Net
         }
 
         private GameServer game;
-        private NetHpidWriter hpids;
+        private NetHpidWriter hpids = null!;
         private static readonly object TagConnecting = new();
 
         public int Port = LNetConst.DEFAULT_PORT;
@@ -32,10 +32,10 @@ namespace LibreLancer.Net
         public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
 
         private bool running = false;
-        private Thread netThread;
-		public NetManager Server;
-        private HttpClient http;
-        private string loginUrl;
+        private Thread netThread = null!;
+		public NetManager Server = null!;
+        private HttpClient http = null!;
+        private string? loginUrl;
 
 		public GameListener(GameServer srv)
         {
@@ -45,12 +45,14 @@ namespace LibreLancer.Net
 		public void Start()
 		{
 			running = true;
-            netThread = new Thread(NetThread);
-            netThread.Name = "Server Listener";
+            netThread = new Thread(NetThread)
+            {
+                Name = "Server Listener"
+            };
             netThread.Start();
 		}
 
-        private AutoResetEvent stopHandle;
+        private AutoResetEvent stopHandle = null!;
 
         private void NetThread()
         {
@@ -275,11 +277,13 @@ namespace LibreLancer.Net
             broadcastServer.BroadcastReceiveEnabled = true;
             broadcastServer.UnsyncedEvents = true;
             broadcastServer.Start(LNetConst.BROADCAST_PORT);
-            Server = new NetManager(listener);
-            Server.IPv6Enabled = true;
-            Server.UnconnectedMessagesEnabled = true;
-            Server.ChannelsCount = 3;
-            Server.UnsyncedEvents = true;
+            Server = new NetManager(listener)
+            {
+                IPv6Enabled = true,
+                UnconnectedMessagesEnabled = true,
+                ChannelsCount = 3,
+                UnsyncedEvents = true
+            };
             Server.Start(Port);
             FLLog.Info("Server", "Listening on port " + Port);
             stopHandle.WaitOne();

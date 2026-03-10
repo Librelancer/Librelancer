@@ -10,8 +10,8 @@ namespace LibreLancer.Input
 {
 	public class InputManager : IDisposable
 	{
-		public event Action<InputAction> ActionDown;
-		public event Action<InputAction> ActionUp;
+		public event Action<InputAction>? ActionDown;
+		public event Action<InputAction>? ActionUp;
 
         private Game game;
 

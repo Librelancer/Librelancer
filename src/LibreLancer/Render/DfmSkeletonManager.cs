@@ -179,13 +179,13 @@ namespace LibreLancer.Render
             public float BlendOutDuration;
 
             public RefList<ResolvedJoint> Joints = [];
-            public DfmSkeletonManager Parent;
+            public DfmSkeletonManager Parent = null!;
             public Vector3 RootTranslation = Vector3.Zero;
             public Quaternion RootRotation = Quaternion.Identity;
             public Quaternion RootRotationAccumulator = Quaternion.Identity;
             private int rootCursor = 0;
 
-            public Script Script;
+            public Script Script = null!;
 
             private float lastFt;
 
@@ -196,7 +196,7 @@ namespace LibreLancer.Render
 
             private float GetBlendWeight()
             {
-                float weight = 1f;
+                var weight = 1f;
                 var t = (float) T;
 
                 if (BlendInDuration > 0f && t < BlendInDuration)
@@ -206,7 +206,7 @@ namespace LibreLancer.Render
 
                 if (!Loop && Duration > 0f && BlendOutDuration > 0f)
                 {
-                    float blendOutStart = Duration - BlendOutDuration;
+                    var blendOutStart = Duration - BlendOutDuration;
                     if (t > blendOutStart)
                     {
                         weight = MathF.Min(weight, (Duration - t) / BlendOutDuration);
@@ -231,7 +231,7 @@ namespace LibreLancer.Render
                 rotate = Quaternion.Identity;
                 translate = Vector3.Zero;
 
-                for (int i = 0; i < Script.ObjectMaps.Count; i++)
+                for (var i = 0; i < Script.ObjectMaps.Count; i++)
                 {
                     ref var o = ref Script.ObjectMaps[i];
                     if (!o.ParentName.Equals("Root", StringComparison.OrdinalIgnoreCase))
@@ -255,7 +255,7 @@ namespace LibreLancer.Render
                             qOne = o.Channel.QuaternionAtTime(o.Channel.Duration, ref rootCursor);
                         }
 
-                        int hangDetect = 0;
+                        var hangDetect = 0;
 
                         while (cht > o.Channel.Duration)
                         {
@@ -290,9 +290,9 @@ namespace LibreLancer.Render
                 T += delta;
                 var ft = (float) (T * TimeScale) + StartTime;
                 var blendWeight = GetBlendWeight();
-                bool running = false;
+                var running = false;
 
-                for (int i = 0; i < Joints.Count; i++)
+                for (var i = 0; i < Joints.Count; i++)
                 {
                     ref var j = ref Joints[i];
                     ref var ch = ref Script.JointMaps[j.JointMapIndex].Channel;
@@ -419,15 +419,10 @@ namespace LibreLancer.Render
             return false;
         }
 
-        private void AddHardpoints(DfmSkinning skinning, Connection connection)
+        private void AddHardpoints(DfmSkinning skinning, Connection? connection)
         {
             foreach (var hp in skinning.GetHardpoints())
-                Hardpoints[hp.def.Name] = new DfmHardpoint()
-                {
-                    Definition = hp.def,
-                    Bone = hp.bone,
-                    Connection = connection,
-                };
+                Hardpoints[hp.def.Name] = new DfmHardpoint(connection, hp.bone, hp.def);
         }
 
         public DfmSkeletonManager(DfmFile body, DfmFile? head = null, DfmFile? leftHand = null,
@@ -511,7 +506,7 @@ namespace LibreLancer.Render
 
             foreach (var sc in RunningScripts)
             {
-                for (int i = 0; i < sc.Joints.Count; i++)
+                for (var i = 0; i < sc.Joints.Count; i++)
                 {
                     var bone = sc.Joints[i].Bone;
                     if (!basePose.ContainsKey(bone))
@@ -612,17 +607,19 @@ namespace LibreLancer.Render
                 RootHeight = anmScript.RootHeight;
             }
 
-            var inst = new ScriptInstance(start_time);
-            inst.Script = anmScript;
-            inst.TimeScale = time_scale;
-            inst.Duration = duration;
-            inst.Loop = loop;
+            var inst = new ScriptInstance(start_time)
+            {
+                Script = anmScript,
+                TimeScale = time_scale,
+                Duration = duration,
+                Loop = loop
+            };
             var skipBlendIn = IsDefaultPose();
             inst.BlendInDuration = skipBlendIn ? 0f : blendIn;
             inst.BlendOutDuration = blendOut;
             inst.Parent = this;
 
-            for (int i = 0; i < anmScript.JointMaps.Count; i++)
+            for (var i = 0; i < anmScript.JointMaps.Count; i++)
             {
                 ref var jm = ref anmScript.JointMaps[i];
                 if (BodySkinning.Bones.TryGetValue(jm.ChildName, out var bb))

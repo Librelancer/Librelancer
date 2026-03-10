@@ -30,21 +30,22 @@ namespace LibreLancer.Utf.Mat
             // TODO: int count = 0;
             foreach (Node materialNode in materialLibraryNode)
             {
-                if (materialNode is IntermediateNode)
+                if (materialNode is not IntermediateNode node)
                 {
-                    uint materialId = CrcTool.FLModelCrc(materialNode.Name);
+                    continue;
+                }
 
-                    if (!Materials.ContainsKey(materialId))
+                var materialId = CrcTool.FLModelCrc(node.Name);
+
+                if (!Materials.ContainsKey(materialId))
+                {
+                    try
                     {
-                        try
-                        {
-                            var mat = Material.FromNode(materialNode as IntermediateNode);
-                            Materials.Add(materialId, Material.FromNode(materialNode as IntermediateNode));
-                        }
-                        catch (Exception e)
-                        {
-                            FLLog.Error("Mat", $"Error loading material {materialNode.Name}: {e}");
-                        }
+                        Materials.Add(materialId, Material.FromNode(node));
+                    }
+                    catch (Exception e)
+                    {
+                        FLLog.Error("Mat", $"Error loading material {node.Name}: {e}");
                     }
                 }
             }

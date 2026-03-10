@@ -7,7 +7,7 @@ namespace LibreLancer.Missions;
 
 public class ScriptDialog : NicknameItem
 {
-    public string System;
+    public string? System;
     public List<DialogLine> Lines = [];
 
     public static ScriptDialog FromIni(MissionDialog dialog) => new()

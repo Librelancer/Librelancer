@@ -22,21 +22,23 @@ namespace LibreLancer.Thn
         public void Start(bool loop, float time_offset)
         {
             lastTranslate = Object.Translate;
-            Instance.Play(loop, time_offset / 1000f);
+            Instance!.Play(loop, time_offset / 1000f);
         }
 
         private Vector3 lastTranslate;
         public void Update(double delta)
         {
-            if (Instance != null)
+            if (Instance == null)
             {
-                Instance.SetAttenuation(Object.Sound.Attenuation);
-                if(Spatial)
-                {
-                    Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
-                    Instance.SetPosition(Object.Translate);
-                    lastTranslate = Object.Translate;
-                }
+                return;
+            }
+
+            Instance.SetAttenuation(Object.Sound!.Attenuation);
+            if(Spatial)
+            {
+                Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
+                Instance.SetPosition(Object.Translate);
+                lastTranslate = Object.Translate;
             }
         }
     }

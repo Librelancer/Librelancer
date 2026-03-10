@@ -16,7 +16,7 @@ namespace LibreLancer.World
     /// <summary>
     /// Return a GameObject only if you add one to the parent
     /// </summary>
-    public delegate GameObject? MountEquipmentHandler(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip);
+    public delegate GameObject? MountEquipmentHandler(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type, string? hardpoint, Equipment equip);
 
     public enum EquipmentType
     {
@@ -33,63 +33,66 @@ namespace LibreLancer.World
             handlers.Add(typeof(T), handler);
         }
 
-        public static void InstantiateEquipment(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
+        public static void InstantiateEquipment(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type, string? hardpoint, Equipment equip)
         {
-            var etype = equip.GetType();
-            if (!handlers.TryGetValue(etype, out var handle))
+            var equipType = equip.GetType();
+            if (!handlers.TryGetValue(equipType, out var handle))
             {
-                FLLog.Error("Equipment", $"Cannot instantiate {etype}");
+                FLLog.Error("Equipment", $"Cannot instantiate {equipType}");
                 return;
             }
 
             var obj = handle(parent, res, snd, type, hardpoint, equip);
             // Do setup of child attachment, hardpoint, lod inheriting, static position etc.
-            if (obj != null)
+            if (obj == null)
             {
-                obj.Parent = parent;
-                obj.AddComponent(new EquipmentComponent(equip, obj));
-                parent.Children.Add(obj);
-                if (equip.LODRanges != null && obj.RenderComponent is ModelRenderer mrender)
-                    mrender.LODRanges = equip.LODRanges;
-                if(equip.HPChild != null)
-                {
-                    var hpChild = obj.GetHardpoint(equip.HPChild);
-                    if (hpChild != null)
-                    {
-                        obj.SetLocalTransform(hpChild.Transform.Inverse());
-                    }
-                }
+                parent.AddComponent(new EquipmentComponent(equip, parent));
+                return;
+            }
 
-                var hp = parent.GetHardpoint(hardpoint);
-                obj.Attachment = hp;
-                if(obj.RenderComponent is ModelRenderer && parent.RenderComponent != null)
+            obj.Parent = parent;
+            obj.AddComponent(new EquipmentComponent(equip, obj));
+            parent.Children.Add(obj);
+            if (equip.LODRanges != null && obj.RenderComponent is ModelRenderer mrender)
+                mrender.LODRanges = equip.LODRanges;
+
+            if (equip.HPChild != null)
+            {
+                var hpChild = obj.GetHardpoint(equip.HPChild);
+
+                if (hpChild != null)
                 {
-                    if (parent.RenderComponent is ModelRenderer m && m.LODRanges != null)
-                    {
-                        obj.RenderComponent.InheritCull = true;
-                    }
-                    else if (parent.RenderComponent is ModelRenderer)
-                    {
-                        var mr = (ModelRenderer)parent.RenderComponent;
-                        // if (mr.Model.Mesh != null && mr.Model.Switch2 != null)
-                         //  obj. RenderComponent.InheritCull = true;
-                        // if(mr.CmpParts != null)
-                        //{
-                            /*Part? parentPart = null;
+                    obj.SetLocalTransform(hpChild.Transform.Inverse());
+                }
+            }
+
+            var hp = parent.GetHardpoint(hardpoint);
+            obj.Attachment = hp;
+
+            if (obj.RenderComponent is not ModelRenderer || parent.RenderComponent == null)
+            {
+                return;
+            }
+
+            if (parent.RenderComponent is ModelRenderer { LODRanges: not null })
+            {
+                obj.RenderComponent.InheritCull = true;
+            }
+            else if (parent.RenderComponent is ModelRenderer)
+            {
+                var mr = (ModelRenderer) parent.RenderComponent;
+                // if (mr.Model.Mesh != null && mr.Model.Switch2 != null)
+                //  obj. RenderComponent.InheritCull = true;
+                // if(mr.CmpParts != null)
+                //{
+                /*Part? parentPart = null;
                             if (hp.parent != null)
                                 parentPart = mr.CmpParts.Find((o) => o.ObjectName == hp.parent.ChildName);
                             else
                                 parentPart = mr.CmpParts.Find((o) => o.ObjectName == "Root");
                             if (parentPart.Model.Switch2 != null)
                                 obj.RenderComponent.InheritCull = true;*/
-                        //}
-                    }
-                }
-
-            }
-            else
-            {
-                parent.AddComponent(new EquipmentComponent(equip, parent));
+                //}
             }
         }
     }

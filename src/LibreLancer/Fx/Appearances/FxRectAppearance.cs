@@ -45,7 +45,7 @@ namespace LibreLancer.Fx
 
         public FxRectAppearance(string name) : base(name)
         {
-            Size = null;
+            Size = null!;
             Width = new(1);
             Length = new(1);
             Scale = new(1);
@@ -69,9 +69,9 @@ namespace LibreLancer.Fx
                 ref var particle = ref instance.Buffer[nodeIdx, i];
                 var time = particle.TimeAlive / particle.LifeSpan;
                 var src_pos = particle.Position;
-                var l = Length.GetValue(sparam, time);
-                var w = Width.GetValue(sparam, time);
-                var sc = Scale.GetValue(sparam, time);
+                var l = Length!.GetValue(sparam, time);
+                var w = Width!.GetValue(sparam, time);
+                var sc = Scale!.GetValue(sparam, time);
                 if (!CenterOnPos)
                 {
                     var nd = particle.Normal.Normalized();
@@ -79,8 +79,8 @@ namespace LibreLancer.Fx
                 }
 
                 var p = Vector3.Transform(src_pos, node_tr);
-                var c = Color.GetValue(sparam, time);
-                var a = Alpha.GetValue(sparam, time);
+                var c = Color!.GetValue(sparam, time);
+                var a = Alpha!.GetValue(sparam, time);
                 var p2 = Vector3.Transform(src_pos + (particle.Normal * 20), node_tr);
                 // var n = (p2 - p).Normalized();
                 var n = Vector3.TransformNormal(particle.Normal, transform).Normalized();
@@ -94,9 +94,10 @@ namespace LibreLancer.Fx
                     Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
                     FlipHorizontal, FlipVertical
                 );
+
                 if (DrawNormals)
                 {
-                    Debug.DrawLine(p - (n * 12), p + (n * 12), Color4.Red);
+                    Debug?.DrawLine(p - (n * 12), p + (n * 12), Color4.Red);
                 }
             }
 

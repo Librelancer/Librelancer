@@ -13,8 +13,10 @@ public class WattleVector2 : HardwiredUserDataDescriptor
 {
     public static void CreateTable(Script script)
     {
-        var tbl = new Table(script);
-        tbl.Kind = TableKind.Class;
+        var tbl = new Table(script)
+        {
+            Kind = TableKind.Class
+        };
         script.Globals["Vector2"] = tbl;
         tbl["new"] = (float x, float y) => new Vector2(x, y);
     }

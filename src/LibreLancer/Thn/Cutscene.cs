@@ -48,7 +48,7 @@ namespace LibreLancer.Thn
             {
                 if (PosFromObject)
                 {
-                    Translate = Object.Parent.WorldTransform.Position;
+                    Translate = Object.Parent!.WorldTransform.Position;
                     Rotate = Object.Parent.WorldTransform.Orientation;
                 }
                 else
@@ -67,9 +67,13 @@ namespace LibreLancer.Thn
                     }
 
                     if (HpMount == null)
+                    {
                         Object.SetLocalTransform(new Transform3D(Translate, Rotate));
+                    }
                     else
+                    {
                         Object.SetLocalTransform(HpMount.Transform.Inverse() * new Transform3D(Translate, Rotate));
+                    }
                 }
             }
             if(Light != null)
@@ -83,7 +87,7 @@ namespace LibreLancer.Thn
 	{
         public const float LETTERBOX_HEIGHT = 0.138021f;
         // Public variables
-		public GameWorld World;
+		public GameWorld World = null!;
 		public SystemRenderer? Renderer;
         public GameObject? PlayerShip => scriptContext.PlayerShip;
         public CEngineComponent PlayerEngine => scriptContext.PlayerEngine;
@@ -93,12 +97,13 @@ namespace LibreLancer.Thn
         public Dictionary<string, string> Substitutions => scriptContext.Substitutions;
         public GameObject MainObject => scriptContext.MainObject;
         public GameDataManager GameData => gameData;
-        public SoundManager SoundManager => soundManager;
+        public SoundManager? SoundManager => soundManager;
         public bool Running => running;
         public double CurrentTime => currentTime;
         // Private variables
         private double currentTime = 0;
-        private Dictionary<string, ThnObject> sceneObjects;
+
+        private Dictionary<string, ThnObject> sceneObjects = new(StringComparer.OrdinalIgnoreCase);
         private Game game;
         private ThnCamera camera;
         private bool spawnObjects = true;
@@ -106,11 +111,14 @@ namespace LibreLancer.Thn
         private ThnDisplayText? text;
         private GameDataManager gameData;
         private GameResourceManager resourceManager;
-        private SoundManager soundManager;
+        private SoundManager? soundManager;
         private bool hasScene = false;
         private bool running = false;
 
-        public event Action<ThnScript> ScriptFinished;
+        private ThnScriptContext scriptContext;
+        private List<ThnScriptInstance> instances = [];
+        private ThnObject[] starSphereObjects= [];
+        public event Action<ThnScript>? ScriptFinished;
 
         public void OnScriptFinished(ThnScript thn) => ScriptFinished?.Invoke(thn);
 
@@ -126,9 +134,16 @@ namespace LibreLancer.Thn
 
         public void SetAmbient(Vector3 amb)
         {
-            if (hasScene) return;
+            if (hasScene)
+            {
+                return;
+            }
+
             if(Renderer != null)
+            {
                 Renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
+            }
+
             hasScene = true;
         }
 
@@ -144,8 +159,6 @@ namespace LibreLancer.Thn
             scriptContext = context;
         }
 
-        private ThnScriptContext scriptContext;
-        private List<ThnScriptInstance>? instances = [];
         public Cutscene(ThnScriptContext context, GameDataManager gameData, GameResourceManager resources, SoundManager sound, Rectangle viewport, Game game)
         {
             scriptContext = context;
@@ -164,8 +177,9 @@ namespace LibreLancer.Thn
         public void AddObject(ThnObject obj)
         {
             sceneObjects[obj.Name] = obj;
-            if (obj.Object != null) {
-                World?.AddObject(obj.Object);
+            if (obj.Object != null)
+            {
+                World.AddObject(obj.Object);
             }
         }
 
@@ -191,27 +205,34 @@ namespace LibreLancer.Thn
                 layers = [];
             }
 
-            if (spawnObjects && resetObjects) {
+            if (spawnObjects && resetObjects)
+            {
                 if (Renderer != null)
                 {
                     Renderer.Dispose();
                     World.Dispose();
                 }
+
                 Renderer = new SystemRenderer(camera, resourceManager, game);
                 World = new GameWorld(Renderer, resourceManager, null, false);
             }
+
             if (scriptContext.SetScript != null && resetObjects)
             {
                 var inst = new ThnScriptInstance(this, scriptContext.SetScript);
                 inst.ConstructEntities(sceneObjects, spawnObjects);
             }
-            if (instances != null && resetObjects)
+
+            if(resetObjects)
             {
                 foreach (var inst in instances)
+                {
                     inst.Cleanup();
-            }
-            if(resetObjects)
+                }
+
                 instances = [];
+            }
+
             int startIdx = instances.Count;
             foreach (var script in scripts)
             {
@@ -223,7 +244,11 @@ namespace LibreLancer.Thn
             if (resetObjects)
             {
                 var firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
-                if (firstCamera == null) firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
+                if (firstCamera == null)
+                {
+                    firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
+                }
+
                 if (firstCamera != null)
                 {
                     camera.Object = firstCamera;
@@ -235,10 +260,11 @@ namespace LibreLancer.Thn
                 // Add starspheres in the right order
                 var sorted = ((IEnumerable<Tuple<IDrawable, ThnObject>>) layers).Reverse()
                     .OrderBy(x => x.Item2.Entity.SortGroup).ToArray();
-                Renderer.StarSphereModels = new RigidModel[sorted.Length];
+                Renderer!.StarSphereModels = new RigidModel[sorted.Length];
                 Renderer.StarSphereWorlds = new Matrix4x4[sorted.Length];
                 Renderer.StarSphereLightings = new Lighting[sorted.Length];
                 starSphereObjects = new ThnObject[sorted.Length];
+
                 for (int i = 0; i < sorted.Length; i++)
                 {
                     Renderer.StarSphereModels[i] = ((sorted[i].Item1 as IRigidModelFile)!).CreateRigidModel(true, ResourceManager);
@@ -246,20 +272,27 @@ namespace LibreLancer.Thn
                     Renderer.StarSphereLightings[i] = Lighting.Empty;
                     starSphereObjects[i] = sorted[i].Item2;
                 }
+
                 // Add objects to the renderer
                 World.RegisterAll();
             }
 
             for (int i = startIdx; i < instances.Count; i++)
+            {
                 instances[i].Update(0);
+            }
+
             // Init
             running = true;
         }
 
-        private ThnObject[] starSphereObjects;
-
         private void UpdateStarsphere()
         {
+            if (Renderer is null)
+            {
+                return;
+            }
+
             for (int i = 0; i < starSphereObjects.Length; i++)
             {
                 Renderer.StarSphereWorlds[i] = Matrix4x4.CreateFromQuaternion(starSphereObjects[i].Rotate) * Matrix4x4.CreateTranslation(starSphereObjects[i].Translate);
@@ -289,11 +322,12 @@ namespace LibreLancer.Thn
         {
             if (Running)
             {
-                var pos = camera.Object.Translate;
+                var pos = camera.Object!.Translate;
                 var forward = Vector3.Transform(-Vector3.UnitZ, camera.Object.Rotate);
                 var up = Vector3.Transform(Vector3.UnitY, camera.Object.Rotate);
                 soundManager.UpdateListener(delta, pos, forward, up);
             }
+
 			currentTime += delta;
             foreach (var obj in sceneObjects.Values) obj.UpdateIfMain();
             if (text != null)
@@ -304,24 +338,35 @@ namespace LibreLancer.Thn
                     // text = null;
                 }
             }
-            //
+
             foreach (var instance in instances)
             {
                 instance.Update(delta);
             }
-            //
-            foreach (var obj in sceneObjects.Values) obj.Update();
+
+            foreach (var obj in sceneObjects.Values)
+            {
+                obj.Update();
+            }
+
             camera.Update();
-            if(Renderer != null)
-			    World.Update(delta);
-		}
+            if (Renderer != null)
+            {
+                World.Update(delta);
+            }
+        }
 
 		public void Draw(double delta, int renderWidth, int renderHeight)
         {
             UpdateStarsphere();
-            if(Renderer != null)
-                World.RenderUpdate(delta);
-			Renderer.Draw(renderWidth, renderHeight);
+
+            if (Renderer == null)
+            {
+                return;
+            }
+
+            World.RenderUpdate(delta);
+            Renderer.Draw(renderWidth, renderHeight);
         }
 
         public ThnObject? GetObject(string? name)
@@ -343,7 +388,7 @@ namespace LibreLancer.Thn
 
         public void Dispose()
 		{
-			Renderer.Dispose();
+			Renderer?.Dispose();
 		}
 	}
 }

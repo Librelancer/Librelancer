@@ -89,7 +89,7 @@ namespace LibreLancer.Utf.Cmp
 
             if (dcs != null)
             {
-                return new MeshLevel() { Drawcalls = dcs, Optimize = opt, Resource = res };
+                return new MeshLevel(dcs, res, opt);
             }
 
             dcs = new MeshDrawcall[MeshCount];
@@ -105,7 +105,7 @@ namespace LibreLancer.Utf.Cmp
                 };
             }
 
-            return new MeshLevel() {Drawcalls = dcs, Optimize = opt, Resource = res};
+            return new MeshLevel(dcs, res, opt);
         }
 
         public override string ToString()

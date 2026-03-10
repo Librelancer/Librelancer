@@ -113,7 +113,7 @@ namespace LibreLancer.Interface
 
             foreach (var child in Children)
             {
-                UiWidget w;
+                UiWidget? w;
                 if ((w = child.GetElement(elementID)) != null) return w;
             }
 

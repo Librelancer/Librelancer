@@ -142,9 +142,11 @@ namespace LibreLancer.Server
                 position = p.Position;
                 orient = p.Orientation;
             }
-            var obj = new GameObject(ship, World.Server.Resources, false, true);
-            obj.Name = name;
-            obj.Nickname = nickname;
+            var obj = new GameObject(ship, World.Server.Resources, false, true)
+            {
+                Name = name,
+                Nickname = nickname
+            };
             obj.SetLocalTransform(new Transform3D(position, orient));
             obj.AddComponent(new SHealthComponent(obj)
             {
@@ -171,7 +173,7 @@ namespace LibreLancer.Server
             obj.AddComponent(npcComponent);
             obj.AddComponent(new AutopilotComponent(obj));
             obj.AddComponent(new ShipSteeringComponent(obj));
-            obj.AddComponent(new ShipPhysicsComponent(obj) { Ship = ship });
+            obj.AddComponent(new ShipPhysicsComponent(obj, ship));
             obj.AddComponent(new WeaponControlComponent(obj));
             obj.AddComponent(new SDestroyableComponent(obj, World));
             obj.AddComponent(new DirectiveRunnerComponent(obj));

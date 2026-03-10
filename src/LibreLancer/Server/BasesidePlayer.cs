@@ -76,7 +76,7 @@ public class BasesidePlayer : IBasesidePlayer
 
         var cost = (long) (g.Price * (ulong) count);
 
-        if (Player.Character.Credits < cost)
+        if (Player.Character!.Credits < cost)
         {
             return Task.FromResult(false);
         }
@@ -86,7 +86,7 @@ public class BasesidePlayer : IBasesidePlayer
             : null;
 
         if (hp == null &&
-            count > CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship, g.Good.Equipment))
+            count > CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship!, g.Good.Equipment))
         {
             FLLog.Error("Player", $"{Player.Name} tried to overfill cargo hold");
             return Task.FromResult(false);
@@ -120,7 +120,7 @@ public class BasesidePlayer : IBasesidePlayer
             return Task.FromResult(false);
         }
 
-        var slot = Player.Character.Items.FirstOrDefault(x => x.ID == id);
+        var slot = Player.Character!.Items.FirstOrDefault(x => x.ID == id);
 
         if (slot == null)
         {
@@ -134,7 +134,7 @@ public class BasesidePlayer : IBasesidePlayer
             return Task.FromResult(false);
         }
 
-        var unitPrice = BaseData.GetUnitPrice(slot.Equipment);
+        var unitPrice = BaseData.GetUnitPrice(slot.Equipment!);
 
         if (slot.Equipment is not CommodityEquipment)
         {

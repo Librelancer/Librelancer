@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Resources;
@@ -23,8 +24,10 @@ namespace LibreLancer.Net
         public EmbeddedServer(GameDataManager gameData, GameResourceManager resources, string saveFolder)
         {
             Client = new LocalPacketClient();
-            Server = new GameServer(gameData, resources.ConvexCollection);
-            Server.ScriptsFolder = Path.Combine(saveFolder, "scripts");
+            Server = new GameServer(gameData, resources.ConvexCollection)
+            {
+                ScriptsFolder = Path.Combine(saveFolder, "scripts")
+            };
             Server.LocalPlayer = new Player(Client, Server, Guid.Empty);
             Server.ConnectedPlayers.Add(Server.LocalPlayer);
             Server.LocalPlayer.SaveFolder = saveFolder;
@@ -38,9 +41,9 @@ namespace LibreLancer.Net
             Server.LoadSaveGame(sg);
         }
 
-        public string Save(string description, bool autosave)
+        public string Save(string? description, bool autosave)
         {
-            var t = Server.LocalPlayer.SaveSP(description, autosave ? 1628 : 0, autosave, DateTime.Now);
+            var t = Server.LocalPlayer!.SaveSP(description, autosave ? 1628 : 0, autosave, DateTime.Now);
             t.Wait();
             return t.Result;
         }
@@ -58,7 +61,7 @@ namespace LibreLancer.Net
             Server.Stop();
         }
 
-        public bool PollPacket(out IPacket packet)
+        public bool PollPacket([MaybeNullWhen(false)] out IPacket packet)
         {
             if (!Client.Packets.IsEmpty)
             {

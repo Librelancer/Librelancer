@@ -68,8 +68,10 @@ namespace LibreLancer.Net.Protocol
             var compressed = message.GetRemainingBytes();
             using var comp = new ZstdSharp.Decompressor();
             var reader = new PacketReader(new NetDataReader(comp.Unwrap(compressed).ToArray()));
-            var bp = new BaselinePriceBundle();
-            bp.Prices = new BaselinePrice[reader.GetBigVarUInt32()];
+            var bp = new BaselinePriceBundle
+            {
+                Prices = new BaselinePrice[reader.GetBigVarUInt32()]
+            };
             bp.Prices[0].GoodCRC = reader.GetUInt();
             for (int i = 1; i < bp.Prices.Length; i++)
                 bp.Prices[i].GoodCRC = (uint)(reader.GetBigVarUInt32() + bp.Prices[i - 1].GoodCRC);

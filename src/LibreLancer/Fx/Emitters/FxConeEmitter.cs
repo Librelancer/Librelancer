@@ -16,10 +16,10 @@ namespace LibreLancer.Fx
 
 		public FxConeEmitter (AlchemyNode ale) : base(ale)
 		{
-            MinRadius =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MinRadius);
-            MaxRadius =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxRadius);
-            MinSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MinSpread);
-            MaxSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxSpread);
+            MinRadius =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MinRadius)!;
+            MaxRadius =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxRadius)!;
+            MinSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MinSpread)!;
+            MaxSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxSpread)!;
 		}
 
         public FxConeEmitter(string name) : base(name)
@@ -63,7 +63,7 @@ namespace LibreLancer.Fx
                 n = Vector3.Transform(n, rotate);
             }
             var p = n * radius + translate;
-			n *= Pressure.GetValue(sparam, 0);
+			n *= Pressure!.GetValue(sparam, 0);
             particle.Position = p;
             particle.Normal = n;
 		}

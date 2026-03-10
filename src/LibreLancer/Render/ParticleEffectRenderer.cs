@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Numerics;
 using LibreLancer.Fx;
 using LibreLancer.World;
@@ -12,11 +13,19 @@ namespace LibreLancer.Render
 	{
 		public float SParam = 0f;
 		public bool Active = true;
-        private SystemRenderer sys;
+        private SystemRenderer sys = null!;
         private ParticleEffectInstance? fx;
         public bool Finished = false;
         public int Index; // needed to fix fuses spawning multiple fx on top of each-other
         public Hardpoint? Attachment;
+
+        private Matrix4x4 tr;
+        private Vector3 pos;
+        private float dist = float.MaxValue;
+        private const float CULL_DISTANCE = 20000;
+        private const float CULL = CULL_DISTANCE * CULL_DISTANCE;
+
+        private Vector3 cameraPos;
 
 		public ParticleEffectRenderer(ParticleEffect? effect)
 		{
@@ -33,8 +42,7 @@ namespace LibreLancer.Render
             fx?.Reset();
         }
 
-        private Vector3 cameraPos;
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool forceCull)
         {
             if (fx == null)
             {
@@ -45,22 +53,18 @@ namespace LibreLancer.Render
             cameraPos = camera.Position;
             dist = Vector3.DistanceSquared(pos, camera.Position);
             fx.Resources = sys.ResourceManager;
-            if (Active && dist < (20000 * 20000) && !forceCull)
+            if (Active && dist < Math.Pow(20000, 2) && !forceCull)
             {
                 sys.AddObject(this);
                 fx.Pool = sys.FxPool;
                 fx.UpdateCull(camera);
                 return true;
             }
-            fx.Pool = null;
+
+            fx.Pool = null!;
             return false;
         }
 
-        private Matrix4x4 tr;
-        private Vector3 pos;
-        private float dist = float.MaxValue;
-        private const float CULL_DISTANCE = 20000;
-        private const float CULL = CULL_DISTANCE * CULL_DISTANCE;
 		public override void Update(double time, Vector3 position, Matrix4x4 transform)
 		{
             if (fx == null)
@@ -88,6 +92,7 @@ namespace LibreLancer.Render
                 Finished = true;
             }
         }
+
 		public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
 		{
             if (fx == null)

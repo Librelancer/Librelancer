@@ -34,29 +34,47 @@ namespace LibreLancer.Missions
         {
             HashSet<string> ships = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             HashSet<string> equipment = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var sh in Ships.Values)
             {
                 var npc = sh.NPC;
                 if (npc == null)
+                {
                     continue;
-                if (!NpcShips.TryGetValue(npc.NpcShipArch, out var shipArch))
+                }
+
+                if (!NpcShips.TryGetValue(npc.NpcShipArch!, out var shipArch))
                 {
                     shipArch = gameData.Items.NpcShips.Get(npc.NpcShipArch);
                 }
+
                 if (shipArch == null)
+                {
                     continue;
-                gameData.Items.TryGetLoadout(shipArch.Loadout, out var ld);
+                }
+
+                gameData.Items.TryGetLoadout(shipArch.Loadout!, out var ld);
                 if (ld == null)
+                {
                     continue;
-                ships.Add(ld.Archetype);
+                }
+
+                ships.Add(ld.Archetype!);
                 foreach (var cargo in ld.Cargo)
+                {
                     equipment.Add(cargo.Item.Nickname);
+                }
+
                 foreach (var item in ld.Items)
+                {
                     equipment.Add(item.Equipment.Nickname);
+                }
             }
 
-            var shipItems = ships.Chunk(31).Select(x => new PreloadObject(PreloadType.Ship, x.Select(x => new HashValue(x)).ToArray()));
-            var equipItems = equipment.Chunk(31).Select(x => new PreloadObject(PreloadType.Equipment, x.Select(x => new HashValue(x)).ToArray()));
+            var shipItems = ships.Chunk(31).Select(x =>
+                new PreloadObject(PreloadType.Ship, x.Select(x => new HashValue(x)).ToArray()));
+            var equipItems = equipment.Chunk(31).Select(x =>
+                new PreloadObject(PreloadType.Equipment, x.Select(x => new HashValue(x)).ToArray()));
 
             return shipItems.Concat(equipItems).ToArray();
         }
@@ -65,8 +83,8 @@ namespace LibreLancer.Missions
         // Without this, order ships spawn in the wrong place in M01A
         private static void Set<T>(Dictionary<string, T> dict, string k, T value)
         {
-            if (!dict.ContainsKey(k)) dict[k] = value;
-            else {
+            if (!dict.TryAdd(k, value))
+            {
                 FLLog.Warning("Mission", $"Duplicate {typeof(T)} `{k}`, ignoring.");
             }
         }
@@ -74,6 +92,7 @@ namespace LibreLancer.Missions
         public IEnumerable<MissionLabel> GetLabels()
         {
             var allLabels = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var sh in Ships)
             {
                 foreach (var l in sh.Value.Labels)
@@ -83,9 +102,11 @@ namespace LibreLancer.Missions
                         list = [];
                         allLabels.Add(l, list);
                     }
+
                     list.Add(sh.Key);
                 }
             }
+
             foreach (var sl in Solars)
             {
                 foreach (var l in sl.Value.Labels)
@@ -95,15 +116,17 @@ namespace LibreLancer.Missions
                         list = [];
                         allLabels.Add(l, list);
                     }
+
                     list.Add(sl.Key);
                 }
             }
+
             return allLabels.Select(x => new MissionLabel(x.Key, x.Value));
         }
 
         public MissionScript(MissionIni ini, GameItemDb db)
         {
-            Info = ini.Info;
+            Info = ini.Info!;
 
             foreach (var s in ini.Solars)
             {
@@ -125,7 +148,7 @@ namespace LibreLancer.Missions
                 Set(Formations, f.Nickname, ScriptFormation.FromIni(f, db, Ships));
             }
 
-            foreach(var o in ini.Objectives)
+            foreach (var o in ini.Objectives)
             {
                 Set(Objectives, o.Nickname, o);
             }
@@ -155,21 +178,20 @@ namespace LibreLancer.Missions
 
             foreach (var tr in ini.Triggers)
             {
-                AvailableTriggers[tr.Nickname] = new ScriptedTrigger() {
-                    Nickname = tr.Nickname,
-                    Repeatable = tr.Repeatable,
-                    Conditions = ScriptedCondition.Convert(tr.Conditions).ToArray(),
-                    Actions =  ScriptedAction.Convert(tr.Actions).ToArray()
-                };
-                if(tr.InitState == TriggerInitState.ACTIVE)
+                AvailableTriggers[tr.Nickname] = new ScriptedTrigger(tr.Nickname, tr.Repeatable,
+                    ScriptedCondition.Convert(tr.Conditions).ToArray(), ScriptedAction.Convert(tr.Actions).ToArray());
+
+                if (tr.InitState == TriggerInitState.ACTIVE)
+                {
                     InitTriggers.Add(tr.Nickname);
+                }
             }
         }
     }
 
     public class ScriptAiCommands : NicknameItem
     {
-        public string System = "";
+        public string? System = "";
         public readonly List<MissionDirective> Directives = [];
 
         public ScriptAiCommands(ObjList ini)
@@ -196,5 +218,14 @@ namespace LibreLancer.Missions
         public bool Repeatable;
         public ScriptedCondition[] Conditions;
         public ScriptedAction[] Actions;
+
+        public ScriptedTrigger(string nickname, bool repeatable, ScriptedCondition[] conditions,
+            ScriptedAction[] actions)
+        {
+            Nickname = nickname;
+            Repeatable = repeatable;
+            Conditions = conditions;
+            Actions = actions;
+        }
     }
 }

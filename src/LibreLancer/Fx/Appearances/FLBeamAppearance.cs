@@ -44,8 +44,9 @@ namespace LibreLancer.Fx
             tr = new Vector2(texCoords.X + texCoords.Z, texCoords.Y);
             bl = new Vector2(texCoords.X, texCoords.Y + texCoords.W);
             br = new Vector2(texCoords.X + texCoords.Z, texCoords.Y + texCoords.W);
+
             // Sorting hack kinda
-			var z = RenderHelpers.GetZ(instance.Pool.Camera.Position, Vector3.Transform(Vector3.Zero, node_tr));
+			var z = RenderHelpers.GetZ(instance.Pool!.Camera.Position, Vector3.Transform(Vector3.Zero, node_tr));
 			for (int j = 0; j < 2; j++) // two planes
 			{
 				instance.Pool.Lines.StartLine(TextureHandler.Texture ?? res.WhiteTexture, BlendInfo);
@@ -69,7 +70,7 @@ namespace LibreLancer.Fx
 						}
 					}
 					var time = instance.Buffer[nodeIdx, i].TimeAlive / instance.Buffer[nodeIdx, i].LifeSpan;
-					var w = Width.GetValue(sparam, time);
+					var w = Width!.GetValue(sparam, time);
 					instance.Pool.Lines.AddPoint(
 						pos + (dir * w / 2),
 						pos - (dir * w / 2),

@@ -5,9 +5,9 @@ namespace LibreLancer.Missions;
 
 public class CostumeEntry
 {
-    public Bodypart Head;
-    public Bodypart Body;
-    public Accessory Accessory;
+    public Bodypart? Head;
+    public Bodypart? Body;
+    public Accessory? Accessory;
 
     public CostumeEntry() { }
 

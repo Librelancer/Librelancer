@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer.Data.GameData;
+using LibreLancer.Physics;
 using LibreLancer.Server.Components;
 
 namespace LibreLancer.World.Components
@@ -41,9 +42,10 @@ namespace LibreLancer.World.Components
         public Vector3 Steering;
         public float CruiseAccelPct = 0;
 
-        public ShipPhysicsComponent(GameObject parent) : base(parent)
+        public ShipPhysicsComponent(GameObject parent, Ship ship) : base(parent)
         {
             Active = true;
+            Ship = ship;
         }
 
         // TODO: Engine Kill
@@ -68,7 +70,7 @@ namespace LibreLancer.World.Components
         {
             if (EngineState == EngineStates.Cruise)
             {
-                var engine = Parent.GetComponent<SEngineComponent>(); // Get mounted engine
+                var engine = Parent.GetComponent<SEngineComponent>()!; // Get mounted engine
                 CruiseAccelPct = prev + (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
                 if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
             }
@@ -97,7 +99,12 @@ namespace LibreLancer.World.Components
             var engine = Parent.GetComponent<SEngineComponent>(); // Get mounted engine
             var power = Parent.GetComponent<PowerCoreComponent>();
             if (Parent.PhysicsComponent == null) return;
-            if (Parent.PhysicsComponent.Body == null) return;
+
+            if ((PhysicsObject?)Parent.PhysicsComponent.Body == null)
+            {
+                return;
+            }
+
             if (engine == null) return;
             if (power == null) return;
             // Drag = -linearDrag * Velocity

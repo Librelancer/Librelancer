@@ -133,8 +133,10 @@ namespace LibreLancer.Server
         public void Start()
         {
             running = true;
-            gameThread = new Thread(GameThread);
-            gameThread.Name = "Game Server";
+            gameThread = new Thread(GameThread)
+            {
+                Name = "Game Server"
+            };
             gameThread.Start();
         }
 

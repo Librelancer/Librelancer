@@ -49,10 +49,14 @@ namespace LibreLancer.Render.Materials
         public string Dm1Sampler;
         public SamplerFlags Dm1Flags;
 
-        public Masked2DetailMapMaterial(ResourceManager library) : base(library)
+        public Masked2DetailMapMaterial(ResourceManager library, string dtSampler, string dm0Sampler, string dm1Sampler) : base(library)
         {
             Ac = Color4.White;
             Dc = Color4.White;
+
+            DtSampler = dtSampler;
+            Dm0Sampler = dm0Sampler;
+            Dm1Sampler = dm1Sampler;
         }
 
 		public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)

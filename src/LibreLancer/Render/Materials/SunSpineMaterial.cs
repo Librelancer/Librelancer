@@ -10,10 +10,14 @@ namespace LibreLancer.Render.Materials;
 
 public class SunSpineMaterial : RenderMaterial
 {
-    public Vector2 SizeMultiplier;
     public string Texture;
+    public Vector2 SizeMultiplier;
 
-    public SunSpineMaterial(ResourceManager library) : base(library) { }
+    public SunSpineMaterial(ResourceManager library, string texture, Vector2 sizeMult) : base(library)
+    {
+        SizeMultiplier = sizeMult;
+        Texture = texture;
+    }
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {

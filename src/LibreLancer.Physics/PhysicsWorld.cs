@@ -242,7 +242,7 @@ namespace LibreLancer.Physics
         private readonly (Vector3 Start, Vector3 End, bool Success)[] debugRays =
             new (Vector3 Start, Vector3 End, bool Success)[32];
 
-        public bool PointRaycast(PhysicsObject me, Vector3 origin, Vector3 direction, float maxDist,
+        public bool PointRaycast(PhysicsObject? me, Vector3 origin, Vector3 direction, float maxDist,
             out Vector3 contactPoint, out PhysicsObject? didHit)
         {
             HitHandler handler = new HitHandler(this, me);

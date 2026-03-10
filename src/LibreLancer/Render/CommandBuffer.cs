@@ -25,12 +25,14 @@ namespace LibreLancer.Render
         public int BonesMax;
         public int BonesOffset;
         public WorldMatrixBuffer WorldBuffer;
-        public ICamera Camera;
+        public ICamera? Camera;
         public CommandBuffer(RenderContext context)
         {
+            rstate = context;
             BonesBuffer = new StorageBuffer(context, 65536, 64, typeof(Matrix4x4), true);
             WorldBuffer = new WorldMatrixBuffer();
         }
+
         public void StartFrame(RenderContext rstate)
 		{
 			currentCommand = 0;
@@ -38,6 +40,7 @@ namespace LibreLancer.Render
             WorldBuffer.Reset();
             this.rstate = rstate;
 		}
+
 		public void AddCommand(
             RenderMaterial material,
             MaterialAnim? anim,
@@ -155,7 +158,7 @@ namespace LibreLancer.Render
 
         private void FillBillboards()
 		{
-			for (int i = transparentCommand - 1; i >= 0; i--)
+			for (var i = transparentCommand - 1; i >= 0; i--)
 			{
 				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.Billboard)
 				{
@@ -168,12 +171,12 @@ namespace LibreLancer.Render
 
         private void SortTransparent()
 		{
-			for (int i = 0; i < transparentCommand; i++)
+			for (var i = 0; i < transparentCommand; i++)
 			{
 				cmdptr[i] = i;
 			}
 			Array.Sort<int>(cmdptr, 0, transparentCommand, new KeyComparer(Transparents));
-			for (int i = transparentCommand - 1; i >= 0; i--)
+			for (var i = transparentCommand - 1; i >= 0; i--)
 			{
 				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.Billboard)
 				{
@@ -188,7 +191,7 @@ namespace LibreLancer.Render
 		public void DrawTransparent(RenderContext context)
 		{
 		  	Billboards? lastbb = null;
-			for (int i = transparentCommand - 1; i >= 0; i--)
+			for (var i = transparentCommand - 1; i >= 0; i--)
 			{
 				if (lastbb != null && Transparents[cmdptr[i]].CmdType != RenderCmdType.Billboard)
 				{
@@ -240,7 +243,7 @@ namespace LibreLancer.Render
         private static ulong float2index(float f)
         {
             var i = BitConverter.SingleToInt32Bits(f);
-            uint mask = (uint)(-(i >> 31)) | 0x80000000;
+            var mask = (uint)(-(i >> 31)) | 0x80000000;
             return (ulong) (i ^ mask);
         }
         public static ulong MakeKey(RenderType type, int matKey, int sortlayer, float z, int index)

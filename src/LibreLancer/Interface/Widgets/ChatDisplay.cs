@@ -1,6 +1,7 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
+
 using System;
 using System.Collections.Generic;
 using LibreLancer.Graphics.Text;
@@ -10,11 +11,11 @@ namespace LibreLancer.Interface
 {
     [UiLoadable]
     [WattleScriptUserData]
-    public class ChatDisplay: UiWidget
+    public class ChatDisplay : UiWidget
     {
         public ChatSource Chat = new();
 
-        private BuiltRichText builtText;
+        private BuiltRichText? builtText;
         private float builtMultiplier = 0;
         private ChatSource.DisplayMessage[] buildMessages = [];
 
@@ -30,12 +31,14 @@ namespace LibreLancer.Interface
             lock (Chat.Messages)
             {
                 List<ChatSource.DisplayMessage> ids = [];
+
                 for (int i = Chat.Messages.Count - 1; i >= 0 && (i >= Chat.Messages.Count - 16); i--)
                 {
                     var msg = Chat.Messages[i];
                     if (msg.TimeAlive <= 0) continue;
                     ids.Add(msg);
                 }
+
                 return ids.ToArray();
             }
         }
@@ -43,9 +46,12 @@ namespace LibreLancer.Interface
         private bool IdChanged(ChatSource.DisplayMessage[] src)
         {
             if (src.Length != buildMessages.Length) return true;
-            for (int i = 0; i < src.Length; i++) {
+
+            for (int i = 0; i < src.Length; i++)
+            {
                 if (src[i] != buildMessages[i]) return true;
             }
+
             return false;
         }
 
@@ -54,8 +60,10 @@ namespace LibreLancer.Interface
             var rect = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, rect);
             var ids = GetMessageIds();
-            for (int i = Chat.Messages.Count - 1; i >= 0 && (i >= Chat.Messages.Count - 16); i--) {
-                Chat.Messages[i].TimeAlive -= (float)context.DeltaTime;
+
+            for (int i = Chat.Messages.Count - 1; i >= 0 && (i >= Chat.Messages.Count - 16); i--)
+            {
+                Chat.Messages[i].TimeAlive -= (float) context.DeltaTime;
             }
 
             if (ids.Length > 0)
@@ -69,10 +77,13 @@ namespace LibreLancer.Interface
                 {
                     builtText?.Dispose();
                     var nodes = new List<RichTextNode>();
-                    for (int i = ids.Length - 1; i >= 0; i--) {
+
+                    for (int i = ids.Length - 1; i >= 0; i--)
+                    {
                         nodes.AddRange(ids[i].Nodes);
-                        if(i > 0) nodes.Add(new RichTextParagraphNode());
+                        if (i > 0) nodes.Add(new RichTextParagraphNode());
                     }
+
                     builtText = context.RenderContext.Renderer2D.CreateRichTextEngine().BuildText(nodes,
                         displayRect.Width, textMultiplier);
                     buildMessages = ids;
@@ -81,7 +92,7 @@ namespace LibreLancer.Interface
 
                 builtText.Recalculate(displayRect.Width);
                 context.RenderContext.Renderer2D.CreateRichTextEngine().RenderText(builtText,
-                    displayRect.X, (int)(displayRect.Y + displayRect.Height - builtText.Height));
+                    displayRect.X, (int) (displayRect.Y + displayRect.Height - builtText.Height));
             }
 
             Border?.Draw(context, rect);

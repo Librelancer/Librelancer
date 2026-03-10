@@ -9,7 +9,6 @@ namespace LibreLancer;
 
 public struct VMeshOptimizeInfo
 {
-
     public bool Enabled;
 
     public ushort StartMesh;
@@ -28,7 +27,8 @@ public struct VMeshOptimizeInfo
 
     public bool Equals(VMeshOptimizeInfo other)
     {
-        return StartMesh == other.StartMesh && EndMesh == other.EndMesh && StartVertex == other.StartVertex && Enabled == other.Enabled;
+        return StartMesh == other.StartMesh && EndMesh == other.EndMesh && StartVertex == other.StartVertex &&
+               Enabled == other.Enabled;
     }
 
     public override bool Equals(object? obj)
@@ -45,23 +45,24 @@ public struct VMeshOptimizeInfo
     {
         return !left.Equals(right);
     }
-
 }
 
 public class VMeshResource
 {
-    public bool IsDisposed => VertexResource?.IsDisposed ?? true;
+    public VertexResource? VertexResource;
+    public TMeshHeader[] Meshes = null!;
+    public ushort[]? Indices;
 
-    public VertexResource VertexResource;
-    public TMeshHeader[] Meshes;
-    public ushort[] Indices;
+    public bool IsDisposed => VertexResource?.IsDisposed ?? true;
 
     private Dictionary<VMeshOptimizeInfo, (IndexResource, MeshDrawcall[])?>? optimized;
 
-    public (VMeshOptimizeInfo, MeshDrawcall[]?) Optimize(ushort startMesh, ushort endMesh, ushort startVertex, ResourceManager resources)
+    public (VMeshOptimizeInfo, MeshDrawcall[]?) Optimize(ushort startMesh, ushort endMesh, ushort startVertex,
+        ResourceManager resources)
     {
         var vmo = new VMeshOptimizeInfo(true, startMesh, endMesh, startVertex);
         if (endMesh - startMesh <= 3) return (new VMeshOptimizeInfo(), null);
+
         if (optimized != null && optimized.TryGetValue(vmo, out var v))
         {
             if (v == null)
@@ -69,13 +70,17 @@ public class VMeshResource
             else
                 return (vmo, v.Value.Item2);
         }
+
         optimized ??= new Dictionary<VMeshOptimizeInfo, (IndexResource, MeshDrawcall[])?>();
         // Check material counts
         var counts = new List<(uint Material, int Count)>();
-        for(int i = startMesh; i < endMesh; i++) {
+
+        for (int i = startMesh; i < endMesh; i++)
+        {
             var crc = Meshes[i].MaterialCrc;
             var add = true;
-            for(var j = 0; j < counts.Count; j++)
+
+            for (var j = 0; j < counts.Count; j++)
             {
                 if (counts[j].Material != crc)
                 {
@@ -87,7 +92,7 @@ public class VMeshResource
                 break;
             }
 
-            if(add)
+            if (add)
             {
                 counts.Add((crc, 1));
             }
@@ -102,11 +107,14 @@ public class VMeshResource
         // Optimize
         List<MeshDrawcall> drawcalls = [];
         List<(uint MaterialCrc, List<int> Indices)> merged = [];
+
         for (int i = startMesh; i < endMesh; i++)
         {
             var c = counts.First(x => x.Material == Meshes[i].MaterialCrc);
             var mat = resources.FindMaterial(c.Material);
-            if (c.Count == 1 || mat == null || mat.Render.IsTransparent){
+
+            if (c.Count == 1 || mat == null || mat.Render.IsTransparent)
+            {
                 drawcalls.Add(new MeshDrawcall()
                 {
                     BaseVertex = Meshes[i].StartVertex + startVertex,
@@ -118,29 +126,36 @@ public class VMeshResource
             else
             {
                 var m = merged.FirstOrDefault(x => x.MaterialCrc == Meshes[i].MaterialCrc);
+
                 if (m.Indices == null)
                 {
                     m = (Meshes[i].MaterialCrc, []);
                     merged.Add(m);
                 }
-                for (var j = Meshes[i].TriangleStart; j < (Meshes[i].TriangleStart + Meshes[i].NumRefVertices); j++) {
-                    m.Indices.Add(Indices[j] + startVertex + Meshes[i].StartVertex);
+
+                for (var j = Meshes[i].TriangleStart; j < (Meshes[i].TriangleStart + Meshes[i].NumRefVertices); j++)
+                {
+                    m.Indices.Add(Indices![j] + startVertex + Meshes[i].StartVertex);
                 }
             }
         }
+
         if (merged.Count == 0)
         {
             optimized[vmo] = null;
             return (new VMeshOptimizeInfo(), null);
         }
+
         var indexBuffer = new List<int>();
-        foreach(var b in  merged)
+        foreach (var b in merged)
             indexBuffer.AddRange(b.Indices);
         var baseVertex = indexBuffer.Min();
-        var newIndices = indexBuffer.Select(x => checked ((ushort) (x - baseVertex))).ToArray();
-        var indexResource = VertexResource.Allocator.AllocateIndex(newIndices);
+        var newIndices = indexBuffer.Select(x => checked((ushort) (x - baseVertex))).ToArray();
+        var indexResource = VertexResource!.Allocator.AllocateIndex(newIndices);
         var startIndex = indexResource.StartIndex - VertexResource.StartIndex;
-        foreach (var b in merged) {
+
+        foreach (var b in merged)
+        {
             drawcalls.Add(new MeshDrawcall()
             {
                 BaseVertex = baseVertex,
@@ -150,6 +165,7 @@ public class VMeshResource
             });
             startIndex += b.Indices.Count;
         }
+
         var newCalls = drawcalls.ToArray();
         FLLog.Debug("Optimiser", $"Reduced from {(endMesh - startMesh)} drawcalls to {(drawcalls.Count)}");
         optimized[vmo] = (VertexResource.Allocator.AllocateIndex(newIndices), newCalls);
@@ -158,8 +174,13 @@ public class VMeshResource
 
     public void OptimizeIfNeeded(VMeshOptimizeInfo info, ResourceManager resources)
     {
-        if (!info.Enabled || optimized == null) return;
-        if (!optimized.TryGetValue(info, out var v)){
+        if (!info.Enabled || optimized == null)
+        {
+            return;
+        }
+
+        if (!optimized.TryGetValue(info, out var v))
+        {
             Optimize(info.StartMesh, info.EndMesh, info.StartVertex, resources);
             v = optimized[info];
         }
@@ -167,12 +188,14 @@ public class VMeshResource
 
     public void Dispose()
     {
-        VertexResource.Dispose();
+        VertexResource?.Dispose();
+
         if (optimized != null)
         {
             foreach (var v in optimized.Values)
                 v?.Item1.Dispose();
         }
+
         optimized = null;
     }
 }

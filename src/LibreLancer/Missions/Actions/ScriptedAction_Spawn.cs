@@ -25,7 +25,7 @@ namespace LibreLancer.Missions.Actions
 
         public Act_SpawnSolar(MissionAction act) : base(act)
         {
-            GetString(nameof(Solar),  0, out Solar, act.Entry);
+            GetString(nameof(Solar), 0, out Solar, act.Entry);
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)
@@ -49,12 +49,11 @@ namespace LibreLancer.Missions.Actions
                     sol.Orientation,
                     sol.IdsName,
                     sol.Base
-                    );
-                if(obj.TryGetComponent<SDestroyableComponent>(out var dstComp))
+                );
+
+                if (obj.TryGetComponent<SDestroyableComponent>(out var dstComp))
                 {
-                    dstComp.OnKilled = () => {
-                        runtime.ObjectDestroyed(Solar);
-                    };
+                    dstComp.OnKilled = () => { runtime.ObjectDestroyed(Solar); };
                 }
             });
         }
@@ -84,12 +83,14 @@ namespace LibreLancer.Missions.Actions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var obj = runtime.Player.Space.World.GameWorld.GetObject(Object);
+                var obj = runtime.Player.Space!.World.GameWorld.GetObject(Object);
+
                 if (obj == null)
                 {
                     FLLog.Warning("Mission", $"Object not found for MarkObj `{Object}`");
                     return;
                 }
+
                 if (Important)
                 {
                     obj.Flags |= GameObjectFlags.Important;
@@ -106,14 +107,21 @@ namespace LibreLancer.Missions.Actions
 
     public abstract class ShipSpawnBase : ScriptedAction
     {
-        protected ShipSpawnBase() {}
-        protected ShipSpawnBase(MissionAction act) : base(act) { }
+        protected ShipSpawnBase()
+        {
+        }
 
-        protected void SpawnShip(ScriptShip ship, OptionalArgument<Vector3> spawnpos, OptionalArgument<Quaternion> spawnorient, string objList, MissionScript script, MissionRuntime runtime)
+        protected ShipSpawnBase(MissionAction act) : base(act)
+        {
+        }
+
+        protected void SpawnShip(ScriptShip ship, OptionalArgument<Vector3> spawnpos,
+            OptionalArgument<Quaternion> spawnorient, string objList, MissionScript script, MissionRuntime runtime)
         {
             var npcDef = ship.NPC;
             script.NpcShips.TryGetValue(npcDef.NpcShipArch, out var shipArch);
             runtime.ObjectSpawned(ship.Nickname);
+
             if (shipArch == null)
             {
                 shipArch = runtime.Player.Game.GameData.Items.NpcShips.Get(npcDef.NpcShipArch);
@@ -121,23 +129,26 @@ namespace LibreLancer.Missions.Actions
 
             var archPos = spawnpos.Get(ship.Position);
             var orient = spawnorient.Get(ship.Orientation);
-            MissionDirective[] directives = null;
+            MissionDirective[]? directives = null;
+
             if (!string.IsNullOrEmpty(objList))
             {
                 if (script.ObjLists.TryGetValue(objList, out var ol))
                 {
                     directives = ol.Directives.ToArray();
                 }
-                else {
+                else
+                {
                     FLLog.Warning("Mission", $"Missing object list {objList}");
                 }
             }
 
             runtime.Player.MissionWorldAction(() =>
             {
-                runtime.Player.Space.World.Server.GameData.Items.TryGetLoadout(shipArch.Loadout, out var ld);
-                var pilot = runtime.Player.Space.World.Server.GameData.Items.GetPilot(shipArch.Pilot);
+                runtime.Player.Space!.World.Server.GameData.Items.TryGetLoadout(shipArch!.Loadout!, out var ld);
+                var pilot = runtime.Player.Space.World.Server.GameData.Items.GetPilot(shipArch.Pilot!);
                 ObjectName oName;
+
                 if (ship.RandomName)
                 {
                     oName = runtime.Player.Space.World.NPCs.RandomName(npcDef.Affiliation);
@@ -149,6 +160,7 @@ namespace LibreLancer.Missions.Actions
 
                 var pos = archPos;
                 GameObject relObj;
+
                 // Spawn relative to object
                 if (!string.IsNullOrWhiteSpace(ship.RelativePosition.ObjectName) &&
                     (relObj = runtime.Player.Space.World.GameWorld.GetObject(ship.RelativePosition.ObjectName)) != null)
@@ -156,7 +168,8 @@ namespace LibreLancer.Missions.Actions
                     var dir = new Vector3(runtime.Random.NextFloat(-1, 1),
                         runtime.Random.NextFloat(-0.1f, 0.1f),
                         runtime.Random.NextFloat(-1, 1)).Normalized();
-                    var range = runtime.Random.NextFloat(ship.RelativePosition.MinRange, ship.RelativePosition.MaxRange);
+                    var range = runtime.Random.NextFloat(ship.RelativePosition.MinRange,
+                        ship.RelativePosition.MaxRange);
                     pos = relObj.WorldTransform.Position + (dir * range);
                 }
 
@@ -166,13 +179,11 @@ namespace LibreLancer.Missions.Actions
                     npcDef.Affiliation,
                     shipArch?.StateGraph ?? "FIGHTER",
                     npcDef.SpaceCostume,
-                    ld, pilot, pos, orient, null, 0, runtime);
+                    ld!, pilot, pos, orient, null, 0, runtime);
                 var drComp = obj.GetComponent<DirectiveRunnerComponent>();
-                drComp.SetDirectives(directives);
+                drComp!.SetDirectives(directives);
                 var dstComp = obj.GetComponent<SDestroyableComponent>();
-                dstComp.OnKilled = () => {
-                    runtime.ObjectDestroyed(ship.Nickname);
-                };
+                dstComp!.OnKilled = () => { runtime.ObjectDestroyed(ship.Nickname); };
             });
         }
     }
@@ -201,11 +212,13 @@ namespace LibreLancer.Missions.Actions
         {
             GetString(nameof(Formation), 0, out Formation, act.Entry);
             Formation = act.Entry[0].ToString();
+
             if (act.Entry.Count > 1)
             {
                 GetVector3(nameof(Position), 1, out var p, act.Entry);
                 Position = p;
             }
+
             if (act.Entry.Count > 4)
             {
                 GetQuaternion(nameof(Orientation), 4, out var q, act.Entry);
@@ -216,6 +229,7 @@ namespace LibreLancer.Missions.Actions
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
             List<ValueBase> entry = [Formation];
+
             if (Position.Present)
             {
                 entry.Add(Position.Value.X);
@@ -247,15 +261,15 @@ namespace LibreLancer.Missions.Actions
             for (int i = 0; i < form.Ships.Count; i++)
             {
                 var pos = Vector3.Transform(positions[i], mat);
-                SpawnShip(form.Ships[i], pos, forient, null, script, runtime);
+                SpawnShip(form.Ships[i], pos, forient, null!, script, runtime);
             }
 
             // make them into a formation
             runtime.Player.MissionWorldAction(() =>
             {
-                var world = runtime.Player.Space.World;
-                var lead = world.GameWorld.GetObject(form.Ships[0].Nickname);
-                FormationTools.MakeNewFormation(lead, formDef?.Nickname, form.Ships.Skip(1)
+                var world = runtime.Player.Space!.World;
+                var lead = world.GameWorld.GetObject(form.Ships[0].Nickname)!;
+                FormationTools.MakeNewFormation(lead, formDef?.Nickname!, form.Ships.Skip(1)
                     .Select(x => x.Nickname).ToList());
             });
         }
@@ -275,15 +289,18 @@ namespace LibreLancer.Missions.Actions
         public Act_SpawnShip(MissionAction act) : base(act)
         {
             GetString(nameof(Ship), 0, out Ship, act.Entry);
+
             if (act.Entry.Count > 1)
             {
                 ObjList = act.Entry[1].ToString();
             }
+
             if (act.Entry.Count > 2)
             {
                 GetVector3(nameof(Position), 2, out var p, act.Entry);
                 Position = p;
             }
+
             if (act.Entry.Count > 5)
             {
                 GetQuaternion(nameof(Orientation), 5, out var q, act.Entry);
@@ -294,6 +311,7 @@ namespace LibreLancer.Missions.Actions
         public override void Write(IniBuilder.IniSectionBuilder section)
         {
             List<ValueBase> entry = [Ship];
+
             if (!string.IsNullOrWhiteSpace(ObjList) && ObjList != "NULL")
             {
                 entry.Add(ObjList);
@@ -319,7 +337,7 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            if(script.Ships.TryGetValue(Ship, out var ship))
+            if (script.Ships.TryGetValue(Ship, out var ship))
                 SpawnShip(ship, Position, Orientation, ObjList, script, runtime);
             else
                 FLLog.Error("Mission", $"{this}: Ship Missing");
@@ -346,18 +364,22 @@ namespace LibreLancer.Missions.Actions
                 FLLog.Error("Mission", $"{this}: Loot Missing");
                 return;
             }
+
             runtime.Player.MissionWorldAction(() =>
             {
-                var world = runtime.Player.Space.World;
+                var world = runtime.Player.Space!.World;
                 var pos = lootDef.Position;
+
                 if (lootDef.Archetype == null)
                 {
                     FLLog.Error("Mission", $"{this}: Invalid archetype {lootDef.Archetype}");
                     return;
                 }
+
                 if (!string.IsNullOrWhiteSpace(lootDef.RelPosObj))
                 {
                     var obj = world.GameWorld.GetObject(lootDef.RelPosObj);
+
                     if (obj == null)
                     {
                         FLLog.Warning("Mission", $"{this}: Loot missing relposobj {lootDef.RelPosObj}");
@@ -368,7 +390,9 @@ namespace LibreLancer.Missions.Actions
                         pos = obj.WorldTransform.Transform(lootDef.RelPosOffset);
                     }
                 }
-                world.SpawnLoot(lootDef.Archetype.LootAppearance, lootDef.Archetype, lootDef.EquipAmount, new Transform3D(pos, Quaternion.Identity), Loot);
+
+                world.SpawnLoot(lootDef.Archetype.LootAppearance!, lootDef.Archetype, lootDef.EquipAmount,
+                    new Transform3D(pos, Quaternion.Identity), Loot);
                 FLLog.Info("Mission", $"Spawned loot {Loot} at {pos}");
             });
         }
@@ -399,6 +423,7 @@ namespace LibreLancer.Missions.Actions
         public Act_Destroy(MissionAction act) : base(act)
         {
             GetString(nameof(Target), 0, out Target, act.Entry);
+
             if (act.Entry.Count > 1)
             {
                 Enum.TryParse<DestroyKind>(act.Entry[1].ToString(), true, out Kind);
@@ -407,11 +432,17 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            if (script.Ships.TryGetValue(Target, out var ship))
+            if (!script.Ships.TryGetValue(Target, out var ship))
             {
-                runtime.ObjectDestroyed(ship.Nickname);
-                runtime.Player.MissionWorldAction(() => { runtime.Player.Space.World.NPCs.Despawn(runtime.Player.Space.World.GameWorld.GetObject(Target), false); });
+                return;
             }
+
+            runtime.ObjectDestroyed(ship.Nickname);
+            runtime.Player.MissionWorldAction(() =>
+            {
+                runtime.Player.Space!.World.NPCs.Despawn(runtime.Player.Space.World.GameWorld.GetObject(Target)!,
+                    false);
+            });
         }
 
         public override void Write(IniBuilder.IniSectionBuilder section)

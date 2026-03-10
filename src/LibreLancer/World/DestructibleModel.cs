@@ -43,9 +43,15 @@ public sealed class DestructibleModel
 
     private void CascadeDestroy(RigidModelPart part)
     {
+        if (part.Children is null)
+        {
+            return;
+        }
+
         foreach (var c in part.Children)
         {
             var id = CrcTool.FLModelCrc(c.Name);
+
             if (destroyed.Contains(id))
             {
                 continue;
@@ -64,7 +70,7 @@ public sealed class DestructibleModel
         }
     }
 
-    public bool DestroyPart(uint crc, out RigidModelPart? part)
+    public bool DestroyPart(uint crc, [MaybeNullWhen(false)] out RigidModelPart part)
     {
         var foundPart = !RigidModel.Parts!.TryGetPart(crc, out part);
         if (destroyed.Contains(crc) || destroyedChildren.Contains(crc) || !foundPart)
@@ -73,7 +79,7 @@ public sealed class DestructibleModel
             return false;
         }
 
-        foreach (var hp in part.Hardpoints)
+        foreach (var hp in part!.Hardpoints)
         {
             if (hpToPart[hp.Name] != part)
             {

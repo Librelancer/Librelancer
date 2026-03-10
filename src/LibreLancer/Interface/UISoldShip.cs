@@ -22,6 +22,6 @@ namespace LibreLancer.Interface
         [WattleScriptHidden]
         public NetSoldShip Server;
         [WattleScriptHidden]
-        public Ship Ship;
+        public Ship? Ship;
     }
 }

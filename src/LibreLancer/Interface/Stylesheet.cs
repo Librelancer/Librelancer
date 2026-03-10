@@ -32,7 +32,7 @@ namespace LibreLancer.Interface
 
     public class XmlStyle
     {
-       public string Name { get; set; }
+       public string Name { get; set; } = null!;
     }
 
     [UiLoadable]
@@ -42,43 +42,43 @@ namespace LibreLancer.Interface
 
         public float Width { get; set; }
         public float Height { get; set; }
-        public string MouseEnterSound { get; set; }
-        public string MouseDownSound { get; set; }
-        public ButtonAppearance Normal { get; set; }
-        public ButtonAppearance Hover { get; set; }
-        public ButtonAppearance Pressed { get; set; }
-        public ButtonAppearance Selected { get; set; }
-        public ButtonAppearance Disabled { get; set; }
+        public string MouseEnterSound { get; set; } = null!;
+        public string MouseDownSound { get; set; } = null!;
+        public ButtonAppearance Normal { get; set; } = null!;
+        public ButtonAppearance Hover { get; set; } = null!;
+        public ButtonAppearance Pressed { get; set; } = null!;
+        public ButtonAppearance Selected { get; set; } = null!;
+        public ButtonAppearance Disabled { get; set; } = null!;
     }
     [UiLoadable]
     [WattleScriptUserData]
     public class ButtonAppearance
     {
-        public UiRenderable Background { get; set; }
-        public UiRenderable Border { get; set; }
+        public UiRenderable Background { get; set; } = null!;
+        public UiRenderable Border { get; set; } = null!;
         public float TextSize { get; set; }
         public float MarginLeft { get; set; }
         public float MarginRight { get; set; }
-        public string FontFamily { get; set; }
+        public string FontFamily { get; set; } = null!;
         public HorizontalAlignment HorizontalAlignment { get; set; }
         public VerticalAlignment VerticalAlignment { get; set; }
-        public InterfaceColor TextColor { get; set; }
-        public InterfaceColor TextShadow { get; set; }
+        public InterfaceColor TextColor { get; set; } = null!;
+        public InterfaceColor TextShadow { get; set; } = null!;
     }
 
     [UiLoadable]
     [WattleScriptUserData]
     public class ScrollbarStyle : XmlStyle
     {
-        public ButtonStyle UpButton { get; set; }
-        public ButtonStyle DownButton { get; set; }
-        public ButtonStyle Thumb { get; set; }
+        public ButtonStyle UpButton { get; set; } = null!;
+        public ButtonStyle DownButton { get; set; } = null!;
+        public ButtonStyle Thumb { get; set; } = null!;
 
-        public ButtonStyle ThumbTop { get; set; }
+        public ButtonStyle ThumbTop { get; set; } = null!;
 
-        public ButtonStyle ThumbBottom { get; set; }
-        public UiRenderable Background { get; set; }
-        public UiRenderable TrackArea { get; set; }
+        public ButtonStyle ThumbBottom { get; set; } = null!;
+        public UiRenderable Background { get; set; } = null!;
+        public UiRenderable TrackArea { get; set; } = null!;
         public float ButtonMarginX { get; set; }
         public float TrackMarginX { get; set; }
         public float TrackMarginY { get; set; }
@@ -89,15 +89,15 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class HSliderStyle : XmlStyle
     {
-        public ButtonStyle LeftButton { get; set; }
-        public ButtonStyle RightButton { get; set; }
-        public ButtonStyle Thumb { get; set; }
+        public ButtonStyle LeftButton { get; set; } = null!;
+        public ButtonStyle RightButton { get; set; } = null!;
+        public ButtonStyle Thumb { get; set; } = null!;
 
-        public ButtonStyle ThumbLeft { get; set; }
-        public ButtonStyle ThumbRight { get; set; }
+        public ButtonStyle ThumbLeft { get; set; } = null!;
+        public ButtonStyle ThumbRight { get; set; } = null!;
 
-        public UiRenderable Background { get; set; }
-        public UiRenderable TrackArea { get; set; }
+        public UiRenderable Background { get; set; } = null!;
+        public UiRenderable TrackArea { get; set; } = null!;
         public float ButtonMarginY { get; set; }
         public float TrackMarginX { get; set; }
         public float TrackMarginY { get; set; }

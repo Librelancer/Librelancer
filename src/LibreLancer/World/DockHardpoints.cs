@@ -27,50 +27,47 @@ public class DockHardpoints
         var hp1 = parent.GetHardpoint(hpname + "01");
         var hp2 = parent.GetHardpoint(hpname + "02");
 
-        if (reverse)
-        {
-            return ((Hardpoint?[])[hp0, hp1, hp2]).OfType<Hardpoint>().ToArray();
-        }
-        else
-        {
-            return ((Hardpoint?[])[hp2, hp1, hp0]).OfType<Hardpoint>().ToArray();
-        }
+        return reverse
+            ? ((Hardpoint?[]) [hp0, hp1, hp2]).OfType<Hardpoint>().ToArray()
+            : ((Hardpoint?[]) [hp2, hp1, hp0]).OfType<Hardpoint>().ToArray();
     }
 
-    private Hardpoint[] leftLane;
-    private Hardpoint[] rightLane;
+    private Hardpoint[] leftLane = null!;
+    private Hardpoint[] rightLane = null!;
 
     public Hardpoint[] GetDockHardpoints(GameObject parent, int index, Vector3 position, bool reverse)
     {
         if (DockAction.Kind != DockKinds.Tradelane)
         {
-            if(reverse)
+            if (reverse)
             {
                 Hardpoints[index].Undock ??= CacheDockHardpoints(parent, index, true);
                 return Hardpoints[index].Undock;
             }
-            else
-            {
-                Hardpoints[index].Dock ??= CacheDockHardpoints(parent, index, false);
-                return Hardpoints[index].Dock;
-            }
+
+            Hardpoints[index].Dock ??= CacheDockHardpoints(parent, index, false);
+            return Hardpoints[index].Dock;
         }
-        else if (DockAction.Kind == DockKinds.Tradelane)
+
+        if (DockAction.Kind != DockKinds.Tradelane)
         {
-            var heading = position - parent.PhysicsComponent.Body.Position;
-            var fwd = Vector3.Transform(-Vector3.UnitZ, parent.PhysicsComponent.Body.Orientation);
-            var dot = Vector3.Dot(heading, fwd);
-            if (dot > 0)
-            {
-                leftLane ??= [parent.GetHardpoint("HpLeftLane")];
-                return leftLane;
-            }
-            else
-            {
-                rightLane ??= [parent.GetHardpoint("HpRightLane")];
-                return rightLane;
-            }
+            throw new InvalidOperationException();
         }
-        throw new InvalidOperationException();
+
+        var heading = position - parent.PhysicsComponent!.Body.Position;
+        var fwd = Vector3.Transform(-Vector3.UnitZ, parent.PhysicsComponent.Body.Orientation);
+        var dot = Vector3.Dot(heading, fwd);
+
+        if (dot > 0)
+        {
+            leftLane ??= [parent.GetHardpoint("HpLeftLane")!];
+            return leftLane;
+        }
+        else
+        {
+            rightLane ??= [parent.GetHardpoint("HpRightLane")!];
+            return rightLane;
+        }
+
     }
 }

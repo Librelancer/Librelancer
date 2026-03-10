@@ -9,4 +9,9 @@ public class ActiveTrigger
     public double ActiveTime;
     public List<ActiveCondition> Conditions = [];
     public BitArray128 Satisfied; // Debug
+
+    public ActiveTrigger(ScriptedTrigger trigger)
+    {
+        Trigger = trigger;
+    }
 }

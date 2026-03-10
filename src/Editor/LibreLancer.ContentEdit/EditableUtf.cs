@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using LL = LibreLancer.Utf;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -45,10 +46,8 @@ namespace LibreLancer.ContentEdit
 		//Produce an engine-internal representation of the nodes
 		public LL.IntermediateNode Export()
 		{
-			var children = new List<LL.Node>();
-			foreach (var child in Root.Children)
-				children.Add(ExportNode(child));
-			return new LL.IntermediateNode("/", children);
+			var children = Root.Children.Select(ExportNode).ToList();
+            return new LL.IntermediateNode("/", children);
 		}
 
         public static LL.IntermediateNode NodeToEngine(LUtfNode node)

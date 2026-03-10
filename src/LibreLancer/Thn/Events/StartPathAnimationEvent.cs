@@ -59,7 +59,7 @@ namespace LibreLancer.Thn.Events
             private void Process(float t)
             {
                 float pct = MathHelper.Lerp(Event.StartPercent, Event.StopPercent, t);
-                var path = Path.Entity.Path;
+                var path = Path.Entity.Path!;
                 if ((Event.Flags & AttachFlags.LookAt) == AttachFlags.LookAt)
                 {
                     Object.Rotate =QuaternionEx.LookRotation(path.GetDirection(pct, Event.StartPercent > Event.StopPercent), Vector3.UnitY) * Path.Rotate;

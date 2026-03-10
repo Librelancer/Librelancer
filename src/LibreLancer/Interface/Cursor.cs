@@ -18,7 +18,7 @@ public class Cursor
     public float Scale;
     public Color4 Color = Color4.White;
     public Vector2 Hotspot = Vector2.Zero;
-    public ResourceManager Resources;
+    public ResourceManager Resources = null!;
 
     public void Draw(Renderer2D renderer, Mouse m, double globalTime)
     {
@@ -30,7 +30,7 @@ public class Cursor
         var angle = MathHelper.WrapF((float)globalTime * Spin, -MathF.PI, MathF.PI);
         var hp = new Vector2((int) (Hotspot.X * Scale), (int) (Hotspot.Y * Scale));
         renderer.DrawRotated(
-            (Texture2D)Resources.FindTexture(Texture),
+            (Texture2D)Resources.FindTexture(Texture!)!,
             Dimensions,
             dst,
             hp,

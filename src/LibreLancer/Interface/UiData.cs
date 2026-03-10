@@ -17,24 +17,32 @@ namespace LibreLancer.Interface
     public class UiData
     {
         // Data
-        public string DataPath;
-        public GameResourceManager ResourceManager;
+        public string DataPath = null!;
+        public GameResourceManager ResourceManager = null!;
         public InfocardManager? Infocards;
-        public FontManager Fonts;
-        public FileSystem FileSystem;
-        public Dictionary<string,string> NavbarIcons;
-        public SoundManager Sounds;
+        public FontManager Fonts = null!;
+        public FileSystem FileSystem = null!;
+        public Dictionary<string, string> NavbarIcons = null!;
+
+        public SoundManager Sounds = null!;
+
         // Ui
-        public Stylesheet Stylesheet;
-        public InterfaceResources Resources;
+        public Stylesheet Stylesheet = null!;
+
+        public InterfaceResources Resources = null!;
+
         // TODO: Make configurable
-        public INavmapIcons NavmapIcons;
+        public INavmapIcons NavmapIcons = null!;
+
         public string? XInterfacePath;
+
         // Editor-only
-        public string FlDirectory;
+        public string FlDirectory = null!;
+
         public UiData()
         {
         }
+
         public UiData(FreelancerGame game)
         {
             ResourceManager = game.ResourceManager;
@@ -45,13 +53,22 @@ namespace LibreLancer.Interface
             Sounds = game.Sound;
             DataPath = game.GameData.Items.Ini.Freelancer.DataPath;
             if (game.GameData.Items.Ini.Navmap != null)
+            {
                 NavmapIcons = new IniNavmapIcons(game.GameData.Items.Ini.Navmap);
+            }
             else
+            {
                 NavmapIcons = new NavmapIcons();
+            }
+
             if (!string.IsNullOrWhiteSpace(game.GameData.Items.Ini.Freelancer.XInterfacePath))
-                OpenFolder(game.GameData.Items.Ini.Freelancer.XInterfacePath);
+            {
+                OpenFolder(game.GameData.Items.Ini.Freelancer.XInterfacePath!);
+            }
             else
+            {
                 OpenDefault();
+            }
         }
 
         public string GetNavbarIconPath(string icon)
@@ -61,23 +78,31 @@ namespace LibreLancer.Interface
                 FLLog.Warning("Interface", $"Could not find icon {icon}");
                 ic = NavbarIcons.Values.First();
             }
+
             return ic;
         }
+
         public string GetFont(string fontName)
         {
-            if (fontName[0] == '$') fontName = Fonts.ResolveNickname(fontName.Substring(1));
+            if (fontName[0] == '$')
+            {
+                fontName = Fonts.ResolveNickname(fontName.Substring(1));
+            }
+
             return fontName;
         }
 
         public InterfaceColor GetColor(string color)
         {
             var clr = Resources.Colors.FirstOrDefault(x => x.Name.Equals(color, StringComparison.OrdinalIgnoreCase));
-            return clr ?? new InterfaceColor() {
+            return clr ?? new InterfaceColor()
+            {
                 Color = Parser.Color(color)
             };
         }
 
         private Dictionary<string, Texture2D?> loadedFiles = new();
+
         public Texture2D? GetTextureFile(string filename)
         {
             try
@@ -89,7 +114,8 @@ namespace LibreLancer.Interface
                     return textureFile;
                 }
 
-                var f = ImageLib.Generic.TextureFromStream(ResourceManager.GLWindow.RenderContext, FileSystem.Open(file));
+                var f = ImageLib.Generic.TextureFromStream(ResourceManager.GLWindow.RenderContext,
+                    FileSystem.Open(file));
 
                 if (f is Texture2D t2d)
                 {
@@ -118,25 +144,28 @@ namespace LibreLancer.Interface
 
             try
             {
-                if(FileSystem.FileExists(path))
+                if (FileSystem.FileExists(path))
                 {
-                    return ((IRigidModelFile?) ResourceManager.GetDrawable(path)?.Drawable)?.CreateRigidModel(true, ResourceManager);
+                    return ((IRigidModelFile?) ResourceManager.GetDrawable(path)?.Drawable)?.CreateRigidModel(true,
+                        ResourceManager);
                 }
 
                 if (FileSystem.FileExists(DataPath + path))
                 {
-                    return ((IRigidModelFile?)ResourceManager.GetDrawable(DataPath + path)?.Drawable)?.CreateRigidModel(
-                        true, ResourceManager);
+                    return ((IRigidModelFile?) ResourceManager.GetDrawable(DataPath + path)?.Drawable)
+                        ?.CreateRigidModel(
+                            true, ResourceManager);
                 }
 
                 return null;
             }
             catch (Exception e)
             {
-                FLLog.Error("UiContext",$"{e.Message}\n{e.StackTrace}");
+                FLLog.Error("UiContext", $"{e.Message}\n{e.StackTrace}");
                 return null;
             }
         }
+
         public void OpenFolder(string xinterfacePath)
         {
             XInterfacePath = xinterfacePath;
@@ -162,8 +191,9 @@ namespace LibreLancer.Interface
             if (uibundle == null)
             {
                 using (var reader =
-                    new StreamReader(
-                        typeof(UiContext).Assembly.GetManifestResourceStream($"LibreLancer.Interface.Default.interface.json")))
+                       new StreamReader(
+                           typeof(UiContext).Assembly.GetManifestResourceStream(
+                               $"LibreLancer.Interface.Default.interface.json")))
                 {
                     uibundle = InterfaceTextBundle.FromJSON(reader.ReadToEnd());
                 }
@@ -205,6 +235,7 @@ namespace LibreLancer.Interface
             {
                 ResourceManager.LoadResourceFile(DataPath + file);
             }
+
             foreach (var file in NavmapIcons.Libraries())
             {
                 ResourceManager.LoadResourceFile(DataPath + file);

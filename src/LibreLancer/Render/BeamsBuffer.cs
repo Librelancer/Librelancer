@@ -18,8 +18,8 @@ namespace LibreLancer.Render
 
         private VertexBuffer bufferSpear;
         private VertexBuffer bufferBolt;
-        private CommandBuffer commands;
-        private ResourceManager res;
+        private CommandBuffer commands = null!;
+        private ResourceManager res = null!;
         private ProjectileMaterial material;
 
         /*
@@ -104,11 +104,11 @@ namespace LibreLancer.Render
         private static ushort[] ConstructIndices(ushort[] source, int vcount, int count)
         {
             var indices = new ushort[source.Length * count];
-            int j = 0;
-            for (int i = 0; i < count; i++)
+            var j = 0;
+            for (var i = 0; i < count; i++)
             {
                 var vOff = vcount * i;
-                for (int k = 0; k < source.Length; k++) indices[j++] = (ushort) (vOff + source[k]);
+                for (var k = 0; k < source.Length; k++) indices[j++] = (ushort) (vOff + source[k]);
             }
             return indices;
         }
@@ -181,7 +181,7 @@ namespace LibreLancer.Render
         public void AddBeamBolt(Vector3 p, Vector3 normal, BeamBolt bolt, float maxTrailLen)
         {
             // Head
-            CoordsFromTexture(bolt.HeadTexture, out var tl, out var tr, out var bl, out var br, out var mid);
+            CoordsFromTexture(bolt.HeadTexture!, out var tl, out var tr, out var bl, out var br, out var mid);
             var right = Vector3.Cross(normal, Vector3.UnitY);
             right.Normalize();
             var up = Vector3.Cross(right, normal);
@@ -200,7 +200,7 @@ namespace LibreLancer.Render
             // Quad BR
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p - (up * hRad) + (right * hRad), bolt.OuterColor, br);
             // Tip and trail
-            CoordsFromTexture(bolt.TrailTexture, out tl, out tr, out bl, out br, out mid);
+            CoordsFromTexture(bolt.TrailTexture!, out tl, out tr, out bl, out br, out mid);
             // Mid-Mid
             verticesBolt[vertexCountBolt++] = new VertexPositionColorTexture(p, bolt.CoreColor, bl);
             // Mid-Top
@@ -239,7 +239,7 @@ namespace LibreLancer.Render
         {
             if(!begun) throw new InvalidOperationException();
             // Head
-            CoordsFromTexture(spear.HeadTexture, out var tl, out var tr, out var bl, out var br, out var mid);
+            CoordsFromTexture(spear.HeadTexture!, out var tl, out var tr, out var bl, out var br, out var mid);
             var right = Vector3.Cross(normal, Vector3.UnitY);
             right.Normalize();
             var up = Vector3.Cross(right, normal);
@@ -257,7 +257,7 @@ namespace LibreLancer.Render
             // Quad BR
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p - (up * hRad) + (right * hRad), spear.OuterColor, br);
             // Tip and trail
-            CoordsFromTexture(spear.TrailTexture, out tl, out tr, out bl, out br, out mid);
+            CoordsFromTexture(spear.TrailTexture!, out tl, out tr, out bl, out br, out mid);
             // Mid-Top
             verticesSpear[vertexCountSpear++] = new VertexPositionColorTexture(p + (up * cRad), spear.CoreColor, br);
             // Mid-Bottom

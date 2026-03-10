@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Render;
 using LibreLancer.Utf.Mat;
@@ -20,7 +21,7 @@ namespace LibreLancer.Utf.Dfm
 
 		public FaceGroup(IntermediateNode root)
 		{
-			foreach (LeafNode node in root)
+			foreach (var node in root.OfType<LeafNode>())
 			{
 				switch (node.Name.ToLowerInvariant())
 				{

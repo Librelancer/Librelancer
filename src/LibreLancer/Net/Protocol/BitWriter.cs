@@ -15,7 +15,7 @@ namespace LibreLancer.Net.Protocol
         private bool canResize;
         private int bitOffset;
 
-        public NetHpidWriter HpidWriter;
+        public NetHpidWriter? HpidWriter;
 
         public BitWriter(int initialCapacity = 64)
         {

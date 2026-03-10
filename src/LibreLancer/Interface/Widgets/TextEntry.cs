@@ -1,6 +1,7 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
+
 using System;
 using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
@@ -11,29 +12,27 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class TextEntry : UiWidget
     {
-        private event Action<string> TextEntered;
+        private event Action<string>? TextEntered;
 
         public void OnTextEntered(WattleScript.Interpreter.Closure handler)
         {
-            TextEntered += (s) =>
-            {
-                handler.Call(s);
-            };
+            TextEntered += (s) => { handler.Call(s); };
         }
 
-        private TextEditBase editBase = new(false) {Focused = false, Wrap = false};
+        private TextEditBase editBase = new(false) { Focused = false, Wrap = false };
 
         public string CurrentText
         {
             get => editBase.Text;
             set => editBase.Text = value;
         }
+
         public int MaxChars = 100;
         public float FontSize { get; set; } = 10f;
-        public string Font { get; set; }
-        public InterfaceColor TextColor { get; set; }
-        public InterfaceColor TextShadow { get; set; }
-        public UiRenderable FocusedBorder { get; set; }
+        public string Font { get; set; } = "";
+        public InterfaceColor? TextColor { get; set; }
+        public InterfaceColor? TextShadow { get; set; }
+        public UiRenderable? FocusedBorder { get; set; }
 
         public bool Password
         {
@@ -46,20 +45,29 @@ namespace LibreLancer.Interface
         private double lastChange = 0.0;
         private double blinkDuration = 0.4;
         private bool cursorVisible = false;
+
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
-            if (context.GlobalTime - lastChange > blinkDuration) {
+            if (context.GlobalTime - lastChange > blinkDuration)
+            {
                 lastChange = context.GlobalTime;
                 cursorVisible = !cursorVisible;
             }
+
             if (!Visible) return;
-            if (doSetFocus) {
+
+            if (doSetFocus)
+            {
                 context.OnFocus();
                 doSetFocus = false;
                 hasFocus = true;
             }
-            if(hasFocus)
+
+            if (hasFocus)
+            {
                 context.SetTextFocus(this);
+            }
+
             var rect = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, rect);
             DrawText(context, rect);
@@ -68,7 +76,7 @@ namespace LibreLancer.Interface
 
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
-            if(!Visible) return;
+            if (!Visible) return;
             var myRect = GetMyRectangle(context, parentRectangle);
             if (myRect.Contains(context.MouseX, context.MouseY))
                 SetFocus();
@@ -87,8 +95,6 @@ namespace LibreLancer.Interface
             doSetFocus = true;
         }
 
-        private CachedRenderString renderCache;
-
         private void DrawText(UiContext context, RectangleF myRect)
         {
             // Padding
@@ -105,8 +111,8 @@ namespace LibreLancer.Interface
             editBase.FontName = context.Data.GetFont(Font);
             var px = context.PointsToPixels(myRect);
             // Vertical alignment hacky
-            px.Y += (int)((px.Height / 2f) -
-                    (context.RenderContext.Renderer2D.LineHeight(editBase.FontName, editBase.FontSize) / 2f));
+            px.Y += (int) ((px.Height / 2f) -
+                           (context.RenderContext.Renderer2D.LineHeight(editBase.FontName, editBase.FontSize) / 2f));
             editBase.SetRectangle(px);
             editBase.Focused = hasFocus;
             editBase.Draw(context.RenderContext, context.GlobalTime);
@@ -117,7 +123,7 @@ namespace LibreLancer.Interface
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             Update(context, myPos);
             myPos = AnimatedPosition(myPos);
-            var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
+            var myRect = new RectangleF(myPos.X, myPos.Y, Width, Height);
             return myRect;
         }
 
@@ -135,7 +141,7 @@ namespace LibreLancer.Interface
                     context.SetClipboardText(editBase.Text);
                     break;
                 case Keys.Enter:
-                    if(!string.IsNullOrWhiteSpace(CurrentText)) TextEntered?.Invoke(CurrentText);
+                    if (!string.IsNullOrWhiteSpace(CurrentText)) TextEntered?.Invoke(CurrentText);
                     editBase.Unselect();
                     break;
                 case Keys.Left:
@@ -164,6 +170,5 @@ namespace LibreLancer.Interface
                 return;
             editBase.TextEntered(text);
         }
-
     }
 }

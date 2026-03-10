@@ -14,10 +14,10 @@ namespace LibreLancer.Fx
         public AlchemyCurveAnimation Approach;
 		public FxRadialField (AlchemyNode ale) : base(ale)
 		{
-            Radius = ale.GetCurveAnimation(AleProperty.RadialField_Radius);
-            Attenuation = ale.GetFloatAnimation(AleProperty.RadialField_Attenuation);
-            Magnitude = ale.GetCurveAnimation(AleProperty.RadialField_Magnitude);
-            Approach = ale.GetCurveAnimation(AleProperty.RadialField_Approach);
+            Radius = ale.GetCurveAnimation(AleProperty.RadialField_Radius)!;
+            Attenuation = ale.GetFloatAnimation(AleProperty.RadialField_Attenuation)!;
+            Magnitude = ale.GetCurveAnimation(AleProperty.RadialField_Magnitude)!;
+            Approach = ale.GetCurveAnimation(AleProperty.RadialField_Approach)!;
 		}
 
         public FxRadialField(string name) : base(name)

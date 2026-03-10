@@ -64,8 +64,8 @@ namespace LibreLancer.Render
             VertexBuffer = new VertexBuffer(rstate, typeof(VertexBillboardColor2), MAX_QUADS * 4, true);
             ibo = new ElementBuffer(rstate, MAX_QUADS * 6);
             var indices = new ushort[MAX_QUADS * 6];
-            int iptr = 0;
-            for (int i = 0; i < (MAX_QUADS * 4); i += 4)
+            var iptr = 0;
+            for (var i = 0; i < (MAX_QUADS * 4); i += 4)
             {
                 /* Triangle 1 */
                 indices[iptr++] = (ushort)i;
@@ -93,7 +93,7 @@ namespace LibreLancer.Render
 
         private void NebulaFill()
         {
-            int a = 0;
+            var a = 0;
             DoVertices(new VertexBillboardColor2[]
             {
                 // X Axis

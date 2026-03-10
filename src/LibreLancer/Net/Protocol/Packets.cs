@@ -31,7 +31,11 @@ namespace LibreLancer.Net.Protocol
         public static void Write(PacketWriter outPacket, IPacket p)
         {
             var pkt = packetTypes.IndexOf(p.GetType());
-            if(pkt == -1) throw new Exception($"Packet type not registered {p.GetType().Name}");
+            if(pkt == -1)
+            {
+                throw new Exception($"Packet type not registered {p.GetType().Name}");
+            }
+
             if (pkt > 254)
             {
                 outPacket.Put((byte)255);
@@ -101,7 +105,7 @@ namespace LibreLancer.Net.Protocol
 
     public class SetStringsPacket : IPacket
     {
-        public byte[] Data;
+        public required byte[] Data;
         public static object Read(PacketReader message)
         {
             return new SetStringsPacket() { Data = message.GetRemainingBytes() };
@@ -185,7 +189,7 @@ namespace LibreLancer.Net.Protocol
             NicknameNotNull = (1 << 13),
         }
         public ObjNetId ID;
-        public string Nickname;
+        public string? Nickname;
         public ObjectSpawnFlags Flags;
         public ObjectName Name;
         public Vector3 Position;
@@ -214,9 +218,21 @@ namespace LibreLancer.Net.Protocol
             result.Flags = (ObjectSpawnFlags)header16 & ObjectSpawnFlags.Mask;
             result.Position = message.GetVector3();
             result.Orientation = message.GetQuaternion();
-            if (header.HasFlag(SpawnHeader.Name)) result.Name = message.GetObjectName();
-            if (header.HasFlag(SpawnHeader.NicknameNotNull)) result.Nickname = message.GetString();
-            if (header.HasFlag(SpawnHeader.Affiliation)) result.Affiliation = message.GetUInt();
+            if (header.HasFlag(SpawnHeader.Name))
+            {
+                result.Name = message.GetObjectName();
+            }
+
+            if (header.HasFlag(SpawnHeader.NicknameNotNull))
+            {
+                result.Nickname = message.GetString();
+            }
+
+            if (header.HasFlag(SpawnHeader.Affiliation))
+            {
+                result.Affiliation = message.GetUInt();
+            }
+
             if (header.HasFlag(SpawnHeader.Comm))
             {
                 result.CommHead = message.GetUInt();
@@ -263,21 +279,61 @@ namespace LibreLancer.Net.Protocol
         {
             // Build header
             SpawnHeader header = (SpawnHeader)(ushort)Flags;
-            if(Name != null) header |= SpawnHeader.Name;
-            if(!string.IsNullOrEmpty(Nickname)) header |= SpawnHeader.NicknameNotNull;
-            if(Affiliation != 0) header |= SpawnHeader.Affiliation;
-            if(CommHead != 0 || CommBody != 0 || CommHelmet != 0) header |= SpawnHeader.Comm;
-            if(Dock != null) header |= SpawnHeader.Dock;
-            if(DestroyedParts is { Length: >0 }) header |= SpawnHeader.Destroyed;
-            if(Effects is { Length: >0 }) header |= SpawnHeader.Effects;
+            if(Name != null)
+            {
+                header |= SpawnHeader.Name;
+            }
+
+            if(!string.IsNullOrEmpty(Nickname))
+            {
+                header |= SpawnHeader.NicknameNotNull;
+            }
+
+            if(Affiliation != 0)
+            {
+                header |= SpawnHeader.Affiliation;
+            }
+
+            if(CommHead != 0 || CommBody != 0 || CommHelmet != 0)
+            {
+                header |= SpawnHeader.Comm;
+            }
+
+            if(Dock != null)
+            {
+                header |= SpawnHeader.Dock;
+            }
+
+            if(DestroyedParts is { Length: >0 })
+            {
+                header |= SpawnHeader.Destroyed;
+            }
+
+            if(Effects is { Length: >0 })
+            {
+                header |= SpawnHeader.Effects;
+            }
+
             // Write
             ID.Put(message);
             message.Put((ushort)header);
             message.Put(Position);
             message.Put(Orientation);
-            if(Name != null) message.Put(Name);
-            if(!string.IsNullOrEmpty(Nickname)) message.Put(Nickname);
-            if(Affiliation != 0) message.Put(Affiliation);
+            if(Name != null)
+            {
+                message.Put(Name);
+            }
+
+            if(!string.IsNullOrEmpty(Nickname))
+            {
+                message.Put(Nickname);
+            }
+
+            if(Affiliation != 0)
+            {
+                message.Put(Affiliation);
+            }
+
             if (CommHead != 0 || CommBody != 0 || CommHelmet != 0)
             {
                 message.Put(CommHead);
@@ -313,10 +369,14 @@ namespace LibreLancer.Net.Protocol
             }
         }
 
-        private static DockAction GetDock(PacketReader message)
+        private static DockAction? GetDock(PacketReader message)
         {
             var k = message.GetByte();
-            if (k == 0) return null;
+            if (k == 0)
+            {
+                return null;
+            }
+
             return new DockAction()
             {
                 Kind = (DockKinds) (k >> 4),
@@ -360,11 +420,11 @@ namespace LibreLancer.Net.Protocol
     {
         public int ID;
         public uint EquipCRC;
-        public string Hardpoint;
+        public string? Hardpoint;
         public byte Health;
         public int Count;
 
-        public NetShipCargo(int id, uint crc, string hp, byte health, int count)
+        public NetShipCargo(int id, uint crc, string? hp, byte health, int count)
         {
             ID = id;
             EquipCRC = crc;
@@ -397,9 +457,21 @@ namespace LibreLancer.Net.Protocol
 
         public override bool Equals(object? obj)
         {
-            if (obj is null) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != GetType())
+            {
+                return false;
+            }
+
             return Equals((NetShipCargo)obj);
         }
 
@@ -430,8 +502,10 @@ namespace LibreLancer.Net.Protocol
         public NetLoadout Loadout;
         public PlayerInventory()
         {
-            Loadout = new();
-            Loadout.Items = [];
+            Loadout = new()
+            {
+                Items = []
+            };
         }
     }
 
@@ -459,15 +533,30 @@ namespace LibreLancer.Net.Protocol
         {
             writer.Put(Header);
             if(CreditDiff != 0)
+            {
                 writer.PutVariableInt64(CreditDiff);
+            }
+
             if(ShipWorthDiff != 0)
+            {
                 writer.PutVariableInt64(ShipWorthDiff);
+            }
+
             if (NetWorthDiff != 0)
+            {
                 writer.PutVariableInt64(NetWorthDiff);
+            }
+
             if((Header & (1 << 3)) != 0)
+            {
                 writer.Put(LoadoutDiff.Archetype);
+            }
+
             if((Header & (1 << 4)) != 0)
+            {
                 writer.Put(LoadoutDiff.Health);
+            }
+
             LoadoutDiff.WriteItems(writer);
         }
 
@@ -477,11 +566,20 @@ namespace LibreLancer.Net.Protocol
             var h = reader.GetByte();
             d.Header = h;
             if((h & (1 << 0)) != 0)
+            {
                 d.CreditDiff = reader.GetVariableInt64();
+            }
+
             if((h & (1 << 1)) != 0)
+            {
                 d.ShipWorthDiff = reader.GetVariableInt64();
+            }
+
             if((h & (1 << 2)) != 0)
+            {
                 d.NetWorthDiff = reader.GetVariableInt64();
+            }
+
             if ((h & (1 << 3)) != 0)
             {
                 d.LoadoutDiff.ApplyArchetype = true;
@@ -503,21 +601,40 @@ namespace LibreLancer.Net.Protocol
         {
             byte header = 0;
             if (a.Credits != b.Credits)
+            {
                 header |= (1 << 0);
+            }
+
             if(a.ShipWorth != b.ShipWorth)
+            {
                 header |= (1 << 1);
+            }
+
             if (a.NetWorth != b.NetWorth)
+            {
                 header |= (1 << 2);
+            }
 
             var loadoutDiff = NetLoadoutDiff.Create(a.Loadout, b.Loadout);
             if (loadoutDiff.ApplyArchetype)
+            {
                 header |= (1 << 3);
+            }
+
             if(loadoutDiff.ApplyHealth)
+            {
                 header |= (1 << 4);
+            }
+
             if (loadoutDiff.Items != null)
+            {
                 header |= (1 << 5);
+            }
+
             if(a.Loadout.ArchetypeCrc != b.Loadout.ArchetypeCrc)
+            {
                 header |= (1 << 3);
+            }
 
             var diff = new PlayerInventoryDiff()
             {
@@ -543,12 +660,15 @@ namespace LibreLancer.Net.Protocol
 
         public NetLoadout Apply(NetLoadout a)
         {
-            var b = new NetLoadout();
-            b.ArchetypeCrc = ApplyArchetype ? Archetype : a.ArchetypeCrc;
-            b.Health = ApplyHealth ? Health : a.Health;
+            var b = new NetLoadout
+            {
+                ArchetypeCrc = ApplyArchetype ? Archetype : a.ArchetypeCrc,
+                Health = ApplyHealth ? Health : a.Health
+            };
+
             if (Items == null)
             {
-                b.Items = a.Items.CloneCopy();
+                b.Items = a.Items.CloneCopy()!;
             }
             else
             {
@@ -556,9 +676,13 @@ namespace LibreLancer.Net.Protocol
                 foreach (var d in Items)
                 {
                     if (d.NewCargo != null)
+                    {
                         b.Items.Add(d.NewCargo);
+                    }
                     else
+                    {
                         b.Items.Add(a.Items[d.SourceIndex].Clone());
+                    }
                 }
             }
             return b;
@@ -615,7 +739,10 @@ namespace LibreLancer.Net.Protocol
         public void WriteItems(PacketWriter writer)
         {
             if (Items == null)
+            {
                 return;
+            }
+
             writer.PutVariableUInt32((uint)Items.Count);
             foreach (var item in Items)
             {
@@ -718,9 +845,11 @@ namespace LibreLancer.Net.Protocol
         public List<NetShipCargo> Items = [];
         public static NetLoadout Read(PacketReader message)
         {
-            var s = new NetLoadout();
-            s.ArchetypeCrc = message.GetUInt();
-            s.Health = message.GetFloat();
+            var s = new NetLoadout
+            {
+                ArchetypeCrc = message.GetUInt(),
+                Health = message.GetFloat()
+            };
             var cargoCount = (int)message.GetVariableUInt32();
             s.Items = new List<NetShipCargo>(cargoCount);
             for (int i = 0; i < cargoCount; i++)
@@ -754,16 +883,18 @@ namespace LibreLancer.Net.Protocol
         public float CruiseAccelPct;
         public static PlayerAuthState Read(ref BitReader reader, PlayerAuthState src)
         {
-            var pa = new PlayerAuthState();
-            pa.Position = DecodeVector3(ref reader, src.Position);
-            // Extra precision
-            pa.Orientation = reader.GetQuaternion(18);
-            pa.LinearVelocity = DecodeVector3(ref reader, src.LinearVelocity);
-            pa.AngularVelocity = DecodeVector3(ref reader, src.AngularVelocity);
-            pa.Health = reader.GetBool() ? reader.GetFloat() : src.Health;
-            pa.Shield = reader.GetBool() ? reader.GetFloat() : src.Shield;
-            pa.CruiseChargePct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseChargePct;
-            pa.CruiseAccelPct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseAccelPct;
+            var pa = new PlayerAuthState
+            {
+                Position = DecodeVector3(ref reader, src.Position),
+                // Extra precision
+                Orientation = reader.GetQuaternion(18),
+                LinearVelocity = DecodeVector3(ref reader, src.LinearVelocity),
+                AngularVelocity = DecodeVector3(ref reader, src.AngularVelocity),
+                Health = reader.GetBool() ? reader.GetFloat() : src.Health,
+                Shield = reader.GetBool() ? reader.GetFloat() : src.Shield,
+                CruiseChargePct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseChargePct,
+                CruiseAccelPct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseAccelPct
+            };
             return pa;
         }
 
@@ -820,14 +951,18 @@ namespace LibreLancer.Net.Protocol
                 writer.PutFloat(Shield);
             }
             if(forced != 11 && NetPacking.QuantizedEqual(CruiseChargePct, prev.CruiseChargePct, 0, 1, 12))
+            {
                 writer.PutBool(false);
+            }
             else
             {
                 writer.PutBool(true);
                 writer.PutRangedFloat(CruiseChargePct, 0, 1, 12);
             }
             if(forced != 13 && NetPacking.QuantizedEqual(CruiseAccelPct, prev.CruiseAccelPct, 0, 1, 12))
+            {
                 writer.PutBool(false);
+            }
             else
             {
                 writer.PutBool(true);
@@ -878,23 +1013,40 @@ namespace LibreLancer.Net.Protocol
             writer.PutBool(cur.Steering != baseline.Steering);
             writer.PutBool(cur.AimPoint != baseline.AimPoint);
             if(cur.Throttle != baseline.Throttle)
+            {
                 writer.PutFloat(cur.Throttle);
+            }
+
             if(cur.Steering != baseline.Steering)
+            {
                 writer.PutVector3(cur.Steering);
+            }
+
             if(cur.AimPoint != baseline.AimPoint)
+            {
                 writer.PutVector3(cur.AimPoint);
+            }
+
             WriteFireCommand(ref writer, ref cur);
         }
 
         private static ProjectileFireCommand? ReadFireCommand(ref BitReader reader, ref NetInputControls controls)
         {
             if (!reader.GetBool())
+            {
                 return null;
+            }
+
             var fc = new ProjectileFireCommand();
             if (reader.GetBool())
+            {
                 fc.Target = reader.GetVector3();
+            }
             else
+            {
                 fc.Target = controls.AimPoint;
+            }
+
             fc.Guns = reader.GetVarUInt64();
             fc.Unique = reader.GetVarUInt64();
             if (fc.Unique > 0) {
@@ -934,11 +1086,13 @@ namespace LibreLancer.Net.Protocol
 
         private static NetInputControls ReadDelta(ref BitReader reader, ref NetInputControls baseline)
         {
-            var nc = new NetInputControls();
-            nc.Tick = (uint) (baseline.Tick + reader.GetVarInt32());
-            nc.Strafe = (StrafeControls)reader.GetUInt(4);
-            nc.Cruise = reader.GetBool();
-            nc.Thrust = reader.GetBool();
+            var nc = new NetInputControls
+            {
+                Tick = (uint) (baseline.Tick + reader.GetVarInt32()),
+                Strafe = (StrafeControls)reader.GetUInt(4),
+                Cruise = reader.GetBool(),
+                Thrust = reader.GetBool()
+            };
             bool readThrottle = reader.GetBool();
             bool readSteering = reader.GetBool();
             bool readAimPoint = reader.GetBool();
@@ -952,9 +1106,11 @@ namespace LibreLancer.Net.Protocol
         public static object Read(PacketReader message)
         {
             var br = new BitReader(message.GetRemainingBytes(), 0);
-            var p = new InputUpdatePacket();
-            p.Acks = new UpdateAck(br.GetVarUInt32(), br.GetUInt(), br.GetUInt());
-            p.SelectedObject = ObjNetId.Read(ref br);
+            var p = new InputUpdatePacket
+            {
+                Acks = new UpdateAck(br.GetVarUInt32(), br.GetUInt(), br.GetUInt()),
+                SelectedObject = ObjNetId.Read(ref br)
+            };
             p.Current.Tick = br.GetVarUInt32();
             p.Current.Steering = br.GetVector3();
             p.Current.AimPoint = br.GetVector3();
@@ -962,8 +1118,14 @@ namespace LibreLancer.Net.Protocol
             p.Current.Cruise = br.GetBool();
             p.Current.Thrust = br.GetBool();
             var throttle = br.GetUInt(2);
-            if (throttle == 0) p.Current.Throttle = 0;
-            else if (throttle == 1) p.Current.Throttle = 1;
+            if (throttle == 0)
+            {
+                p.Current.Throttle = 0;
+            }
+            else if (throttle == 1)
+            {
+                p.Current.Throttle = 1;
+            }
             else {
                 p.Current.Throttle = br.GetFloat();
             }
@@ -1008,7 +1170,7 @@ namespace LibreLancer.Net.Protocol
     {
         public int Source;
         public bool TargetIsPlayer;
-        public string Voice;
+        public string? Voice;
         public uint Hash;
         public static NetDlgLine Read(PacketReader message) => new()
             {Source = message.GetVariableInt32(), TargetIsPlayer = message.GetBool(), Voice = message.GetString(), Hash = message.GetUInt()};

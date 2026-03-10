@@ -32,12 +32,12 @@ namespace LibreLancer.Utf.Anm
                 if (node.Name.Equals("root height", StringComparison.OrdinalIgnoreCase))
                 {
                     HasRootHeight = true;
-                    RootHeight = (node as LeafNode).SingleData.Value;
+                    RootHeight = (node as LeafNode)!.SingleData!.Value;
                 }
 				else if (node.Name.StartsWith("object map", StringComparison.OrdinalIgnoreCase))
-					om.Add(new ObjectMap(node as IntermediateNode, buffer, strings));
+					om.Add(new ObjectMap((node as IntermediateNode)!, buffer, strings));
 				else if (node.Name.StartsWith("joint map", StringComparison.OrdinalIgnoreCase))
-                    jm.Add(new JointMap(node as IntermediateNode, buffer, strings));
+                    jm.Add(new JointMap((node as IntermediateNode)!, buffer, strings));
                 else
                 {
                     FLLog.Warning("Anm", $"{root.Name}: invalid node {node.Name}, possible broken animation?");

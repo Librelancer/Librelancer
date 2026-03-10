@@ -21,15 +21,16 @@ namespace LibreLancer.World.Components
 
         public override int IdsName => Object.IdsName;
 
-        private ProjectileManager? projectiles;
-        private ProjectileData toSpawn;
-        private Hardpoint[] hpfires;
+        private ProjectileManager projectiles = null!;
+        private ProjectileData toSpawn = null!;
+        private Hardpoint[] hpfires = [];
 
-        protected override bool OnFire(Vector3 point, GameObject target, bool fromServer)
+        protected override bool OnFire(Vector3 point, GameObject? target, bool fromServer)
         {
             if (!fromServer)
             {
                 CurrentCooldown = Object.Def.RefireDelay;
+
                 if (Parent?.Parent?.TryGetComponent<PowerCoreComponent>(out var powercore) ?? false)
                 {
                     if (powercore.CurrentEnergy < Object.Def.PowerUsage)
@@ -41,9 +42,10 @@ namespace LibreLancer.World.Components
                 }
             }
 
-            if (projectiles == null)
+            if ((ProjectileManager?)projectiles == null)
             {
-                hpfires = Parent!.GetHardpoints().Where((x) => x.Name.StartsWith("hpfire", StringComparison.CurrentCultureIgnoreCase)).ToArray();
+                hpfires = Parent!.GetHardpoints()
+                    .Where((x) => x.Name.StartsWith("hpfire", StringComparison.CurrentCultureIgnoreCase)).ToArray();
                 projectiles = Parent.GetWorld().Projectiles!;
                 toSpawn = projectiles.GetData(Object);
             }
@@ -56,6 +58,7 @@ namespace LibreLancer.World.Components
             var tr = (Parent.Attachment!.Transform * Parent.Parent!.WorldTransform);
             var hp = Parent.Attachment.Name;
             bool retval = false;
+
             foreach (var hpFire in hpfires)
             {
                 var transform = hpFire.Transform * tr;
@@ -72,6 +75,7 @@ namespace LibreLancer.World.Components
 
                 retval = true;
                 projectiles.SpawnProjectile(Parent.Parent, hp, toSpawn, pos, heading);
+
                 if (!fromServer)
                 {
                     projectiles.QueueFire(Parent.Parent, this, point);

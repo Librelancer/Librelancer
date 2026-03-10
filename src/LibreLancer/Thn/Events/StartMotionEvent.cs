@@ -8,7 +8,7 @@ namespace LibreLancer.Thn.Events
 {
     public class StartMotionEvent : ThnEvent
     {
-        public string Animation;
+        public string Animation = null!;
         public float StartTime;
         public float TimeScale;
         public int Flags;

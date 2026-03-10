@@ -12,66 +12,83 @@ namespace LibreLancer.Thn.Events
 {
     public class ConnectHardpointsEvent : ThnEvent
     {
-        public string Hardpoint;
-        public string ParentHardpoint;
-        public ConnectHardpointsEvent() { }
+        public string? Hardpoint;
+        public string? ParentHardpoint;
 
+        public ConnectHardpointsEvent()
+        {
+        }
 
 
         public ConnectHardpointsEvent(ThornTable table) : base(table)
         {
-            if (!GetProps(table, out var props)) return;
+            if (!GetProps(table, out var props))
+            {
+                return;
+            }
+
             if (props.TryGetValue("hardpoint", out var hp))
+            {
                 Hardpoint = hp.ToString();
+            }
+
             if (props.TryGetValue("parent_hardpoint", out var php))
+            {
                 ParentHardpoint = php.ToString();
+            }
         }
 
         private double time = 0;
+
         public override void Run(ThnScriptInstance instance)
         {
-            if (Targets.Length < 2) {
-                FLLog.Error("Thn","CONNECT_HARDPOINTS requires 2 targets");
+            if (Targets.Length < 2)
+            {
+                FLLog.Error("Thn", "CONNECT_HARDPOINTS requires 2 targets");
             }
+
             if (!instance.Objects.TryGetValue(Targets[0], out var child))
             {
                 FLLog.Error("Thn", $"Entity {Targets[0]} does not exist");
-                if (child.Object == null){
+
+                if (child.Object == null)
+                {
                     FLLog.Error("Thn", $"Entity {Targets[0]} has no hardpoints");
                     return;
                 }
-                return;
-            }
-            if (!instance.Objects.TryGetValue(Targets[1], out var parent))
-            {
-                FLLog.Error("Thn", $"Entity {Targets[0]} does not exist");
-                if (parent.Object == null) {
-                    FLLog.Error("Thn", $"Entity {Targets[1]} has no hardpoints");
-                    return;
-                }
+
                 return;
             }
 
-            IRenderHardpoint childHp;
-            IRenderHardpoint parentHp;
-            if (string.IsNullOrEmpty(Hardpoint) || (childHp = GetHardpoint(child.Object, Hardpoint)) == null)
+            if (!instance.Objects.TryGetValue(Targets[1], out var parent))
+            {
+                FLLog.Error("Thn", $"Entity {Targets[0]} does not exist");
+
+                if (parent.Object == null)
+                {
+                    FLLog.Error("Thn", $"Entity {Targets[1]} has no hardpoints");
+                    return;
+                }
+
+                return;
+            }
+
+            IRenderHardpoint? childHp;
+            IRenderHardpoint? parentHp;
+
+            if (string.IsNullOrEmpty(Hardpoint) || (childHp = GetHardpoint(child.Object!, Hardpoint!)) == null)
             {
                 FLLog.Error("Thn", $"Could not find hardpoint on {Targets[0]}");
                 return;
             }
-            if (string.IsNullOrEmpty(Hardpoint) || (parentHp = GetHardpoint(parent.Object, ParentHardpoint)) == null)
+
+            if (string.IsNullOrEmpty(Hardpoint) || (parentHp = GetHardpoint(parent.Object!, ParentHardpoint!)) == null)
             {
                 FLLog.Error("Thn", $"Could not find hardpoint on {Targets[0]}");
                 return;
             }
-            instance.AddProcessor(new ProcessConnection()
-            {
-                ParentHardpoint = parentHp,
-                ChildHardpoint = childHp,
-                Parent = parent,
-                Child = child,
-                Duration = Duration
-            });
+
+            instance.AddProcessor(new ProcessConnection(parent, child, parentHp, childHp, Duration));
         }
 
         private class ProcessConnection : ThnEventProcessor
@@ -83,11 +100,21 @@ namespace LibreLancer.Thn.Events
             private double time = 0;
             public double Duration;
 
+            public ProcessConnection(ThnObject parent, ThnObject child, IRenderHardpoint parentHardpoint,
+                IRenderHardpoint childHardpoint, double duration)
+            {
+                Parent = parent;
+                Child = child;
+                ParentHardpoint = parentHardpoint;
+                ChildHardpoint = childHardpoint;
+                Duration = duration;
+            }
+
             public override bool Run(double delta)
             {
                 time += delta;
                 var tr = ChildHardpoint.Transform.Inverse() * ParentHardpoint.Transform *
-                        new Transform3D(Parent.Translate, Parent.Rotate);
+                         new Transform3D(Parent.Translate, Parent.Rotate);
                 Child.Translate = tr.Position;
                 Child.Rotate = tr.Orientation;
                 return time < Duration;

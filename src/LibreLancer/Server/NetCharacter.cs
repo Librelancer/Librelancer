@@ -25,11 +25,11 @@ namespace LibreLancer.Server
 {
     public class NetCharacter
     {
-        public string Name;
+        public string? Name;
 
         public bool Admin;
-        public string Base { get; private set; }
-        public string System { get; private set; }
+        public string? Base { get; private set; }
+        public string? System { get; private set; }
         public Vector3 Position { get; private set; }
         public Quaternion Orientation { get; private set; } = Quaternion.Identity;
         public long Credits { get; private set; }
@@ -109,7 +109,7 @@ namespace LibreLancer.Server
                 this.newEntity = newEntity;
             }
 
-            public void UpdatePosition(string _base, string sys, Vector3 pos, Quaternion orient)
+            public void UpdatePosition(string? _base, string sys, Vector3 pos, Quaternion orient)
             {
                 nc.Base = _base;
                 nc.System = sys;
@@ -192,7 +192,7 @@ namespace LibreLancer.Server
                 nc.Time = time;
             }
 
-            public void UpdateShip(Ship ship)
+            public void UpdateShip(Ship? ship)
             {
                 nc.Ship = ship;
             }
@@ -381,9 +381,11 @@ namespace LibreLancer.Server
 
         private static NetCharacter FromSaveGameInternal(GameServer game, SaveGame sg, Character? db = null)
         {
-            var nc = new NetCharacter();
-            nc.gData = game.GameData;
-            nc.Admin = db == null;
+            var nc = new NetCharacter
+            {
+                gData = game.GameData,
+                Admin = db == null
+            };
             nc.transactionCount++;
             var stats = new NetPlayerStatistics();
             using (var c = new CharacterTransaction(nc, db))
@@ -547,9 +549,12 @@ namespace LibreLancer.Server
 
         public NetLoadout EncodeLoadout()
         {
-            var sl = new NetLoadout();
-            sl.ArchetypeCrc = Ship?.CRC ?? 0;
-            sl.Items = new List<NetShipCargo>(Items.Count);
+            var sl = new NetLoadout
+            {
+                ArchetypeCrc = Ship?.CRC ?? 0,
+                Items = new List<NetShipCargo>(Items.Count)
+            };
+
             foreach (var c in Items)
             {
                 sl.Items.Add(new NetShipCargo(
@@ -563,13 +568,15 @@ namespace LibreLancer.Server
 
         public SelectableCharacter ToSelectable()
         {
-            var selectable = new SelectableCharacter();
-            selectable.Id = charId;
-            selectable.Rank = (int)Rank;
-            selectable.Ship = Ship.Nickname;
-            selectable.Name = Name;
-            selectable.Funds = Credits;
-            selectable.Location = gData.Items.Bases.Get(Base).System;
+            var selectable = new SelectableCharacter
+            {
+                Id = charId,
+                Rank = (int)Rank,
+                Ship = Ship.Nickname,
+                Name = Name,
+                Funds = Credits,
+                Location = gData.Items.Bases.Get(Base).System
+            };
             return selectable;
         }
     }

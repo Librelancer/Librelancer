@@ -95,8 +95,10 @@ namespace LibreLancer.Thn
         {
             Init();
             var builder = new StringBuilder();
-            var runner = new ThornRunner(ThnScript.ThnEnv, readCallback);
-            runner.Log = false;
+            var runner = new ThornRunner(ThnScript.ThnEnv, readCallback)
+            {
+                Log = false
+            };
             var output = runner.DoBytes(File.ReadAllBytes(file), file);
             foreach (var kv in output)
             {

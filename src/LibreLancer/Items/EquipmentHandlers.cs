@@ -12,6 +12,7 @@ namespace LibreLancer.Items;
 public static class EquipmentHandlers
 {
     private static bool _registered = false;
+
     public static void Register()
     {
         if (_registered)
@@ -32,14 +33,16 @@ public static class EquipmentHandlers
         EquipmentObjectManager.RegisterType<TradelaneEquipment>(Tradelane);
     }
 
-    private static GameObject Countermeasure(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
+    private static GameObject Countermeasure(GameObject parent, ResourceManager res, SoundManager? snd,
+        EquipmentType type, string? hardpoint, Equipment equip)
     {
-        var sh = (CountermeasureEquipment)equip;
+        var sh = (CountermeasureEquipment) equip;
         var obj = GameObject.WithModel(sh.ModelFile!, type != EquipmentType.Server, parent.Resources!);
         return obj;
     }
 
-    private static GameObject Effect(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type, string hardpoint, Equipment equip)
+    private static GameObject Effect(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
     {
         var obj = new GameObject();
 
@@ -49,6 +52,7 @@ public static class EquipmentHandlers
         }
 
         var e = (EffectEquipment) equip;
+
         if (e.Particles is null)
         {
             return obj;
@@ -69,12 +73,13 @@ public static class EquipmentHandlers
         return obj;
     }
 
-    private static GameObject? Engine(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type, string hardpoint, Equipment equip)
+    private static GameObject? Engine(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
     {
         var eng = (EngineEquipment) equip;
         parent.AddComponent(type != EquipmentType.Server
             ? new CEngineComponent(parent, eng)
-            : (CEngineComponent)new SEngineComponent(parent, eng));
+            : (CEngineComponent) new SEngineComponent(parent, eng));
 
         if (snd == null)
         {
@@ -94,14 +99,15 @@ public static class EquipmentHandlers
         return null;
     }
 
-    private static GameObject Gun(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type, string hardpoint, Equipment equip)
+    private static GameObject Gun(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
     {
         var gn = (GunEquipment) equip;
         var child = GameObject.WithModel(gn.ModelFile!, type != EquipmentType.Server, res);
-        if(type != EquipmentType.RemoteObject &&
-           type != EquipmentType.Cutscene)
+        if (type != EquipmentType.RemoteObject &&
+            type != EquipmentType.Cutscene)
             child.AddComponent(new GunComponent(child, gn));
-        if(type is EquipmentType.LocalPlayer or EquipmentType.RemoteObject)
+        if (type is EquipmentType.LocalPlayer or EquipmentType.RemoteObject)
             child.AddComponent(new CMuzzleFlashComponent(child, gn));
 
         snd?.LoadSound(gn.Munition.Def.OneShotSound);
@@ -109,48 +115,55 @@ public static class EquipmentHandlers
         return child;
     }
 
-    private static GameObject Light(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
+    private static GameObject Light(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
     {
-        var lq = (LightEquipment)equip;
+        var lq = (LightEquipment) equip;
         var obj = new GameObject();
+
         if (type != EquipmentType.Server &&
             type != EquipmentType.Cutscene)
         {
-            obj.RenderComponent = new LightEquipRenderer(lq) {LightOn = !lq.DockingLight};
+            obj.RenderComponent = new LightEquipRenderer(lq) { LightOn = !lq.DockingLight };
         }
+
         return obj;
     }
 
-    private static GameObject MissileLauncher(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type, string hardpoint, Equipment equip)
+    private static GameObject MissileLauncher(GameObject parent, ResourceManager res, SoundManager? snd,
+        EquipmentType type, string? hardpoint, Equipment equip)
     {
         var gn = (MissileLauncherEquipment) equip;
         var child = GameObject.WithModel(gn.ModelFile!, type != EquipmentType.Server, res);
-        if(type != EquipmentType.RemoteObject &&
-           type != EquipmentType.Cutscene)
+        if (type != EquipmentType.RemoteObject &&
+            type != EquipmentType.Cutscene)
             child.AddComponent(new MissileLauncherComponent(child, gn));
         snd?.LoadSound(gn.Munition.Def.OneShotSound);
         return child;
     }
 
-    private static GameObject? Power(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
+    private static GameObject? Power(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
     {
-        var pc = new PowerCoreComponent(((PowerEquipment)equip).Def, parent);
+        var pc = new PowerCoreComponent(((PowerEquipment) equip).Def, parent);
         parent.AddComponent(pc);
         return null;
     }
 
-    private static GameObject? Scanner(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type,
-        string hardpoint, Equipment equip)
+    private static GameObject? Scanner(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
     {
-        var scan = new ScannerComponent(parent, (ScannerEquipment)equip);
+        var scan = new ScannerComponent(parent, (ScannerEquipment) equip);
         parent.AddComponent(scan);
         return null;
     }
 
-    private static GameObject Shield(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
+    private static GameObject Shield(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
     {
-        var sh = (ShieldEquipment)equip;
+        var sh = (ShieldEquipment) equip;
         var obj = GameObject.WithModel(sh.ModelFile!, type != EquipmentType.Server, parent.Resources!);
+
         switch (type)
         {
             case EquipmentType.Server:
@@ -161,13 +174,16 @@ public static class EquipmentHandlers
                 obj.AddComponent(new CShieldComponent(sh, obj));
                 break;
         }
+
         return obj;
     }
 
-    private static GameObject Thruster(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint, Equipment equip)
+    private static GameObject Thruster(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
     {
-        var th = (ThrusterEquipment)equip;
+        var th = (ThrusterEquipment) equip;
         var obj = GameObject.WithModel(th.ModelFile!, type != EquipmentType.Server, parent.Resources!);
+
         switch (type)
         {
             case EquipmentType.LocalPlayer or EquipmentType.RemoteObject:
@@ -181,25 +197,25 @@ public static class EquipmentHandlers
         return obj;
     }
 
-    private static GameObject? Tractor(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type,
-        string hardpoint, Equipment equip)
+    private static GameObject? Tractor(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
     {
         if (type == EquipmentType.Server)
         {
-            var tc = new STractorComponent((TractorEquipment)equip, parent);
+            var tc = new STractorComponent((TractorEquipment) equip, parent);
             parent.AddComponent(tc);
         }
         else
         {
-            var tc = new CTractorComponent((TractorEquipment)equip, parent);
+            var tc = new CTractorComponent((TractorEquipment) equip, parent);
             parent.AddComponent(tc);
         }
 
         return null;
     }
 
-    private static GameObject? Tradelane(GameObject parent, ResourceManager res, SoundManager snd, EquipmentType type, string hardpoint,
-        Equipment equip)
+    private static GameObject? Tradelane(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
     {
         if (type != EquipmentType.Server)
         {

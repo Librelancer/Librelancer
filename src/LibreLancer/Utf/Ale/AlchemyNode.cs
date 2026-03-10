@@ -33,7 +33,7 @@ namespace LibreLancer.Utf.Ale
 			return false;
 		}
 
-        private bool TryGetObject<T>(AleProperty name, out T? value)
+        private bool TryGetObject<T>(AleProperty name, [MaybeNullWhen(false)] out T value)
         {
             if (!TryGetParameter(name, out var p))
             {
@@ -41,7 +41,7 @@ namespace LibreLancer.Utf.Ale
                 return false;
             }
 
-            value = (T?)p?.Value;
+            value = (T)p.Value;
             return true;
         }
 

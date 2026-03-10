@@ -101,16 +101,10 @@ namespace LibreLancer.Utf
             reader.BaseStream.Seek(header.DataBlockOffset, SeekOrigin.Begin);
             reader.Read(dataBlock);
 
-            IntermediateNode root;
+            using BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock));
 
-            using (BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock)))
-            {
-                root = Node.FromStream(nodeReader, 0, new StringBlock(stringBlock, false), dataBlock) as IntermediateNode;
-                if (root == null)
-                    throw new FileContentException(UtfFile.FILE_TYPE, "The root node doesn't have any child nodes.");
-            }
-
-            return root;
+            var root = Node.FromStream(nodeReader, 0, new StringBlock(stringBlock, false), dataBlock) as IntermediateNode;
+            return root ?? throw new FileContentException(FILE_TYPE, "The root node doesn't have any child nodes.");
         }
     }
 }

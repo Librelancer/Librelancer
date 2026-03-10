@@ -112,8 +112,13 @@ public class GameItemDb
         ThornReadCallback = (file) => VFS.ReadAllBytes("EXE/" + file);
     }
 
-    public string? DataPath(string input)
+    public string? DataPath(string? input)
     {
+        if (string.IsNullOrEmpty(input))
+        {
+            return null;
+        }
+
         var path = flData.Freelancer.DataPath + input;
 
         if (VFS.FileExists(path))

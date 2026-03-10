@@ -8,20 +8,20 @@ namespace LibreLancer.Missions;
 
 public class ScriptSolar : NicknameItem
 {
-    public Archetype Archetype;
+    public Archetype? Archetype;
     public int IdsName;
-    public Faction Faction;
-    public string System;
+    public Faction? Faction;
+    public string? System;
     public Vector3 Position;
     public Quaternion Orientation = Quaternion.Identity;
-    public string Base;
+    public string? Base;
     public List<string> Labels = [];
     public float Radius;
-    public string Voice;
+    public string? Voice;
     public CostumeEntry Costume = new();
-    public string Loadout;
-    public string Visit;
-    public string Pilot;
+    public string? Loadout;
+    public string? Visit;
+    public string? Pilot;
 
     public static ScriptSolar FromIni(MissionSolar solar, GameItemDb db) =>
         new()

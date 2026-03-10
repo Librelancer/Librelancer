@@ -13,8 +13,8 @@ namespace LibreLancer.Utf
     public abstract class AbstractConstruct
     {
         private const int STR_LENGTH = 64;
-        public string ParentName { get; set; }
-        public string ChildName { get; set; }
+        public string ParentName { get; set; } = null!;
+        public string ChildName { get; set; } = null!;
         public Vector3 Origin { get; set; }
         public Quaternion Rotation { get; set; }
 

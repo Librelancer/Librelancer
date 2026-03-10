@@ -22,7 +22,7 @@ namespace LibreLancer.Render
 
         public int Key { get; private set; }
 
-        protected RenderMaterial(ResourceManager library)
+        protected RenderMaterial(ResourceManager? library)
         {
             Library = library;
             Key = Interlocked.Increment(ref _key);
@@ -31,7 +31,7 @@ namespace LibreLancer.Render
         public static bool VertexLighting = false;
         public MaterialAnim? MaterialAnim;
         public WorldMatrixHandle World = new();
-        public ResourceManager Library;
+        public ResourceManager? Library;
         public bool Fade = false;
         public float FadeNear = 0;
         public float FadeFar = 0;
@@ -136,10 +136,10 @@ namespace LibreLancer.Render
                 AmbientColor = lighting.Ambient
             };
 
-            int lt = 0;
+            var lt = 0;
             var lights = new Span<PackedLight>(&data.Light0, 9);
 
-            for (int i = 0; i < lighting.Lights.SourceLighting.Lights.Count; i++)
+            for (var i = 0; i < lighting.Lights.SourceLighting.Lights.Count; i++)
             {
                 if (!lighting.Lights.SourceEnabled[i])
                 {
@@ -180,16 +180,16 @@ namespace LibreLancer.Render
             }
 
             data.LightCount = lt;
-            int szCount = 3 * sizeof(Vector4) + // header
+            var szCount = 3 * sizeof(Vector4) + // header
                           lt * sizeof(PackedLight); // lights
             shader.SetUniformBlock<ShaderLighting>(2, ref data, false, szCount);
         }
 
         protected Texture2D? GetTexture(int cacheIndex, string? tex)
         {
-            if (tex == null)
+            if (tex == null || Library is null)
             {
-                return (Texture2D?) Library.FindTexture(ResourceManager.NullTextureName);
+                return (Texture2D?) Library?.FindTexture(ResourceManager.NullTextureName);
             }
 
             textures[cacheIndex] ??= (Texture2D?) Library.FindTexture(tex);
@@ -234,18 +234,20 @@ namespace LibreLancer.Render
         protected void SetTextureCoordinates(Shader shader, SamplerFlags t0, SamplerFlags t1, SamplerFlags t2,
             SamplerFlags t3, SamplerFlags t4, SamplerFlags t5 = 0)
         {
-            var f2 = new Flags2();
-            f2.A = new(
-                (t0 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
-                (t1 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
-                (t2 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
-                (t3 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0
-            );
-            f2.B = new(
-                (t4 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
-                (t5 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
-                0, 0
-            );
+            var f2 = new Flags2
+            {
+                A = new(
+                    (t0 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                    (t1 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                    (t2 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                    (t3 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0
+                ),
+                B = new(
+                    (t4 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                    (t5 & SamplerFlags.SecondUV) == SamplerFlags.SecondUV ? 1 : 0,
+                    0, 0
+                )
+            };
 
             if (shader.HasUniformBlock(5))
             {
@@ -263,12 +265,12 @@ namespace LibreLancer.Render
 
             if (textures[cacheidx] == null || !loaded[cacheidx])
             {
-                textures[cacheidx] = (Texture2D?)Library.FindTexture(tex);
+                textures[cacheidx] = (Texture2D?)Library?.FindTexture(tex);
             }
 
             if (textures[cacheidx] == null)
             {
-                textures[cacheidx] = (Texture2D?)Library.FindTexture(ResourceManager.NullTextureName);
+                textures[cacheidx] = (Texture2D?)Library?.FindTexture(ResourceManager.NullTextureName);
                 loaded[cacheidx] = false;
             }
             else
@@ -278,37 +280,37 @@ namespace LibreLancer.Render
 
             var tex2d = textures[cacheidx];
 
-            if (tex2d.IsDisposed)
+            if (tex2d?.IsDisposed ?? true)
             {
-                tex2d = textures[cacheidx] = (Texture2D?)Library.FindTexture(tex);
+                tex2d = textures[cacheidx] = (Texture2D?)Library?.FindTexture(tex);
             }
 
             if (tex2d == null)
             {
-                tex2d = (Texture2D?)Library.FindTexture(ResourceManager.NullTextureName);
+                tex2d = (Texture2D?)Library?.FindTexture(ResourceManager.NullTextureName);
             }
 
-            tex2d.BindTo(unit);
-            tex2d.SetFiltering(rstate.PreferredFilterLevel);
+            tex2d?.BindTo(unit);
+            tex2d?.SetFiltering(rstate.PreferredFilterLevel);
 
             if ((flags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU)
             {
-                tex2d.SetWrapModeS(WrapMode.ClampToEdge);
+                tex2d?.SetWrapModeS(WrapMode.ClampToEdge);
             }
 
             if ((flags & SamplerFlags.ClampToEdgeV) == SamplerFlags.ClampToEdgeV)
             {
-                tex2d.SetWrapModeT(WrapMode.ClampToEdge);
+                tex2d?.SetWrapModeT(WrapMode.ClampToEdge);
             }
 
             if ((flags & SamplerFlags.MirrorRepeatU) == SamplerFlags.MirrorRepeatU)
             {
-                tex2d.SetWrapModeS(WrapMode.MirroredRepeat);
+                tex2d?.SetWrapModeS(WrapMode.MirroredRepeat);
             }
 
             if ((flags & SamplerFlags.MirrorRepeatV) == SamplerFlags.MirrorRepeatV)
             {
-                tex2d.SetWrapModeT(WrapMode.MirroredRepeat);
+                tex2d?.SetWrapModeT(WrapMode.MirroredRepeat);
             }
 
         }

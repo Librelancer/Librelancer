@@ -73,7 +73,15 @@ namespace LibreLancer
         public VMeshResource Resource;
         public VMeshOptimizeInfo Optimize;
         public float? Scale;
+
+        public MeshLevel(MeshDrawcall[] drawcalls, VMeshResource resource, VMeshOptimizeInfo optimize)
+        {
+            Drawcalls = drawcalls;
+            Resource = resource;
+            Optimize = optimize;
+        }
     }
+
     public class VisualMesh
     {
         public float Radius;
@@ -82,7 +90,8 @@ namespace LibreLancer
         public MeshLevel?[]? Levels;
         public float[]? Switch2;
 
-        public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, int userData = 0, Material? overrideMat = null)
+        public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world,
+            ref Lighting lights, MaterialAnimCollection? mc, int userData = 0, Material? overrideMat = null)
         {
             if (Levels == null || Levels.Length <= level)
             {
@@ -90,6 +99,7 @@ namespace LibreLancer
             }
 
             var l = Levels[level];
+
             if (l == null)
             {
                 return;
@@ -101,23 +111,28 @@ namespace LibreLancer
             }
 
             WorldMatrixHandle wm;
+
             if (l.Scale != null)
             {
                 Matrix4x4 scaled = Matrix4x4.CreateScale(l.Scale.Value) * world;
                 wm = buffer.WorldBuffer.SubmitMatrix(ref scaled);
             }
-            else{
+            else
+            {
                 wm = buffer.WorldBuffer.SubmitMatrix(ref world);
             }
+
             l.Resource.OptimizeIfNeeded(l.Optimize, res);
-            for (int i = 0; i < l.Drawcalls.Length; i++)
+
+            foreach (var dc in l.Drawcalls)
             {
-                var dc = l.Drawcalls[i];
                 MaterialAnim? ma = null;
                 var mat = overrideMat;
+
                 if (mat == null)
                 {
                     mat = dc.GetMaterial(res);
+
                     if (mat != null)
                     {
                         ma = dc.GetMaterialAnim(mc);
@@ -127,7 +142,9 @@ namespace LibreLancer
                         mat = res.DefaultMaterial;
                     }
                 }
+
                 float z = 0;
+
                 if (mat.Render.IsTransparent)
                 {
                     z = RenderHelpers.GetZ(world, buffer.Camera.Position, Center);
@@ -155,8 +172,8 @@ namespace LibreLancer
             public Matrix4x4 Normal;
         }
 
-        private ulong drawN = ulong.MaxValue;
-        public unsafe void DrawImmediate(int level, ResourceManager res, RenderContext renderContext, Matrix4x4 world, ref Lighting lights, MaterialAnimCollection mc, int userData = 0, Material? overrideMat = null)
+        public unsafe void DrawImmediate(int level, ResourceManager res, RenderContext renderContext, Matrix4x4 world,
+            ref Lighting lights, MaterialAnimCollection? mc, int userData = 0, Material? overrideMat = null)
         {
             if (Levels == null || Levels.Length < level)
             {
@@ -164,6 +181,7 @@ namespace LibreLancer
             }
 
             var l = Levels[level];
+
             if (l == null)
             {
                 return;
@@ -175,6 +193,7 @@ namespace LibreLancer
             }
 
             Mat4Source src;
+
             if (l.Scale != null)
             {
                 src.World = Matrix4x4.CreateScale(l.Scale.Value) * world;
@@ -187,14 +206,16 @@ namespace LibreLancer
             Matrix4x4.Invert(world, out src.Normal);
             src.Normal = Matrix4x4.Transpose(src.Normal);
             l.Resource.OptimizeIfNeeded(l.Optimize, res);
-            for (int i = 0; i < l.Drawcalls.Length; i++)
+
+            foreach (var dc in l.Drawcalls)
             {
-                var dc = l.Drawcalls[i];
                 MaterialAnim? ma = null;
-                Material mat = overrideMat;
+                var mat = overrideMat;
+
                 if (mat == null)
                 {
                     mat = dc.GetMaterial(res);
+
                     if (mat != null)
                     {
                         ma = dc.GetMaterialAnim(mc);
@@ -204,12 +225,13 @@ namespace LibreLancer
                         mat = res.DefaultMaterial;
                     }
                 }
+
                 WorldMatrixHandle handle;
                 handle.Source = (Matrix4x4*) &src;
                 handle.ID = ulong.MaxValue;
                 mat.Render.World = handle;
                 mat.Render.MaterialAnim = ma;
-                mat.Render.Use(renderContext, l.Resource.VertexResource.VertexBuffer.VertexType, ref lights, userData);
+                mat.Render.Use(renderContext, l.Resource.VertexResource!.VertexBuffer!.VertexType, ref lights, userData);
                 l.Resource.VertexResource.VertexBuffer.Draw(
                     PrimitiveTypes.TriangleList,
                     dc.BaseVertex + l.Resource.VertexResource.BaseVertex,
@@ -221,13 +243,13 @@ namespace LibreLancer
 
     public class RigidModelPart
     {
-        public string Name;
-        public string Path;
+        public string? Name;
+        public string? Path;
         public bool Active = true;
         public VisualMesh? Mesh;
-        public VMeshWire Wireframe;
+        public VMeshWire? Wireframe;
         public List<RigidModelPart>? Children;
-        public List<Hardpoint> Hardpoints;
+        public List<Hardpoint> Hardpoints = [];
         public AbstractConstruct? Construct;
 
         private Transform3D localTransform = Transform3D.Identity;
@@ -236,27 +258,37 @@ namespace LibreLancer
         private static IEnumerable<RigidModelPart> EnumerateAll(RigidModelPart p)
         {
             yield return p;
-            foreach (var child in p.Children)
+
+            if (p.Children == null)
             {
-                foreach (var item in EnumerateAll(child))
-                {
-                    yield return item;
-                }
+                yield break;
+            }
+
+            foreach (var item in p.Children.SelectMany(EnumerateAll))
+            {
+                yield return item;
             }
         }
+
         public RigidModel CloneAsRoot(RigidModel original)
         {
             var self = Clone(true);
             self.Construct = null;
-            var rm = new RigidModel();
-            rm.Path = original.Path;
-            rm.MaterialAnims = original.MaterialAnims;
-            rm.Animation = original.Animation;
-            rm.Root = self;
-            rm.AllParts = EnumerateAll(self).ToArray();
-            rm.Parts = new();
+            var rm = new RigidModel
+            {
+                Path = original.Path,
+                MaterialAnims = original.MaterialAnims,
+                Animation = original.Animation,
+                Root = self,
+                AllParts = EnumerateAll(self).ToArray(),
+                Parts = new()
+            };
+
             foreach (var a in rm.AllParts)
+            {
                 rm.Parts.Add(a);
+            }
+
             rm.Source = rm.AllParts.Length > 1
                 ? RigidModelSource.Compound
                 : RigidModelSource.SinglePart;
@@ -274,20 +306,30 @@ namespace LibreLancer
                 Wireframe = Wireframe,
                 Hardpoints = []
             };
+
             if (Construct != null)
             {
                 newp.Construct = Construct.Clone();
             }
 
-            foreach(var hp in Hardpoints)
+            foreach (var hp in Hardpoints)
+            {
                 newp.Hardpoints.Add(new Hardpoint(hp.Definition, newp));
+            }
+
             if (withChildren && Children != null)
             {
                 newp.Children = [];
-                foreach(var c in Children) newp.Children.Add(c.Clone(true));
+
+                foreach (var c in Children)
+                {
+                    newp.Children.Add(c.Clone(true));
+                }
             }
+
             return newp;
         }
+
         public float GetRadius()
         {
             if (Mesh == null)
@@ -297,6 +339,7 @@ namespace LibreLancer
 
             return Mesh.Radius;
         }
+
         public void UpdateTransform(Transform3D parent)
         {
             if (Construct != null)
@@ -310,8 +353,10 @@ namespace LibreLancer
 
             if (Children != null)
             {
-                foreach(var mp in Children)
+                foreach (var mp in Children)
+                {
                     mp.UpdateTransform(localTransform);
+                }
             }
         }
 
@@ -338,50 +383,53 @@ namespace LibreLancer
 
     public class RigidModel
     {
-        public string Path;
-        public MaterialAnimCollection MaterialAnims;
+        public string? Path;
+        public MaterialAnimCollection? MaterialAnims;
         public AnmFile? Animation;
-        public RigidModelPart? Root;
-        public RigidModelPart[] AllParts;
+        public RigidModelPart Root = null!;
+        public RigidModelPart[] AllParts = null!;
+
         // Sur models use hash value of 0 instead of "Root" hash for 3db files
         // Sphere models don't carry a VMeshWire
         public RigidModelSource Source;
+
         // Lookup for multipart - NULL on single-part
-        public ModelPartCollection? Parts;
+        public ModelPartCollection Parts = null!;
+
         public void UpdateTransform()
         {
-            Root?.UpdateTransform(Transform3D.Identity);
+            Root.UpdateTransform(Transform3D.Identity);
         }
+
         public void Update(double globalTime)
         {
-            MaterialAnims?.Update((float)globalTime);
+            MaterialAnims?.Update((float) globalTime);
         }
 
         public BoundingBox GetBoundingBox()
         {
             Vector3 min = new Vector3(float.MaxValue);
             Vector3 max = new Vector3(float.MinValue);
-            foreach(var p in AllParts)
+
+            foreach (var p in AllParts)
+            {
                 p.CalculateBoundingBox(ref min, ref max);
+            }
+
             return new BoundingBox(min, max);
         }
 
         public float GetRadius()
         {
-            if (Root == null)
-            {
-                return 1;
-            }
-
             if (AllParts.Length == 1)
             {
                 return Root.GetRadius();
             }
 
             var f = float.MinValue;
-            for (int i = 0; i < AllParts.Length; i++)
+
+            foreach (var p in AllParts)
             {
-                var p = AllParts[i];
                 if (p.Mesh == null)
                 {
                     continue;
@@ -391,29 +439,35 @@ namespace LibreLancer
                 var r = p.GetRadius();
                 f = Math.Max(f, d + r);
             }
+
             return f;
         }
 
-        public void DrawImmediate(RenderContext rstate, ResourceManager res, Matrix4x4 world, ref Lighting lights, int userData = 0, Material? overrideMat = null)
+        public void DrawImmediate(RenderContext renderContext, ResourceManager res, Matrix4x4 world, ref Lighting lights,
+            int userData = 0, Material? overrideMat = null)
         {
-            for (int i = 0; i < AllParts.Length; i++)
+            foreach (var part in AllParts)
             {
-                if (AllParts[i].Active && AllParts[i].Mesh != null)
+                if (part is not { Active: true, Mesh: not null })
                 {
-                    var w = AllParts[i].LocalTransform.Matrix() * world;
-                    AllParts[i].Mesh.DrawImmediate(0, res, rstate, w, ref lights, MaterialAnims, userData, overrideMat);
+                    continue;
                 }
+
+                var w = part.LocalTransform.Matrix() * world;
+                part.Mesh!.DrawImmediate(0, res, renderContext, w, ref lights, MaterialAnims, userData, overrideMat);
             }
         }
 
-        public void DrawBuffer(int level, CommandBuffer buffer, ResourceManager res, Matrix4x4 world, ref Lighting lights, int userData = 0, Material? overrideMat = null)
+        public void DrawBuffer(int level, CommandBuffer buffer, ResourceManager res, Matrix4x4 world,
+            ref Lighting lights, int userData = 0, Material? overrideMat = null)
         {
             for (int i = 0; i < AllParts.Length; i++)
             {
                 if (AllParts[i].Active && AllParts[i].Mesh != null)
                 {
                     var w = AllParts[i].LocalTransform.Matrix() * world;
-                    AllParts[i].Mesh.DrawBuffer(level, res, buffer, w, ref lights, MaterialAnims, userData, overrideMat);
+                    AllParts[i].Mesh!.DrawBuffer(level, res, buffer, w, ref lights, MaterialAnims, userData,
+                        overrideMat);
                 }
             }
         }
@@ -432,17 +486,20 @@ namespace LibreLancer
                     return i;
                 }
             }
+
             return int.MaxValue;
         }
 
-        public void DrawBufferSwitch2(float dist, CommandBuffer buffer, ResourceManager res, Matrix4x4 world, ref Lighting lights, int userData = 0, Material? overrideMat = null)
+        public void DrawBufferSwitch2(float dist, CommandBuffer buffer, ResourceManager res, Matrix4x4 world,
+            ref Lighting lights, int userData = 0, Material? overrideMat = null)
         {
             for (int i = 0; i < AllParts.Length; i++)
             {
                 if (AllParts[i].Active && AllParts[i].Mesh != null)
                 {
                     var w = AllParts[i].LocalTransform.Matrix() * world;
-                    AllParts[i].Mesh.DrawBuffer(GetLevel(AllParts[i].Mesh.Switch2, dist), res, buffer, w, ref lights, MaterialAnims, userData, overrideMat);
+                    AllParts[i].Mesh!.DrawBuffer(GetLevel(AllParts[i].Mesh!.Switch2, dist), res, buffer, w, ref lights,
+                        MaterialAnims, userData, overrideMat);
                 }
             }
         }

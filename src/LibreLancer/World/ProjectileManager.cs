@@ -24,6 +24,15 @@ namespace LibreLancer.World
         public IdPool Ids = new(16384 / 32, false);
 
         private GameWorld world;
+        public GameObject? Player;
+        private Dictionary<ulong, SoundInstance> _instances = new();
+        private Dictionary<string, ProjectileData> datas = new();
+        private List<(ObjNetId NetId, int Index, Vector3 Target)> spawns = [];
+        private List<(int Index, Vector3 Target)> requests = [];
+
+        private List<MissileFireCmd> missiles = [];
+        public bool HasQueued => spawns.Count > 0;
+        public bool HasMissilesQueued => missiles.Count > 0;
 
         public ProjectileManager(GameWorld world)
         {
@@ -32,6 +41,11 @@ namespace LibreLancer.World
 
         public void Update(double time)
         {
+            if (world.Physics == null)
+            {
+                return;
+            }
+
             var tFloat = (float) time;
 
             foreach (var i in Ids.GetAllocated())
@@ -86,8 +100,6 @@ namespace LibreLancer.World
                 _instances.Remove(k);
         }
 
-        private Dictionary<string, ProjectileData> datas = new();
-
         public ProjectileData GetData(GunEquipment gunDef)
         {
             if (datas.TryGetValue(gunDef.Nickname, out var pdata))
@@ -122,13 +134,6 @@ namespace LibreLancer.World
             datas.Add(gunDef.Nickname, pdata);
             return pdata;
         }
-
-        private List<(ObjNetId NetId, int Index, Vector3 Target)> spawns = [];
-        private List<(int Index, Vector3 Target)> requests = [];
-
-        private List<MissileFireCmd> missiles = [];
-        public bool HasQueued => spawns.Count > 0;
-        public bool HasMissilesQueued => missiles.Count > 0;
 
         public MissileFireCmd[] GetMissileQueue()
         {
@@ -230,8 +235,6 @@ namespace LibreLancer.World
             return fireRequest;
         }
 
-        public GameObject Player;
-
         public void QueueFire(GameObject owner, WeaponComponent component, Vector3 target)
         {
             if (!owner.TryGetComponent<WeaponControlComponent>(out var wc))
@@ -239,8 +242,7 @@ namespace LibreLancer.World
                 return;
             }
 
-            int wpIdx = Array.IndexOf(wc.NetOrderWeapons, component);
-
+            var wpIdx = Array.IndexOf(wc.NetOrderWeapons!, component);
             if (wpIdx == -1)
             {
                 return;
@@ -256,40 +258,38 @@ namespace LibreLancer.World
             }
         }
 
-        private Dictionary<ulong, SoundInstance> _instances = new();
-
         public void PlayProjectileSound(GameObject owner, string? soundName, Vector3 position, string hardpoint)
         {
-            SoundManager snd;
+            SoundManager? snd = world.Renderer?.Game.GetService<SoundManager>();
 
-            if (!string.IsNullOrWhiteSpace(soundName) &&
-                world.Renderer != null && (snd = world.Renderer.Game.GetService<SoundManager>()) != null)
+            if (string.IsNullOrWhiteSpace(soundName) || snd is null)
             {
-                ulong soundID = ((ulong) owner.Unique << 32) | (ulong) CrcTool.HardpointCrc(hardpoint);
-
-                if (!_instances.TryGetValue(soundID, out var inst))
-                {
-                    inst = snd.GetInstance(soundName, 0, -1, -1, position);
-                    _instances[soundID] = inst;
-                }
-
-                if (inst != null)
-                {
-                    if (owner.NetID > 0)
-                    {
-                        inst.Priority = -1;
-                    }
-                    else
-                    {
-                        inst.Priority = -2;
-                    }
-                }
-
-                inst?.Set3D();
-                inst?.SetPosition(position);
-                inst?.Stop();
-                inst?.Play();
+                return;
             }
+
+            var soundId = ((ulong) owner.Unique << 32) | (ulong) CrcTool.HardpointCrc(hardpoint);
+            if (!_instances.TryGetValue(soundId, out SoundInstance? inst))
+            {
+                inst = snd.GetInstance(soundName, 0, -1, -1, position);
+                _instances[soundId] = inst!;
+            }
+
+            if (inst != null)
+            {
+                if (owner.NetID > 0)
+                {
+                    inst.Priority = -1;
+                }
+                else
+                {
+                    inst.Priority = -2;
+                }
+            }
+
+            inst?.Set3D();
+            inst?.SetPosition(position);
+            inst?.Stop();
+            inst?.Play();
         }
 
         public void SpawnProjectile(GameObject owner, string hardpoint, ProjectileData projectile, Vector3 position,

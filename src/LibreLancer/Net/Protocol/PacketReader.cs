@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;
 using LibreLancer.World;
@@ -149,23 +150,29 @@ public struct PacketReader
             case 7: a += 567382630129903; break;
             case 8: a += 72624976668057839; break;
         }
+
         return a;
     }
 
-    public ObjectName GetObjectName()
+    public ObjectName? GetObjectName()
     {
         var c = GetVariableUInt32();
-        if (c == 0) return null;
-        if (c == 1)
+        switch (c)
         {
-            return new ObjectName(GetString());
-        }
-        else
-        {
-            var ids = new int[c - 2];
-            for (int i = 0; i < ids.Length; i++)
-                ids[i] = GetVariableInt32();
-            return new ObjectName(ids);
+            case 0:
+                return null;
+            case 1:
+                return new ObjectName(GetString());
+            default:
+            {
+                var ids = new int[c - 2];
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    ids[i] = GetVariableInt32();
+                }
+
+                return new ObjectName(ids);
+            }
         }
     }
 
@@ -277,7 +284,7 @@ public struct PacketReader
         return true;
     }
 
-    public bool TryGetString(out string str, uint maxLength = 2048)
+    public bool TryGetString([MaybeNullWhen(false)] out string str, uint maxLength = 2048)
     {
         str = null;
         if (reader.AvailableBytes < 1) return false;
@@ -286,16 +293,19 @@ public struct PacketReader
         {
             return false;
         }
+
         if (len == 0)
         {
             str = null;
-            return true;
+            return false;
         }
+
         if (len == 1)
         {
             str = "";
             return true;
         }
+
         len--;
         if (reader.AvailableBytes < off + len) return false;
         reader.SkipBytes(off);
@@ -306,9 +316,12 @@ public struct PacketReader
     public string? GetString()
     {
         var len = GetVariableUInt32();
-        if (len == 0) return null;
-        if (len == 1) return "";
-        return StringSquash.StringSquasher.Unpack(GetBytes((int)(len - 1)));
+        return len switch
+        {
+            0 => null,
+            1 => "",
+            _ => StringSquash.StringSquasher.Unpack(GetBytes((int) (len - 1)))
+        };
     }
 
     public string GetHpid()

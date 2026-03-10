@@ -1,4 +1,5 @@
 using LibreLancer.Data.GameData.Items;
+using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.World;
@@ -17,7 +18,7 @@ public class CTradelaneComponent : GameComponent
         Def = tl;
     }
 
-    public override void Register(Physics.PhysicsWorld physics)
+    public override void Register(PhysicsWorld? physics)
     {
         if (GetGameData() == null)
         {
@@ -27,8 +28,8 @@ public class CTradelaneComponent : GameComponent
         var resman = GetResourceManager()!;
         var laneFx = Def.RingActive?.GetEffect(resman);
 
-        var leftHp = Parent.GetHardpoint("HpLeftLane");
-        var rightHp = Parent.GetHardpoint("HpRightLane");
+        var leftHp = Parent?.GetHardpoint("HpLeftLane");
+        var rightHp = Parent?.GetHardpoint("HpRightLane");
 
         if (laneFx is null || leftHp is null || rightHp is null)
         {
@@ -38,8 +39,8 @@ public class CTradelaneComponent : GameComponent
 
         leftLane = new ParticleEffectRenderer(laneFx) {Attachment = leftHp, Active = false, SParam = 1 };
         rightLane = new ParticleEffectRenderer(laneFx) {Attachment = rightHp, Active = false, SParam = 1};
-        Parent.ExtraRenderers.Add(leftLane);
-        Parent.ExtraRenderers.Add(rightLane);
+        Parent?.ExtraRenderers.Add(leftLane);
+        Parent?.ExtraRenderers.Add(rightLane);
     }
 
     public void ActivateLeft() => leftLane.Active = true;

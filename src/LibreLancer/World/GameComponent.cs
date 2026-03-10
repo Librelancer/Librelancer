@@ -10,16 +10,17 @@ namespace LibreLancer.World
 {
 	public class GameComponent(GameObject parent)
     {
-		public GameObject? Parent = parent;
+		public GameObject Parent = parent;
 
         public virtual void Update(double time)
 		{
 		}
 
-		public virtual void Register(PhysicsWorld physics)
+		public virtual void Register(PhysicsWorld? physics)
 		{
 		}
-		public virtual void Unregister(PhysicsWorld physics)
+
+		public virtual void Unregister(PhysicsWorld? physics)
 		{
 		}
 

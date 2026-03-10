@@ -24,7 +24,7 @@ namespace LibreLancer.Client.Components
 
         private void Spawn(SpawnedEffect effect)
         {
-            var fx = Parent.World?.Renderer?.Game?.GetService<GameDataManager>()?.Items.Effects.Get(effect.Effect);
+            var fx = Parent?.World?.Renderer?.Game?.GetService<GameDataManager>()?.Items.Effects.Get(effect.Effect);
             var pfx = fx?.GetEffect(Parent?.World?.Renderer?.ResourceManager!);
 
             if (pfx is null)

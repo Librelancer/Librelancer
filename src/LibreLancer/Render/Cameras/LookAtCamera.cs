@@ -24,7 +24,7 @@ namespace LibreLancer.Render.Cameras
         {
             pos = from;
 
-            float fov = GameFOV
+            var fov = GameFOV
                 ? FOVUtil.CalcFovx(50, vw / vh)
                 : MathHelper.DegreesToRadians(50);
 

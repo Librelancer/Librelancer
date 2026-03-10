@@ -63,7 +63,7 @@ namespace LibreLancer.Thn
         private void CalcCameraProps(out float fovV, out float aspectRatio)
         {
             float viewportRatio = (float) viewport.Width / (float) viewport.Height;
-            float fovh = Object.Camera.FovH;
+            float fovh = Object!.Camera!.FovH;
             fovh =  MathHelper.RadiansToDegrees(FOVUtil.CalcFovx(fovh, screenAspect));
             fovV = FOVUtil.FovVRad(fovh, viewportRatio);
             aspectRatio = viewportRatio;
@@ -74,7 +74,7 @@ namespace LibreLancer.Thn
             CalcCameraProps(out float fovv, out float aspectRatio);
             // TODO: Tweak clip plane some more - isn't quite right
 			// NOTE: near clip plane can't be too small or it causes z-fighting
-			projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, aspectRatio, Object.Camera.Znear, Object.Camera.Zfar);
+			projection = Matrix4x4.CreatePerspectiveFieldOfView(fovv, aspectRatio, Object!.Camera!.Znear, Object.Camera.Zfar);
             ogProjection = projection;
             view = new Transform3D(Object.Translate, Object.Rotate).Inverse().Matrix();
             // var transform = Object.Rotate * Matrix4x4.CreateTranslation(Object.Translate);
@@ -87,7 +87,7 @@ namespace LibreLancer.Thn
 		{
 			get
 			{
-				return Object.Translate;
+				return Object!.Translate;
 			}
 		}
 

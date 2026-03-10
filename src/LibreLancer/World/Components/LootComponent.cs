@@ -19,10 +19,10 @@ public class LootComponent : AbstractCargoComponent
         return 0;
     }
 
-    public override T FirstOf<T>()
+    public override T? FirstOf<T>() where T : class
     {
         var slot = Cargo.FirstOrDefault(x => x.Item is T);
-        return (T) slot.Item;
+        return (T?)slot.Item;
     }
 
     public override int TryAdd(Equipment equipment, int maxCount)

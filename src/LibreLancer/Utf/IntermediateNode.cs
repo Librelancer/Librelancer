@@ -11,9 +11,9 @@ namespace LibreLancer.Utf
 {
     public class IntermediateNode : Node, IList<Node>
     {
-        private List<Node>? children;
+        private readonly List<Node> children;
 
-        public IntermediateNode(string name, List<Node>? children) : base(name)
+        public IntermediateNode(string name, List<Node> children) : base(name)
         {
             this.children = children;
         }
@@ -23,8 +23,8 @@ namespace LibreLancer.Utf
         {
             var childCount = (int) reader.ReadVarUInt64();
             var children = new List<Node>(childCount);
-            for (int i = 0; i < childCount; i++)
-                children.Add(Node.FromStreamV2(reader, stringBlock, dataBlock));
+            for (var i = 0; i < childCount; i++)
+                children.Add(FromStreamV2(reader, stringBlock, dataBlock));
             return new IntermediateNode(name, children);
         }
 
@@ -37,14 +37,14 @@ namespace LibreLancer.Utf
 
             children = [];
 
-            int childOffset = reader.ReadInt32();
+            var childOffset = reader.ReadInt32();
 
             if (childOffset <= 0)
             {
                 return;
             }
 
-            int next = childOffset;
+            var next = childOffset;
 
             do
             {
@@ -81,9 +81,7 @@ namespace LibreLancer.Utf
 
         public Node this[int index]
         {
-            get =>
-                (children ??
-                 throw new NullReferenceException($"{nameof(children)} is null, cannot access by index"))[index];
+            get => children[index];
             set => throw new NotSupportedException();
         }
 
@@ -91,18 +89,15 @@ namespace LibreLancer.Utf
         {
             get
             {
-                IEnumerable<Node> candidates = from Node n in children
-                    where n.Name.Equals(name, StringComparison.OrdinalIgnoreCase)
-                    select n;
-                int count = candidates.Count<Node>();
+                IEnumerable<Node> candidates = children.Where(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
+                var count = candidates.Count();
                 /*if (count == 1)
                     return candidates.First<Node>();
                 else if (count == 0)
                     return null;
                 else
                     throw new FileContentsException(UtfFile.FILE_TYPE, count + " Peer nodes with the name " + name);*/
-                if (count == 0) return null;
-                else return candidates.First<Node>();
+                return count == 0 ? null : candidates.First<Node>();
             }
         }
 
@@ -141,23 +136,17 @@ namespace LibreLancer.Utf
 
         public IEnumerator<Node> GetEnumerator()
         {
-            return children!.GetEnumerator();
+            return children.GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return children!.GetEnumerator();
+            return children.GetEnumerator();
         }
 
         public override string ToString()
         {
-            string result = "{Inter: " + base.ToString() + "{";
-
-            if (children == null)
-            {
-                return result + "}";
-            }
-
+            var result = "{Inter: " + base.ToString() + "{";
             result = children.Aggregate(result, (current, n) => current + (n + ", "));
             return result + "}";
         }

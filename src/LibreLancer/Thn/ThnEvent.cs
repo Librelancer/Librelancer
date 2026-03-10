@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System.Diagnostics.CodeAnalysis;
 using LibreLancer.Render;
 using LibreLancer.Thorn;
 using LibreLancer.World;
@@ -12,7 +13,7 @@ namespace LibreLancer.Thn
     {
         public float Duration;
 		public float Time;
-        public string[] Targets;
+        public string[] Targets = [];
         public EventTypes Type;
 		public ParameterCurve? ParamCurve;
 
@@ -63,7 +64,7 @@ namespace LibreLancer.Thn
             }
         }
 
-        protected static bool GetValue<T>(ThornTable table, string key, out T result, T def = default!)
+        protected static bool GetValue<T>(ThornTable table, string key, [MaybeNullWhen(false)] out T result, T def = default!)
         {
             result = def;
             if (!table.TryGetValue(key, out var tmp))
@@ -75,7 +76,7 @@ namespace LibreLancer.Thn
             return true;
         }
 
-        protected static bool GetProps(ThornTable table, out ThornTable? props)
+        protected static bool GetProps(ThornTable table, [MaybeNullWhen(false)] out ThornTable props)
         {
             props = null;
 

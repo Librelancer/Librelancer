@@ -21,9 +21,11 @@ namespace LibreLancer.Interface
         public DebugView(FreelancerGame game)
         {
             this.game = game;
-            igrender = new ImGuiHelper(game, 1f);
-            igrender.SetCursor = false;
-            igrender.HandleKeyboard = false;
+            igrender = new ImGuiHelper(game, 1f)
+            {
+                SetCursor = false,
+                HandleKeyboard = false
+            };
         }
 
         public bool Enabled = false;

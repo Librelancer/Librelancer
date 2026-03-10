@@ -42,21 +42,41 @@ public class ServerResourceManager : ResourceManager
     public override bool TryGetShape(string name, out TextureShape? shape) => throw new InvalidOperationException();
     public override bool TryGetFrameAnimation(string name, out TexFrameAnimation anim) => throw new InvalidOperationException();
 
-    public override ModelResource GetDrawable(string filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
+    public override ModelResource? GetDrawable(string? filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
     {
-        if (!drawables.TryGetValue(filename, out var item))
+        if (filename is null)
         {
-            using var stream = VFS.Open(filename);
-            var drawable = Utf.UtfLoader.LoadDrawable(stream, filename, this);
-            drawable?.ClearResources();
-            CollisionMeshHandle handle = default;
-            var surPath = Path.ChangeExtension(filename, "sur");
-            if (VFS.FileExists(surPath))
-                handle = new CollisionMeshHandle()
-                    { Sur = GetSur(surPath), FileId = ConvexCollection.UseFile(surPath) };
-            item = new ModelResource(drawable, handle);
-            drawables.Add(filename, item);
+            return null;
         }
+
+        if (drawables.TryGetValue(filename, out var item))
+        {
+            return item;
+        }
+
+        using var stream = VFS.Open(filename);
+        var drawable = Utf.UtfLoader.LoadDrawable(stream, filename, this);
+
+        if (drawable is null)
+        {
+            return null;
+        }
+
+        drawable.ClearResources();
+        CollisionMeshHandle handle = default;
+        var surPath = Path.ChangeExtension(filename, "sur");
+
+        if (VFS.FileExists(surPath))
+        {
+            handle = new CollisionMeshHandle
+            {
+                Sur = GetSur(surPath),
+                FileId = ConvexCollection.UseFile(surPath)
+            };
+        }
+
+        item = new ModelResource(drawable, handle);
+        drawables.Add(filename, item);
         return item;
     }
 

@@ -6,10 +6,10 @@ namespace LibreLancer.Net.Protocol;
 
 public class SPUpdatePacket : IPacket
 {
-    public uint InputSequence;
-    public PlayerAuthState PlayerState;
-    public uint Tick;
-    public ObjectUpdate[] Updates;
+    public required uint InputSequence;
+    public required PlayerAuthState PlayerState;
+    public required uint Tick;
+    public required ObjectUpdate[] Updates;
 
     public void WriteContents(PacketWriter outPacket)
     {
@@ -28,31 +28,33 @@ public class PackedUpdatePacket : IPacket
     public int DataSize =>
         1 + // Packet Kind
         NetPacking.ByteCountUInt64(Tick) + // Header
-        NetPacking.ByteCountInt64((int)((long)OldTick - Tick)) +
-        NetPacking.ByteCountInt64(((int)((long)InputSequence - Tick))) +
+        NetPacking.ByteCountInt64((int) ((long) OldTick - Tick)) +
+        NetPacking.ByteCountInt64(((int) ((long) InputSequence - Tick))) +
         (AuthState?.Length ?? 0) + // Auth State serialized
         (Updates?.Length ?? 0); // Updates serialized
 
     public void WriteContents(PacketWriter outPacket)
     {
         outPacket.PutVariableUInt32(Tick);
-        outPacket.PutVariableInt32((int)((long)OldTick - Tick));
-        outPacket.PutVariableInt32((int)((long)InputSequence - Tick));
+        outPacket.PutVariableInt32((int) ((long) OldTick - Tick));
+        outPacket.PutVariableInt32((int) ((long) InputSequence - Tick));
         outPacket.Put(AuthState, 0, AuthState.Length);
         outPacket.Put(Updates, 0, Updates.Length);
     }
 
     public static object Read(PacketReader message)
     {
-        var p = new PackedUpdatePacket();
-        p.Tick = message.GetVariableUInt32();
-        p.OldTick = (uint)(p.Tick + message.GetVariableInt32());
-        p.InputSequence = (uint)(p.Tick + message.GetVariableInt32());
+        var p = new PackedUpdatePacket
+        {
+            Tick = message.GetVariableUInt32()
+        };
+        p.OldTick = (uint) (p.Tick + message.GetVariableInt32());
+        p.InputSequence = (uint) (p.Tick + message.GetVariableInt32());
         p.Updates = message.GetRemainingBytes();
         return p;
     }
 
-    public (PlayerAuthState, ObjectUpdate[]) GetUpdates(PlayerAuthState origAuth,
+    public (PlayerAuthState AuthState, ObjectUpdate[] Updates) GetUpdates(PlayerAuthState origAuth,
         Func<uint, int, ObjectUpdate> getSource)
     {
         var reader = new BitReader(Updates, 0);
@@ -60,6 +62,7 @@ public class PackedUpdatePacket : IPacket
         reader.Align();
         var count = reader.GetVarUInt32();
         int[] ids = new int[count];
+
         if (count > 0)
         {
             ids[0] = reader.GetVarInt32();
@@ -71,6 +74,7 @@ public class PackedUpdatePacket : IPacket
         }
 
         var updates = new ObjectUpdate[count];
+
         for (int i = 0; i < count; i++)
         {
             updates[i] = ObjectUpdate.ReadDelta(ref reader, Tick, ids[i], getSource);
@@ -140,6 +144,7 @@ public struct GunOrient
         else
         {
             message.PutBool(true);
+
             if (NetPacking.TryDelta(pitch, src.pitch, 8, out var d))
             {
                 message.PutBool(true);
@@ -159,6 +164,7 @@ public struct GunOrient
         else
         {
             message.PutBool(true);
+
             if (NetPacking.TryDelta(rot, src.rot, 8, out var d))
             {
                 message.PutBool(true);
@@ -281,6 +287,7 @@ public struct UpdateVector : IEquatable<UpdateVector>
             max != src.max)
             throw new InvalidOperationException();
         // ReSharper restore CompareOfFloatsByEqualityOperator
+
         if (src.x == x && src.y == y && src.z == z)
         {
             writer.PutBool(false);
@@ -288,6 +295,7 @@ public struct UpdateVector : IEquatable<UpdateVector>
         }
 
         writer.PutBool(true);
+
         if (NetPacking.TryDelta(x, src.x, deltaBits, out var deltaA) &&
             NetPacking.TryDelta(y, src.y, deltaBits, out var deltaB) &&
             NetPacking.TryDelta(z, src.z, deltaBits, out var deltaC))
@@ -311,6 +319,7 @@ public struct UpdateVector : IEquatable<UpdateVector>
         if (!reader.GetBool())
             return src;
         uint x, y, z;
+
         if (reader.GetBool())
         {
             x = NetPacking.ApplyDelta(reader.GetUInt(deltaBits), src.x, deltaBits);
@@ -329,7 +338,8 @@ public struct UpdateVector : IEquatable<UpdateVector>
 
     public bool Equals(UpdateVector other)
     {
-        return precision == other.precision && min.Equals(other.min) && max.Equals(other.max) && x == other.x && y == other.y && z == other.z;
+        return precision == other.precision && min.Equals(other.min) && max.Equals(other.max) && x == other.x &&
+               y == other.y && z == other.z;
     }
 
     public override bool Equals(object? obj)
@@ -411,6 +421,7 @@ public class ObjectUpdate
         // ID
         if (src.ID != new ObjNetId(0) && src.ID != ID)
             throw new InvalidOperationException("Cannot delta from different object");
+
         if (oldTick == 0)
         {
             msg.PutByte(255);
@@ -425,7 +436,7 @@ public class ObjectUpdate
         }
         else
         {
-            msg.PutByte((byte)(newTick - oldTick));
+            msg.PutByte((byte) (newTick - oldTick));
         }
 
         // Position
@@ -470,7 +481,7 @@ public class ObjectUpdate
         // Flags
         msg.PutBool(Tradelane);
         msg.PutBool(EngineKill);
-        msg.PutUInt((uint)CruiseThrust, 2);
+        msg.PutUInt((uint) CruiseThrust, 2);
 
         // Throttle
         if (NetPacking.QuantizedEqual(src.Throttle, Throttle, -1, 1, 7))
@@ -523,7 +534,7 @@ public class ObjectUpdate
             if (Guns.Length != (src.Guns?.Length ?? 0))
             {
                 msg.PutBool(true);
-                msg.PutVarUInt32((uint)Guns.Length);
+                msg.PutVarUInt32((uint) Guns.Length);
             }
             else
             {
@@ -532,7 +543,7 @@ public class ObjectUpdate
 
             for (var i = 0; i < Guns.Length; i++)
             {
-                var sg = (src.Guns?.Length ?? 0) > i ? src.Guns[i] : default;
+                var sg = (src.Guns?.Length ?? 0) > i ? src.Guns![i] : default;
                 Guns[i].WriteDelta(sg, ref msg);
             }
         }
@@ -550,29 +561,34 @@ public class ObjectUpdate
 #endif
         var p = new ObjectUpdate() { ID = new(id) };
         var b = msg.GetByte();
+
         ObjectUpdate source = b == 255 ? ObjectUpdate.Blank : getSource(mainTick - b, id);
         var posKind = msg.GetUInt(2);
-        if (posKind == 0)
-            p.Position = source.Position;
-        else if (posKind == 1)
-            p.Position = source.Position + msg.GetRangedVector3(-512, 511, 20);
-        else if (posKind == 3)
-            p.Position = msg.GetVector3();
+
+        p.Position = posKind switch
+        {
+            0 => source.Position,
+            1 => source.Position + msg.GetRangedVector3(-512, 511, 20),
+            3 => msg.GetVector3(),
+            _ => p.Position
+        };
+
         p.Orientation = msg.GetBool() ? UpdateQuaternion.ReadDelta(source.Orientation, ref msg) : source.Orientation;
         p.LinearVelocity = UpdateVector.ReadDelta(source.LinearVelocity, VELOCITY_DELTA_BITS, ref msg);
         p.AngularVelocity = UpdateVector.ReadDelta(source.AngularVelocity, VELOCITY_DELTA_BITS, ref msg);
         p.Tradelane = msg.GetBool();
         p.EngineKill = msg.GetBool();
-        p.CruiseThrust = (CruiseThrustState)msg.GetUInt(2);
+        p.CruiseThrust = (CruiseThrustState) msg.GetUInt(2);
         p.Throttle = msg.GetBool() ? msg.GetRangedFloat(-1, 1, 7) : source.Throttle;
         p.HullValue = msg.GetBool() ? (source.HullValue + msg.GetVarInt64()) : source.HullValue;
         p.ShieldValue = msg.GetBool() ? (source.ShieldValue + msg.GetVarInt64()) : source.ShieldValue;
 
-        var len = msg.GetBool() ? (int)msg.GetVarUInt32() : source.Guns.Length;
+        var len = msg.GetBool() ? (int) msg.GetVarUInt32() : source.Guns!.Length;
         p.Guns = new GunOrient[len];
+
         for (var i = 0; i < len; i++)
         {
-            var sg = (source.Guns?.Length ?? 0) > i ? source.Guns[i] : default;
+            var sg = (source.Guns?.Length ?? 0) > i ? source.Guns![i] : default;
             p.Guns[i].ReadDelta(ref msg, sg);
         }
 

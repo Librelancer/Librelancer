@@ -48,15 +48,15 @@ namespace LibreLancer.Server.Components
             if (Health >= MinHealth && !shieldHpActive)
             {
                 shieldHpActive = true;
-                if (Parent.Parent.TryGetComponent<ShipComponent>(out var ship)) {
-                    ship.ActivateShieldBubble(Parent.Attachment.Name);
+                if (Parent.Parent!.TryGetComponent<ShipComponent>(out var ship)) {
+                    ship.ActivateShieldBubble(Parent.Attachment!.Name);
                 }
             }
             else if (Health < MinHealth && shieldHpActive)
             {
                 shieldHpActive = false;
-                if (Parent.Parent.TryGetComponent<ShipComponent>(out var ship)) {
-                    ship.DeactivateShieldBubble(Parent.Attachment.Name);
+                if (Parent.Parent!.TryGetComponent<ShipComponent>(out var ship)) {
+                    ship.DeactivateShieldBubble(Parent.Attachment!.Name);
                 }
             }
         }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
@@ -38,7 +39,7 @@ namespace LibreLancer.Utf.Dfm
 			foreach (var b in Parts)
 			{
 				foreach (var hp in b.Value.Bone.Hardpoints)
-					yield return new DfmHardpointDef() { Part = b.Value, Hp = hp };
+					yield return new DfmHardpointDef(b.Value, hp);
 			}
 		}
 
@@ -57,29 +58,29 @@ namespace LibreLancer.Utf.Dfm
 				case "exporter version":
 					break;
 				case "material library":
-					IntermediateNode materialLibraryNode = node as IntermediateNode;
+					IntermediateNode materialLibraryNode = (node as IntermediateNode)!;
 					if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode);
 					else throw new Exception("Multiple material library nodes in dfm root");
 					break;
 				case "texture library":
-					IntermediateNode textureLibraryNode = node as IntermediateNode;
+					IntermediateNode textureLibraryNode = (node as IntermediateNode)!;
 					if (TextureLibrary == null) TextureLibrary = new TxmFile(textureLibraryNode);
 					else throw new Exception("Multiple texture library nodes in dfm root");
 					break;
 				case "multilevel":
-					IntermediateNode multiLevelNode = node as IntermediateNode;
+					IntermediateNode multiLevelNode = (node as IntermediateNode)!;
 					foreach (Node multiLevelSubNode in multiLevelNode)
 					{
 						if (multiLevelSubNode.Name.StartsWith("mesh", StringComparison.OrdinalIgnoreCase))
 						{
-							IntermediateNode meshNode = multiLevelSubNode as IntermediateNode;
+							IntermediateNode meshNode = (multiLevelSubNode as IntermediateNode)!;
 
                             if (!int.TryParse(meshNode.Name.Substring(4), out var level)) throw new Exception("");
 							Levels.Add(level, new DfmMesh(meshNode, Parts));
 						}
 						else if (multiLevelSubNode.Name.Equals("fractions", StringComparison.OrdinalIgnoreCase))
 						{
-							LeafNode fractionsNode = multiLevelSubNode as LeafNode;
+							LeafNode fractionsNode = (multiLevelSubNode as LeafNode)!;
 							if (Fractions == null) Fractions = fractionsNode.SingleArrayData;
 							else throw new Exception("Multiple fractions nodes in multilevel node");
 						}
@@ -87,8 +88,8 @@ namespace LibreLancer.Utf.Dfm
 					}
 					break;
 				case "skeleton":
-					IntermediateNode skeletonNode = node as IntermediateNode;
-					foreach (LeafNode skeletonSubNode in skeletonNode)
+					IntermediateNode skeletonNode = (node as IntermediateNode)!;
+					foreach (var skeletonSubNode in skeletonNode.OfType<LeafNode>())
 					{
 						switch (skeletonSubNode.Name.ToLowerInvariant())
 						{
@@ -101,17 +102,17 @@ namespace LibreLancer.Utf.Dfm
 					}
 					break;
 				case "cmpnd":
-					IntermediateNode cmpndNode = node as IntermediateNode;
+					IntermediateNode cmpndNode = (node as IntermediateNode)!;
 					foreach (Node cmpndSubNode in cmpndNode)
 					{
 						if (cmpndSubNode.Name.Equals("scale", StringComparison.OrdinalIgnoreCase))
 						{
-							if (Scale == null) Scale = (cmpndSubNode as LeafNode).SingleData;
+							if (Scale == null) Scale = ((cmpndSubNode as LeafNode)!).SingleData;
 							else throw new Exception("Multiple scale nodes in cmpnd node");
 						}
 						else if (cmpndSubNode.Name.Equals("cons", StringComparison.OrdinalIgnoreCase))
 						{
-							IntermediateNode consNode = cmpndSubNode as IntermediateNode;
+							IntermediateNode consNode = (cmpndSubNode as IntermediateNode)!;
 							Constructs.AddNode(consNode);
 						}
 						else if (
@@ -119,7 +120,7 @@ namespace LibreLancer.Utf.Dfm
 							cmpndSubNode.Name.Equals("root", StringComparison.OrdinalIgnoreCase)
 						)
 						{
-							IntermediateNode partsNode = cmpndSubNode as IntermediateNode;
+							IntermediateNode partsNode = (cmpndSubNode as IntermediateNode)!;
 							string objectName = string.Empty, fileName = string.Empty;
 							int index = -1;
 
@@ -134,13 +135,13 @@ namespace LibreLancer.Utf.Dfm
 									fileName = partNode.StringData;
 									break;
 								case "index":
-									index = partNode.Int32Data.Value;
+									index = partNode.Int32Data!.Value;
 									break;
 								default: throw new Exception("Invalid node in " + cmpndSubNode.Name + ": " + partNode.Name);
 								}
 							}
 
-							Parts.Add(index, new DfmPart(objectName, fileName, Bones, null));
+							Parts.Add(index, new DfmPart(objectName, fileName, Bones));
 						}
 						else throw new Exception("Invalid node in " + node.Name + ": " + cmpndSubNode.Name);
 					}

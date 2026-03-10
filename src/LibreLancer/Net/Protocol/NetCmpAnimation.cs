@@ -10,9 +10,11 @@ public struct NetCmpAnimation
 
     public static NetCmpAnimation Read(PacketReader message)
     {
-        var os = new NetCmpAnimation();
-        os.Name = message.GetString();
-        os.WorldStartTime = message.GetFloat();
+        var os = new NetCmpAnimation
+        {
+            Name = message.GetString()!,
+            WorldStartTime = message.GetFloat()
+        };
         var flags = message.GetByte();
         os.Finished = (flags & (1 << 0)) != 0;
         os.Loop = (flags & (1 << 1)) != 0;

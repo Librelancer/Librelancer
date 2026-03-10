@@ -27,14 +27,19 @@ public class SunImmediateRenderer : IDisposable
     public SunImmediateRenderer(ResourceManager resources)
     {
         vtype = new VertexBillboardColor2();
-        spineMaterial = new SunSpineMaterial(resources);
-        spineMaterial.SizeMultiplier = Vector2.One;
-        centerMaterial = new SunRadialMaterial(resources);
-        centerMaterial.Additive = true;
-        centerMaterial.SizeMultiplier = Vector2.One;
-        centerMaterial.OuterAlpha = 1;
-        glowMaterial = new SunRadialMaterial(resources);
-        glowMaterial.SizeMultiplier = Vector2.One;
+        spineMaterial = new SunSpineMaterial(resources, null!, Vector2.One);
+
+        centerMaterial = new SunRadialMaterial(resources)
+        {
+            Additive = true,
+            SizeMultiplier = Vector2.One,
+            OuterAlpha = 1
+        };
+
+        glowMaterial = new SunRadialMaterial(resources)
+        {
+            SizeMultiplier = Vector2.One
+        };
         centerMaterial.OuterAlpha = 1;
     }
 

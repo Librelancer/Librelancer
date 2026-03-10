@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.World;
@@ -14,30 +15,33 @@ namespace LibreLancer.Render
         public ProjectileManager Projectiles;
         private Projectile[] toRender;
         private int renderCount = 0;
-        private BeamsBuffer beams;
+        private BeamsBuffer beams = null!;
+
         public ProjectileRenderer(ProjectileManager projs)
         {
             Projectiles = projs;
             toRender = new Projectile[Projectiles.Projectiles.Length];
         }
+
         public override void DepthPrepass(ICamera camera, RenderContext rstate)
         {
         }
+
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
             beams = sys.Beams;
             renderCount = 0;
-            foreach(var i in Projectiles.Ids.GetAllocated()) {
-                if (Projectiles.Projectiles[i].Alive)
+            foreach (var i in Projectiles.Ids.GetAllocated().Where(i => Projectiles.Projectiles[i].Alive))
+            {
+                if (Projectiles.Projectiles[i].Effect != null)
                 {
-                    if (Projectiles.Projectiles[i].Effect != null)
-                    {
-                        Projectiles.Projectiles[i].Effect.Resources = sys.ResourceManager;
-                        Projectiles.Projectiles[i].Effect.Pool = sys.FxPool;
-                    }
-                    toRender[renderCount++] = Projectiles.Projectiles[i];
+                    Projectiles.Projectiles[i].Effect!.Resources = sys.ResourceManager;
+                    Projectiles.Projectiles[i].Effect!.Pool = sys.FxPool;
                 }
+
+                toRender[renderCount++] = Projectiles.Projectiles[i];
             }
+
             if (renderCount > 0)
             {
                 sys.AddObject(this);
@@ -51,7 +55,7 @@ namespace LibreLancer.Render
         }
         public override void Update(double time, Vector3 position, Matrix4x4 transform)
         {
-            for (int i = 0; i < renderCount; i++)
+            for (var i = 0; i < renderCount; i++)
             {
                 var p = toRender[i];
                 p.Effect?.Update(time, Matrix4x4.CreateTranslation(p.Position), 0);
@@ -59,7 +63,7 @@ namespace LibreLancer.Render
         }
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
-            for (int i = 0; i < renderCount; i++)
+            for (var i = 0; i < renderCount; i++)
             {
                 var p = toRender[i];
                 var currDist = (p.Position - p.Start).Length();

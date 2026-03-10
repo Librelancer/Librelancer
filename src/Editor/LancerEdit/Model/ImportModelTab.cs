@@ -77,9 +77,12 @@ public class ImportModelTab : EditorTab
         modelViewport = new Viewport3D(win);
         modelViewport.MarginH = 60 * ImGuiHelper.Scale;
         modelViewport.Draw3D = DrawGL;
-        wireframeMaterial3db = new Material(win.Resources);
-        wireframeMaterial3db.Dc = Color4.White;
-        wireframeMaterial3db.DtName = ResourceManager.WhiteTextureName;
+        wireframeMaterial3db = new Material(win.Resources)
+        {
+            Dc = Color4.White,
+            DtName = ResourceManager.WhiteTextureName
+        };
+
         wireframeMaterial3db.Initialize(win.Resources);
         lighting = Lighting.Create();
         lighting.Enabled = true;

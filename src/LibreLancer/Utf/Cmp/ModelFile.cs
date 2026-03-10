@@ -174,9 +174,14 @@ namespace LibreLancer.Utf.Cmp
             Levels = lvl2.ToArray();
         }
 
-        public RigidModelPart CreatePart(bool drawable, ResourceManager resources)
+        public RigidModelPart CreatePart(bool drawable, ResourceManager resources, string name, string? path)
         {
-            var p = new RigidModelPart  { Path = Path };
+            var p = new RigidModelPart
+            {
+                Name = name,
+                Path = path ?? Path
+            };
+
             if (Levels.Length > 0 && Levels[0] != null)
             {
                 p.Mesh = new VisualMesh();
@@ -185,7 +190,6 @@ namespace LibreLancer.Utf.Cmp
                     p.Mesh.Levels = new MeshLevel[Levels.Length];
                     for (int i = 0; i < Levels.Length; i++)
                     {
-                        var msh = new MeshLevel();
                         p.Mesh.Levels[i] = Levels[i]?.CreateLevel(resources);
                     }
                 }
@@ -193,9 +197,9 @@ namespace LibreLancer.Utf.Cmp
                 {
                     p.Mesh.Levels = [];
                 }
-                p.Mesh.Radius = Levels[0].Radius;
-                p.Mesh.Center = Levels[0].Center;
-                p.Mesh.BoundingBox = Levels[0].BoundingBox;
+                p.Mesh.Radius = Levels[0]!.Radius;
+                p.Mesh.Center = Levels[0]!.Center;
+                p.Mesh.BoundingBox = Levels[0]!.BoundingBox;
                 p.Mesh.Switch2 = Switch2;
             }
             p.Hardpoints = new List<Hardpoint>(Hardpoints.Count);
@@ -206,10 +210,12 @@ namespace LibreLancer.Utf.Cmp
         }
         public RigidModel CreateRigidModel(bool drawable, ResourceManager resources)
         {
-            var model = new RigidModel();
-            model.Root = CreatePart(drawable, resources);
-            model.Root.Name = "Root";
-            model.Source = RigidModelSource.SinglePart;
+            var model = new RigidModel
+            {
+                Root = CreatePart(drawable, resources, "Root", null),
+                Source = RigidModelSource.SinglePart
+            };
+
             model.AllParts = [model.Root];
             model.Path = Path;
             model.MaterialAnims = MaterialAnim;

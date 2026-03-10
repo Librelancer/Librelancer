@@ -52,47 +52,44 @@ namespace LibreLancer.World
 
         public override string GetName(GameDataManager gameData, Vector3 other)
         {
-            var heading = other - Parent.PhysicsComponent.Body.Position;
+            var heading = other - Parent.PhysicsComponent!.Body.Position;
             var fwd = Vector3.Transform(-Vector3.UnitZ, Parent.PhysicsComponent.Body.Orientation);
             var dot = Vector3.Dot(heading, fwd);
 
-            if (string.IsNullOrEmpty(leftRight) ||
-                string.IsNullOrEmpty(rightLeft))
+            if (string.IsNullOrEmpty(leftRight) || string.IsNullOrEmpty(rightLeft))
             {
-                leftRight = $"{gameData.GetString(_Ids[0])}->{gameData.GetString(_Ids[1])}";
+                leftRight = $"{gameData.GetString(_Ids![0])}->{gameData.GetString(_Ids[1])}";
                 rightLeft = $"{gameData.GetString(_Ids[1])}->{gameData.GetString(_Ids[0])}";
             }
 
-            if (dot > 0)
-            {
-                return leftRight;
-            }
-            else
-            {
-                return rightLeft;
-            }
+            return dot > 0 ? leftRight : rightLeft;
         }
     }
 
     public class LootName : ObjectName
     {
         private GameObject Parent;
+        private Equipment? cacheEq;
+        private int cacheCount;
+        private string? cacheStr;
 
         public LootName(GameObject parent)
         {
             Parent = parent;
         }
 
-        private Equipment cacheEq;
-        private int cacheCount;
-        private string? cacheStr;
-
         public override string GetName(GameDataManager gameData, Vector3 other)
         {
             if (!(Parent?.TryGetComponent<LootComponent>(out var loot) ?? false))
+            {
                 return "NULL";
+            }
+
             if (loot.Cargo.Count == 0)
+            {
                 return "NULL";
+            }
+
             var cg = loot.Cargo[0];
 
             if (cacheStr != null && cacheEq == cg.Item && cacheCount == cg.Count)
@@ -123,7 +120,7 @@ namespace LibreLancer.World
             this._Ids = ids;
         }
 
-        public ObjectName(string str)
+        public ObjectName(string? str)
         {
             this._NameString = str;
         }
@@ -133,9 +130,14 @@ namespace LibreLancer.World
             if (dirty)
             {
                 if (_Ids != null)
+                {
                     cached = string.Join(' ', _Ids.Select(gameData.GetString));
+                }
                 else
+                {
                     cached = _NameString;
+                }
+
                 dirty = false;
             }
 
@@ -144,15 +146,22 @@ namespace LibreLancer.World
 
         public override string ToString()
         {
-            if (!string.IsNullOrEmpty(cached)) return cached;
+            if (!string.IsNullOrEmpty(cached))
+            {
+                return cached;
+            }
             else if (_Ids != null)
             {
                 return "IDS: " + string.Join(',', _Ids.Select(x => x.ToString()));
             }
             else if (_NameString != null)
+            {
                 return _NameString;
+            }
             else
+            {
                 return "(NULL)";
+            }
         }
     }
 
@@ -189,7 +198,7 @@ namespace LibreLancer.World
         public SystemObject? SystemObject;
         public DestructibleModel? Model;
         public ResourceManager? Resources;
-        public GameWorld? World;
+        public GameWorld World = null!;
         public List<ObjectRenderer> ExtraRenderers = [];
 
         //Private Fields
@@ -198,7 +207,7 @@ namespace LibreLancer.World
         private bool transformDirty = false;
         private Transform3D worldTransform = Transform3D.Identity;
         private GameObject? _parent;
-        private IDrawable dr;
+        private IDrawable? dr;
         public readonly List<GameObject> Children = [];
         private readonly Dictionary<Type, GameComponent> componentLookup = new();
 
@@ -258,9 +267,15 @@ namespace LibreLancer.World
         {
             var tr = LocalTransform;
             if (_attachment != null)
+            {
                 tr *= _attachment.Transform;
+            }
+
             if (_parent != null)
+            {
                 tr *= _parent.WorldTransform;
+            }
+
             return tr;
         }
 
@@ -302,7 +317,8 @@ namespace LibreLancer.World
             return false;
         }
 
-        public T GetComponent<T>() where T : GameComponent
+        // TODO: Replace all invocations of GetComponent with TryGetComponent where they might be null, and remove nullable
+        public T? GetComponent<T>() where T : GameComponent
         {
             TryGetComponent(out T? c);
             return c!;
@@ -349,7 +365,9 @@ namespace LibreLancer.World
             Kind = arch.Type == ArchetypeType.waypoint ? GameObjectKind.Waypoint : GameObjectKind.Solar;
             var flags = MeshLoadMode.GPU;
             if (!phys)
+            {
                 flags |= MeshLoadMode.NoCollision;
+            }
 
             if (sun != null)
             {
@@ -381,7 +399,7 @@ namespace LibreLancer.World
 
         public GameObject(Ship ship, ResourceManager res, bool draw = true, bool phys = false)
         {
-            InitWithModel(ship.ModelFile.LoadFile(res), ship.SeparableParts, res, draw, phys);
+            InitWithModel(ship.ModelFile!.LoadFile(res), ship.SeparableParts, res, draw, phys);
             ArchetypeName = ship.Nickname;
             Kind = GameObjectKind.Ship;
 
@@ -411,32 +429,39 @@ namespace LibreLancer.World
             }
 
             uint plainCrc = 0;
-            if (!string.IsNullOrEmpty(partName)) plainCrc = CrcTool.FLModelCrc(partName);
-
-            if (collider.Valid)
+            if (!string.IsNullOrEmpty(partName))
             {
-                PhysicsComponent = new PhysicsComponent(this)
-                {
-                    SurPath = collider,
-                    Mass = mass,
-                    PlainCrc = plainCrc
-                };
-                AddComponent(PhysicsComponent);
+                plainCrc = CrcTool.FLModelCrc(partName);
             }
+
+            if (!collider.Valid)
+            {
+                return;
+            }
+
+            PhysicsComponent = new PhysicsComponent(this)
+            {
+                SurPath = collider,
+                Mass = mass,
+                PlainCrc = plainCrc
+            };
+
+            AddComponent(PhysicsComponent);
         }
 
         public void UpdateCollision()
         {
-            for (int i = 0; i < Children.Count; i++) Children[i].transformDirty = true;
-            if (PhysicsComponent == null) return;
-            PhysicsComponent.UpdateParts();
+            foreach (var child in Children)
+                child.transformDirty = true;
+
+            PhysicsComponent?.UpdateParts();
         }
 
         public bool DisableCmpPart(uint part, ResourceManager res, out GameObject[] children)
         {
             if (Model != null && Model.DestroyPart(part, out var destroyed))
             {
-                PhysicsComponent.DisablePart(destroyed);
+                PhysicsComponent?.DisablePart(destroyed);
                 World?.Server?.PartDisabled(this, part);
                 var removedChildren = new List<GameObject>();
 
@@ -465,11 +490,11 @@ namespace LibreLancer.World
                 if (sp != null && sp.ParentDamageCap != null &&
                     Model.TryGetHardpoint(sp.ParentDamageCapHardpoint, out var capHardpoint))
                 {
-                    var cap = WithModel(sp.ParentDamageCap.Model, RenderComponent != null, res);
+                    var cap = WithModel(sp.ParentDamageCap.Model!, RenderComponent != null, res);
                     cap.Attachment = capHardpoint;
                     cap.Parent = this;
 
-                    if (cap.Model.TryGetHardpoint("DpConnect", out var childHp))
+                    if (cap.Model!.TryGetHardpoint("DpConnect", out var childHp))
                     {
                         cap.SetLocalTransform(childHp.Transform.Inverse());
                     }
@@ -500,28 +525,33 @@ namespace LibreLancer.World
                 throw new Exception("Server-only code");
             }
 
-            if (Model != null && Model.RigidModel.Parts.TryGetPart(part, out var srcpart))
+            if (Model == null || !Model.RigidModel.Parts!.TryGetPart(part, out var srcPart))
             {
-                var alreadyDestroyed = Model.DestroyedParts.ToArray();
-                if (!DisableCmpPart(part, res, out var children))
-                    return;
-                var sp = Model.SeparableParts.FirstOrDefault((x =>
-                    x.Part.Equals(srcpart.Name, StringComparison.OrdinalIgnoreCase)));
-
-                var tr = srcpart.LocalTransform * WorldTransform;
-                var vec = (tr.Position - WorldTransform.Position).Normalized();
-                var initialforce = 100f;
-                var mass = 50f;
-
-                if (sp != null)
-                {
-                    mass = sp.Mass;
-                    initialforce = sp.ChildImpulse;
-                }
-
-                World.Server.SpawnDebris(Kind, ArchetypeName, part, tr, children, alreadyDestroyed, mass,
-                    vec * initialforce);
+                return;
             }
+
+            var alreadyDestroyed = Model.DestroyedParts.ToArray();
+            if (!DisableCmpPart(part, res, out var children))
+            {
+                return;
+            }
+
+            var sp = Model.SeparableParts.FirstOrDefault((x =>
+                x.Part.Equals(srcPart.Name, StringComparison.OrdinalIgnoreCase)));
+
+            var tr = srcPart.LocalTransform * WorldTransform;
+            var vec = (tr.Position - WorldTransform.Position).Normalized();
+            var initialforce = 100f;
+            var mass = 50f;
+
+            if (sp != null)
+            {
+                mass = sp.Mass;
+                initialforce = sp.ChildImpulse;
+            }
+
+            World.Server.SpawnDebris(Kind, ArchetypeName!, part, tr, children, alreadyDestroyed, mass,
+                vec * initialforce);
         }
 
         public void InitWithModel(ModelResource? drawable, List<SeparablePart> separables, ResourceManager res,
@@ -550,6 +580,7 @@ namespace LibreLancer.World
                 case IRigidModelFile mdl:
                 {
                     Model = new DestructibleModel(mdl.CreateRigidModel(draw, res), separables);
+
                     if (drawable.Collision.Valid)
                     {
                         phys = new PhysicsComponent(this)
@@ -581,7 +612,7 @@ namespace LibreLancer.World
             }
         }
 
-        public void SetLoadout(ObjectLoadout loadout, SoundManager snd, bool cutscene = false)
+        public void SetLoadout(ObjectLoadout loadout, SoundManager? snd, bool cutscene = false)
         {
             foreach (var item in loadout.Items)
             {
@@ -591,7 +622,9 @@ namespace LibreLancer.World
                 if (item.Equipment is AnimationEquipment anm)
                 {
                     if (anm.Animation != null)
+                    {
                         AnimationComponent?.StartAnimation(anm.Animation);
+                    }
                 }
                 else
                 {
@@ -635,25 +668,30 @@ namespace LibreLancer.World
             {
                 if (i >= obj.Children.Count)
                 {
-                    Current = null;
+                    current = null;
                     return false;
                 }
 
                 T? result = null;
+
                 while (i < obj.Children.Count && (result = obj.Children[i].GetComponent<T>()) == null)
+                {
                     i++;
+                }
+
                 i++;
-                Current = result;
+                current = result;
                 return result != null;
             }
 
             public void Reset()
             {
                 i = 0;
-                Current = null;
+                current = null;
             }
 
-            public T? Current { get; private set; }
+            private T? current;
+            public T Current => current ?? throw new InvalidOperationException();
 
             object? IEnumerator.Current => Current;
 
@@ -675,25 +713,30 @@ namespace LibreLancer.World
             {
                 if (i >= obj.components.Count)
                 {
-                    Current = null;
+                    current = null;
                     return false;
                 }
 
                 T? result = null;
+
                 while (i < obj.components.Count && (result = obj.components[i] as T) == null)
+                {
                     i++;
+                }
+
                 i++;
-                Current = result;
+                current = result;
                 return result != null;
             }
 
             public void Reset()
             {
                 i = 0;
-                Current = null;
+                current = null;
             }
 
-            public T? Current { get; private set; }
+            private T? current;
+            public T Current => current ?? throw new InvalidOperationException();
 
             object? IEnumerator.Current => Current;
 
@@ -726,6 +769,7 @@ namespace LibreLancer.World
         public void RenderUpdate(double time)
         {
             RenderComponent?.Update(time, WorldTransform.Position, WorldTransform.Matrix());
+
             foreach (var child in Children)
             {
                 child.RenderUpdate(time);
@@ -737,7 +781,7 @@ namespace LibreLancer.World
             }
         }
 
-        public void Register(PhysicsWorld physics)
+        public void Register(PhysicsWorld? physics)
         {
             foreach (var child in Children)
             {
@@ -782,7 +826,7 @@ namespace LibreLancer.World
             }
         }
 
-        public void ClearAll(PhysicsWorld physics)
+        public void ClearAll(PhysicsWorld? physics)
         {
             Unregister(physics);
             ExtraRenderers.Clear();
@@ -796,7 +840,7 @@ namespace LibreLancer.World
             Name = null;
             Flags = 0;
             Formation = null;
-            World = null;
+            World = null!;
             Kind = GameObjectKind.None;
             NetID = 0;
             Tag = null;
@@ -810,7 +854,7 @@ namespace LibreLancer.World
             AnimationComponent = null;
         }
 
-        public void Unregister(PhysicsWorld physics)
+        public void Unregister(PhysicsWorld? physics)
         {
             foreach (var component in components)
             {
@@ -827,9 +871,9 @@ namespace LibreLancer.World
 
         public bool HardpointExists(string hpname) => Model?.HardpointExists(hpname) ?? false;
 
-        public Hardpoint? GetHardpoint(string hpname)
+        public Hardpoint? GetHardpoint(string? hpname)
         {
-            if (Model == null)
+            if (Model == null || hpname is null)
             {
                 return null;
             }

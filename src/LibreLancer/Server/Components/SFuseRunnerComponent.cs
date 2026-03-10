@@ -29,10 +29,12 @@ namespace LibreLancer.Server.Components
         private List<FuseInstance> instances = [];
         public void Run(FuseResources fuse)
         {
-            var instance = new FuseInstance();
-            instance.Fuse = fuse;
-            instance.actions = new Queue<FuseAction>(fuse.Fuse.Actions.OrderBy(x => x.AtT));
-            instance.T = 0;
+            var instance = new FuseInstance
+            {
+                Fuse = fuse,
+                actions = new Queue<FuseAction>(fuse.Fuse.Actions.OrderBy(x => x.AtT)),
+                T = 0
+            };
             instances.Add(instance);
         }
 

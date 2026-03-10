@@ -56,8 +56,10 @@ public class UpdatePacker
             int maxPacketSize)
         {
             // Set up packet
-            var packet = new PackedUpdatePacket();
-            packet.Tick = tick;
+            var packet = new PackedUpdatePacket
+            {
+                Tick = tick
+            };
             self.GetAcknowledgedState(out var oldTick, out var oldState);
             self.GetUpdates(allObjects, deltas);
             packet.Tick = tick;

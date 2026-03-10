@@ -22,23 +22,26 @@ namespace LibreLancer.Interface
         public double GlobalTime;
 
         public float ScreenWidth => 480 * (ViewportWidth / ViewportHeight);
+
         // Rendering
-        public RenderContext RenderContext;
-        public LineRenderer Lines;
+        public RenderContext RenderContext = null!;
+
+        public LineRenderer Lines = null!;
+
         // Data
         public UiData Data;
 
-        public CommandBuffer CommandBuffer;
+        public CommandBuffer CommandBuffer = null!;
+
         // Ui
-        private object _gameApi;
+        private object _gameApi = null!;
+
         // TODO: Properly reload RigidModels on meshes cleared
         public int MeshDisposeVersion = 0;
+
         public object GameApi
         {
-            get
-            {
-                return _gameApi;
-            }
+            get { return _gameApi; }
             set
             {
                 _gameApi = value;
@@ -46,10 +49,12 @@ namespace LibreLancer.Interface
             }
         }
 
-        private LuaContext lua;
+        private LuaContext lua = null!;
+
         // State
         private bool mode2d = false;
         private FreelancerGame? game;
+
         public UiContext(UiData data)
         {
             Data = data;
@@ -71,7 +76,7 @@ namespace LibreLancer.Interface
         {
             if (game != null)
             {
-                return game.GetClipboardText();
+                return game.GetClipboardText()!;
             }
 
             return "";
@@ -107,7 +112,7 @@ namespace LibreLancer.Interface
 
         private void MouseOnMouseUp(MouseEventArgs e)
         {
-            if (game.Debug.CaptureMouse)
+            if (game!.Debug.CaptureMouse)
             {
                 return;
             }
@@ -121,7 +126,7 @@ namespace LibreLancer.Interface
 
         private void MouseOnMouseDown(MouseEventArgs e)
         {
-            if (game.Debug.CaptureMouse)
+            if (game!.Debug.CaptureMouse)
             {
                 return;
             }
@@ -136,6 +141,7 @@ namespace LibreLancer.Interface
         {
             float resolveX = 0;
             float resolveY = 0;
+
             switch (anchor)
             {
                 case AnchorKind.TopLeft:
@@ -175,6 +181,7 @@ namespace LibreLancer.Interface
                     resolveY = parent.Y + parent.Height - height - y;
                     break;
             }
+
             return new Vector2(resolveX, resolveY);
         }
 
@@ -206,17 +213,21 @@ namespace LibreLancer.Interface
             var ratio = ViewportHeight / 480;
             return ratio * points;
         }
+
         public Rectangle PointsToPixels(RectangleF points)
         {
             var ratio = ViewportHeight / 480;
-            return new Rectangle((int)(points.X * ratio), (int)(points.Y * ratio), (int)(points.Width * ratio), (int)(points.Height * ratio));
+            return new Rectangle((int) (points.X * ratio), (int) (points.Y * ratio), (int) (points.Width * ratio),
+                (int) (points.Height * ratio));
         }
+
         public float TextSize(float inputPoints)
         {
             var ratio = ViewportHeight / 480;
             var pixels = inputPoints * ratio;
-            return (int)Math.Floor(pixels);
+            return (int) Math.Floor(pixels);
         }
+
         public void Update(double globalTime, int mouseX, int mouseY, bool leftDown)
         {
             GlobalTime = globalTime;
@@ -236,9 +247,11 @@ namespace LibreLancer.Interface
         }
 
         public bool HasModal => modals.Count > 0;
+
         public bool MouseWanted(int mouseX, int mouseY)
         {
             var inputRatio = 480 / ViewportHeight;
+
             if (modals.Count > 0)
             {
                 return true;
@@ -277,10 +290,11 @@ namespace LibreLancer.Interface
             baseWidget?.UnFocus();
         }
 
-        private RectangleF GetRectangle() => new(0,0, 480 * (ViewportWidth / ViewportHeight), 480);
+        private RectangleF GetRectangle() => new(0, 0, 480 * (ViewportWidth / ViewportHeight), 480);
 
         private UiWidget? baseWidget;
         private List<ModalState> modals = [];
+
         public void SetWidget(UiWidget widget)
         {
             widget.ApplyStylesheet(Data.Stylesheet);
@@ -291,22 +305,24 @@ namespace LibreLancer.Interface
         }
 
         private int _h = 0;
+
         public int OpenModal(UiWidget widget)
         {
             var handle = _h++;
             widget.ApplyStylesheet(Data.Stylesheet);
-            modals.Add(new ModalState() {Widget = widget, Handle = handle});
+            modals.Add(new ModalState(widget, handle));
             return handle;
         }
 
         public void SwapModal(UiWidget widget, int handle)
         {
             widget.ApplyStylesheet(Data.Stylesheet);
-            for (int i = 0; i < modals.Count; i++)
+
+            foreach (var modal in modals)
             {
-                if (modals[i].Handle == handle)
+                if (modal.Handle == handle)
                 {
-                    modals[i].Widget = widget;
+                    modal.Widget = widget;
                     break;
                 }
             }
@@ -334,10 +350,10 @@ namespace LibreLancer.Interface
             Data.Sounds?.PlayVoiceLine(voice, line, null);
         }
 
-        private class ModalState
+        private class ModalState(UiWidget widget, int handle)
         {
-            public UiWidget Widget;
-            public int Handle;
+            public UiWidget Widget = widget;
+            public int Handle = handle;
         }
 
         public bool Visible = true;
@@ -353,11 +369,13 @@ namespace LibreLancer.Interface
         }
 
         public void ChatboxEvent() => Event("Chatbox");
+
         public void Event(string ev)
         {
             lua.CallEvent(ev);
         }
-        public void Event(string ev, params object[] p)
+
+        public void Event(string ev, params object?[] p)
         {
             lua.CallEvent(ev, p);
         }
@@ -386,9 +404,11 @@ namespace LibreLancer.Interface
         public void OnTextEntry(string text) => textFocusWidget?.OnTextInput(text);
 
         public double DeltaTime;
+
         public void RenderWidget(double delta)
         {
             DeltaTime = delta;
+
             if (baseWidget == null)
             {
                 textFocusWidget = null;
@@ -404,12 +424,13 @@ namespace LibreLancer.Interface
             RenderContext.DepthEnabled = false;
             var aspect = ViewportWidth / ViewportHeight;
             var desktopRect = new RectangleF(0, 0, 480 * aspect, 480);
+
             if (Visible)
             {
                 baseWidget.Render(this, desktopRect);
             }
 
-            foreach(var widget in modals)
+            foreach (var widget in modals)
                 widget.Widget.Render(this, desktopRect);
             RenderContext.DepthEnabled = true;
         }

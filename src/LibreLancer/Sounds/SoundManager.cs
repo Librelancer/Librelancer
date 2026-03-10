@@ -15,9 +15,9 @@ using LibreLancer.Utf.Audio;
 
 namespace LibreLancer.Sounds
 {
-	public class SoundManager : IDisposable
-	{
-        private GameDataManager data;
+    public class SoundManager : IDisposable
+    {
+        private GameDataManager data = null!;
         private AudioManager audio;
         private bool isDisposed = false;
 
@@ -26,9 +26,9 @@ namespace LibreLancer.Sounds
         private IUIThread ui;
 
         public SoundManager(GameDataManager gameData, AudioManager audio, IUIThread ui)
-		{
-			data = gameData;
-			this.audio = audio;
+        {
+            data = gameData;
+            this.audio = audio;
             soundCache = new LRUCache<string, LoadedSound>(64, LoadSoundAsync);
             this.ui = ui;
         }
@@ -48,6 +48,7 @@ namespace LibreLancer.Sounds
             }
 
             isDisposed = true;
+
             foreach (var l in soundCache.AllValues)
             {
                 l.Dispose();
@@ -58,10 +59,12 @@ namespace LibreLancer.Sounds
         {
             this.data = data;
         }
+
         private Vector3 listenerPosition = Vector3.Zero;
         public Vector3 ListenerPosition => listenerPosition;
 
         private bool resetListener = false;
+
         public void ResetListenerVelocity()
         {
             if (isDisposed)
@@ -74,6 +77,7 @@ namespace LibreLancer.Sounds
 
         private double accumVelTime;
         private Vector3 lastPosVel = Vector3.Zero;
+
         public void UpdateListener(double delta, Vector3 position, Vector3 forward, Vector3 up)
         {
             if (isDisposed)
@@ -91,9 +95,11 @@ namespace LibreLancer.Sounds
             else
             {
                 accumVelTime += delta;
+
                 if (accumVelTime >= 1 / 60.0)
                 {
-                    var v = (position - lastPosVel) / (float)accumVelTime;
+                    var v = (position - lastPosVel) / (float) accumVelTime;
+
                     if (v.Length() > 8000)
                     {
                         v = Vector3.Zero;
@@ -104,6 +110,7 @@ namespace LibreLancer.Sounds
                     audio.SetListenerVelocity(v);
                 }
             }
+
             listenerPosition = position;
             audio.SetListenerPosition(position);
             audio.SetListenerOrientation(forward, up);
@@ -140,11 +147,13 @@ namespace LibreLancer.Sounds
             var loaded = new LoadedSound();
             loaded.Entry = data.GetAudioEntry(name);
             loaded.Name = name;
+
             if (loaded.Entry == null)
             {
                 loaded.Data = null;
                 return loaded;
             }
+
             if (loaded.Entry.File.ToLowerInvariant().Replace('\\', '/') == "audio/null.wav")
             {
                 // HACK: Don't bother with sounds using null.wav, makes awful popping noise
@@ -153,6 +162,7 @@ namespace LibreLancer.Sounds
             else
             {
                 var path = data.GetAudioStream(name);
+
                 if (path == null)
                 {
                     loaded.Data = null;
@@ -167,12 +177,14 @@ namespace LibreLancer.Sounds
                     });
                 }
             }
+
             return loaded;
         }
 
         private SoundCategory EntryType(string name)
         {
             var e = GetEntry(name);
+
             if (e == null)
             {
                 return SoundCategory.Sfx;
@@ -196,17 +208,19 @@ namespace LibreLancer.Sounds
 
             var snd = GetSound(name);
             soundCache.UsedValue(snd);
+
             if (snd.Data == null)
             {
                 return;
             }
 
             var inst = audio.CreateInstance(snd.Data, EntryType(name));
-            inst.SetAttenuation(snd.Entry.Attenuation);
+            inst.SetAttenuation(snd.Entry!.Attenuation);
             inst.Play();
         }
 
-        public SoundInstance? GetInstance(string name, float attenuation = 0, float mind = -1, float maxd = -1, Vector3? pos = null)
+        public SoundInstance? GetInstance(string name, float attenuation = 0, float mind = -1, float maxd = -1,
+            Vector3? pos = null)
         {
             if (isDisposed)
             {
@@ -215,18 +229,21 @@ namespace LibreLancer.Sounds
 
             var snd = GetSound(name);
             soundCache.UsedValue(snd);
+
             if (snd.Data == null)
             {
                 return null;
             }
 
             var inst = audio.CreateInstance(snd.Data, EntryType(name));
+
             if (inst == null)
             {
                 return null;
             }
 
-            inst.SetAttenuation(attenuation + snd.Entry.Attenuation);
+            inst.SetAttenuation(attenuation + snd.Entry!.Attenuation);
+
             if (mind < 0)
             {
                 mind = snd.Entry.Range.X;
@@ -241,10 +258,13 @@ namespace LibreLancer.Sounds
             {
                 inst.SetDistance(mind, maxd);
             }
-            if (pos != null) {
+
+            if (pos != null)
+            {
                 inst.SetPosition(pos.Value);
                 inst.Set3D();
             }
+
             return inst;
         }
 
@@ -254,7 +274,8 @@ namespace LibreLancer.Sounds
 
             public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
             {
-                var lazyResult = concurrentDictionary.GetOrAdd(key, k => new Lazy<TValue>(() => valueFactory(k), LazyThreadSafetyMode.ExecutionAndPublication));
+                var lazyResult = concurrentDictionary.GetOrAdd(key,
+                    k => new Lazy<TValue>(() => valueFactory(k), LazyThreadSafetyMode.ExecutionAndPublication));
 
                 return lazyResult.Value;
             }
@@ -263,6 +284,7 @@ namespace LibreLancer.Sounds
         private float LineAttenuation(string voice, string line)
         {
             var v = data.Items.Voices.Get(voice);
+
             if (v == null)
             {
                 return 0;
@@ -279,6 +301,7 @@ namespace LibreLancer.Sounds
         private float LineAttenuation(string voice, uint line)
         {
             var v = data.Items.Voices.Get(voice);
+
             if (v == null)
             {
                 return 0;
@@ -293,6 +316,7 @@ namespace LibreLancer.Sounds
         }
 
         private LazyConcurrentDictionary<string, VoiceUtf> voiceUtfs = new();
+
         public void PlayVoiceLine(string voice, string line, Action? onEnd = null)
         {
             if (isDisposed)
@@ -317,7 +341,7 @@ namespace LibreLancer.Sounds
         {
             Task.Run(() =>
             {
-                var path = data.GetVoicePath(voice);
+                var path = data.GetVoicePath(voice)!;
                 var v = voiceUtfs.GetOrAdd(path, (s) => new VoiceUtf(s, data.VFS.Open(path)));
                 var file = v.AudioFiles[lineHash];
                 var sn = new SoundData();
@@ -328,7 +352,8 @@ namespace LibreLancer.Sounds
                     var instance = audio.CreateInstance(sn, SoundCategory.Voice);
                     instance.SetAttenuation(attenuation);
                     instance.Priority = 2;
-                    instance.OnStop = () => {
+                    instance.OnStop = () =>
+                    {
                         sn.Dispose();
                         onEnd?.Invoke();
                     };
@@ -346,6 +371,7 @@ namespace LibreLancer.Sounds
 
             var entry = data.GetAudioEntry(name);
             var path = data.GetAudioStream(name);
+
             if (path != null)
             {
                 audio.Music.Play(path, fadeTime, entry.Attenuation, !oneshot);
@@ -359,15 +385,15 @@ namespace LibreLancer.Sounds
         public bool MusicPlaying => audio.Music.State != PlayState.Stopped;
 
         public void StopMusic(float fadeOut = 0)
-		{
+        {
             if (isDisposed)
             {
                 throw new ObjectDisposedException(nameof(SoundManager));
             }
 
             audio.Music.Stop(fadeOut);
-		}
-	}
+        }
+    }
 
     internal class LoadedSound : IDisposable
     {
@@ -384,4 +410,3 @@ namespace LibreLancer.Sounds
         }
     }
 }
-

@@ -23,7 +23,7 @@ namespace LibreLancer
         public override void Draw(double delta)
 		{
             xCnt++;
-			Game.RenderContext.Renderer2D.DrawImageStretched(splash, new Rectangle(0, 0, Game.Width, Game.Height), Color4.White, true);
+			Game.RenderContext.Renderer2D.DrawImageStretched(splash!, new Rectangle(0, 0, Game.Width, Game.Height), Color4.White, true);
             DoFade(delta);
             if (!shadersCompiled && (xCnt >= 3))
             {

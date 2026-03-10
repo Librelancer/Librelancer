@@ -10,9 +10,9 @@ namespace LibreLancer.Net.Protocol;
 public class PacketWriter
 {
     private NetDataWriter writer;
-    private NetHpidWriter hpids;
+    private NetHpidWriter? hpids;
 
-    public NetHpidWriter HpidWriter => hpids;
+    public NetHpidWriter? HpidWriter => hpids;
 
     public PacketWriter(NetDataWriter writer, NetHpidWriter? hpids = null)
     {

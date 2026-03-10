@@ -10,11 +10,11 @@ using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
-    public class ModifiedMaterial
+    public class ModifiedMaterial(BasicMaterial mat, Color4 dc, string dt)
     {
-        public BasicMaterial Mat;
-        public Color4 Dc;
-        public string Dt;
+        public BasicMaterial Mat = mat;
+        public Color4 Dc = dc;
+        public string Dt = dt;
     }
 
     public class MaterialModification
@@ -46,7 +46,7 @@ namespace LibreLancer.Interface
                                 continue;
                             }
 
-                            mats.Add(new ModifiedMaterial() {Mat = bm, Dc = bm.Dc, Dt = bm.DtSampler});
+                            mats.Add(new ModifiedMaterial(bm, bm.Dc, bm.DtSampler));
                         }
                     }
                 }
@@ -96,7 +96,7 @@ namespace LibreLancer.Interface
             var mesh = context.Data.ResourceManager.FindMesh(wire.MeshCRC);
             if(mesh != null)
             {
-                context.Lines.DrawVWire(wire, mesh.VertexResource, mat, color);
+                context.Lines.DrawVWire(wire, mesh.VertexResource!, mat, color);
             }
         }
 
@@ -132,7 +132,7 @@ namespace LibreLancer.Interface
             float scaleMult = 1;
             if (BaseRadius > 0)
             {
-                scaleMult = BaseRadius / model.GetRadius();
+                scaleMult = BaseRadius / model!.GetRadius();
             }
 
             var scale = Model.XZPlane
@@ -147,7 +147,7 @@ namespace LibreLancer.Interface
             if (DrawModel)
             {
                 context.RenderContext.SetIdentityCamera();
-                model.UpdateTransform();
+                model!.UpdateTransform();
                 model.Update(context.GlobalTime);
                 if (Tint != null)
                 {
@@ -205,7 +205,7 @@ namespace LibreLancer.Interface
 
             if (model == null)
             {
-                model = context.Data.GetModel(Model.Path);
+                model = context.Data.GetModel(Model!.Path);
                 if (model == null)
                 {
                     loadable = false;

@@ -27,13 +27,17 @@ public class JumperNpc
 
     public static JumperNpc FromGameObject(GameObject go)
     {
-        var npc = new JumperNpc();
-        npc.Nickname = go.Nickname;
-        npc.Name = go.Name;
-        npc.SpaceCostume = new();
+        var npc = new JumperNpc
+        {
+            Nickname = go.Nickname,
+            Name = go.Name,
+            SpaceCostume = new()
+        };
 
-        var ld = new ObjectLoadout();
-        ld.Archetype = go.GetComponent<ShipComponent>().Ship.Nickname;
+        var ld = new ObjectLoadout
+        {
+            Archetype = go.GetComponent<ShipComponent>().Ship.Nickname
+        };
 
         if (go.TryGetComponent<SRepComponent>(out var srep))
         {

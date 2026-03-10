@@ -76,7 +76,7 @@ namespace LibreLancer.Render
 
         private int GetLevel(RigidModelPart file, Vector3 center, Vector3 camera)
         {
-            float[]? ranges = LODRanges ?? file.Mesh?.Switch2;
+            var ranges = LODRanges ?? file.Mesh?.Switch2;
             var dsq = Vector3.DistanceSquared(center, camera);
 
             if (ranges == null)
@@ -85,9 +85,9 @@ namespace LibreLancer.Render
                 return 0;
             }
 
-            int lvl = -1;
+            var lvl = -1;
 
-            for (int i = 0; i < ranges.Length; i++)
+            for (var i = 0; i < ranges.Length; i++)
             {
                 var d = ranges[i];
 
@@ -187,13 +187,13 @@ namespace LibreLancer.Render
                 }
             }
 
-            bool visible = false;
+            var visible = false;
 
             if (Model != null)
             {
                 visibleParts = new BitArray128();
 
-                for (int i = 0; i < Model.AllParts.Length; i++)
+                for (var i = 0; i < Model.AllParts.Length; i++)
                 {
                     var part = Model.AllParts[i];
 
@@ -232,7 +232,7 @@ namespace LibreLancer.Render
             {
                 Model.Update(sysr.Game.TotalTime);
 
-                for (int i = 0; i < Model.AllParts.Length; i++)
+                for (var i = 0; i < Model.AllParts.Length; i++)
                 {
                     if (!visibleParts[i])
                     {

@@ -25,9 +25,9 @@ namespace LibreLancer.Thn
 	}
 	public class ParameterCurve
 	{
-		public string CLSID;
+		public string CLSID = "";
 		public PCurveType Type = PCurveType.Unknown;
-		public List<Vector4> Points;
+		public List<Vector4> Points = [];
 		public float Period;
         public ParameterCurve() { }
 
@@ -37,6 +37,7 @@ namespace LibreLancer.Thn
             Points = points.ToList();
             Period = -1;
         }
+
 		public ParameterCurve(ThornTable table)
 		{
 			CLSID = (string)table["CLSID"];

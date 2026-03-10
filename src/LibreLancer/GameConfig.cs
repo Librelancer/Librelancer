@@ -12,6 +12,7 @@ using LibreLancer.Data.Ini;
 namespace LibreLancer
 {
     [ParsedSection]
+    [Serializable]
 	public partial class GameConfig
 	{
         public GameSettings Settings = new();
@@ -28,6 +29,9 @@ namespace LibreLancer
         [XmlIgnore]
 		public Func<FreelancerGame, GameState>? CustomState;
 
+        public event Action<GameConfig>? Saved;
+        private Func<string> filePath;
+
 		private GameConfig(Func<string> filePath)
 		{
 			this.filePath = filePath;
@@ -35,9 +39,8 @@ namespace LibreLancer
 
 		public GameConfig()
 		{
+            filePath = DefaultConfigPath;
 		}
-
-        private Func<string> filePath;
 
 		public static bool CheckFLDirectory(string dir)
         {
@@ -124,8 +127,6 @@ namespace LibreLancer
             writer.WriteLine();
             Settings.Write(writer);
         }
-
-        public event Action<GameConfig> Saved;
 
         private static string DefaultConfigPath()
 		{

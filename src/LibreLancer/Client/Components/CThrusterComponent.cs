@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.GameData.Items;
+using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.World;
@@ -19,19 +20,20 @@ namespace LibreLancer.Client.Components
 		public CThrusterComponent(GameObject parent, ThrusterEquipment equip) : base(parent, equip) { }
 
 		public override void Update(double time)
-		{
-            for (int i = 0; i < fireFx.Count; i++)
+        {
+            foreach (var renderer in fireFx)
             {
-                fireFx[i].Active = Enabled;
+                renderer.Active = Enabled;
             }
-		}
-		public override void Register(Physics.PhysicsWorld physics)
+        }
+
+		public override void Register(PhysicsWorld? physics)
         {
             if (GetGameData() != null)
             {
                 var resman = GetResourceManager();
-                var pfx = Equip.Particles.GetEffect(resman);
-                foreach (var hp in Parent.GetHardpoints()
+                var pfx = Equip.Particles?.GetEffect(resman!);
+                foreach (var hp in Parent!.GetHardpoints()
                              .Where(x => x.Name.Equals(Equip.HpParticles, StringComparison.OrdinalIgnoreCase)))
                 {
                     fireFx.Add(new ParticleEffectRenderer(pfx) { Attachment = hp, Active = false, SParam = 1 });
@@ -39,12 +41,17 @@ namespace LibreLancer.Client.Components
             }
 
             foreach (var t in fireFx)
-                Parent.ExtraRenderers.Add(t);
+            {
+                Parent!.ExtraRenderers.Add(t);
+            }
         }
-		public override void Unregister(Physics.PhysicsWorld physics)
+
+		public override void Unregister(PhysicsWorld? physics)
         {
-            for (int i = 0; i < fireFx.Count; i++)
-                Parent.ExtraRenderers.Remove(fireFx[i]);
+            foreach (var renderer in fireFx)
+            {
+                Parent!.ExtraRenderers.Remove(renderer);
+            }
         }
     }
 }

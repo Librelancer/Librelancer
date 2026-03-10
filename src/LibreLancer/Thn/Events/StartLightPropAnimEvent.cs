@@ -36,7 +36,7 @@ namespace LibreLancer.Thn.Events
         {
             // Get Tables
             if (!GetProps(table, out var props)) return;
-            if (!GetValue(props, "lightprops", out ThornTable lights)) return;
+            if (!GetValue<ThornTable>(props, "lightprops", out var lights)) return;
             // Set Properties
             if (GetValue(lights, "on", out On)) SetFlags |= AnimVars.On;
             if (GetValue(lights, "diffuse", out Diffuse)) SetFlags |= AnimVars.Diffuse;

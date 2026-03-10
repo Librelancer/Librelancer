@@ -14,9 +14,9 @@ namespace LibreLancer.Server.Components
 {
     public class SNPCComponent : SRepComponent
     {
-        public Bodypart CommHead;
-        public Bodypart CommBody;
-        public Accessory CommHelmet;
+        public Bodypart? CommHead;
+        public Bodypart? CommBody;
+        public Accessory? CommHelmet;
 
         public AiState CurrentDirective;
         private NPCManager manager;
@@ -58,9 +58,7 @@ namespace LibreLancer.Server.Components
 
         public void StartTradelane()
         {
-            ShipPhysicsComponent component = Parent.GetComponent<ShipPhysicsComponent>();
-
-            if (component is not null)
+            if (Parent.TryGetComponent<ShipPhysicsComponent>(out var component))
             {
                 component.Active = false;
             }
@@ -70,8 +68,6 @@ namespace LibreLancer.Server.Components
         {
             manager.Despawn(Parent, false);
         }
-
-        private GameObject attack;
 
         public void Attack(GameObject tgt)
         {
@@ -96,21 +92,23 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            if (Pilot.Job != null)
+            if (Pilot!.Job == null)
             {
-                for (int i = 0; i < Pilot.Job.AttackPreferences.Count; i++)
-                {
-                    int weight = Pilot.Job.AttackPreferences.Count - i;
+                return;
+            }
 
-                    switch (Pilot.Job.AttackPreferences[i].Target)
-                    {
-                        case AttackTarget.Fighter:
-                            attackPref[GameObjectKind.Ship] = weight;
-                            break;
-                        case AttackTarget.Solar:
-                            attackPref[GameObjectKind.Solar] = weight;
-                            break;
-                    }
+            for (int i = 0; i < Pilot.Job.AttackPreferences.Count; i++)
+            {
+                int weight = Pilot.Job.AttackPreferences.Count - i;
+
+                switch (Pilot.Job.AttackPreferences[i].Target)
+                {
+                    case AttackTarget.Fighter:
+                        attackPref[GameObjectKind.Ship] = weight;
+                        break;
+                    case AttackTarget.Solar:
+                        attackPref[GameObjectKind.Solar] = weight;
+                        break;
                 }
             }
         }
@@ -397,7 +395,7 @@ namespace LibreLancer.Server.Components
                 return other.WorldTransform.Position;
             }
 
-            var myPos = Parent.PhysicsComponent.Body.Position;
+            var myPos = Parent.PhysicsComponent!.Body.Position;
             var myVelocity = Parent.PhysicsComponent.Body.LinearVelocity;
             var otherPos = other.PhysicsComponent.Body.Position;
             var otherVelocity = other.PhysicsComponent.Body.LinearVelocity;

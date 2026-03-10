@@ -9,7 +9,7 @@ namespace LibreLancer.Net.Protocol;
 public interface IClientPlayer
 {
     void UpdateBaselinePrices(BaselinePriceBundle prices);
-    void CallThorn(string script, ObjNetId mainObject);
+    void CallThorn(string? script, ObjNetId mainObject);
     void ListPlayers(bool isAdmin);
     void UpdateWeaponGroups(NetWeaponGroup[] wg);
 

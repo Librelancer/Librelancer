@@ -18,11 +18,13 @@ namespace LibreLancer.Sur
 
         public static SurfaceHull Read(BinaryReader reader)
         {
-            var h = new SurfaceHull();
-            h.HullId = reader.ReadUInt32 ();
-            // 24-bit unique refs count (we don't use)
-            //+ type
-            h.Type = (byte)(reader.ReadUInt32() & 0xFF);
+            var h = new SurfaceHull
+            {
+                HullId = reader.ReadUInt32 (),
+                // 24-bit unique refs count (we don't use)
+                //+ type
+                Type = (byte)(reader.ReadUInt32() & 0xFF)
+            };
             var faceCount = reader.ReadInt16 ();
             h.Unknown = reader.ReadUInt16();
             int longCount = 0;

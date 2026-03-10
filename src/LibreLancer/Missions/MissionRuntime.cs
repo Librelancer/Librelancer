@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
@@ -106,7 +107,7 @@ namespace LibreLancer.Missions
         {
             Player.MissionWorldAction(() =>
             {
-                var obj = Player.Space.World.GameWorld.GetObject(target);
+                var obj = Player.Space!.World.GameWorld.GetObject(target);
                 if (obj != null)
                 {
                     if (obj.TryGetComponent <SHealthComponent>(out var comp))
@@ -137,15 +138,19 @@ namespace LibreLancer.Missions
             }
 
             if (activeTriggers.Any(x => x.Trigger == t))
+            {
                 return;
-            var active = new ActiveTrigger() { Trigger = t };
+            }
+
+            var active = new ActiveTrigger(t);
             var conds = new List<ActiveCondition>();
             foreach (var cond in t.Conditions)
             {
-                var ac = new ActiveCondition() { Trigger = active, Condition = cond };
+                var ac = new ActiveCondition(active, cond);
                 cond.Init(this, ac);
                 conds.Add(ac);
             }
+
             active.Conditions = conds;
             FLLog.Info("Missions", $"Activate '{trigger}'");
             activeTriggers.Add(active);
@@ -185,7 +190,7 @@ namespace LibreLancer.Missions
 
         public void CargoScanned(string scanningShip, string scannedShip) => MsnEvent(new CargoScannedEvent(scanningShip, scannedShip));
 
-        public bool GetSpace(out SpacePlayer space)
+        public bool GetSpace([MaybeNullWhen(false)] out SpacePlayer space)
         {
             space = Player.Space;
             return space != null;
@@ -331,7 +336,7 @@ namespace LibreLancer.Missions
 
         private void OnProjectileHit(GameObject victim, GameObject attacker)
         {
-            MsnEvent(new ProjectileHitEvent(victim.Nickname, attacker.Nickname));
+            MsnEvent(new ProjectileHitEvent(victim.Nickname!, attacker.Nickname!));
         }
 
         public void EnterLocation(string room, string _base)
@@ -435,6 +440,12 @@ namespace LibreLancer.Missions
         {
             public uint Hash;
             public string Line;
+
+            public PendingLine(uint hash, string line)
+            {
+                Hash = hash;
+                Line = line;
+            }
         }
 
         private List<PendingLine> waitingLines = [];
@@ -443,7 +454,7 @@ namespace LibreLancer.Missions
         {
             lock (waitingLines)
             {
-                waitingLines.Add(new PendingLine() { Hash = hash, Line = line});
+                waitingLines.Add(new PendingLine(hash, line));
             }
         }
 

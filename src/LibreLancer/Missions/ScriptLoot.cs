@@ -10,7 +10,7 @@ public class ScriptLoot : NicknameItem
     public Equipment? Archetype;
     public int StringId;
     public Vector3 Position;
-    public string RelPosObj;
+    public string? RelPosObj;
     public Vector3 RelPosOffset;
     public Vector3 Velocity;
     public int EquipAmount;

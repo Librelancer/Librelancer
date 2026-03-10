@@ -30,9 +30,11 @@ namespace LibreLancer.Utf.Ale
 			int itemsCount = reader.ReadByte ();
             Items = new(itemsCount);
 			for (int fc = 0; fc < itemsCount; fc++) {
-				var floats = new AlchemyFloats ();
-				floats.SParam = reader.ReadSingle ();
-				floats.Type = (EasingTypes)reader.ReadByte ();
+				var floats = new AlchemyFloats
+                {
+                    SParam = reader.ReadSingle (),
+                    Type = (EasingTypes)reader.ReadByte ()
+                };
                 var len = reader.ReadByte();
                 floats.Keyframes = new(len);
 				for (int i = 0; i < len; i++) {

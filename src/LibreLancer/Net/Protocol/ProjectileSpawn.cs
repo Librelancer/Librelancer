@@ -19,11 +19,13 @@ namespace LibreLancer.Net.Protocol
 
         public static ProjectileSpawn Read(PacketReader message)
         {
-            var p = new ProjectileSpawn();
-            p.Owner = ObjNetId.Read(message);
-            p.Target = message.GetVector3();
-            p.Guns = message.GetVariableUInt64();
-            p.Unique = message.GetVariableUInt64();
+            var p = new ProjectileSpawn
+            {
+                Owner = ObjNetId.Read(message),
+                Target = message.GetVector3(),
+                Guns = message.GetVariableUInt64(),
+                Unique = message.GetVariableUInt64()
+            };
             p.OtherTargets = new Vector3[BitOperations.PopCount(p.Unique)];
             for (int i = 0; i < p.OtherTargets.Length; i++)
                 p.OtherTargets[i] = message.GetVector3();

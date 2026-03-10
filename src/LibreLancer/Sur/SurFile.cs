@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -12,93 +13,130 @@ using LibreLancer.Physics;
 
 namespace LibreLancer.Sur
 {
-	// TODO: Sur reader is VERY incomplete & undocumented
-	public class SurFile : IConvexMeshProvider
+    // TODO: Sur reader is VERY incomplete & undocumented
+    public class SurFile : IConvexMeshProvider
     {
         public List<SurfacePart> Surfaces = [];
 
         private Dictionary<uint, ConvexMesh[]> shapes = new();
 
-        public bool TryGetHardpoint(uint meshId, uint hpId, out ConvexMesh[] mesh)
+        public bool TryGetHardpoint(uint meshId, uint hpId, [MaybeNullWhen(false)] out ConvexMesh[] mesh)
         {
             mesh = null;
             List<ConvexMesh> hull = [];
+
             foreach (var surface in Surfaces)
             {
-                if (surface.Crc != meshId) continue;
-                if (!surface.HardpointIds.Contains(hpId))
-                    continue;
-                var hulls = surface.GetHulls(false);
-                for (int i = 0; i < hulls.Length; i++)
+                if (surface.Crc != meshId)
                 {
-                    var th = hulls[i];
+                    continue;
+                }
+
+                if (!surface.HardpointIds.Contains(hpId))
+                {
+                    continue;
+                }
+
+                var hulls = surface.GetHulls(false);
+
+                foreach (var th in hulls)
+                {
                     if (th.HullId != hpId)
+                    {
                         continue;
+                    }
+
                     var verts = new List<Vector3>();
                     foreach (var v in surface.Points)
+                    {
                         verts.Add(v.Point);
+                    }
+
                     var indices = new List<int>();
+
                     foreach (var tri in th.Faces)
                     {
                         indices.Add(tri.Points.A);
                         indices.Add(tri.Points.B);
                         indices.Add(tri.Points.C);
                     }
+
                     hull.Add(new ConvexMesh() { Indices = indices.ToArray(), Vertices = verts.ToArray() });
                 }
             }
-            if (hull.Count > 0) {
+
+            if (hull.Count > 0)
+            {
                 mesh = hull.ToArray();
                 return true;
             }
+
             return false;
         }
 
         public ConvexMesh[] GetMesh(ConvexMeshId meshId)
         {
             List<ConvexMesh> hull = [];
+
             foreach (var surface in Surfaces)
             {
-                if (surface.Crc != meshId.Id) continue;
-                if (meshId.SubId != 0 && !surface.HardpointIds.Contains(meshId.SubId))
-                    continue;
-                var hulls = surface.GetHulls(false);
-                for (int i = 0; i < hulls.Length; i++)
+                if (surface.Crc != meshId.Id)
                 {
-                    var triHull = hulls[i];
+                    continue;
+                }
+
+                if (meshId.SubId != 0 && !surface.HardpointIds.Contains(meshId.SubId))
+                {
+                    continue;
+                }
+
+                var hulls = surface.GetHulls(false);
+
+                foreach (var triHull in hulls)
+                {
                     if (meshId.SubId == 0)
                     {
                         // Skip non-part hulls
+                        var hull1 = triHull;
                         if (triHull.Type == 5 ||
                             surface.HardpointIds.Contains(triHull.HullId) ||
-                            Surfaces.Any(x => x != surface && x.Crc == triHull.HullId))
+                            Surfaces.Any(x => x != surface && x.Crc == hull1.HullId))
+                        {
                             continue;
+                        }
                     }
                     else if (meshId.SubId != triHull.HullId)
                     {
                         // Skip hulls that aren't for this hardpoint
                         continue;
                     }
+
                     var verts = new List<Vector3>();
                     foreach (var v in surface.Points)
+                    {
                         verts.Add(v.Point);
+                    }
+
                     var indices = new List<int>();
+
                     foreach (var tri in triHull.Faces)
                     {
                         indices.Add(tri.Points.A);
                         indices.Add(tri.Points.B);
                         indices.Add(tri.Points.C);
                     }
+
                     hull.Add(new ConvexMesh() { Indices = indices.ToArray(), Vertices = verts.ToArray() });
                 }
             }
+
             return hull.ToArray();
         }
 
         public bool HasShape(uint meshId)
-		{
-			return Surfaces.Any(x => x.Crc == meshId);
-		}
+        {
+            return Surfaces.Any(x => x.Crc == meshId);
+        }
 
         private const uint SUR_MAGIC = 0x73726576; //"vers"
         private const uint SUR_VERSION = 0x40000000; // 2.0f
@@ -106,28 +144,37 @@ namespace LibreLancer.Sur
         public static SurFile Read(Stream stream)
         {
             var sur = new SurFile();
-            using (var reader = new BinaryReader (stream)) {
-                if (reader.ReadUInt32()  != SUR_MAGIC)
-                    throw new Exception ("Not a sur file");
-                if (reader.ReadUInt32() != SUR_VERSION)
-                    throw new Exception("Incorrect sur version");
-                while (stream.Position < stream.Length) {
-                    sur.Surfaces.Add(SurfacePart.Read(reader));
-                }
+
+            using var reader = new BinaryReader(stream);
+
+            if (reader.ReadUInt32() != SUR_MAGIC)
+            {
+                throw new Exception("Not a sur file");
             }
+
+            if (reader.ReadUInt32() != SUR_VERSION)
+            {
+                throw new Exception("Incorrect sur version");
+            }
+
+            while (stream.Position < stream.Length)
+            {
+                sur.Surfaces.Add(SurfacePart.Read(reader));
+            }
+
             return sur;
         }
 
         public void Save(Stream stream, bool leaveOpen = true)
         {
-            using (var writer = new BinaryWriter(stream, Encoding.ASCII, leaveOpen))
+            using var writer = new BinaryWriter(stream, Encoding.ASCII, leaveOpen);
+
+            writer.Write(SUR_MAGIC);
+            writer.Write(SUR_VERSION);
+            foreach (var s in Surfaces)
             {
-                writer.Write(SUR_MAGIC);
-                writer.Write(SUR_VERSION);
-                foreach (var s in Surfaces)
-                    s.Write(writer);
+                s.Write(writer);
             }
         }
     }
 }
-

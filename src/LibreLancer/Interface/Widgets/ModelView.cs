@@ -14,6 +14,10 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ModelView : Widget3D
     {
+        public string ModelPath { get; set; } = null!;
+        private string? _loadedPath;
+        private RigidModel? model;
+
         private Lighting lighting;
         public ModelView()
         {
@@ -47,10 +51,6 @@ namespace LibreLancer.Interface
             OrbitPan = new Vector2(-10.29f, -0.53f);
         }
 
-        public string ModelPath { get; set; }
-        private string _loadedPath;
-        private RigidModel model;
-
         private void LoadModel(UiContext context)
         {
             if (string.IsNullOrWhiteSpace(ModelPath))
@@ -59,6 +59,7 @@ namespace LibreLancer.Interface
                 _loadedPath = null;
                 return;
             }
+
             if (model == null || (_loadedPath != ModelPath))
             {
                 _loadedPath = ModelPath;
@@ -81,7 +82,7 @@ namespace LibreLancer.Interface
 
         protected override void Draw3DContent(UiContext context, RectangleF rect)
         {
-            var cam = GetCamera(model.GetRadius() * 2f, context, rect);
+            var cam = GetCamera(model!.GetRadius() * 2f, context, rect);
             context.RenderContext.SetCamera(cam);
             context.CommandBuffer.Camera = cam;
             context.CommandBuffer.StartFrame(context.RenderContext);

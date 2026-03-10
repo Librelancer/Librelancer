@@ -38,7 +38,7 @@ public class CTractorComponent(TractorEquipment equipment, GameObject parent) : 
 
     private Vector3 GetBeamOrigin()
     {
-        if (!Parent.TryGetComponent<ShipComponent>(out var ship) || string.IsNullOrWhiteSpace(ship.Ship.TractorSource))
+        if (!Parent!.TryGetComponent<ShipComponent>(out var ship) || string.IsNullOrWhiteSpace(ship.Ship.TractorSource))
         {
             return Parent.WorldTransform.Position;
         }
@@ -68,13 +68,13 @@ public class CTractorComponent(TractorEquipment equipment, GameObject parent) : 
         WorldOrigin = renderer.Origin = GetBeamOrigin();
     }
 
-    public override void Register(PhysicsWorld physics)
+    public override void Register(PhysicsWorld? physics)
     {
-        Parent.ExtraRenderers.Add(renderer);
+        Parent!.ExtraRenderers.Add(renderer);
     }
 
-    public override void Unregister(PhysicsWorld physics)
+    public override void Unregister(PhysicsWorld? physics)
     {
-        Parent.ExtraRenderers.Remove(renderer);
+        Parent!.ExtraRenderers.Remove(renderer);
     }
 }

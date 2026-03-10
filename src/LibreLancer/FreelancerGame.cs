@@ -23,32 +23,25 @@ namespace LibreLancer
 {
 	public class FreelancerGame : Game
     {
-		public GameDataManager GameData;
-        public DebugView Debug;
-        public UiContext Ui;
-        public CommandBuffer Commands;
-		public AudioManager Audio;
-		public FontManager Fonts;
-		public SoundManager Sound;
-        public Typewriter Typewriter;
-		public GameResourceManager ResourceManager;
-		public Billboards Billboards;
-		public ScreenshotManager Screenshots;
-        public SaveGameFolder Saves;
-        public LineRenderer Lines;
-		public List<string> IntroMovies;
+		public GameDataManager GameData = null!;
+        public DebugView Debug = null!;
+        public UiContext Ui = null!;
+        public CommandBuffer Commands = null!;
+		public AudioManager Audio = null!;
+		public FontManager Fonts = null!;
+		public SoundManager Sound = null!;
+        public Typewriter Typewriter = null!;
+		public GameResourceManager ResourceManager = null!;
+		public Billboards Billboards = null!;
+		public ScreenshotManager Screenshots = null!;
+        public SaveGameFolder Saves = null!;
+        public LineRenderer Lines = null!;
 		public bool InitialLoadComplete = false;
         public Stopwatch? LoadTimer;
-        public InputMap InputMap;
+        public InputMap InputMap = null!;
         private GameState? currentState;
 
-		public GameConfig Config
-		{
-			get
-			{
-				return _cfg;
-			}
-		}
+		public GameConfig Config => _cfg;
 
         private GameConfig _cfg;
 		public FreelancerGame(GameConfig config) : base(config.BufferWidth, config.BufferHeight, false)
@@ -57,7 +50,6 @@ namespace LibreLancer
 			_cfg = config;
             _cfg.Saved += CfgOnSaved;
 			ScreenshotSave += FreelancerGame_ScreenshotSave;
-            Utf.Mat.TextureData.Bitch = true;
             LoadTimer = Stopwatch.StartNew();
         }
 
@@ -74,9 +66,8 @@ namespace LibreLancer
         public void ChangeState(GameState state)
 		{
             Audio.StopAllSfx();
-			if (currentState != null)
-				currentState.Unload();
-			currentState = state;
+            currentState?.Unload();
+            currentState = state;
 		}
 
         public volatile bool InisLoaded = false;
@@ -101,16 +92,20 @@ namespace LibreLancer
 			ResourceManager = new GameResourceManager(this, vfs);
 			// Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
-			Audio = new AudioManager(this);
-            Audio.MasterVolume = _cfg.Settings.MasterVolume;
-            Audio.Music.Volume = _cfg.Settings.MusicVolume;
+			Audio = new AudioManager(this)
+            {
+                MasterVolume = _cfg.Settings.MasterVolume,
+                Music =
+                {
+                    Volume = _cfg.Settings.MusicVolume
+                }
+            };
             Audio.SetVolume(SoundCategory.Sfx, _cfg.Settings.SfxVolume);
             Audio.SetVolume(SoundCategory.Interface, _cfg.Settings.InterfaceVolume);
             Audio.SetVolume(SoundCategory.Voice, _cfg.Settings.VoiceVolume);
 			// Load data
 			FLLog.Info("Game", "Loading game data");
 			GameData = new GameDataManager(new GameItemDb(vfs), ResourceManager);
-			IntroMovies = GameData.GetIntroMovies();
             Saves = new SaveGameFolder();
             InputMap = new InputMap(Path.Combine(GetSaveFolder(), "keymap.ini"));
             var saveLoadTask = Task.Run(() => Saves.Load(GetSaveFolder()));
@@ -128,8 +123,10 @@ namespace LibreLancer
                 saveLoadTask.Wait();
                 Saves.Infocards = GameData.Items.Ini.Infocards;
                 InitialLoadComplete = true;
-            });
-            GameDataLoaderThread.Name = "GamedataLoader";
+            })
+            {
+                Name = "GamedataLoader"
+            };
             GameDataLoaderThread.Start();
             Task.Run(() => PhysicsWarmup.Warmup());
             //
@@ -149,9 +146,11 @@ namespace LibreLancer
             Services.Add(GameData);
             Services.Add(Sound);
             Services.Add(Typewriter);
-            Debug = new DebugView(this);
-            Debug.Enabled = Config.Settings.Debug;
-			ChangeState(new LoadingDataState(this));
+            Debug = new DebugView(this)
+            {
+                Enabled = Config.Settings.Debug
+            };
+            ChangeState(new LoadingDataState(this));
         }
 
         public string GetSaveFolder()
@@ -212,8 +211,13 @@ namespace LibreLancer
 			VertexBuffer.TotalDrawcalls = 0;
         }
 
-        private void FreelancerGame_ScreenshotSave(string filename, int width, int height, Bgra8[] data)
+        private void FreelancerGame_ScreenshotSave(string? filename, int width, int height, Bgra8[] data)
 		{
+            if (filename is null)
+            {
+                return;
+            }
+
 			Screenshots.Save(filename, width, height, data);
 		}
     }

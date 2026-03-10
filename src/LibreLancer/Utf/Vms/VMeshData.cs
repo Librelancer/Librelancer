@@ -13,6 +13,7 @@ using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
+
 namespace LibreLancer.Utf.Vms
 {
     public class VMeshData
@@ -26,12 +27,11 @@ namespace LibreLancer.Utf.Vms
         public TMeshHeader[] Meshes { get; private set; }
 
         public byte[] VertexBuffer;
-		public ushort[] Indices;
+        public ushort[] Indices;
 
         /// <summary>
         /// A list of triangles in the mesh data
         /// </summary>
-
         public VMeshResource? Resource;
 
         private T Read<T>(int offset, int index)
@@ -64,51 +64,53 @@ namespace LibreLancer.Utf.Vms
             if (VertexFormat.Normal) offset += 12;
             if (VertexFormat.Diffuse) offset += 4;
 
-            return Read<Vector2>( offset, index);
+            return Read<Vector2>(offset, index);
         }
 
-		public VMeshData(ArraySegment<byte> data, string name)
+        public VMeshData(ArraySegment<byte> data, string name)
         {
-            if (data == null) throw new ArgumentNullException("data");
+            using BinaryReader reader = new BinaryReader(data.GetReadStream());
 
-            using (BinaryReader reader = new BinaryReader(data.GetReadStream()))
+            // Read the data header.
+            reader.Skip(8); // MeshType = 0x1, SurfaceType = 0x4
+            var meshCount = reader.ReadUInt16();
+            var indexCount = reader.ReadUInt16();
+            VertexFormat = new FVFVertex((D3DFVF) reader.ReadUInt16());
+            VertexCount = reader.ReadUInt16();
+
+            // Read the mesh headers.
+            Meshes = new TMeshHeader[meshCount];
+            int triangleStartOffset = 0;
+
+            for (int count = 0; count < Meshes.Length; count++)
             {
+                TMeshHeader item = new TMeshHeader(reader, triangleStartOffset);
 
-                // Read the data header.
-                reader.Skip(8); // MeshType = 0x1, SurfaceType = 0x4
-                var meshCount = reader.ReadUInt16();
-                var indexCount = reader.ReadUInt16();
-                VertexFormat = new FVFVertex((D3DFVF)reader.ReadUInt16());
-                VertexCount = reader.ReadUInt16();
-
-                // Read the mesh headers.
-                Meshes = new TMeshHeader[meshCount];
-                int triangleStartOffset = 0;
-                for (int count = 0; count < Meshes.Length; count++)
+                if (item.NumRefVertices < 3)
                 {
-                    TMeshHeader item = new TMeshHeader(reader, triangleStartOffset);
-                    if (item.NumRefVertices < 3) {
-                        FLLog.Warning("Vms", $"{name} mesh {count} references 0 triangles");
-                    }
-                    triangleStartOffset += item.NumRefVertices;
-                    Meshes[count] = (item);
+                    FLLog.Warning("Vms", $"{name} mesh {count} references 0 triangles");
                 }
 
-                // Read the triangle data
-                Indices = new ushort[indexCount];
-                for (int i = 0; i < indexCount; i++) Indices[i] = reader.ReadUInt16();
-                VertexBuffer = reader.ReadBytes(VertexCount * VertexFormat.Stride);
+                triangleStartOffset += item.NumRefVertices;
+                Meshes[count] = (item);
             }
+
+            // Read the triangle data
+            Indices = new ushort[indexCount];
+            for (int i = 0; i < indexCount; i++) Indices[i] = reader.ReadUInt16();
+            VertexBuffer = reader.ReadBytes(VertexCount * VertexFormat.Stride);
+
         }
 
-		public void Initialize(ResourceManager cache)
-		{
+        public void Initialize(ResourceManager cache)
+        {
             if (Resource != null && !Resource.IsDisposed)
-			{
-				return;
-			}
+            {
+                return;
+            }
+
             GenerateVertexBuffer(cache);
-		}
+        }
 
         private void SetResource(VertexResource res)
         {

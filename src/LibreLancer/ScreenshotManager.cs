@@ -19,8 +19,10 @@ namespace LibreLancer
         private List<string> names = [];
 		public ScreenshotManager(FreelancerGame game)
 		{
-			Thread thr = new Thread(new ThreadStart(SaveThread));
-            thr.Name = "ScreenshotSaver";
+			Thread thr = new Thread(new ThreadStart(SaveThread))
+            {
+                Name = "ScreenshotSaver"
+            };
             thr.Start();
             g = game;
 			screenshotdir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "FreelancerShots");
@@ -41,21 +43,24 @@ namespace LibreLancer
 		}
 		public void Save(string filename, int width, int height, Bgra8[] data)
 		{
-			toSave.Enqueue(new SaveCommand() { Data = data, Filename = filename, Width = width, Height = height });
+			toSave.Enqueue(new SaveCommand(filename, data, width, height));
 		}
 
         private void SaveThread()
 		{
 			while (Running)
 			{
-				while (toSave.Count > 0)
-				{
-                    if (toSave.TryDequeue(out var s))
+				while (!toSave.IsEmpty)
+                {
+                    if (!toSave.TryDequeue(out var s))
                     {
-                        using var output = File.Create(s.Filename);
-                        ImageLib.PNG.Save(output, s.Width, s.Height, s.Data, true);
+                        continue;
                     }
-				}
+
+                    using var output = File.Create(s.Filename);
+                    ImageLib.PNG.Save(output, s.Width, s.Height, s.Data, true);
+                }
+
 				Thread.Sleep(100);
 			}
 		}
@@ -70,6 +75,14 @@ namespace LibreLancer
 			public int Height;
 			public string Filename;
 			public Bgra8[] Data;
-		}
+
+            public SaveCommand(string filename, Bgra8[] data, int width, int height)
+            {
+                Width = width;
+                Height = height;
+                Filename = filename;
+                Data = data;
+            }
+        }
 	}
 }

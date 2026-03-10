@@ -28,6 +28,6 @@ namespace LibreLancer.Interface
         internal int HpSortIndex;
 
         [WattleScriptHidden]
-        public Equipment Equipment;
+        public Equipment? Equipment;
     }
 }
