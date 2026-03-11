@@ -115,31 +115,33 @@ namespace LibreLancer.Render
 
         public override bool OutOfView(ICamera camera)
         {
-            if (Model != null)
+            if (Model == null)
             {
-                foreach (var part in Model.AllParts)
+                return true; // not visible
+            }
+
+            foreach (var part in Model.AllParts)
+            {
+                if (!part.Active)
                 {
-                    if (!part.Active)
+                    continue;
+                }
+
+                if (part.Mesh == null)
+                {
+                    continue;
+                }
+
+                var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform.Matrix() * World);
+                var lvl = GetLevel(part, center, camera.Position);
+
+                if (lvl != -1)
+                {
+                    var bsphere = new BoundingSphere(center, part.Mesh.Radius);
+
+                    if (camera.FrustumCheck(bsphere))
                     {
-                        continue;
-                    }
-
-                    if (part.Mesh == null)
-                    {
-                        continue;
-                    }
-
-                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform.Matrix() * World);
-                    var lvl = GetLevel(part, center, camera.Position);
-
-                    if (lvl != -1)
-                    {
-                        var bsphere = new BoundingSphere(center, part.Mesh.Radius);
-
-                        if (camera.FrustumCheck(bsphere))
-                        {
-                            return false; // visible
-                        }
+                        return false; // visible
                     }
                 }
             }

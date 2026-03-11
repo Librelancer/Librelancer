@@ -24,17 +24,17 @@ namespace LibreLancer.Utf.Cmp
         public AnmFile? Animation { get; set; }
         public MatFile? MaterialLibrary { get; private set; }
         public TxmFile? TextureLibrary { get; private set; }
-		public MaterialAnimCollection? MaterialAnim { get; private set; }
+        public MaterialAnimCollection? MaterialAnim { get; private set; }
 
-		public List<Part> Parts { get; private set; }
+        public List<Part> Parts { get; private set; }
         public ConstructCollection Constructs { get; private set; }
         public Dictionary<string, ModelFile> Models { get; private set; }
         public Dictionary<string, CmpCameraInfo> Cameras { get; private set; }
 
         public CmpFile(string path, Stream stream) : this(parseFile(path, stream))
-		{
-			Path = path;
-		}
+        {
+            Path = path;
+        }
 
         public IEnumerable<Part> ModelParts() => Parts.Where(x => x.Camera == null);
 
@@ -50,9 +50,11 @@ namespace LibreLancer.Utf.Cmp
             Constructs = [];
             Parts = [];
             List<string> modelNames = [];
-			foreach (Node node in rootnode)
+
+            foreach (Node node in rootnode)
             {
                 var im = (node as IntermediateNode)!;
+
                 switch (node.Name.ToLowerInvariant())
                 {
                     case "exporter version":
@@ -78,43 +80,55 @@ namespace LibreLancer.Utf.Cmp
                             : throw new Exception("Multiple texture library nodes in cmp root");
                         break;
                     case "cmpnd":
-                        foreach (IntermediateNode subNode in im.OfType<IntermediateNode>())
+                        foreach (Node subNode in im)
                         {
-                            if (subNode.Name.Equals("cons", StringComparison.OrdinalIgnoreCase))
+                            if (subNode is LeafNode)
                             {
-                                Constructs.AddNode(subNode);
+                                continue;
+                            }
+
+                            var imSubNode = (subNode as IntermediateNode)!;
+
+                            if (imSubNode.Name.Equals("cons", StringComparison.OrdinalIgnoreCase))
+                            {
+                                Constructs.AddNode(imSubNode);
                             }
                             else if (
-                                subNode.Name.StartsWith("part_", StringComparison.OrdinalIgnoreCase) ||
-                                subNode.Name.Equals("root", StringComparison.OrdinalIgnoreCase)
+                                imSubNode.Name.StartsWith("part_", StringComparison.OrdinalIgnoreCase) ||
+                                imSubNode.Name.Equals("root", StringComparison.OrdinalIgnoreCase)
                             )
                             {
                                 string objectName = string.Empty, fileName = string.Empty;
 
-                                foreach (LeafNode partNode in subNode.OfType<LeafNode>())
+                                foreach (var cmpSubNode in imSubNode)
                                 {
-                                    switch (partNode.Name.ToLowerInvariant())
+                                    var leafSubNode = (LeafNode) cmpSubNode;
+
+                                    switch (leafSubNode.Name.ToLowerInvariant())
                                     {
                                         case "object name":
-                                            objectName = partNode.StringData;
+                                            objectName = leafSubNode.StringData;
                                             break;
                                         case "file name":
-                                            fileName = partNode.StringData;
+                                            fileName = leafSubNode.StringData;
                                             break;
-										case "index":
+                                        case "index":
                                             break;
                                         default:
-                                            FLLog.Error("Cmp","Invalid node in " + subNode.Name + ": " + partNode.Name);
+                                            FLLog.Error("Cmp",
+                                                "Invalid node in " + subNode.Name + ": " + leafSubNode.Name);
                                             break;
                                     }
                                 }
-								Parts.Add(new Part(objectName, fileName, Models, Cameras, Constructs));
+
+                                Parts.Add(new Part(objectName, fileName, Models, Cameras, Constructs));
                             }
                             else throw new Exception("Invalid node in " + im.Name + ": " + subNode.Name);
                         }
+
                         break;
                     case "materialanim":
-						MaterialAnim = new MaterialAnimCollection(im);
+                        MaterialAnim = new MaterialAnimCollection(im);
                         break;
                     default:
                         if ((IntermediateNode?) im is null)
@@ -126,11 +140,12 @@ namespace LibreLancer.Utf.Cmp
 
                             Models.Add(node.Name, m);
                             modelNames.Add(node.Name);
-                            FLLog.Warning("Cmp", Path ?? "Utf" + ": Invalid Node in cmp root, assuming empty: " + node.Name);
+                            FLLog.Warning("Cmp",
+                                Path ?? "Utf" + ": Invalid Node in cmp root, assuming empty: " + node.Name);
                             break;
                         }
 
-                        if (im.Any(x => x.Name.Equals("camera",StringComparison.OrdinalIgnoreCase)))
+                        if (im.Any(x => x.Name.Equals("camera", StringComparison.OrdinalIgnoreCase)))
                         {
                             var cam = new CmpCameraInfo(im);
                             Cameras.Add(im.Name, cam);
@@ -163,6 +178,7 @@ namespace LibreLancer.Utf.Cmp
         {
             var mdl = new RigidModel { Path = Path, Source = RigidModelSource.Compound, Parts = new() };
             List<RigidModelPart> allParts = [];
+
             foreach (var p in Parts)
             {
                 if (p.Camera != null)
@@ -177,16 +193,19 @@ namespace LibreLancer.Utf.Cmp
                     mdlPart.Construct = p.Construct.Clone();
                 }
 
+                mdlPart.Children = [];
                 allParts.Add(mdlPart);
             }
 
             foreach (var p in allParts)
             {
                 mdl.Parts.Add(p);
+
                 if (p.Construct != null)
                 {
-                    var parent = allParts.First(x => x.Name!.Equals(p.Construct.ParentName, StringComparison.OrdinalIgnoreCase));
-                    parent.Children?.Add(p);
+                    var parent = allParts.First(x =>
+                        x.Name!.Equals(p.Construct.ParentName, StringComparison.OrdinalIgnoreCase));
+                    parent.Children!.Add(p);
                 }
                 else
                     mdl.Root = p;

@@ -129,11 +129,6 @@ namespace LibreLancer.Render
         {
             starSystem = system;
 
-            if (StarSphereModels != null)
-            {
-                StarSphereModels = [];
-            }
-
             List<RigidModel> starSphereRenderData = [];
             AddModel(system.StarsBasic);
             AddModel(system.StarsComplex);
@@ -159,8 +154,11 @@ namespace LibreLancer.Render
             {
                 Ambient = new Color4(system.AmbientColor, 1)
             };
+
             foreach (var lt in system.LightSources)
+            {
                 SystemLighting.Lights.Add(new DynamicLight() { Light = lt.Light });
+            }
         }
 
         public void LoadSystem(StarSystem system)

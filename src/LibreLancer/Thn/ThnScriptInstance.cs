@@ -173,6 +173,7 @@ namespace LibreLancer.Thn
                         {
                             Name = new ObjectName(kv.Value.Name)
                         };
+
                         if (getHpMount)
                             obj.HpMount = obj.Object.GetHardpoint("HpMount");
 

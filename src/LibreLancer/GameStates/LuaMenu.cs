@@ -33,9 +33,7 @@ namespace LibreLancer
         private MenuAPI api;
         private KeyCaptureContext keyCapture = null!;
 
-#if DEBUG
         private IntroScene intro;
-#endif
 
         public LuaMenu(FreelancerGame g) : base(g)
         {
@@ -46,12 +44,12 @@ namespace LibreLancer
             ui.OpenScene("mainmenu");
             g.GameData.PopulateCursors();
             g.CursorKind = CursorKind.None;
-            var intro1 = g.GameData.GetIntroScene();
-            TryRunScript(intro1.Scripts);
-            FLLog.Info("Thn", "Playing " + intro1.ThnName);
+            intro = g.GameData.GetIntroScene();
+            TryRunScript(intro.Scripts);
+            FLLog.Info("Thn", "Playing " + intro.ThnName);
             cur = g.ResourceManager.GetCursor("arrow")!;
             GC.Collect(); // crap
-            g.Sound.PlayMusic(intro1.Music!, 0);
+            g.Sound.PlayMusic(intro.Music!, 0);
             g.Keyboard.KeyDown += UiKeyDown;
             g.Keyboard.TextInput += UiTextInput;
 #if DEBUG
