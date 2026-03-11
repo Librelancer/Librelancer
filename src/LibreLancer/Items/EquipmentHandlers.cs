@@ -76,10 +76,10 @@ public static class EquipmentHandlers
     private static GameObject? Engine(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
         string? hardpoint, Equipment equip)
     {
-        var eng = (EngineEquipment) equip;
+        var eng = (EngineEquipment)equip;
         parent.AddComponent(type != EquipmentType.Server
             ? new CEngineComponent(parent, eng)
-            : (CEngineComponent) new SEngineComponent(parent, eng));
+            : new SEngineComponent(parent, eng));
 
         if (snd == null)
         {
