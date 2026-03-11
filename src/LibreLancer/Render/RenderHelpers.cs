@@ -82,11 +82,6 @@ namespace LibreLancer.Render
 
                     if ((lc + 1) > MAX_LIGHTS)
                     {
-                        throw new Exception("Too many lights!");
-                    }
-
-                    if ((lc + 1) > MAX_LIGHTS)
-                    {
                         break;
                     }
 
