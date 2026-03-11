@@ -280,7 +280,7 @@ namespace LibreLancer.Render
                 return;
             }
 
-            RenderTarget restoreTarget = rstate.RenderTarget!;
+            RenderTarget? restoreTarget = rstate.RenderTarget;
 
             if (Settings.SelectedMSAA > 0)
             {
@@ -332,7 +332,7 @@ namespace LibreLancer.Render
             if (transitioned)
             {
                 // Fully in fog. Skip Starsphere
-                rstate.ClearColor = nr.Nebula.FogColor;
+                rstate.ClearColor = nr!.Nebula.FogColor;
                 rstate.ClearAll();
             }
             else
@@ -362,15 +362,24 @@ namespace LibreLancer.Render
             // Actual Drawing
 
             Beams.Begin(Commands, resman, camera);
-            foreach (var obj in objects) obj.Draw(camera, Commands, SystemLighting, nr);
+
+            foreach (var obj in objects)
+            {
+                obj.Draw(camera, Commands, SystemLighting, nr!);
+            }
+
             Beams.End();
-            for (var i = 0; i < AsteroidFields.Count; i++) AsteroidFields[i].Draw(resman, SystemLighting, Commands, nr);
+            for (var i = 0; i < AsteroidFields!.Count; i++)
+                AsteroidFields[i].Draw(resman, SystemLighting, Commands, nr!);
 
             if (DrawNebulae)
             {
                 if (nr == null)
                 {
-                    for (var i = 0; i < Nebulae.Count; i++) Nebulae[i].Draw(Commands);
+                    foreach (var nebula in Nebulae)
+                    {
+                        nebula.Draw(Commands);
+                    }
                 }
                 else
                 {
@@ -414,16 +423,16 @@ namespace LibreLancer.Render
                     // We frustum cull to save on fill rate for low end devices (pi)
                     var mdl = StarSphereModels[i];
 
-                    for (var j = 0; j < mdl.AllParts.Length; j++)
+                    foreach (var part in mdl.AllParts)
                     {
-                        if (!mdl.AllParts[j].Active || mdl.AllParts[j].Mesh == null)
+                        if (!part.Active || part.Mesh == null)
                         {
                             continue;
                         }
 
-                        var p = mdl.AllParts[j];
+                        var p = part;
                         var w = p.LocalTransform.Matrix() * ssworld;
-                        var bsphere = new BoundingSphere(Vector3.Transform(p.Mesh.Center, w), p.Mesh.Radius);
+                        var bsphere = new BoundingSphere(Vector3.Transform(p.Mesh!.Center, w), p.Mesh.Radius);
 
                         if (camera.FrustumCheck(bsphere))
                         {
@@ -496,15 +505,8 @@ namespace LibreLancer.Render
 
         public void Dispose()
         {
-            if (msaa != null)
-            {
-                msaa.Dispose();
-            }
-
-            if (depthMap != null)
-            {
-                depthMap.Dispose();
-            }
+            msaa?.Dispose();
+            depthMap?.Dispose();
 
             Polyline.Dispose();
             FxPool.Dispose();

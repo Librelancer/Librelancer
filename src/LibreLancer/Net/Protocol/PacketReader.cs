@@ -10,9 +10,9 @@ namespace LibreLancer.Net.Protocol;
 public struct PacketReader
 {
     private NetDataReader reader;
-    private NetHpidReader hpids;
+    private NetHpidReader? hpids;
 
-    public NetHpidReader HpidReader => hpids;
+    public NetHpidReader? HpidReader => hpids;
 
     public int Size => reader.RawDataSize;
 
@@ -284,7 +284,7 @@ public struct PacketReader
         return true;
     }
 
-    public bool TryGetString([MaybeNullWhen(false)] out string str, uint maxLength = 2048)
+    public bool TryGetString(out string? str, uint maxLength = 2048)
     {
         str = null;
         if (reader.AvailableBytes < 1) return false;
@@ -297,7 +297,7 @@ public struct PacketReader
         if (len == 0)
         {
             str = null;
-            return false;
+            return true;
         }
 
         if (len == 1)
@@ -324,7 +324,7 @@ public struct PacketReader
         };
     }
 
-    public string GetHpid()
+    public string? GetHpid()
     {
         if (hpids == null) throw new InvalidOperationException();
         var idx = GetVariableUInt32();

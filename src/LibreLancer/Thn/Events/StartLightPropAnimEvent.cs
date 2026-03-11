@@ -81,8 +81,8 @@ namespace LibreLancer.Thn.Events
         private class LightPropAnim : ThnEventProcessor
         {
             public RenderLight Orig;
-            public DynamicLight Dst;
-            public StartLightPropAnimEvent Event;
+            public DynamicLight Dst = null!;
+            public StartLightPropAnimEvent Event = null!;
             private double time;
             public override bool Run(double delta)
             {

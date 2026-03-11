@@ -134,7 +134,7 @@ namespace LibreLancer.Server.Components
                 // If the attacker is a player, and the thing being destroyed is an NPC, increment stats
                 if (attacker is not null && npc is not null && attacker.TryGetComponent<SPlayerComponent>(out var attackingPlayer))
                 {
-                    var ship = Parent.GetComponent<ShipPhysicsComponent>().Ship;
+                    var ship = Parent.GetComponent<ShipPhysicsComponent>()!.Ship;
                     attackingPlayer.Player.ShipKilledByPlayer(ship);
                 }
 
@@ -152,7 +152,7 @@ namespace LibreLancer.Server.Components
                 }
         }
 
-        public void Damage(float hullDamage, float energyDamage, GameObject attacker)
+        public void Damage(float hullDamage, float energyDamage, GameObject? attacker)
         {
             if (energyDamage <= 0)
             {

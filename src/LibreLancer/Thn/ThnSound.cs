@@ -64,10 +64,9 @@ namespace LibreLancer.Thn
         private SoundManager man;
         public ThnSoundInstance? CreateInstance(bool oneShot)
         {
-            var inst = man.GetInstance(SoundName, Attenuation, Props.Dmin, Props.Dmax,
+            var inst = man.GetInstance(SoundName, Attenuation, Props!.Dmin, Props!.Dmax,
                 Spatial ? (Vector3?) Object.Translate : null);
-            if(inst == null) return null;
-            return new ThnSoundInstance(this, inst);
+            return inst == null ? null : new ThnSoundInstance(this, inst);
         }
 
     }

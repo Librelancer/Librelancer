@@ -168,8 +168,10 @@ namespace LibreLancer.Interface
 
             timer = MathHelper.Clamp(timer, 0, 100);
             Layout(context, parent, out var myRectangle, out var track);
+
             // background
             Style?.Background?.Draw(context, myRectangle);
+
             //draw buttons
             leftbutton.Render(context, myRectangle);
             float tickmult = Smooth ? delta * 8 : 1;
@@ -200,7 +202,7 @@ namespace LibreLancer.Interface
             thumb.Update(context, track);
             float left = 0, right = 0;
 
-            if (Style.ThumbLeft != null)
+            if (Style!.ThumbLeft != null)
             {
                 left = Style.ThumbLeft.Width;
                 var rect = new RectangleF(track.X + thumb.X, track.Y + thumb.Y, left + 1, track.Height);

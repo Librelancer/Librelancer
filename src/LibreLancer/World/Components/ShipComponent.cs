@@ -36,7 +36,7 @@ public class ShipComponent : GameComponent
 
         if (hardpoint.Equals(Ship.ShieldLinkSource, StringComparison.OrdinalIgnoreCase))
         {
-            var hp = Parent.GetHardpoint(Ship.ShieldLinkHull);
+            var hp = Parent.GetHardpoint(Ship.ShieldLinkHull)!;
             Parent.PhysicsComponent?.DeactivateHardpoint(hp);
         }
     }

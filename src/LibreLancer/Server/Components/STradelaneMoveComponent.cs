@@ -138,7 +138,7 @@ namespace LibreLancer.Server.Components
         {
             direction.Normalize();
             var speed = Easing.Ease(EasingTypes.EaseIn, MathHelper.Clamp(totalTime, 0, 3), 0, 3, 0, TRADELANE_SPEED);
-            Parent.PhysicsComponent.Body.LinearVelocity = direction * speed;
+            Parent.PhysicsComponent!.Body.LinearVelocity = direction * speed;
             Parent.PhysicsComponent.Body.AngularVelocity = Vector3.Zero;
             var targetRot = QuaternionEx.LookAt(sourcePoint, targetPoint);
             Parent.PhysicsComponent.Body.SetOrientation(targetRot);
@@ -213,7 +213,7 @@ namespace LibreLancer.Server.Components
 
             if (TryGetMissionRuntime(out var msn, out var isPlayer))
             {
-                msn.TradelaneExited(isPlayer ? "Player" : Parent.Nickname, currenttradelane.Nickname);
+                msn.TradelaneExited(isPlayer ? "Player" : Parent.Nickname!, currenttradelane.Nickname!);
             }
 
             Parent.RemoveComponent(this);

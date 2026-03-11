@@ -38,7 +38,7 @@ public class SRepComponent : GameComponent
             return RepAttitude.Neutral;
         if (other.TryGetComponent<SPlayerComponent>(out var sp))
         {
-            return FromNumber(sp.Player.Character.Reputation.GetReputation(Faction));
+            return FromNumber(sp.Player.Character!.Reputation.GetReputation(Faction));
         }
         if (other.TryGetComponent<SRepComponent>(out var r))
         {

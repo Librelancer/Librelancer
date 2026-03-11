@@ -35,7 +35,6 @@ namespace LibreLancer.Net
         private Thread netThread = null!;
 		public NetManager Server = null!;
         private HttpClient http = null!;
-        private string? loginUrl;
 
 		public GameListener(GameServer srv)
         {
@@ -114,7 +113,7 @@ namespace LibreLancer.Net
                                 var p = new Player(remote,
                                     game, guid);
                                 peer.Tag = p;
-                                Task.Run(async () => await p.OnLoggedIn());
+                                _ = Task.Run(async () => await p.OnLoggedIn());
                                 lock (game.ConnectedPlayers)
                                 {
                                     game.ConnectedPlayers.Add(p);

@@ -369,7 +369,7 @@ namespace LibreLancer.Sounds
                 throw new ObjectDisposedException(nameof(SoundManager));
             }
 
-            var entry = data.GetAudioEntry(name);
+            var entry = data.GetAudioEntry(name)!;
             var path = data.GetAudioStream(name);
 
             if (path != null)

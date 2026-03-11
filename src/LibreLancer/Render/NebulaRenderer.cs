@@ -29,7 +29,7 @@ namespace LibreLancer.Render
 
         private int puffId = 0;
         private int puffsIdx = -1;
-        private VertexBillboardColor2[] puffVertices;
+        private VertexBillboardColor2[] puffVertices = [];
         private InteriorPuff[] interiorPuffs = null!;
 
         private double dynLightningTimer = 0.0;
@@ -101,30 +101,35 @@ namespace LibreLancer.Render
         }
 
 		public void Update(double elapsed)
-		{
-			if (Nebula.Zone!.ContainsPoint(sysr.Camera.Position))
-			{
-				UpdateBackgroundLightning(elapsed);
-				UpdateDynamicLightning(elapsed);
-				UpdateCloudLightning(elapsed);
-				if (Nebula.HasInteriorClouds)
-				{
-					for (var i = 0; i < Nebula.InteriorCloudCount; i++)
-					{
-						if (!interiorPuffs[i].Spawned ||
-							Vector3.Distance(interiorPuffs[i].Position, sysr.Camera.Position) > Nebula.InteriorCloudMaxDistance)
-						{
-							interiorPuffs[i].Color = GetPuffColor();
-							interiorPuffs[i].Shape = sprites.GetShape(Nebula.InteriorCloudShapes!.GetNext(rand));
-							interiorPuffs[i].Position = sysr.Camera.Position + RandomPointSphere(Nebula.InteriorCloudMaxDistance);
-							interiorPuffs[i].Spawned = true;
-							interiorPuffs[i].Velocity = RandomDirection() * Nebula.InteriorCloudDrift;
-						}
-						interiorPuffs[i].Position += interiorPuffs[i].Velocity * (float)elapsed;
-					}
-				}
-			}
-		}
+        {
+            if (!Nebula.Zone!.ContainsPoint(sysr.Camera.Position))
+            {
+                return;
+            }
+
+            UpdateBackgroundLightning(elapsed);
+            UpdateDynamicLightning(elapsed);
+            UpdateCloudLightning(elapsed);
+
+            if (!Nebula.HasInteriorClouds)
+            {
+                return;
+            }
+
+            for (var i = 0; i < Nebula.InteriorCloudCount; i++)
+            {
+                if (!interiorPuffs[i].Spawned ||
+                    Vector3.Distance(interiorPuffs[i].Position, sysr.Camera.Position) > Nebula.InteriorCloudMaxDistance)
+                {
+                    interiorPuffs[i].Color = GetPuffColor();
+                    interiorPuffs[i].Shape = sprites.GetShape(Nebula.InteriorCloudShapes!.GetNext(rand));
+                    interiorPuffs[i].Position = sysr.Camera.Position + RandomPointSphere(Nebula.InteriorCloudMaxDistance);
+                    interiorPuffs[i].Spawned = true;
+                    interiorPuffs[i].Velocity = RandomDirection() * Nebula.InteriorCloudDrift;
+                }
+                interiorPuffs[i].Position += interiorPuffs[i].Velocity * (float)elapsed;
+            }
+        }
 
         private double bckLightningTimer = 0.0;
         private bool bckLightningActive = false;
@@ -439,7 +444,7 @@ namespace LibreLancer.Render
                     new Vector2(shape.Dimensions.X, shape.Dimensions.Y + shape.Dimensions.Height),
                     new Vector2(shape.Dimensions.X + shape.Dimensions.Width, shape.Dimensions.Y + shape.Dimensions.Height)
                 );
-                
+
                 Exterior.Add(new ExteriorPuff()
                     { Position = puffPos, Material = new NebulaPuffMaterial(sysr.ResourceManager, shape.Texture) });
 				currentAngle += deltaAngle;
@@ -541,7 +546,7 @@ namespace LibreLancer.Render
 			return new Color3f(c.R, c.G, c.B);
 		}
 
-        private NebulaInteriorMaterial fillMaterial;
+        private NebulaInteriorMaterial? fillMaterial;
 
         private void RenderFill(CommandBuffer buffer, bool inside, float z)
 		{
@@ -559,7 +564,7 @@ namespace LibreLancer.Render
             if (!sysr.Camera.FrustumCheck(sph))
                 return;
 
-            fillMaterial ??= new NebulaInteriorMaterial(sysr.ResourceManager) {Texture = Nebula.ExteriorFill, Dc = Nebula.FogColor};
+            fillMaterial ??= new NebulaInteriorMaterial(sysr.ResourceManager, Nebula.ExteriorFill, Nebula.FogColor);
             var transform = Matrix4x4.CreateScale(sz) * Nebula.Zone.RotationMatrix * Matrix4x4.CreateTranslation(p);
             var world = buffer.WorldBuffer.SubmitMatrix(ref transform);
 

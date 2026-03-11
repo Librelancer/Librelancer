@@ -29,7 +29,7 @@ public class BasesidePlayer : IBasesidePlayer
             return null;
         }
 
-        if (!Player.Character.Ship.PossibleHardpoints.TryGetValue(hptype, out var candidates))
+        if (!Player.Character!.Ship!.PossibleHardpoints.TryGetValue(hptype, out var candidates))
         {
             return null;
         }
@@ -244,7 +244,7 @@ public class BasesidePlayer : IBasesidePlayer
         // Calculate player items price
         foreach (var item in sellPlayer)
         {
-            var slot = Player.Character.Items.FirstOrDefault(x => x.ID == item.ID);
+            var slot = Player.Character!.Items.FirstOrDefault(x => x.ID == item.ID);
 
             if (slot == null)
             {
@@ -260,11 +260,11 @@ public class BasesidePlayer : IBasesidePlayer
             if (count < item.Count)
             {
                 FLLog.Error("Player",
-                    $"{Player.Name} tried to oversell slot ({slot.Equipment.Nickname}, {count} < {item.Count})");
+                    $"{Player.Name} tried to oversell slot ({slot.Equipment!.Nickname}, {count} < {item.Count})");
                 return Task.FromResult(ShipPurchaseStatus.Fail);
             }
 
-            var price = BaseData!.GetUnitPrice(slot.Equipment);
+            var price = BaseData!.GetUnitPrice(slot.Equipment!);
 
             if (slot.Equipment is not CommodityEquipment)
             {
@@ -276,7 +276,7 @@ public class BasesidePlayer : IBasesidePlayer
         }
 
         // Check if we have credits
-        if (shipPrice > Player.Character.Credits)
+        if (shipPrice > Player.Character!.Credits)
         {
             FLLog.Error("Player", $"{Player.Name} does not have enough credits");
             return Task.FromResult(ShipPurchaseStatus.Fail);
@@ -295,7 +295,7 @@ public class BasesidePlayer : IBasesidePlayer
                 return Task.FromResult(ShipPurchaseStatus.Fail);
             }
 
-            var hp = item.Hardpoint.ToLowerInvariant();
+            var hp = item.Hardpoint!.ToLowerInvariant();
 
             if (mountedInc.Contains(item.ID))
             {
@@ -332,7 +332,7 @@ public class BasesidePlayer : IBasesidePlayer
                 return Task.FromResult(ShipPurchaseStatus.Fail);
             }
 
-            var hp = item.Hardpoint.ToLowerInvariant();
+            var hp = item.Hardpoint!.ToLowerInvariant();
 
             if (mountedP.Contains(item.ID))
             {
@@ -359,7 +359,7 @@ public class BasesidePlayer : IBasesidePlayer
         foreach (var item in Player.Character.Items)
         {
             counts.TryGetValue(item.ID, out var soldAmount);
-            volume += item.Equipment.Volume * (item.Count - soldAmount);
+            volume += item.Equipment!.Volume * (item.Count - soldAmount);
         }
 
         volume += included.OfType<PackageAddon>().Sum(item => item.Equipment.Volume * item.Amount);
@@ -386,7 +386,7 @@ public class BasesidePlayer : IBasesidePlayer
             {
                 item.Hardpoint = null;
 
-                if (item.Equipment.Good == null)
+                if (item.Equipment!.Good == null)
                 {
                     toRemove.Add(item);
                 }
@@ -438,7 +438,7 @@ public class BasesidePlayer : IBasesidePlayer
             return Task.FromResult(false);
         }
 
-        var equip = Player.Character.Items.FirstOrDefault(x =>
+        var equip = Player.Character!.Items.FirstOrDefault(x =>
             hardpoint.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase));
 
         if (equip == null)
@@ -460,7 +460,7 @@ public class BasesidePlayer : IBasesidePlayer
             return Task.FromResult(false);
         }
 
-        var slot = Player.Character.Items.FirstOrDefault(x => x.ID == id);
+        var slot = Player.Character!.Items.FirstOrDefault(x => x.ID == id);
 
         if (slot == null)
         {
@@ -474,7 +474,7 @@ public class BasesidePlayer : IBasesidePlayer
             return Task.FromResult(false);
         }
 
-        var hp = FirstAvailableHardpoint(slot.Equipment.HpType);
+        var hp = FirstAvailableHardpoint(slot.Equipment!.HpType);
 
         if (hp == null)
         {

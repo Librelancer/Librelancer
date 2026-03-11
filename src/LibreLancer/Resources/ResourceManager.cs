@@ -29,10 +29,10 @@ public abstract class ResourceManager
     public abstract Dictionary<string, Texture?> TextureDictionary { get; }
     public abstract Dictionary<uint, Material?> MaterialDictionary { get; }
     public abstract Dictionary<string, TexFrameAnimation?> AnimationDictionary { get; }
-    public Material DefaultMaterial;
-    public Texture2D NullTexture;
-    public Texture2D WhiteTexture;
-    public Texture2D GreyTexture;
+    public Material DefaultMaterial = null!;
+    public Texture2D NullTexture = null!;
+    public Texture2D WhiteTexture = null!;
+    public Texture2D GreyTexture = null!;
     public const string NullTextureName = "$$LIBRELANCER.Null";
     public const string WhiteTextureName = "$$LIBRELANCER.White";
     public const string GreyTextureName = "$$LIBRELANCER.Grey";
@@ -48,7 +48,7 @@ public abstract class ResourceManager
     public abstract bool TryGetShape(string name, out TextureShape? textureShape);
     public abstract bool TryGetFrameAnimation(string name, [MaybeNullWhen(false)] out TexFrameAnimation anim);
 
-    public ConvexMeshCollection ConvexCollection { get; protected set; }
+    public ConvexMeshCollection ConvexCollection { get; protected set; } = null!;
 
     protected FileSystem VFS;
     protected ResourceManager(FileSystem vfs)

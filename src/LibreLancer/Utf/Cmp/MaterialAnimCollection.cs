@@ -14,10 +14,10 @@ namespace LibreLancer.Utf.Cmp
 		{
 			foreach (var n in node)
 			{
-				if (n is IntermediateNode)
+				if (n is IntermediateNode intermediateNode)
 				{
-					var anm = new MaterialAnim(n as IntermediateNode);
-					Anims.Add(n.Name, anm);
+					var anm = new MaterialAnim(intermediateNode);
+					Anims.Add(intermediateNode.Name, anm);
 					updateList.Add(anm);
 				}
 				else

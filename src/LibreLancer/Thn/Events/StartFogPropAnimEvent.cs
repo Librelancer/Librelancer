@@ -99,8 +99,8 @@ namespace LibreLancer.Thn.Events
 
         private class FogPropAnim : ThnEventProcessor
         {
-            public StartFogPropAnimEvent Event;
-            public SystemLighting Lights;
+            public StartFogPropAnimEvent Event = null!;
+            public SystemLighting Lights = null!;
             public Color4 OrigFogColor;
             public float OrigFogStart;
             public float OrigFogEnd;

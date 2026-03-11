@@ -207,7 +207,7 @@ namespace LibreLancer.Interface
                     var rowColor = Cascade(textColor ?? InterfaceColor.White, hovered ? HoverColor : null,
                         selected ? SelectedColor : null);
                     var rowRect = GetCell(rect, row);
-                    DrawText(context, ref rowStrings[row], rowRect, TextSize, Font, rowColor, TextShadow,
+                    DrawText(context, ref rowStrings![row], rowRect, TextSize, Font, rowColor, TextShadow,
                         HorizontalAlignment.Left,
                         VerticalAlignment.Default, true, str);
                 }

@@ -129,9 +129,9 @@ namespace LibreLancer.Render
 
         public void Dispose()
         {
-            bufferSpear.Elements.Dispose();
+            bufferSpear.Elements?.Dispose();
             bufferSpear.Dispose();
-            bufferBolt.Elements.Dispose();
+            bufferBolt.Elements?.Dispose();
             bufferBolt.Dispose();
         }
         private VertexPositionColorTexture* verticesSpear;

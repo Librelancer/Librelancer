@@ -418,7 +418,7 @@ namespace LibreLancer.Thn
 
                 var r = new RenderLight
                 {
-                    Position = e.Position.Value
+                    Position = e.Position!.Value
                 };
 
                 if (lightprops.TryGetValue("type", out o))

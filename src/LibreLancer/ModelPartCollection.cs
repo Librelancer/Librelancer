@@ -12,7 +12,7 @@ public sealed class ModelPartCollection : IEnumerable<KeyValuePair<string, Rigid
     private Dictionary<uint, RigidModelPart> partsByCrc = new ();
     public void Add(RigidModelPart part)
     {
-        partsByName.Add(part.Name, part);
+        partsByName.Add(part.Name!, part);
         partsByCrc.Add(CrcTool.FLModelCrc(part.Name), part);
     }
 

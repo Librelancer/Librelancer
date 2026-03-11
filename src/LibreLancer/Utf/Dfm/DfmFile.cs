@@ -19,16 +19,16 @@ namespace LibreLancer.Utf.Dfm
     /// </summary>
     public class DfmFile : UtfFile, IDrawable
 	{
-		public string Path { get; private set; }
+		public string Path { get; private set; } = null!;
 
         public MatFile? MaterialLibrary;
         public TxmFile? TextureLibrary;
 
 		public Dictionary<int, DfmMesh> Levels { get; private set; }
-		public float[] Fractions { get; private set; }
+		public float[] Fractions { get; private set; } = null!;
 
-		public string Skeleton { get; private set; }
-		public float? Scale { get; private set; }
+        public string Skeleton { get; private set; } = null!;
+        public float? Scale { get; private set; }
 
 		public Dictionary<int, DfmPart> Parts { get; private set; }
 		public Dictionary<string, Bone> Bones { get; private set; }
@@ -149,7 +149,7 @@ namespace LibreLancer.Utf.Dfm
 				default:
 					if (node.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase))
 					{
-						Bone b = new Bone(node.Name, node as IntermediateNode);
+						Bone b = new Bone(node.Name, (node as IntermediateNode)!);
 						Bones.Add(node.Name, b);
 					}
 					else throw new Exception("Invalid Node in dfm root: " + node.Name);

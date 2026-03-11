@@ -74,7 +74,7 @@ namespace LibreLancer.Server
 
             var rand = new Random();
             ValueRange<int>? firstName = null;
-            if (fac.Properties.FirstNameMale != null &&
+            if (fac.Properties!.FirstNameMale != null &&
                 fac.Properties.FirstNameFemale != null)
             {
                 firstName = rand.Next(0, 2) == 1 ? fac.Properties.FirstNameMale : fac.Properties.FirstNameFemale;
@@ -93,7 +93,7 @@ namespace LibreLancer.Server
         public GameObject SpawnJumper(JumperNpc jumper, MissionRuntime msn, string jumpObject)
         {
             var jumpPoint = World.GameWorld.GetObject(jumpObject);
-            var pos = jumpPoint.WorldTransform.Position;
+            var pos = jumpPoint!.WorldTransform.Position;
             var orient = jumpPoint.WorldTransform.Orientation;
             pos = Vector3.Transform(new Vector3(rand.Next(-50, 50), rand.Next(-50, 50), rand.Next(-300, -100)),
                 orient) + pos;
@@ -129,7 +129,7 @@ namespace LibreLancer.Server
             )
         {
             var ship = World.Server.GameData.Items.Ships.Get(loadout.Archetype);
-            GameObject spawnPoint = World.GameWorld.GetObject(arrivalObj);
+            GameObject spawnPoint = World.GameWorld.GetObject(arrivalObj)!;
             SDockableComponent? sdock = null;
             if (spawnPoint?.TryGetComponent<SDockableComponent>(out sdock) ?? false)
             {
@@ -142,7 +142,7 @@ namespace LibreLancer.Server
                 position = p.Position;
                 orient = p.Orientation;
             }
-            var obj = new GameObject(ship, World.Server.Resources, false, true)
+            var obj = new GameObject(ship!, World.Server.Resources, false, true)
             {
                 Name = name,
                 Nickname = nickname
@@ -150,7 +150,7 @@ namespace LibreLancer.Server
             obj.SetLocalTransform(new Transform3D(position, orient));
             obj.AddComponent(new SHealthComponent(obj)
             {
-                CurrentHealth = ship.Hitpoints,
+                CurrentHealth = ship!.Hitpoints,
                 MaxHealth = ship.Hitpoints
             });
             obj.AddComponent(new SFuseRunnerComponent(obj) { DamageFuses = ship.Fuses });
@@ -162,9 +162,9 @@ namespace LibreLancer.Server
             var cargo = new SNPCCargoComponent(obj);
             cargo.Cargo.AddRange(loadout.Cargo);
             obj.AddComponent(cargo);
-            var stateDescription = new StateGraphDescription(stateGraph.ToUpperInvariant(), "LEADER");
+            var stateDescription = new StateGraphDescription(stateGraph!.ToUpperInvariant(), "LEADER");
             World.Server.GameData.Items.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
-            var npcComponent = new SNPCComponent(obj, this, stateTable) { MissionRuntime = msn, Faction = affiliation };
+            var npcComponent = new SNPCComponent(obj, this, stateTable!) { MissionRuntime = msn, Faction = affiliation };
             npcComponent.SetPilot(pilot);
             npcComponent.CommHead = costume?.Head;
             npcComponent.CommBody = costume?.Body;
@@ -181,7 +181,7 @@ namespace LibreLancer.Server
             if (sdock != null)
             {
                 sdock.UndockShip(obj, arrivalIndex);
-                obj.GetComponent<AutopilotComponent>().Undock(spawnPoint, arrivalIndex);
+                obj.GetComponent<AutopilotComponent>()!.Undock(spawnPoint!, arrivalIndex);
             }
             if (nickname != null)
             {

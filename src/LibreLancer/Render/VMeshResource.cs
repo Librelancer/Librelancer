@@ -148,10 +148,13 @@ public class VMeshResource
 
         var indexBuffer = new List<int>();
         foreach (var b in merged)
+        {
             indexBuffer.AddRange(b.Indices);
+        }
+
         var baseVertex = indexBuffer.Min();
         var newIndices = indexBuffer.Select(x => checked((ushort) (x - baseVertex))).ToArray();
-        var indexResource = VertexResource!.Allocator.AllocateIndex(newIndices);
+        var indexResource = VertexResource!.Allocator!.AllocateIndex(newIndices);
         var startIndex = indexResource.StartIndex - VertexResource.StartIndex;
 
         foreach (var b in merged)

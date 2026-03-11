@@ -15,7 +15,7 @@ namespace LibreLancer.Interface
     {
         public InterfaceColor? WireframeColor { get; set; }
         private TargetShipWireframe? target;
-        
+
         public WireframeView()
         {
             OrbitPan = Vector2.Zero;
@@ -50,7 +50,7 @@ namespace LibreLancer.Interface
                 return;
             }
 
-            if (target.Model.Source == RigidModelSource.Sphere)
+            if (target.Model!.Source == RigidModelSource.Sphere)
             {
                 var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
 
@@ -80,13 +80,13 @@ namespace LibreLancer.Interface
             var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             var mesh = context.Data.ResourceManager.FindMesh(wire.MeshCRC);
             if (mesh != null)
-                context.Lines.DrawVWire(wire, mesh.VertexResource, mat, color);
+                context.Lines.DrawVWire(wire, mesh.VertexResource!, mat, color);
         }
 
         protected override void Draw3DContent(UiContext context, RectangleF rect)
         {
             float zoom;
-            if (target.Model.Source == RigidModelSource.Sphere)
+            if (target!.Model!.Source == RigidModelSource.Sphere)
                 zoom = SPHERE_OFFSET;
             else
                 zoom = -target.Model.GetRadius() * 2.05f;

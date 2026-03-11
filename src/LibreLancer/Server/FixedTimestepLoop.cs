@@ -12,10 +12,14 @@ namespace LibreLancer.Server
 
         // FromSeconds creates an inaccurate timespan
         public TimeSpan TimeStep { get; private set; } = TimeSpan.FromTicks(166667);
-
         public TimeSpan TotalTime { get; private set; }
-
         private OnStep onStep;
+
+        private Stopwatch timer = null!;
+        private bool running = false;
+
+        private TimeSpan accumulatedTime;
+        private TimeSpan lastTime;
 
         public delegate void OnStep(TimeSpan delta, TimeSpan totalTime, uint currentTick);
 
@@ -41,12 +45,6 @@ namespace LibreLancer.Server
             }
             sleepPrecision = precision;
         }
-
-        private Stopwatch timer;
-        private bool running = false;
-
-        private TimeSpan accumulatedTime;
-        private TimeSpan lastTime;
 
         private TimeSpan Accumulate()
         {

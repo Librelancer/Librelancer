@@ -480,48 +480,47 @@ namespace LibreLancer.Utf.Mat
                         _rmat = ilm;
                         break;
                     case "DetailMap2Dm1Msk2PassMaterial":
-                        var dm2p = new DetailMap2Dm1Msk2PassMaterial(res);
+                        var dm2p = new DetailMap2Dm1Msk2PassMaterial(res, DtName!, Dm1Name)
+                        {
+                            Dc = Dc,
+                            Ac = Ac,
+                            FlipU = FlipU,
+                            FlipV = FlipV,
+                            TileRate = TileRate,
+                            DtFlags = (SamplerFlags) DtFlags,
+                            Dm1Flags = (SamplerFlags) Dm1Flags,
+                            Library = res
+                        };
+
                         _rmat = dm2p;
-                        dm2p.Dc = Dc;
-                        dm2p.Ac = Ac;
-                        dm2p.FlipU = FlipU;
-                        dm2p.FlipV = FlipV;
-                        dm2p.TileRate = TileRate;
-
-                        dm2p.DtSampler = DtName;
-                        dm2p.DtFlags = (SamplerFlags) DtFlags;
-
-                        dm2p.Dm1Sampler = Dm1Name;
-                        dm2p.Dm1Flags = (SamplerFlags) Dm1Flags;
-                        dm2p.Library = res;
                         break;
                     case "NomadMaterialNoBendy":
                     case "NomadMaterial":
-                        var nmd = new NomadMaterial(res);
+                        var nmd = new NomadMaterial(res, DtName!, btName, NtName)
+                        {
+                            Dc = Dc,
+                            BtFlags = (SamplerFlags) BtFlags,
+                            DtFlags = (SamplerFlags) DtFlags,
+                            NtFlags = (SamplerFlags) NtFlags,
+                            Oc = Oc ?? 1f,
+                            Library = res
+                        };
                         _rmat = nmd;
-                        nmd.Dc = Dc;
-                        nmd.BtSampler = btName;
-                        nmd.BtFlags = (SamplerFlags) BtFlags;
-                        nmd.DtSampler = DtName;
-                        nmd.DtFlags = (SamplerFlags) DtFlags;
-                        nmd.NtFlags = (SamplerFlags) NtFlags;
-                        nmd.NtSampler = NtName;
-                        nmd.Oc = Oc ?? 1f;
-                        nmd.Library = res;
                         break;
                     case "DetailMapMaterial":
-                        var dm = new DetailMapMaterial(res);
+                        var dm = new DetailMapMaterial(res, DtName!, DmName)
+                        {
+                            Dc = Dc,
+                            Ac = Ac,
+                            FlipU = FlipU,
+                            FlipV = FlipV,
+                            TileRate = TileRate,
+                            DmFlags = (SamplerFlags) DmFlags,
+                            DtFlags = (SamplerFlags) DtFlags,
+                            Library = res
+                        };
+
                         _rmat = dm;
-                        dm.Dc = Dc;
-                        dm.Ac = Ac;
-                        dm.FlipU = FlipU;
-                        dm.FlipV = FlipV;
-                        dm.TileRate = TileRate;
-                        dm.DmSampler = DmName;
-                        dm.DmFlags = (SamplerFlags) DmFlags;
-                        dm.DtSampler = DtName;
-                        dm.DtFlags = (SamplerFlags) DtFlags;
-                        dm.Library = res;
                         break;
                     default:
                         throw new NotImplementedException();

@@ -90,11 +90,11 @@ namespace LibreLancer.Net.Protocol
 
     public class AddStringPacket : IPacket
     {
-        public string ToAdd;
+        public string ToAdd = null!;
 
         public static AddStringPacket Read(PacketReader message) => new()
         {
-            ToAdd = message.GetString()
+            ToAdd = message.GetString()!
         };
 
         public void WriteContents(PacketWriter outPacket)
@@ -220,7 +220,7 @@ namespace LibreLancer.Net.Protocol
             result.Orientation = message.GetQuaternion();
             if (header.HasFlag(SpawnHeader.Name))
             {
-                result.Name = message.GetObjectName();
+                result.Name = message.GetObjectName()!;
             }
 
             if (header.HasFlag(SpawnHeader.NicknameNotNull))
@@ -515,7 +515,7 @@ namespace LibreLancer.Net.Protocol
         public long CreditDiff;
         public long ShipWorthDiff;
         public long NetWorthDiff;
-        public NetLoadoutDiff LoadoutDiff;
+        public NetLoadoutDiff LoadoutDiff = null!;
 
         public PlayerInventory Apply(PlayerInventory a)
         {

@@ -20,15 +20,15 @@ namespace LibreLancer.Utf.Cmp
     public class ModelFile : UtfFile, IRigidModelFile
     {
         public string Path { get; set; }
-        public VmsFile? VMeshLibrary { get; private set; }
-        public MatFile? MaterialLibrary { get; private set; }
-        public TxmFile? TextureLibrary { get; private set; }
-		public MaterialAnimCollection MaterialAnim { get; private set; }
+        public VmsFile? VMeshLibrary { get; private set; } = null!;
+        public MatFile? MaterialLibrary { get; private set; } = null!;
+        public TxmFile? TextureLibrary { get; private set; } = null!;
+		public MaterialAnimCollection MaterialAnim { get; private set; } = null!;
 
-        public List<HardpointDefinition> Hardpoints { get; private set; }
+        public List<HardpointDefinition> Hardpoints { get; private set; } = null!;
         public VMeshRef?[] Levels { get; private set; }
-        public float[] Switch2 { get; private set; }
-        public VMeshWire VMeshWire { get; private set; }
+        public float[]? Switch2 { get; private set; }
+        public VMeshWire VMeshWire { get; private set; } = null!;
 
         public ModelFile(string path, Stream stream)
         {
@@ -54,23 +54,23 @@ namespace LibreLancer.Utf.Cmp
                     case "exporter version":
                         break;
                     case "vmeshlibrary":
-                        IntermediateNode vMeshLibraryNode = node as IntermediateNode;
+                        IntermediateNode vMeshLibraryNode = (node as IntermediateNode)!;
                         if (VMeshLibrary == null) VMeshLibrary = new VmsFile(vMeshLibraryNode);
                         else throw new Exception("Multiple vmeshlibrary nodes in 3db root");
                         break;
                     case "material library":
-                        IntermediateNode materialLibraryNode = node as IntermediateNode;
+                        IntermediateNode materialLibraryNode = (node as IntermediateNode)!;
                         if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode);
                         else throw new Exception("Multiple material library nodes in 3db root");
                         break;
                     case "texture library":
-                        IntermediateNode textureLibraryNode = node as IntermediateNode;
-                        if (TextureLibrary == null) TextureLibrary = new TxmFile(textureLibraryNode);
-                        else throw new Exception("Multiple texture library nodes in 3db root");
+                        IntermediateNode textureLibraryNode = (node as IntermediateNode)!;
+                        TextureLibrary = TextureLibrary == null
+                            ? new TxmFile(textureLibraryNode)
+                            : throw new Exception("Multiple texture library nodes in 3db root");
                         break;
                     case "hardpoints":
-                        IntermediateNode hardpointsNode = node as IntermediateNode;
-                        if(hardpointsNode == null) break;
+                        if(node is not IntermediateNode hardpointsNode) break;
                         foreach (Node hpn in hardpointsNode)
                         {
 							if (hpn is LeafNode)
@@ -95,53 +95,59 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     case "vmeshpart":
                         {
-                            IntermediateNode vMeshPartNode = node as IntermediateNode;
+                            IntermediateNode vMeshPartNode = (node as IntermediateNode)!;
                             if (vMeshPartNode.Count == 1)
                             {
-                                LeafNode vMeshRefNode = vMeshPartNode[0] as LeafNode;
+                                LeafNode vMeshRefNode = (vMeshPartNode[0] as LeafNode)!;
                                 lvls.Add(0, new VMeshRef(vMeshRefNode.DataSegment));
                             }
                             else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
                         }
                         break;
                     case "multilevel":
-                        IntermediateNode multiLevelNode = node as IntermediateNode;
+                        IntermediateNode multiLevelNode = (node as IntermediateNode)!;
                         foreach (Node multiLevelSubNode in multiLevelNode)
                         {
                             if (multiLevelSubNode.Name.StartsWith("level", StringComparison.OrdinalIgnoreCase))
                             {
 								if (multiLevelSubNode is LeafNode)
 									continue;
-                                IntermediateNode levelNode = multiLevelSubNode as IntermediateNode;
-                                if (levelNode.Count == 1)
+
+                                IntermediateNode levelNode = (multiLevelSubNode as IntermediateNode)!;
+
+                                if (levelNode.Count != 1)
                                 {
-                                    if (!int.TryParse(levelNode.Name.Substring(5), out var level)) throw new Exception("Invalid Level: Missing index");
-
-                                    IntermediateNode vMeshPartNode = levelNode[0] as IntermediateNode;
-
-                                    if (vMeshPartNode.Count == 1)
-                                    {
-                                        LeafNode vMeshRefNode = vMeshPartNode[0] as LeafNode;
-                                        if (vMeshRefNode != null && vMeshRefNode.Name.Equals("vmeshref",
-                                                StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            lvls.Add(level, new VMeshRef(vMeshRefNode.DataSegment));
-                                        }
-                                    }
-                                    else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
+                                    continue;
                                 }
+
+                                if (!int.TryParse(levelNode.Name.Substring(5), out var level))
+                                {
+                                    throw new Exception("Invalid Level: Missing index");
+                                }
+
+                                IntermediateNode vMeshPartNode = (levelNode[0] as IntermediateNode)!;
+
+                                if (vMeshPartNode.Count == 1)
+                                {
+                                    if (vMeshPartNode[0] is LeafNode vMeshRefNode && vMeshRefNode.Name.Equals("vmeshref",
+                                            StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        lvls.Add(level, new VMeshRef(vMeshRefNode.DataSegment));
+                                    }
+                                }
+                                else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
                                 // else throw new Exception("Invalid Level: More than one child or zero elements");
                             }
                             else if (multiLevelSubNode.Name.Equals("switch2", StringComparison.OrdinalIgnoreCase))
                             {
-                                LeafNode switch2Node = multiLevelSubNode as LeafNode;
+                                LeafNode switch2Node = (multiLevelSubNode as LeafNode)!;
                                 Switch2 = switch2Node.SingleArrayData;
                             }
                             else throw new Exception("Invalid node in " + multiLevelNode.Name + ": " + multiLevelSubNode.Name);
                         }
                         break;
                     case "vmeshwire":
-                        VMeshWire = new VMeshWire(node as IntermediateNode);
+                        VMeshWire = new VMeshWire((node as IntermediateNode)!);
                         break;
                     case "mass properties":
                         // TODO 3db Mass Properties

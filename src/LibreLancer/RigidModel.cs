@@ -147,14 +147,14 @@ namespace LibreLancer
 
                 if (mat.Render.IsTransparent)
                 {
-                    z = RenderHelpers.GetZ(world, buffer.Camera.Position, Center);
+                    z = RenderHelpers.GetZ(world, buffer.Camera!.Position, Center);
                 }
 
                 buffer.AddCommand(mat.Render,
                     ma,
                     wm,
                     lights,
-                    l.Resource.VertexResource.VertexBuffer,
+                    l.Resource.VertexResource!.VertexBuffer!,
                     PrimitiveTypes.TriangleList,
                     l.Resource.VertexResource.BaseVertex + dc.BaseVertex,
                     l.Resource.VertexResource.StartIndex + dc.StartIndex,

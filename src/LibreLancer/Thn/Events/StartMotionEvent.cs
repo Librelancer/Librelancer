@@ -12,13 +12,16 @@ namespace LibreLancer.Thn.Events
         public float StartTime;
         public float TimeScale;
         public int Flags;
-        public StartMotionEvent() { }
+
+        public StartMotionEvent()
+        {
+        }
 
         public StartMotionEvent(ThornTable table) : base(table)
         {
             if (!GetProps(table, out var props)) return;
 
-            GetValue(props, "animation", out Animation);
+            GetValue(props, "animation", out Animation!);
             GetValue(props, "start_time", out StartTime);
             GetValue(props, "time_scale", out TimeScale, 1f);
             GetValue(props, "event_flags", out Flags);
@@ -26,7 +29,7 @@ namespace LibreLancer.Thn.Events
 
         public override void Run(ThnScriptInstance instance)
         {
-            if (!instance.Objects.TryGetValue(Targets[0], out ThnObject obj))
+            if (!instance.Objects.TryGetValue(Targets[0], out var obj))
             {
                 FLLog.Error("Thn", $"${Targets[0]} does not exist");
                 return;
@@ -35,21 +38,18 @@ namespace LibreLancer.Thn.Events
             if (obj.Actor != null)
             {
                 var a = obj.Actor;
+
                 if (!instance.Objects.TryGetValue(obj.Actor, out obj))
                 {
                     FLLog.Error("Thn", $"Could not find object for actor {a}");
                     return;
                 }
             }
-            if (obj.Object != null && obj.Object.AnimationComponent != null) // Check if object has Cmp animation
+
+            if (obj.Object is { AnimationComponent: not null }) // Check if object has Cmp animation
             {
                 bool loop = (Flags == 2);
-                obj.Object.AnimationComponent.StartAnimation(
-                    Animation,
-                    loop,
-                    StartTime,
-                    TimeScale,
-                    Duration);
+                obj.Object.AnimationComponent.StartAnimation(Animation, loop, StartTime, TimeScale, Duration);
             }
         }
     }

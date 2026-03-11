@@ -96,7 +96,7 @@ namespace LibreLancer.Server
             return DoSpawn(loadout, pilot, 0, 0, 0, arrivalObj);
         }
 
-        private NPCWattleInstance DoSpawn(string loadout, string? pilot, float x, float y, float z, string arrivalObj)
+        private NPCWattleInstance DoSpawn(string loadout, string? pilot, float x, float y, float z, string? arrivalObj)
         {
             if (!manager.World.Server.GameData.Items.TryGetLoadout(loadout, out var resolved))
                 throw new ScriptRuntimeException($"Could not get loadout {loadout}");

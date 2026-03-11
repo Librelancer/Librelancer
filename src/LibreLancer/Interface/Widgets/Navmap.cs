@@ -40,6 +40,14 @@ namespace LibreLancer.Interface
             public Color4 Tint;
             public string Texture;
             public float Sort;
+
+            public DrawZone(Zone zone, Color4 tint, string texture, float sort)
+            {
+                Zone = zone;
+                Tint = tint;
+                Texture = texture;
+                Sort = sort;
+            }
         }
 
         private List<DrawZone> zones = [];
@@ -185,14 +193,12 @@ namespace LibreLancer.Interface
                     tint = new Color4(0, 0, 0, 0.6f);
                 }
 
-                if (tex == null) continue;
-                zones.Add(new DrawZone()
+                if (tex == null)
                 {
-                    Zone = zone,
-                    Texture = tex,
-                    Tint = tint ?? Color4.White,
-                    Sort = zone.Sort
-                });
+                    continue;
+                }
+
+                zones.Add(new DrawZone(zone, tint ?? Color4.White, tex, zone.Sort));
             }
 
             zones.Sort((x, y) => x.Sort.CompareTo(y.Sort));
@@ -210,7 +216,7 @@ namespace LibreLancer.Interface
         ];
 
         private CachedRenderString[] letterCache = new CachedRenderString[16];
-        private CachedRenderString systemNameCache = null!;
+        private CachedRenderString? systemNameCache;
         private CachedRenderString[] objectStrings = null!;
 
         public float Zoom = 1f;

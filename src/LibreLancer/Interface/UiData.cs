@@ -190,13 +190,12 @@ namespace LibreLancer.Interface
         {
             if (uibundle == null)
             {
-                using (var reader =
-                       new StreamReader(
-                           typeof(UiContext).Assembly.GetManifestResourceStream(
-                               $"LibreLancer.Interface.Default.interface.json")))
-                {
-                    uibundle = InterfaceTextBundle.FromJSON(reader.ReadToEnd());
-                }
+                using var reader =
+                    new StreamReader(
+                        typeof(UiContext).Assembly.GetManifestResourceStream(
+                            $"LibreLancer.Interface.Default.interface.json")!);
+
+                uibundle = InterfaceTextBundle.FromJSON(reader.ReadToEnd());
             }
         }
 
@@ -225,7 +224,7 @@ namespace LibreLancer.Interface
             else
             {
                 ReadBundle();
-                return uibundle.Exists(file);
+                return uibundle!.Exists(file);
             }
         }
 

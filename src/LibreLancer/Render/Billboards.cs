@@ -98,9 +98,9 @@ namespace LibreLancer.Render
 			}
 		}
 
-        private ICamera camera;
+        private ICamera camera = null!;
         private int billboardCount = 0;
-        private CommandBuffer buffer;
+        private CommandBuffer buffer = null!;
 		public void Begin(ICamera cam, CommandBuffer cmd)
 		{
 			camera = cam;

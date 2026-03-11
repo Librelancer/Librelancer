@@ -32,23 +32,23 @@ namespace LibreLancer.Server
         public string? LoginUrl = null;
 
         public bool SendDebugInfo = false;
-        public string DebugInfo { get; private set; }
+        public string DebugInfo { get; private set; } = null!;
 
-        public string ScriptsFolder { get; set; }
+        public string ScriptsFolder { get; set; } = null!;
 
-        public IDesignTimeDbContextFactory<LibreLancerContext> DbContextFactory;
+        public IDesignTimeDbContextFactory<LibreLancerContext> DbContextFactory = null!;
         public GameDataManager GameData;
-        public ServerDatabase Database;
+        public ServerDatabase Database = null!;
         public ResourceManager Resources;
-        public WorldProvider Worlds;
-        public ServerPerformance PerformanceStats;
+        public WorldProvider Worlds = null!;
+        public ServerPerformance PerformanceStats = null!;
 
         public BaselinePriceBundle BaselineGoodPrices;
 
         private volatile bool running = false;
 
         public GameListener? Listener;
-        private Thread gameThread;
+        private Thread gameThread = null!;
 
         public List<Player> ConnectedPlayers = [];
         public Player? LocalPlayer;
@@ -98,7 +98,7 @@ namespace LibreLancer.Server
             // TODO: pilot comm_anim (not in vanilla mpnewcharacter)
             // TODO: pilot body_anim (not in vanilla mpnewcharacter)
             src.Replace("%%MONEY%%", package.Money.ToString());
-            src.Replace("%%HOME_SYSTEM%%", GameData.Items.Bases.Get(fac.Base).System);
+            src.Replace("%%HOME_SYSTEM%%", GameData.Items.Bases.Get(fac.Base)!.System);
             src.Replace("%%HOME_BASE%%", fac.Base);
 
             var pkgStr = new StringBuilder();
@@ -119,7 +119,7 @@ namespace LibreLancer.Server
             {
                 pkgStr.AppendLine(new PlayerCargo()
                 {
-                    Item = new HashValue(x.Nickname),
+                    Item = new HashValue(x.Nickname!),
                     Count = x.Count
                 }.ToString());
             }
@@ -230,10 +230,10 @@ namespace LibreLancer.Server
 
         public void LoadSaveGame(SaveGame sg) => worldRequests.Enqueue(() =>
         {
-            LocalPlayer.OpenSaveGame(sg);
+            LocalPlayer!.OpenSaveGame(sg);
         });
 
-        private FixedTimestepLoop processingLoop;
+        private FixedTimestepLoop processingLoop = null!;
 
         public double TotalTime => processingLoop.TotalTime.TotalSeconds;
 
@@ -244,7 +244,7 @@ namespace LibreLancer.Server
             CurrentTick = currentTick;
             var startTime = serverTiming.Elapsed;
             while (!localPackets.IsEmpty && localPackets.TryDequeue(out var local))
-                LocalPlayer.ProcessPacketDirect(local);
+                LocalPlayer!.ProcessPacketDirect(local);
             if (worldRequests.Count > 0 && worldRequests.TryDequeue(out var a))
                 a();
             // Update
@@ -286,7 +286,7 @@ namespace LibreLancer.Server
             if (!running) processingLoop.Stop();
         }
 
-        private Stopwatch serverTiming;
+        private Stopwatch serverTiming = null!;
 
         private void GameThread()
         {
@@ -304,12 +304,11 @@ namespace LibreLancer.Server
             serverTiming = Stopwatch.StartNew();
             Database = new ServerDatabase(this);
             Listener?.Start();
-            double lastTime = 0;
             processingLoop = new FixedTimestepLoop(Process);
             processingLoop.Start();
             Listener?.Stop();
             Database.Dispose();
-            Database = null;
+            Database = null!;
         }
     }
 }

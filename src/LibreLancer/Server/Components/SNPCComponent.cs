@@ -18,7 +18,7 @@ namespace LibreLancer.Server.Components
         public Bodypart? CommBody;
         public Accessory? CommHelmet;
 
-        public AiState CurrentDirective;
+        public AiState? CurrentDirective;
         private NPCManager manager;
         public MissionRuntime? MissionRuntime;
 
@@ -448,7 +448,7 @@ namespace LibreLancer.Server.Components
                 }
             }
 
-            Parent.GetComponent<SelectedTargetComponent>().Selected = shootAt;
+            Parent.GetComponent<SelectedTargetComponent>()!.Selected = shootAt;
 
             // Shoot at hostile
             if (shootAt != null && Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
@@ -626,7 +626,10 @@ namespace LibreLancer.Server.Components
 
         public override void Update(double time)
         {
-            Parent.TryGetComponent<AutopilotComponent>(out var ap);
+            if (!Parent.TryGetComponent<AutopilotComponent>(out var ap))
+            {
+                return;
+            }
 
             if (ap.CurrentBehavior == AutopilotBehaviors.Undock)
             {
@@ -659,7 +662,7 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            Parent.TryGetComponent<ShipSteeringComponent>(out var si);
+            var si = Parent.GetComponent<ShipSteeringComponent>()!;
             timeInState += time;
 
             bool canTransition = false;

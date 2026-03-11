@@ -13,6 +13,12 @@ namespace LibreLancer.World.Components
     {
         public GameObject Parent;
         public Hardpoint DockHardpoint;
+
+        public DockCameraInfo(GameObject parent, Hardpoint dockHp)
+        {
+            Parent = parent;
+            DockHardpoint = dockHp;
+        }
     }
 
     public class UndockInfo
@@ -35,7 +41,7 @@ namespace LibreLancer.World.Components
         {
             var hpname = Spheres[index].Hardpoint.Replace("DockMount", "DockCam");
             var hp = Parent.GetHardpoint(hpname);
-            return hp == null ? null : new DockCameraInfo() { DockHardpoint = hp, Parent = Parent };
+            return hp == null ? null : new DockCameraInfo(Parent, hp);
         }
 
         public UndockInfo GetUndockInfo(int index)

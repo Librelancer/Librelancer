@@ -132,7 +132,6 @@ namespace LibreLancer.Render
 
             public void Spawn(AsteroidFieldRenderer r)
             {
-                var min = 0;
                 var p = new Vector3(
                     r.rand.NextFloat(-1, 1),
                     r.rand.NextFloat(-1, 1),
@@ -215,7 +214,7 @@ namespace LibreLancer.Render
                 if (!warnedTooManyBillboards)
                 {
                     warnedTooManyBillboards = true;
-                    FLLog.Warning("Asteroids", "Too many billboards in sort task for field " + field.Zone.Nickname);
+                    FLLog.Warning("Asteroids", "Too many billboards in sort task for field " + field.Zone!.Nickname);
                 }
 
                 Array.Sort(billboardBuffer, 0, checkCount); // Get closest
@@ -415,7 +414,7 @@ namespace LibreLancer.Render
 
                         var coords = billboardCoords[calculatedBillboards[i].Texture];
                         sys.Billboards.DrawTri(
-                            billboardTex,
+                            billboardTex!,
                             calculatedBillboards[i].Position,
                             calculatedBillboards[i].Size,
                             new Color4(field.BillboardTint * cameraLights.Ambient, alpha),
@@ -461,7 +460,7 @@ namespace LibreLancer.Render
         {
             Vector3 sz = Vector3.Zero;
 
-            if (field.Zone.Shape == ShapeKind.Sphere)
+            if (field.Zone!.Shape == ShapeKind.Sphere)
             {
                 sz = new Vector3(field.Zone.Size.X);
             }
@@ -470,7 +469,7 @@ namespace LibreLancer.Render
                 sz = field.Zone.Size;
             }
 
-            sz.X -= field.Band.OffsetDistance;
+            sz.X -= field.Band!.OffsetDistance;
             sz.Z -= field.Band.OffsetDistance;
             lightingRadius = Math.Max(sz.X, sz.Z);
             bandTransform = (

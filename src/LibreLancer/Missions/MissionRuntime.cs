@@ -26,19 +26,23 @@ namespace LibreLancer.Missions
         public Random Random = new();
 
         public Dictionary<string, MissionLabel> Labels = new(StringComparer.OrdinalIgnoreCase);
+
         public MissionRuntime(MissionScript script, Player player, uint[] triggerSave)
         {
             Script = script;
+
             foreach (var lbl in Script.GetLabels())
             {
                 Labels[lbl.Name] = lbl;
             }
+
             this.Player = player;
             bool doInit = true;
             {
                 foreach (var tr in triggerSave)
                 {
                     bool found = false;
+
                     foreach (var t in Script.AvailableTriggers)
                     {
                         if (FLHash.CreateID(t.Key) == tr)
@@ -50,17 +54,23 @@ namespace LibreLancer.Missions
                             break;
                         }
                     }
-                    if (!found) FLLog.Error("Save", $"Unable to find trigger with hash {tr} - this trigger will not be restored");
+
+                    if (!found)
+                        FLLog.Error("Save",
+                            $"Unable to find trigger with hash {tr} - this trigger will not be restored");
                 }
             }
+
             if (doInit)
             {
                 FLLog.Debug("Mission", "Loading init triggers");
+
                 foreach (var t in Script.InitTriggers)
                 {
                     ActivateTrigger(t);
                 }
             }
+
             UpdateUiTriggers();
         }
 
@@ -74,23 +84,28 @@ namespace LibreLancer.Missions
             if (Player.Space != null)
             {
                 FLLog.Info("Mission", "Player is in space, saving only the last save trigger");
+
                 if (!string.IsNullOrEmpty(lastSaveTrigger))
                 {
-                    sg.TriggerSave.Add(new TriggerSave() { Trigger = (int)FLHash.CreateID(lastSaveTrigger) });
-                    FLLog.Info("Mission", $"Saved mission save trigger: {lastSaveTrigger} (hash: {FLHash.CreateID(lastSaveTrigger)})");
+                    sg.TriggerSave.Add(new TriggerSave() { Trigger = (int) FLHash.CreateID(lastSaveTrigger) });
+                    FLLog.Info("Mission",
+                        $"Saved mission save trigger: {lastSaveTrigger} (hash: {FLHash.CreateID(lastSaveTrigger)})");
                 }
             }
             else
             {
                 FLLog.Info("Mission", "Player is not in space, saving all active triggers");
+
                 foreach (var at in activeTriggers)
                 {
-                    sg.TriggerSave.Add(new TriggerSave() { Trigger = (int)FLHash.CreateID(at.Trigger.Nickname) });
-                    FLLog.Info("Mission", $"Saved active trigger: {at.Trigger.Nickname} (hash: {FLHash.CreateID(at.Trigger.Nickname)})");
+                    sg.TriggerSave.Add(new TriggerSave() { Trigger = (int) FLHash.CreateID(at.Trigger.Nickname) });
+                    FLLog.Info("Mission",
+                        $"Saved active trigger: {at.Trigger.Nickname} (hash: {FLHash.CreateID(at.Trigger.Nickname)})");
                 }
             }
 
-            FLLog.Info("Mission", $"Total mission save triggers saved: {sg.TriggerSave.Count}, space status: {(Player.Space != null ? "in space" : "not in space")}");
+            FLLog.Info("Mission",
+                $"Total mission save triggers saved: {sg.TriggerSave.Count}, space status: {(Player.Space != null ? "in space" : "not in space")}");
         }
 
         public void RegisterSaveTrigger(string triggerName)
@@ -108,9 +123,10 @@ namespace LibreLancer.Missions
             Player.MissionWorldAction(() =>
             {
                 var obj = Player.Space!.World.GameWorld.GetObject(target);
+
                 if (obj != null)
                 {
-                    if (obj.TryGetComponent <SHealthComponent>(out var comp))
+                    if (obj.TryGetComponent<SHealthComponent>(out var comp))
                     {
                         comp.ProjectileHitHook = OnProjectileHit;
                     }
@@ -130,6 +146,7 @@ namespace LibreLancer.Missions
         public void ActivateTrigger(string trigger)
         {
             var t = Script.AvailableTriggers[trigger];
+
             if (t.Conditions.Length == 1 && t.Conditions[0] is Cnd_True)
             {
                 FLLog.Info("Missions", $"Instant run '{trigger}'");
@@ -144,6 +161,7 @@ namespace LibreLancer.Missions
 
             var active = new ActiveTrigger(t);
             var conds = new List<ActiveCondition>();
+
             foreach (var cond in t.Conditions)
             {
                 var ac = new ActiveCondition(active, cond);
@@ -158,7 +176,9 @@ namespace LibreLancer.Missions
 
         public void DeactivateTrigger(string trigger)
         {
-            var x = activeTriggers.FirstOrDefault(x => x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
+            var x = activeTriggers.FirstOrDefault(x =>
+                x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
+
             if (x != null)
             {
                 FLLog.Info("Missions", $"Deactivate '{trigger}'");
@@ -176,11 +196,15 @@ namespace LibreLancer.Missions
             {
                 return TriggerState.COMPLETE;
             }
-            var at = activeTriggers.FirstOrDefault(x => x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
+
+            var at = activeTriggers.FirstOrDefault(x =>
+                x.Trigger.Nickname.Equals(trigger, StringComparison.OrdinalIgnoreCase));
+
             if (at == null)
             {
                 return TriggerState.OFF;
             }
+
             return TriggerState.ON;
         }
 
@@ -188,7 +212,8 @@ namespace LibreLancer.Missions
 
         public void BaseEnter(string _base) => MsnEvent(new BaseEnteredEvent(_base));
 
-        public void CargoScanned(string scanningShip, string scannedShip) => MsnEvent(new CargoScannedEvent(scanningShip, scannedShip));
+        public void CargoScanned(string scanningShip, string scannedShip) =>
+            MsnEvent(new CargoScannedEvent(scanningShip, scannedShip));
 
         public bool GetSpace([MaybeNullWhen(false)] out SpacePlayer space)
         {
@@ -207,24 +232,29 @@ namespace LibreLancer.Missions
                 {
                     t.ActiveTime += elapsed;
                     var newSatisfied = new BitArray128();
+
                     for (int i = 0; i < t.Conditions.Count; i++)
                     {
-                        var condState =  t.Conditions[i].Condition.CheckCondition(this, t.Conditions[i], elapsed);
-                        #if DEBUG
+                        var condState = t.Conditions[i].Condition.CheckCondition(this, t.Conditions[i], elapsed);
+#if DEBUG
                         if (!t.Satisfied[i] && condState)
                         {
                             FLLog.Debug("Mission", $"{t.Trigger.Nickname} satisfied cnd: {t.Conditions[i].Condition}");
                         }
-                        #endif
+#endif
                         newSatisfied[i] = condState;
                     }
+
                     if (t.Satisfied != newSatisfied)
                     {
                         uiUpdate = true;
                     }
+
                     t.Satisfied = newSatisfied;
                 }
+
                 CheckMissionScript();
+
                 if (uiUpdate)
                 {
                     uiUpdate = false;
@@ -244,16 +274,20 @@ namespace LibreLancer.Missions
         {
             foreach (var t in activeTriggers)
             {
-                var ti = new TriggerInfo() { Name = t.Trigger.Nickname, Satisfied = t.Satisfied };
+                var ti = new TriggerInfo(t.Trigger.Nickname, t.Satisfied);
+
                 foreach (var a in t.Trigger.Actions)
                 {
                     ti.Actions.Add(a.Text);
                 }
+
                 var sb = new IniBuilder.IniSectionBuilder() { Section = new("") };
+
                 foreach (var c in t.Conditions)
                 {
                     ti.Conditions.Add(c.Condition.ToString());
                 }
+
                 yield return ti;
             }
         }
@@ -264,14 +298,22 @@ namespace LibreLancer.Missions
             public BitArray128 Satisfied;
             public List<string> Actions = [];
             public List<string> Conditions = [];
+
+            public TriggerInfo(string name, BitArray128 satisfied)
+            {
+                Name = name;
+                Satisfied = satisfied;
+            }
         }
 
         private List<ActiveTrigger> activeTriggers = [];
 
         private void MsnEvent<T>(T e) where T : struct
         {
-            lock (_msnLock) {
-                foreach (var tr in activeTriggers) {
+            lock (_msnLock)
+            {
+                foreach (var tr in activeTriggers)
+                {
                     for (int i = tr.Conditions.Count - 1; i >= 0; i--)
                     {
                         if (tr.Conditions[i].Condition is EventListenerCondition<T> listener)
@@ -281,6 +323,7 @@ namespace LibreLancer.Missions
                         }
                     }
                 }
+
                 CheckMissionScript();
             }
         }
@@ -294,6 +337,7 @@ namespace LibreLancer.Missions
             for (int i = 0; i < activeTriggers.Count; i++)
             {
                 var trigger = activeTriggers[i];
+
                 if (trigger.Deactivated)
                 {
                     uiUpdate = true;
@@ -303,6 +347,7 @@ namespace LibreLancer.Missions
                 else
                 {
                     bool satisfied = true;
+
                     for (int j = 0; j < trigger.Conditions.Count; j++)
                     {
                         if (!trigger.Satisfied[j])
@@ -368,6 +413,7 @@ namespace LibreLancer.Missions
             {
                 l.Destroyed(nickname);
             }
+
             MsnEvent(new DestroyedEvent(nickname));
         }
 
@@ -416,7 +462,7 @@ namespace LibreLancer.Missions
         private void DoTrigger(ScriptedTrigger tr)
         {
             FLLog.Info("Mission", "Running trigger " + tr.Nickname);
-            foreach(var act in tr.Actions)
+            foreach (var act in tr.Actions)
                 act.Invoke(this, Script);
         }
 
@@ -457,6 +503,5 @@ namespace LibreLancer.Missions
                 waitingLines.Add(new PendingLine(hash, line));
             }
         }
-
     }
 }

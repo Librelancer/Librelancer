@@ -9,20 +9,20 @@ using System.Numerics;
 
 namespace LibreLancer.Sur
 {
-	public class SurfacePart
+    public class SurfacePart
     {
-		public Vector3 Center;
-		public Vector3 Inertia;
+        public Vector3 Center;
+        public Vector3 Inertia;
         public Vector3 Minimum;
         public Vector3 Maximum;
         public Vector3 Unknown;
         public float Radius;
         public uint Crc;
-		public float Scale; // Scale of sphere without hardpoints
-		public List<SurfacePoint> Points = [];
+        public float Scale; // Scale of sphere without hardpoints
+        public List<SurfacePoint> Points = [];
         public List<uint> HardpointIds = [];
 
-        public SurfaceNode Root;
+        public SurfaceNode Root = null!;
 
         public bool Dynamic = false;
 
@@ -37,14 +37,20 @@ namespace LibreLancer.Sur
             var queue = new Stack<SurfaceNode>();
             queue.Push(Root);
             SurfaceNode target;
+
             while (queue.Count > 0)
             {
                 target = queue.Pop();
-                if(target.Right != null) queue.Push(target.Right);
-                if(target.Left != null) queue.Push(target.Left);
-                if(target.Hull != null && target.Hull.Type == 4) hulls.Add(target.Hull);
+                if (target.Right != null) queue.Push(target.Right);
+                if (target.Left != null) queue.Push(target.Left);
+                if (target.Hull != null && target.Hull.Type == 4) hulls.Add(target.Hull);
             }
-            if(wrap && Root.Hull.Type == 5) hulls.Add(Root.Hull);
+
+            if (wrap && Root.Hull!.Type == 5)
+            {
+                hulls.Add(Root.Hull);
+            }
+
             return hulls.ToArray();
         }
 
@@ -54,9 +60,13 @@ namespace LibreLancer.Sur
             {
                 Crc = reader.ReadUInt32()
             };
+
             uint sectionCount = reader.ReadUInt32();
-            while (sectionCount-- > 0) {
+
+            while (sectionCount-- > 0)
+            {
                 var sectionId = reader.ReadUInt32();
+
                 switch (sectionId)
                 {
                     case SURF:
@@ -70,13 +80,17 @@ namespace LibreLancer.Sur
                         surf.Dynamic = true;
                         break;
                     case HPID:
-                        uint count = reader.ReadUInt32 ();
-                        while (count-- > 0) {
+                        uint count = reader.ReadUInt32();
+
+                        while (count-- > 0)
+                        {
                             surf.HardpointIds.Add(reader.ReadUInt32());
                         }
+
                         break;
                 }
             }
+
             return surf;
         }
 
@@ -87,7 +101,7 @@ namespace LibreLancer.Sur
             if (HardpointIds.Count > 0) sectionCount++;
             writer.Write(Crc);
             writer.Write(sectionCount);
-            if(Dynamic) writer.Write(NOT_FIXED);
+            if (Dynamic) writer.Write(NOT_FIXED);
             writer.Write(EXTS);
             writer.Write(Minimum.X);
             writer.Write(Minimum.Y);
@@ -97,31 +111,35 @@ namespace LibreLancer.Sur
             writer.Write(Maximum.Z);
             writer.Write(SURF);
             WriteSurf(writer);
-            if (HardpointIds.Count > 0){
+
+            if (HardpointIds.Count > 0)
+            {
                 writer.Write(HPID);
                 writer.Write(HardpointIds.Count);
-                foreach(var id in HardpointIds) writer.Write(id);
+                foreach (var id in HardpointIds) writer.Write(id);
             }
         }
 
         private void WriteSurf(BinaryWriter writer)
         {
-            var startOffset = 4 + (int)writer.BaseStream.Position;
+            var startOffset = 4 + (int) writer.BaseStream.Position;
             // skip section size and header
             writer.BaseStream.Seek(52, SeekOrigin.Current);
 
             // Write SurfaceHulls
             var hulls = GetHulls(true);
             var offsets = new int[hulls.Length];
+
             for (int i = 0; i < hulls.Length; i++)
             {
                 offsets[i] = (int) writer.BaseStream.Position;
                 writer.Write(0U); // skip offset to point
                 hulls[i].Write(writer);
             }
+
             // Write SurfacePoints
             var pointsStartOffset = (int) writer.BaseStream.Position;
-            foreach(var p in Points)
+            foreach (var p in Points)
                 p.Write(writer);
             var nodesStartOffset = (int) writer.BaseStream.Position;
 
@@ -131,7 +149,7 @@ namespace LibreLancer.Sur
                 var offset = offsets[i];
                 writer.BaseStream.Seek(offset, SeekOrigin.Begin);
                 writer.Write(pointsStartOffset - offset);
-                if(hulls[i].Type == 5)
+                if (hulls[i].Type == 5)
                     writer.Write(nodesStartOffset - offset);
             }
 
@@ -154,9 +172,10 @@ namespace LibreLancer.Sur
                 {
                     // Update parent right node offset
                     writer.BaseStream.Seek(parentOffset, SeekOrigin.Begin);
-                    writer.Write(currentOffset -parentOffset);
+                    writer.Write(currentOffset - parentOffset);
                     writer.BaseStream.Seek(currentOffset, SeekOrigin.Begin);
                 }
+
                 writer.Write(0U); // right child
                 // offset to hull
                 if (currentNode.Hull != null)
@@ -166,9 +185,9 @@ namespace LibreLancer.Sur
 
                 currentNode.Write(writer);
 
-                if(currentNode.Right != null)
+                if (currentNode.Right != null)
                     queue.Push((currentOffset, currentNode.Right));
-                if(currentNode.Left != null)
+                if (currentNode.Left != null)
                     queue.Push((0, currentNode.Left));
             }
 
@@ -198,15 +217,15 @@ namespace LibreLancer.Sur
         private void ReadSurf(BinaryReader reader)
         {
             var size = reader.ReadInt32(); // size of the section from AFTER this field
-            var startOffset = (int)reader.BaseStream.Position;
-            var endOffset = (int)reader.BaseStream.Position + size;
+            var startOffset = (int) reader.BaseStream.Position;
+            var endOffset = (int) reader.BaseStream.Position + size;
 
             Center = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             Inertia = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
             Radius = reader.ReadSingle();
-            Scale = (float)reader.ReadByte() / 0xFA;
-            var bitsEnd = (int)reader.ReadUInt24();
-            var bitsStart = (int)reader.ReadUInt32();
+            Scale = (float) reader.ReadByte() / 0xFA;
+            var bitsEnd = (int) reader.ReadUInt24();
+            var bitsStart = (int) reader.ReadUInt32();
             // Unknown Vector3
 
             var nodesEndOffset = startOffset + bitsEnd;
@@ -223,7 +242,7 @@ namespace LibreLancer.Sur
             SurfaceNode? parentNode = null;
             SurfaceNode? currentNode = null;
 
-            var queue = new Stack<(SurfaceNode node, int offset)>();
+            var queue = new Stack<(SurfaceNode? node, int offset)>();
             queue.Push((null, nodesStartOffset));
 
             // Read nodes in order as they appear in tree
@@ -243,7 +262,8 @@ namespace LibreLancer.Sur
                 currentNode = SurfaceNode.Read(reader);
                 leftOffset = (int) reader.BaseStream.Position;
 
-                if (parentNode == null) {
+                if (parentNode == null)
+                {
                     Root = currentNode;
                 }
                 else
@@ -268,7 +288,8 @@ namespace LibreLancer.Sur
 
             reader.BaseStream.Seek(pointsStartOffset, SeekOrigin.Begin);
 
-            while (reader.BaseStream.Position < nodesStartOffset) {
+            while (reader.BaseStream.Position < nodesStartOffset)
+            {
                 Points.Add(SurfacePoint.Read(reader));
             }
 
@@ -278,4 +299,3 @@ namespace LibreLancer.Sur
         public override string ToString() => $"Surface (ID: 0x{Crc})";
     }
 }
-

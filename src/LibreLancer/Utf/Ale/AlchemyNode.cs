@@ -33,6 +33,7 @@ namespace LibreLancer.Utf.Ale
 			return false;
 		}
 
+#pragma warning disable CS8762 // Parameter must have a non-null value when exiting in some condition.
         private bool TryGetObject<T>(AleProperty name, [MaybeNullWhen(false)] out T value)
         {
             if (!TryGetParameter(name, out var p))
@@ -41,7 +42,7 @@ namespace LibreLancer.Utf.Ale
                 return false;
             }
 
-            value = (T)p.Value;
+            value = (T?)p.Value;
             return true;
         }
 

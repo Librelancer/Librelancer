@@ -23,30 +23,30 @@ namespace LibreLancer.Missions.Actions
         {
         }
 
-        protected SetVibeBase(MissionAction act) : base(act) { }
+        protected SetVibeBase(MissionAction act) : base(act)
+        {
+        }
 
         protected void SetVibe(MissionRuntime runtime, string target, string other, VibeSet vibe)
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var tgt = runtime.Player.Space.World.GameWorld.GetObject(target);
+                var tgt = runtime.Player.Space!.World.GameWorld.GetObject(target);
                 var o = runtime.Player.Space.World.GameWorld.GetObject(other);
-                if (tgt != null && o != null && tgt.TryGetComponent<SRepComponent>(out var rep)) {
+
+                if (tgt != null && o != null && tgt.TryGetComponent<SRepComponent>(out var rep))
+                {
                     FLLog.Debug("Mission", $"{tgt} rep to {o}: {vibe}");
-                    if (vibe == VibeSet.REP_FRIEND_MAXIMUM ||
-                        vibe == VibeSet.REP_FRIEND_THRESHOLD)
+
+                    if (vibe is VibeSet.REP_FRIEND_MAXIMUM or VibeSet.REP_FRIEND_THRESHOLD)
                     {
                         rep.SetAttitude(o, RepAttitude.Friendly);
                     }
-                    else if (vibe == VibeSet.REP_NEUTRAL_HOSTILE ||
-                             vibe == VibeSet.REP_NEUTRAL ||
-                             vibe == VibeSet.REP_NEUTRAL_FRIENDLY)
+                    else if (vibe is VibeSet.REP_NEUTRAL_HOSTILE or VibeSet.REP_NEUTRAL or VibeSet.REP_NEUTRAL_FRIENDLY)
                     {
                         rep.SetAttitude(o, RepAttitude.Neutral);
                     }
-                    else if (vibe == VibeSet.REP_HOSTILE_MAXIMUM ||
-                             vibe == VibeSet.REP_HOSTILE_THRESHOLD)
-
+                    else if (vibe is VibeSet.REP_HOSTILE_MAXIMUM or VibeSet.REP_HOSTILE_THRESHOLD)
                     {
                         rep.SetAttitude(o, RepAttitude.Hostile);
                     }
@@ -105,6 +105,7 @@ namespace LibreLancer.Missions.Actions
             if (!runtime.Labels.TryGetValue(Label1, out var l1) ||
                 !runtime.Labels.TryGetValue(Label2, out var l2))
                 return;
+
             foreach (var ship1 in l1.Objects)
             {
                 foreach (var ship2 in l2.Objects)

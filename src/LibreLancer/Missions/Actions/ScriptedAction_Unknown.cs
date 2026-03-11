@@ -448,7 +448,7 @@ public class Act_NagOff : ScriptedAction
 
 public class Act_SetNNHidden : ScriptedAction
 {
-    public string Objective;
+    public string Objective = "";
     public bool Hide;
 
     public Act_SetNNHidden()

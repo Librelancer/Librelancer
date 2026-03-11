@@ -9,7 +9,7 @@ namespace LibreLancer.Utf.Cmp
 	{
 		public int MACount;
 		public int MAFlags;
-		public float[] MADeltas;
+		public float[] MADeltas = [];
 
 		public MaterialAnim(IntermediateNode node)
 		{
@@ -18,7 +18,7 @@ namespace LibreLancer.Utf.Cmp
 				if (child is IntermediateNode)
 					throw new Exception("Invalid node in MaterialAnim " + child.Name);
 				var leaf = child as LeafNode;
-				switch (leaf.Name.ToLowerInvariant())
+				switch (leaf!.Name.ToLowerInvariant())
 				{
 					case "macount":
 						MACount = leaf.Int32ArrayData [0];

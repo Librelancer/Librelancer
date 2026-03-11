@@ -10,10 +10,10 @@ namespace LibreLancer.Render.Materials;
 
 public class SunSpineMaterial : RenderMaterial
 {
-    public string Texture;
+    public string? Texture;
     public Vector2 SizeMultiplier;
 
-    public SunSpineMaterial(ResourceManager library, string texture, Vector2 sizeMult) : base(library)
+    public SunSpineMaterial(ResourceManager library, string? texture, Vector2 sizeMult) : base(library)
     {
         SizeMultiplier = sizeMult;
         Texture = texture;

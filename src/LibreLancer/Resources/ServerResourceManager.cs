@@ -25,7 +25,7 @@ public class ServerResourceManager : ResourceManager
         throw new InvalidOperationException();
     }
 
-    public ServerResourceManager(ConvexMeshCollection collection, FileSystem vfs) : base(vfs)
+    public ServerResourceManager(ConvexMeshCollection? collection, FileSystem vfs) : base(vfs)
     {
         ConvexCollection = collection ?? new ConvexMeshCollection(GetSur);
     }

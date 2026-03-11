@@ -19,6 +19,7 @@ namespace LibreLancer.Render
         private LightEquipment equip;
         public bool LightOn = true;
         private static Random rnd = new();
+
         public LightEquipRenderer(LightEquipment e)
         {
             equip = e;
@@ -26,11 +27,12 @@ namespace LibreLancer.Render
             colorGlow = equip.GlowColor;
         }
 
-        private static TextureShape bulbshape = new (ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));
+        private static TextureShape bulbshape = new(ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));
         private static Texture2D? bulbtex = null;
-        private static TextureShape shineshape = new (ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));
+        private static TextureShape shineshape = new(ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));
         private static Texture2D? shinetex = null;
         private static bool frameStart = false;
+
         public static void FrameStart()
         {
             frameStart = true;
@@ -38,14 +40,15 @@ namespace LibreLancer.Render
 
         private const float CULL_DISTANCE = 20000;
         private const float CULL = CULL_DISTANCE * CULL_DISTANCE;
+
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
             if (frameStart)
             {
                 if (sys!.ResourceManager.TryGetShape("bulb", out var newBulbShape))
                 {
-                    bulbshape = newBulbShape.Value;
-                    bulbtex = (Texture2D?)sys.ResourceManager.FindTexture(bulbshape.Texture);
+                    bulbshape = newBulbShape!.Value;
+                    bulbtex = (Texture2D?) sys.ResourceManager.FindTexture(bulbshape.Texture);
                 }
                 else
                 {
@@ -54,8 +57,8 @@ namespace LibreLancer.Render
 
                 if (sys.ResourceManager.TryGetShape("shine", out var shineShape))
                 {
-                    shineshape = shineShape.Value;
-                    shinetex = (Texture2D?)sys.ResourceManager.FindTexture(shineshape.Texture);
+                    shineshape = shineShape!.Value;
+                    shinetex = (Texture2D?) sys.ResourceManager.FindTexture(shineshape.Texture);
                 }
                 else
                 {
@@ -64,9 +67,11 @@ namespace LibreLancer.Render
 
                 frameStart = false;
             }
+
             if (bulbtex == null || shinetex == null)
                 return;
-            sys.Billboards.Draw(
+
+            sys!.Billboards.Draw(
                 shinetex,
                 pos,
                 new Vector2(equip.GlowSize) * 2,
@@ -74,11 +79,13 @@ namespace LibreLancer.Render
                 new Vector2(shineshape.Dimensions.X, shineshape.Dimensions.Y),
                 new Vector2(shineshape.Dimensions.X + shineshape.Dimensions.Width, shineshape.Dimensions.Y),
                 new Vector2(shineshape.Dimensions.X, shineshape.Dimensions.Y + shineshape.Dimensions.Height),
-                new Vector2(shineshape.Dimensions.X + shineshape.Dimensions.Width, shineshape.Dimensions.Y + shineshape.Dimensions.Height),
+                new Vector2(shineshape.Dimensions.X + shineshape.Dimensions.Width,
+                    shineshape.Dimensions.Y + shineshape.Dimensions.Height),
                 0,
                 SortLayers.OBJECT,
                 BlendMode.Additive
             );
+
             sys.Billboards.Draw(
                 bulbtex,
                 pos,
@@ -87,7 +94,8 @@ namespace LibreLancer.Render
                 new Vector2(bulbshape.Dimensions.X, bulbshape.Dimensions.Y),
                 new Vector2(bulbshape.Dimensions.X + bulbshape.Dimensions.Width, bulbshape.Dimensions.Y),
                 new Vector2(bulbshape.Dimensions.X, bulbshape.Dimensions.Y + bulbshape.Dimensions.Height),
-                new Vector2(bulbshape.Dimensions.X + bulbshape.Dimensions.Width, bulbshape.Dimensions.Y + bulbshape.Dimensions.Height),
+                new Vector2(bulbshape.Dimensions.X + bulbshape.Dimensions.Width,
+                    bulbshape.Dimensions.Y + bulbshape.Dimensions.Height),
                 0,
                 SortLayers.OBJECT,
                 BlendMode.Additive
@@ -99,14 +107,17 @@ namespace LibreLancer.Render
         private bool lt_on = true;
         private Color3f colorBulb;
         private Color3f colorGlow;
+
         public override void Update(double time, Vector3 position, Matrix4x4 transform)
         {
             if (!LightOn || sys == null)
                 return;
             pos = position;
+
             if (equip.Animated)
             {
                 timer -= time;
+
                 if (timer < 0)
                 {
                     if (lt_on)
@@ -121,6 +132,7 @@ namespace LibreLancer.Render
                         colorBulb = equip.MinColor;
                         colorGlow = equip.MinColor;
                     }
+
                     lt_on = !lt_on;
                 }
             }
@@ -136,18 +148,22 @@ namespace LibreLancer.Render
             );
             this.sys = sys;
             var showLight = !equip.Animated || !lt_on;
+
             if (equip.EmitRange > 0 && showLight && camera.FrustumCheck(new BoundingSphere(pos, equip.EmitRange)))
             {
                 // sys.PointLightDX(pos, equip.EmitRange, new Color4(equip.GlowColor, 1), equip.EmitAttenuation);
             }
-            if (visible) {
+
+            if (visible)
+            {
                 sys.AddObject(this);
                 return true;
-            } else {
+            }
+            else
+            {
                 return false;
             }
 
         }
     }
 }
-

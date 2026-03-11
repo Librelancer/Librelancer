@@ -41,7 +41,7 @@ namespace LibreLancer.Render
 		}
 
         private ushort blend;
-        private Texture2D texture;
+        private Texture2D texture = null!;
         private int vertexCount = 0;
         private int pointsCount = 0;
 		public void AddPoint(Vector3 a, Vector3 b, Vector2 uv1, Vector2 uv2, Color4 color)

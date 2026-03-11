@@ -24,7 +24,7 @@ namespace LibreLancer.Utf.Cmp
         public AnmFile? Animation { get; set; }
         public MatFile? MaterialLibrary { get; private set; }
         public TxmFile? TextureLibrary { get; private set; }
-		public MaterialAnimCollection MaterialAnim { get; private set; }
+		public MaterialAnimCollection? MaterialAnim { get; private set; }
 
 		public List<Part> Parts { get; private set; }
         public ConstructCollection Constructs { get; private set; }

@@ -46,8 +46,11 @@ namespace LibreLancer.Render.Materials
 		public string DtSampler;
 		public SamplerFlags DtFlags;
 
-        public DetailMapMaterial(ResourceManager library) : base(library) { }
-
+        public DetailMapMaterial(ResourceManager library, string dtSampler, string dmSampler) : base(library)
+        {
+            DtSampler = dtSampler;
+            DmSampler = dmSampler;
+        }
 
 		public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{

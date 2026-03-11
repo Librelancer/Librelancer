@@ -11,9 +11,9 @@ namespace LibreLancer.Utf
     {
         private Dictionary<int,string> strings = new();
         private byte[] stringBlock;
-        private string asciiSource;
+        private string asciiSource = null!;
         private bool lenPrefixed;
-        
+
         public StringBlock(byte[] block, bool lenPrefixed)
         {
             stringBlock = block;

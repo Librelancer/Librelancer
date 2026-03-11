@@ -115,9 +115,9 @@ namespace LibreLancer.Interface
     [WattleScript.Interpreter.WattleScriptUserData]
     public class InterfaceImage
     {
-        [XmlAttribute("name")] public string Name;
-        [XmlAttribute("texname")] public string TexName;
-        [XmlAttribute("texpath")] public string TexPath;
+        [XmlAttribute("name")] public string Name = "";
+        [XmlAttribute("texname")] public string TexName = "";
+        [XmlAttribute("texpath")] public string TexPath = "";
         [XmlAttribute("type")] public InterfaceImageKind Type;
         [XmlAttribute("rot")] public QuadRotation Rotation;
         [XmlAttribute("originx")] public float OriginX;

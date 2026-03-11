@@ -93,7 +93,6 @@ namespace LibreLancer.Render
 
         private void NebulaFill()
         {
-            var a = 0;
             DoVertices(new VertexBillboardColor2[]
             {
                 // X Axis

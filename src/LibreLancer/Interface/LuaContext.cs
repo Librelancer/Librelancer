@@ -24,8 +24,8 @@ namespace LibreLancer.Interface
     {
         private Script script;
 
-        private object _callevent;
-        private object _openscene;
+        private object? _callevent;
+        private object? _openscene;
 
         static LuaContext()
         {
@@ -91,7 +91,7 @@ namespace LibreLancer.Interface
             {
                 if (type.GetCustomAttributes(false).OfType<WattleScriptUserDataAttribute>().Any())
                 {
-                    typeTable[type.FullName.Replace(".", "_")] = type;
+                    typeTable[type.FullName!.Replace(".", "_")] = type;
                 }
             }
             globalTable["Game"] = context.GameApi;
@@ -170,11 +170,17 @@ namespace LibreLancer.Interface
         {
             public double Time;
             public object Function;
+
+            public LuaTimer(float timer, object func)
+            {
+                Time = timer;
+                Function = func;
+            }
         }
 
         public void Timer(float timer, object func)
         {
-            timers.Add(new LuaTimer() { Time = timer, Function = func});
+            timers.Add(new LuaTimer(timer, func));
         }
 
         [WattleScriptUserData]

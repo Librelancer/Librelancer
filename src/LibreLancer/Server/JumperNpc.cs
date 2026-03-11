@@ -13,40 +13,41 @@ namespace LibreLancer.Server;
 
 public class JumperNpc
 {
-    public string Nickname;
-    public ObjectName Name;
-    public Faction Faction;
+    public string Nickname = null!;
+    public ObjectName Name = null!;
+    public Faction Faction = null!;
 
-    public uint[] DestroyedParts;
-    public SpawnedEffect[] Effects;
-    public CostumeEntry SpaceCostume;
+    public uint[] DestroyedParts = [];
+    public SpawnedEffect[] Effects = null!;
+    public CostumeEntry SpaceCostume = null!;
     public float Health;
-    public ObjectLoadout Loadout;
-    public Pilot Pilot;
-    public StateGraph StateGraph;
+    public ObjectLoadout Loadout = null!;
+    public Pilot Pilot = null!;
+    public StateGraph StateGraph = null!;
 
     public static JumperNpc FromGameObject(GameObject go)
     {
         var npc = new JumperNpc
         {
-            Nickname = go.Nickname,
-            Name = go.Name,
+            Nickname = go.Nickname!,
+            Name = go.Name!,
             SpaceCostume = new()
         };
 
         var ld = new ObjectLoadout
         {
-            Archetype = go.GetComponent<ShipComponent>().Ship.Nickname
+            Archetype = go.GetComponent<ShipComponent>()!.Ship.Nickname
         };
 
         if (go.TryGetComponent<SRepComponent>(out var srep))
         {
-            npc.Faction = srep.Faction;
+            npc.Faction = srep.Faction!;
         }
+
         if (go.TryGetComponent<SNPCComponent>(out var snpc))
         {
-            npc.Pilot = snpc.Pilot;
-            npc.StateGraph = snpc.StateGraph;
+            npc.Pilot = snpc.Pilot!;
+            npc.StateGraph = snpc.StateGraph!;
             npc.SpaceCostume.Head = snpc.CommHead;
             npc.SpaceCostume.Body = snpc.CommBody;
             npc.SpaceCostume.Accessory = snpc.CommHelmet;

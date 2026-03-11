@@ -18,7 +18,7 @@ namespace LibreLancer.Input
         private InputMap map;
         private bool[] _isActionDown;
 
-        public KeyCaptureContext KeyCapture;
+        public KeyCaptureContext KeyCapture = null!;
 
 		public InputManager(Game game, InputMap map)
         {

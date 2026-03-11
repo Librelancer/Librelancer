@@ -387,7 +387,7 @@ namespace LibreLancer.Interface
             if (scrollCount > 0)
             {
                 Scrollbar.Render(context, rect);
-                rect.Width -= Scrollbar.Style.Width;
+                rect.Width -= Scrollbar.Style!.Width;
             }
 
             // Handle resizing columns
@@ -410,7 +410,7 @@ namespace LibreLancer.Interface
                 for (int i = 0; i < Columns.Count; i++)
                 {
                     var c = GetCell(rect, -1, i);
-                    DrawText(context, ref columnStrings[i], c, HeaderTextSize, HeaderFont,
+                    DrawText(context, ref columnStrings![i], c, HeaderTextSize, HeaderFont,
                         HeaderColor ?? InterfaceColor.White, TextShadow,
                         HorizontalAlignment.Center, VerticalAlignment.Default,
                         true, Columns[i].GetLabel(context));
@@ -423,10 +423,10 @@ namespace LibreLancer.Interface
                 var rowCount = Math.Min(DisplayRowCount, (data.Count - childOffset));
 
                 if (rowStrings == null || rowCount != rowStrings.Length ||
-                    (rowStrings.Length > 0 && rowStrings[0].Length != Columns.Count))
+                    (rowStrings.Length > 0 && rowStrings![0].Length != Columns.Count))
                 {
                     rowStrings = new CachedRenderString[rowCount][];
-                    for (int i = 0; i < rowCount; i++) rowStrings[i] = new CachedRenderString[Columns.Count];
+                    for (int i = 0; i < rowCount; i++) rowStrings![i] = new CachedRenderString[Columns.Count];
                 }
 
                 for (int row = 0; row < rowCount; row++)
@@ -459,7 +459,7 @@ namespace LibreLancer.Interface
                         var str = data.GetContentString(row + childOffset, Columns[column].Data);
                         if (string.IsNullOrWhiteSpace(str)) continue;
                         var c = GetCell(rect, row, column);
-                        DrawText(context, ref rowStrings[row][column], c, BodyTextSize, BodyFont, rowColor, TextShadow,
+                        DrawText(context, ref rowStrings![row][column], c, BodyTextSize, BodyFont, rowColor, TextShadow,
                             Columns[column].TextAlignment,
                             VerticalAlignment.Default, Columns[column].Clip, str);
                     }

@@ -50,7 +50,7 @@ namespace LibreLancer.Fx
 
             if (ale.TryGetParameter(AleProperty.BasicApp_BlendInfo, out var temp))
             {
-                BlendInfo = BlendMap.Map((Tuple<uint, uint>) temp.Value);
+                BlendInfo = BlendMap.Map((Tuple<uint, uint>) temp.Value!);
             }
         }
 

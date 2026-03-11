@@ -70,7 +70,8 @@ namespace LibreLancer.Server.Components
                 {
                     _health = 0;
                 }
-                if(Parent.Parent.TryGetComponent<SNPCComponent>(out var n))
+
+                if(Parent.Parent!.TryGetComponent<SNPCComponent>(out var n))
                     n.TakingDamage(incomingDamage);
                 return true;
             }

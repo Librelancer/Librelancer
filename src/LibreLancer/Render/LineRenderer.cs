@@ -123,7 +123,7 @@ namespace LibreLancer.Render
             var p = new MaterialParameters() { Dc = color, Oc = 1 };
             shader.SetUniformBlock(3, ref p);
             rstate.Shader = shader;
-            resource.VertexBuffer.DrawImmediateElements(
+            resource.VertexBuffer!.DrawImmediateElements(
                 PrimitiveTypes.LineList,
                 wire.VertexOffset + resource.BaseVertex,
                 wire.Indices

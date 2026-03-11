@@ -627,9 +627,9 @@ World Time: {12:F2}
             public PlayerStats Statistics => g.session.Statistics;
             public double CharacterPlayTime => g.session.CharacterPlayTime;
 
-            [WattleScriptHidden] public WidgetTemplate Reticle;
-            [WattleScriptHidden] public WidgetTemplate UnselectedArrow;
-            [WattleScriptHidden] public WidgetTemplate SelectedArrow;
+            [WattleScriptHidden] public WidgetTemplate? Reticle;
+            [WattleScriptHidden] public WidgetTemplate? UnselectedArrow;
+            [WattleScriptHidden] public WidgetTemplate? SelectedArrow;
             [WattleScriptHidden] public int ShieldBatteries;
             [WattleScriptHidden] public int RepairKits;
 

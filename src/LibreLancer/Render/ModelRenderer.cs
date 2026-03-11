@@ -230,7 +230,7 @@ namespace LibreLancer.Render
         {
             if (Model != null)
             {
-                Model.Update(sysr.Game.TotalTime);
+                Model.Update(sysr!.Game.TotalTime);
 
                 for (var i = 0; i < Model.AllParts.Length; i++)
                 {
@@ -241,7 +241,7 @@ namespace LibreLancer.Render
 
                     var part = Model.AllParts[i];
                     var w = part.LocalTransform.Matrix() * World;
-                    var center = Vector3.Transform(part.Mesh.Center, w);
+                    var center = Vector3.Transform(part.Mesh!.Center, w);
                     var lvl = GetLevel(part, center, camera.Position);
 
                     if (lvl == -1)

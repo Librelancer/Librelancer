@@ -1071,7 +1071,7 @@ public class Cnd_DistVec : ScriptedCondition
     public bool Inside;
     public Vector3 Position;
     public float Distance;
-    public string SourceShip;
+    public string SourceShip = null!;
     public OptionalArgument<float> TickAway;
 
     public Cnd_DistVec()

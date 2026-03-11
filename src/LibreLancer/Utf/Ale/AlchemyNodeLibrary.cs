@@ -79,7 +79,7 @@ namespace LibreLancer.Utf.Ale
 
                     if (node.TryGetParameter(AleProperty.Node_Name, out var temp))
 					{
-						var nn = (string)temp.Value;
+						var nn = (string)temp.Value!;
                         node.NodeName = nn;
 						node.CRC = CrcTool.FLAleCrc(nn);
 					}

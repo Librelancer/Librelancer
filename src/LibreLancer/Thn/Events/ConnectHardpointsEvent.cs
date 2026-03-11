@@ -50,26 +50,24 @@ namespace LibreLancer.Thn.Events
             if (!instance.Objects.TryGetValue(Targets[0], out var child))
             {
                 FLLog.Error("Thn", $"Entity {Targets[0]} does not exist");
+                return;
+            }
 
-                if (child.Object == null)
-                {
-                    FLLog.Error("Thn", $"Entity {Targets[0]} has no hardpoints");
-                    return;
-                }
-
+            if (child.Object == null)
+            {
+                FLLog.Error("Thn", $"Entity {Targets[0]} has no hardpoints");
                 return;
             }
 
             if (!instance.Objects.TryGetValue(Targets[1], out var parent))
             {
                 FLLog.Error("Thn", $"Entity {Targets[0]} does not exist");
+                return;
+            }
 
-                if (parent.Object == null)
-                {
-                    FLLog.Error("Thn", $"Entity {Targets[1]} has no hardpoints");
-                    return;
-                }
-
+            if (parent.Object == null)
+            {
+                FLLog.Error("Thn", $"Entity {Targets[1]} has no hardpoints");
                 return;
             }
 

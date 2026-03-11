@@ -13,7 +13,11 @@ public class NebulaInteriorMaterial : RenderMaterial
     public string Texture;
     public Color4 Dc;
 
-    public NebulaInteriorMaterial(ResourceManager library) : base(library) { }
+    public NebulaInteriorMaterial(ResourceManager library, string texture, Color4 dc) : base(library)
+    {
+        Texture = texture;
+        Dc = dc;
+    }
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {

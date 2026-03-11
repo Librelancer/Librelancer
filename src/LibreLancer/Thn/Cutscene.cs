@@ -16,13 +16,13 @@ namespace LibreLancer.Thn
 {
     public class ThnObject
     {
-        public string Name;
+        public string Name = null!;
         public Vector3 Translate;
         public Quaternion Rotate;
         public string? Actor;
         public GameObject? Object;
         public DynamicLight? Light;
-        public ThnEntity Entity;
+        public ThnEntity Entity = null!;
         public ThnCameraProps? Camera;
         public Vector3 LightDir;
         public Hardpoint? HpMount;
@@ -36,7 +36,7 @@ namespace LibreLancer.Thn
         {
             if (Object != null && PosFromObject)
             {
-                var tr = Object.Parent.WorldTransform;
+                var tr = Object.Parent!.WorldTransform;
                 Translate = tr.Position;
                 Rotate = tr.Orientation;
             }
@@ -325,7 +325,7 @@ namespace LibreLancer.Thn
                 var pos = camera.Object!.Translate;
                 var forward = Vector3.Transform(-Vector3.UnitZ, camera.Object.Rotate);
                 var up = Vector3.Transform(Vector3.UnitY, camera.Object.Rotate);
-                soundManager.UpdateListener(delta, pos, forward, up);
+                soundManager?.UpdateListener(delta, pos, forward, up);
             }
 
 			currentTime += delta;
@@ -383,7 +383,7 @@ namespace LibreLancer.Thn
         {
             var cam = GetObject(name);
             camera.Object = cam;
-            soundManager.ResetListenerVelocity();
+            soundManager!.ResetListenerVelocity();
         }
 
         public void Dispose()

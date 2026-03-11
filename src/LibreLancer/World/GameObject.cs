@@ -803,7 +803,7 @@ namespace LibreLancer.World
             return (World ?? _parent?.GetWorld())!;
         }
 
-        public void PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool parentCull = false)
+        public void PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool parentCull = false)
         {
             if (RenderComponent == null || RenderComponent.PrepareRender(camera, nr, sys, parentCull))
             {

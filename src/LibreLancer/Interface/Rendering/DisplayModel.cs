@@ -170,7 +170,7 @@ namespace LibreLancer.Interface
             {
                 context.RenderContext.SetIdentityCamera();
                 context.Lines.StartFrame(context.RenderContext);
-                foreach (var part in model.AllParts)
+                foreach (var part in model!.AllParts)
                 {
                     if (part.Wireframe != null)
                     {

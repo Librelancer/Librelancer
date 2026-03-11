@@ -37,19 +37,19 @@ namespace LibreLancer.Missions.Actions
                 var d = dlg.Lines[i];
                 string voice = "trent_voice";
                 int sourceId = 0;
-                if (!d.Source.Equals("Player", StringComparison.OrdinalIgnoreCase))
+                if (!d.Source!.Equals("Player", StringComparison.OrdinalIgnoreCase))
                 {
                     var src = script.Ships[d.Source];
-                    voice = src.NPC.Voice;
-                    var o = runtime.Player.Space.World.GameWorld.GetObject(d.Source);
+                    voice = src.NPC!.Voice!;
+                    var o = runtime.Player.Space!.World.GameWorld.GetObject(d.Source);
                     sourceId = o?.NetID ?? 0;
                 }
 
-                var hash = FLHash.CreateID(d.Line);
-                runtime.EnqueueLine(hash, d.Line);
+                var hash = FLHash.CreateID(d.Line!);
+                runtime.EnqueueLine(hash, d.Line!);
                 netdlg[i] = new NetDlgLine() {
                     Source = sourceId,
-                    TargetIsPlayer = d.Target.Equals("Player", StringComparison.OrdinalIgnoreCase),
+                    TargetIsPlayer = d.Target!.Equals("Player", StringComparison.OrdinalIgnoreCase),
                     Voice = voice,
                     Hash = hash
                 };
@@ -83,11 +83,11 @@ namespace LibreLancer.Missions.Actions
         {
             var netdlg = new NetDlgLine[1];
             var src = script.Ships[Source];
-            var voice = src.NPC.Voice;
+            var voice = src.NPC!.Voice;
             var hash = FLHash.CreateID(Line);
             runtime.EnqueueLine(hash, Line);
             int sourceId = 0;
-            var o = runtime.Player.Space.World.GameWorld.GetObject(Source);
+            var o = runtime.Player.Space!.World.GameWorld.GetObject(Source);
             sourceId = o?.NetID ?? 0;
             netdlg[0] = new NetDlgLine()
             {

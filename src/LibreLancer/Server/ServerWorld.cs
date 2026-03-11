@@ -143,7 +143,7 @@ namespace LibreLancer.Server
                     if (obj.TryGetComponent<SPlayerComponent>(out var playerComponent))
                     {
                         actions.Enqueue(() =>
-                            Server.LocalPlayer?.MissionRuntime?.LootAcquired(pickup.Nickname, "Player"));
+                            Server.LocalPlayer?.MissionRuntime?.LootAcquired(pickup.Nickname!, "Player"));
                     }
                 }
                 else
@@ -181,7 +181,9 @@ namespace LibreLancer.Server
             updatingObjects.Remove(obj);
             IdGenerator.Free(obj.NetID);
             foreach (var p in Players)
+            {
                 p.Key.RpcClient.DestroyMissile(obj.NetID, true);
+            }
 
             if (missile?.Missile.Explosion == null)
             {
@@ -399,7 +401,7 @@ namespace LibreLancer.Server
         {
             player.VisitSystem(System);
             Interlocked.Increment(ref PlayerCount);
-            var obj = new GameObject(player.Character.Ship!, Server.Resources, false, true) { World = GameWorld };
+            var obj = new GameObject(player.Character!.Ship!, Server.Resources, false, true) { World = GameWorld };
             foreach (var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, null, EquipmentType.Server,
                     item.Hardpoint, item.Equipment!);
@@ -521,12 +523,8 @@ namespace LibreLancer.Server
                 go.Kind = GameObjectKind.Missile;
                 go.NetID = IdGenerator.Allocate();
                 go.PhysicsComponent?.Mass = 1;
-                go.AddComponent(new SMissileComponent(go, missile)
-                {
-                    Target = target,
-                    Owner = owner,
-                    Speed = owner.PhysicsComponent!.Body.LinearVelocity.Length() + muzzleVelocity
-                });
+                go.AddComponent(new SMissileComponent(go, missile, target, owner,
+                    owner.PhysicsComponent!.Body.LinearVelocity.Length() + muzzleVelocity));
 
                 GameWorld.AddObject(go);
                 go.Register(GameWorld.Physics);
@@ -673,7 +671,7 @@ namespace LibreLancer.Server
             {
                 if (Players.TryGetValue(player, out var p))
                 {
-                    var phys = p.GetComponent<SPlayerComponent>();
+                    var phys = p.GetComponent<SPlayerComponent>()!;
                     phys.QueueInput(input);
                 }
             });

@@ -29,7 +29,11 @@ namespace LibreLancer.Server.Components
         public void TriggerOpen(GameObject parent)
         {
             CloseTimer = OPEN_DURATION;
-            if (Open) return;
+            if (Open)
+            {
+                return;
+            }
+
             Animate(false, parent);
             Open = true;
         }
@@ -37,9 +41,17 @@ namespace LibreLancer.Server.Components
         private void Animate(bool close, GameObject parent)
         {
             var component = parent.GetComponent<AnimationComponent>();
-            if (component == null) return;
-            if (!component.HasAnimation(DockSphere.Script)) return;
-            component.StartAnimation(DockSphere.Script, false, 0, 1, 0, close);
+            if (component == null)
+            {
+                return;
+            }
+
+            if (!component.HasAnimation(DockSphere.Script))
+            {
+                return;
+            }
+
+            component.StartAnimation(DockSphere.Script!, false, 0, 1, 0, close);
             parent.World.Server.StartAnimation(parent);
             FLLog.Debug("Server", $"{(close ? "closing" : "opening")} {parent.Nickname} {DockSphere.Script}");
         }
@@ -77,7 +89,11 @@ namespace LibreLancer.Server.Components
         private void TryTriggerAnimation(int i, GameObject obj)
         {
             float animRadius = 30;
-            if (Action.Kind == DockKinds.Tradelane) animRadius = 300;
+            if (Action.Kind == DockKinds.Tradelane)
+            {
+                animRadius = 300;
+            }
+
             var rad = obj.PhysicsComponent?.Body.Collider.Radius ?? 15;
             var pos = obj.WorldTransform.Position;
 
@@ -99,10 +115,17 @@ namespace LibreLancer.Server.Components
             if (ship.TryGetComponent<SPlayerComponent>(out var player))
             {
                 var mplayer = player.Player.MPlayer;
-                if (mplayer.CanTl == 1) return true;
+                if (mplayer.CanTl == 1)
+                {
+                    return true;
+                }
+
                 var hash = new HashValue(tradelaneNickname);
                 if (mplayer.CanTl == 0 && mplayer.TlExceptions.Any(x => x.ItemA == hash || x.ItemB == hash))
+                {
                     return true;
+                }
+
                 return false;
             }
 
@@ -115,7 +138,7 @@ namespace LibreLancer.Server.Components
             var pos = obj.WorldTransform.Position;
 
             var hp = Parent.GetHardpoint(tlHP ?? DockPoints[i].DockSphere.Hardpoint);
-            var targetPos = (hp.Transform * Parent.WorldTransform).Position;
+            var targetPos = (hp!.Transform * Parent.WorldTransform).Position;
 
             if ((targetPos - pos).Length() < (DockPoints[i].DockSphere.Radius * 2 + rad))
             {
@@ -126,8 +149,9 @@ namespace LibreLancer.Server.Components
         }
 
         private bool leftActive = false;
-        private int inactiveTicksLeft = 0;
         private bool rightActive = false;
+
+        private int inactiveTicksLeft = 0;
         private int inactiveTicksRight = 0;
         private const int INACTIVE_TIME = 16;
 
@@ -154,9 +178,9 @@ namespace LibreLancer.Server.Components
         private class DockingAction
         {
             public int Dock;
-            public GameObject Ship;
+            public required GameObject Ship;
             public int LastTargetHp = 0;
-            public string TLHardpoint;
+            public string? TLHardpoint;
         }
 
         private List<DockingAction> activeDockings = [];
@@ -231,7 +255,9 @@ namespace LibreLancer.Server.Components
                 for (int i = 0; i < DockPoints.Length; i++)
                 {
                     if (!DockPoints[i].Open)
+                    {
                         return i;
+                    }
                 }
 
                 // Random
@@ -289,14 +315,20 @@ namespace LibreLancer.Server.Components
                 if (Action.Kind == DockKinds.Tradelane)
                 {
                     if (dock.TLHardpoint.Equals("hpleftlane", StringComparison.OrdinalIgnoreCase))
+                    {
                         leftThisTick = true;
+                    }
                     else if (dock.TLHardpoint.Equals("hprightlane", StringComparison.OrdinalIgnoreCase))
+                    {
                         rightThisTick = true;
+                    }
                 }
 
                 TryTriggerAnimation(dock.Dock, dock.Ship);
                 if (!CanDock(dock.Dock, dock.Ship, dock.TLHardpoint))
+                {
                     continue;
+                }
 
                 if (Action.Kind == DockKinds.Base)
                 {

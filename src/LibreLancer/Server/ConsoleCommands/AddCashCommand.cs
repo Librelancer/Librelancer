@@ -8,7 +8,7 @@ namespace LibreLancer.Server.ConsoleCommands
 
         public void Run(Player player, string args)
         {
-            if (ConsoleCommands.ParseString(args, out string target, out int credits))
+            if (ConsoleCommands.ParseString<string, int>(args, out var target, out var credits))
             {
                 var targetPlayer = player.Game.GetConnectedPlayer(target);
 

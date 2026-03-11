@@ -9,8 +9,8 @@ namespace LibreLancer.Utf.Ale
 {
     public class AleFile : UtfFile
     {
-        public ALEffectLib FxLib;
-        public AlchemyNodeLibrary NodeLib;
+        public ALEffectLib FxLib = null!;
+        public AlchemyNodeLibrary NodeLib = null!;
         public string Path;
 
         public AleFile(string file, Stream stream) : this(parseFile(file, stream))

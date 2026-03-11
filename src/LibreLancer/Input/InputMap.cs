@@ -15,7 +15,7 @@ public class InputMap
     public int[] StrId = new int[(int) InputAction.COUNT];
     public int[] InfoId = new int[(int) InputAction.COUNT];
 
-    public InputAction[][] KeyGroups;
+    public InputAction[][] KeyGroups = [];
 
     public string FilePath;
 

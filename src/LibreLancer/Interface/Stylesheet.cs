@@ -89,15 +89,15 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class HSliderStyle : XmlStyle
     {
-        public ButtonStyle LeftButton { get; set; } = null!;
-        public ButtonStyle RightButton { get; set; } = null!;
-        public ButtonStyle Thumb { get; set; } = null!;
+        public ButtonStyle? LeftButton { get; set; }
+        public ButtonStyle? RightButton { get; set; }
+        public ButtonStyle? Thumb { get; set; }
 
-        public ButtonStyle ThumbLeft { get; set; } = null!;
-        public ButtonStyle ThumbRight { get; set; } = null!;
+        public ButtonStyle? ThumbLeft { get; set; }
+        public ButtonStyle? ThumbRight { get; set; }
 
-        public UiRenderable Background { get; set; } = null!;
-        public UiRenderable TrackArea { get; set; } = null!;
+        public UiRenderable? Background { get; set; } = null!;
+        public UiRenderable? TrackArea { get; set; } = null!;
         public float ButtonMarginY { get; set; }
         public float TrackMarginX { get; set; }
         public float TrackMarginY { get; set; }

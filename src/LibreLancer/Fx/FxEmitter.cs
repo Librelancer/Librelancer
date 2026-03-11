@@ -26,37 +26,37 @@ namespace LibreLancer.Fx
         {
             if (ale.TryGetParameter(AleProperty.Emitter_InitialParticles, out var temp))
             {
-                InitialParticles = (int) (uint) temp.Value;
+                InitialParticles = (int) (uint) temp.Value!;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_Frequency, out temp))
             {
-                Frequency = (AlchemyCurveAnimation) temp.Value;
+                Frequency = (AlchemyCurveAnimation) temp.Value!;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_EmitCount, out temp))
             {
-                EmitCount = (AlchemyCurveAnimation) temp.Value;
+                EmitCount = (AlchemyCurveAnimation) temp.Value!;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_InitLifeSpan, out temp))
             {
-                InitLifeSpan = (AlchemyCurveAnimation) temp.Value;
+                InitLifeSpan = (AlchemyCurveAnimation) temp.Value!;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_Pressure, out temp))
             {
-                Pressure = (AlchemyCurveAnimation) temp.Value;
+                Pressure = (AlchemyCurveAnimation) temp.Value!;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_VelocityApproach, out temp))
             {
-                VelocityApproach = (AlchemyCurveAnimation) temp.Value;
+                VelocityApproach = (AlchemyCurveAnimation) temp.Value!;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_MaxParticles, out temp))
             {
-                MaxParticles = (AlchemyCurveAnimation) temp.Value;
+                MaxParticles = (AlchemyCurveAnimation) temp.Value!;
             }
         }
 

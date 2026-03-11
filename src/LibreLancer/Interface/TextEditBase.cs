@@ -27,7 +27,8 @@ public class TextEditBase
     public string Text
     {
         get => _text;
-        set {
+        set
+        {
             if (_text != value)
             {
                 _allSelected = false;
@@ -54,7 +55,8 @@ public class TextEditBase
         get => _wrap;
         set
         {
-            if (_wrap != value) {
+            if (_wrap != value)
+            {
                 _wrap = value;
                 richTextDirty = true;
             }
@@ -62,12 +64,14 @@ public class TextEditBase
     }
 
     private bool _mask = false;
+
     public bool Mask
     {
         get => _mask;
         set
         {
-            if (_mask != value) {
+            if (_mask != value)
+            {
                 _mask = value;
                 richTextDirty = true;
             }
@@ -109,6 +113,7 @@ public class TextEditBase
             richTextDirty = true;
             target = value;
         }
+
         if (CaretPosition > _text.Length)
             CaretPosition = _text.Length;
     }
@@ -162,6 +167,7 @@ public class TextEditBase
     {
         if (string.IsNullOrEmpty(chars) && !_allSelected)
             return;
+
         if (_allSelected)
         {
             Text = chars!;
@@ -176,6 +182,7 @@ public class TextEditBase
             {
                 SetText(_text.Insert(CaretPosition, chars!));
             }
+
             CaretPosition += chars!.Length;
         }
     }
@@ -208,10 +215,12 @@ public class TextEditBase
             {
                 var x = CaretPosition - 1;
                 x--;
+
                 while (x >= 0 && breaks[x] != GraphemeBreak.Break)
                 {
                     x--;
                 }
+
                 CaretPosition = x + 1;
             }
         }
@@ -249,7 +258,7 @@ public class TextEditBase
 
     public void Backspace()
     {
-        if(_allSelected)
+        if (_allSelected)
         {
             Text = "";
         }
@@ -268,7 +277,7 @@ public class TextEditBase
 
     public void Delete()
     {
-        if(_allSelected)
+        if (_allSelected)
         {
             Text = "";
         }
@@ -296,7 +305,8 @@ public class TextEditBase
 
     private void Update(RichTextEngine engine)
     {
-        if (richTextDirty || (_wrap && richTextWidth != width)) {
+        if (richTextDirty || (_wrap && richTextWidth != width))
+        {
             richText?.Dispose();
             richTextDirty = false;
             richTextWidth = width;
@@ -321,16 +331,21 @@ public class TextEditBase
             return;
         Update(context.Renderer2D.CreateRichTextEngine());
         Rectangle pos;
-        if (nodes.Length == 1 && ((RichTextTextNode)nodes[0]).Contents == "")
-            pos = new Rectangle(0, 0, 1, (int)context.Renderer2D.CreateRichTextEngine().LineHeight(_fontName, _fontSize));
+        if (nodes.Length == 1 && ((RichTextTextNode) nodes[0]).Contents == "")
+            pos = new Rectangle(0, 0, 1,
+                (int) context.Renderer2D.CreateRichTextEngine().LineHeight(_fontName, _fontSize));
         else
-            pos = richText.GetCaretPosition(nodes.Length - 1, CaretPosition - 1);
+            pos = richText!.GetCaretPosition(nodes.Length - 1, CaretPosition - 1);
         int xOffset = 0;
-        if (!_wrap && pos.X >= width) {
+
+        if (!_wrap && pos.X >= width)
+        {
             xOffset = 5 + pos.X - width;
         }
-        context.Renderer2D.CreateRichTextEngine().RenderText(richText, x - xOffset, y);
+
+        context.Renderer2D.CreateRichTextEngine().RenderText(richText!, x - xOffset, y);
         bool caretVisible = (globalTime % (2 * BLINK_TIME)) < BLINK_TIME;
+
         if (Focused && !_allSelected && caretVisible)
         {
             if (_fontShadow.Enabled)
@@ -338,9 +353,11 @@ public class TextEditBase
                 var shadowRect = new Rectangle(x - xOffset + 2 + pos.X, y + 2 + pos.Y, pos.Width, pos.Height);
                 context.Renderer2D.FillRectangle(shadowRect, _fontShadow.Color);
             }
+
             var caretRect = new Rectangle(x - xOffset + pos.X, y + pos.Y, pos.Width, pos.Height);
             context.Renderer2D.FillRectangle(caretRect, _fontColor);
         }
+
         context.PopScissor();
     }
 }

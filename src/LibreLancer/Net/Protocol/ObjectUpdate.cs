@@ -22,8 +22,8 @@ public class PackedUpdatePacket : IPacket
     public uint InputSequence;
     public uint OldTick;
     public uint Tick;
-    public byte[] AuthState;
-    public byte[] Updates;
+    public byte[]? AuthState;
+    public byte[]? Updates;
 
     public int DataSize =>
         1 + // Packet Kind
@@ -38,8 +38,8 @@ public class PackedUpdatePacket : IPacket
         outPacket.PutVariableUInt32(Tick);
         outPacket.PutVariableInt32((int) ((long) OldTick - Tick));
         outPacket.PutVariableInt32((int) ((long) InputSequence - Tick));
-        outPacket.Put(AuthState, 0, AuthState.Length);
-        outPacket.Put(Updates, 0, Updates.Length);
+        outPacket.Put(AuthState!, 0, AuthState!.Length);
+        outPacket.Put(Updates!, 0, Updates!.Length);
     }
 
     public static object Read(PacketReader message)

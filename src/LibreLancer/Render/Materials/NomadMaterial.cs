@@ -26,7 +26,13 @@ namespace LibreLancer.Render.Materials
 
 		public float Oc = 1f;
 
-        public NomadMaterial(ResourceManager library) : base(library) { }
+        public NomadMaterial(ResourceManager library, string dtSampler, string btSampler, string ntSampler) :
+            base(library)
+        {
+            DtSampler = dtSampler;
+            BtSampler = btSampler;
+            NtSampler = ntSampler;
+        }
 
 		public override bool IsTransparent
 		{

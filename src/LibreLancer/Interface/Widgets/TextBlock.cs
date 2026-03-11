@@ -19,7 +19,7 @@ namespace LibreLancer.Interface
         public string Font { get; set; } = "";
         private InfoTextAccessor txtAccess = new();
 
-        public string Text
+        public string? Text
         {
             get => txtAccess.Text;
             set => txtAccess.Text = value;
@@ -55,7 +55,7 @@ namespace LibreLancer.Interface
 
         public float TextAlpha { get; set; } = 1;
 
-        private CachedRenderString renderCache = null!;
+        private CachedRenderString? renderCache;
 
         private bool fading = true;
         private float fadeStep = 0;

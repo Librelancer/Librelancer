@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.GameData.Items;
@@ -33,7 +34,7 @@ namespace LibreLancer.Server.Components
         public UpdateAck MostRecentAck = default;
         public Player Player { get; private set; }
 
-        public GameObject SelectedObject { get; private set; }
+        public GameObject? SelectedObject { get; private set; }
 
         public SPlayerComponent(Player player, GameObject parent) : base(parent)
         {
@@ -75,7 +76,7 @@ namespace LibreLancer.Server.Components
             }
             else if (directives[index] is FollowDirective followOther)
             {
-                var tgtObject = Parent.World.GetObject(followOther.Target);
+                var tgtObject = Parent.World.GetObject(followOther.Target)!;
                 FormationTools.EnterFormation(Parent, tgtObject, followOther.Offset);
             }
         }
@@ -219,7 +220,7 @@ namespace LibreLancer.Server.Components
             if (TryScan(obj, out _))
             {
                 Scanning = obj;
-                Player.MissionRuntime?.CargoScanned("Player", obj.Nickname);
+                Player.MissionRuntime?.CargoScanned("Player", obj.Nickname!);
             }
             else
             {
@@ -228,7 +229,7 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        private bool TryScan(GameObject obj, out NetLoadout loadout)
+        private bool TryScan(GameObject obj, [MaybeNullWhen(false)] out NetLoadout loadout)
         {
             loadout = null;
             return Parent.TryGetComponent<ScannerComponent>(out var scanner) &&
@@ -242,7 +243,7 @@ namespace LibreLancer.Server.Components
         {
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var phys))
             {
-                var wpc = Parent.GetComponent<WeaponControlComponent>();
+                var wpc = Parent.GetComponent<WeaponControlComponent>()!;
 
                 if (GetInput(out var input))
                 {
@@ -305,7 +306,7 @@ namespace LibreLancer.Server.Components
 
         public override int TryConsume(Equipment item, int maxCount = 1)
         {
-            var slot = Player.Character.Items.FirstOrDefault(x => x.Equipment == item);
+            var slot = Player.Character!.Items.FirstOrDefault(x => x.Equipment == item);
 
             if (slot != null)
             {
@@ -324,7 +325,7 @@ namespace LibreLancer.Server.Components
 
         public override int TryAdd(Equipment equipment, int maxCount)
         {
-            var limit = CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship, equipment);
+            var limit = CargoUtilities.GetItemLimit(Player.Character!.Items, Player.Character.Ship!, equipment);
             var count = Math.Min(limit, maxCount);
 
             if (count == 0)
@@ -341,17 +342,17 @@ namespace LibreLancer.Server.Components
             return count;
         }
 
-        public override T FirstOf<T>()
+        public override T? FirstOf<T>() where T : class
         {
-            var slot = Player.Character.Items.FirstOrDefault(x => x.Equipment is T);
-            return (T) slot?.Equipment;
+            var slot = Player.Character!.Items.First(x => x.Equipment is T);
+            return (T?)slot?.Equipment;
         }
 
         public override IEnumerable<NetShipCargo> GetCargo(int firstId)
         {
-            foreach (var i in Player.Character.Items.Where(x => string.IsNullOrEmpty(x.Hardpoint)))
+            foreach (var i in Player.Character!.Items.Where(x => string.IsNullOrEmpty(x.Hardpoint)))
             {
-                yield return new NetShipCargo(i.ID, i.Equipment.CRC, null, 255, i.Count);
+                yield return new NetShipCargo(i.ID, i.Equipment!.CRC, null, 255, i.Count);
             }
         }
     }

@@ -23,23 +23,23 @@ namespace LibreLancer.Fx
             ViewingAngleFade = ale.GetBoolean(AleProperty.RectApp_ViewingAngleFade);
 			if (ale.TryGetParameter(AleProperty.RectApp_CenterOnPos, out var temp))
 			{
-				CenterOnPos = (bool)temp.Value;
+				CenterOnPos = (bool)temp.Value!;
 			}
 			if (ale.TryGetParameter(AleProperty.RectApp_ViewingAngleFade, out temp))
 			{
-				ViewingAngleFade = (bool)temp.Value;
+				ViewingAngleFade = (bool)temp.Value!;
 			}
 			if (ale.TryGetParameter(AleProperty.RectApp_Scale, out temp))
 			{
-				Scale = (AlchemyFloatAnimation)temp.Value;
+				Scale = (AlchemyFloatAnimation)temp.Value!;
 			}
 			if (ale.TryGetParameter(AleProperty.RectApp_Length, out temp))
 			{
-				Length = (AlchemyFloatAnimation)temp.Value;
+				Length = (AlchemyFloatAnimation)temp.Value!;
 			}
 			if (ale.TryGetParameter(AleProperty.RectApp_Width, out temp))
 			{
-				Width = (AlchemyFloatAnimation)temp.Value;
+				Width = (AlchemyFloatAnimation)temp.Value!;
 			}
 		}
 

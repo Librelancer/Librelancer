@@ -36,7 +36,7 @@ namespace LibreLancer.Interface
             if (string.IsNullOrEmpty(name)) return GetSystemObject("nav_depot");
             if (!renderables.TryGetValue(name, out var renderable))
             {
-                if (!ini.Icons.Map.TryGetValue(name, out var model))
+                if (!ini.Icons!.Map.TryGetValue(name, out var model))
                 {
                     return GetSystemObject("nav_depot");
                 }

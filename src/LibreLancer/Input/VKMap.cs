@@ -4,7 +4,6 @@ internal static class VKMap
 {
     public static UserInput Map(int input, KeyModifiers modifiers)
     {
-        Keys keys;
         switch (input)
         {
             // Yes Freelancer uses negative numbers in keymap instead of the VK constants

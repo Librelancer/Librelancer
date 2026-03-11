@@ -626,7 +626,7 @@ namespace LibreLancer.Missions.Actions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var gameObj = runtime.Player.Space.World.GameWorld.GetObject(Tradelane);
+                var gameObj = runtime.Player.Space!.World.GameWorld.GetObject(Tradelane)!;
                 var firstChild = gameObj.GetFirstChildComponent<SShieldComponent>();
 
                 if (firstChild != null)
@@ -685,7 +685,7 @@ namespace LibreLancer.Missions.Actions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var fuse = runtime.Player.Space.World.Server.GameData.Items.Fuses.Get(Fuse);
+                var fuse = runtime.Player.Space!.World.Server.GameData.Items.Fuses.Get(Fuse)!;
                 var gameObj = runtime.Player.Space.World.GameWorld.GetObject(Target);
 
                 if (gameObj == null)
@@ -767,7 +767,7 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            MissionDirective[] ol;
+            MissionDirective[]? ol;
 
             if ("no_ol".Equals(List, StringComparison.OrdinalIgnoreCase))
             {
@@ -788,13 +788,13 @@ namespace LibreLancer.Missions.Actions
             {
                 foreach (var s in formation.Ships)
                 {
-                    runtime.Player.Space.World.NPCs.NpcDoAction(s.Nickname,
-                        (npc) => { GiveObjList(npc, ol); });
+                    runtime.Player.Space!.World.NPCs.NpcDoAction(s.Nickname,
+                        (npc) => { GiveObjList(npc, ol!); });
                 }
             }
             else
             {
-                runtime.Player.Space.World.EnqueueAction(() =>
+                runtime.Player.Space!.World.EnqueueAction(() =>
                 {
                     var tgt = runtime.Player.Space.World.GameWorld.GetObject(Target);
 
@@ -804,7 +804,7 @@ namespace LibreLancer.Missions.Actions
                     }
                     else
                     {
-                        GiveObjList(tgt, ol);
+                        GiveObjList(tgt, ol!);
                     }
                 });
             }

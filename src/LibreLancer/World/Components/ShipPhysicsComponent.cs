@@ -52,9 +52,9 @@ namespace LibreLancer.World.Components
 
         public void ResyncChargePercent(float prev, float time)
         {
-            if (EngineState == EngineStates.Cruise || EngineState == EngineStates.CruiseCharging)
+            if (EngineState is EngineStates.Cruise or EngineStates.CruiseCharging)
             {
-                var engine = Parent.GetComponent<SEngineComponent>(); // Get mounted engine
+                var engine = Parent.GetComponent<SEngineComponent>()!; // Get mounted engine
                 ChargePercent = prev + (1.0f / engine.Engine.Def.CruiseChargeTime) * (float) time;
                 if (ChargePercent >= 1) {
                     ChargePercent = 1;

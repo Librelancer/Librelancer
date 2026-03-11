@@ -47,7 +47,7 @@ namespace LibreLancer.Thn
 
         private Vector3 startPoint, endPoint;
         private Quaternion startQuat, endQuat;
-        private Quaternion[] curveQuats;
+        private Quaternion[] curveQuats = [];
         private bool curve = false;
 
         public MotionPath(string pathdescriptor)
@@ -83,7 +83,9 @@ namespace LibreLancer.Thn
             }
 
             if (points.Count < 2)
+            {
                 throw new Exception("Path does not have minimum two points");
+            }
 
             if (points.Count > 2)
             {
@@ -103,9 +105,9 @@ namespace LibreLancer.Thn
             }
         }
 
-        private CubicPolynomial[] segments;
-        private float[] segmentLengths;
-        private float[] lengthPercents;
+        private CubicPolynomial[] segments = [];
+        private float[] segmentLengths = [];
+        private float[] lengthPercents = [];
 
         private void BuildSegments(List<Vector3> srcPoints)
         {

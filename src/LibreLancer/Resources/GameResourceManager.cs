@@ -118,6 +118,11 @@ public class GameResourceManager : ResourceManager, IDisposable
 
     public void Preload()
     {
+        if (preloadFiles is null)
+        {
+            return;
+        }
+
         foreach (var file in preloadFiles)
         {
             LoadResourceFile(file);

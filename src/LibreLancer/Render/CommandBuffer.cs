@@ -276,7 +276,7 @@ namespace LibreLancer.Render
 		public int Start;
 		public int Count;
         public Lighting Lights;
-        public MaterialAnim MaterialAnim;
+        public MaterialAnim? MaterialAnim;
 		public int Hash;
 		public int Index;
         public int UserData;
@@ -289,7 +289,7 @@ namespace LibreLancer.Render
 		}
 		public unsafe void Run(RenderContext context)
         {
-            if (CmdType == RenderCmdType.Material || CmdType == RenderCmdType.MaterialFade)
+            if (CmdType is RenderCmdType.Material or RenderCmdType.MaterialFade)
 			{
 				var Material = (RenderMaterial)Source;
 				if (Material == null)

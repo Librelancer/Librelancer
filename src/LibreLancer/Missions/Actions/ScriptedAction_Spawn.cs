@@ -40,11 +40,11 @@ namespace LibreLancer.Missions.Actions
             runtime.ObjectSpawned(sol.Nickname);
             runtime.Player.MissionWorldAction(() =>
             {
-                var obj = runtime.Player.Space.World.SpawnSolar(
+                var obj = runtime.Player.Space!.World.SpawnSolar(
                     sol.Nickname,
-                    arch,
-                    sol.Loadout,
-                    sol.Faction,
+                    arch!,
+                    sol.Loadout!,
+                    sol.Faction!,
                     sol.Position,
                     sol.Orientation,
                     sol.IdsName,
@@ -118,8 +118,8 @@ namespace LibreLancer.Missions.Actions
         protected void SpawnShip(ScriptShip ship, OptionalArgument<Vector3> spawnpos,
             OptionalArgument<Quaternion> spawnorient, string objList, MissionScript script, MissionRuntime runtime)
         {
-            var npcDef = ship.NPC;
-            script.NpcShips.TryGetValue(npcDef.NpcShipArch, out var shipArch);
+            var npcDef = ship.NPC!;
+            script.NpcShips.TryGetValue(npcDef.NpcShipArch!, out var shipArch);
             runtime.ObjectSpawned(ship.Nickname);
 
             if (shipArch == null)
@@ -163,7 +163,7 @@ namespace LibreLancer.Missions.Actions
 
                 // Spawn relative to object
                 if (!string.IsNullOrWhiteSpace(ship.RelativePosition.ObjectName) &&
-                    (relObj = runtime.Player.Space.World.GameWorld.GetObject(ship.RelativePosition.ObjectName)) != null)
+                    (relObj = runtime.Player.Space.World.GameWorld.GetObject(ship.RelativePosition.ObjectName)!) != null)
                 {
                     var dir = new Vector3(runtime.Random.NextFloat(-1, 1),
                         runtime.Random.NextFloat(-0.1f, 0.1f),
@@ -255,7 +255,7 @@ namespace LibreLancer.Missions.Actions
             var forient = Orientation.Get(form.Orientation);
             var mat = Matrix4x4.CreateFromQuaternion(forient) *
                       Matrix4x4.CreateTranslation(fpos);
-            var formDef = runtime.Player.Game.GameData.Items.GetFormation(form.Formation);
+            var formDef = runtime.Player.Game.GameData.Items.GetFormation(form.Formation!);
             IReadOnlyList<Vector3> positions = formDef?.Positions ?? nullOffsets;
 
             for (int i = 0; i < form.Ships.Count; i++)
@@ -270,7 +270,7 @@ namespace LibreLancer.Missions.Actions
                 var world = runtime.Player.Space!.World;
                 var lead = world.GameWorld.GetObject(form.Ships[0].Nickname)!;
                 FormationTools.MakeNewFormation(lead, formDef?.Nickname!, form.Ships.Skip(1)
-                    .Select(x => x.Nickname).ToList());
+                    .Select(string? (x) => x.Nickname).ToList());
             });
         }
     }

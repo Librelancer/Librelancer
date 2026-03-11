@@ -100,7 +100,7 @@ namespace LibreLancer.Utf.Ale
 				return Items [Items.Count - 1].GetValue(time);
 			}
 			//Interpolate between SParams
-            if (Math.Abs(c1.SParam - c2.SParam) < float.Epsilon) return c2.GetValue(time);
+            if (Math.Abs(c1.SParam - c2!.SParam) < float.Epsilon) return c2.GetValue(time);
             var v1 = c1.GetValue (time);
 			var v2 = c2.GetValue (time);
 			return Easing.Ease (Type, sparam, c1.SParam, c2.SParam, v1, v2);

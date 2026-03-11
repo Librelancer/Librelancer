@@ -18,12 +18,13 @@ public class UpdatePacker
         return new UpdatePackerInstance(this, allUpdates, allObjects);
     }
 
-    private record struct SortedUpdate(FetchedDelta Old, int Size, int Offset, GameObject Object, ObjectUpdate Update) : IComparable<SortedUpdate>
+    private record struct SortedUpdate(FetchedDelta Old, int Size, int Offset, GameObject Object, ObjectUpdate Update)
+        : IComparable<SortedUpdate>
     {
         public int CompareTo(SortedUpdate other)
         {
-            var x = ((ulong)other.Old.Priority) << 32 | (uint)other.Size;
-            var y = ((ulong)Old.Priority) << 32 | (uint)Size;
+            var x = ((ulong) other.Old.Priority) << 32 | (uint) other.Size;
+            var y = ((ulong) Old.Priority) << 32 | (uint) Size;
             return x.CompareTo(y);
         }
     }
@@ -31,7 +32,11 @@ public class UpdatePacker
     private class IdComparer : IComparer<SortedUpdate>
     {
         public static readonly IdComparer Instance = new();
-        private IdComparer() { }
+
+        private IdComparer()
+        {
+        }
+
         public int Compare(SortedUpdate x, SortedUpdate y) =>
             x.Update.ID.Value.CompareTo(y.Update.ID.Value);
     }
@@ -43,6 +48,7 @@ public class UpdatePacker
         private GameObject[] allObjects;
         private FetchedDelta[] deltas;
         private SortedUpdate[] sorted;
+
         internal UpdatePackerInstance(UpdatePacker pk, ObjectUpdate[] allUpdates, GameObject[] allObjects)
         {
             this.pk = pk;
@@ -69,6 +75,7 @@ public class UpdatePacker
 
             // Locate self in array and skip
             int skipIndex = -1;
+
             for (int i = 0; i < allObjects.Length; i++)
             {
                 if (allObjects[i] == selfObj)
@@ -82,6 +89,7 @@ public class UpdatePacker
             var deltaWriter = new BitWriter(pk.WorldUpdateBuffer, true);
             int totalSum = 0;
             int totalSorted = 0;
+
             for (int i = 0; i < allUpdates.Length; i++)
             {
                 if (skipIndex == i)
@@ -96,11 +104,13 @@ public class UpdatePacker
 
             // In case it was resized
             pk.WorldUpdateBuffer = deltaWriter.Backing;
+
             // Check we are below size
             if (maxPacketSize >= (packet.DataSize + totalSum))
             {
                 // Skip sorting, just shove the packet in
                 var d = new Dictionary<int, ObjectUpdate>();
+
                 for (int i = 0; i < allUpdates.Length; i++)
                 {
                     if (skipIndex == i)
@@ -108,10 +118,11 @@ public class UpdatePacker
                     d[allObjects[i].Unique] = allUpdates[i];
                 }
 
-                self.EnqueueState((uint)tick, authState, d);
+                self.EnqueueState((uint) tick, authState, d);
                 var allWriter = new BitWriter(pk.PacketUpdatesBuffer, false);
                 // Write IDs
-                allWriter.PutVarUInt32((uint)totalSorted);
+                allWriter.PutVarUInt32((uint) totalSorted);
+
                 if (totalSorted > 0)
                 {
                     allWriter.PutVarInt32(sorted[0].Update.ID.Value);
@@ -126,6 +137,7 @@ public class UpdatePacker
 
                 // Write Updates
                 int offset = allWriter.ByteLength;
+
                 for (int i = 0; i < totalSorted; i++)
                 {
                     var dest = pk.PacketUpdatesBuffer.AsSpan(offset, sorted[i].Size);
@@ -146,12 +158,14 @@ public class UpdatePacker
                 // First pass counting packet size
                 int newSum = packet.DataSize;
                 int uIdx = 1;
-                newSum += NetPacking.ByteCountInt64((int)sorted[0].Update.ID.Value);
+                newSum += NetPacking.ByteCountInt64((int) sorted[0].Update.ID.Value);
                 newSum += sorted[0].Size;
+
                 for (; uIdx < totalSorted && uIdx <= 127; uIdx++)
                 {
                     int curr = sorted[uIdx].Update.ID.Value;
                     int prev = sorted[uIdx - 1].Update.ID.Value;
+
                     if (newSum +
                         NetPacking.ByteCountInt64(curr - prev)
                         + sorted[uIdx].Size > maxPacketSize)
@@ -168,10 +182,11 @@ public class UpdatePacker
                 // Start writing ID list
                 var allWriter = new BitWriter(pk.PacketUpdatesBuffer, false);
                 allWriter.PutByte(0);
-                allWriter.PutVarInt32((int)sorted[0].Update.ID.Value);
+                allWriter.PutVarInt32((int) sorted[0].Update.ID.Value);
                 uIdx = 1;
                 dataSum += sorted[0].Size;
                 d[sorted[0].Object.Unique] = sorted[0].Update;
+
                 // Max 127 updates as we reserve one byte for count
                 for (int j = 1; uIdx < totalSorted && uIdx <= 127; uIdx++)
                 {
@@ -179,6 +194,7 @@ public class UpdatePacker
                     // we stop
                     int curr = sorted[uIdx].Update.ID.Value;
                     int prev = sorted[uIdx - 1].Update.ID.Value;
+
                     if ((packet.DataSize + // authstate + headers
                          allWriter.ByteLength + // current ID list
                          dataSum + // size of existing updates
@@ -194,9 +210,10 @@ public class UpdatePacker
                     dataSum += sorted[uIdx].Size;
                 }
 
-                pk.PacketUpdatesBuffer[0] = (byte)uIdx; // Set count
+                pk.PacketUpdatesBuffer[0] = (byte) uIdx; // Set count
                 // copy updates
                 int offset = allWriter.ByteLength;
+
                 for (int i = 0; i < uIdx; i++)
                 {
                     var dest = pk.PacketUpdatesBuffer.AsSpan(offset, sorted[i].Size);
@@ -207,15 +224,17 @@ public class UpdatePacker
 
                 packet.Updates = new byte[offset];
                 pk.PacketUpdatesBuffer.AsSpan(0, offset).CopyTo(packet.Updates);
+
                 // Increase priority for any non-updated objects
                 for (int i = uIdx; i < totalSorted; i++)
                 {
                     self.SetPriority(sorted[i].Object, sorted[i].Old.Priority + 1);
                 }
-                self.EnqueueState((uint)tick, authState, d);
+
+                self.EnqueueState((uint) tick, authState, d);
             }
+
             return packet;
         }
     }
-
 }

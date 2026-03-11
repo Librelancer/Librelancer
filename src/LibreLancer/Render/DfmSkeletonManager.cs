@@ -30,9 +30,9 @@ namespace LibreLancer.Render
         public DfmSkinning? LeftHandSkinning;
         public DfmSkinning? RightHandSkinning;
 
-        private Connection HeadConnection;
-        private Connection LeftHandConnection;
-        private Connection RightHandConnection;
+        private Connection? HeadConnection;
+        private Connection? LeftHandConnection;
+        private Connection? RightHandConnection;
 
         public class Connection
         {
@@ -50,9 +50,9 @@ namespace LibreLancer.Render
             public Connection(DfmSkinning parent, DfmSkinning child,
                 string parentHpName, string childHpName, string connectionHpName)
             {
-                parent.GetHardpoint(parentHpName, out parentHp, out parentBone);
-                child.GetHardpoint(childHpName, out childHp, out childBone);
-                parent.GetHardpoint(connectionHpName, out connectionHp, out connectionBone);
+                parent.GetHardpoint(parentHpName, out parentHp!, out parentBone!);
+                child.GetHardpoint(childHpName, out childHp!, out childBone!);
+                parent.GetHardpoint(connectionHpName, out connectionHp!, out connectionBone!);
                 CalculateTransform();
                 invBindPose = (connectionHp.Transform * connectionBone.LocalTransform * Transform.Inverse()).Inverse();
                 CalculateBone();
@@ -422,7 +422,9 @@ namespace LibreLancer.Render
         private void AddHardpoints(DfmSkinning skinning, Connection? connection)
         {
             foreach (var hp in skinning.GetHardpoints())
-                Hardpoints[hp.def.Name] = new DfmHardpoint(connection, hp.bone, hp.def);
+            {
+                Hardpoints[hp.def.Name] = new DfmHardpoint(connection, hp.bone!, hp.def);
+            }
         }
 
         public DfmSkeletonManager(DfmFile body, DfmFile? head = null, DfmFile? leftHand = null,

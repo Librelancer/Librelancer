@@ -33,12 +33,7 @@ namespace LibreLancer.Thn.Events
         {
             var obj = instance.Objects[Targets[0]];
             var path = instance.Objects[Targets[1]];
-            instance.AddProcessor(new PathAnimation()
-            {
-                Path = path,
-                Object = obj,
-                Event = this
-            });
+            instance.AddProcessor(new PathAnimation(obj, path, this));
         }
 
         private class PathAnimation : ThnEventProcessor
@@ -46,6 +41,13 @@ namespace LibreLancer.Thn.Events
             public ThnObject Object;
             public ThnObject Path;
             public StartPathAnimationEvent Event;
+
+            public PathAnimation(ThnObject obj, ThnObject path, StartPathAnimationEvent ev)
+            {
+                Object = obj;
+                Path = path;
+                Event = ev;
+            }
 
             private double time = 0;
 

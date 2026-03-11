@@ -12,14 +12,14 @@ namespace LibreLancer.Utf.Dfm
 {
 	public class FaceGroup
 	{
-        public string MaterialName { get; private set; }
+        public string MaterialName { get; private set; } = null!;
 
-		public int StartIndex;
-		public ushort[] TriangleStripIndices { get; private set; }
-		public ushort[] EdgeIndices { get; private set; }
-		public float[] EdgeAngles { get; private set; }
+        public int StartIndex;
+		public ushort[] TriangleStripIndices { get; private set; } = null!;
+        public ushort[] EdgeIndices { get; private set; } = null!;
+        public float[] EdgeAngles { get; private set; } = null!;
 
-		public FaceGroup(IntermediateNode root)
+        public FaceGroup(IntermediateNode root)
 		{
 			foreach (var node in root.OfType<LeafNode>())
 			{

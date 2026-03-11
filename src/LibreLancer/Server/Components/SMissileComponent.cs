@@ -15,20 +15,26 @@ public class SMissileComponent : GameComponent
     private PIDController pitchControl = new() { P = 1 };
     private PIDController yawControl = new() { P = 1 };
 
-    public SMissileComponent(GameObject parent, MissileEquip missile) : base(parent)
+    public SMissileComponent(GameObject parent, MissileEquip missile, GameObject? target, GameObject owner,
+        float speed) : base(parent)
     {
-        this.Missile = missile;
+        Missile = missile;
+        Target = target;
+        Owner = owner;
+        Speed = speed;
     }
 
     private double totalTime;
-    private Quaternion guidedRotation;
 
     public override void Update(double time)
     {
         totalTime += time;
-        if (Missile.Motor != null) DoMotor(time);
+        if (Missile.Motor != null)
+        {
+            DoMotor(time);
+        }
 
-        var phys = Parent.PhysicsComponent;
+        var phys = Parent.PhysicsComponent!;
         phys.Body.LinearVelocity = Vector3.Transform(-Vector3.UnitZ, Parent.LocalTransform.Orientation) * Speed;
 
         if (Target != null &&
@@ -49,7 +55,8 @@ public class SMissileComponent : GameComponent
                 phys.Body.AngularVelocity.Normalized() * Missile.Def.MaxAngularVelocity;
         }
 
-        if (totalTime > Missile.Def.Lifetime) {
+        if (totalTime > Missile.Def.Lifetime)
+        {
             Parent.World.Server.ExplodeMissile(Parent); // Todo: does this do damage?
         }
     }
@@ -58,13 +65,14 @@ public class SMissileComponent : GameComponent
     {
         // Orientation
         var vec = Parent.InverseTransformPoint(targetPoint);
+
         // normalize it
         vec.Normalize();
-        //
-        float yaw = MathHelper.Clamp((float)yawControl.Update(0, vec.X, dt), -1, 1);
-        float pitch = MathHelper.Clamp((float)pitchControl.Update(0, -vec.Y, dt), -1, 1);
+
+        var yaw = MathHelper.Clamp((float) yawControl.Update(0, vec.X, dt), -1, 1);
+        var pitch = MathHelper.Clamp((float) pitchControl.Update(0, -vec.Y, dt), -1, 1);
         var steering = new Vector3(pitch, yaw, 0);
-        steering = Parent.PhysicsComponent.Body.RotateVector(steering);
+        steering = Parent.PhysicsComponent!.Body.RotateVector(steering);
         steering = MathHelper.ApplyEpsilon(steering);
         var torque = new Vector3(50);
         var angularForce = steering * torque;
@@ -74,9 +82,12 @@ public class SMissileComponent : GameComponent
 
     private void DoMotor(double time)
     {
-        if (totalTime > Missile.Motor.Lifetime + Missile.Motor.Delay ||
+        if (totalTime > Missile.Motor!.Lifetime + Missile.Motor.Delay ||
             totalTime < Missile.Motor.Delay)
+        {
             return;
+        }
+
         Speed += (float) (Missile.Motor.Accel * time);
     }
 }

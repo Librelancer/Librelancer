@@ -9,7 +9,7 @@ public class DfmHardpoint : IRenderHardpoint
     public BoneInstance Bone;
     public HardpointDefinition Definition;
 
-    public DfmHardpoint(DfmSkeletonManager.Connection connection, BoneInstance bone, HardpointDefinition definition)
+    public DfmHardpoint(DfmSkeletonManager.Connection? connection, BoneInstance bone, HardpointDefinition definition)
     {
         Connection = connection;
         Bone = bone;
