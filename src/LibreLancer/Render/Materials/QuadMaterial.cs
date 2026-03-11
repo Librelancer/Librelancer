@@ -11,7 +11,7 @@ namespace LibreLancer.Render.Materials;
 
 public class QuadMaterial : RenderMaterial
 {
-    public List<(Texture texture, ushort blendMode)> Parameters = new List<(Texture texture, ushort blendMode)>();
+    public List<(Texture texture, ushort blendMode)> Parameters = [];
 
     public int ParameterCount => Parameters.Count;
 
@@ -23,7 +23,7 @@ public class QuadMaterial : RenderMaterial
         return Parameters.Count - 1;
     }
 
-    public QuadMaterial(ResourceManager library) : base(library) { }
+    public QuadMaterial(ResourceManager? library) : base(library) { }
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {

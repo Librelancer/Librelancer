@@ -15,7 +15,7 @@ namespace LibreLancer.Render.Materials
 	public class DetailMap2Dm1Msk2PassMaterial : RenderMaterial
 	{
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct MaterialParameters
+        private struct MaterialParameters
         {
             public Color4 Ac;
             public Color4 Dc;
@@ -46,7 +46,12 @@ namespace LibreLancer.Render.Materials
         public string DtSampler;
         public SamplerFlags DtFlags;
 
-		public DetailMap2Dm1Msk2PassMaterial (ResourceManager library) : base(library) { }
+        public DetailMap2Dm1Msk2PassMaterial(ResourceManager library, string dtSampler, string dm1Sampler) :
+            base(library)
+        {
+            DtSampler = dtSampler;
+            Dm1Sampler = dm1Sampler;
+        }
 
         public override void Use (RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
 		{

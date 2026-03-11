@@ -11,7 +11,17 @@ namespace LibreLancer
 	{
 		protected FreelancerGame Game;
         protected InputManager Input;
-        
+
+        private bool fading = false;
+        private bool fadeFirstFrame = true;
+        private bool fadeIn = true;
+        private double fadeDelay;
+        private double fadeTime;
+        private double fadeDuration;
+        private double totalTime = 0;
+        private int hitchCount = 0;
+        private Action? fadeDone;
+
 		public GameState (FreelancerGame game)
 		{
 			Game = game;
@@ -27,12 +37,18 @@ namespace LibreLancer
 
         private void InputOnActionDown(InputAction action)
         {
-            if(action == InputAction.USER_SCREEN_SHOT) 
-                Game.Screenshots.TakeScreenshot();
-            else if(action == InputAction.USER_FULLSCREEN) 
-                Game.SetFullScreen(!Game.IsFullScreen);
-            else
-                OnActionDown(action);
+            switch (action)
+            {
+                case InputAction.USER_SCREEN_SHOT:
+                    Game.Screenshots.TakeScreenshot();
+                    break;
+                case InputAction.USER_FULLSCREEN:
+                    Game.SetFullScreen(!Game.IsFullScreen);
+                    break;
+                default:
+                    OnActionDown(action);
+                    break;
+            }
         }
 
         protected virtual void OnActionUp(InputAction action)
@@ -58,7 +74,7 @@ namespace LibreLancer
             Input.Dispose();
             OnUnload();
         }
-        
+
 		protected virtual void OnUnload()
 		{
 		}
@@ -85,15 +101,6 @@ namespace LibreLancer
             fadeDone = toDo;
         }
 
-        bool fading = false;
-        private bool fadeFirstFrame = true;
-        bool fadeIn = true;
-        double fadeDelay;
-        double fadeTime;
-        double fadeDuration;
-        double totalTime = 0;
-        private int hitchCount = 0;
-        Action fadeDone;
         protected void DoFade(double delta)
         {
             if (fading)
@@ -101,12 +108,12 @@ namespace LibreLancer
                 if (delta < 0.1 || hitchCount >= 6)
                 {
                     if (!fadeFirstFrame)
-                        totalTime += delta; //Avoid frame hitching
+                        totalTime += delta; // Avoid frame hitching
                     else
                         delta = 0;
                     fadeFirstFrame = false;
                 } else {
-                    //don't freeze entirely
+                    // don't freeze entirely
                     hitchCount++;
                     delta = 0;
                 }
@@ -114,8 +121,8 @@ namespace LibreLancer
                 if (alpha < 0) alpha = 0;
                 if (!fadeIn) alpha = (1 - alpha);
                 Game.RenderContext.Renderer2D.FillRectangle(new Rectangle(0, 0, Game.Width, Game.Height), new Color4(0, 0, 0, alpha));
-                if (totalTime > fadeDelay) fadeTime -= delta; //Delay fade in
-                if (fadeTime < -0.25f) //negative allows last frame
+                if (totalTime > fadeDelay) fadeTime -= delta; // Delay fade in
+                if (fadeTime < -0.25f) // negative allows last frame
                 {
                     fadeDone?.Invoke();
                     fading = false;

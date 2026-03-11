@@ -10,7 +10,7 @@ namespace LibreLancer.Interface
 {
     public class Scrollbar
     {
-        public ScrollbarStyle Style;
+        public ScrollbarStyle? Style;
 
         public float ScrollOffset { get; set; }
         public float Tick { get; set; } = 0.1f;
@@ -19,34 +19,38 @@ namespace LibreLancer.Interface
         public float ThumbSize { get; set; } = 0.75f;
 
         private bool updateThumb = true;
-        
+
         public void ApplyStyle(Stylesheet stylesheet)
         {
             Style = stylesheet.Lookup<ScrollbarStyle>(null);
-            if (Style != null)
+
+            if (Style == null)
             {
-                upbutton.SetStyle(Style.UpButton);
-                downbutton.SetStyle(Style.DownButton);
-                thumb.SetStyle(Style.Thumb);
-                thumbTop.SetStyle(Style.ThumbTop);
-                thumbBottom.SetStyle(Style.ThumbBottom);
+                return;
             }
+
+            upbutton.SetStyle(Style.UpButton);
+            downbutton.SetStyle(Style.DownButton);
+            thumb.SetStyle(Style.Thumb);
+            thumbTop.SetStyle(Style.ThumbTop);
+            thumbBottom.SetStyle(Style.ThumbBottom);
         }
-        private Button upbutton = new Button()
+        private Button upbutton = new()
         {
             Anchor = AnchorKind.TopCenter
         };
-        
-        private Button downbutton = new Button()
+
+        private Button downbutton = new()
         {
             Anchor = AnchorKind.BottomCenter
         };
-        private Button thumb = new Button();
-        private Button thumbTop = new Button();
-        private Button thumbBottom = new Button();
-        void Layout(RectangleF parent, out RectangleF myRectangle, out RectangleF track)
+        private Button thumb = new();
+        private Button thumbTop = new();
+        private Button thumbBottom = new();
+
+        private void Layout(RectangleF parent, out RectangleF myRectangle, out RectangleF track)
         {
-            myRectangle = new RectangleF(parent.X + parent.Width - Style.Width, parent.Y, Style.Width, parent.Height);
+            myRectangle = new RectangleF(parent.X + parent.Width - Style!.Width, parent.Y, Style.Width, parent.Height);
             var widthAdjust = (Style?.ButtonMarginX ?? 0) * 2;
             upbutton.Width = myRectangle.Width - widthAdjust;
             downbutton.Width = myRectangle.Width - widthAdjust;
@@ -87,9 +91,9 @@ namespace LibreLancer.Interface
             }
             timer = MathHelper.Clamp(timer, 0, 100);
             Layout(parent, out var myRectangle, out var track);
-            //background
+            // background
             Style?.Background?.Draw(context, myRectangle);
-            //draw buttons
+            // draw buttons
             upbutton.Render(context, myRectangle);
             float tickmult = Smooth ? delta * 8 : 1;
             if (upbutton.HeldDown && (timer <= 0 || Smooth))
@@ -105,22 +109,23 @@ namespace LibreLancer.Interface
                 if (ScrollOffset > 1) ScrollOffset = 1;
                 timer = 1 / 8f;
             }
-            //process non smooth scroll wheel
+            // process non smooth scroll wheel
             ScrollOffset += nextScrollDir * Tick;
             ScrollOffset = MathHelper.Clamp(ScrollOffset, 0, 1);
             nextScrollDir = 0;
-            //draw track
+            // draw track
             Style?.TrackArea?.Draw(context, track);
-            //draw thumb
+            // draw thumb
             thumb.Update(context, track);
             float top = 0, bottom = 0;
-            if (Style.ThumbTop != null)
+            if (Style?.ThumbTop != null)
             {
                 top = Style.ThumbTop.Height;
                 var rect = new RectangleF(track.X, track.Y + thumb.Y, track.Width, top + 1);
                 thumbTop.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
-            if (Style.ThumbBottom != null)
+
+            if (Style?.ThumbBottom != null)
             {
                 bottom = Style.ThumbBottom.Height;
                 var rect = new RectangleF(track.X, track.Y + thumb.Y + thumb.Height - bottom - 1, track.Width, bottom + 1);
@@ -163,6 +168,6 @@ namespace LibreLancer.Interface
                 nextScrollDir = delta > 0 ? -1 : 1;
             }
         }
-        
+
     }
 }

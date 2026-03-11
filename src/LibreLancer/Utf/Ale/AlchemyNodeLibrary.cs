@@ -12,7 +12,7 @@ namespace LibreLancer.Utf.Ale
 {
 	public class AlchemyNodeLibrary
 	{
-		public List<AlchemyNode> Nodes = new List<AlchemyNode> ();
+		public List<AlchemyNode> Nodes = [];
 
         public AlchemyNodeLibrary()
         {
@@ -28,8 +28,9 @@ namespace LibreLancer.Utf.Ale
 					ushort nameLen = reader.ReadUInt16 ();
 					var nodeName = Encoding.ASCII.GetString (reader.ReadBytes (nameLen)).TrimEnd ('\0');
 					reader.BaseStream.Seek(nameLen & 1, SeekOrigin.Current); //padding
-					var node = new AlchemyNode () { ClassName = nodeName };
-					node.CRC = CrcTool.FLAleCrc(nodeName);
+					var node = new AlchemyNode { ClassName = nodeName,
+                        CRC = CrcTool.FLAleCrc(nodeName)
+                    };
                     uint id;
                     AleProperty prop;
 					while (true) {
@@ -38,7 +39,7 @@ namespace LibreLancer.Utf.Ale
 							break;
 						AleTypes type = (AleTypes)(id & 0x7FFF);
 						prop = (AleProperty)reader.ReadUInt32 ();
-						object value = null;
+						object? value = null;
 						switch (type) {
 						case AleTypes.Boolean:
 							value = (id & 0x8000) != 0 ? true : false;
@@ -75,10 +76,10 @@ namespace LibreLancer.Utf.Ale
 						}
 						node.Parameters.Add (new AleParameter () { Name = prop, Value = value });
 					}
-					AleParameter temp;
-					if (node.TryGetParameter(AleProperty.Node_Name, out temp))
+
+                    if (node.TryGetParameter(AleProperty.Node_Name, out var temp))
 					{
-						var nn = (string)temp.Value;
+						var nn = (string)temp.Value!;
                         node.NodeName = nn;
 						node.CRC = CrcTool.FLAleCrc(nn);
 					}

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Linq;
 using System.Numerics;
 
 namespace LibreLancer.Utf.Cmp
@@ -16,13 +17,13 @@ namespace LibreLancer.Utf.Cmp
         public RevoluteHardpointDefinition(IntermediateNode root)
             : base(root)
         {
-            foreach (LeafNode node in root)
+            foreach (var node in root.OfType<LeafNode>())
             {
                 if (!parentNode(node))
                     switch (node.Name.ToLowerInvariant())
                     {
                         case "axis":
-                            Axis = node.Vector3Data.Value;
+                            Axis = node.Vector3Data!.Value;
                             break;
 						case "max":
 							Max = node.SingleArrayData [0];

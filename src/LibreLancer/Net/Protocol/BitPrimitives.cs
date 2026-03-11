@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace LibreLancer.Net.Protocol;
 
-static class BitPrimitives
+internal static class BitPrimitives
 {
     [DoesNotReturn]
     public static void ThrowArgumentOutOfRangeException() => throw new ArgumentOutOfRangeException();
@@ -27,7 +27,6 @@ static class BitPrimitives
             return (uint)ReadValue64(value, bitOffset & 7, bitCount);
     }
 
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool ValidateArgs(int availableBits, int bitOffset, int bitCount, int maxBits)
     {
@@ -39,7 +38,6 @@ static class BitPrimitives
             return false;
         return true;
     }
-
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint ReadValue32(uint source, int bitOffset, int bitCount)
@@ -66,7 +64,6 @@ static class BitPrimitives
         else
             destination[bitOffset >> 3] &= (byte)~mask;
     }
-
 
     public static void WriteUInt8(Span<byte> destination, int bitOffset, byte value, int bitCount)
     {
@@ -105,7 +102,6 @@ static class BitPrimitives
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetMask(int size) => (1 << size) - 1;
-
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void WriteValue8(ref byte destination, int bitShift, int value, int bitCount)

@@ -22,7 +22,7 @@ namespace LibreLancer.Server
     {
         public long Id;
         private ServerDatabase db;
-        private Character cached;
+        private Character? cached;
 
         internal DatabaseCharacter(Character c, ServerDatabase db)
         {
@@ -152,7 +152,7 @@ namespace LibreLancer.Server
             return compSrc.Task;
         }
 
-        async Task ProcessTaskQueue()
+        private async Task ProcessTaskQueue()
         {
             while (await actions.OutputAvailableAsync())
             {
@@ -161,7 +161,7 @@ namespace LibreLancer.Server
             }
         }
 
-        public LibreLancerContext CreateDbContext() => server.DbContextFactory.CreateDbContext(new string[0]);
+        public LibreLancerContext CreateDbContext() => server.DbContextFactory.CreateDbContext([]);
 
         public async Task BanAccount(Guid playerGuid, DateTime expiryUtc)
         {
@@ -176,7 +176,7 @@ namespace LibreLancer.Server
                 Type = ServerEventType.PlayerBanChanged,
                 TimeUtc = DateTime.UtcNow,
                 Payload = new PlayerBanChangedEventPayload(
-                    new BannedPlayerDescription(acc.AccountIdentifier, acc.Characters.Select(c=>c.Name).ToArray(), expiryUtc),
+                    new BannedPlayerDescription(acc!.AccountIdentifier, acc.Characters.Select(c=>c.Name).ToArray(), expiryUtc),
                     true)
             });
         }
@@ -194,7 +194,7 @@ namespace LibreLancer.Server
                 Type = ServerEventType.PlayerBanChanged,
                 TimeUtc = DateTime.UtcNow,
                 Payload = new PlayerBanChangedEventPayload(
-                    new BannedPlayerDescription(acc.AccountIdentifier, acc.Characters.Select(c => c.Name).ToArray(), null),
+                    new BannedPlayerDescription(acc!.AccountIdentifier, acc.Characters.Select(c => c.Name).ToArray(), null),
                     false)
             });
         }
@@ -278,7 +278,7 @@ namespace LibreLancer.Server
             });
         }
 
-        public async Task<List<SelectableCharacter>> PlayerLogin(Guid playerGuid)
+        public async Task<List<SelectableCharacter>?> PlayerLogin(Guid playerGuid)
         {
             return await Run(async () =>
             {
@@ -287,39 +287,39 @@ namespace LibreLancer.Server
                 var acc = ctx.Accounts.Where(x => x.AccountIdentifier == playerGuid)
                     .Include(x => x.Characters)
                     .FirstOrDefault();
+
                 if (acc == null)
                 {
-                    var utcnow = DateTime.UtcNow;
+                    var utcNow = DateTime.UtcNow;
                     acc = new Account()
                     {
                         AccountIdentifier = playerGuid,
-                        LastLogin = utcnow,
-                        CreationDate = utcnow
+                        LastLogin = utcNow,
+                        CreationDate = utcNow
                     };
                     ctx.Accounts.Add(acc);
                     ctx.SaveChanges();
-                    return new List<SelectableCharacter>();
+                    return [];
                 }
+
                 if (acc.BanExpiry.HasValue && acc.BanExpiry > DateTime.UtcNow)
                 {
                     return null;
                 }
+
                 ctx.Entry(acc).Property(x => x.LastLogin).CurrentValue = DateTime.UtcNow;
                 ctx.SaveChanges();
-                var characters = new List<SelectableCharacter>();
-                foreach (var c in acc.Characters)
-                {
-                    characters.Add(new SelectableCharacter()
+
+                return acc.Characters.Select(c => new SelectableCharacter()
                     {
                         Location = c.System,
                         Funds = c.Money,
                         Name = c.Name,
-                        Rank = (int)c.Rank,
+                        Rank = (int) c.Rank,
                         Ship = c.Ship,
                         Id = c.Id
-                    });
-                }
-                return characters;
+                    })
+                    .ToList();
             });
 
         }
@@ -361,15 +361,15 @@ namespace LibreLancer.Server
             return await Run(async () =>
             {
                 await using var ctx = CreateDbContext();
-                //Get account
+                // Get account
                 var acc = ctx.Accounts.First(x => x.AccountIdentifier == playerGuid);
-                //Init object
+                // Init object
                 var c = new Character();
                 fillCharacter(c);
                 var nowUtc = DateTime.UtcNow;
                 c.UpdateDate = c.CreationDate = nowUtc;
                 c.Account = acc;
-                //Add
+                // Add
                 ctx.Characters.Add(c);
                 await ctx.SaveChangesAsync();
                 return c.Id;

@@ -4,22 +4,16 @@ using System.Runtime.InteropServices;
 namespace LibreLancer.Physics;
 
 [StructLayout(LayoutKind.Explicit)]
-public struct ConvexMeshId
+public struct ConvexMeshId(uint id, uint subId)
 {
     [FieldOffset(0)]
     internal ulong Bits;
     [FieldOffset(0)]
-    public uint Id;
+    public uint Id = id;
     [FieldOffset(4)]
-    public uint SubId;
+    public uint SubId = subId;
 
-    public ConvexMeshId(uint id, uint subId)
-    {
-        Id = id;
-        SubId = subId;
-    }
-
-    public override bool Equals(object obj) =>
+    public override bool Equals(object? obj) =>
         obj is ConvexMeshId other && Bits == other.Bits;
 
     public readonly bool Equals(ConvexMeshId other) =>

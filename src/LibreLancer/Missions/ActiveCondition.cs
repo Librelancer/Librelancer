@@ -8,7 +8,13 @@ public class ActiveCondition
 {
     public ActiveTrigger Trigger;
     public ScriptedCondition Condition;
-    public ConditionStorage Storage;
+    public ConditionStorage Storage = null!;
+
+    public ActiveCondition(ActiveTrigger trigger, ScriptedCondition condition)
+    {
+        Trigger = trigger;
+        Condition = condition;
+    }
 }
 
 public abstract class ConditionStorage

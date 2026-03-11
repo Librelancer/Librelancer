@@ -8,22 +8,24 @@ namespace LibreLancer.Client.Components;
 public class CSoundEffectComponent : GameComponent
 {
     private readonly GameObject parent;
-    private readonly AttachedSound sound;
+    private readonly AttachedSound? sound;
 
-    public CSoundEffectComponent(GameObject obj, SoundManager snd, string soundName) : base(obj)
+    public CSoundEffectComponent(GameObject obj, SoundManager? snd, string soundName) : base(obj)
     {
         parent = obj;
+
         if (snd != null)
         {
-            sound = new AttachedSound(snd);
-            sound.Sound = soundName;
+            sound = new AttachedSound(snd, soundName);
         }
     }
 
     public override void Update(double time)
     {
         if (sound == null)
+        {
             return;
+        }
 
         var tr = parent.WorldTransform;
         var pos = tr.Position;
@@ -31,7 +33,7 @@ public class CSoundEffectComponent : GameComponent
 
         if (parent.PhysicsComponent != null)
         {
-            vel = parent.PhysicsComponent.Body.LinearVelocity;
+            vel = parent.PhysicsComponent.Body!.LinearVelocity;
         }
 
         sound.Position = pos;
@@ -40,5 +42,5 @@ public class CSoundEffectComponent : GameComponent
         sound.Update();
     }
 
-    public override void Unregister(PhysicsWorld physics) => sound?.Stop();
+    public override void Unregister(PhysicsWorld? physics) => sound?.Stop();
 }

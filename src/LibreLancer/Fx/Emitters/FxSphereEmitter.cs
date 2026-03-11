@@ -15,8 +15,8 @@ namespace LibreLancer.Fx
 
 		public FxSphereEmitter (AlchemyNode ale) : base(ale)
         {
-            MinRadius = ale.GetCurveAnimation(AleProperty.SphereEmitter_MinRadius);
-            MaxRadius = ale.GetCurveAnimation(AleProperty.SphereEmitter_MaxRadius);
+            MinRadius = ale.GetCurveAnimation(AleProperty.SphereEmitter_MinRadius)!;
+            MaxRadius = ale.GetCurveAnimation(AleProperty.SphereEmitter_MaxRadius)!;
 		}
 
         public FxSphereEmitter(string name) : base(name)
@@ -25,7 +25,6 @@ namespace LibreLancer.Fx
             MaxRadius = new(1);
         }
 
-
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();
@@ -33,7 +32,6 @@ namespace LibreLancer.Fx
             n.Parameters.Add(new(AleProperty.SphereEmitter_MaxRadius, MaxRadius));
             return n;
         }
-
 
         protected override void SetParticle(EmitterReference reference, ref Particle particle, float sparam, float globaltime)
 		{
@@ -49,13 +47,12 @@ namespace LibreLancer.Fx
 			);
 			p.Normalize();
 			var n = p;
-			Vector3 translate;
-            Quaternion rotate;
-            if (DoTransform(reference, sparam, globaltime, out translate, out rotate)) {
+
+            if (DoTransform(reference, sparam, globaltime, out var translate, out var rotate)) {
                 p += translate;
                 n = Vector3.Transform(n, rotate);
             }
-			n *= Pressure.GetValue(sparam, 0);
+			n *= Pressure!.GetValue(sparam, 0);
 			var pr = p * radius;
 			particle.Position = pr;
 			particle.Normal = n;

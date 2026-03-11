@@ -1,17 +1,17 @@
 ﻿// MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
-    
+
 using System;
 using System.Collections.Generic;
 using LibreLancer.Interface;
 namespace LibreLancer
 {
-    //Not a full GameState object but close enough to one
+    // Not a full GameState object but close enough to one
     public class LoadingScreen
     {
-        FreelancerGame game;
-        IEnumerator<object> loader;
+        private FreelancerGame game;
+        private IEnumerator<object> loader;
         public LoadingScreen(FreelancerGame game, IEnumerator<object> loader)
         {
             this.game = game;

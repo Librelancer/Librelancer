@@ -13,25 +13,34 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ImageFile : UiWidget
     {
-       public string Path { get; set; }
+        public string Path { get; set; } = "";
        public bool Flip { get; set; } = true;
-       public InterfaceColor Tint { get; set; }
+       public InterfaceColor? Tint { get; set; }
        public bool Fill { get; set; }
-       private Texture2D texture;
+       private Texture2D? texture;
        private bool loaded = false;
        public override void Render(UiContext context, RectangleF parentRectangle)
        {
-           if (!Visible) return;
+           if (!Visible)
+           {
+               return;
+           }
+
            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
            var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
-           if (Fill) myRectangle = parentRectangle;
-           if(Background != null)
-               Background.Draw(context, myRectangle);
+           if (Fill)
+           {
+               myRectangle = parentRectangle;
+           }
+
+           Background?.Draw(context, myRectangle);
+
            if (!loaded)
            {
                texture = context.Data.GetTextureFile(Path);
                loaded = true;
            }
+
            if (texture != null)
            {
                var color = (Tint ?? InterfaceColor.White).Color;

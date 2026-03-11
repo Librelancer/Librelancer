@@ -7,15 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 
-
 namespace LibreLancer
 {
-    //We don't use pointers to access data as they can cause data misalignment errors on Armhf
+    // We don't use pointers to access data as they can cause data misalignment errors on Armhf
     public static class ConvertData
     {
-
-        static float Float(byte[] data, int start, int idx) => BitConverter.ToSingle(data, start + idx * 4);
-
+        private static float Float(byte[] data, int start, int idx) => BitConverter.ToSingle(data, start + idx * 4);
 
         public static Vector3 ToVector3(byte[] data, int start = 0)
         {
@@ -31,7 +28,7 @@ namespace LibreLancer
         {
             var len = length == 0 ? data.Length : length;
             len /= (sizeof(float) * 3);
-            if (len == 0) return new Vector3[0];
+            if (len == 0) return [];
             Vector3[] result = new Vector3[len];
             for (int i = 0; i < len; i++)
             {

@@ -15,16 +15,25 @@ namespace LibreLancer.Infocards
     [WattleScriptUserData]
 	public class Infocard
 	{
-		public List<RichTextNode> Nodes;
+		public List<RichTextNode> Nodes = [];
 
 		public string ExtractText()
 		{
 			var b = new StringBuilder();
 			foreach (var n in Nodes)
-			{
-				if (n is RichTextParagraphNode) b.AppendLine();
-				if (n is RichTextTextNode) b.Append((n as RichTextTextNode).Contents);
-			}
+            {
+                switch (n)
+                {
+                    case RichTextParagraphNode:
+                        b.AppendLine();
+                        break;
+                    case RichTextTextNode node:
+                        b.Append(node.Contents);
+                        break;
+                }
+
+            }
+
 			return b.ToString();
 		}
 

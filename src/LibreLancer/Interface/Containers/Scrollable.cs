@@ -11,7 +11,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class Scrollable : Container
     {
-        public Scrollbar Scrollbar = new Scrollbar();
+        public Scrollbar Scrollbar = new();
 
         public override void Render(UiContext context, RectangleF parentRectangle)
         {

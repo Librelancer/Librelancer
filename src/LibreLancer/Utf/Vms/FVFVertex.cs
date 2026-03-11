@@ -9,7 +9,7 @@ public struct FVFVertex : IVertexType
 {
     private VertexDeclaration declaration;
     private int coordCount;
-    D3DFVF fvf;
+    private D3DFVF fvf;
 
     public FVFVertex(D3DFVF fvf)
     {

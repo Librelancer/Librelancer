@@ -25,7 +25,7 @@ public struct NetObjective
                Position.Equals(other.Position);
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is NetObjective other && Equals(other);
     }
@@ -42,12 +42,12 @@ public struct NetObjective
         return hashCode.ToHashCode();
     }
 
-    public static bool operator ==(NetObjective left, NetObjective right)
+    public static bool operator ==(NetObjective? left, NetObjective? right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(NetObjective left, NetObjective right)
+    public static bool operator !=(NetObjective? left, NetObjective? right)
     {
         return !left.Equals(right);
     }
@@ -55,8 +55,8 @@ public struct NetObjective
     public ObjectiveKind Kind;
     public int Ids;
     public int Explanation;
-    public string System;
-    public string Object;
+    public string? System;
+    public string? Object;
     public Vector3 Position;
 
     public NetObjective(int ids)
@@ -95,15 +95,15 @@ public struct NetObjective
             return new NetObjective(
                 reader.GetVariableInt32(),
                 reader.GetVariableInt32(),
-                reader.GetString(),
+                reader.GetString()!,
                 reader.GetVector3()
             );
         if (k == ObjectiveKind.Object)
             return new NetObjective(
                 reader.GetVariableInt32(),
                 reader.GetVariableInt32(),
-                reader.GetString(),
-                reader.GetString()
+                reader.GetString()!,
+                reader.GetString()!
             );
         return new NetObjective();
     }

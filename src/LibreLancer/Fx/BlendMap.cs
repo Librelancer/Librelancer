@@ -8,7 +8,7 @@ using LibreLancer.Graphics;
 
 namespace LibreLancer.Fx
 {
-	//Map D3DBLEND pairs to internal blend modes
+	// Map D3DBLEND pairs to internal blend modes
 	public static class BlendMap
 	{
 		public static ushort Map(Tuple<uint,uint> ale)

@@ -12,7 +12,7 @@ namespace LibreLancer.Utf.Ale
 		public uint CRC;
 		public uint Parent;
 		public uint Index;
-		public List<AlchemyNodeRef> Children = new List<AlchemyNodeRef> ();
+		public List<AlchemyNodeRef> Children = [];
 		public AlchemyNodeRef(uint flg, uint crc, uint parent, uint idx)
 		{
 			Flag = flg;

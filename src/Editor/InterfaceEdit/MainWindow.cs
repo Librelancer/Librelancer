@@ -495,7 +495,7 @@ namespace InterfaceEdit
                 if (ImGui.GetIO().MouseWheel != 0) {
                     _playContext.OnMouseWheel(ImGui.GetIO().MouseWheel);
                 }
-                _playContext.Update(null, TotalTime, mX, mY, false);
+                _playContext.Update(TotalTime, mX, mY, false);
                 if (Keyboard.IsKeyDown(Keys.LeftAlt))
                     TestApi.OverridePosition = new Vector2(_playContext.MouseX, _playContext.MouseY);
                 else
@@ -516,7 +516,7 @@ namespace InterfaceEdit
             {
                 TestApi.OverridePosition = null;
                 mouseWanted = false;
-                _playContext.Update(null, TotalTime, 0, 0, false);
+                _playContext.Update(TotalTime, 0, 0, false);
                 _playContext.MouseLeftDown = false;
                 if (lastDown)
                 {

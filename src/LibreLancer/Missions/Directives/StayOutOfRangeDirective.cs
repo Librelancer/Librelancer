@@ -11,7 +11,7 @@ public class StayOutOfRangeDirective : MissionDirective
     public override ObjListCommands Command => ObjListCommands.StayOutOfRange;
 
     public bool UseObject; // Mostly for editor use
-    public string Object = "";
+    public string? Object = "";
     public Vector3 Point;
     public float Range;
     public bool Unknown;
@@ -53,7 +53,6 @@ public class StayOutOfRangeDirective : MissionDirective
         }
     }
 
-
     public override void Put(PacketWriter writer)
     {
         writer.Put((byte)ObjListCommands.StayOutOfRange);
@@ -68,7 +67,7 @@ public class StayOutOfRangeDirective : MissionDirective
         var vb = new List<ValueBase>();
         if (UseObject)
         {
-            vb.Add(new StringValue(Object));
+            vb.Add(new StringValue(Object!));
         }
         else
         {

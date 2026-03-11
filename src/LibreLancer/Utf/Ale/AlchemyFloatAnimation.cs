@@ -30,9 +30,11 @@ namespace LibreLancer.Utf.Ale
 			int itemsCount = reader.ReadByte ();
             Items = new(itemsCount);
 			for (int fc = 0; fc < itemsCount; fc++) {
-				var floats = new AlchemyFloats ();
-				floats.SParam = reader.ReadSingle ();
-				floats.Type = (EasingTypes)reader.ReadByte ();
+				var floats = new AlchemyFloats
+                {
+                    SParam = reader.ReadSingle (),
+                    Type = (EasingTypes)reader.ReadByte ()
+                };
                 var len = reader.ReadByte();
                 floats.Keyframes = new(len);
 				for (int i = 0; i < len; i++) {
@@ -54,12 +56,12 @@ namespace LibreLancer.Utf.Ale
         }
 		public float GetValue(float sparam, float time)
 		{
-			//1 item, 1 value
+			// 1 item, 1 value
 			if (Items.Count == 1) {
 				return Items [0].GetValue (time);
 			}
-			//Find 2 keyframes to interpolate between
-			AlchemyFloats f1 = null, f2 = null;
+			// Find 2 keyframes to interpolate between
+			AlchemyFloats? f1 = null, f2 = null;
 			for (int i = 0; i < Items.Count - 1; i++) {
 				if (sparam >= Items [i].SParam && sparam <= Items [i + 1].SParam) {
 					f1 = Items [i];
@@ -67,18 +69,18 @@ namespace LibreLancer.Utf.Ale
                     break;
                 }
 			}
-			//We're at the end
+			// We're at the end
 			if (f1 == null) {
 				return Items [Items.Count - 1].GetValue(time);
 			}
-			//Interpolate between SParams
+			// Interpolate between SParams
 			var v1 = f1.GetValue (time);
-			var v2 = f2.GetValue (time);
+			var v2 = f2!.GetValue (time);
 			return Easing.Ease (Type, sparam, f1.SParam, f2.SParam, v1, v2);
 		}
 		public override string ToString ()
 		{
-			return string.Format ("<Fanim: Type={0}, Count={1}>",Type,Items.Count);
+			return $"<Fanim: Type={Type}, Count={Items.Count}>";
 		}
 	}
 }

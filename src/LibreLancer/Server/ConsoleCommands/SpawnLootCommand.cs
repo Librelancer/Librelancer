@@ -10,7 +10,7 @@ public class SpawnLootCommand : IConsoleCommand
     public bool Admin => true;
     public void Run(Player player, string arguments)
     {
-        if (!ConsoleCommands.ParseString(arguments, out string l, out int count))
+        if (!ConsoleCommands.ParseString<string, int>(arguments, out var l, out var count))
         {
             player.RpcClient.OnConsoleMessage("Invalid argument. Expecting [name] [count]");
             return;
@@ -21,7 +21,8 @@ public class SpawnLootCommand : IConsoleCommand
             player.RpcClient.OnConsoleMessage("Count must be >= 1");
             return;
         }
-        player.Space?.World?.EnqueueAction(() =>
+
+        player.Space?.World.EnqueueAction(() =>
         {
             var p = player.Space.World.Players[player];
             var eq = player.Space.World.Server.GameData.Items.Equipment.Get(l);

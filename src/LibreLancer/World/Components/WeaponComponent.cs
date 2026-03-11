@@ -11,9 +11,11 @@ namespace LibreLancer.World.Components
     {
         public double CurrentCooldown = 0;
 
-        public Vector2 Angles = new Vector2(0, 0);
+        public Vector2 Angles = new(0, 0);
 
-        protected WeaponComponent(GameObject parent) : base(parent) { }
+        protected WeaponComponent(GameObject parent) : base(parent)
+        {
+        }
 
         protected abstract float TurnRate { get; }
 
@@ -24,50 +26,81 @@ namespace LibreLancer.World.Components
         public override void Update(double time)
         {
             CurrentCooldown -= time;
-            if (CurrentCooldown < 0) CurrentCooldown = 0;
-            if (_targetX > -1000) {
+            if (CurrentCooldown < 0)
+            {
+                CurrentCooldown = 0;
+            }
+
+            if (_targetX > -1000)
+            {
                 DoRotation(_targetX, _targetY, time);
             }
         }
 
-        void DoRotation(float x, float y, double time)
+        private void DoRotation(float x, float y, double time)
         {
-            var hp = Parent.Attachment;
+            var hp = Parent.Attachment!;
             var rads = MathHelper.DegreesToRadians(TurnRate);
-            var delta = (float)(time * rads);
-            if(hp.Revolute != null)
+            var delta = (float) (time * rads);
+
+            if (hp.Revolute != null)
             {
                 var target = x;
-                var current = Parent.Attachment.CurrentRevolution;
+                var current = hp.CurrentRevolution;
 
-                if(current > target) {
-                    current -= delta;
-                    if (current <= target) current = target;
-                }
-                if(current < target) {
-                    current += delta;
-                    if (current >= target) current = target;
-                }
-                hp.Revolve(current);
-                Angles.X = current;
-            }
-            //TODO: Finding barrel construct properly?
-            Utf.RevConstruct barrel = null;
-            foreach (var mdl in Parent.Model.RigidModel.AllParts)
-                if (mdl.Construct is Utf.RevConstruct revCon)
-                    barrel = revCon;
-            if(barrel != null) {
-                var target = y;
-                var current = barrel.Current;
                 if (current > target)
                 {
                     current -= delta;
-                    if (current <= target) current = target;
+                    if (current <= target)
+                    {
+                        current = target;
+                    }
                 }
+
                 if (current < target)
                 {
                     current += delta;
-                    if (current >= target) current = target;
+                    if (current >= target)
+                    {
+                        current = target;
+                    }
+                }
+
+                hp.Revolve(current);
+                Angles.X = current;
+            }
+
+            // TODO: Finding barrel construct properly?
+            Utf.RevConstruct? barrel = null;
+            foreach (var mdl in Parent.Model!.RigidModel.AllParts)
+            {
+                if (mdl.Construct is Utf.RevConstruct revCon)
+                {
+                    barrel = revCon;
+                }
+            }
+
+            if (barrel != null)
+            {
+                var target = y;
+                var current = barrel.Current;
+
+                if (current > target)
+                {
+                    current -= delta;
+                    if (current <= target)
+                    {
+                        current = target;
+                    }
+                }
+
+                if (current < target)
+                {
+                    current += delta;
+                    if (current >= target)
+                    {
+                        current = target;
+                    }
                 }
 
                 barrel.Update(target, Quaternion.Identity);
@@ -78,6 +111,7 @@ namespace LibreLancer.World.Components
 
         private float _targetX = -1000;
         private float _targetY = -1000;
+
         public void RotateTowards(float x, float y)
         {
             _targetX = x;
@@ -86,10 +120,10 @@ namespace LibreLancer.World.Components
 
         public void AimTowards(Vector3 point, double time)
         {
-            var hp = Parent.Attachment;
-            //Parent is the gun itself rotated
-            var br = (hp.TransformNoRotate * Parent.Parent.WorldTransform).Matrix();
-            //Inverse Transform
+            var hp = Parent.Attachment!;
+            // Parent is the gun itself rotated
+            var br = (hp.TransformNoRotate * Parent.Parent!.WorldTransform).Matrix();
+            // Inverse Transform
             Matrix4x4.Invert(br, out var beforeRotate);
             var local = TransformGL(point, beforeRotate);
             var localProper = local.Normalized();
@@ -98,7 +132,7 @@ namespace LibreLancer.World.Components
             DoRotation(x, y, time);
         }
 
-        static Vector3 TransformGL(Vector3 position, Matrix4x4 matrix)
+        private static Vector3 TransformGL(Vector3 position, Matrix4x4 matrix)
         {
             return new Vector3(
                 position.X * matrix.M11 + position.Y * matrix.M21 + position.Z * matrix.M31 + matrix.M41,
@@ -112,17 +146,23 @@ namespace LibreLancer.World.Components
             return angle;
         }
 
-        protected abstract bool OnFire(Vector3 point, GameObject target, bool server);
+        protected abstract bool OnFire(Vector3 point, GameObject? target, bool server);
 
-        public bool Fire(Vector3 point, GameObject target = null, bool fromServer = false)
+        public bool Fire(Vector3 point, GameObject? target = null, bool fromServer = false)
         {
-            if (!fromServer && Parent.Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
-                (flight.EngineState == EngineStates.Cruise || flight.EngineState == EngineStates.CruiseCharging))
+            if (!fromServer && Parent.Parent!.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
+                flight.EngineState is EngineStates.Cruise or EngineStates.CruiseCharging)
+            {
                 return false;
-            if (CurrentCooldown > 0 && !fromServer) return false;
-            if (Parent.Parent.Flags.HasFlag(GameObjectFlags.Cloaked))
-                return false; // Cloaked ships can't fire weapons
-            return OnFire(point, target, fromServer);
+            }
+
+            if (CurrentCooldown > 0 && !fromServer)
+            {
+                return false;
+            }
+
+            // Cloaked ships can't fire weapons
+            return !Parent.Parent!.Flags.HasFlag(GameObjectFlags.Cloaked) && OnFire(point, target, fromServer);
         }
     }
 }

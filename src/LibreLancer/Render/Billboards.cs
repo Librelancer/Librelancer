@@ -12,15 +12,15 @@ namespace LibreLancer.Render
 {
 	public unsafe class Billboards
 	{
-		const int MAX_BILLBOARDS = 10000;
+        private const int MAX_BILLBOARDS = 10000;
 
-        RenderData[] rendat;
-        //Basic
-        Shader shaderBasic;
-        BillboardVert* verticesBasic;
-        VertexBuffer vboBasic;
-        ElementBuffer iboBasic;
-        ushort[] indicesBasic = new ushort[MAX_BILLBOARDS * 6];
+        private RenderData[] rendat;
+        // Basic
+        private Shader shaderBasic;
+        private BillboardVert* verticesBasic;
+        private VertexBuffer vboBasic;
+        private ElementBuffer iboBasic;
+        private ushort[] indicesBasic = new ushort[MAX_BILLBOARDS * 6];
 
 		public Billboards(RenderContext context)
         {
@@ -33,7 +33,7 @@ namespace LibreLancer.Render
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		struct BillboardVert : IVertexType
+        private struct BillboardVert : IVertexType
 		{
 			public Vector3 Position;
 			public Color4 Color;
@@ -59,7 +59,8 @@ namespace LibreLancer.Render
         {
             return rendat[index].Texture.ID;
         }
-		struct RenderData
+
+        private struct RenderData
 		{
 			public Texture Texture;
 			public ushort BlendMode;
@@ -81,7 +82,7 @@ namespace LibreLancer.Render
 			{
 				unchecked
 				{
-					int hash = 17;
+					var hash = 17;
 					hash += hash * 23 + Texture.GetHashCode();
 					hash += hash * 23 + BlendMode.GetHashCode();
 					return hash;
@@ -96,9 +97,10 @@ namespace LibreLancer.Render
 				return camera;
 			}
 		}
-		ICamera camera;
-		int billboardCount = 0;
-		CommandBuffer buffer;
+
+        private ICamera camera = null!;
+        private int billboardCount = 0;
+        private CommandBuffer buffer = null!;
 		public void Begin(ICamera cam, CommandBuffer cmd)
 		{
 			camera = cam;
@@ -108,20 +110,20 @@ namespace LibreLancer.Render
 		}
 
 		/* Some pre-calculated values */
-		const float cos120 = -0.5000001f;
-		const float sin120 = 0.8660254f;
-		const float cos240 = -0.4999999f;
-		const float sin240 = -0.8660254f;
-		const float deg30 = -0.5235988f;
+        private const float cos120 = -0.5000001f;
+        private const float sin120 = 0.8660254f;
+        private const float cos240 = -0.4999999f;
+        private const float sin240 = -0.8660254f;
+        private const float deg30 = -0.5235988f;
 
-		void CreateTriBillboard(Vector3 position, float radius, Color4 color, float angle, Vector2 texA, Vector2 texB, Vector2 texC)
+        private void CreateTriBillboard(Vector3 position, float radius, Color4 color, float angle, Vector2 texA, Vector2 texB, Vector2 texC)
 		{
 			/* Create triangle points */
-			var rOn2 = radius * 0.5f; //this should be much faster than division
+			var rOn2 = radius * 0.5f; // this should be much faster than division
 			var rOn4 = radius * 0.25f;
 			var ptC = new Vector3 (0, -(rOn2), angle);
 			var ptB = new Vector3 (-rOn2 * sin120, -rOn2 * cos120, angle);
-			var ptA = new Vector3 (-rOn4 * sin240, -rOn4 * cos240, angle); //triangle is half as tall as it is wide
+			var ptA = new Vector3 (-rOn4 * sin240, -rOn4 * cos240, angle); // triangle is half as tall as it is wide
 
 			verticesBasic [vertexCountBasic++] = new BillboardVert ()
 			{
@@ -148,7 +150,7 @@ namespace LibreLancer.Render
 			};
 		}
 
-		void CreateBillboard(Vector3 position, Vector2 size, Color4 color, float angle, Vector2 topleft, Vector2 topright, Vector2 bottomleft, Vector2 bottomright)
+        private void CreateBillboard(Vector3 position, Vector2 size, Color4 color, float angle, Vector2 topleft, Vector2 topright, Vector2 bottomleft, Vector2 bottomright)
 		{
 			var sz1 = new Vector3 (size.X * -0.5f, size.Y * -0.5f, angle);
 			var sz2 = new Vector3(size.X * 0.5f, size.Y * -0.5f, angle);
@@ -262,13 +264,14 @@ namespace LibreLancer.Render
 			billboardCount++;
 		}
 
-        int lastDatHash = -1;
-		int datindex = 0;
-        int lastIndexBasic = 0;
+        private int lastDatHash = -1;
+        private int datindex = 0;
+
+        private int lastIndexBasic = 0;
         //
-        int indexCountBasic = 0;
-        int fillCountBasic = 0;
-        int vertexCountBasic = 0;
+        private int indexCountBasic = 0;
+        private int fillCountBasic = 0;
+        private int vertexCountBasic = 0;
 
         public void AddIndices(int index)
         {
@@ -286,7 +289,7 @@ namespace LibreLancer.Render
             _iboFilled = false;
         }
 
-        bool _iboFilled = false;
+        private bool _iboFilled = false;
 		public void Render(int index, int hash, RenderContext rs)
 		{
 			if (hash != lastDatHash && lastDatHash != -1)
@@ -296,7 +299,6 @@ namespace LibreLancer.Render
             var dat = rendat[index];
             indexCountBasic += dat.Triangle == 1 ? 3 : 6;
         }
-
 
 
 		public void FillIbo()
@@ -309,7 +311,7 @@ namespace LibreLancer.Render
             }
 		}
 
-        void DrawCommands(RenderContext rs, int start, int count)
+        private void DrawCommands(RenderContext rs, int start, int count)
         {
             rs.Shader = shaderBasic;
             rs.Cull = false;
@@ -328,7 +330,7 @@ namespace LibreLancer.Render
             lastDatHash = -1;
         }
 
-        bool _frameStart = true;
+        private bool _frameStart = true;
 		public void FlushCommands(RenderContext rs)
 		{
             FillIbo();
@@ -342,7 +344,7 @@ namespace LibreLancer.Render
             indexCountBasic = 0;
 		}
 		[StructLayout(LayoutKind.Explicit)]
-		struct SplitInt
+        private struct SplitInt
 		{
 			[FieldOffset(0)]
 			public short A;

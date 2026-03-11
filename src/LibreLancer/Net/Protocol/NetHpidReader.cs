@@ -9,7 +9,7 @@ namespace LibreLancer.Net.Protocol;
 public class NetHpidReader
 {
     private List<string> strings;
-    private object sync = new object();
+    private object sync = new();
 
     public NetHpidReader()
     {
@@ -29,8 +29,10 @@ public class NetHpidReader
             var reader = new PacketReader(new NetDataReader(buffer));
             var length = reader.GetVariableUInt32();
             strings = new List<string>((int)length);
-            while(length-- > 0)
-                strings.Add(reader.GetString());
+            while (length-- > 0)
+            {
+                strings.Add(reader.GetString()!);
+            }
         }
     }
 

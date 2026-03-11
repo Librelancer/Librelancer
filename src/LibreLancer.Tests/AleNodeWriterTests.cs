@@ -68,8 +68,7 @@ public class AleNodeWriterTests
     {
         var fxLib = new ALEffectLib();
         {
-            var alfx = new ALEffect();
-            alfx.Name = "Hello";
+            var alfx = new ALEffect("Hello");
             alfx.Pairs = new();
             alfx.Pairs.Add((4,5));
             alfx.Pairs.Add((9,3));
@@ -78,8 +77,7 @@ public class AleNodeWriterTests
             fxLib.Effects.Add(alfx);
         }
         {
-            var alfx = new ALEffect();
-            alfx.Name = "World";
+            var alfx = new ALEffect("World");
             alfx.Pairs = new();
             alfx.Pairs.Add((82,5));
             alfx.Pairs.Add((94,3));

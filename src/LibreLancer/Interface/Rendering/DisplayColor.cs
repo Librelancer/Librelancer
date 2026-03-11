@@ -10,11 +10,19 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class DisplayColor : DisplayElement
     {
-        public InterfaceColor Color { get; set; }
+        public InterfaceColor? Color { get; set; }
         public override void Render(UiContext context, RectangleF clientRectangle)
         {
-            if(!Enabled) return;
-            if (Color == null) return;
+            if(!Enabled)
+            {
+                return;
+            }
+
+            if (Color == null)
+            {
+                return;
+            }
+
             var rect = context.PointsToPixels(clientRectangle);
             context.RenderContext.Renderer2D.FillRectangle(rect, Color.GetColor(context.GlobalTime));
         }

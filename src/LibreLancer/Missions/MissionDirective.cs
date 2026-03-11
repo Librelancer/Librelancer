@@ -58,23 +58,24 @@ public abstract class MissionDirective
 
     public static MissionDirective Convert(ObjCmd cmd)
     {
+        var entry = cmd.Entry!;
         return cmd.Command switch
         {
-            ObjListCommands.Avoidance => new AvoidanceDirective(cmd.Entry),
+            ObjListCommands.Avoidance => new AvoidanceDirective(entry),
             ObjListCommands.BreakFormation => new BreakFormationDirective(),
-            ObjListCommands.Delay => new DelayDirective(cmd.Entry),
-            ObjListCommands.Dock => new DockDirective(cmd.Entry),
-            ObjListCommands.Follow => new FollowDirective(cmd.Entry),
-            ObjListCommands.FollowPlayer => new FollowPlayerDirective(cmd.Entry),
-            ObjListCommands.GotoShip => new GotoShipDirective(cmd.Entry),
-            ObjListCommands.GotoSpline => new GotoSplineDirective(cmd.Entry),
-            ObjListCommands.GotoVec => new GotoVecDirective(cmd.Entry),
+            ObjListCommands.Delay => new DelayDirective(entry),
+            ObjListCommands.Dock => new DockDirective(entry),
+            ObjListCommands.Follow => new FollowDirective(entry),
+            ObjListCommands.FollowPlayer => new FollowPlayerDirective(entry),
+            ObjListCommands.GotoShip => new GotoShipDirective(entry),
+            ObjListCommands.GotoSpline => new GotoSplineDirective(entry),
+            ObjListCommands.GotoVec => new GotoVecDirective(entry),
             ObjListCommands.Idle => new IdleDirective(),
-            ObjListCommands.MakeNewFormation => new MakeNewFormationDirective(cmd.Entry),
-            ObjListCommands.SetPriority => new SetPriorityDirective(cmd.Entry),
-            ObjListCommands.SetLifetime => new SetLifetimeDirective(cmd.Entry),
-            ObjListCommands.StayInRange => new StayInRangeDirective(cmd.Entry),
-            ObjListCommands.StayOutOfRange => new StayOutOfRangeDirective(cmd.Entry),
+            ObjListCommands.MakeNewFormation => new MakeNewFormationDirective(entry),
+            ObjListCommands.SetPriority => new SetPriorityDirective(entry),
+            ObjListCommands.SetLifetime => new SetLifetimeDirective(entry),
+            ObjListCommands.StayInRange => new StayInRangeDirective(entry),
+            ObjListCommands.StayOutOfRange => new StayOutOfRangeDirective(entry),
             _ => throw new FormatException()
         };
     }

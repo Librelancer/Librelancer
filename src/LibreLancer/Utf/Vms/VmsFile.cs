@@ -2,12 +2,12 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data;
 using LibreLancer.Utf.Mat;
+
 namespace LibreLancer.Utf.Vms
 {
     /// <summary>
@@ -30,16 +30,18 @@ namespace LibreLancer.Utf.Vms
 
         private void setMeshes(IntermediateNode vMeshLibrary)
         {
-            foreach (IntermediateNode vmsNode in vMeshLibrary)
+            foreach (var vmsNode in vMeshLibrary.OfType<IntermediateNode>())
             {
                 var vMeshDataNode =
                     vmsNode.FirstOrDefault(x => x.Name.Equals("VMeshData", StringComparison.OrdinalIgnoreCase));
-                if (vMeshDataNode == null) {
+
+                if (vMeshDataNode == null)
+                {
                     FLLog.Error("VMS", "Invalid VMeshLibrary: No VMeshData: " + vmsNode.Name);
                     continue;
                 }
-                LeafNode vmsdat = vmsNode[0] as LeafNode;
-                if (vmsdat == null)
+
+                if (vmsNode[0] is not LeafNode vmsdat)
                 {
                     FLLog.Error("VMS", "Invalid VMeshLibrary: VMeshData has no bytes: " + vmsNode.Name);
                 }

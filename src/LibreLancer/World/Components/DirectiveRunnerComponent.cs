@@ -15,9 +15,9 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
 
     private int index = -1;
     private int splineIndex = -1;
-    private MissionDirective[] currentDirectives;
+    private MissionDirective[]? currentDirectives;
 
-    public void SetDirectives(MissionDirective[] directives)
+    public void SetDirectives(MissionDirective[]? directives)
     {
         currentDirectives = directives;
         index = directives == null ? -1 : 0;
@@ -33,24 +33,24 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
     {
         if (CheckDirective())
         {
-            UpdateDirective(currentDirectives[index], time);
+            UpdateDirective(currentDirectives![index], time);
         }
     }
 
-    static float Throttle(float inThrottle) =>
+    private static float Throttle(float inThrottle) =>
         inThrottle <= 0
             ? 1
             : inThrottle / 100.0f;
 
-    void StartDirective(MissionDirective directive)
+    private void StartDirective(MissionDirective directive)
     {
         splineIndex = -1;
-        FLLog.Debug("ObjList", $"{Parent.Nickname} running '{directive}'");
+        FLLog.Debug("ObjList", $"{Parent!.Nickname} running '{directive}'");
         switch (directive)
         {
             case DockDirective dock:
             {
-                var tgt = Parent.World.GetObject(dock.Target);
+                var tgt = Parent!.World!.GetObject(dock.Target)!;
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     if (tgt.TryGetComponent<SDockableComponent>(out var sd))
@@ -69,10 +69,10 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             }
             case GotoShipDirective ship:
             {
-                var tgt = Parent.World.GetObject(ship.Target);
+                var tgt = Parent.World!.GetObject(ship.Target);
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
-                    ap.GotoObject(tgt, ship.CruiseKind, Throttle(ship.MaxThrottle),
+                    ap.GotoObject(tgt!, ship.CruiseKind, Throttle(ship.MaxThrottle),
                         ship.Range);
                 }
 
@@ -121,7 +121,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 }
                 else
                 {
-                    var tgtObject = Parent.World.GetObject(follow.Target);
+                    var tgtObject = Parent.World!.GetObject(follow.Target)!;
                     FormationTools.EnterFormation(Parent, tgtObject, follow.Offset);
                 }
 
@@ -136,7 +136,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 }
                 else
                 {
-                    FormationTools.MakeNewFormation(Parent.World.GetObject("Player"), followPlayer.Formation,
+                    FormationTools.MakeNewFormation(Parent.World!.GetObject("Player")!, followPlayer.Formation,
                         followPlayer.Ships);
                 }
 
@@ -198,13 +198,13 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         }
     }
 
-    void UpdateDirective(MissionDirective directive, double time)
+    private void UpdateDirective(MissionDirective directive, double time)
     {
         switch (directive)
         {
             case DockDirective:
             {
-                if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
+                if (Parent!.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     if (ap.CurrentBehavior != AutopilotBehaviors.Dock)
                     {
@@ -226,7 +226,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             }
             case GotoSplineDirective spline:
             {
-                if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
+                if (Parent!.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     if (ap.CurrentBehavior == AutopilotBehaviors.None)
                     {
@@ -266,14 +266,14 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         }
     }
 
-    static Vector3 EvalSpline(float t, GotoSplineDirective spline)
+    private static Vector3 EvalSpline(float t, GotoSplineDirective spline)
     {
         var val = CatmullRom(spline.PointA, spline.PointB, spline.PointC, spline.PointD, t);
         FLLog.Debug("GotoSpline", $"heading to point t={t} - {val}");
         return val;
     }
 
-    static float GetT(float t, float alpha, Vector3 p0, Vector3 p1)
+    private static float GetT(float t, float alpha, Vector3 p0, Vector3 p1)
     {
         var d = p1 - p0;
         var a = Vector3.Dot(d, d);
@@ -281,7 +281,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         return (b + t);
     }
 
-    static Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t, float alpha = 0.5f)
+    private static Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t, float alpha = 0.5f)
     {
         float t0 = 0.0f;
         float t1 = GetT(t0, alpha, p0, p1);
@@ -297,9 +297,9 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         return C;
     }
 
-    private static float[] times = { 0, 0.3333f, 0.6667f, 1f };
+    private static float[] times = [0, 0.3333f, 0.6667f, 1f];
 
-    bool CheckDirective()
+    private bool CheckDirective()
     {
         if (currentDirectives == null)
         {
@@ -316,12 +316,12 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         return true;
     }
 
-    void NextDirective()
+    private void NextDirective()
     {
         index++;
         if (CheckDirective())
         {
-            StartDirective(currentDirectives[index]);
+            StartDirective(currentDirectives![index]);
         }
     }
 }

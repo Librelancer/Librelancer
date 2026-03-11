@@ -11,7 +11,7 @@ public class MakeNewFormationDirective : MissionDirective
     public override ObjListCommands Command => ObjListCommands.MakeNewFormation;
 
     public string Formation = "fighter_basic";
-    public List<string> Ships = new();
+    public List<string?> Ships = [];
 
     public MakeNewFormationDirective()
     {
@@ -27,11 +27,11 @@ public class MakeNewFormationDirective : MissionDirective
 
     public MakeNewFormationDirective(PacketReader reader)
     {
-        Formation = reader.GetString();
+        Formation = reader.GetString()!;
         var c = reader.GetVariableUInt32();
         for (int i = 0; i < c; i++)
         {
-            Ships.Add(reader.GetString());
+            Ships.Add(reader.GetString()!);
         }
     }
 

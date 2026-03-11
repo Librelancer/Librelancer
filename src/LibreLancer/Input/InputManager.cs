@@ -3,21 +3,22 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using LibreLancer.Interface;
 
 namespace LibreLancer.Input
 {
 	public class InputManager : IDisposable
 	{
-		public event Action<InputAction> ActionDown;
-		public event Action<InputAction> ActionUp;
+		public event Action<InputAction>? ActionDown;
+		public event Action<InputAction>? ActionUp;
 
-		Game game;
+        private Game game;
 
         private InputMap map;
         private bool[] _isActionDown;
 
-        public KeyCaptureContext KeyCapture;
+        public KeyCaptureContext KeyCapture = null!;
 
 		public InputManager(Game game, InputMap map)
         {
@@ -30,10 +31,9 @@ namespace LibreLancer.Input
 			this.game = game;
         }
 
-
-        bool IsDown(UserInput check)
+        private bool IsDown(UserInput check)
         {
-            if (!check.NonEmpty) return false; //Empty = nothing to check
+            if (!check.NonEmpty) return false; // Empty = nothing to check
             if (game.TextInputEnabled && !AllowedWhenTextInput(check))
                 return false;
             if (check.IsMouseButton) {
@@ -68,9 +68,7 @@ namespace LibreLancer.Input
             return _isActionDown[(int)action];
         }
 
-
-
-        bool TryGetAction(UserInput input, out InputAction act)
+        private bool TryGetAction(UserInput input, out InputAction act)
         {
             for (int i = 0; i < map.Actions.Length; i++)
             {
@@ -85,7 +83,7 @@ namespace LibreLancer.Input
             return false;
         }
 
-		void Keyboard_KeyDown(KeyEventArgs e)
+        private void Keyboard_KeyDown(KeyEventArgs e)
         {
             if (KeyCaptureContext.Capturing(KeyCapture)) return;
             var input = UserInput.FromKey(e.Modifiers, e.Key);
@@ -96,7 +94,7 @@ namespace LibreLancer.Input
                 ActionDown?.Invoke(act);
         }
 
-        static bool AllowedWhenTextInput(UserInput input)
+        private static bool AllowedWhenTextInput(UserInput input)
         {
             if (input.IsMouseButton) return true;
             if ((input.Modifiers & KeyModifiers.Control) != 0 ||
@@ -125,7 +123,7 @@ namespace LibreLancer.Input
             return false;
         }
 
-        void Keyboard_KeyUp(KeyEventArgs e)
+        private void Keyboard_KeyUp(KeyEventArgs e)
         {
             if (KeyCaptureContext.Capturing(KeyCapture))
             {

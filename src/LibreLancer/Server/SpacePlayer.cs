@@ -42,6 +42,7 @@ public class SpacePlayer : ISpacePlayer
         {
             var obj = World.Players[player];
             var other = world.GameWorld.GetObject(target);
+
             if (other != null && obj.TryGetComponent<STractorComponent>(out var tractor))
             {
                 tractor.TryTractor(other);
@@ -51,10 +52,7 @@ public class SpacePlayer : ISpacePlayer
 
     public void RunDirectiveIndex(int index)
     {
-        world.EnqueueAction(() =>
-        {
-            World.Players[player].GetComponent<SPlayerComponent>().RunDirective(index);
-        });
+        world.EnqueueAction(() => { World.Players[player].GetComponent<SPlayerComponent>()!.RunDirective(index); });
     }
 
     public void RequestDock(ObjNetId id) => world.RequestDock(player, id);
@@ -66,20 +64,25 @@ public class SpacePlayer : ISpacePlayer
         world.EnqueueAction(() =>
         {
             var self = world.Players[player];
-            var other = world.GameWorld.GetObject(  new ObjNetId() { Value = ship });
+            var other = world.GameWorld.GetObject(new ObjNetId() { Value = ship });
+
             if (other != null)
             {
-                if (other.Formation != null) {
-                    if(!other.Formation.Contains(self))
+                if (other.Formation != null)
+                {
+                    if (!other.Formation.Contains(self))
                         other.Formation.Add(self);
                 }
-                else {
+                else
+                {
                     other.Formation = new ShipFormation(other, self);
                 }
+
                 self.Formation = other.Formation;
-                player.MissionRuntime?.PlayerManeuver(ManeuverType.Formation, other.Nickname);
+                player.MissionRuntime?.PlayerManeuver(ManeuverType.Formation, other.Nickname!);
             }
-            else {
+            else
+            {
                 FLLog.Warning("Server", $"Could not find object to join formation {ship}");
             }
         });
@@ -91,7 +94,7 @@ public class SpacePlayer : ISpacePlayer
         {
             var obj = world.Players[player];
             player.MissionRuntime?.PlayerManeuver(ManeuverType.Formation, "inverse");
-            if(obj.Formation != null && obj.Formation.LeadShip != obj)
+            if (obj.Formation != null && obj.Formation.LeadShip != obj)
                 obj.Formation.Remove(obj);
         });
     }
@@ -116,10 +119,7 @@ public class SpacePlayer : ISpacePlayer
 
     public void StopScan()
     {
-        world.EnqueueAction(() =>
-        {
-            World.Players[player].GetComponent<SPlayerComponent>().StopScan();
-        });
+        world.EnqueueAction(() => { World.Players[player].GetComponent<SPlayerComponent>()!.StopScan(); });
     }
 
     public void Scan(ObjNetId id)
@@ -127,9 +127,10 @@ public class SpacePlayer : ISpacePlayer
         world.EnqueueAction(() =>
         {
             var other = world.GameWorld.GetObject(id);
+
             if (other != null)
             {
-                World.Players[player].GetComponent<SPlayerComponent>().Scan(other);
+                World.Players[player].GetComponent<SPlayerComponent>()!.Scan(other);
             }
         });
     }

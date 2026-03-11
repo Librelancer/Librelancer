@@ -8,7 +8,7 @@ namespace LibreLancer.Server;
 public class VignetteParameters
 {
     public int Seed = 4869;
-    public string OfferGroup;
+    public string OfferGroup = "";
 
     public bool AssassinateMission;
     public bool AssassinateShip;
@@ -46,59 +46,61 @@ public class VignetteParameters
 public class VignetteInfo
 {
     public bool IsError;
-    public List<string> Documentation = new();
+    public List<string> Documentation = [];
     public Dictionary<string, VignetteString> ObjectiveStrings = new();
     public Dictionary<string, CommSequence> CommSequences = new();
     public VignetteString RewardText;
     public VignetteString FailureText;
-    public List<OfferTextItem> OfferText = new();
+    public List<OfferTextItem> OfferText = [];
 }
 
 public static class VignetteBuilder
 {
-    static void Error(VignetteAst ast, string error)
+    private static void Error(VignetteAst ast, string error)
     {
         FLLog.Error("VignetteParams", $"{error} at id={ast.Id}");
     }
 
     public static VignetteInfo Run(VignetteTree tree, VignetteParameters parameters)
     {
-        Dictionary<string, bool> conditions = new(StringComparer.OrdinalIgnoreCase);
-        conditions["Assassinate_mission"] = parameters.AssassinateMission;
-        conditions["Assassinate_Ship"] = parameters.AssassinateShip;
-        conditions["Assassinate_solar"] = parameters.AssassinateSolar;
-        conditions["Big_solar"] = parameters.BigSolar;
-        conditions["Bring_back_loot"] = parameters.BringBackLoot;
-        // sic.
-        // ReSharper disable once StringLiteralTypo
-        conditions["Continuous_reenforcements"] = parameters.ContinuousReinforcements;
-        conditions["Defensive_solars"] = parameters.DefensiveSolars;
-        conditions["Defensive_solars_at_main_battle"] = parameters.DefensiveSolarsAtMainBattle;
-        conditions["Destroy_solars_mission"] = parameters.DestroySolarsMission;
-        conditions["Friendly_ships"] = parameters.FriendlyShips;
-        conditions["Friendly_ships_after_30_s"] = parameters.FriendlyShipsAfter30S;
-        conditions["Friendly_ships_at_installation"] = parameters.FriendlyShipsAtInstallation;
-        conditions["Friendly_ships_at_main_battle"] = parameters.FriendlyShipsAtMainBattle;
-        conditions["Friendly_ships_come_in_to_whoop_up"] = parameters.FriendlyShipsComeInToWhoopUp;
-        conditions["Hostile_ships"] = parameters.HostileShips;
-        conditions["Hostile_ships_after_30_s"] = parameters.HostileShipsAfter30S;
-        conditions["Hostile_waves"] = parameters.HostileWaves;
-        conditions["Main_battle_non_target_wave"] = parameters.MainBattleNonTargetWave;
-        conditions["Main_battle_wave_1"] = parameters.MainBattleWave1;
-        conditions["Main_battle_wave_2"] = parameters.MainBattleWave2;
-        conditions["Pk_defensive_solars"] = parameters.PkDefensiveSolars;
-        conditions["Pk_hostile_ships"] = parameters.PkHostileShips;
-        conditions["Pre_battle"] = parameters.PreBattle;
-        conditions["Pre_battle_non_target_wave"] = parameters.PreBattleNonTargetWave;
-        conditions["Pre_battle_wave_2"] = parameters.PreBattleWave2;
-        conditions["Pre_battle_wave_runs"] = parameters.PreBattleWaveRuns;
-        conditions["target_drops_critical_loot"] = parameters.TargetDropsCriticalLoot;
-        conditions["Target_spawns_at_pre_battle"] = parameters.TargetSpawnsAtPreBattle;
-        conditions["Target_spawns_with_wave"] = parameters.TargetSpawnsWithWave;
-        conditions["Tractor_in_loot"] = parameters.TractorInLoot;
-        conditions["Wave_just_after_main_battle_starts"] = parameters.WaveJustAfterMainBattleStarts;
+        Dictionary<string, bool> conditions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Assassinate_mission"] = parameters.AssassinateMission,
+            ["Assassinate_Ship"] = parameters.AssassinateShip,
+            ["Assassinate_solar"] = parameters.AssassinateSolar,
+            ["Big_solar"] = parameters.BigSolar,
+            ["Bring_back_loot"] = parameters.BringBackLoot,
+            // sic.
+            // ReSharper disable once StringLiteralTypo
+            ["Continuous_reenforcements"] = parameters.ContinuousReinforcements,
+            ["Defensive_solars"] = parameters.DefensiveSolars,
+            ["Defensive_solars_at_main_battle"] = parameters.DefensiveSolarsAtMainBattle,
+            ["Destroy_solars_mission"] = parameters.DestroySolarsMission,
+            ["Friendly_ships"] = parameters.FriendlyShips,
+            ["Friendly_ships_after_30_s"] = parameters.FriendlyShipsAfter30S,
+            ["Friendly_ships_at_installation"] = parameters.FriendlyShipsAtInstallation,
+            ["Friendly_ships_at_main_battle"] = parameters.FriendlyShipsAtMainBattle,
+            ["Friendly_ships_come_in_to_whoop_up"] = parameters.FriendlyShipsComeInToWhoopUp,
+            ["Hostile_ships"] = parameters.HostileShips,
+            ["Hostile_ships_after_30_s"] = parameters.HostileShipsAfter30S,
+            ["Hostile_waves"] = parameters.HostileWaves,
+            ["Main_battle_non_target_wave"] = parameters.MainBattleNonTargetWave,
+            ["Main_battle_wave_1"] = parameters.MainBattleWave1,
+            ["Main_battle_wave_2"] = parameters.MainBattleWave2,
+            ["Pk_defensive_solars"] = parameters.PkDefensiveSolars,
+            ["Pk_hostile_ships"] = parameters.PkHostileShips,
+            ["Pre_battle"] = parameters.PreBattle,
+            ["Pre_battle_non_target_wave"] = parameters.PreBattleNonTargetWave,
+            ["Pre_battle_wave_2"] = parameters.PreBattleWave2,
+            ["Pre_battle_wave_runs"] = parameters.PreBattleWaveRuns,
+            ["target_drops_critical_loot"] = parameters.TargetDropsCriticalLoot,
+            ["Target_spawns_at_pre_battle"] = parameters.TargetSpawnsAtPreBattle,
+            ["Target_spawns_with_wave"] = parameters.TargetSpawnsWithWave,
+            ["Tractor_in_loot"] = parameters.TractorInLoot,
+            ["Wave_just_after_main_battle_starts"] = parameters.WaveJustAfterMainBattleStarts
+        };
 
-        VignetteAst currentNode = tree.StartNode;
+        VignetteAst? currentNode = tree.StartNode;
         var vinfo = new VignetteInfo();
         var r = new Random(parameters.Seed);
         while (currentNode != null)
@@ -107,7 +109,7 @@ public static class VignetteBuilder
             switch (currentNode)
             {
                 case AstDoc doc:
-                    vinfo.Documentation.Add(doc.Docs.Documentation);
+                    vinfo.Documentation.Add(doc.Docs.Documentation!);
                     break;
                 case AstData data:
                     if (!data.Data.Implemented)
@@ -133,13 +135,13 @@ public static class VignetteBuilder
                             ? data.Data.OfferTexts[0]
                             : data.Data.OfferTexts[r.Next(0, data.Data.OfferTexts.Count)];
                         if (ot.Op == OfferTextOp.replace)
-                            vinfo.OfferText = new();
+                            vinfo.OfferText = [];
                         vinfo.OfferText.AddRange(ot.Items);
                     }
 
                     foreach (var str in data.Data.ObjectiveTexts)
                     {
-                        vinfo.ObjectiveStrings[str.Target] = str;
+                        vinfo.ObjectiveStrings[str.Target!] = str;
                     }
 
                     foreach (var comm in data.Data.CommSequences)

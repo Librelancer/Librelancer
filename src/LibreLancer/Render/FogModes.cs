@@ -7,7 +7,7 @@ namespace LibreLancer.Render
 {
 	public enum FogModes : byte
 	{
-		None = 0, //NOTE: THIS IS HARDCODED IN THE LIGHTING.INC SHADER
+		None = 0, // NOTE: THIS IS HARDCODED IN THE LIGHTING.INC SHADER
 		Linear = 3,
 		Exp = 1,
 		Exp2 = 2

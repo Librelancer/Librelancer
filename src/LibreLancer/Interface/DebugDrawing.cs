@@ -9,8 +9,8 @@ namespace LibreLancer
 {
 	public static class DebugDrawing
     {
-        static readonly string[] SizeSuffixes =
-				   { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+        private static readonly string[] SizeSuffixes =
+            ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
 		public static string SizeSuffix(Int64 value)
 		{
 			if (value < 0) { return "-" + SizeSuffix(-value); }

@@ -7,10 +7,10 @@ namespace LibreLancer.Missions;
 public class ScriptNPC : NicknameItem
 {
     public CostumeEntry SpaceCostume = new();
-    public Faction Affiliation;
-    public string NpcShipArch;
+    public Faction? Affiliation;
+    public string? NpcShipArch;
     public int IndividualName;
-    public string Voice;
+    public string? Voice;
 
     public static ScriptNPC FromIni(MissionNPC npc, GameItemDb db) => new()
     {

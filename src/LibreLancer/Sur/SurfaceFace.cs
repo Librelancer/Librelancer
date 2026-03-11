@@ -37,7 +37,7 @@ namespace LibreLancer.Sur
         public Point3<ushort> Points;
         public Point3<bool> Flags;
 
-        static (ushort p, bool f, int s) ReadSide(BinaryReader reader, ref int longCount)
+        private static (ushort p, bool f, int s) ReadSide(BinaryReader reader, ref int longCount)
         {
             var point = reader.ReadUInt16();
             var x = reader.ReadUInt16();
@@ -50,9 +50,10 @@ namespace LibreLancer.Sur
 
         public static SurfaceFace Read(BinaryReader reader, ref int longCount)
         {
-            var f = new SurfaceFace();
-
-            f.Data = reader.ReadUInt32();
+            var f = new SurfaceFace
+            {
+                Data = reader.ReadUInt32()
+            };
 
             (f.Points.A, f.Flags.A, f.Shared.A) = ReadSide(reader, ref longCount);
             (f.Points.B, f.Flags.B, f.Shared.B) = ReadSide(reader, ref longCount);
@@ -60,7 +61,7 @@ namespace LibreLancer.Sur
             return f;
         }
 
-        void WriteSide(int p, bool f, int s, ref int edgeCount, BinaryWriter writer)
+        private void WriteSide(int p, bool f, int s, ref int edgeCount, BinaryWriter writer)
         {
             var shared = s - edgeCount + s / 3 - edgeCount / 3;
             shared &= 0x7FFF;

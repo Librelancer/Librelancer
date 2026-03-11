@@ -2,44 +2,47 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.IO;
-
+using System.Linq;
 
 namespace LibreLancer.Utf.Anm
 {
     public class AnmFile : UtfFile
     {
-        public AnmBuffer Buffer = new AnmBuffer();
-        //Optimisation to avoid some copying
+        public Dictionary<string, Script> Scripts { get; private set; } = new(StringComparer.OrdinalIgnoreCase);
+        public AnmBuffer Buffer = new();
+
+        // Optimisation to avoid some copying
         public static void ParseToTable(Dictionary<string, Script> table, AnmBuffer buffer, StringDeduplication strings, Stream stream, string path)
         {
-            var anm = new AnmFile() {Buffer = buffer};
-            anm.Scripts = table;
-            foreach (IntermediateNode node in parseFile(path, stream))
+            var anm = new AnmFile {Buffer = buffer,
+                Scripts = table
+            };
+
+            foreach (IntermediateNode node in parseFile(path, stream).OfType<IntermediateNode>())
             {
                 switch (node.Name.ToLowerInvariant())
                 {
                     case "animation":
-                        anm.Load(node, strings, null);
+                        anm.Load(node, strings);
                         break;
                     default: throw new Exception("Invalid Node in anm root: " + node.Name);
                 }
             }
         }
-        public Dictionary<string, Script> Scripts { get; private set; }
+
 
         public AnmFile(string path, Stream stream)
         {
             var table = new StringDeduplication();
-            foreach (IntermediateNode node in parseFile(path, stream))
+            foreach (IntermediateNode node in parseFile(path, stream).OfType<IntermediateNode>())
             {
                 switch (node.Name.ToLowerInvariant())
                 {
                     case "animation":
-                        Load(node, table, null);
+                        Load(node, table);
                         break;
                     default: throw new Exception("Invalid Node in anm root: " + node.Name);
                 }
@@ -51,22 +54,24 @@ namespace LibreLancer.Utf.Anm
             Scripts = new Dictionary<string, Script>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public AnmFile(IntermediateNode root, ConstructCollection constructs)
+        public AnmFile(IntermediateNode root)
         {
-            Load(root, new StringDeduplication(), constructs);
+            Load(root, new StringDeduplication());
             Buffer.Shrink();
         }
-        void Load(IntermediateNode root, StringDeduplication strings, ConstructCollection constructs)
+
+        private void Load(IntermediateNode root, StringDeduplication strings)
         {
-            if(Scripts == null) Scripts = new Dictionary<string, Script>(root.Count, StringComparer.OrdinalIgnoreCase);
-            foreach (Node node in root)
+            foreach (IntermediateNode node in root.OfType<IntermediateNode>())
             {
-                if (node.Name.Equals("script", StringComparison.OrdinalIgnoreCase))
+                if (!node.Name.Equals("script", StringComparison.OrdinalIgnoreCase))
                 {
-                    foreach (IntermediateNode scNode in (IntermediateNode)node)
-                    {
-                        Scripts[scNode.Name] = new Script(scNode, Buffer, strings);
-                    }
+                    continue;
+                }
+
+                foreach (var scNode in node.OfType<IntermediateNode>())
+                {
+                    Scripts[scNode.Name] = new Script(scNode, Buffer, strings);
                 }
             }
         }

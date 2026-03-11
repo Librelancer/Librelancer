@@ -20,12 +20,12 @@ namespace LibreLancer.Net.Protocol
 
         public static SpawnedEffect Read(PacketReader message)
         {
-            var x = new SpawnedEffect()
+            var x = new SpawnedEffect
             {
                 ID = message.GetVariableUInt32(),
-                Effect = message.GetString()
+                Effect = message.GetString()!,
+                Hardpoints = new string[message.GetVariableUInt32()]
             };
-            x.Hardpoints = new string[message.GetVariableUInt32()];
             for (int i = 0; i < x.Hardpoints.Length; i++)
                 x.Hardpoints[i] = message.GetHpid();
             return x;

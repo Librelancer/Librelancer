@@ -10,6 +10,16 @@ namespace LibreLancer.Render;
 
 public partial class TractorBeamRenderer : ObjectRenderer
 {
+    private Vector3 pos;
+    private const float CULL_DISTANCE = 20000;
+    private const float CULL = CULL_DISTANCE * CULL_DISTANCE;
+
+    public Vector3 Origin;
+
+    public RefList<VisibleBeam> TractorBeams = [];
+    public Color3f Color;
+    private SystemRenderer? sysr;
+
     public static void DrawTractorBeam(
         PolylineRender lines,
         ResourceManager resources,
@@ -19,18 +29,22 @@ public partial class TractorBeamRenderer : ObjectRenderer
         double totalTime,
         int offset = 0)
     {
-        float lineLen = (p1 - p0).Length();
+        var lineLen = (p1 - p0).Length();
         if (lineLen < 1)
+        {
             return;
-        int noiseOffset = offset + (int)MathHelper.Clamp((totalTime % 1.0) * 4095, 0, 4095);
+        }
+
+        var noiseOffset = offset + (int) MathHelper.Clamp((totalTime % 1.0) * 4095, 0, 4095);
         var tractorLine = resources.FindTexture("line") as Texture2D;
-        lines.StartQuadLine(tractorLine, BlendMode.Additive);
-        float segLength = 4;
-        var segCount = (int)MathF.Ceiling(lineLen / segLength);
+        lines.StartQuadLine(tractorLine!, BlendMode.Additive);
+        const float segLength = 4;
+        var segCount = (int) MathF.Ceiling(lineLen / segLength);
         var dir = (p1 - p0).Normalized();
         Vector3 up = MathF.Abs(Vector3.Dot(dir, Vector3.UnitY)) > 0.99f ? Vector3.UnitZ : Vector3.UnitY;
         var offsetDir = Vector3.Cross(dir, up);
-        for (int i = 1; i <= segCount; i++)
+
+        for (var i = 1; i <= segCount; i++)
         {
             var noise0 = SampleNoise(noiseOffset + i - 1);
             var noise1 = SampleNoise(noiseOffset + i);
@@ -43,31 +57,22 @@ public partial class TractorBeamRenderer : ObjectRenderer
 
             lines.AddQuad(point0, point1, color);
         }
+
         var zVal = RenderHelpers.GetZ((p0 + p1) * 0.5f, cameraPosition);
         lines.FinishQuadLine(zVal);
     }
 
-    const float CULL_DISTANCE = 20000;
-    const float CULL = CULL_DISTANCE * CULL_DISTANCE;
-
-    public Vector3 Origin;
-
-    public RefList<VisibleBeam> TractorBeams = new();
-    public Color3f Color;
-    private SystemRenderer sysr;
-
-    public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
+    public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer? sys, bool forceCull)
     {
-        if(Vector3.DistanceSquared(camera.Position, pos) < CULL)
+        if (!(Vector3.DistanceSquared(camera.Position, pos) < CULL))
         {
-            sys.AddObject(this);
-            sysr = sys;
-            return true;
+            return false;
         }
-        return false;
-    }
 
-    private Vector3 pos;
+        sys?.AddObject(this);
+        sysr = sys;
+        return true;
+    }
 
     public override void Update(double time, Vector3 position, Matrix4x4 transform)
     {
@@ -80,12 +85,13 @@ public partial class TractorBeamRenderer : ObjectRenderer
         {
             return;
         }
-        for (int i = 0; i < TractorBeams.Count; i++)
+
+        foreach (var beam in TractorBeams)
         {
-            var beam = TractorBeams[i];
             var tgtPos = beam.Target.WorldTransform.Position;
             var len = (tgtPos - Origin).Length();
             var dir = (tgtPos - Origin).Normalized();
+
             if (beam.Distance < len)
             {
                 len = beam.Distance;

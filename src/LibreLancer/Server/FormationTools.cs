@@ -28,11 +28,11 @@ public class FormationTools
         }
     }
 
-    public static void MakeNewFormation(GameObject obj, string formation, List<string> others)
+    public static void MakeNewFormation(GameObject obj, string formation, List<string?> others)
     {
-        //TODO: Gross
+        // TODO: Gross
         var formDef = obj.World.Server.Server.GameData.Items.GetFormation(formation);
-        GameObject player = null;
+        GameObject? player = null;
         bool playerLead = false;
         // Preserve player (required)
         if (obj.Formation != null)
@@ -56,7 +56,7 @@ public class FormationTools
         }
 
         obj.Formation?.Remove(obj);
-        var form = new ShipFormation(playerLead ? player : obj, formDef);
+        var form = new ShipFormation(playerLead ? player! : obj, formDef!);
         if (playerLead && player != null)
         {
             form.Add(obj);
@@ -79,7 +79,9 @@ public class FormationTools
             }
 
             if (o.TryGetComponent<AutopilotComponent>(out var ap))
+            {
                 ap.StartFormation();
+            }
         }
 
         if (player != null && !obj.Formation.Contains(player))

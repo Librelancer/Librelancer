@@ -13,8 +13,10 @@ public class WattleVector2 : HardwiredUserDataDescriptor
 {
     public static void CreateTable(Script script)
     {
-        var tbl = new Table(script);
-        tbl.Kind = TableKind.Class;
+        var tbl = new Table(script)
+        {
+            Kind = TableKind.Class
+        };
         script.Globals["Vector2"] = tbl;
         tbl["new"] = (float x, float y) => new Vector2(x, y);
     }
@@ -28,120 +30,113 @@ public class WattleVector2 : HardwiredUserDataDescriptor
         AddMember("op_Multiply", new OverloadedMethodMemberDescriptor(
             "op_Multiply",
             typeof(Vector2),
-            new IOverloadableMemberDescriptor[] { new MulScalar(), new MulVec() }
-            ));
+            [new MulScalar(), new MulVec()]
+        ));
         AddMember("op_Division", new OverloadedMethodMemberDescriptor(
             "op_Division",
             typeof(Vector2),
-            new IOverloadableMemberDescriptor[] { new DivScalar(), new DivVec() }
+            [new DivScalar(), new DivVec()]
         ));
     }
 
-    class Negate : HardwiredMethodMemberDescriptor
+    private class Negate : HardwiredMethodMemberDescriptor
     {
         public Negate()
         {
-            Initialize("op_UnaryNegation", true, new ParameterDescriptor[]
-            {
-                new("value", typeof(Vector2)),
-            }, false);
+            Initialize("op_UnaryNegation", true, [
+                new("value", typeof(Vector2))
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
             -(Vector2) pars[0];
     }
-    class MulScalar : HardwiredMethodMemberDescriptor
+
+    private class MulScalar : HardwiredMethodMemberDescriptor
     {
         public MulScalar()
         {
-            Initialize("op_Multiply", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Multiply", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(float))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
             (Vector2) pars[0] * (float) pars[1];
     }
 
-    class MulVec : HardwiredMethodMemberDescriptor
+    private class MulVec : HardwiredMethodMemberDescriptor
     {
         public MulVec()
         {
-            Initialize("op_Multiply", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Multiply", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(Vector2))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
             (Vector2) pars[0] * (Vector2) pars[1];
     }
 
-    class DivScalar : HardwiredMethodMemberDescriptor
+    private class DivScalar : HardwiredMethodMemberDescriptor
     {
         public DivScalar()
         {
-            Initialize("op_Division", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Division", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(float))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
             (Vector2) pars[0] / (float) pars[1];
     }
 
-    class DivVec : HardwiredMethodMemberDescriptor
+    private class DivVec : HardwiredMethodMemberDescriptor
     {
         public DivVec()
         {
-            Initialize("op_Division", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Division", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(Vector2))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
             (Vector2) pars[0] / (Vector2) pars[1];
     }
 
-    class Add : HardwiredMethodMemberDescriptor
+    private class Add : HardwiredMethodMemberDescriptor
     {
         public Add()
         {
-            Initialize("op_Addition", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Addition", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(Vector2))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
             (Vector2) pars[0] + (Vector2) pars[1];
     }
 
-    class Sub : HardwiredMethodMemberDescriptor
+    private class Sub : HardwiredMethodMemberDescriptor
     {
         public Sub()
         {
-            Initialize("op_Subtraction", true, new ParameterDescriptor[]
-            {
+            Initialize("op_Subtraction", true, [
                 new("left", typeof(Vector2)),
                 new("right", typeof(Vector2))
-            }, false);
+            ], false);
         }
 
         protected override object Invoke(Script script, object obj, object[] pars, int argscount) =>
             (Vector2) pars[0] - (Vector2) pars[1];
     }
 
-
-    class DescX : HardwiredMemberDescriptor
+    private class DescX : HardwiredMemberDescriptor
     {
         public DescX() :
             base(typeof(float), "X",
@@ -160,7 +155,7 @@ public class WattleVector2 : HardwiredUserDataDescriptor
         }
     }
 
-    class DescY : HardwiredMemberDescriptor
+    private class DescY : HardwiredMemberDescriptor
     {
         public DescY() :
             base(typeof(float), "X",

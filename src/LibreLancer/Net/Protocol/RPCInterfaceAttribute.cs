@@ -2,9 +2,9 @@ using System;
 
 namespace LibreLancer.Net.Protocol;
 
-class RPCInterfaceAttribute : Attribute { }
+internal class RPCInterfaceAttribute : Attribute { }
 
-class ChannelAttribute : Attribute
+internal class ChannelAttribute : Attribute
 {
     public int Channel;
     public ChannelAttribute(int channel)

@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
+using LibreLancer.Thorn;
 
 namespace LibreLancer.Thn
 {
@@ -17,8 +18,8 @@ namespace LibreLancer.Thn
 		public int LightGroup;
 		public int SortGroup;
 		public int UserFlag;
-		public string MeshCategory;
-        public string Actor;
+		public string? MeshCategory;
+        public string? Actor;
 		public Vector3? Position;
 		public Quaternion Rotation = Quaternion.Identity;
 		public float? FovH;
@@ -26,14 +27,21 @@ namespace LibreLancer.Thn
         public float? NearPlane;
         public float? FarPlane;
         public float FloorHeight = 0;
-		public ThnLightProps LightProps;
-        public ThnAudioProps AudioProps;
-        public ThnDisplayText DisplayText;
-        public MotionPath Path;
+		public ThnLightProps? LightProps;
+        public ThnAudioProps? AudioProps;
+        public ThnDisplayText? DisplayText;
+        public MotionPath? Path;
 		public ThnObjectFlags ObjectFlags;
 		public bool NoFog = false;
         public bool MainObject = false;
-        public string Priority = ""; //For monitor selection
+        public string Priority = ""; // For monitor selection
+
+        public ThnEntity(ThornTable table)
+        {
+            Name = (string)table["entity_name"];
+            Type = ThnTypes.Convert<EntityTypes>(table["type"]);
+        }
+
 		public override string ToString()
 		{
 			return string.Format("[{0}: {1}]", Name, Type);

@@ -7,7 +7,7 @@ namespace LibreLancer.Interface;
 
 public class TextEditBase
 {
-    private BuiltRichText richText;
+    private BuiltRichText? richText;
     private bool richTextDirty = true;
     private int richTextWidth = -1;
 
@@ -27,7 +27,8 @@ public class TextEditBase
     public string Text
     {
         get => _text;
-        set {
+        set
+        {
             if (_text != value)
             {
                 _allSelected = false;
@@ -36,7 +37,7 @@ public class TextEditBase
         }
     }
 
-    void SetText(string v)
+    private void SetText(string v)
     {
         _text = v;
         breaks = GraphemeBreaks.Get(_text);
@@ -54,7 +55,8 @@ public class TextEditBase
         get => _wrap;
         set
         {
-            if (_wrap != value) {
+            if (_wrap != value)
+            {
                 _wrap = value;
                 richTextDirty = true;
             }
@@ -62,12 +64,14 @@ public class TextEditBase
     }
 
     private bool _mask = false;
+
     public bool Mask
     {
         get => _mask;
         set
         {
-            if (_mask != value) {
+            if (_mask != value)
+            {
                 _mask = value;
                 richTextDirty = true;
             }
@@ -98,23 +102,23 @@ public class TextEditBase
         set => TrySetValue(ref _fontShadow, value);
     }
 
-
     public int CaretPosition;
 
     private RichTextNode[] nodes;
 
-    void TrySetValue(ref string target, string value)
+    private void TrySetValue(ref string target, string value)
     {
         if (target != value)
         {
             richTextDirty = true;
             target = value;
         }
+
         if (CaretPosition > _text.Length)
             CaretPosition = _text.Length;
     }
 
-    void TrySetValue(ref float target, float value)
+    private void TrySetValue(ref float target, float value)
     {
         if (target != value)
         {
@@ -123,7 +127,7 @@ public class TextEditBase
         }
     }
 
-    void TrySetValue(ref Color4 target, Color4 value)
+    private void TrySetValue(ref Color4 target, Color4 value)
     {
         if (target != value)
         {
@@ -132,7 +136,7 @@ public class TextEditBase
         }
     }
 
-    void TrySetValue(ref OptionalColor target, OptionalColor value)
+    private void TrySetValue(ref OptionalColor target, OptionalColor value)
     {
         if (target != value)
         {
@@ -159,13 +163,14 @@ public class TextEditBase
             nodes = new RichTextNode[1];
     }
 
-    public void TextEntered(string chars)
+    public void TextEntered(string? chars)
     {
         if (string.IsNullOrEmpty(chars) && !_allSelected)
             return;
+
         if (_allSelected)
         {
-            Text = chars;
+            Text = chars!;
         }
         else
         {
@@ -175,9 +180,10 @@ public class TextEditBase
             }
             else
             {
-                SetText(_text.Insert(CaretPosition, chars));
+                SetText(_text.Insert(CaretPosition, chars!));
             }
-            CaretPosition += chars.Length;
+
+            CaretPosition += chars!.Length;
         }
     }
 
@@ -209,16 +215,18 @@ public class TextEditBase
             {
                 var x = CaretPosition - 1;
                 x--;
+
                 while (x >= 0 && breaks[x] != GraphemeBreak.Break)
                 {
                     x--;
                 }
+
                 CaretPosition = x + 1;
             }
         }
     }
 
-    int GetNextCaret()
+    private int GetNextCaret()
     {
         var x = CaretPosition - 1;
         x++;
@@ -250,7 +258,7 @@ public class TextEditBase
 
     public void Backspace()
     {
-        if(_allSelected)
+        if (_allSelected)
         {
             Text = "";
         }
@@ -269,7 +277,7 @@ public class TextEditBase
 
     public void Delete()
     {
-        if(_allSelected)
+        if (_allSelected)
         {
             Text = "";
         }
@@ -295,9 +303,10 @@ public class TextEditBase
         this.height = height;
     }
 
-    void Update(RichTextEngine engine)
+    private void Update(RichTextEngine engine)
     {
-        if (richTextDirty || (_wrap && richTextWidth != width)) {
+        if (richTextDirty || (_wrap && richTextWidth != width))
+        {
             richText?.Dispose();
             richTextDirty = false;
             richTextWidth = width;
@@ -322,16 +331,21 @@ public class TextEditBase
             return;
         Update(context.Renderer2D.CreateRichTextEngine());
         Rectangle pos;
-        if (nodes.Length == 1 && ((RichTextTextNode)nodes[0]).Contents == "")
-            pos = new Rectangle(0, 0, 1, (int)context.Renderer2D.CreateRichTextEngine().LineHeight(_fontName, _fontSize));
+        if (nodes.Length == 1 && ((RichTextTextNode) nodes[0]).Contents == "")
+            pos = new Rectangle(0, 0, 1,
+                (int) context.Renderer2D.CreateRichTextEngine().LineHeight(_fontName, _fontSize));
         else
-            pos = richText.GetCaretPosition(nodes.Length - 1, CaretPosition - 1);
+            pos = richText!.GetCaretPosition(nodes.Length - 1, CaretPosition - 1);
         int xOffset = 0;
-        if (!_wrap && pos.X >= width) {
+
+        if (!_wrap && pos.X >= width)
+        {
             xOffset = 5 + pos.X - width;
         }
-        context.Renderer2D.CreateRichTextEngine().RenderText(richText, x - xOffset, y);
+
+        context.Renderer2D.CreateRichTextEngine().RenderText(richText!, x - xOffset, y);
         bool caretVisible = (globalTime % (2 * BLINK_TIME)) < BLINK_TIME;
+
         if (Focused && !_allSelected && caretVisible)
         {
             if (_fontShadow.Enabled)
@@ -339,9 +353,11 @@ public class TextEditBase
                 var shadowRect = new Rectangle(x - xOffset + 2 + pos.X, y + 2 + pos.Y, pos.Width, pos.Height);
                 context.Renderer2D.FillRectangle(shadowRect, _fontShadow.Color);
             }
+
             var caretRect = new Rectangle(x - xOffset + pos.X, y + pos.Y, pos.Width, pos.Height);
             context.Renderer2D.FillRectangle(caretRect, _fontColor);
         }
+
         context.PopScissor();
     }
 }

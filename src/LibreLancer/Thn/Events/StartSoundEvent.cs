@@ -35,7 +35,7 @@ namespace LibreLancer.Thn.Events
             {
                 instance.Sounds[Targets[0]] = i;
                 i.Start((Flags & SoundFlags.Loop) == SoundFlags.Loop, StartTime);
-                instance.AddProcessor(new SoundRoutine() {Sound = i, Duration = Duration, Name = Targets[0], SI = instance});
+                instance.AddProcessor(new SoundRoutine(i, Targets[0], instance, Duration));
             }
             else
             {
@@ -43,13 +43,22 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        class SoundRoutine : ThnEventProcessor
+        private class SoundRoutine : ThnEventProcessor
         {
             public ThnSoundInstance Sound;
             public string Name;
             public ThnScriptInstance SI;
             public double Duration;
-            double time;
+            private double time;
+
+            public SoundRoutine(ThnSoundInstance sound, string name, ThnScriptInstance si, double duration)
+            {
+                Sound = sound;
+                Name = name;
+                SI = si;
+                Duration = duration;
+            }
+
             public override bool Run(double delta)
             {
                 if (Sound.Instance == null) return false;

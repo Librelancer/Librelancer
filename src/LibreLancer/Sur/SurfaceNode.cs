@@ -13,9 +13,9 @@ public class SurfaceNode
     public Vector3 Scale;
     public byte Unknown;
 
-    public SurfaceHull Hull;
-    public SurfaceNode Left;
-    public SurfaceNode Right;
+    public SurfaceHull? Hull;
+    public SurfaceNode? Left;
+    public SurfaceNode? Right;
 
     public static SurfaceNode Read(BinaryReader reader)
     {
@@ -42,7 +42,7 @@ public class SurfaceNode
     {
         var a = Scale * (Radius + epsilon);
         var b = target.Scale * target.Radius;
-        
+
         return Center.X - a.X <= target.Center.X - b.X &&
             Center.Y - a.Y <= target.Center.Y - b.Y &&
             Center.Z - a.Z <= target.Center.Z - b.Z &&

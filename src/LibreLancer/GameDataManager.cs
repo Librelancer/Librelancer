@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using LibreLancer.Data;
@@ -17,12 +18,12 @@ namespace LibreLancer;
 public class GameDataManager
 {
     public ResourceManager Resources;
-    private GameResourceManager glResource;
+    private GameResourceManager? glResource;
     public GameItemDb Items;
 
     public FileSystem VFS => Items.VFS;
 
-    private AnmFile characterAnimations;
+    private AnmFile? characterAnimations;
 
     public GameDataManager(GameItemDb items, ResourceManager resources)
     {
@@ -31,22 +32,30 @@ public class GameDataManager
         glResource = Resources as GameResourceManager;
     }
 
-    public void LoadData(IUIThread ui, bool preloadCharacterAnimations = false, Action onIniLoaded = null)
+    public void LoadData(IUIThread? ui, bool preloadCharacterAnimations = false, Action? onIniLoaded = null)
     {
         Items.LoadData(() =>
         {
             if (glResource != null && ui != null)
             {
                 glResource.AddPreload(
-                    Items.Ini.EffectShapes.Files.Select(txmfile => Items.DataPath(txmfile))
+                    Items.Ini.EffectShapes.Files.Select(txmfile => Items.DataPath(txmfile)).Where(x => x != null)
+                        .OfType<string>()
                 );
+
                 foreach (var shape in Items.Ini.EffectShapes.Shapes)
                 {
                     glResource.AddShape(shape.Key, shape.Value);
                 }
+
                 ui.QueueUIThread(() => glResource.Preload());
             }
-            if(ui != null && onIniLoaded != null) ui.QueueUIThread(onIniLoaded);
+
+            if (ui != null && onIniLoaded != null)
+            {
+                ui.QueueUIThread(onIniLoaded);
+            }
+
             if (preloadCharacterAnimations)
             {
                 GetCharacterAnimations();
@@ -56,81 +65,102 @@ public class GameDataManager
 
     public AnmFile GetCharacterAnimations()
     {
-        if (characterAnimations == null)
+        if (characterAnimations != null)
         {
-            characterAnimations = new AnmFile();
-            var stringTable = new StringDeduplication();
-            foreach (var file in Items.Ini.Bodyparts.Animations)
-            {
-                var path = Items.DataPath(file);
-                using var stream = Items.VFS.Open(path);
-                AnmFile.ParseToTable(characterAnimations.Scripts, characterAnimations.Buffer, stringTable, stream,
-                    path);
-            }
-
-            characterAnimations.Buffer.Shrink();
+            return characterAnimations;
         }
+
+        characterAnimations = new AnmFile();
+        var stringTable = new StringDeduplication();
+
+        foreach (var path in Items.Ini.Bodyparts.Animations.Select(file => Items.DataPath(file)).Where(x => x != null)
+                     .OfType<string>())
+        {
+            using var stream = Items.VFS.Open(path);
+            AnmFile.ParseToTable(characterAnimations.Scripts, characterAnimations.Buffer, stringTable, stream, path);
+        }
+
+        characterAnimations.Buffer.Shrink();
 
         return characterAnimations;
     }
 
     public IEnumerable<Maneuver> GetManeuvers()
     {
-        foreach (var m in Items.Ini.Hud.Maneuvers)
+        return Items.Ini.Hud.Maneuvers.Select(m => new Maneuver()
         {
-            yield return new Maneuver()
-            {
-                Action = m.Action,
-                InfocardA = GetString(m.InfocardA),
-                InfocardB = GetString(m.InfocardB),
-                ActiveModel = m.ActiveModel,
-                InactiveModel = m.InactiveModel,
-            };
-        }
+            Action = m.Action,
+            InfocardA = GetString(m.InfocardA),
+            InfocardB = GetString(m.InfocardB),
+            ActiveModel = m.ActiveModel,
+            InactiveModel = m.InactiveModel,
+        });
     }
 
-    public Texture2D GetSplashScreen()
+    public Texture2D? GetSplashScreen()
     {
-        if (!glResource.TextureExists("__startupscreen_1280.tga"))
-        {
-            if (Items.VFS.FileExists(Items.Ini.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen_1280.tga"))
-            {
-                glResource.AddTexture(
-                    "__startupscreen_1280.tga",
-                    Items.DataPath("INTERFACE/INTRO/IMAGES/startupscreen_1280.tga")
-                );
-            }
-            else if (Items.VFS.FileExists(Items.Ini.Freelancer.DataPath + "INTERFACE/INTRO/IMAGES/startupscreen.tga"))
-            {
-                glResource.AddTexture(
-                    "__startupscreen_1280.tga",
-                    Items.DataPath("INTERFACE/INTRO/IMAGES/startupscreen.tga")
-                );
-            }
-            else
-            {
-                FLLog.Error("Splash", "Splash screen not found");
-                return Resources.WhiteTexture;
-            }
+        const string splashTextureFileName = "startupscreen.tga";
+        const string splashTextureFileNameLarge = "startupscreen_1280.tga";
 
+        if (glResource is null)
+        {
+            return null;
         }
 
-        return (Texture2D)Resources.FindTexture("__startupscreen_1280.tga");
+        if (glResource.TextureExists(splashTextureFileNameLarge))
+        {
+            return Resources.FindTexture(splashTextureFileNameLarge) as Texture2D;
+        }
+
+        if (glResource.TextureExists(splashTextureFileName))
+        {
+            return Resources.FindTexture(splashTextureFileName) as Texture2D;
+        }
+
+        if (Items.VFS.FileExists(Items.Ini.Freelancer.DataPath + $"INTERFACE/INTRO/IMAGES/{splashTextureFileNameLarge}"))
+        {
+            glResource.AddTexture(
+                splashTextureFileNameLarge,
+                Items.DataPath($"INTERFACE/INTRO/IMAGES/{splashTextureFileNameLarge}")!
+            );
+
+            return glResource.FindTexture(splashTextureFileNameLarge) as Texture2D;
+        }
+
+        if (Items.VFS.FileExists(Items.Ini.Freelancer.DataPath + $"INTERFACE/INTRO/IMAGES/{splashTextureFileName}"))
+        {
+            glResource.AddTexture(
+                splashTextureFileName,
+                Items.DataPath($"INTERFACE/INTRO/IMAGES/{splashTextureFileName}")!
+            );
+
+            return glResource.FindTexture(splashTextureFileName) as Texture2D;
+        }
+
+        FLLog.Error("Splash", "Splash screen not found");
+        return Resources.WhiteTexture;
     }
 
-
-
-    void PreloadSur(IDrawable dr, ResourceManager res)
+    private void PreloadSur(IDrawable dr, ResourceManager res)
     {
         if (dr is not IRigidModelFile rm)
+        {
             return;
+        }
+
         var mdl = rm.CreateRigidModel(res is GameResourceManager, res);
         var surpath = Path.ChangeExtension(mdl.Path, ".sur");
         if (!File.Exists(surpath))
+        {
             return;
+        }
+
         var cvx = res.ConvexCollection.UseFile(surpath);
+
         if (mdl.Source == RigidModelSource.SinglePart)
+        {
             res.ConvexCollection.CreateShape(cvx, new ConvexMeshId(0, 0));
+        }
         else
         {
             foreach (var p in mdl.AllParts)
@@ -138,113 +168,145 @@ public class GameDataManager
         }
     }
 
-    public void PreloadObjects(PreloadObject[] objs, ResourceManager resources = null)
+    public void PreloadObjects(PreloadObject[]? objs, ResourceManager? resources = null)
     {
         resources ??= Resources;
-        if (objs == null) return;
+        if (objs == null)
+        {
+            return;
+        }
+
         foreach (var o in objs)
         {
-            if (o.Type == PreloadType.Ship)
+            switch (o.Type)
             {
-                foreach (var v in o.Values)
+                case PreloadType.Ship:
                 {
-                    var sh = Items.Ships.Get(v);
-                    sh?.ModelFile?.LoadFile(resources);
+                    foreach (var v in o.Values)
+                    {
+                        var sh = Items.Ships.Get(v);
+                        sh?.ModelFile?.LoadFile(resources);
+                    }
+
+                    break;
                 }
-            }
-            else if (o.Type == PreloadType.Equipment)
-            {
-                foreach (var v in o.Values)
+                case PreloadType.Equipment:
                 {
-                    var eq = Items.Equipment.Get(v);
-                    eq?.ModelFile?.LoadFile(resources);
+                    foreach (var v in o.Values)
+                    {
+                        var eq = Items.Equipment.Get(v);
+                        eq?.ModelFile?.LoadFile(resources);
+                    }
+
+                    break;
                 }
             }
         }
     }
 
-    bool cursorsDone = false;
+    private bool cursorsDone = false;
+
     public void PopulateCursors()
     {
-        if (cursorsDone) return;
+        if (cursorsDone)
+        {
+            return;
+        }
+
         cursorsDone = true;
 
-        Resources.LoadResourceFile(
-            Items.DataPath(Items.Ini.Mouse.TxmFile)
-        );
+        Resources.LoadResourceFile(Items.DataPath(Items.Ini.Mouse.TxmFile!)!);
+
         foreach (var lc in Items.Ini.Mouse.Cursors)
         {
-            var shape = Items.Ini.Mouse.Shapes.Where((arg) => arg.Name.Equals(lc.Shape, StringComparison.OrdinalIgnoreCase)).First();
-            var cur = new Cursor();
-            cur.Nickname = lc.Nickname;
-            cur.Scale = lc.Scale;
-            cur.Spin = lc.Spin;
-            cur.Color = lc.Color;
-            cur.Hotspot = lc.Hotspot;
-            cur.Dimensions = shape.Dimensions;
-            cur.Texture = Items.Ini.Mouse.TextureName;
-            glResource.AddCursor(cur, cur.Nickname);
+            var shape = Items.Ini.Mouse.Shapes.First(arg => arg.Name!.Equals(lc.Shape, StringComparison.OrdinalIgnoreCase));
+            var cur = new Cursor
+            {
+                Nickname = lc.Nickname,
+                Scale = lc.Scale,
+                Spin = lc.Spin,
+                Color = lc.Color,
+                Hotspot = lc.Hotspot,
+                Dimensions = shape.Dimensions,
+                Texture = Items.Ini.Mouse.TextureName
+            };
+
+            glResource?.AddCursor(cur, cur.Nickname);
         }
     }
 
+    public IEnumerable<Data.Schema.Audio.AudioEntry> AllSounds => Items.Ini.Audio.Entries;
 
-        public IEnumerable<Data.Schema.Audio.AudioEntry> AllSounds => Items.Ini.Audio.Entries;
-        public Data.Schema.Audio.AudioEntry GetAudioEntry(string id)
+    public Data.Schema.Audio.AudioEntry? GetAudioEntry(string id)
+    {
+        var audio = Items.Ini.Audio.Entries.FirstOrDefault((arg) =>
+            string.Equals(arg.Nickname, id, StringComparison.InvariantCultureIgnoreCase));
+
+        if (audio == null)
         {
-            var audio = Items.Ini.Audio.Entries.FirstOrDefault((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant());
-            if (audio == null)
-            {
-                FLLog.Warning("Audio", $"Audio entry '{id}' not found");
-            }
-            return audio;
-        }
-        public Stream GetAudioStream(string id)
-        {
-            var audio = Items.Ini.Audio.Entries.FirstOrDefault((arg) => arg.Nickname.ToLowerInvariant() == id.ToLowerInvariant());
-            if (audio == null)
-            {
-                FLLog.Warning("Audio", $"Audio entry '{id}' not found");
-                return null;
-            }
-            if (Items.VFS.FileExists(Items.DataPath(audio.File)))
-                return Items.VFS.Open(Items.DataPath(audio.File));
-            return null;
-        }
-        public string GetVoicePath(string id)
-        {
-            return Items.DataPath("AUDIO\\" + id + ".utf");
+            FLLog.Warning("Audio", $"Audio entry '{id}' not found");
         }
 
-        public string GetInfocardText(int id, FontManager fonts)
+        return audio;
+    }
+
+    public Stream? GetAudioStream(string id)
+    {
+        var audio = Items.Ini.Audio.Entries.FirstOrDefault((arg) =>
+            string.Equals(arg.Nickname, id, StringComparison.InvariantCultureIgnoreCase));
+
+        if (audio != null)
         {
-            var res = Items.Ini.Infocards.GetXmlResource(id);
-            if (res == null) return null;
-            return Infocards.RDLParse.Parse(res, fonts).ExtractText();
-        }
-        public Infocards.Infocard GetInfocard(int id, FontManager fonts)
-        {
-            return Infocards.RDLParse.Parse(Items.Ini.Infocards.GetXmlResource(id), fonts);
+            return Items.VFS.FileExists(Items.DataPath(audio.File))
+                ? Items.VFS.Open(Items.DataPath(audio.File)!)
+                : null;
         }
 
-        public bool GetRelatedInfocard(int ogId, FontManager fonts, out Infocards.Infocard ic)
+        FLLog.Warning("Audio", $"Audio entry '{id}' not found");
+        return null;
+
+    }
+
+    public string? GetVoicePath(string id)
+    {
+        return Items.DataPath("AUDIO\\" + id + ".utf");
+    }
+
+    public string? GetInfocardText(int id, FontManager fonts)
+    {
+        var res = Items.Ini.Infocards.GetXmlResource(id);
+        return res == null ? null : Infocards.RDLParse.Parse(res, fonts).ExtractText();
+    }
+
+    public Infocards.Infocard GetInfocard(int id, FontManager fonts)
+    {
+        return Infocards.RDLParse.Parse(Items.Ini.Infocards.GetXmlResource(id), fonts);
+    }
+
+    public bool GetRelatedInfocard(int ogId, FontManager fonts, [MaybeNullWhen(false)] out Infocards.Infocard ic)
+    {
+        ic = null;
+
+        if (!Items.Ini.InfocardMap.Map.TryGetValue(ogId, out int newId))
         {
-            ic = null;
-            if (Items.Ini.InfocardMap.Map.TryGetValue(ogId, out int newId))
-            {
-                ic = GetInfocard(newId, fonts);
-                return true;
-            }
             return false;
         }
-        public string GetString(int id)
-        {
-            return Items.Ini.Infocards.GetStringResource(id);
-        }
-        public IntroScene GetIntroScene()
-        {
-            var rand = new Random();
-            return Items.IntroScenes[rand.Next(0, Items.IntroScenes.Count)];
-        }
+
+        ic = GetInfocard(newId, fonts);
+        return true;
+
+    }
+
+    public string GetString(int id)
+    {
+        return Items.Ini.Infocards.GetStringResource(id);
+    }
+
+    public IntroScene GetIntroScene()
+    {
+        var rand = new Random();
+        return Items.IntroScenes[rand.Next(0, Items.IntroScenes.Count)];
+    }
 #if DEBUG
         public IntroScene GetIntroSceneSpecific(int i)
         {
@@ -254,33 +316,46 @@ public class GameDataManager
         }
 #endif
 
-    public IEnumerator<object> LoadSystemResources(StarSystem sys)
+    public IEnumerator<object?> LoadSystemResources(StarSystem sys)
     {
         if (Items.Ini.Stars != null)
         {
-            foreach (var txmfile in Items.Ini.Stars.TextureFiles
+            foreach (var txmFile in Items.Ini.Stars.TextureFiles
                          .SelectMany(x => x.Files))
-                Resources.LoadResourceFile(Items.DataPath(txmfile));
+            {
+                Resources.LoadResourceFile(Items.DataPath(txmFile));
+            }
         }
+
         yield return null;
         sys.StarsBasic?.LoadFile(Resources);
         sys.StarsComplex?.LoadFile(Resources);
         sys.StarsNebula?.LoadFile(Resources);
         yield return null;
         long a = 0;
+
         if (glResource != null)
         {
             foreach (var obj in sys.Objects)
             {
-                obj.Archetype.ModelFile?.LoadFile(glResource);
-                if (a % 3 == 0) yield return null;
+                obj.Archetype?.ModelFile?.LoadFile(glResource);
+                if (a % 3 == 0)
+                {
+                    yield return null;
+                }
+
                 a++;
             }
         }
-        foreach (var resfile in sys.ResourceFiles)
+
+        foreach (var resFile in sys.ResourceFiles)
         {
-            Resources.LoadResourceFile(resfile);
-            if (a % 3 == 0) yield return null;
+            Resources.LoadResourceFile(resFile);
+            if (a % 3 == 0)
+            {
+                yield return null;
+            }
+
             a++;
         }
     }
@@ -288,62 +363,55 @@ public class GameDataManager
     public void LoadAllSystem(StarSystem system)
     {
         var iterator = LoadSystemResources(system);
-        while (iterator.MoveNext()) { }
+
+        while (iterator.MoveNext())
+        {
+        }
     }
 
-
-    public (ModelResource, float[]) GetSolar(string solar)
+    public (ModelResource?, float[]?) GetSolar(string solar)
     {
         var at = Items.Archetypes.Get(solar);
-        return (at.ModelFile.LoadFile(Resources), at.LODRanges);
+        return (at?.ModelFile?.LoadFile(Resources), at?.LODRanges);
     }
 
-
-    public IDrawable GetProp(string prop)
+    public IDrawable? GetProp(string prop)
     {
-        string f;
-        if (Items.Ini.PetalDb.Props.TryGetValue(prop, out f))
+        if (Items.Ini.PetalDb.Props.TryGetValue(prop, out var path))
         {
-            return Resources.GetDrawable(Items.DataPath(f)).Drawable;
+            return Resources.GetDrawable(Items.DataPath(path))?.Drawable;
         }
-        else
-        {
-            FLLog.Error("PetalDb", "No prop exists: " + prop);
-            return null;
-        }
+
+        FLLog.Error("PetalDb", "No prop exists: " + prop);
+        return null;
     }
 
-    public IDrawable GetCart(string cart)
+    public IDrawable? GetCart(string cart)
     {
-        return Resources.GetDrawable(Items.DataPath(Items.Ini.PetalDb.Carts[cart])).Drawable;
+        return Resources.GetDrawable(Items.DataPath(Items.Ini.PetalDb.Carts[cart]))?.Drawable;
     }
 
-    public IDrawable GetRoom(string room)
+    public IDrawable? GetRoom(string room)
     {
-        return Resources.GetDrawable(Items.DataPath(Items.Ini.PetalDb.Rooms[room])).Drawable;
+        return Resources.GetDrawable(Items.DataPath(Items.Ini.PetalDb.Rooms[room]))?.Drawable;
     }
-
 
     public Dictionary<string, string> GetBaseNavbarIcons()
     {
         return Items.Ini.BaseNavBar.Navbar;
     }
 
-    public List<string> GetIntroMovies()
-    {
-        var movies = new List<string>();
-        foreach (var file in Items.Ini.Freelancer.StartupMovies)
-        {
-            var path = Items.DataPath(file);
-            if (path != null)
-                movies.Add(path);
-        }
-        return movies;
-    }
-
-    public bool GetCostume(string costume, out Bodypart body, out Bodypart head, out Bodypart leftHand, out Bodypart rightHand)
+    public bool GetCostume(string costume, out Bodypart? body, out Bodypart? head, out Bodypart? leftHand,
+        out Bodypart? rightHand)
     {
         var cs = Items.Ini.Costumes.FindCostume(costume);
+
+        if (cs is null)
+        {
+            head = body = leftHand = rightHand = null;
+            return false;
+        }
+
         head = Items.Bodyparts.Get(cs.Head);
         body = Items.Bodyparts.Get(cs.Body);
         leftHand = Items.Bodyparts.Get(cs.LeftHand);
@@ -351,10 +419,10 @@ public class GameDataManager
         return true;
     }
 
-    public string GetCostumeForNPC(string npc)
+    public string? GetCostumeForNPC(string npc)
     {
-        return Items.Ini.SpecificNPCs.Npcs.FirstOrDefault(x => x.Nickname.Equals(npc, StringComparison.OrdinalIgnoreCase))
+        return Items.Ini.SpecificNPCs.Npcs
+            .FirstOrDefault(x => x.Nickname.Equals(npc, StringComparison.OrdinalIgnoreCase))
             ?.BaseAppr;
     }
 }
-

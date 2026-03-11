@@ -24,8 +24,8 @@ public class DockDirective : MissionDirective
 
     public DockDirective(PacketReader reader)
     {
-        Target = reader.GetString();
-        Towards = reader.GetString();
+        Target = reader.GetString()!;
+        Towards = reader.GetString()!;
     }
 
     public override void Put(PacketWriter writer)

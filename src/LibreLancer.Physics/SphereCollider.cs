@@ -10,19 +10,16 @@ using BepuUtilities.Memory;
 
 namespace LibreLancer.Physics
 {
-    public class SphereCollider : Collider
+    public class SphereCollider(float radius) : Collider
     {
-        public SphereCollider(float radius)
-        {
-            Radius = radius;
-        }
+        public override float Radius { get; } = radius;
 
-        public override float Radius { get; }
-        internal override void Create(Simulation sim, BufferPool pool)
+        internal override void Create(Simulation simulation, BufferPool bufferPool)
         {
-            base.Create(sim, pool);
-            if (!Handle.Exists){
-                Handle = sim.Shapes.Add(new Sphere(Radius));
+            base.Create(simulation, bufferPool);
+            if (!Handle.Exists)
+            {
+                Handle = simulation.Shapes.Add(new Sphere(Radius));
             }
         }
 

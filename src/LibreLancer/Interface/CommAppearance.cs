@@ -9,16 +9,10 @@ namespace LibreLancer.Interface;
 [WattleScriptUserData]
 public class CommAppearance
 {
-    [WattleScriptHidden]
-    public DfmFile Head;
-    [WattleScriptHidden]
-    public DfmFile Body;
-    [WattleScriptHidden]
-    public Accessory Accessory;
-    [WattleScriptHidden]
-    public RigidModel AccessoryModel;
-    [WattleScriptHidden]
-    public List<Script> Scripts = new List<Script>();
-    [WattleScriptHidden]
-    public bool Male = true;
+    [WattleScriptHidden] public DfmFile Head = null!;
+    [WattleScriptHidden] public DfmFile Body = null!;
+    [WattleScriptHidden] public Accessory? Accessory;
+    [WattleScriptHidden] public RigidModel? AccessoryModel;
+    [WattleScriptHidden] public List<Script> Scripts = [];
+    [WattleScriptHidden] public bool Male = true;
 }

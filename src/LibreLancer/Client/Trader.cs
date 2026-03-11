@@ -15,40 +15,34 @@ using WattleScript.Interpreter;
 namespace LibreLancer.Client
 {
     [WattleScriptUserData]
-    public class Trader
+    public class Trader(CGameSession session)
     {
-        private CGameSession session;
-        public Trader(CGameSession session)
-        {
-            this.session = session;
-        }
-
         private static Dictionary<string, Func<Equipment, bool>> filters = new();
-        static bool AllowAll(Equipment equip) => true;
-        static bool CommodityFilter(Equipment equip) => equip is CommodityEquipment;
-        static bool WeaponFilter(Equipment equip)
+        private Closure? handler;
+
+        private static bool AllowAll(Equipment equip) => true;
+        private static bool CommodityFilter(Equipment equip) => equip is CommodityEquipment;
+
+        private static bool WeaponFilter(Equipment equip)
         {
-            return equip is GunEquipment ||
-                   equip is MissileLauncherEquipment ||
-                   equip is CountermeasureEquipment;
+            return equip is GunEquipment or MissileLauncherEquipment or CountermeasureEquipment;
         }
 
-        static bool ExternalFilter(Equipment equip)
+        private static bool ExternalFilter(Equipment equip)
         {
-            return equip is ThrusterEquipment ||
-                   equip is ShieldEquipment;
+            return equip is ThrusterEquipment or ShieldEquipment;
         }
 
-        static bool AmmoFilter(Equipment equip)
+        private static bool AmmoFilter(Equipment equip)
         {
             return equip is MissileEquip;
         }
 
-        static bool InternalFilter(Equipment equip)
+        private static bool InternalFilter(Equipment equip)
         {
-            return equip is ShieldBatteryEquipment ||
-                   equip is RepairKitEquipment;
+            return equip is ShieldBatteryEquipment or RepairKitEquipment;
         }
+
         static Trader()
         {
             filters["commodity"] = CommodityFilter;
@@ -62,7 +56,10 @@ namespace LibreLancer.Client
         {
             session.BaseRpc.PurchaseGood(good, count).ContinueWith((x) =>
             {
-                if (x.Result) session.EnqueueAction(() => onSuccess.Call());
+                if (x.Result)
+                {
+                    session.EnqueueAction(() => onSuccess.Call());
+                }
             });
         }
 
@@ -71,26 +68,31 @@ namespace LibreLancer.Client
             session.BaseRpc.SellGood(item.ID, count).ContinueWith(x =>
                 {
                     FLLog.Info("Client", "Sold Item!");
-                    if(x.Result) session.EnqueueAction(() => onSuccess.Call());
+                    if(x.Result)
+                    {
+                        session.EnqueueAction(() => onSuccess.Call());
+                    }
                 });
         }
 
-        private Closure handler;
-
-        void UpdateAction()
+        private void UpdateAction()
         {
-            handler.Call();
+            handler?.Call();
         }
+
         public void OnUpdateInventory(Closure handler)
         {
             this.handler = handler;
             session.OnUpdateInventory = UpdateAction;
         }
+
         public static Func<Equipment, bool> GetFilter(string name)
         {
-            if (string.IsNullOrEmpty(name)) return AllowAll;
-            if (!filters.TryGetValue(name, out var func))
+            if (string.IsNullOrEmpty(name) || !filters.TryGetValue(name, out var func))
+            {
                 return AllowAll;
+            }
+
             return func;
         }
 
@@ -99,18 +101,24 @@ namespace LibreLancer.Client
             item.Sort((x, y) =>
             {
                 if (x.Hardpoint != null && y.Hardpoint == null)
+                {
                     return -1;
+                }
+
                 if (y.Hardpoint != null && x.Hardpoint == null)
+                {
                     return 1;
+                }
+
                 if (x.Hardpoint != null && y.Hardpoint != null)
                 {
-                    int comp = x.HpSortIndex.CompareTo(y.HpSortIndex);
-                    if (comp == 0) return string.CompareOrdinal(x.Hardpoint, y.Hardpoint);
-                    else return comp;
+                    var comp = x.HpSortIndex.CompareTo(y.HpSortIndex);
+                    return comp == 0 ? string.CompareOrdinal(x.Hardpoint, y.Hardpoint) : comp;
                 }
+
                 var str1 = session.Game.GameData.GetString(x.IdsName) ?? "Z";
                 var str2 = session.Game.GameData.GetString(y.IdsName) ?? "Z";
-                return str1.CompareTo(str2);
+                return string.Compare(str1, str2, StringComparison.Ordinal);
             });
         }
 
@@ -120,33 +128,62 @@ namespace LibreLancer.Client
             {
                 session.BaseRpc.Unmount(item.Hardpoint).ContinueWith((x) =>
                 {
-                    if(x.Result) session.EnqueueAction(() => onsuccess.Call("unmount"));
+                    if(x.Result)
+                    {
+                        session.EnqueueAction(() => onsuccess.Call("unmount"));
+                    }
                 });
             }
             else
             {
                 session.BaseRpc.Mount(item.ID).ContinueWith((x) =>
                 {
-                    if(x.Result) session.EnqueueAction(() => onsuccess.Call("mount"));
+                    if(x.Result)
+                    {
+                        session.EnqueueAction(() => onsuccess.Call("mount"));
+                    }
                 });
             }
         }
 
         public UIInventoryItem[] GetTraderGoods(string filter)
         {
-            List<UIInventoryItem> traderGoods = new List<UIInventoryItem>();
-            var filterfunc = GetFilter(filter);
+            List<UIInventoryItem> traderGoods = [];
+            var filterFunc = GetFilter(filter);
             foreach (var sold in session.Goods)
             {
-                if (!sold.ForSale) continue;
-                if (!session.Game.GameData.Items.Goods.TryGetValue(sold.GoodCRC, out var g))
+                if (!sold.ForSale)
+                {
                     continue;
-                if (!filterfunc(g.Equipment)) continue;
+                }
+
+                if (!session.Game.GameData.Items.Goods.TryGetValue(sold.GoodCRC, out var g))
+                {
+                    continue;
+                }
+
+                if (!filterFunc(g.Equipment))
+                {
+                    continue;
+                }
+
                 var price = GetPrice(g);
-                string rank = "neutral";
-                if (g.Ini.BadBuyPrice != 0 && price >= g.Ini.BadBuyPrice * g.Ini.Price) rank = "bad";
-                if (g.Ini.GoodBuyPrice != 0 && price <= g.Ini.GoodBuyPrice * g.Ini.Price) rank = "good";
-                if (g.Ini.BadBuyPrice == 0 && g.Ini.GoodBuyPrice == 0) rank = null;
+                var rank = "neutral";
+                if (g.Ini.BadBuyPrice != 0 && price >= g.Ini.BadBuyPrice * g.Ini.Price)
+                {
+                    rank = "bad";
+                }
+
+                if (g.Ini.GoodBuyPrice != 0 && price <= g.Ini.GoodBuyPrice * g.Ini.Price)
+                {
+                    rank = "good";
+                }
+
+                if (g.Ini.BadBuyPrice == 0 && g.Ini.GoodBuyPrice == 0)
+                {
+                    rank = null;
+                }
+
                 traderGoods.Add(new UIInventoryItem()
                 {
                     ID = -1,
@@ -162,30 +199,46 @@ namespace LibreLancer.Client
                     Equipment = g.Equipment
                 });
             }
+
             SortGoods(session, traderGoods);
             return traderGoods.ToArray();
         }
 
-        double GetPrice(ResolvedGood good)
+        private double GetPrice(ResolvedGood good)
         {
             foreach (var sold in session.Goods)
             {
-                if (sold.GoodCRC == good.CRC) return sold.Price;
+                if (sold.GoodCRC == good.CRC)
+                {
+                    return sold.Price;
+                }
             }
-            if (!session.BaselinePrices.TryGetValue(good.CRC, out ulong p))
+            if (!session.BaselinePrices.TryGetValue(good.CRC, out var p))
+            {
                 return good.Ini.Price;
+            }
+
             return p;
         }
 
-        bool CanMount(string hpType)
+        private bool CanMount(string? hpType)
         {
-            if(string.IsNullOrWhiteSpace(hpType) || session.PlayerShip == null) return false;
-            if (!session.PlayerShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
+            if(string.IsNullOrWhiteSpace(hpType) || session.PlayerShip == null)
+            {
                 return false;
+            }
+
+            if (!session.PlayerShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
+            {
+                return false;
+            }
+
             foreach (var hp in possible)
             {
                 if (!session.Items.Any(x => hp.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
+                {
                     return true;
+                }
             }
             return false;
         }
@@ -193,11 +246,21 @@ namespace LibreLancer.Client
         public static UIInventoryItem FromNetCargo(NetCargo item, double price, bool canMount)
         {
             var rank = "neutral";
-            if (item.Equipment.Good.Ini.GoodSellPrice != 0 && price >= item.Equipment.Good.Ini.GoodSellPrice * item.Equipment.Good.Ini.Price)
+            if (item.Equipment!.Good!.Ini.GoodSellPrice != 0 && price >= item.Equipment.Good.Ini.GoodSellPrice * item.Equipment.Good.Ini.Price)
+            {
                 rank = "good";
+            }
+
             if (item.Equipment.Good.Ini.BadSellPrice != 0 && price <= item.Equipment.Good.Ini.BadSellPrice * item.Equipment.Good.Ini.Price)
+            {
                 rank = "bad";
-            if (item.Equipment.Good.Ini.BadSellPrice == 0 && item.Equipment.Good.Ini.GoodSellPrice == 0) rank = null;
+            }
+
+            if (item.Equipment.Good.Ini.BadSellPrice == 0 && item.Equipment.Good.Ini.GoodSellPrice == 0)
+            {
+                rank = null;
+            }
+
             return new UIInventoryItem()
             {
                 ID = item.ID,
@@ -219,19 +282,22 @@ namespace LibreLancer.Client
         public int GetPurchaseLimit(UIInventoryItem item)
         {
             var maxAmount = (int) Math.Floor(session.Credits / item.Price);
-            var holdLimit = CargoUtilities.GetItemLimit(session.Items, session.PlayerShip, item.Equipment);
+            var holdLimit = CargoUtilities.GetItemLimit(session.Items, session.PlayerShip!, item.Equipment!);
             return Math.Min(maxAmount, holdLimit);
         }
 
-        public float GetHoldSize() => session.PlayerShip.HoldSize;
+        public float GetHoldSize() => session.PlayerShip!.HoldSize;
 
-        public float GetUsedHoldSpace() => session.Items.Select(x => x.Count * x.Equipment.Volume).Sum();
+        public float GetUsedHoldSpace() => session.Items.Select(x => x.Count * x.Equipment!.Volume).Sum();
 
         public UIInventoryItem[] GetPlayerGoods(string filter)
         {
-            if (session.PlayerShip == null) return Array.Empty<UIInventoryItem>();
+            if (session.PlayerShip == null)
+            {
+                return [];
+            }
 
-            List<UIInventoryItem> inventoryItems = new List<UIInventoryItem>();
+            List<UIInventoryItem> inventoryItems = [];
             var filterfunc = GetFilter(filter);
             if (session.PlayerShip != null)
             {
@@ -245,13 +311,25 @@ namespace LibreLancer.Client
                         case "ammo":
                             continue;
                         case "weapons":
-                            if (hptype.Category != HpCategory.Weapon) continue;
+                            if (hptype.Category != HpCategory.Weapon)
+                            {
+                                continue;
+                            }
+
                             break;
                         case "internal":
-                            if (hptype.Category != HpCategory.Internal) continue;
+                            if (hptype.Category != HpCategory.Internal)
+                            {
+                                continue;
+                            }
+
                             break;
                         case "external":
-                            if (hptype.Category != HpCategory.External) continue;
+                            if (hptype.Category != HpCategory.External)
+                            {
+                                continue;
+                            }
+
                             break;
                     }
 
@@ -263,7 +341,11 @@ namespace LibreLancer.Client
                     if (mounted != null)
                     {
                         var equip = mounted.Equipment;
-                        if (equip == null || equip.Good == null) continue;
+                        if (equip?.Good == null)
+                        {
+                            continue;
+                        }
+
                         ui.ID = mounted.ID;
                         ui.Count = 1;
                         ui.Good = equip.Good.Ini.Nickname;
@@ -276,7 +358,9 @@ namespace LibreLancer.Client
                         ui.MountIcon = true;
                         ui.CanMount = true;
                         if (equip is not CommodityEquipment)
+                        {
                             ui.Price = (ulong) (ui.Price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                        }
                     }
 
                     inventoryItems.Add(ui);
@@ -284,12 +368,27 @@ namespace LibreLancer.Client
             }
             foreach (var item in session.Items)
             {
-                if (item.Equipment.Good == null) continue;
-                if (!string.IsNullOrEmpty(item.Hardpoint)) continue;
-                if(!filterfunc(item.Equipment)) continue;
+                if (item.Equipment?.Good == null)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(item.Hardpoint))
+                {
+                    continue;
+                }
+
+                if(!filterfunc(item.Equipment))
+                {
+                    continue;
+                }
+
                 var price = GetPrice(item.Equipment.Good);
                 if (item.Equipment is not CommodityEquipment)
+                {
                     price = (ulong) (price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                }
+
                 inventoryItems.Add(FromNetCargo(item, price, CanMount(item.Equipment.HpType)));
             }
             SortGoods(session, inventoryItems);

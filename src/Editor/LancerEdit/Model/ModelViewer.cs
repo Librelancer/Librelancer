@@ -483,8 +483,11 @@ namespace LancerEdit
                 if (cn.Children != null)
                 {
                     foreach (var child in cn.Children)
+                    {
                         DoConstructNode(child);
+                    }
                 }
+
                 DoModel(cn);
                 ImGui.TreePop();
             }
@@ -942,7 +945,9 @@ namespace LancerEdit
                 if (vmsModel.Root.Children != null)
                 {
                     foreach (var n in vmsModel.Root.Children)
+                    {
                         DoConstructNode(n);
+                    }
                 }
 
                 DoModel(vmsModel.Root);

@@ -48,7 +48,7 @@ namespace LibreLancer
             Anisotropy == 0 ? TextureFiltering.Trilinear : TextureFiltering.Anisotropic;
         int IRendererSettings.SelectedMSAA => MSAA;
 
-        public int[] AnisotropyLevels() => RenderContext.GetAnisotropyLevels();
+        public int[]? AnisotropyLevels() => RenderContext.GetAnisotropyLevels();
         public int MaxMSAA() => RenderContext.MaxSamples;
 
         [WattleScriptHidden]
@@ -72,26 +72,27 @@ namespace LibreLancer
         }
 
         [WattleScriptHidden]
-        public RenderContext RenderContext;
+        public RenderContext RenderContext = null!;
 
         [WattleScriptHidden]
         public GameSettings MakeCopy()
         {
-            var gs = new GameSettings();
-            gs.MasterVolume = MasterVolume;
-            gs.SfxVolume = SfxVolume;
-            gs.InterfaceVolume = InterfaceVolume;
-            gs.VoiceVolume = VoiceVolume;
-            gs.MusicVolume = MusicVolume;
+            var gs = new GameSettings
+            {
+                MasterVolume = MasterVolume,
+                SfxVolume = SfxVolume,
+                InterfaceVolume = InterfaceVolume,
+                VoiceVolume = VoiceVolume,
+                MusicVolume = MusicVolume,
+                FullScreen = FullScreen,
+                VSync = VSync,
+                Anisotropy = Anisotropy,
+                MSAA = MSAA,
+                LodMultiplier = LodMultiplier,
+                RenderContext = RenderContext,
+                Debug = Debug
+            };
 
-            gs.FullScreen = FullScreen;
-
-            gs.VSync = VSync;
-            gs.Anisotropy = Anisotropy;
-            gs.MSAA = MSAA;
-            gs.LodMultiplier = LodMultiplier;
-            gs.RenderContext = RenderContext;
-            gs.Debug = Debug;
             return gs;
         }
 

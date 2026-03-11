@@ -11,13 +11,13 @@ public struct UserInput
     private int data;
 
     public bool NonEmpty => data != 0;
-    
+
     internal static KeyModifiers SanitizeModifiers(KeyModifiers mod)
     {
-        //Don't need these from SDL2
+        // Don't need these from SDL2
         mod &= ~KeyModifiers.Numlock;
         mod &= ~KeyModifiers.Capslock;
-        //Left/Right shift - set both
+        // Left/Right shift - set both
         if ((mod & KeyModifiers.Control) != 0) mod |= KeyModifiers.Control;
         if ((mod & KeyModifiers.Shift) != 0) mod |= KeyModifiers.Shift;
         if ((mod & KeyModifiers.Alt) != 0) mod |= KeyModifiers.Alt;
@@ -49,7 +49,7 @@ public struct UserInput
     }
 
     public int ToInt32() => data;
-    public static UserInput FromInt32(int data) => new UserInput() {data = data};
+    public static UserInput FromInt32(int data) => new() {data = data};
 
     public bool IsMouseButton => ((data >> 16) & (int) KeyModifiers.Reserved) == (int) KeyModifiers.Reserved;
     public MouseButtons Mouse => IsMouseButton ? (MouseButtons) (data & 0xFFFF) : MouseButtons.None;
@@ -64,11 +64,11 @@ public struct UserInput
             switch (Mouse)
             {
                 case MouseButtons.Left:
-                    return ic.GetStringResource(1255); //Mouse 1
+                    return ic.GetStringResource(1255); // Mouse 1
                 case MouseButtons.Middle:
-                    return ic.GetStringResource(1256); //Mouse 3
+                    return ic.GetStringResource(1256); // Mouse 3
                 case MouseButtons.Right:
-                    return ic.GetStringResource(1257); //Mouse 2
+                    return ic.GetStringResource(1257); // Mouse 2
                 case MouseButtons.X1:
                     return "Mouse 4";
                 case MouseButtons.X2:
@@ -82,11 +82,11 @@ public struct UserInput
             {
                 var builder = new StringBuilder();
                 if ((Modifiers & KeyModifiers.Shift) != 0)
-                    builder.Append(ic.GetStringResource(1259)); //Shift+
+                    builder.Append(ic.GetStringResource(1259)); // Shift+
                 if ((Modifiers & KeyModifiers.Alt) != 0)
-                    builder.Append(ic.GetStringResource(1261)); //Alt+
+                    builder.Append(ic.GetStringResource(1261)); // Alt+
                 if ((Modifiers & KeyModifiers.Control) != 0)
-                    builder.Append(ic.GetStringResource(1260)); //Ctrl+
+                    builder.Append(ic.GetStringResource(1260)); // Ctrl+
                 builder.Append(Key.GetDisplayName());
                 return builder.ToString();
             }
@@ -119,7 +119,7 @@ public struct UserInput
         return data == other.data;
     }
 
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         return obj is UserInput other && Equals(other);
     }

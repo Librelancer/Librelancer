@@ -14,7 +14,10 @@ public class KeyMapTable : ITableData
     private InfocardManager infocards;
 
     private InputBinding[] mapCopy;
-    
+    public event Action<KeyCaptureContext>? OnCaptureInput;
+
+    private KeyCaptureContext? _ctx;
+
     public KeyMapTable(InputMap map, InfocardManager infocards)
     {
         this.map = map;
@@ -42,10 +45,6 @@ public class KeyMapTable : ITableData
     }
 
     public int GetKeyId(int row) => map.StrId[(int) map.KeyGroups[groupIndex][row]];
-
-    public event Action<KeyCaptureContext> OnCaptureInput;
-
-    private KeyCaptureContext _ctx;
 
     public void CaptureInput(int index, bool primary, Closure onFinish)
     {
@@ -75,7 +74,7 @@ public class KeyMapTable : ITableData
             FLLog.Error("Save", $"Could not write keymap.ini. {e.Message}");
         }
     }
-    
+
     public void CancelCapture()
     {
         _ctx?.Cancel();
@@ -117,7 +116,7 @@ public class KeyCaptureContext
         this.captureFinish = onFinish;
     }
 
-    InputAction FindAction(UserInput input)
+    private InputAction FindAction(UserInput input)
     {
         for (int i = 0; i < map.Length; i++)
         {
@@ -128,7 +127,7 @@ public class KeyCaptureContext
         return InputAction.COUNT;
     }
 
-    void SetOverwrite(UserInput input)
+    private void SetOverwrite(UserInput input)
     {
         for (int i = 0; i < map.Length; i++)
         {
@@ -140,7 +139,7 @@ public class KeyCaptureContext
         else
             map[(int)action].Secondary = input;
     }
-    
+
     public void Set(UserInput input)
     {
         if (!active) return;
@@ -180,5 +179,5 @@ public class KeyCaptureContext
             map[(int) action].Secondary = default;
         captureFinish.Call("ok");
     }
-    
+
 }

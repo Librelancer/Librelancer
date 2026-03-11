@@ -54,14 +54,17 @@ public class DynamicThn
 
     public void Unpack(NetThnInfo info, GameDataManager gameData)
     {
-        //Reset dictionaries
+        // Reset dictionaries
         rtcs = new(StringComparer.OrdinalIgnoreCase);
         ambients = new(StringComparer.OrdinalIgnoreCase);
-        //Fill
+
+        // Fill
         if (info.Rtcs != null)
         {
             foreach (var rtc in info.Rtcs)
-                rtcs[rtc.Script] = rtc;
+            {
+                rtcs[rtc.Script!] = rtc;
+            }
         }
 
         if (info.Ambients != null)
@@ -69,8 +72,8 @@ public class DynamicThn
             foreach (var ambient in info.Ambients)
             {
                 var _base = gameData.Items.Bases.Get(ambient.BaseId);
-                var room = _base.Rooms.Get(ambient.RoomId);
-                ambients[ambient.Script] = new AmbientInfo(ambient.Script, room.Nickname, _base.Nickname);
+                var room = _base!.Rooms.Get(ambient.RoomId);
+                ambients[ambient.Script] = new AmbientInfo(ambient.Script, room!.Nickname, _base.Nickname);
             }
         }
     }

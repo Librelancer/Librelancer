@@ -8,14 +8,18 @@ namespace LibreLancer.Server
     {
         private const int SLEEP_TIME_COUNT = 64;
 
-        private CircularBuffer<TimeSpan> sleepTimes = new CircularBuffer<TimeSpan>(SLEEP_TIME_COUNT);
+        private CircularBuffer<TimeSpan> sleepTimes = new(SLEEP_TIME_COUNT);
 
-        //FromSeconds creates an inaccurate timespan
+        // FromSeconds creates an inaccurate timespan
         public TimeSpan TimeStep { get; private set; } = TimeSpan.FromTicks(166667);
-
         public TimeSpan TotalTime { get; private set; }
-
         private OnStep onStep;
+
+        private Stopwatch timer = null!;
+        private bool running = false;
+
+        private TimeSpan accumulatedTime;
+        private TimeSpan lastTime;
 
         public delegate void OnStep(TimeSpan delta, TimeSpan totalTime, uint currentTick);
 
@@ -26,9 +30,9 @@ namespace LibreLancer.Server
             this.onStep = onStep;
         }
 
-        TimeSpan sleepPrecision = TimeSpan.FromMilliseconds(1);
+        private TimeSpan sleepPrecision = TimeSpan.FromMilliseconds(1);
 
-        void UpdateSleepPrecision(TimeSpan sleepTime)
+        private void UpdateSleepPrecision(TimeSpan sleepTime)
         {
             if (sleepTime > TimeSpan.FromMilliseconds(5))
                 sleepTime = TimeSpan.FromMilliseconds(5);
@@ -42,13 +46,7 @@ namespace LibreLancer.Server
             sleepPrecision = precision;
         }
 
-        private Stopwatch timer;
-        private bool running = false;
-
-        private TimeSpan accumulatedTime;
-        private TimeSpan lastTime;
-
-        TimeSpan Accumulate()
+        private TimeSpan Accumulate()
         {
             var current = timer.Elapsed;
             var diff = (current - lastTime);
@@ -56,7 +54,6 @@ namespace LibreLancer.Server
             lastTime = current;
             return diff;
         }
-
 
         public void Start()
         {
@@ -66,8 +63,8 @@ namespace LibreLancer.Server
             while (running)
             {
                 Accumulate();
-                //FNA Sleep Algorithm: Sleep based on worst case thread sleep time,
-                //then use SpinWait
+                // FNA Sleep Algorithm: Sleep based on worst case thread sleep time,
+                // then use SpinWait
                 while (accumulatedTime + sleepPrecision < TimeStep)
                 {
                     Thread.Sleep(1);
@@ -95,7 +92,6 @@ namespace LibreLancer.Server
                 }
             }
         }
-
 
 
 

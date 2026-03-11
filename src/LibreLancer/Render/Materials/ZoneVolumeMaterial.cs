@@ -31,7 +31,7 @@ namespace LibreLancer.Render.Materials
         public override bool DisableCull => true;
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct ZoneVolumeParameters
+        private struct ZoneVolumeParameters
         {
             public Color4 Dc;
             public float RadiusRatio;

@@ -33,21 +33,23 @@ namespace LibreLancer.Thn.Events
         {
             var obj = instance.Objects[Targets[0]];
             var path = instance.Objects[Targets[1]];
-            instance.AddProcessor(new PathAnimation()
-            {
-                Path = path,
-                Object = obj,
-                Event = this
-            });
+            instance.AddProcessor(new PathAnimation(obj, path, this));
         }
 
-        class PathAnimation : ThnEventProcessor
+        private class PathAnimation : ThnEventProcessor
         {
             public ThnObject Object;
             public ThnObject Path;
             public StartPathAnimationEvent Event;
 
-            double time = 0;
+            public PathAnimation(ThnObject obj, ThnObject path, StartPathAnimationEvent ev)
+            {
+                Object = obj;
+                Path = path;
+                Event = ev;
+            }
+
+            private double time = 0;
 
             public override bool Run(double delta)
             {
@@ -56,10 +58,10 @@ namespace LibreLancer.Thn.Events
                 return true;
             }
 
-            void Process(float t)
+            private void Process(float t)
             {
                 float pct = MathHelper.Lerp(Event.StartPercent, Event.StopPercent, t);
-                var path = Path.Entity.Path;
+                var path = Path.Entity.Path!;
                 if ((Event.Flags & AttachFlags.LookAt) == AttachFlags.LookAt)
                 {
                     Object.Rotate =QuaternionEx.LookRotation(path.GetDirection(pct, Event.StartPercent > Event.StopPercent), Vector3.UnitY) * Path.Rotate;

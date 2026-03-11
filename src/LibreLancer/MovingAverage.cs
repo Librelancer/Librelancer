@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 
 namespace LibreLancer;
@@ -6,10 +7,11 @@ public class MovingAverage<T> where T : ISignedNumber<T>
 {
     private T[] values;
     private int index = 0;
-    private T average;
+    private T average = default!;
     public MovingAverage(int count)
     {
         values = new T[count];
+        CalculateAverage();
     }
 
     public void AddValue(T value)
@@ -21,21 +23,21 @@ public class MovingAverage<T> where T : ISignedNumber<T>
 
     public T Average => average;
 
-    void CalculateAverage()
+    private void CalculateAverage()
     {
-        double accum = 0;
-        for (int i = 0; i < values.Length; i++) {
-            accum += double.CreateChecked(values[i]);
-        }
+        var accum = values.Sum(double.CreateChecked);
         accum /= values.Length;
         average = T.CreateTruncating(accum);
     }
 
-    public void ForceSetAverage(T average)
+    public void ForceSetAverage(T avg)
     {
-        this.average = average;
+        average = avg;
         for (int i = 0; i < values.Length; i++)
-            values[i] = average;
+        {
+            values[i] = avg;
+        }
+
         index = 0;
     }
 }

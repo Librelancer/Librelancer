@@ -35,8 +35,10 @@ public struct VisitBundle
         var compressed = message.GetRemainingBytes();
         using var comp = new ZstdSharp.Decompressor();
         var reader = new PacketReader(new NetDataReader(comp.Unwrap(compressed).ToArray()));
-        var bp = new VisitBundle();
-        bp.Visits = new VisitEntry[reader.GetBigVarUInt32()];
+        var bp = new VisitBundle
+        {
+            Visits = new VisitEntry[reader.GetBigVarUInt32()]
+        };
         bp.Visits[0].Obj = (HashValue)reader.GetUInt();
         for (int i = 1; i < bp.Visits.Length; i++)
             bp.Visits[i].Obj = (reader.GetBigVarUInt32() + bp.Visits[i - 1].Obj.Hash);

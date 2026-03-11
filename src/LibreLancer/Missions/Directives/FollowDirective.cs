@@ -20,7 +20,7 @@ public class FollowDirective : MissionDirective
 
     public FollowDirective(PacketReader reader)
     {
-        Target = reader.GetString();
+        Target = reader.GetString()!;
         Range0 = reader.GetFloat();
         Offset = reader.GetVector3();
         Range1 = reader.GetFloat();

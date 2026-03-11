@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Runtime;
@@ -111,8 +112,13 @@ public class GameItemDb
         ThornReadCallback = (file) => VFS.ReadAllBytes("EXE/" + file);
     }
 
-    public string? DataPath(string input)
+    public string? DataPath(string? input)
     {
+        if (string.IsNullOrEmpty(input))
+        {
+            return null;
+        }
+
         var path = flData.Freelancer.DataPath + input;
 
         if (VFS.FileExists(path))
@@ -2301,7 +2307,7 @@ public class GameItemDb
         return ld;
     }
 
-    public bool TryGetLoadout(string name, out ObjectLoadout? l)
+    public bool TryGetLoadout(string name, [MaybeNullWhen(false)] out ObjectLoadout l)
     {
         if (!string.IsNullOrWhiteSpace(name))
         {

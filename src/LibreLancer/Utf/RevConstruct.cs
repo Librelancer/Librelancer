@@ -7,7 +7,6 @@ using System.IO;
 using System.Numerics;
 using LibreLancer.Utf.Anm;
 
-
 namespace LibreLancer.Utf
 {
     public class RevConstruct : AbstractConstruct
@@ -37,12 +36,14 @@ namespace LibreLancer.Utf
 		protected RevConstruct(RevConstruct cf) : base(cf) { }
 		public override AbstractConstruct Clone()
 		{
-			var newc = new RevConstruct(this);
-			newc.Offset = Offset;
-			newc.AxisRotation = AxisRotation;
-			newc.Min = Min;
-			newc.Max = Max;
-			return newc;
+			var newc = new RevConstruct(this)
+            {
+                Offset = Offset,
+                AxisRotation = AxisRotation,
+                Min = Min,
+                Max = Max
+            };
+            return newc;
 		}
         public override void Reset()
         {

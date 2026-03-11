@@ -8,10 +8,9 @@ using LibreLancer.World.Components;
 
 namespace LibreLancer.Server.Components;
 
-
 public class SNPCCargoComponent : AbstractCargoComponent
 {
-    public List<BasicCargo> Cargo = new List<BasicCargo>();
+    public List<BasicCargo> Cargo = [];
 
     public SNPCCargoComponent(GameObject parent) : base(parent) { }
 

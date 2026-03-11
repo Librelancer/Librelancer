@@ -7,7 +7,7 @@ using LibreLancer.Client;
 
 namespace LibreLancer
 {
-    //Blank state for when CGameSession is waiting for the server to spawn the player
+    // Blank state for when CGameSession is waiting for the server to spawn the player
     public class NetWaitState : GameState
     {
         private CGameSession session;

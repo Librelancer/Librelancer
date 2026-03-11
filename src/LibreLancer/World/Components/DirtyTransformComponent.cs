@@ -4,7 +4,7 @@
 
 namespace LibreLancer.World.Components
 {
-    //HACK for Thn Scenes needing a main object
+    // HACK for Thn Scenes needing a main object
     public class DirtyTransformComponent : GameComponent
     {
         public DirtyTransformComponent(GameObject parent) : base(parent)

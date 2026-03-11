@@ -5,11 +5,10 @@ using BepuUtilities;
 
 namespace LibreLancer.Physics;
 
-//Taken from Demo Callbacks in Bepu
+// Taken from Demo Callbacks in Bepu
 
-struct LibrelancerPoseIntegratorCallbacks : IPoseIntegratorCallbacks
+internal struct LibrelancerPoseIntegratorCallbacks : IPoseIntegratorCallbacks
 {
-    private Bodies bodies;
     public PhysicsWorld World;
     /// <summary>
     ///     Gets how the pose integrator should handle angular velocity integration.
@@ -35,8 +34,8 @@ struct LibrelancerPoseIntegratorCallbacks : IPoseIntegratorCallbacks
 
     public void Initialize(Simulation simulation)
     {
-        //In this demo, we don't need to initialize anything.
-        //If you had a simulation with per body gravity stored in a CollidableProperty<T> or something similar, having the simulation provided in a callback can be helpful.
+        // In this demo, we don't need to initialize anything.
+        // If you had a simulation with per body gravity stored in a CollidableProperty<T> or something similar, having the simulation provided in a callback can be helpful.
     }
 
 
@@ -67,10 +66,10 @@ struct LibrelancerPoseIntegratorCallbacks : IPoseIntegratorCallbacks
     {
         Span<float> linearDampingValues = stackalloc float[Vector<float>.Count];
         Span<float> angularDampingValues = stackalloc float[Vector<float>.Count];
-        for (int bundleSlotIndex = 0; bundleSlotIndex < Vector<int>.Count; ++bundleSlotIndex)
+        for (var bundleSlotIndex = 0; bundleSlotIndex < Vector<int>.Count; ++bundleSlotIndex)
         {
             var bodyIndex = bodyIndices[bundleSlotIndex];
-            //Not every slot in the SIMD vector is guaranteed to be filled.
+            // Not every slot in the SIMD vector is guaranteed to be filled.
             if (bodyIndex >= 0)
             {
                 var bodyHandle = World.Simulation.Bodies.ActiveSet.IndexToHandle[bodyIndex];

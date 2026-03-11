@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace LibreLancer.Data;
 
@@ -13,7 +14,7 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
 
     public int Count => crcCollection.Count;
 
-    public bool TryGetValue(string? nickname, out T? value)
+    public bool TryGetValue(string? nickname, [MaybeNullWhen(false)] out T value)
     {
         if (!string.IsNullOrEmpty(nickname))
         {
@@ -24,7 +25,7 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
         return false;
     }
 
-    public bool TryGetValue(uint crc, out T? value) => crcCollection.TryGetValue(crc, out value);
+    public bool TryGetValue(uint crc, [MaybeNullWhen(false)] out T value) => crcCollection.TryGetValue(crc, out value);
 
     public T? Get(string? nickname)
     {
@@ -37,6 +38,7 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
         return result;
     }
 
+    // TODO: Ensure all Get functions return a non-null object, update call sites to use TryGet when maybe null
     public T? Get(uint crc)
     {
         crcCollection.TryGetValue(crc, out var result);

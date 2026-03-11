@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,20 +17,20 @@ namespace LibreLancer.Utf.Dfm
 		private Dictionary<string, Bone> bones;
         public string objectName;
         private string fileName;
-		private Bone bone;
+		private Bone? bone;
 		public Bone Bone
 		{
 			get
-			{
-				if (bone == null) bone = bones[fileName];
-				return bone;
-			}
+            {
+                bone ??= bones[fileName];
+                return bone;
+            }
 		}
 
-		public DfmPart(string objectName, string fileName, Dictionary<string, Bone> models, ConstructCollection constructs)
+		public DfmPart(string objectName, string fileName, Dictionary<string, Bone> models)
 		{
 			this.bones = models;
-			//this.constructs = constructs;
+			// this.constructs = constructs;
 			this.objectName = objectName;
 			this.fileName = fileName;
 		}

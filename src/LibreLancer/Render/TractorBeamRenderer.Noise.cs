@@ -4,7 +4,7 @@ namespace LibreLancer.Render;
 
 partial class TractorBeamRenderer
 {
-    static float SampleNoise(int index) =>
+    private static float SampleNoise(int index) =>
         _noise[index & 0xFFF] * (1.0f / 255f);
 
     private static ReadOnlySpan<byte> _noise =>

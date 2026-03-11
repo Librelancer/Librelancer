@@ -3,7 +3,7 @@ using BepuPhysics;
 
 namespace LibreLancer.Physics;
 
-internal class StaticObject : PhysicsObject
+internal sealed class StaticObject : PhysicsObject
 {
     public override bool Static => true;
     public override bool Active => false;
@@ -18,17 +18,17 @@ internal class StaticObject : PhysicsObject
     }
 
     internal StaticReference BepuObject;
-    private PhysicsWorld world;
+    private readonly PhysicsWorld world;
 
-    internal StaticObject(int id, StaticReference bepuObject, PhysicsWorld world, Transform3D transform, Collider col) : base(id)
+    internal StaticObject(int id, StaticReference bepuObject, PhysicsWorld physicsWorld, Transform3D transform, Collider col) : base(id, col)
     {
-        this.BepuObject = bepuObject;
-        this.world = world;
-        this.Collider = col;
+        BepuObject = bepuObject;
+        world = physicsWorld;
         var pose = transform.ToPose();
         Position = pose.Position;
         Orientation = pose.Orientation;
     }
+
     public override void SetTransform(Transform3D transform)
     {
         Position = transform.Position;
@@ -69,32 +69,32 @@ internal class StaticObject : PhysicsObject
 
     public override void SetDamping(float linearDamping, float angularDamping)
     {
-        //Nop
+        // Nop
     }
 
     public override void AddForce(Vector3 force)
     {
-        //Nop
+        // Nop
     }
 
     public override void Activate()
     {
-        //Nop
+        // Nop
     }
 
     public override void Impulse(Vector3 force)
     {
-        //Nop
+        // Nop
     }
 
     public override void AddTorque(Vector3 torque)
     {
-        //Nop
+        // Nop
     }
 
     public override void PredictionStep(float timestep)
     {
-        //Nop
+        // Nop
     }
 
     internal override void UpdateProperties()

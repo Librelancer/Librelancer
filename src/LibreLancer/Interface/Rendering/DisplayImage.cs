@@ -13,8 +13,8 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class DisplayImage : DisplayElement
     {
-        public InterfaceImage Image { get; set; }
-        public InterfaceColor Tint { get; set; }
+        public InterfaceImage? Image { get; set; }
+        public InterfaceColor? Tint { get; set; }
 
         public float Angle { get; set; }
         public float ScaleX { get; set; } = 1;
@@ -24,7 +24,7 @@ namespace LibreLancer.Interface
 
         public bool OneInvSrcColor { get; set; } = false;
 
-        private Texture2D texture;
+        private Texture2D? texture;
 
         public override void Render(UiContext context, RectangleF clientRectangle)
         {
@@ -46,7 +46,7 @@ namespace LibreLancer.Interface
                 var pa = new Vector2(x + dc.X0 * w, y + dc.Y0 * h);
                 var pb = new Vector2(x + dc.X1 * w, y + dc.Y1 * h);
                 var pc = new Vector2(x + dc.X2 * w, y + dc.Y2 * h);
-                context.RenderContext.Renderer2D.DrawTriangle(texture, pa, pb, pc,
+                context.RenderContext.Renderer2D.DrawTriangle(texture!, pa, pb, pc,
                     new Vector2(Image.TexCoords.X0, 1 - Image.TexCoords.Y0),
                     new Vector2(Image.TexCoords.X1, 1 - Image.TexCoords.Y1),
                     new Vector2(Image.TexCoords.X2, 1 - Image.TexCoords.Y2),
@@ -76,28 +76,33 @@ namespace LibreLancer.Interface
                     rect.X += (int)px;
                     rect.Y += (int)py;
                     context.RenderContext.Renderer2D.DrawRotated(
-                        texture, src, rect, new Vector2(Image.OriginX * rect.Width, Image.OriginY * rect.Height), color, blendMode,
+                        texture!, src, rect, new Vector2(Image.OriginX * rect.Width, Image.OriginY * rect.Height), color, blendMode,
                         a, Image.Flip, Image.Rotation);
                 }
                 else
                 {
                     rect.X += context.PointsToPixels(OffsetX);
                     clientRectangle.Y += context.PointsToPixels(OffsetY);
-                    context.RenderContext.Renderer2D.Draw(texture, src, rect, color, blendMode, Image.Flip,
+                    context.RenderContext.Renderer2D.Draw(texture!, src, rect, color, blendMode, Image.Flip,
                         Image.Rotation);
                 }
             }
         }
 
-        bool CanRender(UiContext context)
+        private bool CanRender(UiContext context)
         {
-            if (texture != null) {
-                if(texture.IsDisposed) texture = context.Data.ResourceManager.FindTexture(Image.TexName) as Texture2D;
+            if (texture != null)
+            {
+                if (texture.IsDisposed)
+                {
+                    texture = context.Data.ResourceManager.FindTexture(Image?.TexName) as Texture2D;
+                }
+
                 return texture != null;
             }
-            texture = context.Data.ResourceManager.FindTexture(Image.TexName) as Texture2D;
-            if (texture == null) return false;
-            return true;
+
+            texture = context.Data.ResourceManager.FindTexture(Image?.TexName) as Texture2D;
+            return texture != null;
         }
     }
 }

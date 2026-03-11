@@ -2,9 +2,9 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
@@ -19,16 +19,16 @@ namespace LibreLancer.Utf.Dfm
     /// </summary>
     public class DfmFile : UtfFile, IDrawable
 	{
-		public string Path { get; private set; }
+		public string Path { get; private set; } = null!;
 
-        public MatFile MaterialLibrary;
-        public TxmFile TextureLibrary;
+        public MatFile? MaterialLibrary;
+        public TxmFile? TextureLibrary;
 
 		public Dictionary<int, DfmMesh> Levels { get; private set; }
-		public float[] Fractions { get; private set; }
+		public float[] Fractions { get; private set; } = null!;
 
-		public string Skeleton { get; private set; }
-		public float? Scale { get; private set; }
+        public string Skeleton { get; private set; } = null!;
+        public float? Scale { get; private set; }
 
 		public Dictionary<int, DfmPart> Parts { get; private set; }
 		public Dictionary<string, Bone> Bones { get; private set; }
@@ -39,7 +39,7 @@ namespace LibreLancer.Utf.Dfm
 			foreach (var b in Parts)
 			{
 				foreach (var hp in b.Value.Bone.Hardpoints)
-					yield return new DfmHardpointDef() { Part = b.Value, Hp = hp };
+					yield return new DfmHardpointDef(b.Value, hp);
 			}
 		}
 
@@ -58,30 +58,29 @@ namespace LibreLancer.Utf.Dfm
 				case "exporter version":
 					break;
 				case "material library":
-					IntermediateNode materialLibraryNode = node as IntermediateNode;
+					IntermediateNode materialLibraryNode = (node as IntermediateNode)!;
 					if (MaterialLibrary == null) MaterialLibrary = new MatFile(materialLibraryNode);
 					else throw new Exception("Multiple material library nodes in dfm root");
 					break;
 				case "texture library":
-					IntermediateNode textureLibraryNode = node as IntermediateNode;
+					IntermediateNode textureLibraryNode = (node as IntermediateNode)!;
 					if (TextureLibrary == null) TextureLibrary = new TxmFile(textureLibraryNode);
 					else throw new Exception("Multiple texture library nodes in dfm root");
 					break;
 				case "multilevel":
-					IntermediateNode multiLevelNode = node as IntermediateNode;
+					IntermediateNode multiLevelNode = (node as IntermediateNode)!;
 					foreach (Node multiLevelSubNode in multiLevelNode)
 					{
 						if (multiLevelSubNode.Name.StartsWith("mesh", StringComparison.OrdinalIgnoreCase))
 						{
-							IntermediateNode meshNode = multiLevelSubNode as IntermediateNode;
+							IntermediateNode meshNode = (multiLevelSubNode as IntermediateNode)!;
 
-							int level = 0;
-							if (!int.TryParse(meshNode.Name.Substring(4), out level)) throw new Exception("");
+                            if (!int.TryParse(meshNode.Name.Substring(4), out var level)) throw new Exception("");
 							Levels.Add(level, new DfmMesh(meshNode, Parts));
 						}
 						else if (multiLevelSubNode.Name.Equals("fractions", StringComparison.OrdinalIgnoreCase))
 						{
-							LeafNode fractionsNode = multiLevelSubNode as LeafNode;
+							LeafNode fractionsNode = (multiLevelSubNode as LeafNode)!;
 							if (Fractions == null) Fractions = fractionsNode.SingleArrayData;
 							else throw new Exception("Multiple fractions nodes in multilevel node");
 						}
@@ -89,8 +88,8 @@ namespace LibreLancer.Utf.Dfm
 					}
 					break;
 				case "skeleton":
-					IntermediateNode skeletonNode = node as IntermediateNode;
-					foreach (LeafNode skeletonSubNode in skeletonNode)
+					IntermediateNode skeletonNode = (node as IntermediateNode)!;
+					foreach (var skeletonSubNode in skeletonNode.OfType<LeafNode>())
 					{
 						switch (skeletonSubNode.Name.ToLowerInvariant())
 						{
@@ -103,17 +102,17 @@ namespace LibreLancer.Utf.Dfm
 					}
 					break;
 				case "cmpnd":
-					IntermediateNode cmpndNode = node as IntermediateNode;
+					IntermediateNode cmpndNode = (node as IntermediateNode)!;
 					foreach (Node cmpndSubNode in cmpndNode)
 					{
 						if (cmpndSubNode.Name.Equals("scale", StringComparison.OrdinalIgnoreCase))
 						{
-							if (Scale == null) Scale = (cmpndSubNode as LeafNode).SingleData;
+							if (Scale == null) Scale = ((cmpndSubNode as LeafNode)!).SingleData;
 							else throw new Exception("Multiple scale nodes in cmpnd node");
 						}
 						else if (cmpndSubNode.Name.Equals("cons", StringComparison.OrdinalIgnoreCase))
 						{
-							IntermediateNode consNode = cmpndSubNode as IntermediateNode;
+							IntermediateNode consNode = (cmpndSubNode as IntermediateNode)!;
 							Constructs.AddNode(consNode);
 						}
 						else if (
@@ -121,7 +120,7 @@ namespace LibreLancer.Utf.Dfm
 							cmpndSubNode.Name.Equals("root", StringComparison.OrdinalIgnoreCase)
 						)
 						{
-							IntermediateNode partsNode = cmpndSubNode as IntermediateNode;
+							IntermediateNode partsNode = (cmpndSubNode as IntermediateNode)!;
 							string objectName = string.Empty, fileName = string.Empty;
 							int index = -1;
 
@@ -136,13 +135,13 @@ namespace LibreLancer.Utf.Dfm
 									fileName = partNode.StringData;
 									break;
 								case "index":
-									index = partNode.Int32Data.Value;
+									index = partNode.Int32Data!.Value;
 									break;
 								default: throw new Exception("Invalid node in " + cmpndSubNode.Name + ": " + partNode.Name);
 								}
 							}
 
-							Parts.Add(index, new DfmPart(objectName, fileName, Bones, null));
+							Parts.Add(index, new DfmPart(objectName, fileName, Bones));
 						}
 						else throw new Exception("Invalid node in " + node.Name + ": " + cmpndSubNode.Name);
 					}
@@ -150,7 +149,7 @@ namespace LibreLancer.Utf.Dfm
 				default:
 					if (node.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase))
 					{
-						Bone b = new Bone(node.Name, node as IntermediateNode);
+						Bone b = new Bone(node.Name, (node as IntermediateNode)!);
 						Bones.Add(node.Name, b);
 					}
 					else throw new Exception("Invalid Node in dfm root: " + node.Name);
@@ -168,7 +167,7 @@ namespace LibreLancer.Utf.Dfm
 				Levels [0].Initialize (cache, rstate);
 		}
 
-        public void DrawBuffer(CommandBuffer buffer, Matrix4x4 world, ref Lighting light, Material overrideMat = null)
+        public void DrawBuffer(CommandBuffer buffer, Matrix4x4 world, ref Lighting light, Material? overrideMat = null)
 		{
 			Levels[0].DrawBuffer(buffer, world, light,overrideMat);
 		}
@@ -177,8 +176,8 @@ namespace LibreLancer.Utf.Dfm
         {
             Levels[0].SetSkinning(skinning);
         }
-        //HACK: dfm can't have radius without skinning
-        float radius = -1;
+        // HACK: dfm can't have radius without skinning
+        private float radius = -1;
 		public float GetRadius()
 		{
 			if(radius == -1)

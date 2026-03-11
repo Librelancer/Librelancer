@@ -11,36 +11,40 @@ namespace LibreLancer.Sounds
     public class AttachedSound
     {
         public string Sound;
-        public AudioEntry Entry;
+        public AudioEntry? Entry;
         public Vector3 Position;
         public Vector3 Velocity;
         public Vector3? Cone;
         public float Pitch = 1f;
         public float Attenuation = 0;
-        public SoundInstance Instance;
-        private SoundManager manager;
+        public SoundInstance? Instance;
+        private SoundManager? manager;
 
-        public AttachedSound(SoundManager manager)
+        public AttachedSound(SoundManager manager, string sound)
         {
             this.manager = manager;
+            Sound = sound;
         }
 
-        void UpdateProperties()
+        private void UpdateProperties()
         {
-            if (Instance != null)
+            if (Instance == null)
             {
-                Instance.SetPosition(Position);
-                Instance.SetVelocity(Velocity);
-                Instance.SetAttenuation(Entry.Attenuation + Attenuation);
-                Instance.SetPitch(Pitch);
-                if (Cone != null)
-                {
-                    Instance.SetCone(Cone.Value.X, Cone.Value.Y, Cone.Value.Z);
-                }
+                return;
+            }
+
+            Instance.SetPosition(Position);
+            Instance.SetVelocity(Velocity);
+            Instance.SetAttenuation(Entry!.Attenuation + Attenuation);
+            Instance.SetPitch(Pitch);
+
+            if (Cone != null)
+            {
+                Instance.SetCone(Cone.Value.X, Cone.Value.Y, Cone.Value.Z);
             }
         }
 
-        public bool Active => Instance != null && Instance.Playing;
+        public bool Active => Instance is { Playing: true };
 
         public void PlayIfInactive(bool loop)
         {
@@ -53,12 +57,21 @@ namespace LibreLancer.Sounds
         public void Play(bool loop)
         {
             if (manager == null)
+            {
                 return;
+            }
+
             if(Entry == null)
-                Entry = manager.GetEntry(Sound);
+            {
+                Entry = manager.GetEntry(Sound)!;
+            }
+
             if (Entry == null)
+            {
                 return;
-            Instance = manager.GetInstance(Sound);
+            }
+
+            Instance = manager.GetInstance(Sound)!;
             Instance.Set3D();
             UpdateProperties();
             Instance.Play(loop);
@@ -68,7 +81,7 @@ namespace LibreLancer.Sounds
         {
             if (Active)
             {
-                Instance.Stop();
+                Instance?.Stop();
             }
         }
 

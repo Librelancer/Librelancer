@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 
@@ -19,8 +18,8 @@ namespace LibreLancer.Utf.Anm
         public Script(string name)
         {
             Name = name;
-            ObjectMaps = new();
-            JointMaps = new();
+            ObjectMaps = [];
+            JointMaps = [];
         }
 
         public Script(IntermediateNode root, AnmBuffer buffer, StringDeduplication strings)
@@ -33,12 +32,12 @@ namespace LibreLancer.Utf.Anm
                 if (node.Name.Equals("root height", StringComparison.OrdinalIgnoreCase))
                 {
                     HasRootHeight = true;
-                    RootHeight = (node as LeafNode).SingleData.Value;
+                    RootHeight = (node as LeafNode)!.SingleData!.Value;
                 }
 				else if (node.Name.StartsWith("object map", StringComparison.OrdinalIgnoreCase))
-					om.Add(new ObjectMap(node as IntermediateNode, buffer, strings));
+					om.Add(new ObjectMap((node as IntermediateNode)!, buffer, strings));
 				else if (node.Name.StartsWith("joint map", StringComparison.OrdinalIgnoreCase))
-                    jm.Add(new JointMap(node as IntermediateNode, buffer, strings));
+                    jm.Add(new JointMap((node as IntermediateNode)!, buffer, strings));
                 else
                 {
                     FLLog.Warning("Anm", $"{root.Name}: invalid node {node.Name}, possible broken animation?");

@@ -16,7 +16,7 @@ namespace LibreLancer.Sur
             return Point.Equals(other.Point) && Mesh == other.Mesh;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SurfacePoint other && Equals(other);
         }
@@ -26,12 +26,12 @@ namespace LibreLancer.Sur
             return HashCode.Combine(Point, Mesh);
         }
 
-        public static bool operator ==(SurfacePoint left, SurfacePoint right)
+        public static bool operator ==(SurfacePoint? left, SurfacePoint? right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(SurfacePoint left, SurfacePoint right)
+        public static bool operator !=(SurfacePoint? left, SurfacePoint? right)
         {
             return !left.Equals(right);
         }
@@ -76,7 +76,7 @@ namespace LibreLancer.Sur
             writer.Write(Point.Z);
             writer.Write(Mesh);
         }
-        
+
     }
 }
 

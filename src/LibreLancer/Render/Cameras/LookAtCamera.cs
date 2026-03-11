@@ -8,13 +8,13 @@ namespace LibreLancer.Render.Cameras
 {
     public class LookAtCamera : ICamera
     {
-        Matrix4x4 view;
-        Matrix4x4 projection;
-        Matrix4x4 vp;
-        Vector3 pos;
-        BoundingFrustum frustum;
+        private Matrix4x4 view;
+        private Matrix4x4 projection;
+        private Matrix4x4 vp;
+        private Vector3 pos;
+        private BoundingFrustum frustum;
 
-        public Vector2 ZRange = new Vector2(0.1f, 300000f);
+        public Vector2 ZRange = new(0.1f, 300000f);
         public bool GameFOV;
 
         public Quaternion Rotation { get; private set; } = Quaternion.Identity;
@@ -24,7 +24,7 @@ namespace LibreLancer.Render.Cameras
         {
             pos = from;
 
-            float fov = GameFOV
+            var fov = GameFOV
                 ? FOVUtil.CalcFovx(50, vw / vh)
                 : MathHelper.DegreesToRadians(50);
 

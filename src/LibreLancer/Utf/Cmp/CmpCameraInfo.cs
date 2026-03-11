@@ -17,7 +17,7 @@ namespace LibreLancer.Utf.Cmp
         {
             var cameraNode = (node.FirstOrDefault((x) => x.Name.Equals("camera", StringComparison.OrdinalIgnoreCase)) as IntermediateNode);
             if(cameraNode == null) {
-                FLLog.Error("Cmp", "Camera does not contain valid camera node"); //This won't be thrown in normal loading
+                FLLog.Error("Cmp", "Camera does not contain valid camera node"); // This won't be thrown in normal loading
                 return;
             }
             foreach(var child in cameraNode)
@@ -31,16 +31,16 @@ namespace LibreLancer.Utf.Cmp
                 switch (child.Name.ToLowerInvariant())
                 {
                     case "znear":
-                        Znear = leaf.SingleData.Value;
+                        Znear = leaf.SingleData!.Value;
                         break;
                     case "zfar":
-                        Zfar = leaf.SingleData.Value;
+                        Zfar = leaf.SingleData!.Value;
                         break;
                     case "fovx":
-                        Fovx = leaf.SingleData.Value;
+                        Fovx = leaf.SingleData!.Value;
                         break;
                     case "fovy":
-                        Fovy = leaf.SingleData.Value;
+                        Fovy = leaf.SingleData!.Value;
                         break;
                     default:
                         FLLog.Error("Cmp", "Invalid node in camera " + child.Name);

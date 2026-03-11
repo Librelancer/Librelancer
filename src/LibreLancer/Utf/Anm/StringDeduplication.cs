@@ -4,7 +4,7 @@ namespace LibreLancer.Utf.Anm;
 
 public class StringDeduplication
 {
-    private Dictionary<string, string> strings = new Dictionary<string, string>();
+    private Dictionary<string, string> strings = new();
 
     public string Get(string s)
     {

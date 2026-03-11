@@ -9,8 +9,8 @@ namespace LibreLancer.Fx
 {
 	public class FxOrientedAppearance : FxBasicAppearance
 	{
-		public AlchemyFloatAnimation Height;
-		public AlchemyFloatAnimation Width;
+		public AlchemyFloatAnimation? Height;
+		public AlchemyFloatAnimation? Width;
 
 		public FxOrientedAppearance(AlchemyNode ale) : base(ale)
         {
@@ -20,7 +20,7 @@ namespace LibreLancer.Fx
 
         public FxOrientedAppearance(string name) : base(name)
         {
-            Size = null;
+            Size = null!;
             Width = new(1);
             Height = new(1);
         }
@@ -28,8 +28,8 @@ namespace LibreLancer.Fx
         public override AlchemyNode SerializeNode()
         {
             var n = base.SerializeNode();
-            n.Parameters.Add(new(AleProperty.OrientedApp_Height, Height));
-            n.Parameters.Add(new(AleProperty.OrientedApp_Width, Width));
+            n.Parameters.Add(new(AleProperty.OrientedApp_Height, Height!));
+            n.Parameters.Add(new(AleProperty.OrientedApp_Width, Width!));
             return n;
         }
 	}

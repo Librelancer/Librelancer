@@ -10,12 +10,13 @@ using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
-    public class ModifiedMaterial
+    public class ModifiedMaterial(BasicMaterial mat, Color4 dc, string dt)
     {
-        public BasicMaterial Mat;
-        public Color4 Dc;
-        public string Dt;
+        public BasicMaterial Mat = mat;
+        public Color4 Dc = dc;
+        public string Dt = dt;
     }
+
     public class MaterialModification
     {
         public static List<ModifiedMaterial> Setup(RigidModel model, ResourceManager res)
@@ -23,17 +24,29 @@ namespace LibreLancer.Interface
             var mats = new List<ModifiedMaterial>();
             foreach (var p in model.AllParts)
             {
-                if (p.Mesh == null) continue;
-                foreach (var l in p.Mesh.Levels)
+                if (p.Mesh == null)
                 {
-                    if (l == null) continue;
+                    continue;
+                }
+
+                foreach (var l in p.Mesh.Levels!)
+                {
+                    if (l == null)
+                    {
+                        continue;
+                    }
+
                     foreach (var dc in l.Drawcalls)
                     {
                         var mat = dc.GetMaterial(res)?.Render;
                         if (mat is BasicMaterial bm)
                         {
-                            if (mats.Any(x => x.Mat == bm)) continue;
-                            mats.Add(new ModifiedMaterial() {Mat = bm, Dc = bm.Dc, Dt = bm.DtSampler});
+                            if (mats.Any(x => x.Mat == bm))
+                            {
+                                continue;
+                            }
+
+                            mats.Add(new ModifiedMaterial(bm, bm.Dc, bm.DtSampler));
                         }
                     }
                 }
@@ -46,8 +59,8 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class DisplayModel : DisplayElement
     {
-        public InterfaceModel Model { get; set; }
-        public InterfaceColor Tint { get; set; }
+        public InterfaceModel? Model { get; set; }
+        public InterfaceColor? Tint { get; set; }
 
         public Vector3 Rotate { get; set; }
         public Vector3 RotateAnimation { get; set; }
@@ -60,11 +73,11 @@ namespace LibreLancer.Interface
 
         public bool DrawModel { get; set; } = true;
 
-        public InterfaceColor WireframeColor { get; set; }
+        public InterfaceColor? WireframeColor { get; set; }
 
-        private RigidModel model;
+        private RigidModel? model;
         private bool loadable = true;
-        private List<ModifiedMaterial> mats;
+        private List<ModifiedMaterial> mats = [];
 
         public static Matrix4x4 CreateTransform(int gWidth, int gHeight, Rectangle r)
         {
@@ -77,19 +90,28 @@ namespace LibreLancer.Interface
             return Matrix4x4.CreateScale(sX, sY, 1) * Matrix4x4.CreateTranslation(tX, tY, 0);
         }
 
-        void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat)
+        private void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat)
         {
             var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             var mesh = context.Data.ResourceManager.FindMesh(wire.MeshCRC);
             if(mesh != null)
-                context.Lines.DrawVWire(wire, mesh.VertexResource, mat, color);
+            {
+                context.Lines.DrawVWire(wire, mesh.VertexResource!, mat, color);
+            }
         }
-
 
         public override void Render(UiContext context, RectangleF clientRectangle)
         {
-            if (!Enabled || Model == null) return;
-            if (!CanRender(context)) return;
+            if (!Enabled || Model == null)
+            {
+                return;
+            }
+
+            if (!CanRender(context))
+            {
+                return;
+            }
+
             var rect = context.PointsToPixels(clientRectangle);
             if (Clip && !context.RenderContext.PushScissor(rect)) {
                 return;
@@ -97,7 +119,10 @@ namespace LibreLancer.Interface
             Matrix4x4 rotationMatrix = Matrix4x4.Identity;
             var rot = Rotate + (RotateAnimation * (float)context.GlobalTime);
             if (Model.XZPlane)
+            {
                 rot = new Vector3(rot.X, rot.Z, rot.Y);
+            }
+
             if (rot != Vector3.Zero) {
                 rotationMatrix = Matrix4x4.CreateRotationX(rot.X) *
                       Matrix4x4.CreateRotationY(rot.Y) *
@@ -107,7 +132,7 @@ namespace LibreLancer.Interface
             float scaleMult = 1;
             if (BaseRadius > 0)
             {
-                scaleMult = BaseRadius / model.GetRadius();
+                scaleMult = BaseRadius / model!.GetRadius();
             }
 
             var scale = Model.XZPlane
@@ -122,7 +147,7 @@ namespace LibreLancer.Interface
             if (DrawModel)
             {
                 context.RenderContext.SetIdentityCamera();
-                model.UpdateTransform();
+                model!.UpdateTransform();
                 model.Update(context.GlobalTime);
                 if (Tint != null)
                 {
@@ -145,7 +170,7 @@ namespace LibreLancer.Interface
             {
                 context.RenderContext.SetIdentityCamera();
                 context.Lines.StartFrame(context.RenderContext);
-                foreach (var part in model.AllParts)
+                foreach (var part in model!.AllParts)
                 {
                     if (part.Wireframe != null)
                     {
@@ -156,32 +181,43 @@ namespace LibreLancer.Interface
                 context.RenderContext.DepthEnabled = false;
             }
             if(Clip)
+            {
                 context.RenderContext.PopScissor();
+            }
+
             context.RenderContext.Cull = true;
         }
 
         private int v = 0;
-        bool CanRender(UiContext context)
+
+        private bool CanRender(UiContext context)
         {
-            if (!loadable) return false;
-            if (v != context.MeshDisposeVersion){ //HACK: Clear models on vmesh dispose
+            if (!loadable)
+            {
+                return false;
+            }
+
+            if (v != context.MeshDisposeVersion)
+            { // HACK: Clear models on vmesh dispose
                 v = context.MeshDisposeVersion;
                 model = null;
             }
+
             if (model == null)
             {
-                model = context.Data.GetModel(Model.Path);
+                model = context.Data.GetModel(Model!.Path);
                 if (model == null)
                 {
                     loadable = false;
                     return false;
                 }
                 if (Tint != null)
+                {
                     mats = MaterialModification.Setup(model, context.Data.ResourceManager);
+                }
             }
             return true;
         }
-
 
 
     }

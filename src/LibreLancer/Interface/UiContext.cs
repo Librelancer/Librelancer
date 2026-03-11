@@ -13,7 +13,7 @@ namespace LibreLancer.Interface
 {
     public class UiContext
     {
-        //State
+        // State
         public float ViewportWidth;
         public float ViewportHeight;
         public float MouseX;
@@ -22,33 +22,39 @@ namespace LibreLancer.Interface
         public double GlobalTime;
 
         public float ScreenWidth => 480 * (ViewportWidth / ViewportHeight);
-        //Rendering
-        public RenderContext RenderContext;
-        public LineRenderer Lines;
-        //Data
+
+        // Rendering
+        public RenderContext RenderContext = null!;
+
+        public LineRenderer Lines = null!;
+
+        // Data
         public UiData Data;
 
-        public CommandBuffer CommandBuffer;
-        //Ui
-        private object _gameApi;
-        //TODO: Properly reload RigidModels on meshes cleared
+        public CommandBuffer CommandBuffer = null!;
+
+        // Ui
+        private object _gameApi = null!;
+
+        // TODO: Properly reload RigidModels on meshes cleared
         public int MeshDisposeVersion = 0;
+
         public object GameApi
         {
-            get
-            {
-                return _gameApi;
-            }
+            get { return _gameApi; }
             set
             {
                 _gameApi = value;
                 lua?.SetGameApi(_gameApi);
             }
         }
-        LuaContext lua;
-        //State
+
+        private LuaContext lua = null!;
+
+        // State
         private bool mode2d = false;
-        private FreelancerGame game;
+        private FreelancerGame? game;
+
         public UiContext(UiData data)
         {
             Data = data;
@@ -68,7 +74,11 @@ namespace LibreLancer.Interface
 
         public string GetClipboardText()
         {
-            if (game != null) return game.GetClipboardText();
+            if (game != null)
+            {
+                return game.GetClipboardText()!;
+            }
+
             return "";
         }
 
@@ -77,7 +87,11 @@ namespace LibreLancer.Interface
 
         private void MouseOnDoubleClick(MouseEventArgs e)
         {
-            if (game.Debug.CaptureMouse) return;
+            if (game!.Debug.CaptureMouse)
+            {
+                return;
+            }
+
             if ((e.Buttons & MouseButtons.Left) == MouseButtons.Left)
             {
                 OnMouseDoubleClick();
@@ -96,10 +110,13 @@ namespace LibreLancer.Interface
         }
 
 
-
         private void MouseOnMouseUp(MouseEventArgs e)
         {
-            if (game.Debug.CaptureMouse) return;
+            if (game!.Debug.CaptureMouse)
+            {
+                return;
+            }
+
             if ((e.Buttons & MouseButtons.Left) == MouseButtons.Left)
             {
                 OnMouseClick();
@@ -109,14 +126,22 @@ namespace LibreLancer.Interface
 
         private void MouseOnMouseDown(MouseEventArgs e)
         {
-            if (game.Debug.CaptureMouse) return;
-            if ((e.Buttons & MouseButtons.Left) == MouseButtons.Left) OnMouseDown();
+            if (game!.Debug.CaptureMouse)
+            {
+                return;
+            }
+
+            if ((e.Buttons & MouseButtons.Left) == MouseButtons.Left)
+            {
+                OnMouseDown();
+            }
         }
 
         public Vector2 AnchorPosition(RectangleF parent, AnchorKind anchor, float x, float y, float width, float height)
         {
             float resolveX = 0;
             float resolveY = 0;
+
             switch (anchor)
             {
                 case AnchorKind.TopLeft:
@@ -156,6 +181,7 @@ namespace LibreLancer.Interface
                     resolveY = parent.Y + parent.Height - height - y;
                     break;
             }
+
             return new Vector2(resolveX, resolveY);
         }
 
@@ -187,18 +213,22 @@ namespace LibreLancer.Interface
             var ratio = ViewportHeight / 480;
             return ratio * points;
         }
+
         public Rectangle PointsToPixels(RectangleF points)
         {
             var ratio = ViewportHeight / 480;
-            return new Rectangle((int)(points.X * ratio), (int)(points.Y * ratio), (int)(points.Width * ratio), (int)(points.Height * ratio));
+            return new Rectangle((int) (points.X * ratio), (int) (points.Y * ratio), (int) (points.Width * ratio),
+                (int) (points.Height * ratio));
         }
+
         public float TextSize(float inputPoints)
         {
             var ratio = ViewportHeight / 480;
             var pixels = inputPoints * ratio;
-            return (int)Math.Floor(pixels);
+            return (int) Math.Floor(pixels);
         }
-        public void Update(UiWidget widget, double globalTime, int mouseX, int mouseY, bool leftDown)
+
+        public void Update(double globalTime, int mouseX, int mouseY, bool leftDown)
         {
             GlobalTime = globalTime;
             var inputRatio = 480 / ViewportHeight;
@@ -213,62 +243,86 @@ namespace LibreLancer.Interface
         {
             ViewportWidth = game.Width;
             ViewportHeight = game.Height;
-            Update(baseWidget, game.TotalTime,
-                game.Mouse.X, game.Mouse.Y, game.Mouse.IsButtonDown(MouseButtons.Left));
+            Update(game.TotalTime, game.Mouse.X, game.Mouse.Y, game.Mouse.IsButtonDown(MouseButtons.Left));
         }
 
         public bool HasModal => modals.Count > 0;
+
         public bool MouseWanted(int mouseX, int mouseY)
         {
             var inputRatio = 480 / ViewportHeight;
-            if (modals.Count > 0) return true;
-            if (!Visible) return false;
+
+            if (modals.Count > 0)
+            {
+                return true;
+            }
+
+            if (!Visible)
+            {
+                return false;
+            }
+
             return baseWidget?.MouseWanted(this, GetRectangle(), mouseX * inputRatio, mouseY * inputRatio) ?? false;
         }
 
         public bool WantsEscape()
         {
-            if (modals.Count > 0) return true;
-            if (!Visible) return false;
-            if (textFocusWidget != null) return true;
+            if (modals.Count > 0)
+            {
+                return true;
+            }
+
+            if (!Visible)
+            {
+                return false;
+            }
+
+            if (textFocusWidget != null)
+            {
+                return true;
+            }
+
             return baseWidget?.WantsEscape() ?? false;
         }
 
         public void OnFocus()
         {
-            baseWidget.UnFocus();
+            baseWidget?.UnFocus();
         }
 
-        RectangleF GetRectangle() => new RectangleF(0,0, 480 * (ViewportWidth / ViewportHeight), 480);
+        private RectangleF GetRectangle() => new(0, 0, 480 * (ViewportWidth / ViewportHeight), 480);
 
-        private UiWidget baseWidget;
-        List<ModalState> modals = new List<ModalState>();
+        private UiWidget? baseWidget;
+        private List<ModalState> modals = [];
+
         public void SetWidget(UiWidget widget)
         {
             widget.ApplyStylesheet(Data.Stylesheet);
             foreach (var m in modals)
                 m.Widget.Dispose();
-            modals = new List<ModalState>();
+            modals = [];
             baseWidget = widget;
         }
 
         private int _h = 0;
+
         public int OpenModal(UiWidget widget)
         {
             var handle = _h++;
             widget.ApplyStylesheet(Data.Stylesheet);
-            modals.Add(new ModalState() {Widget = widget, Handle = handle});
+            modals.Add(new ModalState(widget, handle));
             return handle;
         }
 
         public void SwapModal(UiWidget widget, int handle)
         {
             widget.ApplyStylesheet(Data.Stylesheet);
-            for (int i = 0; i < modals.Count; i++)
+
+            foreach (var modal in modals)
             {
-                if (modals[i].Handle == handle)
+                if (modal.Handle == handle)
                 {
-                    modals[i].Widget = widget;
+                    modal.Widget = widget;
                     break;
                 }
             }
@@ -296,27 +350,32 @@ namespace LibreLancer.Interface
             Data.Sounds?.PlayVoiceLine(voice, line, null);
         }
 
-        class ModalState
+        private class ModalState(UiWidget widget, int handle)
         {
-            public UiWidget Widget;
-            public int Handle;
+            public UiWidget Widget = widget;
+            public int Handle = handle;
         }
 
         public bool Visible = true;
-        UiWidget GetActive()
+
+        private UiWidget? GetActive()
         {
-            if (modals.Count > 0) return modals[modals.Count - 1].Widget;
-            if(!Visible) return null;
-            if (baseWidget == null) return null;
-            return baseWidget;
+            if (modals.Count > 0)
+            {
+                return modals[modals.Count - 1].Widget;
+            }
+
+            return !Visible ? null : baseWidget;
         }
 
         public void ChatboxEvent() => Event("Chatbox");
+
         public void Event(string ev)
         {
             lua.CallEvent(ev);
         }
-        public void Event(string ev, params object[] p)
+
+        public void Event(string ev, params object?[] p)
         {
             lua.CallEvent(ev, p);
         }
@@ -334,7 +393,7 @@ namespace LibreLancer.Interface
 
         public void OnMouseWheel(float delta) => GetActive()?.OnMouseWheel(this, GetRectangle(), delta);
 
-        private UiWidget textFocusWidget = null;
+        private UiWidget? textFocusWidget = null;
 
         internal void SetTextFocus(UiWidget widget) => textFocusWidget = widget;
 
@@ -345,25 +404,33 @@ namespace LibreLancer.Interface
         public void OnTextEntry(string text) => textFocusWidget?.OnTextInput(text);
 
         public double DeltaTime;
+
         public void RenderWidget(double delta)
         {
             DeltaTime = delta;
+
             if (baseWidget == null)
             {
                 textFocusWidget = null;
                 return;
             }
+
             if (game != null && game.Mouse.Wheel != 0)
             {
                 OnMouseWheel(game.Mouse.Wheel);
             }
+
             textFocusWidget = null;
             RenderContext.DepthEnabled = false;
             var aspect = ViewportWidth / ViewportHeight;
             var desktopRect = new RectangleF(0, 0, 480 * aspect, 480);
-            if(Visible)
+
+            if (Visible)
+            {
                 baseWidget.Render(this, desktopRect);
-            foreach(var widget in modals)
+            }
+
+            foreach (var widget in modals)
                 widget.Widget.Render(this, desktopRect);
             RenderContext.DepthEnabled = true;
         }

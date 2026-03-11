@@ -8,8 +8,14 @@ namespace LibreLancer.Utf.Dfm
 {
 	public class DfmHardpointDef
 	{
-		public DfmFile File;
+		public DfmFile? File;
 		public DfmPart Part;
 		public Cmp.HardpointDefinition Hp;
+
+        public DfmHardpointDef(DfmPart part, Cmp.HardpointDefinition hp)
+        {
+            Part = part;
+            Hp = hp;
+        }
     }
 }

@@ -9,13 +9,15 @@ namespace LibreLancer.Thn.Events
 {
     public class StartFloorHeightAnimEvent : ThnEvent
     {
-        //Todo: Second target (marker?)
+        // Todo: Second target (marker?)
 
         public float FloorHeight;
-        public string TargetPart;
+        public string? TargetPart;
         public TargetTypes TargetType;
 
-        public StartFloorHeightAnimEvent() {}
+        public StartFloorHeightAnimEvent()
+        {
+        }
 
         public StartFloorHeightAnimEvent(ThornTable table) : base(table)
         {
@@ -34,7 +36,8 @@ namespace LibreLancer.Thn.Events
                 FLLog.Error("Thn", $"Entity {Targets[0]} does not exist");
                 return;
             }
-            if (obj.Object == null || obj.Object.RenderComponent is not CharacterRenderer)
+
+            if (obj.Object is not { RenderComponent: CharacterRenderer })
             {
                 FLLog.Error("Thn", $"FloorHeightAnim: Entity {Targets[0]} is not deformable");
                 return;
@@ -50,15 +53,14 @@ namespace LibreLancer.Thn.Events
                 FLLog.Error("Thn", $"({Time}) FlrHeightAnim Unknown second target ({Targets[1]}), ignoring");
             }
 
-
             if (Duration <= 0)
             {
                 FLLog.Debug("Info", $"FlrHeightAnim {Targets[0]} {1.00} = {FloorHeight}");
-                ((CharacterRenderer)obj.Object.RenderComponent).Skeleton.FloorHeight = FloorHeight;
+                ((CharacterRenderer) obj.Object.RenderComponent).Skeleton.FloorHeight = FloorHeight;
             }
             else
             {
-                var skel = ((CharacterRenderer)obj.Object.RenderComponent).Skeleton;
+                var skel = ((CharacterRenderer) obj.Object.RenderComponent).Skeleton;
                 instance.AddProcessor(new FloorHeightAnimator()
                 {
                     Event = this,
@@ -68,13 +70,14 @@ namespace LibreLancer.Thn.Events
             }
         }
 
-        class FloorHeightAnimator : ThnEventProcessor
+        private class FloorHeightAnimator : ThnEventProcessor
         {
-            public StartFloorHeightAnimEvent Event;
+            public required StartFloorHeightAnimEvent Event;
             public float OrigFloorHeight;
-            public DfmSkeletonManager Skeleton;
+            public required DfmSkeletonManager Skeleton;
 
-            double time = 0;
+            private double time = 0;
+
             public override bool Run(double delta)
             {
                 time += delta;

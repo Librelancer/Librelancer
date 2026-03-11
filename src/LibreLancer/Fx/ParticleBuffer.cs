@@ -8,7 +8,7 @@ public class ParticleBuffer
     private Particle[] backing;
     private SegmentInfo[] segments;
 
-    struct SegmentInfo
+    private struct SegmentInfo
     {
         public int Start;
         public int Capacity;
@@ -16,7 +16,6 @@ public class ParticleBuffer
         public int Head;
         public int Tail;
     }
-
 
     public ParticleBuffer(int[] counts)
     {
@@ -96,7 +95,6 @@ public class ParticleBuffer
             b.Count++;
         return ref backing[b.Start + b.Head];
     }
-
 
     public ref Particle this[int segment, int index]
     {

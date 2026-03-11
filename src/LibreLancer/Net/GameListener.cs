@@ -24,18 +24,17 @@ namespace LibreLancer.Net
         }
 
         private GameServer game;
-        private NetHpidWriter hpids;
-        static readonly object TagConnecting = new object();
+        private NetHpidWriter hpids = null!;
+        private static readonly object TagConnecting = new();
 
         public int Port = LNetConst.DEFAULT_PORT;
         public int MaxConnections = 200;
         public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
 
         private bool running = false;
-		Thread netThread;
-		public NetManager Server;
-        private HttpClient http;
-        private string loginUrl;
+        private Thread netThread = null!;
+		public NetManager Server = null!;
+        private HttpClient http = null!;
 
 		public GameListener(GameServer srv)
         {
@@ -45,13 +44,16 @@ namespace LibreLancer.Net
 		public void Start()
 		{
 			running = true;
-            netThread = new Thread(NetThread);
-            netThread.Name = "Server Listener";
+            netThread = new Thread(NetThread)
+            {
+                Name = "Server Listener"
+            };
             netThread.Start();
 		}
 
-        private AutoResetEvent stopHandle;
-        void NetThread()
+        private AutoResetEvent stopHandle = null!;
+
+        private void NetThread()
         {
             stopHandle = new AutoResetEvent(false);
             http = new HttpClient();
@@ -111,7 +113,7 @@ namespace LibreLancer.Net
                                 var p = new Player(remote,
                                     game, guid);
                                 peer.Tag = p;
-                                Task.Run(async () => await p.OnLoggedIn());
+                                _ = Task.Run(async () => await p.OnLoggedIn());
                                 lock (game.ConnectedPlayers)
                                 {
                                     game.ConnectedPlayers.Add(p);
@@ -183,7 +185,7 @@ namespace LibreLancer.Net
             {
                 try
                 {
-                    NetHpidReader hpidReader = null;
+                    NetHpidReader? hpidReader = null;
                     if (peer.Tag is Player pl) hpidReader = pl.HpidReader;
                     var reader = new PacketReader(msg, hpidReader);
                     var pkt = Packets.Read(reader);
@@ -274,11 +276,13 @@ namespace LibreLancer.Net
             broadcastServer.BroadcastReceiveEnabled = true;
             broadcastServer.UnsyncedEvents = true;
             broadcastServer.Start(LNetConst.BROADCAST_PORT);
-            Server = new NetManager(listener);
-            Server.IPv6Enabled = true;
-            Server.UnconnectedMessagesEnabled = true;
-            Server.ChannelsCount = 3;
-            Server.UnsyncedEvents = true;
+            Server = new NetManager(listener)
+            {
+                IPv6Enabled = true,
+                UnconnectedMessagesEnabled = true,
+                ChannelsCount = 3,
+                UnsyncedEvents = true
+            };
             Server.Start(Port);
             FLLog.Info("Server", "Listening on port " + Port);
             stopHandle.WaitOne();
@@ -287,7 +291,7 @@ namespace LibreLancer.Net
             broadcastServer.Stop();
         }
 
-        void RequestPlayerGuid(NetPeer peer)
+        private void RequestPlayerGuid(NetPeer peer)
         {
             var msg = new PacketWriter();
             Packets.Write(msg, new GuidAuthenticationPacket());

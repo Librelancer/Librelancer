@@ -8,11 +8,11 @@ namespace LibreLancer.Interface;
 public struct IdsFormatItem
 {
     public readonly ushort Id;
-    public readonly string Value;
+    public readonly string? Value;
     public readonly int Ids;
 
-    public readonly char Category => (char)(Id >> 8);
-    public readonly int Index => (int)(Id & 0xFF);
+    public readonly char Category => (char) (Id >> 8);
+    public readonly int Index => (int) (Id & 0xFF);
 
     private const int FACTION_COUNT = 100;
     private const int FACTION_OFFSET = 131834;
@@ -26,17 +26,19 @@ public struct IdsFormatItem
     public readonly string GetString(int variant, InfocardManager infocards)
     {
         if (Value != null)
+        {
             return Value;
+        }
+
         int id = Ids;
+
         if (variant >= 0)
         {
-            if (Category == 'F' &&
-                (Ids >= FACTION_MIN && Ids <= FACTION_MAX))
+            if (Category == 'F' && Ids is >= FACTION_MIN and <= FACTION_MAX)
             {
                 id = Ids + FACTION_OFFSET + variant * FACTION_COUNT;
             }
-            else if (Category == 'Z' &&
-                     (Ids >= ZONE_MIN && Ids <= ZONE_MAX))
+            else if (Category == 'Z' && Ids is >= ZONE_MIN and <= ZONE_MAX)
             {
                 id = Ids + ZONE_OFFSET + variant * ZONE_COUNT;
             }
@@ -45,20 +47,20 @@ public struct IdsFormatItem
                 id = Ids + variant;
             }
         }
+
         return infocards?.GetStringResource(id) ?? "(NULL)";
     }
 
-
     public IdsFormatItem(char category, int index, string value)
     {
-        Id = (ushort)(((category & 0xFF) << 8) | (index & 0xFF));
+        Id = (ushort) (((category & 0xFF) << 8) | (index & 0xFF));
         Value = value;
         Ids = 0;
     }
 
     public IdsFormatItem(char category, int index, int ids)
     {
-        Id = (ushort)(((category & 0xFF) << 8) | (index & 0xFF));
+        Id = (ushort) (((category & 0xFF) << 8) | (index & 0xFF));
         Value = null;
         Ids = ids;
     }
@@ -97,7 +99,6 @@ public static class IdsFormatting
         return r;
     }
 
-
     public static string Format(string format, InfocardManager infocards, IdsFormatItem item0, IdsFormatItem item1,
         IdsFormatItem item2, IdsFormatItem item3)
     {
@@ -115,15 +116,18 @@ public static class IdsFormatting
     {
         int idxLast = 0;
         int idxPct = format.IndexOf('%');
+
         if (idxPct == -1)
         {
             return format;
         }
 
         var sb = new StringBuilder(format.Length);
+
         while (idxPct != -1)
         {
             sb.Append(format.AsSpan(idxLast, idxPct - idxLast));
+
             if (idxPct + 1 < format.Length)
             {
                 if (format[idxPct + 1] == '%')
@@ -137,15 +141,17 @@ public static class IdsFormatting
                 int index = 0;
                 int variant = -1;
                 char category = format[idxPct + 1];
+
                 if (idxPct + 2 < format.Length && format[idxPct + 2] >= '0' && format[idxPct + 2] <= '9')
                 {
                     index = format[idxPct + 2] - '0';
+
                     if (idxPct + 4 < format.Length
                         && format[idxPct + 3] == 'v'
                         && format[idxPct + 4] >= '0' && format[idxPct + 4] <= '9')
                     {
                         variant = format[idxPct + 4] - '0';
-                        idxLast = idxPct + 5; //ingest category + 0v1
+                        idxLast = idxPct + 5; // ingest category + 0v1
                     }
                     else
                     {
@@ -157,7 +163,8 @@ public static class IdsFormatting
                     idxLast = idxPct + 2;
                 }
 
-                var searchId = (ushort)(((category & 0xFF) << 8) | (index & 0xFF));
+                var searchId = (ushort) (((category & 0xFF) << 8) | (index & 0xFF));
+
                 for (int j = 0; j < items.Length; j++)
                 {
                     if (searchId == items[j].Id)

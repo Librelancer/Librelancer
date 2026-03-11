@@ -15,23 +15,20 @@ public class TurretViewCamera : ICamera
         }
     }
 
-    Rectangle _vp;
+    private Rectangle _vp;
 
-
-    //Camera Values
+    // Camera Values
     public Matrix4x4 Projection { get; private set; }
     public Matrix4x4 View { get; private set; } = Matrix4x4.Identity;
-    Matrix4x4 viewprojection;
-    bool _vpdirty = true;
+    private Matrix4x4 viewprojection;
+    private bool _vpdirty = true;
     private BoundingFrustum frustum;
 
     public bool FrustumCheck(BoundingSphere sphere) => frustum.Intersects(sphere);
 
     public bool FrustumCheck(BoundingBox box) => frustum.Intersects(box);
 
-
-
-    void UpdateVp()
+    private void UpdateVp()
     {
         viewprojection = View * Projection;
         frustum = new BoundingFrustum(viewprojection);
@@ -51,7 +48,7 @@ public class TurretViewCamera : ICamera
         }
     }
 
-    Vector3 _position;
+    private Vector3 _position;
 
     public Vector3 Position
     {
@@ -64,8 +61,7 @@ public class TurretViewCamera : ICamera
     public Vector2 PanControls;
     private Vector2 orbitPan = Vector2.Zero;
 
-    long fnum = 0;
-
+    private long fnum = 0;
 
     public void UpdateProjection()
     {
@@ -82,7 +78,6 @@ public class TurretViewCamera : ICamera
         this.Viewport = viewport;
         ChasePosition = Vector3.Zero;
     }
-
 
     public void Update(double delta)
     {

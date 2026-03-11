@@ -11,7 +11,7 @@ public class FollowPlayerDirective : MissionDirective
     public override ObjListCommands Command => ObjListCommands.FollowPlayer;
 
     public string Formation = "fighter_basic";
-    public List<string> Ships = new();
+    public List<string?> Ships = [];
 
     public FollowPlayerDirective()
     {
@@ -20,11 +20,11 @@ public class FollowPlayerDirective : MissionDirective
 
     public FollowPlayerDirective(PacketReader reader)
     {
-        Formation = reader.GetString();
+        Formation = reader.GetString()!;
         var c = reader.GetVariableUInt32();
         for (int i = 0; i < c; i++)
         {
-            Ships.Add(reader.GetString());
+            Ships.Add(reader.GetString()!);
         }
     }
 

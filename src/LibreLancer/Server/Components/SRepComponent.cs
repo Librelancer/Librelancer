@@ -8,9 +8,9 @@ namespace LibreLancer.Server.Components;
 // Base component for determining reputations between objects server-side
 public class SRepComponent : GameComponent
 {
-    public Faction Faction;
+    public Faction? Faction;
 
-    public Dictionary<GameObject, RepAttitude> forcedReps = new Dictionary<GameObject, RepAttitude>();
+    public Dictionary<GameObject, RepAttitude> forcedReps = new();
 
     public void SetAttitude(GameObject go, RepAttitude a)
     {
@@ -21,7 +21,7 @@ public class SRepComponent : GameComponent
         }
     }
 
-    static RepAttitude FromNumber(float a)
+    private static RepAttitude FromNumber(float a)
     {
         if (a <= Faction.HostileThreshold)
             return RepAttitude.Hostile;
@@ -38,7 +38,7 @@ public class SRepComponent : GameComponent
             return RepAttitude.Neutral;
         if (other.TryGetComponent<SPlayerComponent>(out var sp))
         {
-            return FromNumber(sp.Player.Character.Reputation.GetReputation(Faction));
+            return FromNumber(sp.Player.Character!.Reputation.GetReputation(Faction));
         }
         if (other.TryGetComponent<SRepComponent>(out var r))
         {

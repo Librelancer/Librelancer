@@ -12,8 +12,10 @@ public class NebulaPuffMaterial : RenderMaterial
 {
     public string Texture;
 
-    public NebulaPuffMaterial(ResourceManager library) : base(library) { }
-
+    public NebulaPuffMaterial(ResourceManager library, string texture) : base(library)
+    {
+        Texture = texture;
+    }
 
     public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {

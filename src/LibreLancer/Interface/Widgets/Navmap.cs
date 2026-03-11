@@ -1,20 +1,18 @@
 // MIT License - Copyright (c) Callum McGing
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
+
 using System;
 using System.Numerics;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Xml;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData.World;
-using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Graphics.Vertices;
-using LibreLancer.Render;
 using LibreLancer.Shaders;
 using WattleScript.Interpreter;
 
@@ -24,33 +22,43 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class Navmap : UiWidget
     {
-        class DrawObject
+        private class DrawObject
         {
-            public UiRenderable Renderable;
-            public string Name;
+            public UiRenderable? Renderable;
+            public string? Name;
             public Vector2 XZ;
             public float SolarRadius;
             public bool IconZoomedOut;
             public uint Hash;
         }
-        List<DrawObject> objects = new List<DrawObject>();
 
-        class DrawZone
+        private List<DrawObject> objects = [];
+
+        private class DrawZone
         {
             public Zone Zone;
             public Color4 Tint;
             public string Texture;
             public float Sort;
-        }
-        List<DrawZone> zones = new List<DrawZone>();
 
-        struct Tradelanes
+            public DrawZone(Zone zone, Color4 tint, string texture, float sort)
+            {
+                Zone = zone;
+                Tint = tint;
+                Texture = texture;
+                Sort = sort;
+            }
+        }
+
+        private List<DrawZone> zones = [];
+
+        private struct Tradelanes
         {
             public Vector2 StartXZ;
             public Vector2 EndXZ;
         }
 
-        List<Tradelanes> tradelanes = new List<Tradelanes>();
+        private List<Tradelanes> tradelanes = [];
         private float navmapscale;
         private const float GridSizeDefault = 240000;
         private string systemName = "";
@@ -59,12 +67,10 @@ namespace LibreLancer.Interface
 
         public bool MapBorder { get; set; } = false;
 
-        private VertexBuffer vbo;
+        private VertexBuffer vbo = null!;
 
-        struct ZoneVertex : IVertexType
+        private struct ZoneVertex : IVertexType
         {
-            public Vector2 Vertex;
-
             public VertexDeclaration GetVertexDeclaration() => new
                 (8, new VertexElement(VertexSlots.Position, 2, VertexElementType.Float, false, 0));
         }
@@ -78,27 +84,36 @@ namespace LibreLancer.Interface
 
         public void PopulateIcons(UiContext ctx, StarSystem sys)
         {
-            foreach(var l in ctx.Data.NavmapIcons.Libraries())
+            foreach (var l in ctx.Data.NavmapIcons.Libraries())
                 ctx.Data.ResourceManager.LoadResourceFile(ctx.Data.DataPath + l);
-            objects = new List<DrawObject>();
-            tradelanes = new List<Tradelanes>();
+            objects = [];
+            tradelanes = [];
             navmapscale = sys.NavMapScale;
+
             foreach (var obj in sys.Objects)
             {
-                if (obj.Dock != null && obj.Dock.Kind == DockKinds.Tradelane)
+                if (obj.Dock is { Kind: DockKinds.Tradelane })
                 {
                     if (!string.IsNullOrEmpty(obj.Dock.Target) &&
                         string.IsNullOrEmpty(obj.Dock.TargetLeft))
                     {
                         var start = obj;
                         var end = obj;
-                        while (!string.IsNullOrEmpty(end.Dock.Target)) {
+
+                        while (!string.IsNullOrEmpty(end.Dock?.Target))
+                        {
                             var e = sys.Objects.FirstOrDefault(x => x.Nickname.Equals(end.Dock.Target));
+
                             if (e == null)
+                            {
                                 break;
+                            }
+
                             end = e;
                         }
-                        if (start != end) {
+
+                        if (start != end)
+                        {
                             tradelanes.Add(new Tradelanes()
                             {
                                 StartXZ = new Vector2(start.Position.X, start.Position.Z),
@@ -107,13 +122,18 @@ namespace LibreLancer.Interface
                         }
                     }
                 }
-                if((obj.Visit & VisitFlags.Hidden) == VisitFlags.Hidden) continue;
-                if ((obj.Archetype.SolarRadius <= 0)) continue;
-                UiRenderable renderable = null;
-                renderable = ctx.Data.NavmapIcons.GetSystemObject(obj.Archetype.NavmapIcon);
 
-                string nm = ctx.Data.Infocards.GetStringResource(obj.IdsName);
-                if (obj.Archetype.Type != ArchetypeType.planet &&
+                if ((obj.Visit & VisitFlags.Hidden) == VisitFlags.Hidden || (obj.Archetype?.SolarRadius <= 0))
+                {
+                    continue;
+                }
+
+                UiRenderable? renderable = null;
+                renderable = ctx.Data.NavmapIcons.GetSystemObject(obj.Archetype?.NavmapIcon);
+
+                var nm = ctx.Data.Infocards?.GetStringResource(obj.IdsName);
+
+                if (obj.Archetype!.Type != ArchetypeType.planet &&
                     obj.Archetype.Type != ArchetypeType.station &&
                     obj.Archetype.Type != ArchetypeType.jump_gate &&
                     obj.Archetype.Type != ArchetypeType.jump_hole &&
@@ -121,12 +141,15 @@ namespace LibreLancer.Interface
                 {
                     nm = null;
                 }
+
                 bool iconZoomOut = (
-                        obj.Archetype.Type == ArchetypeType.planet ||
-                        obj.Archetype.Type == ArchetypeType.sun ||
-                        obj.Archetype.Type == ArchetypeType.mission_satellite
-                        );
-                objects.Add(new DrawObject() {
+                    obj.Archetype.Type == ArchetypeType.planet ||
+                    obj.Archetype.Type == ArchetypeType.sun ||
+                    obj.Archetype.Type == ArchetypeType.mission_satellite
+                );
+
+                objects.Add(new DrawObject()
+                {
                     Renderable = renderable,
                     Name = nm,
                     XZ = new Vector2(obj.Position.X, obj.Position.Z),
@@ -136,14 +159,15 @@ namespace LibreLancer.Interface
                 });
             }
 
-            zones = new List<DrawZone>();
+            zones = [];
+
             foreach (var zone in sys.Zones)
             {
                 if ((zone.VisitFlags & VisitFlags.Hidden) == VisitFlags.Hidden ||
                     (zone.Shape != ShapeKind.Sphere && zone.Shape != ShapeKind.Ellipsoid))
                     continue;
                 var tint = zone.PropertyFogColor;
-                string tex = null;
+                string? tex = null;
                 if ((zone.PropertyFlags & ZonePropFlags.Badlands) == ZonePropFlags.Badlands)
                     tex = "nav_terrain_badlands";
                 if ((zone.PropertyFlags & ZonePropFlags.Crystal) == ZonePropFlags.Crystal ||
@@ -161,43 +185,46 @@ namespace LibreLancer.Interface
                     tex = "asteroidtest";
                 if ((zone.PropertyFlags & ZonePropFlags.Cloud) == ZonePropFlags.Cloud)
                     tex = "dustcloud";
+
                 if ((zone.PropertyFlags & ZonePropFlags.Exclusion1) == ZonePropFlags.Exclusion1 ||
                     (zone.PropertyFlags & ZonePropFlags.Exclusion2) == ZonePropFlags.Exclusion2)
                 {
                     tex = "";
-                    tint = new Color4(0,0,0,0.6f);
+                    tint = new Color4(0, 0, 0, 0.6f);
                 }
-                if (tex == null) continue;
-                zones.Add(new DrawZone()
+
+                if (tex == null)
                 {
-                    Zone = zone,
-                    Texture = tex,
-                    Tint = tint ?? Color4.White,
-                    Sort = zone.Sort
-                });
+                    continue;
+                }
+
+                zones.Add(new DrawZone(zone, tint ?? Color4.White, tex, zone.Sort));
             }
-            zones.Sort((x,y) => x.Sort.CompareTo(y.Sort));
-            systemName = ctx.Data.Infocards.GetStringResource(sys.IdsName);
+
+            zones.Sort((x, y) => x.Sort.CompareTo(y.Sort));
+            systemName = ctx.Data.Infocards!.GetStringResource(sys.IdsName);
         }
 
-        private static readonly string[] GRIDNUMBERS = {
+        private static readonly string[] GRIDNUMBERS =
+        [
             "1", "2", "3", "4", "5", "6", "7", "8"
-        };
+        ];
 
-        private readonly string[] GRIDLETTERS = {
+        private readonly string[] GRIDLETTERS =
+        [
             "A", "B", "C", "D", "E", "F", "G", "H"
-        };
+        ];
 
         private CachedRenderString[] letterCache = new CachedRenderString[16];
-        private CachedRenderString systemNameCache;
-        private CachedRenderString[] objectStrings;
+        private CachedRenderString? systemNameCache;
+        private CachedRenderString[] objectStrings = null!;
 
         public float Zoom = 1f;
         public float OffsetX = 0f;
         public float OffsetY = 0f;
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct NavmapParameters
+        private struct NavmapParameters
         {
             public Vector4 Rectangle;
             public Vector2 Tiling;
@@ -209,7 +236,8 @@ namespace LibreLancer.Interface
             var gridIdentSize = 13 * (parentRect.Height / 480);
             var gridIdentFont = context.Data.GetFont("$NavMap800");
             var inputRatio = 480 / context.ViewportHeight;
-            var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) * inputRatio + 3;
+            var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
+                inputRatio + 3;
             RectangleF rectNoScale = parentRect;
 
             var allClip = context.PointsToPixels(rectNoScale);
@@ -222,21 +250,25 @@ namespace LibreLancer.Interface
                     parentRect.Height -
                     (2 * lH));
             }
-            //Draw Letters
+
+            // Draw Letters
             var rHoriz = rectNoScale.Width / 8;
             var rVert = rectNoScale.Height / 8;
             int jj = 0;
+
             for (int i = 0; i < 8; i++)
             {
                 var renNum = GRIDNUMBERS[i];
                 var renLet = GRIDLETTERS[i];
                 var hOff = (rHoriz * i);
-                RectangleF letterRect = new RectangleF(rectNoScale.X + (hOff * Zoom) - OffsetX, rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
+                RectangleF letterRect = new RectangleF(rectNoScale.X + (hOff * Zoom) - OffsetX,
+                    rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
                 DrawText(context, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
                     false, renLet);
                 var vOff = (rVert * i);
-                var numRect = new RectangleF(rectNoScale.X - lH, rectNoScale.Y + (vOff * Zoom) - OffsetY, lH, rVert * Zoom);
+                var numRect = new RectangleF(rectNoScale.X - lH, rectNoScale.Y + (vOff * Zoom) - OffsetY, lH,
+                    rVert * Zoom);
                 DrawText(context, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
                     false, renNum);
@@ -248,11 +280,12 @@ namespace LibreLancer.Interface
             rect.Width *= Zoom;
             rect.Height *= Zoom;
 
-
             var scale = new Vector2(GridSizeDefault / (navmapscale == 0 ? 1 : navmapscale));
             var background = context.Data.NavmapIcons.GetBackground();
-            background.DrawWithClip(context, new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height), rectNoScale);
-            //Draw Zones
+            background.DrawWithClip(context,
+                new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height), rectNoScale);
+
+            // Draw Zones
             Vector2 WorldToMap(Vector2 a)
             {
                 var relPos = (a + (scale / 2)) / scale;
@@ -260,7 +293,7 @@ namespace LibreLancer.Interface
                        - new Vector2(OffsetX, OffsetY);
             }
 
-            //Clip without bleeding
+            // Clip without bleeding
             var zoneclip = context.PointsToPixels(rectNoScale);
             zoneclip.X++;
             zoneclip.Y++;
@@ -268,24 +301,27 @@ namespace LibreLancer.Interface
             zoneclip.Height -= 1;
             if (zoneclip.Width <= 0) zoneclip.Width = 1;
             if (zoneclip.Height <= 0) zoneclip.Height = 1;
-            //Draw zones
+            // Draw zones
             if (!context.RenderContext.PushScissor(zoneclip))
                 return;
-            var zoneMat = Matrix4x4.CreateOrthographicOffCenter (0, context.RenderContext.CurrentViewport.Width, context.RenderContext.CurrentViewport.Height, 0, 0, 1);
+            var zoneMat = Matrix4x4.CreateOrthographicOffCenter(0, context.RenderContext.CurrentViewport.Width,
+                context.RenderContext.CurrentViewport.Height, 0, 0, 1);
             var zoneShader = AllShaders.Navmap.Get(0);
             var np = new NavmapParameters()
             {
-                Rectangle = new Vector4(zoneclip.X, context.RenderContext.CurrentViewport.Height - zoneclip.Y - zoneclip.Height,
+                Rectangle = new Vector4(zoneclip.X,
+                    context.RenderContext.CurrentViewport.Height - zoneclip.Y - zoneclip.Height,
                     zoneclip.Width, zoneclip.Height),
                 Tiling = new Vector2(8)
             };
             zoneShader.SetUniformBlock(0, ref zoneMat);
             zoneShader.SetUniformBlock(3, ref np);
+
             foreach (var zone in zones)
             {
-                Texture2D texture = null;
+                Texture2D? texture = null;
                 if (!string.IsNullOrEmpty(zone.Texture))
-                    texture = (Texture2D) context.Data.ResourceManager.FindTexture(zone.Texture);
+                    texture = (Texture2D?) context.Data.ResourceManager.FindTexture(zone.Texture);
                 texture?.SetWrapModeS(WrapMode.Repeat);
                 texture?.SetWrapModeT(WrapMode.Repeat);
                 texture?.BindTo(0);
@@ -297,10 +333,11 @@ namespace LibreLancer.Interface
                 var meshScale = new Vector3(screenSize.X / dim.X, screenSize.Y / dim.Y, 1);
                 var screenPos =
                     context.PointsToPixels(WorldToMap(new Vector2(zone.Zone.Position.X, zone.Zone.Position.Z)));
-                var world =  Matrix4x4.CreateScale(meshScale) * Matrix4x4.CreateTranslation(new Vector3(screenPos.X, screenPos.Y, 0));
+                var world = Matrix4x4.CreateScale(meshScale) *
+                            Matrix4x4.CreateTranslation(new Vector3(screenPos.X, screenPos.Y, 0));
                 zoneShader.SetUniformBlock(2, ref world);
                 vbo ??= new VertexBuffer(context.RenderContext, typeof(ZoneVertex), 400, true);
-                void* dst = (void*)vbo.BeginStreaming();
+                void* dst = (void*) vbo.BeginStreaming();
                 var td = zone.Zone.TopDownMesh();
                 fixed (Vector2* src = td)
                     Buffer.MemoryCopy(src, dst, 400 * sizeof(Vector2), sizeof(Vector2) * td.Length);
@@ -311,13 +348,13 @@ namespace LibreLancer.Interface
 
             context.RenderContext.PopScissor();
 
-            //System Name
+            // System Name
             if (!string.IsNullOrWhiteSpace(systemName))
             {
                 var sysNameFont = context.Data.GetFont("$NavMap1600");
                 var sysNameSize = 16f * (parentRect.Height / 480);
                 DrawText(context, ref systemNameCache, rectNoScale, sysNameSize, sysNameFont, InterfaceColor.White,
-                    new InterfaceColor() {Color = Color4.Black}, HorizontalAlignment.Center,
+                    new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center,
                     VerticalAlignment.Bottom, false, systemName);
             }
 
@@ -326,15 +363,17 @@ namespace LibreLancer.Interface
 
             var fontSize = 11f * (parentRect.Height / 480);
             var font = context.Data.GetFont("$NavMap800");
-            //Draw Objects
-            if (objectStrings == null || objectStrings.Length < objects.Count)
+            // Draw Objects
+            if ((CachedRenderString[]?) objectStrings == null || objectStrings.Length < objects.Count)
                 objectStrings = new CachedRenderString[objects.Count];
             jj = 0;
+
             foreach (var obj in objects)
             {
                 if (!isVisited(obj.Hash))
                     continue;
                 var posAbs = WorldToMap(obj.XZ);
+
                 if (obj.Renderable != null && obj.IconZoomedOut)
                 {
                     var szIcon = (2 * obj.SolarRadius) / scale.Y * rect.Height;
@@ -346,8 +385,10 @@ namespace LibreLancer.Interface
                 if (!string.IsNullOrWhiteSpace(obj.Name))
                 {
                     var measured = context.RenderContext.Renderer2D.MeasureString(font, fontSize, obj.Name);
-                    DrawText(context, ref objectStrings[jj++], new RectangleF(posAbs.X - 100, posAbs.Y, 200, 50), fontSize, font, InterfaceColor.White,
-                        new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Top, false,
+                    DrawText(context, ref objectStrings[jj++], new RectangleF(posAbs.X - 100, posAbs.Y, 200, 50),
+                        fontSize, font, InterfaceColor.White,
+                        new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center,
+                        VerticalAlignment.Top, false,
                         obj.Name);
                 }
             }
@@ -358,22 +399,24 @@ namespace LibreLancer.Interface
                 var posB = context.PointsToPixels(WorldToMap(tl.EndXZ));
                 context.RenderContext.Renderer2D.DrawLine(Color4.CornflowerBlue, posA, posB);
             }
+
             context.RenderContext.PopScissor();
 
-            //Map Border
-            if (MapBorder) {
+            // Map Border
+            if (MapBorder)
+            {
                 var pRect = context.PointsToPixels(rectNoScale);
                 context.RenderContext.Renderer2D.DrawRectangle(pRect, Color4.White, 1);
             }
 
         }
 
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             Update(context, myPos);
             myPos = AnimatedPosition(myPos);
-            var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
+            var myRect = new RectangleF(myPos.X, myPos.Y, Width, Height);
             return myRect;
         }
 

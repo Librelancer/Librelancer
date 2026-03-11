@@ -11,7 +11,7 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class LuaCompatibleDictionary
     {
-        public Dictionary<string, object> Storage = new Dictionary<string, object>();
+        public Dictionary<string, object> Storage = new();
         public object Get(string key) => Storage[key];
         public void Set(string key, object value) => Storage[key] = value;
     }

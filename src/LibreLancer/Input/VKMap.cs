@@ -1,14 +1,13 @@
 namespace LibreLancer.Input;
 
-static class VKMap
+internal static class VKMap
 {
     public static UserInput Map(int input, KeyModifiers modifiers)
     {
-        Keys keys;
         switch (input)
         {
-            //Yes Freelancer uses negative numbers in keymap instead of the VK constants
-            case (int)VK.LeftButton: 
+            // Yes Freelancer uses negative numbers in keymap instead of the VK constants
+            case (int)VK.LeftButton:
             case -1:
                 return UserInput.FromMouse(MouseButtons.Left);
             case -2:
@@ -27,7 +26,7 @@ static class VKMap
         return UserInput.FromKey(modifiers, GetKey((VK)input));
     }
 
-    static Keys GetKey(VK vk)
+    private static Keys GetKey(VK vk)
     {
         switch (vk)
         {
@@ -89,7 +88,7 @@ static class VKMap
             case VK.N8: return Keys.D8;
             case VK.N9: return Keys.D9;
             case VK.F1: return Keys.F1;
-            case VK.F2: return Keys.F2; 
+            case VK.F2: return Keys.F2;
             case VK.F3: return Keys.F3;
             case VK.F4: return Keys.F4;
             case VK.F5: return Keys.F5;
@@ -140,7 +139,7 @@ static class VKMap
             case VK.Prior: return Keys.NavPageUp;
             case VK.Next: return Keys.NavPageDown;
             case VK.Select: return Keys.Select;
-            case VK.Print: break; //no mapping for PRINT key
+            case VK.Print: break; // no mapping for PRINT key
             case VK.Execute: return Keys.Execute;
             case VK.Snapshot: return Keys.PrintScreen;
             case VK.Sleep: return Keys.Sleep;
@@ -168,8 +167,7 @@ static class VKMap
         return Keys.Unknown;
     }
 
-   
-    enum VK : int
+    private enum VK : int
     {
         LeftButton = 0x01,
         RightButton = 0x02,
@@ -551,7 +549,7 @@ static class VKMap
         PA1 = 0xFD,
         /// <summary></summary>
         OEMClear = 0xFE,
-        
+
         COUNT = 0xFF,
     }
 }

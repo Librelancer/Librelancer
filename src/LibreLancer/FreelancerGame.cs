@@ -23,40 +23,33 @@ namespace LibreLancer
 {
 	public class FreelancerGame : Game
     {
-		public GameDataManager GameData;
-        public DebugView Debug;
-        public UiContext Ui;
-        public CommandBuffer Commands;
-		public AudioManager Audio;
-		public FontManager Fonts;
-		public SoundManager Sound;
-        public Typewriter Typewriter;
-		public GameResourceManager ResourceManager;
-		public Billboards Billboards;
-		public ScreenshotManager Screenshots;
-        public SaveGameFolder Saves;
-        public LineRenderer Lines;
-		public List<string> IntroMovies;
+		public GameDataManager GameData = null!;
+        public DebugView Debug = null!;
+        public UiContext Ui = null!;
+        public CommandBuffer Commands = null!;
+		public AudioManager Audio = null!;
+		public FontManager Fonts = null!;
+		public SoundManager Sound = null!;
+        public Typewriter Typewriter = null!;
+		public GameResourceManager ResourceManager = null!;
+		public Billboards Billboards = null!;
+		public ScreenshotManager Screenshots = null!;
+        public SaveGameFolder Saves = null!;
+        public LineRenderer Lines = null!;
 		public bool InitialLoadComplete = false;
-        public Stopwatch LoadTimer;
-        public InputMap InputMap;
-		GameState currentState;
+        public Stopwatch? LoadTimer;
+        public InputMap InputMap = null!;
+        private GameState? currentState;
 
-		public GameConfig Config
-		{
-			get
-			{
-				return _cfg;
-			}
-		}
-		GameConfig _cfg;
+		public GameConfig Config => _cfg;
+
+        private GameConfig _cfg;
 		public FreelancerGame(GameConfig config) : base(config.BufferWidth, config.BufferHeight, false)
 		{
-			//DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
+			// DO NOT RUN CODE HERE. IT CAUSES THE STUPIDEST CRASH ON OSX KNOWN TO MAN
 			_cfg = config;
             _cfg.Saved += CfgOnSaved;
 			ScreenshotSave += FreelancerGame_ScreenshotSave;
-            Utf.Mat.TextureData.Bitch = true;
             LoadTimer = Stopwatch.StartNew();
         }
 
@@ -73,43 +66,46 @@ namespace LibreLancer
         public void ChangeState(GameState state)
 		{
             Audio.StopAllSfx();
-			if (currentState != null)
-				currentState.Unload();
-			currentState = state;
+            currentState?.Unload();
+            currentState = state;
 		}
 
         public volatile bool InisLoaded = false;
 		protected override void Load()
         {
             Thread.CurrentThread.Name = "FreelancerGame UIThread";
-            //Hacky but reduces load time by initing XmlSerializer
-            //as well JIT'ing the lua hardwire on a background thread.
+            // Hacky but reduces load time by initing XmlSerializer
+            // as well JIT'ing the lua hardwire on a background thread.
             Task.Run(() =>
             {
                 new InterfaceResources().ToXml();
                 LuaContext.Initialize();
             });
-			//Move to stop _TSGetMainThread error on OSX
+			// Move to stop _TSGetMainThread error on OSX
 			MinimumWindowSize = new Point(640, 480);
 			SetFullScreen(Config.Settings.FullScreen);
 			SetVSync(Config.Settings.VSync);
             Config.Settings.RenderContext = RenderContext;
             Config.Settings.Validate();
-            //Cache
+            // Cache
             var vfs = FileSystem.FromPath(_cfg.FreelancerPath);
 			ResourceManager = new GameResourceManager(this, vfs);
-			//Init Audio
+			// Init Audio
 			FLLog.Info("Audio", "Initialising Audio");
-			Audio = new AudioManager(this);
-            Audio.MasterVolume = _cfg.Settings.MasterVolume;
-            Audio.Music.Volume = _cfg.Settings.MusicVolume;
+			Audio = new AudioManager(this)
+            {
+                MasterVolume = _cfg.Settings.MasterVolume,
+                Music =
+                {
+                    Volume = _cfg.Settings.MusicVolume
+                }
+            };
             Audio.SetVolume(SoundCategory.Sfx, _cfg.Settings.SfxVolume);
             Audio.SetVolume(SoundCategory.Interface, _cfg.Settings.InterfaceVolume);
             Audio.SetVolume(SoundCategory.Voice, _cfg.Settings.VoiceVolume);
-			//Load data
+			// Load data
 			FLLog.Info("Game", "Loading game data");
 			GameData = new GameDataManager(new GameItemDb(vfs), ResourceManager);
-			IntroMovies = GameData.GetIntroMovies();
             Saves = new SaveGameFolder();
             InputMap = new InputMap(Path.Combine(GetSaveFolder(), "keymap.ini"));
             var saveLoadTask = Task.Run(() => Saves.Load(GetSaveFolder()));
@@ -127,8 +123,10 @@ namespace LibreLancer
                 saveLoadTask.Wait();
                 Saves.Infocards = GameData.Items.Ini.Infocards;
                 InitialLoadComplete = true;
-            });
-            GameDataLoaderThread.Name = "GamedataLoader";
+            })
+            {
+                Name = "GamedataLoader"
+            };
             GameDataLoaderThread.Start();
             Task.Run(() => PhysicsWarmup.Warmup());
             //
@@ -148,9 +146,11 @@ namespace LibreLancer
             Services.Add(GameData);
             Services.Add(Sound);
             Services.Add(Typewriter);
-            Debug = new DebugView(this);
-            Debug.Enabled = Config.Settings.Debug;
-			ChangeState(new LoadingDataState(this));
+            Debug = new DebugView(this)
+            {
+                Enabled = Config.Settings.Debug
+            };
+            ChangeState(new LoadingDataState(this));
         }
 
         public string GetSaveFolder()
@@ -192,15 +192,15 @@ namespace LibreLancer
             Typewriter.Update(elapsed);
         }
 
-		const double FPS_INTERVAL = 0.25;
-		double fps_updatetimer = 0;
-		int drawCallsPerFrame = 0;
+        private const double FPS_INTERVAL = 0.25;
+        private double fps_updatetimer = 0;
+        private int drawCallsPerFrame = 0;
 		protected override void Draw (double elapsed)
 		{
 			RenderContext.ReplaceViewport(0, 0, Width, Height);
 			fps_updatetimer -= elapsed;
 			if (fps_updatetimer <= 0) {
-                //Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
+                // Title = string.Format ("LibreLancer: {0:00.00}fps/ {2:00.00}ms - {1} Drawcalls", RenderFrequency, drawCallsPerFrame, FrameTime * 1000.0);
 				fps_updatetimer = FPS_INTERVAL;
 			}
 			RenderContext.ClearAll ();
@@ -211,8 +211,13 @@ namespace LibreLancer
 			VertexBuffer.TotalDrawcalls = 0;
         }
 
-		void FreelancerGame_ScreenshotSave(string filename, int width, int height, Bgra8[] data)
+        private void FreelancerGame_ScreenshotSave(string? filename, int width, int height, Bgra8[] data)
 		{
+            if (filename is null)
+            {
+                return;
+            }
+
 			Screenshots.Save(filename, width, height, data);
 		}
     }

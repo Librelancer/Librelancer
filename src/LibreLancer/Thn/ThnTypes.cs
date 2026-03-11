@@ -12,14 +12,14 @@ namespace LibreLancer.Thn
     public class ThnTypes
     {
         private static readonly Vector3[] axisTable =
-        {
+        [
             Vector3.UnitX,
             Vector3.UnitY,
             Vector3.UnitZ,
             -Vector3.UnitX,
             -Vector3.UnitY,
             -Vector3.UnitZ
-        };
+        ];
         public static ThnAxis ConvertAxis(object o, string source)
         {
             if (o is ThornTable tb)
@@ -35,8 +35,8 @@ namespace LibreLancer.Thn
 
             return Convert<ThnAxis>(o);
         }
-        //This method attempts to map any valid thorn value to a corresponding .NET object
-        //It is somewhat fuzzy, and yes a huge mess.
+        // This method attempts to map any valid thorn value to a corresponding .NET object
+        // It is somewhat fuzzy, and yes a huge mess.
         public static T Convert<T>(object o)
         {
             if (o is T o1) return o1;
@@ -76,7 +76,7 @@ namespace LibreLancer.Thn
             return (T) System.Convert.ChangeType(integer, Enum.GetUnderlyingType(typeof(T)));
         }
 
-        static Matrix4x4 GetMatrix(ThornTable orient)
+        private static Matrix4x4 GetMatrix(ThornTable orient)
         {
             var m11 = (float) ((ThornTable) orient[0])[0];
             var m12 = (float) ((ThornTable) orient[0])[1];

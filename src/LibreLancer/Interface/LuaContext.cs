@@ -22,10 +22,10 @@ namespace LibreLancer.Interface
 
     public partial class LuaContext : IDisposable
     {
-        Script script;
+        private Script script;
 
-        private object _callevent;
-        private object _openscene;
+        private object? _callevent;
+        private object? _openscene;
 
         static LuaContext()
         {
@@ -39,9 +39,8 @@ namespace LibreLancer.Interface
             UserData.RegisterType(new WattleVector3());
         }
 
-        //Run static .cctor
+        // Run static .cctor
         public static void Initialize() { }
-
 
 
 
@@ -55,12 +54,20 @@ namespace LibreLancer.Interface
         public LuaContext(UiContext context)
         {
             uiContext = context;
-            script = new Script(CoreModules.Preset_SoftSandboxWattle | CoreModules.LoadMethods);
-            script.Options.Syntax = ScriptSyntax.Wattle;
-            script.Options.DebugPrint = s => FLLog.Info("WattleScript", s);
-            script.Globals["HorizontalAlignment"] = UserData.CreateStatic<HorizontalAlignment>();
-            script.Globals["VerticalAlignment"] = UserData.CreateStatic<VerticalAlignment>();
-            script.Globals["AnchorKind"] = UserData.CreateStatic<AnchorKind>();
+            script = new Script(CoreModules.Preset_SoftSandboxWattle | CoreModules.LoadMethods)
+            {
+                Options =
+                {
+                    Syntax = ScriptSyntax.Wattle,
+                    DebugPrint = s => FLLog.Info("WattleScript", s)
+                },
+                Globals =
+                {
+                    ["HorizontalAlignment"] = UserData.CreateStatic<HorizontalAlignment>(),
+                    ["VerticalAlignment"] = UserData.CreateStatic<VerticalAlignment>(),
+                    ["AnchorKind"] = UserData.CreateStatic<AnchorKind>()
+                }
+            };
             var debugTable = DynValue.NewTable(script);
             debugTable.Table["traceback"] = DebugModule.traceback;
             script.Globals["debug"] = debugTable;
@@ -84,12 +91,12 @@ namespace LibreLancer.Interface
             {
                 if (type.GetCustomAttributes(false).OfType<WattleScriptUserDataAttribute>().Any())
                 {
-                    typeTable[type.FullName.Replace(".", "_")] = type;
+                    typeTable[type.FullName!.Replace(".", "_")] = type;
                 }
             }
             globalTable["Game"] = context.GameApi;
             globalTable["Events"] = DynValue.NewTable(script);
-            //Functions
+            // Functions
             globalTable["Funcs"] = new ContextFunctions(this);
             StringBuilder globalsCode = new StringBuilder();
             globalsCode.AppendLine("local _f = Funcs");
@@ -131,11 +138,11 @@ namespace LibreLancer.Interface
 
         public void OpenScene(string scene)
         {
-            timers = new List<LuaTimer>();
+            timers = [];
             script.Call(_openscene, scene);
         }
 
-        double lastTime;
+        private double lastTime;
         public void DoTimers(double globalTime)
         {
             if (lastTime == 0)
@@ -157,16 +164,23 @@ namespace LibreLancer.Interface
             }
         }
 
-        private List<LuaTimer> timers = new List<LuaTimer>();
-        class LuaTimer
+        private List<LuaTimer> timers = [];
+
+        private class LuaTimer
         {
             public double Time;
             public object Function;
+
+            public LuaTimer(float timer, object func)
+            {
+                Time = timer;
+                Function = func;
+            }
         }
 
         public void Timer(float timer, object func)
         {
-            timers.Add(new LuaTimer() { Time = timer, Function = func});
+            timers.Add(new LuaTimer(timer, func));
         }
 
         [WattleScriptUserData]
@@ -188,14 +202,14 @@ namespace LibreLancer.Interface
             public InterfaceModel GetModel(string mdl) => c.uiContext.Data.Resources.Models.First(x => x.Name == mdl);
             public InterfaceImage GetImage(string img) => c.uiContext.Data.Resources.Images.First(x => x.Name == img);
             public string GetNavbarIconPath(string ico) => c.uiContext.Data.GetNavbarIconPath(ico);
-            public Vector3 Vector3(float x, float y, float z) => new Vector3(x, y, z);
+            public Vector3 Vector3(float x, float y, float z) => new(x, y, z);
 
-            public string StringFromID(int id) => c.uiContext.Data.Infocards.GetStringResource(id);
+            public string StringFromID(int id) => c.uiContext.Data.Infocards!.GetStringResource(id);
             public Infocard GetInfocard(int id) =>
-                RDLParse.Parse(c.uiContext.Data.Infocards.GetXmlResource(id), c.uiContext.Data.Fonts);
+                RDLParse.Parse(c.uiContext.Data.Infocards!.GetXmlResource(id), c.uiContext.Data.Fonts);
             public string NumberToStringCS(double num, string fmt) => num.ToString(fmt);
         }
-        public void CallEvent(string ev, params object[] p)
+        public void CallEvent(string ev, params object?[] p)
         {
             try
             {
@@ -212,7 +226,7 @@ namespace LibreLancer.Interface
         {
         }
 
-        class UiScriptLoader : ScriptLoaderBase
+        private class UiScriptLoader : ScriptLoaderBase
         {
             private UiContext context;
             public UiScriptLoader(UiContext ctx)

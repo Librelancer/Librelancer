@@ -7,7 +7,7 @@ namespace LibreLancer.Physics
 {
     public class ConvexMesh
     {
-        public Vector3[] Vertices;
-        public int[] Indices;
+        public required Vector3[] Vertices;
+        public required int[] Indices;
     }
 }
