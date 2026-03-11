@@ -33,6 +33,10 @@ namespace LibreLancer
         private MenuAPI api;
         private KeyCaptureContext keyCapture = null!;
 
+#if DEBUG
+        private IntroScene intro;
+#endif
+
         public LuaMenu(FreelancerGame g) : base(g)
         {
             api = new MenuAPI(this);
@@ -56,12 +60,14 @@ namespace LibreLancer
             g.Keyboard.KeyUp += Keyboard_OnKeyUp;
             g.Mouse.MouseUp += Mouse_MouseUp;
             Game.Saves.Selected = -1;
+
             if (g.LoadTimer != null)
             {
                 g.LoadTimer.Stop();
                 FLLog.Info("Game", $"Initial load took {g.LoadTimer.Elapsed.TotalSeconds} seconds");
                 g.LoadTimer = null;
             }
+
             // Set low latency GC mode only once everything has been loaded in
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             FadeIn(0.1, 0.3);
@@ -70,10 +76,12 @@ namespace LibreLancer
         private void TryRunScript(List<ResolvedThn> thnScripts)
         {
             var intro = new List<ThnScript>();
-            scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.ResourceManager, Game.Sound, Game.RenderContext.CurrentViewport, Game);
+            scene = new Cutscene(new ThnScriptContext(null), Game.GameData, Game.ResourceManager, Game.Sound,
+                Game.RenderContext.CurrentViewport, Game);
+
             foreach (var s in thnScripts)
             {
-                #if !DEBUG
+#if !DEBUG
                 try
                 {
                     intro.Add(s.LoadScript());
@@ -84,9 +92,9 @@ namespace LibreLancer
                     scene = null;
                     return;
                 }
-                #else
+#else
                 intro.Add(s.LoadScript());
-                #endif
+#endif
             }
 
             scene.BeginScene(intro);
@@ -125,7 +133,7 @@ namespace LibreLancer
 
         private void UiTextInput(string text)
         {
-            if(!KeyCaptureContext.Capturing(keyCapture))
+            if (!KeyCaptureContext.Capturing(keyCapture))
                 ui.OnTextEntry(text);
         }
 
@@ -154,6 +162,7 @@ namespace LibreLancer
             public string? GetContentString(int row, string column)
             {
                 if (row < 0 || row > Count || string.IsNullOrEmpty(column)) return null;
+
                 switch (column.ToLowerInvariant())
                 {
                     case "name":
@@ -200,6 +209,7 @@ namespace LibreLancer
         public class MenuAPI : UiApi
         {
             private LuaMenu state;
+
             public MenuAPI(LuaMenu m)
             {
                 state = m;
@@ -208,10 +218,7 @@ namespace LibreLancer
             public KeyMapTable GetKeyMap()
             {
                 var table = new KeyMapTable(state.Game.InputMap, state.Game.GameData.Items.Ini.Infocards);
-                table.OnCaptureInput += (k) =>
-                {
-                    state.keyCapture = k;
-                };
+                table.OnCaptureInput += (k) => { state.keyCapture = k; };
                 return table;
             }
 
@@ -233,7 +240,8 @@ namespace LibreLancer
                     var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager,
                         state.Game.GetSaveFolder());
                     var session = new CGameSession(state.Game, embeddedServer);
-                    embeddedServer.StartFromSave(state.Game.Saves.SelectedFile!, File.ReadAllBytes(state.Game.Saves.SelectedFile!));
+                    embeddedServer.StartFromSave(state.Game.Saves.SelectedFile!,
+                        File.ReadAllBytes(state.Game.Saves.SelectedFile!));
                     state.Game.ChangeState(new NetWaitState(session, state.Game));
                 });
             }
@@ -245,7 +253,8 @@ namespace LibreLancer
                     var embeddedServer = new EmbeddedServer(state.Game.GameData, state.Game.ResourceManager,
                         state.Game.GetSaveFolder());
                     var session = new CGameSession(state.Game, embeddedServer);
-                    embeddedServer.StartFromSave("EXE\\newplayer.fl", state.Game.GameData.VFS.ReadAllBytes("EXE\\newplayer.fl"));
+                    embeddedServer.StartFromSave("EXE\\newplayer.fl",
+                        state.Game.GameData.VFS.ReadAllBytes("EXE\\newplayer.fl"));
                     state.Game.ChangeState(new NetWaitState(session, state.Game));
                 });
             }
@@ -285,13 +294,15 @@ namespace LibreLancer
                         case NewCharacterDBPacket ncdb:
                         {
                             newCharacters = new UiNewCharacter[ncdb.Factions.Count];
+
                             for (int i = 0; i < ncdb.Factions.Count; i++)
                             {
                                 var package = ncdb.Packages.First(x =>
                                     x.Nickname.Equals(ncdb.Factions[i].Package, StringComparison.OrdinalIgnoreCase));
                                 var ship = state.Game.GameData.Items.Ships.Get(package.Ship)!;
                                 ship.ModelFile!.LoadFile(state.Game.ResourceManager);
-                                var loc = state.Game.GameData.GetString(state.Game.GameData.Items.Bases.Get(ncdb.Factions[i].Base)!.IdsName);
+                                var loc = state.Game.GameData.GetString(
+                                    state.Game.GameData.Items.Bases.Get(ncdb.Factions[i].Base)!.IdsName);
                                 newCharacters[i] = new UiNewCharacter()
                                 {
                                     Money = package.Money,
@@ -302,6 +313,7 @@ namespace LibreLancer
                                     Location = loc
                                 };
                             }
+
                             state.ui.Event("OpenNewCharacter");
                             break;
                         }
@@ -312,6 +324,7 @@ namespace LibreLancer
 
                 }
             }
+
             private GameNetClient? netClient;
             private CGameSession netSession = null!;
             private ServerList serverList = new();
@@ -319,6 +332,7 @@ namespace LibreLancer
 
             public CharacterSelectInfo CharacterList() => cselInfo;
             public ServerList ServerList() => serverList;
+
             public void StartNetworking()
             {
                 StopNetworking();
@@ -334,7 +348,7 @@ namespace LibreLancer
 
             private void NetClientOnAuthenticationRequired(bool retry)
             {
-                if(retry) state.ui.Event("IncorrectPassword");
+                if (retry) state.ui.Event("IncorrectPassword");
                 else state.ui.Event("Login");
             }
 
@@ -371,12 +385,14 @@ namespace LibreLancer
             }
 
             private int delIndex = -1;
+
             public void DeleteCharacter()
             {
                 delIndex = cselInfo.Selected;
                 netSession.RpcServer.DeleteCharacter(cselInfo.Selected).ContinueWith((t) =>
                 {
-                    if (t.Result) {
+                    if (t.Result)
+                    {
                         state.Game.QueueUIThread(() =>
                         {
                             cselInfo.Characters.RemoveAt(delIndex);
@@ -401,7 +417,7 @@ namespace LibreLancer
 
             public void ConnectSelection()
             {
-                if(serverList.Selected != -1)
+                if (serverList.Selected != -1)
                 {
                     netClient!.Connect(serverList.Servers[serverList.Selected].EndPoint);
                 }
@@ -412,8 +428,9 @@ namespace LibreLancer
             public void NewCharacter(string name, int index, Closure onError)
             {
                 FLLog.Info("Net", $"Requesting new char: `{name}`");
-                netSession.RpcServer.CreateNewCharacter(name, index).ContinueWith((task) => {
-                    if(!task.Result) state.Game.QueueUIThread(() => onError.Call());
+                netSession.RpcServer.CreateNewCharacter(name, index).ContinueWith((task) =>
+                {
+                    if (!task.Result) state.Game.QueueUIThread(() => onError.Call());
                 });
             }
 
@@ -422,6 +439,7 @@ namespace LibreLancer
                 netClient?.Shutdown();
                 netClient = null;
             }
+
             public override void Exit() => state.FadeOut(0.2, () => state.Game.Exit());
         }
 
@@ -440,7 +458,7 @@ namespace LibreLancer
         {
             ui.Update(Game);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
-            scene?.UpdateViewport(Game.RenderContext.CurrentViewport, (float)Game.Width / Game.Height);
+            scene?.UpdateViewport(Game.RenderContext.CurrentViewport, (float) Game.Width / Game.Height);
             scene?.Update(delta);
             api._Update();
         }
