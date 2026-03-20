@@ -38,7 +38,7 @@ namespace LibreLancer.Server.Components
 
         public void Run(FuseResources fuse)
         {
-            var instance = new FuseInstance(new Queue<FuseAction>(fuse.Fuse.Actions.OrderBy(x => x.AtT)), fuse, 0);
+            var instance = new FuseInstance(new(fuse.Fuse.Actions.OrderBy(x => x.AtT)), fuse, 0.0);
             instances.Add(instance);
         }
 
@@ -71,9 +71,8 @@ namespace LibreLancer.Server.Components
             {
                 instance.Actions.Dequeue();
 
-                if (act is FuseStartEffect)
+                if (act is FuseStartEffect fxact)
                 {
-                    var fxact = ((FuseStartEffect) act);
                     Effects.Add(new SpawnedEffect()
                     {
                         ID = fxID++, Effect = fxact.Effect,
@@ -81,15 +80,15 @@ namespace LibreLancer.Server.Components
                     });
                     Parent.World.Server.EffectSpawned(Parent);
                 }
-                else if (act is FuseDestroyGroup fuse)
+                else if (act is FuseDestroyGroup dst)
                 {
-                    if (fuse.Fate == FusePartFate.disappear)
+                    if (dst.Fate == FusePartFate.disappear)
                     {
-                        Parent.DisableCmpPart(fuse.GroupName!, GetResourceManager()!, out _);
+                        Parent.DisableCmpPart(dst.GroupName!, GetResourceManager()!, out _);
                     }
-                    else if (fuse.Fate == FusePartFate.debris)
+                    else if (dst.Fate == FusePartFate.debris)
                     {
-                        Parent.SpawnDebris(fuse.GroupName!, GetResourceManager()!);
+                        Parent.SpawnDebris(dst.GroupName!, GetResourceManager()!);
                     }
                 }
                 else if (act is FuseDestroyHpAttachment)

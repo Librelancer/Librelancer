@@ -62,16 +62,16 @@ namespace LibreLancer.Utf.Anm
 
         private void Load(IntermediateNode root, StringDeduplication strings)
         {
-            foreach (IntermediateNode node in root.OfType<IntermediateNode>())
+            foreach (var node in root)
             {
                 if (!node.Name.Equals("script", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                foreach (var scNode in node.OfType<IntermediateNode>())
+                foreach (var scNode in (IntermediateNode)node)
                 {
-                    Scripts[scNode.Name] = new Script(scNode, Buffer, strings);
+                    Scripts[scNode.Name] = new Script((IntermediateNode)scNode, Buffer, strings);
                 }
             }
         }
