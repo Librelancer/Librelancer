@@ -72,7 +72,7 @@ public sealed class DestructibleModel
 
     public bool DestroyPart(uint crc, [MaybeNullWhen(false)] out RigidModelPart part)
     {
-        var foundPart = !RigidModel.Parts!.TryGetPart(crc, out part);
+        var foundPart = RigidModel.Parts!.TryGetPart(crc, out part);
         if (destroyed.Contains(crc) || destroyedChildren.Contains(crc) || !foundPart)
         {
             part = null;
