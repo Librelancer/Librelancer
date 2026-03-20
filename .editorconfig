@@ -63,6 +63,8 @@ dotnet_naming_rule.private_fields_nounderscore.severity = suggestion
 
 # Rider/Resharper specific rules
 resharper_replace_slice_with_range_indexer_highlighting = none
+resharper_for_can_be_converted_to_foreach_highlighting=none
+resharper_invert_if_highlighting=none
 
 [*.csproj]
 indent_size = 2
