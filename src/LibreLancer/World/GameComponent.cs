@@ -8,21 +8,19 @@ using LibreLancer.Sounds;
 
 namespace LibreLancer.World
 {
-	public class GameComponent
-	{
-		public GameObject Parent;
-		public GameComponent(GameObject parent)
-		{
-			Parent = parent;
-		}
-		public virtual void Update(double time)
+	public class GameComponent(GameObject parent)
+    {
+		public GameObject Parent = parent;
+
+        public virtual void Update(double time)
 		{
 		}
 
-		public virtual void Register(PhysicsWorld physics)
+		public virtual void Register(PhysicsWorld? physics)
 		{
 		}
-		public virtual void Unregister(PhysicsWorld physics)
+
+		public virtual void Unregister(PhysicsWorld? physics)
 		{
 		}
 
@@ -30,31 +28,22 @@ namespace LibreLancer.World
         {
         }
 
-        protected SoundManager GetSoundManager()
+        protected SoundManager? GetSoundManager()
         {
-            if(Parent.GetWorld().Renderer != null)
-                return Parent.GetWorld().Renderer.Game.GetService<SoundManager>();
-            return null;
+            return Parent?.GetWorld()?.Renderer != null ? Parent.GetWorld().Renderer!.Game.GetService<SoundManager>() : null;
         }
 
-        protected GameDataManager GetGameData()
+        protected GameDataManager? GetGameData()
         {
-            var w = Parent.GetWorld();
-            if (w?.Server != null)
-                return w.Server.Server.GameData;
-            if(w?.Renderer != null)
-                return w.Renderer.Game.GetService<GameDataManager>();
-            return null;
+            var w = Parent?.GetWorld();
+            return w?.Server != null ? w.Server.Server.GameData : w?.Renderer?.Game.GetService<GameDataManager>();
+
         }
 
-        protected ResourceManager GetResourceManager()
+        protected ResourceManager? GetResourceManager()
         {
-            var w = Parent.GetWorld();
-            if (w.Renderer != null)
-                return w.Renderer.ResourceManager;
-            else if (w.Server != null)
-                return w.Server.Server.Resources;
-            return null;
+            var w = Parent?.GetWorld();
+            return w?.Renderer != null ? w.Renderer!.ResourceManager : w?.Server?.Server.Resources;
         }
 	}
 }

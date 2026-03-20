@@ -13,12 +13,12 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class InfocardDisplay : UiWidget
     {
-        public Infocard Infocard { get; set; }
-        private BuiltRichText richText;
+        public Infocard? Infocard { get; set; }
+        private BuiltRichText? richText;
         private int mW = -1;
-        private Infocard currInfocard;
+        private Infocard? currInfocard;
 
-        private Scrollbar scrollbar = new Scrollbar() {Smooth = true};
+        private Scrollbar scrollbar = new() { Smooth = true };
         private bool scrollbarVisible = false;
 
         public override void ApplyStylesheet(Stylesheet sheet)
@@ -26,9 +26,10 @@ namespace LibreLancer.Interface
             scrollbar.ApplyStyle(sheet);
         }
 
-        private string setString = null;
-        private string setFont = null;
+        private string? setString = null;
+        private string? setFont = null;
         private int setSize = 0;
+
         public void SetString(string str)
         {
             this.setString = str;
@@ -41,21 +42,24 @@ namespace LibreLancer.Interface
             this.setSize = size;
         }
 
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
             return myRectangle;
         }
+
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
-            //TODO: fix up
+            // TODO: fix up
             if (setString != null)
             {
-                Infocard = new Infocard() {Nodes = new List<RichTextNode>()};
+                Infocard = new Infocard() { Nodes = [] };
                 string fontName = setFont ?? "$ListText";
                 if (fontName[0] == '$') fontName = context.Data.Fonts.ResolveNickname(fontName.Substring(1));
-                foreach (var s in setString.Split('\n')) {
+
+                foreach (var s in setString.Split('\n'))
+                {
                     Infocard.Nodes.Add(new RichTextTextNode()
                     {
                         Contents = s,
@@ -67,18 +71,22 @@ namespace LibreLancer.Interface
                     });
                     Infocard.Nodes.Add(new RichTextParagraphNode());
                 }
+
                 setString = null;
                 setFont = null;
                 setSize = 0;
             }
+
             if (!Visible) return;
             var myRectangle = GetMyRectangle(context, parentRectangle);
             Background?.Draw(context, myRectangle);
-            myRectangle.Width -= scrollbar.Style.Width;
+            myRectangle.Width -= scrollbar.Style!.Width;
+
             if (Infocard != null)
             {
                 var rte = context.RenderContext.Renderer2D.CreateRichTextEngine();
                 var myRect = context.PointsToPixels(myRectangle);
+
                 if (currInfocard != Infocard || mW != myRect.Width)
                 {
                     richText?.Dispose();
@@ -86,36 +94,48 @@ namespace LibreLancer.Interface
                     mW = myRect.Width;
                     richText = rte.BuildText(Infocard.Nodes, mW, (context.ViewportHeight / 480) * 0.5f);
                     var h = richText.Height;
-                    if ((int) h > myRect.Height + 2) {
+
+                    if ((int) h > myRect.Height + 2)
+                    {
                         scrollbar.ScrollOffset = 0;
                         scrollbar.ThumbSize = myRect.Height / h;
                         const float TICK_MAGIC = 0.2627986f;
                         scrollbar.Tick = 0.01f * (scrollbar.ThumbSize / TICK_MAGIC);
                         scrollbarVisible = true;
-                    } else {
+                    }
+                    else
+                    {
                         scrollbarVisible = false;
                     }
 
                 }
-                if(scrollbarVisible)
-                    scrollbar.Render(context, new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width, myRectangle.Height));
+
+                if (scrollbarVisible)
+                    scrollbar.Render(context,
+                        new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width,
+                            myRectangle.Height));
+
                 if (context.RenderContext.PushScissor(myRect))
                 {
                     int y = myRect.Y;
-                    if (scrollbarVisible) {
-                        y -= (int) (scrollbar.ScrollOffset * (richText.Height - myRect.Height));
+
+                    if (scrollbarVisible)
+                    {
+                        y -= (int) (scrollbar.ScrollOffset * (richText!.Height - myRect.Height));
                     }
-                    rte.RenderText(richText, myRect.X, y);
+
+                    rte.RenderText(richText!, myRect.X, y);
                     context.RenderContext.PopScissor();
                 }
             }
+
             Border?.Draw(context, myRectangle);
         }
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
         {
             var myRectangle = GetMyRectangle(context, parentRectangle);
-            if(Infocard != null && scrollbarVisible)
+            if (Infocard != null && scrollbarVisible)
                 scrollbar.OnMouseDown(context, myRectangle);
         }
 

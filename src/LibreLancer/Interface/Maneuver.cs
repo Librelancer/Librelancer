@@ -8,10 +8,10 @@ namespace LibreLancer
     [WattleScript.Interpreter.WattleScriptUserData]
     public class Maneuver
 	{
-		public string Action;
-		public string InfocardA;
-		public string InfocardB;
-		public string ActiveModel;
-		public string InactiveModel;
+		public string Action = "";
+		public string? InfocardA;
+		public string? InfocardB;
+		public string ActiveModel = "";
+		public string InactiveModel = "";
 	}
 }

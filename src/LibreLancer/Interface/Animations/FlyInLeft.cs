@@ -9,7 +9,7 @@ namespace LibreLancer
 {
 	public class FlyInLeft : UiAnimation
 	{
-		Vector2 finalPos;
+        private Vector2 finalPos;
         public float From = -2;
 		public FlyInLeft(Vector2 final, double start, double time) : base(start, time)
 		{

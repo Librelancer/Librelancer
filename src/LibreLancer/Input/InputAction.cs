@@ -4,7 +4,7 @@
 
 namespace LibreLancer.Input
 {
-    //All vanilla + JFLP actions here
+    // All vanilla + JFLP actions here
     public enum InputAction
     {
         USER_AFTERBURN,
@@ -140,7 +140,7 @@ namespace LibreLancer.Input
         USER_ZOOM_OUT,
         USER_Z_ROTATE,
         USER_Z_UNROTATE,
-        //FL debug (unused)
+        // FL debug (unused)
         DBG_ALTER_CAMERA_FORWARD,
         DBG_ALTER_CAMERA_BACK,
         DBG_ALTER_CAMERA_UP,
@@ -163,7 +163,7 @@ namespace LibreLancer.Input
         DBG_NAVMAP_SHOW_ALL,
         DBG_SHOW_MISSION,
         DBG_FIRE_FORWARD,
-        //Count of elements
+        // Count of elements
         COUNT
     }
 

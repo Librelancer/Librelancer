@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData;
@@ -18,19 +19,33 @@ namespace LibreLancer.Render
 	public class NebulaRenderer
 	{
 		public Nebula Nebula;
-		Random rand;
-        Game game;
-        Renderer2D render2D;
-        Billboards billboards;
-		List<ExteriorPuff> Exterior = new List<ExteriorPuff>();
-        SystemRenderer sysr;
-        TexturePanelCollection sprites;
+        private Random rand;
+        private Game game;
+        private Renderer2D render2D;
+        private Billboards billboards;
+        private List<ExteriorPuff> Exterior = [];
+        private SystemRenderer sysr;
+        private TexturePanelCollection sprites;
+
+        private int puffId = 0;
+        private int puffsIdx = -1;
+        private VertexBillboardColor2[] puffVertices = [];
+        private InteriorPuff[] interiorPuffs = null!;
+
+        private double dynLightningTimer = 0.0;
+        private bool dynLightningActive = false;
+        private Vector3 dynamicLightningPos = Vector3.Zero;
+
+        private double cldLightningTimer = 0.0;
+        private bool cldLightningActive = false;
+
+
 		public NebulaRenderer(Nebula n, Game g, SystemRenderer sysr)
 		{
 			Nebula = n;
 			game = g;
             render2D = g.RenderContext.Renderer2D;
-            billboards = g.GetService<Billboards>();
+            billboards = g.GetService<Billboards>()!;
             this.sysr = sysr;
             sprites = new TexturePanelCollection();
             foreach (var f in n.TexturePanels)
@@ -38,32 +53,37 @@ namespace LibreLancer.Render
                 f.Load(sysr.ResourceManager);
                 sprites.AddFile(f);
             }
+
             rand = new Random();
 			if (n.HasInteriorClouds)
 			{
-				puffsinterior = new InteriorPuff[n.InteriorCloudCount];
-				for (int i = 0; i < n.InteriorCloudCount; i++)
-					puffsinterior[i].Spawned = false;
+				interiorPuffs = new InteriorPuff[n.InteriorCloudCount];
+				for (var i = 0; i < n.InteriorCloudCount; i++)
+					interiorPuffs[i].Spawned = false;
 			}
+
 			GenerateExteriorPuffs();
-			//Set Timers
+			// Set Timers
 			dynLightningTimer = Nebula.DynamicLightningGap;
 			bckLightningTimer = Nebula.BackgroundLightningGap;
         }
 
 		public bool FogTransitioned()
 		{
-			if (Math.Abs(Nebula.Zone.EdgeFraction) < 0.000000001) //basically == 0. Instant transition
-				return true;
+			if (Math.Abs(Nebula.Zone!.EdgeFraction) < 0.000000001) // basically == 0. Instant transition
+            {
+                return true;
+            }
+
             return (1 - Nebula.Zone.ScaledDistance(sysr.Camera.Position)) >= Nebula.Zone.EdgeFraction;
-			//var scaled = Nebula.Zone.Shape.Scale(1 - Nebula.Zone.EdgeFraction);
-			//return scaled.ContainsPoint(sysr.Camera.Position);
+			// var scaled = Nebula.Zone.Shape.Scale(1 - Nebula.Zone.EdgeFraction);
+			// return scaled.ContainsPoint(sysr.Camera.Position);
 		}
 
-		float CalculateTransition(Zone zone)
+        private float CalculateTransition(Zone zone)
 		{
-			//Find transitional value based on how far into the zone we are
-			//ScaledDistance is from 0 at center to 1 at edge. Reverse this.
+			// Find transitional value based on how far into the zone we are
+			// ScaledDistance is from 0 at center to 1 at edge. Reverse this.
 			var sd = 1 - MathHelper.Clamp(zone.ScaledDistance(sysr.Camera.Position), 0f, 1f);
 			return MathHelper.Clamp(sd / zone.EdgeFraction, 0, 1);
 		}
@@ -71,53 +91,56 @@ namespace LibreLancer.Render
 		public void RenderFogTransition()
 		{
 			var c = GetFogColor();
-			c.A = CalculateTransition(Nebula.Zone);
+			c.A = CalculateTransition(Nebula.Zone!);
             render2D.FillRectangle(new Rectangle(0, 0, game.Width, game.Height), c);
 		}
 
-		Color4 GetFogColor()
-		{
-			if (bckLightningActive)
-				return Nebula.BackgroundLightningColor;
-			else
-				return Nebula.FogColor;
-		}
+        private Color4 GetFogColor()
+        {
+            return bckLightningActive ? Nebula.BackgroundLightningColor : Nebula.FogColor;
+        }
 
 		public void Update(double elapsed)
-		{
-			if (Nebula.Zone.ContainsPoint(sysr.Camera.Position))
-			{
-				UpdateBackgroundLightning(elapsed);
-				UpdateDynamicLightning(elapsed);
-				UpdateCloudLightning(elapsed);
-				if (Nebula.HasInteriorClouds)
-				{
-					for (int i = 0; i < Nebula.InteriorCloudCount; i++)
-					{
-						if (!puffsinterior[i].Spawned ||
-							Vector3.Distance(puffsinterior[i].Position, sysr.Camera.Position) > Nebula.InteriorCloudMaxDistance)
-						{
-							puffsinterior[i].Color = GetPuffColor();
-							puffsinterior[i].Shape = sprites.GetShape(Nebula.InteriorCloudShapes.GetNext(rand));
-							puffsinterior[i].Position = sysr.Camera.Position + RandomPointSphere(Nebula.InteriorCloudMaxDistance);
-							puffsinterior[i].Spawned = true;
-							puffsinterior[i].Velocity = RandomDirection() * Nebula.InteriorCloudDrift;
-						}
-						puffsinterior[i].Position += puffsinterior[i].Velocity * (float)elapsed;
-					}
-				}
-			}
-		}
+        {
+            if (!Nebula.Zone!.ContainsPoint(sysr.Camera.Position))
+            {
+                return;
+            }
 
-		double bckLightningTimer = 0.0;
-		bool bckLightningActive = false;
-		void UpdateBackgroundLightning(double elapsed)
+            UpdateBackgroundLightning(elapsed);
+            UpdateDynamicLightning(elapsed);
+            UpdateCloudLightning(elapsed);
+
+            if (!Nebula.HasInteriorClouds)
+            {
+                return;
+            }
+
+            for (var i = 0; i < Nebula.InteriorCloudCount; i++)
+            {
+                if (!interiorPuffs[i].Spawned ||
+                    Vector3.Distance(interiorPuffs[i].Position, sysr.Camera.Position) > Nebula.InteriorCloudMaxDistance)
+                {
+                    interiorPuffs[i].Color = GetPuffColor();
+                    interiorPuffs[i].Shape = sprites.GetShape(Nebula.InteriorCloudShapes!.GetNext(rand));
+                    interiorPuffs[i].Position = sysr.Camera.Position + RandomPointSphere(Nebula.InteriorCloudMaxDistance);
+                    interiorPuffs[i].Spawned = true;
+                    interiorPuffs[i].Velocity = RandomDirection() * Nebula.InteriorCloudDrift;
+                }
+                interiorPuffs[i].Position += interiorPuffs[i].Velocity * (float)elapsed;
+            }
+        }
+
+        private double bckLightningTimer = 0.0;
+        private bool bckLightningActive = false;
+
+        private void UpdateBackgroundLightning(double elapsed)
 		{
-            //Vanilla St03 has lightning but with 0 duration
+            // Vanilla St03 has lightning but with 0 duration
 			if (!Nebula.BackgroundLightning || Nebula.BackgroundLightningDuration == 0)
 				return;
 			bckLightningTimer -= elapsed;
-			if (bckLightningActive == false)
+			if (!bckLightningActive)
 			{
 				if (bckLightningTimer <= 0.0)
 				{
@@ -135,21 +158,18 @@ namespace LibreLancer.Render
 			}
 		}
 
-		double dynLightningTimer = 0.0;
-		bool dynLightningActive = false;
-		Vector3 dynamicLightningPos = Vector3.Zero;
-		void UpdateDynamicLightning(double elapsed)
+        private void UpdateDynamicLightning(double elapsed)
 		{
 			if (!Nebula.DynamicLightning)
 				return;
 			dynLightningTimer -= elapsed;
-			if (dynLightningActive == false)
+			if (!dynLightningActive)
 			{
 				if (dynLightningTimer <= 0.0)
 				{
 					dynLightningActive = true;
 					dynLightningTimer = Nebula.DynamicLightningDuration;
-					//spawn dynamic lightning
+					// spawn dynamic lightning
 					dynamicLightningPos = sysr.Camera.Position + RandomPointSphere(Nebula.FogRange.Y);
 				}
 			}
@@ -163,14 +183,15 @@ namespace LibreLancer.Render
 			}
 		}
 
-		double cldLightningTimer = 0.0;
-		bool cldLightningActive = false;
-		void UpdateCloudLightning(double elapsed)
+        private void UpdateCloudLightning(double elapsed)
 		{
 			if (!Nebula.CloudLightning)
-				return;
-			cldLightningTimer -= elapsed;
-			if (cldLightningActive == false)
+            {
+                return;
+            }
+
+            cldLightningTimer -= elapsed;
+			if (!cldLightningActive)
 			{
 				if (cldLightningTimer <= 0.0)
 				{
@@ -197,21 +218,23 @@ namespace LibreLancer.Render
 			var ex = GetExclusion(sysr.Camera.Position);
 			if (ex != null)
 			{
-				var factor = CalculateTransition(ex.Zone);
+				var factor = CalculateTransition(ex.Zone!);
 				FogRange.Y = MathHelper.Lerp(FogRange.Y, ex.FogFar, factor);
 			}
 			lightning = null;
 			if (dynLightningActive)
 			{
-				var rl = new RenderLight();
-				rl.Kind = LightKind.Point;
-                rl.Color = new Color3f(Nebula.DynamicLightningColor.R,
-                    Nebula.DynamicLightningColor.G,
-                    Nebula.DynamicLightningColor.B);
-				rl.Position = dynamicLightningPos;
-				rl.Attenuation = new Vector3(1, 0, 0.0000055f);
-				rl.Range = (int)Nebula.FogRange.Y;
-				lightning = rl;
+				var rl = new RenderLight
+                {
+                    Kind = LightKind.Point,
+                    Color = new Color3f(Nebula.DynamicLightningColor.R,
+                        Nebula.DynamicLightningColor.G,
+                        Nebula.DynamicLightningColor.B),
+                    Position = dynamicLightningPos,
+                    Attenuation = new Vector3(1, 0, 0.0000055f),
+                    Range = (int)Nebula.FogRange.Y
+                };
+                lightning = rl;
 			}
 		}
 
@@ -233,20 +256,14 @@ namespace LibreLancer.Render
 			return false;
 		}
 
-		NebulaExclusionZone GetExclusion(Vector3 position)
+        private NebulaExclusionZone? GetExclusion(Vector3 position)
 		{
-			if (Nebula.ExclusionZones != null)
-			{
-				foreach (var zone in Nebula.ExclusionZones)
-					if (zone.Zone.ContainsPoint(position))
-						return zone;
-			}
-			return null;
-		}
+            return Nebula.ExclusionZones?.FirstOrDefault(zone => zone.Zone!.ContainsPoint(position));
+        }
 
 		public void Draw(CommandBuffer buffer)
 		{
-			bool inside = Nebula.Zone.ContainsPoint(sysr.Camera.Position);
+			var inside = Nebula.Zone!.ContainsPoint(sysr.Camera.Position);
             var z = RenderHelpers.GetZ(Matrix4x4.Identity, sysr.Camera.Position, Nebula.Zone.Position);
 			if (!inside || !FogTransitioned())
 				RenderFill(buffer, inside, z);
@@ -265,42 +282,46 @@ namespace LibreLancer.Render
 
         private Dictionary<string, RigidModel> shellModels = new();
 
-		void RenderExclusionZone(CommandBuffer buffer, NebulaExclusionZone ex)
+        private void RenderExclusionZone(CommandBuffer buffer, NebulaExclusionZone ex)
 		{
 			if (ex.Shell == null)
 				return;
-            if (!shellModels.TryGetValue(ex.Shell.ModelFile, out var shellModel))
+            if (!shellModels.TryGetValue(ex.Shell.ModelFile!, out var shellModel))
             {
-                var file = (IRigidModelFile) (ex.Shell.LoadFile(sysr.ResourceManager).Drawable);
+                var file = (IRigidModelFile) (ex.Shell.LoadFile(sysr.ResourceManager)!.Drawable);
                 shellModel = file.CreateRigidModel(true, sysr.ResourceManager);
-                shellModels[ex.Shell.ModelFile] = shellModel;
+                shellModels[ex.Shell.ModelFile!] = shellModel;
             }
+
 			Vector3 sz = Vector3.Zero;
-			//Only render ellipsoid and sphere exteriors
-			if (Nebula.Zone.Shape == ShapeKind.Sphere)
-				sz = Nebula.Zone.Size / 2; //we want radius instead of diameter
+			// Only render ellipsoid and sphere exteriors
+			if (Nebula.Zone!.Shape == ShapeKind.Sphere)
+				sz = Nebula.Zone.Size / 2; // we want radius instead of diameter
 			else if (Nebula.Zone.Shape == ShapeKind.Ellipsoid)
 				sz = new Vector3(Nebula.Zone.Size.X);
 			else
 				return;
 			sz *= (1 / shellModel.GetRadius());
-			var world = Matrix4x4.CreateScale(ex.ShellScalar * sz) * ex.Zone.RotationMatrix * Matrix4x4.CreateTranslation(ex.Zone.Position);
-			//var shell = (ModelFile)ex.Shell;
-			//Calculate Alpha
+			var world = Matrix4x4.CreateScale(ex.ShellScalar * sz) * ex.Zone!.RotationMatrix * Matrix4x4.CreateTranslation(ex.Zone.Position);
+			// var shell = (ModelFile)ex.Shell;
+			// Calculate Alpha
 			var alpha = ex.ShellMaxAlpha * CalculateTransition(ex.Zone);
-			//Set all render materials. We don't want LOD for this Mesh.
+			// Set all render materials. We don't want LOD for this Mesh.
             foreach (var pt in shellModel.AllParts)
             {
-                foreach (var dc in pt.Mesh.Levels[0].Drawcalls)
+                foreach (var dc in pt.Mesh?.Levels?[0]?.Drawcalls ?? [])
                 {
                     var mat = dc.GetMaterial(sysr.ResourceManager)?.Render;
-                    if (mat is BasicMaterial basic)
+
+                    if (mat is not BasicMaterial basic)
                     {
-                        basic.Oc = alpha;
-                        basic.OcEnabled = true;
-                        basic.AlphaEnabled = true;
-                        basic.Dc = new Color4(ex.ShellTint, alpha) * (Nebula.AmbientColor ?? Color4.White);
+                        continue;
                     }
+
+                    basic.Oc = alpha;
+                    basic.OcEnabled = true;
+                    basic.AlphaEnabled = true;
+                    basic.Dc = new Color4(ex.ShellTint, alpha) * (Nebula.AmbientColor ?? Color4.White);
                 }
             }
 
@@ -308,7 +329,7 @@ namespace LibreLancer.Render
             shellModel.DrawBuffer(0, buffer, sysr.ResourceManager, world, ref Lighting.Empty);
         }
 
-        void AddPuffQuad(List<VertexBillboardColor2> vx, Vector3 pos, Vector2 size, Color4 c1, Color4 c2, float angle,
+        private void AddPuffQuad(List<VertexBillboardColor2> vx, Vector3 pos, Vector2 size, Color4 c1, Color4 c2, float angle,
             Vector2 tl,Vector2 tr, Vector2 bl, Vector2 br)
         {
             vx.Add(new VertexBillboardColor2(
@@ -333,18 +354,13 @@ namespace LibreLancer.Render
             ));
         }
 
-        int puffId = 0;
-        private int puffsIdx = -1;
-        VertexBillboardColor2[] puffVertices;
-
-
-        unsafe void DrawPuffRing(bool inside, CommandBuffer buffer, float z)
+        private unsafe void DrawPuffRing(bool inside, CommandBuffer buffer, float z)
 		{
             /* Skip rendering puff rings */
             if(!inside) {
                 Vector3 sz;
-                if (Nebula.Zone.Shape == ShapeKind.Ellipsoid)
-                    sz = Nebula.Zone.Size / 2; //we want radius instead of diameter
+                if (Nebula.Zone!.Shape == ShapeKind.Ellipsoid)
+                    sz = Nebula.Zone.Size / 2; // we want radius instead of diameter
                 else if (Nebula.Zone.Shape == ShapeKind.Sphere)
                     sz = new Vector3(Nebula.Zone.Size.X);
                 else
@@ -358,13 +374,13 @@ namespace LibreLancer.Render
 
             if (puffsIdx == -1)
                 return;
-            var world = Nebula.Zone.RotationMatrix * Matrix4x4.CreateTranslation(Nebula.Zone.Position);
+            var world = Nebula.Zone!.RotationMatrix * Matrix4x4.CreateTranslation(Nebula.Zone.Position);
             var wh = buffer.WorldBuffer.SubmitMatrix(ref world);
             /* Actually Render */
 			var sd = 1 - MathHelper.Clamp(Nebula.Zone.ScaledDistance(sysr.Camera.Position), 0f, 1f);
 			var factor = MathHelper.Clamp(sd / Nebula.Zone.EdgeFraction, 0, 1);
-            int idx = puffsIdx;
-            for (int i = 0; i < Exterior.Count; i++)
+            var idx = puffsIdx;
+            for (var i = 0; i < Exterior.Count; i++)
 			{
 				var p = Exterior[i];
                 buffer.AddCommand(p.Material, null, wh, Lighting.Empty
@@ -375,9 +391,9 @@ namespace LibreLancer.Render
 			}
 		}
 
-		void GenerateExteriorPuffs()
+        private void GenerateExteriorPuffs()
 		{
-			var rn = new Random((int)CrcTool.FLModelCrc(Nebula.Zone.Nickname));
+			var rn = new Random((int)CrcTool.FLModelCrc(Nebula.Zone!.Nickname));
             var verts = new List<VertexBillboardColor2>();
             GeneratePuffRing(0.25f, rn, verts);
             GeneratePuffRing(0.5f, rn, verts);
@@ -385,22 +401,16 @@ namespace LibreLancer.Render
             puffVertices = verts.ToArray();
 		}
 
-        public void UploadPuffs()
-        {
-            if (puffVertices != null)
-            {
-                puffsIdx =  sysr.QuadBuffer.DoVertices(puffVertices);
-            }
-        }
+        public void UploadPuffs() => puffsIdx =  sysr.QuadBuffer.DoVertices(puffVertices);
 
-		void GeneratePuffRing(float ypct, Random rn, List<VertexBillboardColor2> verts)
+        private void GeneratePuffRing(float ypct, Random rn, List<VertexBillboardColor2> verts)
 		{
-			Vector3 sz = Vector3.Zero;
+			Vector3 sz;
             switch (Nebula.Zone?.Shape)
             {
-                //Only render ellipsoid and sphere exteriors
+                // Only render ellipsoid and sphere exteriors
                 case ShapeKind.Ellipsoid:
-                    sz = Nebula.Zone.Size / 2; //we want radius instead of diameter
+                    sz = Nebula.Zone.Size / 2; // we want radius instead of diameter
                     break;
                 case ShapeKind.Sphere:
                     sz = new Vector3(Nebula.Zone.Size.X);
@@ -410,16 +420,16 @@ namespace LibreLancer.Render
             }
 
 			var yval = ypct * sz.Y;
-			int puffcount = rn.Next(Nebula.ExteriorMinBits, Nebula.ExteriorMaxBits + 1);
-			double current_angle = 0;
-			double delta_angle = (2 * Math.PI) / puffcount;
-			for (int i = 0; i < puffcount; i++)
+			var puffcount = rn.Next(Nebula.ExteriorMinBits, Nebula.ExteriorMaxBits + 1);
+			double currentAngle = 0;
+			var deltaAngle = (2 * Math.PI) / puffcount;
+			for (var i = 0; i < puffcount; i++)
 			{
 				var y = rn.NextFloat(
 					yval - (sz.Y * Nebula.ExteriorMoveBitPercent),
 					yval + (sz.Y * Nebula.ExteriorMoveBitPercent)
 				);
-				var pos = PrimitiveMath.GetPointOnRadius(sz, y, (float)current_angle);
+				var pos = PrimitiveMath.GetPointOnRadius(sz, y, (float)currentAngle);
 				var puffPos = new Vector3(pos.X, pos.Y - (sz.Y / 2), pos.Z);
 				var radius = rn.NextFloat(
 					Nebula.ExteriorBitRadius * (1 - Nebula.ExteriorBitRandomVariation),
@@ -434,18 +444,20 @@ namespace LibreLancer.Render
                     new Vector2(shape.Dimensions.X, shape.Dimensions.Y + shape.Dimensions.Height),
                     new Vector2(shape.Dimensions.X + shape.Dimensions.Width, shape.Dimensions.Y + shape.Dimensions.Height)
                 );
+
                 Exterior.Add(new ExteriorPuff()
-                    {Position = puffPos, Material = new NebulaPuffMaterial(sysr.ResourceManager) {Texture = shape.Texture}});
-				current_angle += delta_angle;
+                    { Position = puffPos, Material = new NebulaPuffMaterial(sysr.ResourceManager, shape.Texture) });
+				currentAngle += deltaAngle;
 			}
 		}
 
-        struct ExteriorPuff
+        private struct ExteriorPuff
         {
             public Vector3 Position;
             public NebulaPuffMaterial Material;
         }
-        struct InteriorPuff
+
+        private struct InteriorPuff
 		{
 			public bool Spawned;
 			public Vector3 Position;
@@ -454,34 +466,33 @@ namespace LibreLancer.Render
 			public TextureShape Shape;
 		}
 
-		InteriorPuff[] puffsinterior;
-		void RenderInteriorPuffs()
+        private void RenderInteriorPuffs()
 		{
 			if (Nebula.HasInteriorClouds)
 			{
-				for (int i = 0; i < Nebula.InteriorCloudCount; i++)
+				for (var i = 0; i < Nebula.InteriorCloudCount; i++)
 				{
-					if (!puffsinterior[i].Spawned)
+					if (!interiorPuffs[i].Spawned)
 						continue;
-					var distance = Vector3.Distance(puffsinterior[i].Position, sysr.Camera.Position);
+					var distance = Vector3.Distance(interiorPuffs[i].Position, sysr.Camera.Position);
 					var alpha = Nebula.InteriorCloudMaxAlpha;
 					if (distance > Nebula.InteriorCloudFadeDistance.X && distance < Nebula.InteriorCloudFadeDistance.Y)
 					{
-						var distance_difference = Nebula.InteriorCloudFadeDistance.Y - Nebula.InteriorCloudFadeDistance.X;
+						var distanceDiff = Nebula.InteriorCloudFadeDistance.Y - Nebula.InteriorCloudFadeDistance.X;
 						var current = distance - Nebula.InteriorCloudFadeDistance.X;
-						alpha -= (alpha * (distance_difference - current) / distance_difference);
+						alpha -= (alpha * (distanceDiff - current) / distanceDiff);
 					}
 					if (distance < Nebula.InteriorCloudFadeDistance.X)
 						alpha = 0;
-					var shape = puffsinterior[i].Shape;
-					Color4 c = new Color4(puffsinterior[i].Color, alpha);
+					var shape = interiorPuffs[i].Shape;
+					Color4 c = new Color4(interiorPuffs[i].Color, alpha);
 					if (cldLightningActive)
 					{
 						c *= Nebula.CloudLightningColor;
 					}
 					billboards.Draw(
-						(Texture2D)sysr.ResourceManager.FindTexture(shape.Texture),
-						puffsinterior[i].Position,
+						(Texture2D)sysr.ResourceManager.FindTexture(shape.Texture)!,
+						interiorPuffs[i].Position,
 						new Vector2(Nebula.InteriorCloudRadius),
 						c,
 						new Vector2(shape.Dimensions.X, shape.Dimensions.Y),
@@ -495,7 +506,7 @@ namespace LibreLancer.Render
 			}
 		}
 
-		Vector3 RandomDirection()
+        private Vector3 RandomDirection()
 		{
 			var v = new Vector3(
 				-1f + (float)(rand.NextDouble() * 2),
@@ -506,7 +517,7 @@ namespace LibreLancer.Render
 			return v;
 		}
 
-		Vector3 RandomPointSphere(float radius)
+        private Vector3 RandomPointSphere(float radius)
 		{
 			var phi = (rand.NextDouble() * (2 * Math.PI));
 			var costheta = (-1 + (rand.NextDouble() * 2));
@@ -521,7 +532,7 @@ namespace LibreLancer.Render
 			return new Vector3((float)x, (float)y, (float)z);
 		}
 
-		Color3f GetPuffColor()
+        private Color3f GetPuffColor()
 		{
 			var lerpval = rand.NextDouble();
 			var c = Easing.EaseColorRGB(
@@ -535,15 +546,15 @@ namespace LibreLancer.Render
 			return new Color3f(c.R, c.G, c.B);
 		}
 
-        private NebulaInteriorMaterial fillMaterial;
+        private NebulaInteriorMaterial? fillMaterial;
 
-		void RenderFill(CommandBuffer buffer, bool inside, float z)
+        private void RenderFill(CommandBuffer buffer, bool inside, float z)
 		{
 			if (Nebula.ExteriorFill == null) return;
 			Vector3 sz = Vector3.Zero;
-			//Only render ellipsoid and sphere exteriors
-			if (Nebula.Zone.Shape == ShapeKind.Ellipsoid)
-				sz = Nebula.Zone.Size / 2; //we want radius instead of diameter
+			// Only render ellipsoid and sphere exteriors
+			if (Nebula.Zone!.Shape == ShapeKind.Ellipsoid)
+				sz = Nebula.Zone.Size / 2; // we want radius instead of diameter
 			else if (Nebula.Zone.Shape == ShapeKind.Sphere)
 				sz =  new Vector3(Nebula.Zone.Size.X);
 			else
@@ -553,7 +564,7 @@ namespace LibreLancer.Render
             if (!sysr.Camera.FrustumCheck(sph))
                 return;
 
-            fillMaterial ??= new NebulaInteriorMaterial(sysr.ResourceManager) {Texture = Nebula.ExteriorFill, Dc = Nebula.FogColor};
+            fillMaterial ??= new NebulaInteriorMaterial(sysr.ResourceManager, Nebula.ExteriorFill, Nebula.FogColor);
             var transform = Matrix4x4.CreateScale(sz) * Nebula.Zone.RotationMatrix * Matrix4x4.CreateTranslation(p);
             var world = buffer.WorldBuffer.SubmitMatrix(ref transform);
 

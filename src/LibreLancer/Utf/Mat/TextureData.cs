@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,15 +11,13 @@ namespace LibreLancer.Utf.Mat
 {
 	public class TextureData
 	{
-        public static bool Bitch = false;
-
 		private string type;
 		private string texname;
         private ArraySegment<byte>? data;
-        public Texture Texture { get; private set; }
-		Dictionary<int, byte[]> levels;
+        public Texture? Texture { get; private set; }
+        private Dictionary<int, byte[]>? levels;
 
-		public TextureData (LeafNode node, string texname, bool isTgaMips)
+		public TextureData(LeafNode node, string texname, bool isTgaMips)
 		{
 			this.type = node.Name;
 			this.texname = texname;
@@ -29,8 +26,7 @@ namespace LibreLancer.Utf.Mat
 				levels = new Dictionary<int, byte[]>();
 		}
 
-
-        public ImageResource GetImageResource()
+        public ImageResource? GetImageResource()
         {
             if (data != null && data.Value.Count > 0)
             {
@@ -39,6 +35,7 @@ namespace LibreLancer.Utf.Mat
                 else if (type.StartsWith("mip", StringComparison.OrdinalIgnoreCase))
                     return new ImageResource(ImageType.TGA, data.Value.ToArray());
             }
+
             return null;
         }
 
@@ -56,19 +53,17 @@ namespace LibreLancer.Utf.Mat
 						var tga = ImageLib.TGA.TextureFromStream(context, stream, levels != null);
                         if(tga == null) {
                             FLLog.Error("Mat","Texture " + texname + "\\MIP0" + " is bad");
-                            if (Bitch) throw new Exception("Your texture data is bad, fix it!\n" +
-                                                           texname + "\\MIP0 to be exact");
                             Texture = null;
                             return;
                         }
 						if (levels != null)
 						{
 							foreach (var lv in levels)
-							{
-								using (var s2 = new MemoryStream(lv.Value)) {
-									ImageLib.TGA.TextureFromStream(context, s2, true, tga, lv.Key);
-								}
-							}
+                            {
+                                using var s2 = new MemoryStream(lv.Value);
+                                ImageLib.TGA.TextureFromStream(context, s2, true, tga, lv.Key);
+
+                            }
 						}
 						Texture = tga;
 						levels = null;
@@ -84,16 +79,24 @@ namespace LibreLancer.Utf.Mat
 
 		public void SetLevel(Node node)
 		{
-			var n = node as LeafNode;
-			if (n == null)
-				throw new Exception("Invalid node in TextureData MIPS " + node.Name);
-			var name = n.Name.Trim();
+            if (node is not LeafNode n)
+            {
+                throw new Exception("Invalid node in TextureData MIPS " + node.Name);
+            }
+
+            var name = n.Name.Trim();
 			if (!name.StartsWith("mip", StringComparison.OrdinalIgnoreCase))
-				throw new Exception("Invalid node in TextureData MIPS " + node.Name);
-			var mipLevel = int.Parse(name.Substring(3));
+            {
+                throw new Exception("Invalid node in TextureData MIPS " + node.Name);
+            }
+
+            var mipLevel = int.Parse(name.Substring(3));
 			if (mipLevel == 0)
-				return;
-			levels.Add(mipLevel, n.ByteArrayData);
+            {
+                return;
+            }
+
+            levels?.Add(mipLevel, n.ByteArrayData);
 		}
 
 		public override string ToString ()

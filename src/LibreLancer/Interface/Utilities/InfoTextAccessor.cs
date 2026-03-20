@@ -4,12 +4,12 @@
 
 namespace LibreLancer.Interface
 {
-    //Helper class for using Strids with fallback
-    class InfoTextAccessor
+    // Helper class for using Strids with fallback
+    internal class InfoTextAccessor
     {
         private int _strid;
         private int _infoid;
-        public string Text { get; set; }
+        public string? Text { get; set; }
 
         public int Strid
         {
@@ -34,6 +34,7 @@ namespace LibreLancer.Interface
         }
 
         private bool _allCaps = false;
+
         public bool AllCaps
         {
             get => _allCaps;
@@ -44,25 +45,31 @@ namespace LibreLancer.Interface
                 _idsText = null;
             }
         }
-        
-        private string _idsText = null;
+
+        private string? _idsText = null;
         private bool _idsTried = false;
-        public string GetText(UiContext context)
+
+        public string? GetText(UiContext context)
         {
             if (Strid == 0 && InfoId == 0) return Text;
             if (context.Data.Infocards == null) return Text;
             if (_idsText != null) return _idsText;
             if (_idsTried) return Text;
-            if (Strid != 0) {
+
+            if (Strid != 0)
+            {
                 _idsTried = true;
                 _idsText = context.Data.Infocards.GetStringResource(Strid);
+
                 if (!string.IsNullOrEmpty(_idsText))
                 {
                     if (_allCaps) _idsText = _idsText.ToUpper();
                     return _idsText;
                 }
             }
-            if (InfoId != 0) {
+
+            if (InfoId != 0)
+            {
                 _idsTried = true;
                 var xml = context.Data.Infocards.GetXmlResource(InfoId);
                 if (xml == null) return Text;
@@ -71,6 +78,7 @@ namespace LibreLancer.Interface
                 _idsText = _idsText.ToUpper();
                 return _idsText;
             }
+
             return Text;
         }
     }

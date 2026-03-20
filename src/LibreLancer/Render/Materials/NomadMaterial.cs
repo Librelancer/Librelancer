@@ -26,7 +26,13 @@ namespace LibreLancer.Render.Materials
 
 		public float Oc = 1f;
 
-        public NomadMaterial(ResourceManager library) : base(library) { }
+        public NomadMaterial(ResourceManager library, string dtSampler, string btSampler, string ntSampler) :
+            base(library)
+        {
+            DtSampler = dtSampler;
+            BtSampler = btSampler;
+            NtSampler = ntSampler;
+        }
 
 		public override bool IsTransparent
 		{
@@ -43,13 +49,13 @@ namespace LibreLancer.Render.Materials
 			rstate.BlendMode = BlendMode.Normal;
             var shader = AllShaders.Nomad.Get(0);
             SetWorld(shader);
-            //Colors
-            //Dc unused in shader rn (investigate)
-			//Dt
+            // Colors
+            // Dc unused in shader rn (investigate)
+			// Dt
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);
-			//Nt
+			// Nt
 			BindTexture(rstate, 1, NtSampler ?? "NomadRGB1_NomadAlpha1", 1, NtFlags);
-			//Bt
+			// Bt
             // not implemented
             // materialanim needs check for impl?
             rstate.Shader = shader;

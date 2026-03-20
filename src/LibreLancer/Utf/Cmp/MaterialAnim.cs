@@ -9,7 +9,7 @@ namespace LibreLancer.Utf.Cmp
 	{
 		public int MACount;
 		public int MAFlags;
-		public float[] MADeltas;
+		public float[] MADeltas = [];
 
 		public MaterialAnim(IntermediateNode node)
 		{
@@ -18,7 +18,7 @@ namespace LibreLancer.Utf.Cmp
 				if (child is IntermediateNode)
 					throw new Exception("Invalid node in MaterialAnim " + child.Name);
 				var leaf = child as LeafNode;
-				switch (leaf.Name.ToLowerInvariant())
+				switch (leaf!.Name.ToLowerInvariant())
 				{
 					case "macount":
 						MACount = leaf.Int32ArrayData [0];
@@ -30,7 +30,7 @@ namespace LibreLancer.Utf.Cmp
 						MADeltas = leaf.SingleArrayData;
 						break;
 					case "makeys":
-						//TODO: MAKeys
+						// TODO: MAKeys
 						break;
 				}
 			}
@@ -64,17 +64,17 @@ namespace LibreLancer.Utf.Cmp
 				return vScale;
 			}
 		}
-		//5 floats per frame
-		//time
-		//u offset velocity
-		//v offset velocity
-		//u scale velocity
-		//v scale velocity
+		// 5 floats per frame
+		// time
+		// u offset velocity
+		// v offset velocity
+		// u scale velocity
+		// v scale velocity
 
-		float uOffset = 0;
-		float vOffset = 0;
-		float uScale = 1;
-		float vScale = 1;
+        private float uOffset = 0;
+        private float vOffset = 0;
+        private float uScale = 1;
+        private float vScale = 1;
 		/// <summary>
 		/// Update the MaterialAnim.
 		/// </summary>
@@ -93,10 +93,10 @@ namespace LibreLancer.Utf.Cmp
                 float vVelocity = MADeltas[k + 2];
                 float uVelocityScale = MADeltas[k + 3];
                 float vVelocityScale = MADeltas[k + 4];
-                //loop from Beginning
+                // loop from Beginning
                 float t = totalTime;
                 while (t > duration) t -= duration;
-                //process anim
+                // process anim
                 uOffset += t * uVelocity;
                 vOffset += t * vVelocity;
                 uScale *= 1 + (t * uVelocityScale);

@@ -20,44 +20,63 @@ namespace LibreLancer.Thn.Events
                 FLLog.Error("Thn", "Entity " + Targets[0] + " does not exist");
                 return;
             }
+
             if (obj.Engine != null)
             {
                 obj.Engine.Active = true;
-                instance.AddProcessor(new StopEngine() { Duration = Duration, Fx = obj.Engine });
+                instance.AddProcessor(new StopEngine(obj.Engine, Duration));
                 return;
             }
+
             if (obj.Object == null)
             {
                 FLLog.Error("Thn", "Entity " + Targets[0] + " null renderer");
                 return;
             }
-            var r = (ParticleEffectRenderer)obj.Object.RenderComponent;
+            
+            var r = (ParticleEffectRenderer)obj.Object.RenderComponent!;
             r.Active = true;
-            instance.AddProcessor(new StopPSys() { Duration = Duration, Fx = r });
+            instance.AddProcessor(new StopPSys(r, Duration));
         }
 
-        class StopEngine : ThnEventProcessor
+        private class StopEngine : ThnEventProcessor
         {
-            double time;
+            private double time;
             public double Duration;
             public CEngineComponent Fx;
+
+            public StopEngine(CEngineComponent fx, double duration)
+            {
+                Fx = fx;
+                Duration = duration;
+            }
+
             public override bool Run(double delta)
             {
                 time += delta;
+
                 if(time >= Duration)
                 {
                     Fx.Active = false;
                     return false;
                 }
+
                 return true;
             }
         }
 
-        class StopPSys : ThnEventProcessor
+        private class StopPSys : ThnEventProcessor
         {
-            double time;
+            private double time;
             public double Duration;
             public ParticleEffectRenderer Fx;
+
+            public StopPSys(ParticleEffectRenderer fx, double duration)
+            {
+                Fx = fx;
+                Duration = duration;
+            }
+
             public override bool Run(double delta)
             {
                 time += delta;

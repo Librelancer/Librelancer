@@ -11,27 +11,27 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ListItem : UiWidget
     {
-        public Panel ItemA { get; set; }
-        public Panel ItemB { get; set; }
+        public Panel? ItemA { get; set; }
+        public Panel? ItemB { get; set; }
 
         public float ItemMarginX { get; set; }
-        public UiRenderable SelectedBorder { get; set; }
-        public UiRenderable HoverBorder { get; set; }
-        
+        public UiRenderable? SelectedBorder { get; set; }
+        public UiRenderable? HoverBorder { get; set; }
+
         private RectangleF rectangleA;
         private RectangleF rectangleB;
 
         public bool Selected = false;
         public bool DoSelect = false;
-        
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             Update(context, myPos);
             myPos = AnimatedPosition(myPos);
             var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            
-            //layout children
+
+            // layout children
             float x = 0;
             if (ItemA != null) {
                 ItemA.Height = Height;
@@ -39,9 +39,9 @@ namespace LibreLancer.Interface
                 ItemA.Y = 0;
                 x = ItemA.Width;
                 if (ItemB == null) ItemA.Width = Width;
-                rectangleA = new RectangleF(myPos.X, myPos.Y, ItemA.Width, Height); 
+                rectangleA = new RectangleF(myPos.X, myPos.Y, ItemA.Width, Height);
             }
-            
+
             x += ItemMarginX;
             if (ItemB != null)
             {
@@ -117,7 +117,7 @@ namespace LibreLancer.Interface
             Background?.Draw(context, myRectangle);
             ItemA?.Render(context, myRectangle);
             ItemB?.Render(context, myRectangle);
-            UiRenderable border = Border;
+            UiRenderable? border = Border;
             if (Enabled)
             {
                 if (Selected) border = SelectedBorder ?? border;

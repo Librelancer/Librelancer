@@ -15,7 +15,7 @@ namespace LibreLancer.Utf.Ale
         public AlchemyCurveAnimation()
         {
             Type = EasingTypes.Linear;
-            Items = new();
+            Items = [];
         }
 
         public AlchemyCurveAnimation(float value)
@@ -30,10 +30,12 @@ namespace LibreLancer.Utf.Ale
 			int scount = reader.ReadByte ();
 			Items = new List<AlchemyCurve> (scount);
 			for (int i = 0; i < scount; i++) {
-				var cpkf = new AlchemyCurve ();
-				cpkf.SParam = reader.ReadSingle ();
-				cpkf.Value = reader.ReadSingle ();
-				ushort loop = reader.ReadUInt16 ();
+				var cpkf = new AlchemyCurve
+                {
+                    SParam = reader.ReadSingle (),
+                    Value = reader.ReadSingle ()
+                };
+                ushort loop = reader.ReadUInt16 ();
 				cpkf.Flags = (LoopFlags)loop;
 				ushort lcnt = reader.ReadUInt16 ();
 				if (loop != 0 || lcnt != 0) {
@@ -74,12 +76,12 @@ namespace LibreLancer.Utf.Ale
 
         public float GetValue(float sparam, float time)
 		{
-			//1 item, 1 value
+			// 1 item, 1 value
 			if (Items.Count == 1) {
 				return Items [0].GetValue (time);
 			}
 			//Find 2 keyframes to interpolate between
-			AlchemyCurve c1 = null, c2 = null;
+			AlchemyCurve? c1 = null, c2 = null;
 			for (int i = 0; i < Items.Count - 1; i++) {
 				if (sparam >= Items [i].SParam && sparam <= Items [i + 1].SParam) {
 					c1 = Items [i];
@@ -98,7 +100,7 @@ namespace LibreLancer.Utf.Ale
 				return Items [Items.Count - 1].GetValue(time);
 			}
 			//Interpolate between SParams
-            if (Math.Abs(c1.SParam - c2.SParam) < float.Epsilon) return c2.GetValue(time);
+            if (Math.Abs(c1.SParam - c2!.SParam) < float.Epsilon) return c2.GetValue(time);
             var v1 = c1.GetValue (time);
 			var v2 = c2.GetValue (time);
 			return Easing.Ease (Type, sparam, c1.SParam, c2.SParam, v1, v2);

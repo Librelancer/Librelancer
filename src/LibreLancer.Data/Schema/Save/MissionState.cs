@@ -3,8 +3,8 @@ using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Schema.Save;
 
-public record struct MissionRtc(string Script, bool Repeatable);
-public record struct MissionAmbient(string Script, HashValue Room, HashValue Base);
+public record struct MissionRtc(string? Script, bool Repeatable);
+public record struct MissionAmbient(string? Script, HashValue Room, HashValue Base);
 
 [ParsedSection]
 public partial class MissionState : IWriteSection

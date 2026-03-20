@@ -19,22 +19,29 @@ namespace LibreLancer.Net.Protocol
         private ReadOnlySpan<byte> array;
         private int bitsOffset;
         public int BitsLeft => (array.Length * 8) - bitsOffset;
-        public NetHpidReader HpidReader;
+        public NetHpidReader? HpidReader;
 
-        public BitReader(ReadOnlySpan<byte> array, int bitsOffset, NetHpidReader hpidReader = null)
+        public BitReader(ReadOnlySpan<byte> array, int bitsOffset, NetHpidReader? hpidReader = null)
         {
             this.array = array;
             this.bitsOffset = bitsOffset;
             this.HpidReader = hpidReader;
         }
 
-        public string GetHpid()
+        public string? GetHpid()
         {
-            if (HpidReader == null) throw new InvalidOperationException();
+            if (HpidReader == null)
+            {
+                throw new InvalidOperationException();
+            }
+
             var idx = GetVarUInt32();
-            if (idx == 0) return null;
-            else if (idx == 1) return "";
-            else return HpidReader.GetString(idx - 2);
+            return idx switch
+            {
+                0 => null,
+                1 => "",
+                _ => HpidReader.GetString(idx - 2)
+            };
         }
 
         public int GetInt()
@@ -43,7 +50,7 @@ namespace LibreLancer.Net.Protocol
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        struct F2I
+        private struct F2I
         {
             [FieldOffset(0)] public float f;
             [FieldOffset(0)] public uint i;
@@ -71,7 +78,7 @@ namespace LibreLancer.Net.Protocol
             long b = GetByte();
             ulong a = (ulong) (b & 0x7f);
             int extraCount = 0;
-            //first extra
+            // first extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -79,7 +86,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //second extra
+            // second extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -87,7 +94,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //third extra
+            // third extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -95,7 +102,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //fourth extra
+            // fourth extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -103,7 +110,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //fifth extra
+            // fifth extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -111,7 +118,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //sixth extra
+            // sixth extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -119,7 +126,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //seventh extra
+            // seventh extra
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -127,7 +134,7 @@ namespace LibreLancer.Net.Protocol
                 extraCount++;
             }
 
-            //Full ulong
+            // Full ulong
             if ((b & 0x80) == 0x80)
             {
                 b = GetByte();
@@ -165,7 +172,6 @@ namespace LibreLancer.Net.Protocol
 
             return a;
         }
-
 
         public Vector3 GetNormal()
         {

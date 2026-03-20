@@ -10,53 +10,41 @@ using LibreLancer.World.Components;
 namespace LibreLancer.Client.Components;
 
 public record struct VisibleBeam(GameObject Target, float Distance, int Seed);
-public class CTractorComponent : GameComponent
+public class CTractorComponent(TractorEquipment equipment, GameObject parent) : GameComponent(parent)
 {
-    public TractorEquipment Equipment;
+    public TractorEquipment Equipment = equipment;
 
-    private TractorBeamRenderer renderer = new();
-
-    private static int beamSeed = 0;
-
-
-    public CTractorComponent(TractorEquipment equipment, GameObject parent) : base(parent)
-    {
-        Equipment = equipment;
-    }
+    private readonly TractorBeamRenderer renderer = new();
+    private static int _beamSeed = 0;
 
     public void AddBeam(GameObject target)
     {
-        renderer.TractorBeams.Add(new(target, 0, Interlocked.Increment(ref beamSeed)));
+        renderer.TractorBeams.Add(new(target, 0, Interlocked.Increment(ref _beamSeed)));
     }
 
     public void RemoveBeam(GameObject target)
     {
-        for (int i = 0; i < renderer.TractorBeams.Count; i++)
+        for (var i = 0; i < renderer.TractorBeams.Count; i++)
         {
-            if (renderer.TractorBeams[i].Target == target)
+            if (renderer.TractorBeams[i].Target != target)
             {
-                renderer.TractorBeams.RemoveAt(i);
-                i--;
+                continue;
             }
+
+            renderer.TractorBeams.RemoveAt(i);
+            i--;
         }
     }
 
-    Vector3 GetBeamOrigin()
+    private Vector3 GetBeamOrigin()
     {
-        if (Parent.TryGetComponent<ShipComponent>(out var ship) &&
-            !string.IsNullOrWhiteSpace(ship.Ship.TractorSource))
+        if (!Parent!.TryGetComponent<ShipComponent>(out var ship) || string.IsNullOrWhiteSpace(ship.Ship.TractorSource))
         {
-            var hp = Parent.GetHardpoint(ship.Ship.TractorSource);
-            if (hp != null)
-            {
-                return (hp.Transform * Parent.WorldTransform).Position;
-            }
-            else
-            {
-                return Parent.WorldTransform.Position;
-            }
+            return Parent.WorldTransform.Position;
         }
-        return Parent.WorldTransform.Position;
+
+        var hp = Parent.GetHardpoint(ship.Ship.TractorSource);
+        return hp != null ? (hp.Transform * Parent.WorldTransform).Position : Parent.WorldTransform.Position;
     }
 
     public Vector3 WorldOrigin;
@@ -64,7 +52,7 @@ public class CTractorComponent : GameComponent
 
     public override void Update(double time)
     {
-        for (int i = 0; i < renderer.TractorBeams.Count; i++)
+        for (var i = 0; i < renderer.TractorBeams.Count; i++)
         {
             if (!renderer.TractorBeams[i].Target.Flags.HasFlag(GameObjectFlags.Exists))
             {
@@ -72,19 +60,21 @@ public class CTractorComponent : GameComponent
                 i--;
                 continue;
             }
+
             renderer.TractorBeams[i].Distance += (float)(time * Equipment.Def.ReachSpeed);
         }
+
         renderer.Color = Equipment.Def.Color;
         WorldOrigin = renderer.Origin = GetBeamOrigin();
     }
 
-    public override void Register(PhysicsWorld physics)
+    public override void Register(PhysicsWorld? physics)
     {
-        Parent.ExtraRenderers.Add(renderer);
+        Parent!.ExtraRenderers.Add(renderer);
     }
 
-    public override void Unregister(PhysicsWorld physics)
+    public override void Unregister(PhysicsWorld? physics)
     {
-        Parent.ExtraRenderers.Remove(renderer);
+        Parent!.ExtraRenderers.Remove(renderer);
     }
 }

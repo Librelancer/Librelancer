@@ -15,7 +15,7 @@ namespace LibreLancer.Net.Protocol
         private bool canResize;
         private int bitOffset;
 
-        public NetHpidWriter HpidWriter;
+        public NetHpidWriter? HpidWriter;
 
         public BitWriter(int initialCapacity = 64)
         {
@@ -31,12 +31,25 @@ namespace LibreLancer.Net.Protocol
             this.canResize = canResize;
         }
 
-        public void PutHpid(string hpid)
+        public void PutHpid(string? hpid)
         {
-            if (HpidWriter == null) throw new InvalidOperationException();
-            if (hpid == null) PutVarUInt32(0);
-            else if (hpid == "") PutVarUInt32(1);
-            else PutVarUInt32(HpidWriter.GetIndex(hpid) + 2);
+            if (HpidWriter == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            switch (hpid)
+            {
+                case null:
+                    PutVarUInt32(0);
+                    break;
+                case "":
+                    PutVarUInt32(1);
+                    break;
+                default:
+                    PutVarUInt32(HpidWriter.GetIndex(hpid) + 2);
+                    break;
+            }
         }
 
         public void PutInt(int i) => PutUInt((uint) i, 32);
@@ -49,7 +62,7 @@ namespace LibreLancer.Net.Protocol
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        struct F2I
+        private struct F2I
         {
             [FieldOffset(0)] public float f;
             [FieldOffset(0)] public uint i;
@@ -172,7 +185,6 @@ namespace LibreLancer.Net.Protocol
             }
         }
 
-
         public void PutNormal(Vector3 v)
         {
             v.Normalize();
@@ -258,7 +270,7 @@ namespace LibreLancer.Net.Protocol
             }
         }
 
-        void CheckSize(int nBits)
+        private void CheckSize(int nBits)
         {
             int byteLen = (nBits + 7) >> 3;
             if (buffer.Length < byteLen)
@@ -283,7 +295,6 @@ namespace LibreLancer.Net.Protocol
         }
 
         public byte[] Backing => buffer;
-
 
 
         public int ByteLength => (bitOffset + 7) >> 3;

@@ -4,14 +4,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer;
 
 namespace LibreLancer.Interface
-{ 
+{
     public class Container : UiWidget
     {
         [UiContent]
-        public List<UiWidget> Children { get; set; } = new List<UiWidget>();
+        public List<UiWidget> Children { get; set; } = [];
         public override void Render(UiContext context, RectangleF parentRectangle)
         {
             ProcessAddChildren(context);
@@ -25,8 +26,8 @@ namespace LibreLancer.Interface
             while (addRemoves.TryDequeue(out var ac))
                 ac(context);
         }
-        
-        Queue<Action<UiContext>> addRemoves = new Queue<Action<UiContext>>();
+
+        private Queue<Action<UiContext>> addRemoves = new();
         public void AddChild(UiWidget child)
         {
             addRemoves.Enqueue((ctx) =>
@@ -98,26 +99,35 @@ namespace LibreLancer.Interface
                 child.OnMouseWheel(context, parentRectangle, delta);
         }
 
-        public override UiWidget GetElement(string elementID)
+        public override UiWidget? GetElement(string? elementID)
         {
-            if (string.IsNullOrWhiteSpace(elementID)) return null;
-            if (elementID.Equals(ID, StringComparison.OrdinalIgnoreCase)) return this;
+            if (string.IsNullOrWhiteSpace(elementID))
+            {
+                return null;
+            }
+
+            if (elementID.Equals(ID, StringComparison.OrdinalIgnoreCase))
+            {
+                return this;
+            }
+
             foreach (var child in Children)
             {
-                UiWidget w;
+                UiWidget? w;
                 if ((w = child.GetElement(elementID)) != null) return w;
             }
+
             return null;
         }
 
         public override bool WantsEscape()
         {
-            if (!Visible) return false;
-            if (base.WantsEscape()) return true;
-            foreach(var child in Children)
-                if (child.WantsEscape())
-                    return true;
-            return false;
+            if (!Visible)
+            {
+                return false;
+            }
+
+            return base.WantsEscape() || Children.Any(child => child.WantsEscape());
         }
 
         public override void OnEscapePressed()
@@ -128,5 +138,5 @@ namespace LibreLancer.Interface
                 child.OnEscapePressed();
         }
     }
-    
+
 }

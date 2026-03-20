@@ -6,6 +6,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -20,27 +22,37 @@ namespace LibreLancer.Net
 {
     public class GameNetClient : IPacketConnection
     {
-        bool running = false;
-        IUIThread mainThread;
-        Thread networkThread;
-        private NetManager client;
+        private bool running = false;
+        private IUIThread mainThread;
+        private Thread networkThread = null!;
+        private NetManager client = null!;
         public string AppIdentifier = LNetConst.DEFAULT_APP_IDENT;
 
-        public int MaxSequencedSize => 500;  //Min safe UDP packet size - 8 bytes overhead
-        public event Action<LocalServerInfo> ServerFound;
-        public event Action<bool> AuthenticationRequired;
-        public event Action<DisconnectReason> Disconnected;
+        public int MaxSequencedSize => 500; // Min safe UDP packet size - 8 bytes overhead
+        public event Action<LocalServerInfo>? ServerFound;
+        public event Action<bool>? AuthenticationRequired;
+        public event Action<DisconnectReason>? Disconnected;
         public Guid UUID;
-        ConcurrentQueue<IPacket> packets = new ConcurrentQueue<IPacket>();
-        private HttpClient http;
-        private NetHpidWriter hpidWrite;
+        private ConcurrentQueue<IPacket> packets = new();
+        private HttpClient http = null!;
+        private NetHpidWriter hpidWrite = null!;
+
+        private Stopwatch sw = null!;
+        private List<LocalServerInfo> srvinfo = [];
+
+        private AuthInfo? loginServer;
+        private IPEndPoint loginEndpoint = null!;
+        private bool connecting = true;
 
         public int LossPercent
         {
             get
             {
                 if (running)
+                {
                     return (int) (client?.FirstPeer?.Statistics?.PacketLossPercent ?? 100);
+                }
+
                 return -1;
             }
         }
@@ -50,8 +62,11 @@ namespace LibreLancer.Net
             get
             {
                 if (running)
-                    //LiteNetLib returns Ping as RTT/2 - not the regular measure of ping.
+                    // LiteNetLib returns Ping as RTT/2 - not the regular measure of ping.
+                {
                     return (client?.FirstPeer?.Ping ?? 0) * 2;
+                }
+
                 return -1;
             }
         }
@@ -61,7 +76,10 @@ namespace LibreLancer.Net
             get
             {
                 if (running)
+                {
                     return (int) (client?.Statistics?.BytesSent ?? 0);
+                }
+
                 return 0;
             }
         }
@@ -71,7 +89,10 @@ namespace LibreLancer.Net
             get
             {
                 if (running)
+                {
                     return (int) (client?.Statistics?.BytesReceived ?? 0);
+                }
+
                 return 0;
             }
         }
@@ -80,17 +101,27 @@ namespace LibreLancer.Net
         {
             const float TickMs = (1 / 60.0f) * 1000.0f;
             var ticks = (int) Math.Ceiling(Ping / TickMs);
-            if (ticks < 2) return 2;
-            return (uint)ticks;
+            if (ticks < 2)
+            {
+                return 2;
+            }
+
+            return (uint) ticks;
         }
 
         public void Start()
         {
-            if(running) throw new InvalidOperationException();
+            if (running)
+            {
+                throw new InvalidOperationException();
+            }
+
             running = true;
             networkThread?.Join();
-            networkThread = new Thread(NetworkThread);
-            networkThread.Name = "NetClient";
+            networkThread = new Thread(NetworkThread)
+            {
+                Name = "NetClient"
+            };
             networkThread.Start();
         }
 
@@ -101,7 +132,11 @@ namespace LibreLancer.Net
 
         public void Stop()
         {
-            if(!running) throw new InvalidOperationException();
+            if (!running)
+            {
+                throw new InvalidOperationException();
+            }
+
             running = false;
         }
 
@@ -109,6 +144,7 @@ namespace LibreLancer.Net
             (client?.FirstPeer != null && client.FirstPeer.ConnectionState == ConnectionState.Connected);
 
         private long localPeerRequests;
+
         public void DiscoverLocalPeers()
         {
             if (running)
@@ -119,30 +155,41 @@ namespace LibreLancer.Net
 
         public void DiscoverGlobalPeers()
         {
-            //HTTP?
+            // HTTP?
         }
 
-        bool connecting = true;
         public void Connect(IPEndPoint endPoint)
         {
             ConnectInternal(endPoint, null);
         }
 
-        void ConnectInternal(IPEndPoint endPoint, string token)
+        private void ConnectInternal(IPEndPoint endPoint, string? token)
         {
             hpidWrite = new NetHpidWriter();
-            hpidWrite.OnAddString += s => {
+            hpidWrite.OnAddString += s =>
+            {
                 SendPacket(new AddStringPacket() { ToAdd = s }, PacketDeliveryMethod.ReliableOrdered);
             };
             var dw = new PacketWriter();
             dw.Put(AppIdentifier + GeneratedProtocol.PROTOCOL_HASH);
-            if(!string.IsNullOrEmpty(token))
+            if (!string.IsNullOrEmpty(token))
+            {
                 dw.Put(token);
-            if(!running) throw new InvalidOperationException();
+            }
+
+            if (!running)
+            {
+                throw new InvalidOperationException();
+            }
+
             lock (srvinfo) srvinfo.Clear();
             connecting = true;
             loginServer = null;
-            while (client == null || !client.IsRunning) Thread.Sleep(0);
+            while (client is not { IsRunning: true })
+            {
+                Thread.Sleep(0);
+            }
+
             client.Statistics?.Reset();
             client.Connect(endPoint, dw);
         }
@@ -151,34 +198,37 @@ namespace LibreLancer.Net
         {
             Task.Run(() =>
             {
-                IPEndPoint ep;
-                if (ParseEP(str, out ep))
+                if (ParseEP(str, out var ep))
                 {
                     Connect(ep);
                 }
-                else {
+                else
+                {
                     mainThread.QueueUIThread(() => { Disconnected?.Invoke(DisconnectReason.InvalidEndpoint); });
                 }
             });
         }
 
-        static bool ParseEP(string str, out IPEndPoint endpoint)
+        private static bool ParseEP(string str, out IPEndPoint endpoint)
         {
             endpoint = new IPEndPoint(IPAddress.None, 0);
-            IPAddress ip;
-            if (IPAddress.TryParse(str, out ip))
+
+            if (IPAddress.TryParse(str, out var ip))
             {
                 endpoint = new IPEndPoint(ip, LNetConst.DEFAULT_PORT);
                 return true;
             }
+
             if (str.Contains(":"))
             {
                 var idxOf = str.LastIndexOf(':');
                 var first = str.Remove(idxOf);
                 var last = str.Substring(idxOf + 1);
-                int portNum;
-                if (!int.TryParse(last, out portNum))
+                if (!int.TryParse(last, out var portNum))
+                {
                     return false;
+                }
+
                 if (IPAddress.TryParse(first, out ip))
                 {
                     endpoint = new IPEndPoint(ip, portNum);
@@ -191,28 +241,34 @@ namespace LibreLancer.Net
                         endpoint = new IPEndPoint(ip, portNum);
                         return true;
                     }
+
                     return false;
                 }
             }
+
             if (TryResolve(str, out ip))
             {
                 endpoint = new IPEndPoint(ip, LNetConst.DEFAULT_PORT);
                 return true;
             }
+
             return false;
         }
 
-        static bool TryResolve(string str, out IPAddress addr)
+        private static bool TryResolve(string str, out IPAddress addr)
         {
             addr = IPAddress.None;
+
             try
             {
                 var addresses = Dns.GetHostAddresses(str);
+
                 if (addresses.Length > 0)
                 {
                     addr = addresses[0];
                     return true;
                 }
+
                 return false;
             }
             catch (Exception)
@@ -221,18 +277,19 @@ namespace LibreLancer.Net
             }
         }
 
-        Stopwatch sw;
-        List<LocalServerInfo> srvinfo = new List<LocalServerInfo>();
-
-        private AuthInfo loginServer;
-        private IPEndPoint loginEndpoint;
         public void Login(string username, string password)
         {
-            if (!running || loginServer == null) throw new InvalidOperationException();
+            if (!running || loginServer == null)
+            {
+                throw new InvalidOperationException();
+            }
+
             Task.Run(async () =>
             {
                 var token = await http.Login(loginServer, username, password);
-                if (token != null) {
+
+                if (token != null)
+                {
                     ConnectInternal(loginEndpoint, token);
                 }
                 else
@@ -243,11 +300,11 @@ namespace LibreLancer.Net
             });
         }
 
-        private NetHpidReader hpidReader;
+        private NetHpidReader hpidReader = null!;
 
         public NetHpidReader HpidReader => hpidReader;
 
-        void NetworkThread()
+        private void NetworkThread()
         {
             sw = Stopwatch.StartNew();
             http = new HttpClient();
@@ -259,62 +316,83 @@ namespace LibreLancer.Net
                 IPv6Enabled = true,
                 NatPunchEnabled = true,
                 EnableStatistics = true,
-                ChannelsCount =  3
+                ChannelsCount = 3
             };
             listener.NetworkReceiveUnconnectedEvent += (remote, npr, type) =>
             {
-                if (type == UnconnectedMessageType.Broadcast) return;
+                if (type == UnconnectedMessageType.Broadcast)
+                {
+                    return;
+                }
+
                 var msg = new PacketReader(npr);
-                if (msg.GetByte() == 0) {
+
+                if (msg.GetByte() == 0)
+                {
                     lock (srvinfo)
                     {
                         foreach (var info in srvinfo)
                         {
-                            if (info.EndPoint.Equals(remote))
+                            if (!info.EndPoint.Equals(remote))
                             {
-                                var t = sw.ElapsedMilliseconds;
-                                info.Ping = (int)(t - info.LastPingTime);
-                                if (info.Ping < 0) info.Ping = 0;
+                                continue;
+                            }
+
+                            var t = sw.ElapsedMilliseconds;
+                            info.Ping = (int) (t - info.LastPingTime);
+                            if (info.Ping < 0)
+                            {
+                                info.Ping = 0;
                             }
                         }
                     }
                 }
                 else if (ServerFound != null)
                 {
-                    var info = new LocalServerInfo();
-                    info.EndPoint = remote;
-                    info.Unique = msg.GetGuid();
-                    info.EndPoint.Port = (int)msg.GetVariableUInt32();
-                    info.Name = msg.GetString();
-                    info.Description = msg.GetString();
-                    info.DataVersion = msg.GetString();
-                    info.CurrentPlayers = (int)msg.GetVariableUInt32();
-                    info.MaxPlayers = (int)msg.GetVariableUInt32();
-                    info.LastPingTime = sw.ElapsedMilliseconds;
+                    var info = new LocalServerInfo
+                    {
+                        EndPoint = remote,
+                        Unique = msg.GetGuid(),
+                        Name = msg.GetString()!,
+                        Description = msg.GetString()!,
+                        DataVersion = msg.GetString()!,
+                        CurrentPlayers = (int) msg.GetVariableUInt32(),
+                        MaxPlayers = (int) msg.GetVariableUInt32(),
+                        LastPingTime = sw.ElapsedMilliseconds,
+                    };
+
+                    info.EndPoint.Port = (int) msg.GetVariableUInt32();
+
                     PacketWriter writer = new PacketWriter();
                     writer.Put(LNetConst.PING_MAGIC);
                     client.SendUnconnectedMessage(writer, remote);
+
                     lock (srvinfo)
                     {
-                        bool add = true;
-                        for (int i = 0; i < srvinfo.Count; i++)
+                        var add = true;
+
+                        foreach (var infoObj in srvinfo.Where(infoObj => infoObj.Unique == info.Unique))
                         {
-                            if (srvinfo[i].Unique == info.Unique)
+                            add = false;
+
+                            // Prefer IPv6
+                            if (infoObj.EndPoint.AddressFamily != AddressFamily.InterNetwork &&
+                                info.EndPoint.AddressFamily == AddressFamily.InterNetwork)
                             {
-                                add = false;
-                                //Prefer IPv6
-                                if(srvinfo[i].EndPoint.AddressFamily != AddressFamily.InterNetwork &&
-                                   info.EndPoint.AddressFamily == AddressFamily.InterNetwork)
-                                    srvinfo[i].EndPoint = info.EndPoint;
-                                break;
+                                infoObj.EndPoint = info.EndPoint;
                             }
+
+                            break;
                         }
-                        if (add) {
+
+                        if (add)
+                        {
                             srvinfo.Add(info);
                             mainThread.QueueUIThread(() => ServerFound?.Invoke(info));
                         }
                     }
                 }
+
                 npr.Recycle();
             };
             listener.NetworkReceiveEvent += (peer, msg, channel, method) =>
@@ -325,25 +403,28 @@ namespace LibreLancer.Net
 #endif
                     var reader = new PacketReader(msg, hpidReader);
                     var pkt = Packets.Read(reader);
-                    if (pkt is SetStringsPacket strs) {
+
+                    if (pkt is SetStringsPacket strs)
+                    {
                         hpidReader.SetStrings(strs.Data);
                     }
-                    else if (pkt is AddStringPacket add) {
+                    else if (pkt is AddStringPacket add)
+                    {
                         hpidReader.AddString(add.ToAdd);
                     }
                     else if (connecting)
                     {
                         if (pkt is GuidAuthenticationPacket)
                         {
-                            var auth = (GuidAuthenticationPacket) pkt;
                             FLLog.Info("Net", "GUID Request Received");
-                            SendPacket(new AuthenticationReplyPacket() {Guid = this.UUID},
+                            SendPacket(new AuthenticationReplyPacket() { Guid = this.UUID },
                                 PacketDeliveryMethod.ReliableOrdered);
                         }
                         else if (pkt is LoginSuccessPacket)
                         {
                             FLLog.Info("Client", "Login success");
-                            SendPacket(new SetStringsPacket() { Data = hpidWrite.GetData() }, PacketDeliveryMethod.ReliableOrdered);
+                            SendPacket(new SetStringsPacket() { Data = hpidWrite.GetData() },
+                                PacketDeliveryMethod.ReliableOrdered);
                             connecting = false;
                         }
                         else
@@ -366,9 +447,11 @@ namespace LibreLancer.Net
                 }
 #endif
             };
+
             listener.PeerDisconnectedEvent += (peer, info) =>
             {
                 var additional = new PacketReader(info.AdditionalData);
+
                 if (additional.TryGetDisconnectReason(out var reason) &&
                     connecting &&
                     reason == DisconnectReason.TokenRequired &&
@@ -378,6 +461,7 @@ namespace LibreLancer.Net
                     Task.Run(async () =>
                     {
                         loginServer = await http.LoginServerInfo(url);
+
                         if (loginServer != null)
                         {
                             mainThread.QueueUIThread(() => AuthenticationRequired?.Invoke(false));
@@ -394,11 +478,15 @@ namespace LibreLancer.Net
                     mainThread.QueueUIThread(() =>
                     {
                         FLLog.Info("Net", $"Remote disconnected for reason '{reason}' ({info.Reason})");
-                        Disconnected?.Invoke(reason == DisconnectReason.Unknown ? DisconnectReason.ConnectionError : reason);
+                        Disconnected?.Invoke(reason == DisconnectReason.Unknown
+                            ? DisconnectReason.ConnectionError
+                            : reason);
                     });
                 }
             };
+
             client.Start();
+
             while (running)
             {
                 if (Interlocked.Read(ref localPeerRequests) > 0)
@@ -410,13 +498,15 @@ namespace LibreLancer.Net
                     FLLog.Debug("Net", "Sending broadcast");
                     client.SendBroadcast(dw, LNetConst.BROADCAST_PORT);
                 }
-                //ping servers
+
+                // ping servers
                 lock (srvinfo)
                 {
                     foreach (var inf in srvinfo)
                     {
                         var nowMs = sw.ElapsedMilliseconds;
-                        if (nowMs - inf.LastPingTime > 2000) //ping every 2 seconds?
+
+                        if (nowMs - inf.LastPingTime > 2000) // ping every 2 seconds?
                         {
                             inf.LastPingTime = nowMs;
                             var om = new PacketWriter();
@@ -425,10 +515,12 @@ namespace LibreLancer.Net
                         }
                     }
                 }
-                //events
+
+                // events
                 client.PollEvents();
                 Thread.Sleep(1);
             }
+
             client.DisconnectAll();
             client.Stop();
             http.Dispose();
@@ -446,17 +538,16 @@ namespace LibreLancer.Net
 
         public void Shutdown()
         {
-            if (running) Stop();
+            if (running)
+            {
+                Stop();
+            }
         }
 
-        public bool PollPacket(out IPacket packet)
+        public bool PollPacket([MaybeNullWhen(false)] out IPacket packet)
         {
             packet = null;
-            if (!packets.IsEmpty)
-            {
-                return packets.TryDequeue(out packet);
-            }
-            return false;
+            return !packets.IsEmpty && packets.TryDequeue(out packet);
         }
     }
 }

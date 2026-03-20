@@ -12,8 +12,8 @@ namespace LibreLancer.Utf.Anm
 {
     public struct Channel
     {
-        const uint VECTOR_MASK = 0x2 | 0x10;
-        const uint QUATERNION_MASK = 0x4 | 0x20 | 0x40 | 0x80;
+        private const uint VECTOR_MASK = 0x2 | 0x10;
+        private const uint QUATERNION_MASK = 0x4 | 0x20 | 0x40 | 0x80;
 
         private AnmBuffer buffer;
         private uint header = 0;
@@ -100,7 +100,6 @@ namespace LibreLancer.Utf.Anm
             return Unsafe.ReadUnaligned<float>(ref buffer.Buffer[offset]);
         }
 
-
         public readonly Vector3 GetPosition(int index)
         {
             if (index < 0 || index >= FrameCount) throw new IndexOutOfRangeException();
@@ -111,7 +110,6 @@ namespace LibreLancer.Utf.Anm
             var offset = startIdx + (int)(stride * index + field);
             return Unsafe.ReadUnaligned<Vector3>(ref buffer.Buffer[offset]);
         }
-
 
         public readonly Quaternion GetQuaternion(int index)
         {
@@ -132,13 +130,13 @@ namespace LibreLancer.Utf.Anm
             }
         }
 
-        readonly Quaternion GetFullQuat(int offset)
+        private readonly Quaternion GetFullQuat(int offset)
         {
             var xyzw = Unsafe.ReadUnaligned<Vector4>(ref buffer.Buffer[offset]);
             return new Quaternion(xyzw[1], xyzw[2], xyzw[3], xyzw[0]);
         }
 
-        readonly Quaternion GetQuat0x40(int offset)
+        private readonly Quaternion GetQuat0x40(int offset)
         {
             var ha = new Vector3(
                 Unsafe.ReadUnaligned<short>(ref buffer.Buffer[offset]) / 32767f,
@@ -155,7 +153,7 @@ namespace LibreLancer.Utf.Anm
             return new Quaternion(ha, w);
         }
 
-        readonly Quaternion GetQuat0x80(int offset)
+        private readonly Quaternion GetQuat0x80(int offset)
         {
             var ha = new Vector3(
                 Unsafe.ReadUnaligned<short>(ref buffer.Buffer[offset]) / 32767f,
@@ -173,7 +171,7 @@ namespace LibreLancer.Utf.Anm
             );
         }
 
-        readonly int GetIndex(float time, out float t0, out float t1, ref int cursor)
+        private readonly int GetIndex(float time, out float t0, out float t1, ref int cursor)
         {
             if (FrameCount <= 1)
             {
@@ -263,7 +261,7 @@ namespace LibreLancer.Utf.Anm
             return new ChannelFloat(a, b, blend);
         }
 
-        void CalculateStride()
+        private void CalculateStride()
         {
             uint channelType = (header & 0xFF);
             int stride = 0;
@@ -300,7 +298,6 @@ namespace LibreLancer.Utf.Anm
             header = (uint)(stride << 8) | (channelType & 0xFF);
         }
 
-
         public Channel(int channelType, int frameCount, float interval, AnmBuffer buffer)
         {
             header = (uint)channelType;
@@ -312,7 +309,7 @@ namespace LibreLancer.Utf.Anm
 
         public Channel(IntermediateNode root, AnmBuffer buffer)
         {
-            //Fetch from nodes
+            // Fetch from nodes
             this.buffer = buffer;
             ArraySegment<byte> cdata = new ArraySegment<byte>();
             foreach (LeafNode node in root)

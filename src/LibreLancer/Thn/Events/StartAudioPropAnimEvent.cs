@@ -19,10 +19,10 @@ namespace LibreLancer.Thn.Events
         public AnimFlags SetFlags;
         public float Attenuation;
 
-        class SoundPropAnim : ThnEventProcessor
+        private class SoundPropAnim : ThnEventProcessor
         {
-            public StartAudioPropAnimEvent Event;
-            public ThnSound Sound;
+            public required StartAudioPropAnimEvent Event;
+            public required ThnSound Sound;
             public float OrigAttenuation;
 
             private double time;
@@ -40,11 +40,19 @@ namespace LibreLancer.Thn.Events
 
         public StartAudioPropAnimEvent(ThornTable table) : base(table)
         {
-            if (GetProps(table, out var props))
+            if (!GetProps(table, out var props))
             {
-                if (!GetValue(props, "audioprops", out ThornTable audioprops))
-                    return;
-                if (GetValue(audioprops, "attenuation", out Attenuation)) SetFlags |= AnimFlags.Attenuation;
+                return;
+            }
+
+            if (!GetValue<ThornTable>(props, "audioprops", out var audioprops))
+            {
+                return;
+            }
+
+            if (GetValue(audioprops, "attenuation", out Attenuation))
+            {
+                SetFlags |= AnimFlags.Attenuation;
             }
         }
 

@@ -54,7 +54,7 @@ namespace LibreLancer.Utf.Ale
 			{
 				var a = Keyframes[i];
 				var b = Keyframes[i + 1];
-                //TODO: Actually do this properly with InTangent and OutTangent
+                // TODO: Actually do this properly with InTangent and OutTangent
                 if (time >= a.Time && time <= b.Time)
                 {
                     if(Math.Abs(a.Time - b.Time) < float.Epsilon) return b.Value;
@@ -64,7 +64,7 @@ namespace LibreLancer.Utf.Ale
             return Keyframes[Keyframes.Count - 1].Value;
 		}
 
-        static float ValueAt(CurveKeyframe a, CurveKeyframe b, float t)
+        private static float ValueAt(CurveKeyframe a, CurveKeyframe b, float t)
         {
             var dt = b.Time - a.Time;
             var dt2 = dt * 0.5f;

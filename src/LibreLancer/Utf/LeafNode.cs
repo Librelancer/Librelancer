@@ -8,7 +8,6 @@ using System.IO.Compression;
 using System.Text;
 using System.Numerics;
 
-
 namespace LibreLancer.Utf
 {
     public class LeafNode : Node
@@ -19,7 +18,7 @@ namespace LibreLancer.Utf
 
         public bool PossibleCompression { get; private set; }
 
-        public ArraySegment<byte> DataSegment => new ArraySegment<byte>(dataArray, dataStart, dataLength);
+        public ArraySegment<byte> DataSegment => new(dataArray, dataStart, dataLength);
         /// <summary>
         /// Returns a COPY of the data. Use LeafNode.DataSegment where possible
         /// </summary>
@@ -201,7 +200,7 @@ namespace LibreLancer.Utf
             dataLength = len;
         }
 
-        private static readonly byte[] empty = new byte[0];
+        private static readonly byte[] empty = [];
 
         internal static LeafNode LeafV2(string name, BinaryReader reader, byte[] dataBlock)
         {
@@ -215,12 +214,12 @@ namespace LibreLancer.Utf
             if (reader == null) throw new ArgumentNullException("reader");
             if (dataBlock == null) throw new ArgumentNullException("dataBlock");
 
-            //int zero = reader.ReadInt32();
+            // int zero = reader.ReadInt32();
             reader.BaseStream.Seek(sizeof(int), SeekOrigin.Current);
 
             int dataOffset = reader.ReadInt32();
 
-            //int allocatedSize = reader.ReadInt32();
+            // int allocatedSize = reader.ReadInt32();
             reader.BaseStream.Seek(sizeof(int), SeekOrigin.Current);
 
             this.dataStart = dataOffset;
@@ -230,9 +229,9 @@ namespace LibreLancer.Utf
             dataArray = dataBlock;
             PossibleCompression = size != size2;
             this.dataLength = size;
-            //int timestamp1 = reader.ReadInt32();
-            //int timestamp2 = reader.ReadInt32();
-            //int timestamp3 = reader.ReadInt32();
+            // int timestamp1 = reader.ReadInt32();
+            // int timestamp2 = reader.ReadInt32();
+            // int timestamp3 = reader.ReadInt32();
         }
 
         public override string ToString()

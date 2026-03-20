@@ -5,7 +5,7 @@ namespace LibreLancer.Interface;
 [WattleScriptUserData]
 public class CommData
 {
-    public CommAppearance Appearance;
-    public string Source;
-    public string Affiliation;
+    public CommAppearance Appearance = null!;
+    public string Source = "";
+    public string? Affiliation;
 }

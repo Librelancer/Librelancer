@@ -139,7 +139,7 @@ public class FileSystem
         return null;
     }
 
-    public bool FileExists(string filename)
+    public bool FileExists(string? filename)
     {
         if (string.IsNullOrEmpty(filename))
         {

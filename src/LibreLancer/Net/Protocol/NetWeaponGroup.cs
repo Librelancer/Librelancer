@@ -10,8 +10,10 @@ public struct NetWeaponGroup
     public static NetWeaponGroup Read(PacketReader reader)
     {
         var header = reader.GetByte();
-        var wg = new NetWeaponGroup();
-        wg.Index = ((header >> 4) & 0xF);
+        var wg = new NetWeaponGroup
+        {
+            Index = ((header >> 4) & 0xF)
+        };
         Span<byte> bytes = stackalloc byte[16];
         var byteCount = (header & 0xF) + 1;
         for (int i = 0; i < byteCount; i++) {

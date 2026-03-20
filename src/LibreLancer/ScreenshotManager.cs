@@ -12,15 +12,17 @@ namespace LibreLancer
 	public class ScreenshotManager
 	{
 		public bool Running = true;
-		ConcurrentQueue<SaveCommand> toSave = new ConcurrentQueue<SaveCommand>();
-		int index = 0;
-		FreelancerGame g;
-		string screenshotdir;
-		List<string> names = new List<string>();
+        private ConcurrentQueue<SaveCommand> toSave = new();
+        private int index = 0;
+        private FreelancerGame g;
+        private string screenshotdir;
+        private List<string> names = [];
 		public ScreenshotManager(FreelancerGame game)
 		{
-			Thread thr = new Thread(new ThreadStart(SaveThread));
-            thr.Name = "ScreenshotSaver";
+			Thread thr = new Thread(new ThreadStart(SaveThread))
+            {
+                Name = "ScreenshotSaver"
+            };
             thr.Start();
             g = game;
 			screenshotdir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "FreelancerShots");
@@ -41,21 +43,24 @@ namespace LibreLancer
 		}
 		public void Save(string filename, int width, int height, Bgra8[] data)
 		{
-			toSave.Enqueue(new SaveCommand() { Data = data, Filename = filename, Width = width, Height = height });
+			toSave.Enqueue(new SaveCommand(filename, data, width, height));
 		}
-		void SaveThread()
+
+        private void SaveThread()
 		{
 			while (Running)
 			{
-				while (toSave.Count > 0)
-				{
-					SaveCommand s;
-					if (toSave.TryDequeue(out s))
+				while (!toSave.IsEmpty)
+                {
+                    if (!toSave.TryDequeue(out var s))
                     {
-                        using var output = File.Create(s.Filename);
-                        ImageLib.PNG.Save(output, s.Width, s.Height, s.Data, true);
+                        continue;
                     }
-				}
+
+                    using var output = File.Create(s.Filename);
+                    ImageLib.PNG.Save(output, s.Width, s.Height, s.Data, true);
+                }
+
 				Thread.Sleep(100);
 			}
 		}
@@ -63,12 +68,21 @@ namespace LibreLancer
 		{
 			Running = false;
 		}
-		class SaveCommand
+
+        private class SaveCommand
 		{
 			public int Width;
 			public int Height;
 			public string Filename;
 			public Bgra8[] Data;
-		}
+
+            public SaveCommand(string filename, Bgra8[] data, int width, int height)
+            {
+                Width = width;
+                Height = height;
+                Filename = filename;
+                Data = data;
+            }
+        }
 	}
 }

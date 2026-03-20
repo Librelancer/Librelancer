@@ -143,12 +143,12 @@ public class NetPackingTests
     [InlineData("123")]
     [InlineData("")]
     [InlineData("The quick brown fox jumps over the lazy dog.")]
-    public void TryGetStrings(string s)
+    public void TryGetStrings(string? s)
     {
         var pw = new PacketWriter();
         pw.Put(s);
         var pr = new PacketReader(new NetDataReader(pw.GetCopy()));
-        Assert.True(pr.TryGetString(out string s2));
+        Assert.True(pr.TryGetString(out var s2));
         Assert.Equal(s, s2);
     }
 

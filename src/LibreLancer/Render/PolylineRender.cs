@@ -13,11 +13,11 @@ namespace LibreLancer.Render
 {
 	public unsafe class PolylineRender : IDisposable
 	{
-		const int MAX_VERTICES = 32768;
+        private const int MAX_VERTICES = 32768;
 
-        VertexPositionColorTexture* vertices;
-		VertexBuffer vbo;
-        CommandBuffer buffer;
+        private VertexPositionColorTexture* vertices;
+        private VertexBuffer vbo;
+        private CommandBuffer buffer;
         private QuadMaterial material;
 		public PolylineRender(RenderContext rstate, CommandBuffer buffer)
         {
@@ -32,7 +32,6 @@ namespace LibreLancer.Render
             vertices = (VertexPositionColorTexture*)vbo.BeginStreaming();
         }
 
-
         public void StartLine(Texture2D tex, ushort blend)
 		{
 			if (pointsCount != 0)
@@ -40,10 +39,11 @@ namespace LibreLancer.Render
 			texture = tex;
 			this.blend = blend;
 		}
-		ushort blend;
-		Texture2D texture;
-		int vertexCount = 0;
-		int pointsCount = 0;
+
+        private ushort blend;
+        private Texture2D texture = null!;
+        private int vertexCount = 0;
+        private int pointsCount = 0;
 		public void AddPoint(Vector3 a, Vector3 b, Vector2 uv1, Vector2 uv2, Color4 color)
         {
             if (vertices == (VertexPositionColorTexture*) 0)
@@ -69,7 +69,7 @@ namespace LibreLancer.Render
 				return;
 			}
 
-			int startPos = vertexCount - (pointsCount * 2);
+			var startPos = vertexCount - (pointsCount * 2);
 
 			buffer.AddCommand(
                 material, null, buffer.WorldBuffer.Identity, Lighting.Empty,
@@ -95,8 +95,8 @@ namespace LibreLancer.Render
 
         public void AddQuad(Vector3 p0, Vector3 p1, Color4 color)
         {
-            //var mid = (p0 + p1) / 2;
-            //var face = QuaternionEx.LookAt(p0, p1);
+            // var mid = (p0 + p1) / 2;
+            // var face = QuaternionEx.LookAt(p0, p1);
             var dir = (p1 - p0).Normalized();
             var scale = (p1 - p0).Length();
 
@@ -120,7 +120,6 @@ namespace LibreLancer.Render
             Vector2 tBottom = new(T1, T1);
             Vector2 tLeft = new(T0, T1);
             Vector2 tRight = new(T1, T0);
-
 
             vertices[vertexCount++] = new VertexPositionColorTexture(
                 top,
@@ -157,7 +156,7 @@ namespace LibreLancer.Render
 
         public void FinishQuadLine(float z)
         {
-            int startPos = vertexCount - pointsCount;
+            var startPos = vertexCount - pointsCount;
 
             buffer.AddCommand(
                 material, null, buffer.WorldBuffer.Identity, Lighting.Empty,

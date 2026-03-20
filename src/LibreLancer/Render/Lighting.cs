@@ -11,8 +11,8 @@ namespace LibreLancer.Render
 	public struct Lighting
 	{
 		public const int MAX_LIGHTS = 9;
-		public static Lighting Empty = new Lighting() { Enabled = false };
-        byte _enabled;
+		public static Lighting Empty = new() { Enabled = false };
+        private byte _enabled;
         public bool Enabled
         {
             get { return _enabled == 1; }

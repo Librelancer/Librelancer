@@ -16,10 +16,10 @@ namespace LibreLancer.Fx
 
 		public FxConeEmitter (AlchemyNode ale) : base(ale)
 		{
-            MinRadius =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MinRadius);
-            MaxRadius =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxRadius);
-            MinSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MinSpread);
-            MaxSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxSpread);
+            MinRadius =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MinRadius)!;
+            MaxRadius =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxRadius)!;
+            MinSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MinSpread)!;
+            MaxSpread =  ale.GetCurveAnimation(AleProperty.ConeEmitter_MaxSpread)!;
 		}
 
         public FxConeEmitter(string name) : base(name)
@@ -57,20 +57,19 @@ namespace LibreLancer.Fx
 			float s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
 
 			var n = RandomInCone(s_min, s_max);
-            Vector3 translate;
-            Quaternion rotate;
-            if (DoTransform(reference, sparam, globaltime, out translate, out rotate))
+
+            if (DoTransform(reference, sparam, globaltime, out var translate, out var rotate))
             {
                 n = Vector3.Transform(n, rotate);
             }
             var p = n * radius + translate;
-			n *= Pressure.GetValue(sparam, 0);
+			n *= Pressure!.GetValue(sparam, 0);
             particle.Position = p;
             particle.Normal = n;
 		}
 
-		//Different direction to FxCubeEmitter
-        static Vector3 RandomInCone(float minspread, float maxspread)
+		// Different direction to FxCubeEmitter
+        private static Vector3 RandomInCone(float minspread, float maxspread)
 		{
 			var direction = Vector3.UnitY;
             var axis = Vector3.UnitX;

@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -51,15 +50,17 @@ namespace LibreLancer.Utf
 		protected SphereConstruct(SphereConstruct cf) : base(cf) { }
 		public override AbstractConstruct Clone()
 		{
-			var newc = new SphereConstruct(this);
-			newc.Offset = Offset;
-			newc.Min1 = Min1;
-			newc.Min2 = Min2;
-			newc.Min3 = Min3;
-			newc.Max1 = Max1;
-			newc.Max2 = Max2;
-			newc.Max3 = Max3;
-			return newc;
+			var newc = new SphereConstruct(this)
+            {
+                Offset = Offset,
+                Min1 = Min1,
+                Min2 = Min2,
+                Min3 = Min3,
+                Max1 = Max1,
+                Max2 = Max2,
+                Max3 = Max3
+            };
+            return newc;
 		}
         public override void Reset()
         {

@@ -12,7 +12,7 @@ namespace LibreLancer.Utf.Audio
 {
     public class VoiceUtf : UtfFile
     {
-        public Dictionary<uint, byte[]> AudioFiles = new Dictionary<uint, byte[]>();
+        public Dictionary<uint, byte[]> AudioFiles = new();
         public VoiceUtf(string path, Stream stream)
         {
             foreach(var child in parseFile(path, stream))

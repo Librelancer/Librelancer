@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using BepuPhysics;
@@ -20,15 +21,15 @@ namespace LibreLancer.Physics
     {
         private QuickList<CompoundChild> childBuilder;
 
-        private List<CollisionPart> children = new List<CollisionPart>();
-        private PhysicsWorld world;
+        private readonly List<CollisionPart> children = [];
+        private readonly PhysicsWorld world;
 
-        //TODO: Fix
+        // TODO: Fix
         public override float Radius => 10;
 
 
-        private List<Vector3> partOffsets = new List<Vector3>();
-        private List<int> childIndices = new List<int>();
+        private readonly List<Vector3> partOffsets = [];
+        private readonly List<int> childIndices = [];
 
 
         private int refinementCounter = 0;
@@ -37,9 +38,9 @@ namespace LibreLancer.Physics
         public int BepuChildCount =>
             Handle.Exists ? BepuBigCompound().Children.Length : childBuilder.Count;
 
-        //Helper functions for dealing with compound parts
-        //Keeps index order valid for managing the hierarchy
-        void AddCompoundPart(TypedIndex shape, Vector3 offset, Transform3D transform)
+        // Helper functions for dealing with compound parts
+        // Keeps index order valid for managing the hierarchy
+        private void AddCompoundPart(TypedIndex shape, Vector3 offset, Transform3D transform)
         {
             var t = new Transform3D(offset, Quaternion.Identity) * transform;
             partOffsets.Add(offset);
@@ -50,7 +51,7 @@ namespace LibreLancer.Physics
                     LocalOrientation = t.Orientation,
                     LocalPosition = t.Position,
                     ShapeIndex = shape,
-                }, pool, sim.Shapes);
+                }, Pool, Sim.Shapes);
                 childIndices.Add(BepuBigCompound().Children.Length - 1);
             }
             else
@@ -60,11 +61,12 @@ namespace LibreLancer.Physics
                     LocalOrientation = t.Orientation,
                     LocalPosition = t.Position,
                     ShapeIndex = shape
-                }, pool);
+                }, Pool);
                 childIndices.Add(childBuilder.Count - 1);
             }
         }
-        void RemoveCompoundPart(int index)
+
+        private void RemoveCompoundPart(int index)
         {
             if (Handle.Exists)
             {
@@ -76,9 +78,11 @@ namespace LibreLancer.Physics
                     sh.Children[bepuIdx] = sh.Children[movedChildIndex];
                     var old = childIndices.IndexOf(movedChildIndex);
                     if (old != -1)
+                    {
                         childIndices[old] = bepuIdx;
+                    }
                 }
-                pool.Resize(ref sh.Children, sh.Children.Length - 1, sh.Children.Length - 1);
+                Pool.Resize(ref sh.Children, sh.Children.Length - 1, sh.Children.Length - 1);
             }
             else
             {
@@ -88,7 +92,7 @@ namespace LibreLancer.Physics
             partOffsets.RemoveAt(index);
         }
 
-        void UpdateCompoundTransform(int index, Transform3D transform)
+        private void UpdateCompoundTransform(int index, Transform3D transform)
         {
             var t = new Transform3D(partOffsets[index], Quaternion.Identity) * transform;
             if (Handle.Exists)
@@ -107,71 +111,84 @@ namespace LibreLancer.Physics
         public ConvexMeshCollider(PhysicsWorld world)
         {
             this.world = world;
-            this.sim = world.Simulation;
-            this.pool = world.Simulation.BufferPool;
-            childBuilder = new QuickList<CompoundChild>(1, this.pool);
+            this.Sim = world.Simulation;
+            this.Pool = world.Simulation.BufferPool;
+            childBuilder = new QuickList<CompoundChild>(1, this.Pool);
         }
 
         internal override Symmetric3x3 CalculateInverseInertia(float mass)
         {
             var masses = new float[BepuBigCompound().ChildCount];
-            for (int i = 0; i < masses.Length; i++)
+            for (var i = 0; i < masses.Length; i++)
                 masses[i] = mass / masses.Length;
 
-            var inertia = BepuBigCompound().ComputeInertia(masses, sim.Shapes);
+            var inertia = BepuBigCompound().ComputeInertia(masses, Sim.Shapes);
             return inertia.InverseInertiaTensor;
         }
 
-        internal override void Create(Simulation sim, BufferPool pool)
+        internal override void Create(Simulation simulation, BufferPool bufferPool)
         {
-            if (!Handle.Exists)
+            if (Handle.Exists)
             {
-                childBuilder.Compact(pool);
-                var compound = new BigCompound(childBuilder.Span.Slice(0, childBuilder.Count), world.Simulation.Shapes, world.BufferPool);
-                Handle = sim.Shapes.Add(compound);
-                childBuilder = new QuickList<CompoundChild>();
+                return;
             }
+
+            childBuilder.Compact(bufferPool);
+            var compound = new BigCompound(childBuilder.Span.Slice(0, childBuilder.Count), world.Simulation.Shapes, world.BufferPool);
+            Handle = simulation.Shapes.Add(compound);
+            childBuilder = new QuickList<CompoundChild>();
         }
 
-        ref BigCompound BepuBigCompound()
+        private ref BigCompound BepuBigCompound()
         {
-            return ref sim.Shapes.GetShape<BigCompound>(Handle.Index);
+            return ref Sim.Shapes.GetShape<BigCompound>(Handle.Index);
         }
 
         public bool Dump = false;
 
-        public bool AddPart(uint provider, ConvexMeshId meshId, Transform3D localTransform, object tag)
+        public bool AddPart(uint provider, ConvexMeshId meshId, Transform3D localTransform, object? tag)
         {
             var hulls = world.GetConvexShapes(provider, meshId);
-            if (hulls.Length == 0) return false;
+            if (hulls.Length == 0)
+            {
+                return false;
+            }
+
             var pt = new CollisionPart() {Tag = tag, Index = childIndices.Count, Count = hulls.Length};
             foreach (var h in hulls)
             {
                 AddCompoundPart(h.Shape, h.Center, localTransform);
             }
             children.Add(pt);
-            if (Handle.Exists) {
-                BepuBigCompound().Tree.RefitAndRefine(pool, refinementCounter++);
-                lastRefinement = refinementCounter;
+
+            if (!Handle.Exists)
+            {
+                return true;
             }
+
+            BepuBigCompound().Tree.RefitAndRefine(Pool, refinementCounter++);
+            lastRefinement = refinementCounter;
             return true;
         }
 
         public void UpdatePart(object tag, Transform3D localTransform)
         {
-            foreach (var part in children)
+            foreach (var part in children.Where(part => part.Tag == tag))
             {
-                if (part.Tag == tag)
+                if (part.CurrentTransform == localTransform)
                 {
-                    if (part.CurrentTransform == localTransform) return;
-                    part.CurrentTransform = localTransform;
-                    for (int i = part.Index; i < (part.Index + part.Count); i++)
-                    {
-                        UpdateCompoundTransform(i, localTransform);
-                    }
-                    break;
+                    return;
                 }
+
+                part.CurrentTransform = localTransform;
+                for (var i = part.Index; i < (part.Index + part.Count); i++)
+                {
+                    UpdateCompoundTransform(i, localTransform);
+                }
+
+                break;
             }
+
             if (Handle.Exists)
             {
                 refinementCounter++;
@@ -180,67 +197,81 @@ namespace LibreLancer.Physics
 
         public void RemovePart(object tag)
         {
-            for(int i = 0; i < children.Count; i++)
+            for(var i = 0; i < children.Count; i++)
             {
                 var part = children[i];
-                if(part.Tag == tag)
+
+                if (part.Tag != tag)
                 {
-                    for(int j = i+1; j < children.Count; j++)
-                    {
-                        children[j].Index -= part.Count;
-                    }
-                    int k = 0;
-                    while(k < part.Count)
-                    {
-                        RemoveCompoundPart(part.Index);
-                        k++;
-                    }
-                    children.RemoveAt(i);
-                    i--;
+                    continue;
                 }
+
+                for(var j = i+1; j < children.Count; j++)
+                {
+                    children[j].Index -= part.Count;
+                }
+                var k = 0;
+                while(k < part.Count)
+                {
+                    RemoveCompoundPart(part.Index);
+                    k++;
+                }
+                children.RemoveAt(i);
+                i--;
             }
-            if (Handle.Exists) {
-                BepuBigCompound().Tree.RefitAndRefine(pool, refinementCounter++);
-                lastRefinement = refinementCounter;
+
+            if (!Handle.Exists)
+            {
+                return;
             }
+
+            BepuBigCompound().Tree.RefitAndRefine(Pool, refinementCounter++);
+            lastRefinement = refinementCounter;
         }
 
         internal override void Draw(Matrix4x4 transform, IDebugRenderer renderer)
         {
             ref var sh = ref BepuBigCompound();
-            for (int sidx = 0; sidx < sh.Children.Length; sidx++)
+            for (var sidx = 0; sidx < sh.Children.Length; sidx++)
             {
                 var childTransform = Matrix4x4.CreateFromQuaternion(sh.Children[sidx].LocalOrientation) *
                                      Matrix4x4.CreateTranslation(sh.Children[sidx].LocalPosition)
                                      * transform;
-                if (sh.Children[sidx].ShapeIndex.Type == Triangle.Id)
+
+                switch (sh.Children[sidx].ShapeIndex.Type)
                 {
-                    ref var tr = ref world.Simulation.Shapes.GetShape<Triangle>(sh.Children[sidx].ShapeIndex.Index);
-                    var a = Vector3.Transform(tr.A, childTransform);
-                    var b = Vector3.Transform(tr.B, childTransform);
-                    var c = Vector3.Transform(tr.C, childTransform);
-                    renderer.DrawLine(a, b, Color4.Red);
-                    renderer.DrawLine(b, c, Color4.Red);
-                    renderer.DrawLine(a, c, Color4.Red);
-                }
-                else if (sh.Children[sidx].ShapeIndex.Type == ConvexHull.Id)
-                {
-                    ref var hull = ref world.Simulation.Shapes.GetShape<ConvexHull>(sh.Children[sidx].ShapeIndex.Index);
-                    for (int i = 0; i < hull.FaceToVertexIndicesStart.Length; ++i)
+                    case Triangle.Id:
                     {
-                        hull.GetVertexIndicesForFace(i, out var faceVertexIndices);
-                        hull.GetPoint(faceVertexIndices[0], out var faceOrigin);
-                        hull.GetPoint(faceVertexIndices[1], out var previousEdgeEnd);
-                        for (int j = 2; j < faceVertexIndices.Length; ++j)
+                        ref var tr = ref world.Simulation.Shapes.GetShape<Triangle>(sh.Children[sidx].ShapeIndex.Index);
+                        var a = Vector3.Transform(tr.A, childTransform);
+                        var b = Vector3.Transform(tr.B, childTransform);
+                        var c = Vector3.Transform(tr.C, childTransform);
+                        renderer.DrawLine(a, b, Color4.Red);
+                        renderer.DrawLine(b, c, Color4.Red);
+                        renderer.DrawLine(a, c, Color4.Red);
+                        break;
+                    }
+                    case ConvexHull.Id:
+                    {
+                        ref var hull = ref world.Simulation.Shapes.GetShape<ConvexHull>(sh.Children[sidx].ShapeIndex.Index);
+                        for (var i = 0; i < hull.FaceToVertexIndicesStart.Length; ++i)
                         {
-                            var a = Vector3.Transform(faceOrigin, childTransform);
-                            var b = Vector3.Transform(previousEdgeEnd, childTransform);
-                            hull.GetPoint(faceVertexIndices[j], out previousEdgeEnd);
-                            var c = Vector3.Transform(previousEdgeEnd, childTransform);
-                            renderer.DrawLine(a, b, Color4.White);
-                            renderer.DrawLine(b, c, Color4.White);
-                            renderer.DrawLine(a, c, Color4.White);
+                            hull.GetVertexIndicesForFace(i, out var faceVertexIndices);
+                            hull.GetPoint(faceVertexIndices[0], out var faceOrigin);
+                            hull.GetPoint(faceVertexIndices[1], out var previousEdgeEnd);
+                            for (var j = 2; j < faceVertexIndices.Length; ++j)
+                            {
+                                var a = Vector3.Transform(faceOrigin, childTransform);
+                                var b = Vector3.Transform(previousEdgeEnd, childTransform);
+                                hull.GetPoint(faceVertexIndices[j], out previousEdgeEnd);
+                                var c = Vector3.Transform(previousEdgeEnd, childTransform);
+                                renderer.DrawLine(a, b, Color4.White);
+                                renderer.DrawLine(b, c, Color4.White);
+                                renderer.DrawLine(a, c, Color4.White);
+                            }
                         }
+
+                        break;
                     }
                 }
             }
@@ -248,16 +279,18 @@ namespace LibreLancer.Physics
 
         public void FinishUpdatePart()
         {
-            if (Handle.Exists && refinementCounter != lastRefinement)
+            if (!Handle.Exists || refinementCounter == lastRefinement)
             {
-                BepuBigCompound().Tree.Refit();
-                lastRefinement = refinementCounter;
+                return;
             }
+
+            BepuBigCompound().Tree.Refit();
+            lastRefinement = refinementCounter;
         }
 
-        class CollisionPart
+        private class CollisionPart
         {
-            public object Tag;
+            public object? Tag;
             public int Index = 0;
             public int Count = 0;
             public Transform3D CurrentTransform;

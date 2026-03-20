@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.IO;
 
@@ -18,14 +17,14 @@ namespace LibreLancer.Utf.Vms
         public ushort StartVertex { get; private set; }
         public ushort EndVertex { get; private set; }
         public ushort NumRefVertices { get; private set; }
-        public ushort Padding { get; private set; } //0x00CC
+        public ushort Padding { get; private set; } // 0x00CC
 
         public int TriangleStart { get; private set; }
 
         public TMeshHeader(BinaryReader reader, int triangleStartOffset)
         {
             if (reader == null) throw new ArgumentNullException(nameof(reader));
-            
+
             MaterialCrc = reader.ReadUInt32();
             StartVertex = reader.ReadUInt16();
             EndVertex = reader.ReadUInt16();

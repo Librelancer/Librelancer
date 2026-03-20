@@ -10,11 +10,11 @@ namespace LibreLancer.Net.Protocol;
 public class PacketWriter
 {
     private NetDataWriter writer;
-    private NetHpidWriter hpids;
+    private NetHpidWriter? hpids;
 
-    public NetHpidWriter HpidWriter => hpids;
+    public NetHpidWriter? HpidWriter => hpids;
 
-    public PacketWriter(NetDataWriter writer, NetHpidWriter hpids = null)
+    public PacketWriter(NetDataWriter writer, NetHpidWriter? hpids = null)
     {
         this.writer = writer;
         this.hpids = hpids;
@@ -30,7 +30,7 @@ public class PacketWriter
         return pw.writer;
     }
 
-    public void Put(ObjectName on)
+    public void Put(ObjectName? on)
     {
         if (on == null)
         {
@@ -60,17 +60,17 @@ public class PacketWriter
 
     public void PutBigVarUInt32(uint u)
     {
-        if (u <= 32767) //15 bits
+        if (u <= 32767) // 15 bits
         {
             writer.Put((ushort)u);
         }
-        else if (u <= 4227071) //4194303 22 bits + 32768
+        else if (u <= 4227071) // 4194303 22 bits + 32768
         {
             u -= 32768;
             writer.Put((ushort)((u & 0x7FFF) | 0x8000));
             writer.Put((byte)((u >> 15) & 0x7f));
         }
-        else if (u <= 541097983) //536870911 29 bits + 4227072
+        else if (u <= 541097983) // 536870911 29 bits + 4227072
         {
             u -= 4227072;
             writer.Put((ushort)((u & 0x7FFF) | 0x8000));
@@ -216,25 +216,31 @@ public class PacketWriter
         writer.Put(vec.Z);
     }
 
-    public void PutHpid(string hpid)
+    public void PutHpid(string? hpid)
     {
-        if (hpids == null) throw new InvalidOperationException();
-        if(hpid == null) PutVariableUInt32(0);
-        else if(hpid == "") PutVariableUInt32(1);
-        else PutVariableUInt32(hpids.GetIndex(hpid) + 2);
+        if (hpids == null)
+        {
+            throw new InvalidOperationException();
+        }
+
+        switch (hpid)
+        {
+            case null:
+                PutVariableUInt32(0);
+                break;
+            case "":
+                PutVariableUInt32(1);
+                break;
+            default:
+                PutVariableUInt32(hpids.GetIndex(hpid) + 2);
+                break;
+        }
     }
 
     public void Put(DateTime time)
     {
         Put(time.Kind == DateTimeKind.Local);
-        if (time.Kind == DateTimeKind.Local)
-        {
-            PutVariableInt64(time.ToUniversalTime().Ticks);
-        }
-        else
-        {
-            PutVariableInt64(time.Ticks);
-        }
+        PutVariableInt64(time.Kind == DateTimeKind.Local ? time.ToUniversalTime().Ticks : time.Ticks);
     }
 
     public void Put(double d)
@@ -242,7 +248,7 @@ public class PacketWriter
         writer.Put(d);
     }
 
-    public void Put(string s)
+    public void Put(string? s)
     {
         if (s == null)
         {

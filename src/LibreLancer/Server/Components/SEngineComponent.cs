@@ -7,12 +7,9 @@ using LibreLancer.World;
 
 namespace LibreLancer.Server.Components
 {
-    public class SEngineComponent : GameComponent
+    public class SEngineComponent(GameObject parent, EngineEquipment engine) : GameComponent(parent)
     {
-        public EngineEquipment Engine;
+        public EngineEquipment Engine = engine;
         public float Speed;
-        public SEngineComponent(GameObject parent) : base(parent)
-        {
-        }
     }
 }

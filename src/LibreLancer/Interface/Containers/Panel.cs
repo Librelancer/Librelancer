@@ -11,7 +11,8 @@ namespace LibreLancer.Interface
     public class Panel : Container
     {
         public bool CaptureMouse { get; set; } = true;
-        RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+
+        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             Update(context, myPos);

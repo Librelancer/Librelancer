@@ -26,16 +26,15 @@ namespace LibreLancer.Client.Components
 
         private float MinHealth => Equip.Def.OfflineThreshold * Equip.Def.MaxCapacity;
 
-
         public CShieldComponent(ShieldEquipment equip, GameObject parent) : base(parent)
         {
             this.Equip = equip;
             this.Health = equip.Def.MaxCapacity;
         }
 
-        public void SetShieldHealth(float value, Action<ShieldUpdate> callback = null)
+        public void SetShieldHealth(float value, Action<ShieldUpdate>? callback = null)
         {
-            //Notify important changes
+            // Notify important changes
             if (Health <= -1 && value > 0) {
                 callback?.Invoke(ShieldUpdate.Online);
             }
@@ -46,7 +45,7 @@ namespace LibreLancer.Client.Components
             } else if (value <= 0 && Health > 0) {
                 callback?.Invoke(ShieldUpdate.Failed);
             }
-            //Set value
+            // Set value
             Health = value;
         }
 
@@ -56,15 +55,15 @@ namespace LibreLancer.Client.Components
         {
             if (Health >= MinHealth && !shieldHpActive)
             {
-                if (Parent.Parent.TryGetComponent<ShipComponent>(out var ship)) {
-                    ship.ActivateShieldBubble(Parent.Attachment.Name);
+                if (Parent!.Parent!.TryGetComponent<ShipComponent>(out var ship)) {
+                    ship.ActivateShieldBubble(Parent!.Attachment!.Name);
                 }
                 shieldHpActive = true;
             }
             else if (Health < MinHealth && shieldHpActive)
             {
-                if (Parent.Parent.TryGetComponent<ShipComponent>(out var ship)) {
-                    ship.DeactivateShieldBubble(Parent.Attachment.Name);
+                if (Parent!.Parent!.TryGetComponent<ShipComponent>(out var ship)) {
+                    ship.DeactivateShieldBubble(Parent!.Attachment!.Name);
                 }
                 shieldHpActive = false;
             }

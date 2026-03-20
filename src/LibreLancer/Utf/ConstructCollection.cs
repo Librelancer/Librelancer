@@ -10,7 +10,7 @@ namespace LibreLancer.Utf
 {
     public class ConstructCollection : IList<AbstractConstruct>
     {
-        private List<AbstractConstruct> constructs = new List<AbstractConstruct>();
+        private List<AbstractConstruct> constructs = [];
 
         public void AddNode(IntermediateNode root)
         {
@@ -50,13 +50,14 @@ namespace LibreLancer.Utf
 			return newcol;
 		}
 
-        public AbstractConstruct Find(string name)
+        public AbstractConstruct? Find(string name)
         {
             for(int i = 0; i < constructs.Count; i++)
             {
                 if (constructs[i].ChildName.Equals(name, StringComparison.OrdinalIgnoreCase))
                     return constructs[i];
             }
+
             return null;
         }
 

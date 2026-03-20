@@ -7,32 +7,36 @@ using System.IO;
 
 namespace LibreLancer.Utf.Ale
 {
-	public class AleFile : UtfFile
-	{
-		public ALEffectLib FxLib;
-		public AlchemyNodeLibrary NodeLib;
+    public class AleFile : UtfFile
+    {
+        public ALEffectLib FxLib = null!;
+        public AlchemyNodeLibrary NodeLib = null!;
         public string Path;
-		public AleFile(string file, Stream stream) : this(parseFile(file, stream))
+
+        public AleFile(string file, Stream stream) : this(parseFile(file, stream))
         {
             Path = file;
         }
-		public AleFile (IntermediateNode root)
-		{
-			//TODO: This is ugly
-			foreach (var node in root) {
-				switch (node.Name.ToLowerInvariant ()) {
-				case "aleffectlib":
-					FxLib = new ALEffectLib ((node as IntermediateNode) [0] as LeafNode);
-					break;
-				case "alchemynodelibrary":
-					NodeLib = new AlchemyNodeLibrary ((node as IntermediateNode) [0] as LeafNode);
-					break;
-				default:
-					throw new NotImplementedException (node.Name);
-				}
-			}
+
+        public AleFile(IntermediateNode root)
+        {
+            // TODO: This is ugly
+            foreach (var node in root)
+            {
+                switch (node.Name.ToLowerInvariant())
+                {
+                    case "aleffectlib":
+                        FxLib = new ALEffectLib(((node as IntermediateNode)![0] as LeafNode)!);
+                        break;
+                    case "alchemynodelibrary":
+                        NodeLib = new AlchemyNodeLibrary(((node as IntermediateNode)![0] as LeafNode)!);
+                        break;
+                    default:
+                        throw new NotImplementedException(node.Name);
+                }
+            }
+
             Path = "[utf]";
         }
-	}
+    }
 }
-

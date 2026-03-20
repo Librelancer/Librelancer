@@ -16,16 +16,15 @@ namespace LibreLancer.Server
     public static class SaveWriter
     {
 
-
         public static SaveGame CreateSave(
             NetCharacter ch,
-            string description,
+            string? description,
             int ids,
             DateTime? timeStamp,
-            GameDataManager gameData,
-            IEnumerable<MissionRtc> rtcs,
-            IEnumerable<AmbientInfo> ambients,
-            StoryProgress story)
+            GameDataManager? gameData,
+            IEnumerable<MissionRtc>? rtcs,
+            IEnumerable<AmbientInfo>? ambients,
+            StoryProgress? story)
         {
             var sg = new SaveGame();
             sg.Player = new SavePlayer();
@@ -48,7 +47,7 @@ namespace LibreLancer.Server
                 {
                     sg.Player.Equip.Add(new PlayerEquipment()
                     {
-                        Item = new HashValue(item.Equipment.Nickname),
+                        Item = new HashValue(item.Equipment!.Nickname),
                         Hardpoint = item.Hardpoint.Equals("internal", StringComparison.OrdinalIgnoreCase)
                             ? ""
                             : item.Hardpoint
@@ -57,7 +56,7 @@ namespace LibreLancer.Server
                 else
                 {
                     sg.Player.Cargo.Add(new PlayerCargo() {
-                        Item = new HashValue(item.Equipment.Nickname),
+                        Item = new HashValue(item.Equipment!.Nickname),
                         Count = item.Count
                     });
                 }
@@ -68,7 +67,7 @@ namespace LibreLancer.Server
 
             sg.Player.Visit.AddRange(ch.GetAllVisitFlags());
 
-            sg.Player.Interface = 3; //Unknown, matching vanilla
+            sg.Player.Interface = 3; // Unknown, matching vanilla
 
             sg.MPlayer = new MPlayer();
             sg.MPlayer.CanDock = 1;

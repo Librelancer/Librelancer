@@ -4,9 +4,9 @@ namespace LibreLancer.Utf.Ale;
 
 public enum AleProperty : uint
 {
-    //Manual Entry
+    // Manual Entry
     BeamApp_LineAppearance = 0x1C65B7B9,
-    //FLAleCrc constants
+    // FLAleCrc constants
     AirField_Approach = 0x10423CEB,
     AirField_Magnitude = 0xE5E3524C,
     Appearance_LODCurve = 0xC53B008,

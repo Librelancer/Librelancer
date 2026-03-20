@@ -13,7 +13,7 @@ namespace LibreLancer.Interface
         public float MarginRight { get; set; }
         public float Width { get; set; } = 1;
         public int WidthPx { get; set; }
-        public InterfaceColor Color { get; set; }
+        public InterfaceColor? Color { get; set; }
 
         public override void Render(UiContext context, RectangleF clientRectangle)
         {

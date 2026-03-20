@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -13,7 +12,7 @@ namespace LibreLancer.Utf
     public abstract class UtfFile
     {
         public const string FILE_TYPE = "UTF ";
-        const int TAG_LEN = 4;
+        private const int TAG_LEN = 4;
         public const int FILE_VERSION = 257;
 
         protected static IntermediateNode ParseV2(string path, BinaryReader reader)
@@ -25,7 +24,7 @@ namespace LibreLancer.Utf
             uint nodeBlockLength = reader.ReadUInt32();
             uint dataBlockLength = reader.ReadUInt32();
             var stringBlock = reader.ReadBytes((int)stringBlockLength);
-            //Node block
+            // Node block
             var nodeBlock = reader.ReadBytes((int)nodeBlockLength);
             var dataBlock = reader.ReadBytes((int)dataBlockLength);
             using (BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock)))
@@ -39,7 +38,7 @@ namespace LibreLancer.Utf
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct UtfHeader
+        private struct UtfHeader
         {
             public int FormatVersion;
             public int NodeBlockOffset;
@@ -71,7 +70,7 @@ namespace LibreLancer.Utf
             if (!buffer.SequenceEqual("UTF "u8))
                 throw new FileFormatException(path, fileType, FILE_TYPE);
 
-            long fileLength = reader.BaseStream.Length; //This is a syscall, cache.
+            long fileLength = reader.BaseStream.Length; // This is a syscall, cache.
 
             var header = reader.ReadStruct<UtfHeader>();
 
@@ -98,21 +97,14 @@ namespace LibreLancer.Utf
             reader.BaseStream.Seek(header.StringBlockOffset, SeekOrigin.Begin);
             reader.Read(stringBlock);
 
-
             dataBlock = new byte[(int)(fileLength - header.DataBlockOffset)];
             reader.BaseStream.Seek(header.DataBlockOffset, SeekOrigin.Begin);
             reader.Read(dataBlock);
 
-            IntermediateNode root;
+            using BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock));
 
-            using (BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock)))
-            {
-                root = Node.FromStream(nodeReader, 0, new StringBlock(stringBlock, false), dataBlock) as IntermediateNode;
-                if (root == null)
-                    throw new FileContentException(UtfFile.FILE_TYPE, "The root node doesn't have any child nodes.");
-            }
-
-            return root;
+            var root = Node.FromStream(nodeReader, 0, new StringBlock(stringBlock, false), dataBlock) as IntermediateNode;
+            return root ?? throw new FileContentException(FILE_TYPE, "The root node doesn't have any child nodes.");
         }
     }
 }

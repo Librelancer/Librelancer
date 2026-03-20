@@ -12,25 +12,27 @@ namespace LibreLancer.Render
 {
 	public class CommandBuffer : IDisposable
 	{
-		const int MAX_COMMANDS = 16384;
-		const int MAX_TRANSPARENT_COMMANDS = 16384;
+        private const int MAX_COMMANDS = 16384;
+        private const int MAX_TRANSPARENT_COMMANDS = 16384;
 
-		//public List<RenderCommand> Commands = new List<RenderCommand>();
-		//RenderCommand[] Commands = new RenderCommand[MAX_COMMANDS];
-		RenderCommand[] Transparents = new RenderCommand[MAX_TRANSPARENT_COMMANDS];
-		int currentCommand = 0;
-		int transparentCommand = 0;
-        RenderContext rstate;
+		// public List<RenderCommand> Commands = new List<RenderCommand>();
+		// RenderCommand[] Commands = new RenderCommand[MAX_COMMANDS];
+        private RenderCommand[] Transparents = new RenderCommand[MAX_TRANSPARENT_COMMANDS];
+        private int currentCommand = 0;
+        private int transparentCommand = 0;
+        private RenderContext rstate;
         public StorageBuffer BonesBuffer;
         public int BonesMax;
         public int BonesOffset;
         public WorldMatrixBuffer WorldBuffer;
-        public ICamera Camera;
+        public ICamera? Camera;
         public CommandBuffer(RenderContext context)
         {
+            rstate = context;
             BonesBuffer = new StorageBuffer(context, 65536, 64, typeof(Matrix4x4), true);
             WorldBuffer = new WorldMatrixBuffer();
         }
+
         public void StartFrame(RenderContext rstate)
 		{
 			currentCommand = 0;
@@ -38,9 +40,10 @@ namespace LibreLancer.Render
             WorldBuffer.Reset();
             this.rstate = rstate;
 		}
+
 		public void AddCommand(
             RenderMaterial material,
-            MaterialAnim anim,
+            MaterialAnim? anim,
             WorldMatrixHandle world,
             Lighting lights,
             VertexBuffer buffer,
@@ -50,7 +53,7 @@ namespace LibreLancer.Render
             int count,
             int layer,
             float z = 0,
-            DfmSkinning skinning = null,
+            DfmSkinning? skinning = null,
             int offset = 0,
             int userData = 0)
 		{
@@ -101,7 +104,7 @@ namespace LibreLancer.Render
                 }
             }
 		}
-		//TODO: Implement MaterialAnim for asteroids
+		// TODO: Implement MaterialAnim for asteroids
 		public unsafe void AddCommandFade(
             RenderMaterial material,
             WorldMatrixHandle world,
@@ -153,9 +156,9 @@ namespace LibreLancer.Render
             FillBillboards();
 		}
 
-		void FillBillboards()
+        private void FillBillboards()
 		{
-			for (int i = transparentCommand - 1; i >= 0; i--)
+			for (var i = transparentCommand - 1; i >= 0; i--)
 			{
 				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.Billboard)
 				{
@@ -166,14 +169,14 @@ namespace LibreLancer.Render
 			}
 		}
 
-		void SortTransparent()
+        private void SortTransparent()
 		{
-			for (int i = 0; i < transparentCommand; i++)
+			for (var i = 0; i < transparentCommand; i++)
 			{
 				cmdptr[i] = i;
 			}
 			Array.Sort<int>(cmdptr, 0, transparentCommand, new KeyComparer(Transparents));
-			for (int i = transparentCommand - 1; i >= 0; i--)
+			for (var i = transparentCommand - 1; i >= 0; i--)
 			{
 				if (Transparents[cmdptr[i]].CmdType == RenderCmdType.Billboard)
 				{
@@ -183,12 +186,12 @@ namespace LibreLancer.Render
 			}
 		}
 
-		int[] cmdptr = new int[MAX_COMMANDS];
-		int transparentCount = 0;
+        private int[] cmdptr = new int[MAX_COMMANDS];
+        private int transparentCount = 0;
 		public void DrawTransparent(RenderContext context)
 		{
-		  	Billboards lastbb = null;
-			for (int i = transparentCommand - 1; i >= 0; i--)
+		  	Billboards? lastbb = null;
+			for (var i = transparentCommand - 1; i >= 0; i--)
 			{
 				if (lastbb != null && Transparents[cmdptr[i]].CmdType != RenderCmdType.Billboard)
 				{
@@ -209,9 +212,10 @@ namespace LibreLancer.Render
         }
 
 	}
-	class KeyComparer : IComparer<int>
+
+    internal class KeyComparer : IComparer<int>
 	{
-		RenderCommand[] cmds;
+        private RenderCommand[] cmds;
 		public KeyComparer(RenderCommand[] commands)
 		{
 			cmds = commands;
@@ -236,10 +240,10 @@ namespace LibreLancer.Render
     }
 	public struct RenderCommand
 	{
-        static ulong float2index(float f)
+        private static ulong float2index(float f)
         {
             var i = BitConverter.SingleToInt32Bits(f);
-            uint mask = (uint)(-(i >> 31)) | 0x80000000;
+            var mask = (uint)(-(i >> 31)) | 0x80000000;
             return (ulong) (i ^ mask);
         }
         public static ulong MakeKey(RenderType type, int matKey, int sortlayer, float z, int index)
@@ -254,7 +258,7 @@ namespace LibreLancer.Render
             }
             else
             {
-                return (1UL << 62); //starsphere
+                return (1UL << 62); // starsphere
             }
         }
 
@@ -262,7 +266,6 @@ namespace LibreLancer.Render
         {
             return (byte) (((byte)cmdType << 4) | (byte) prims);
         }
-
 
         public ulong Key;
 		public byte Type;
@@ -273,7 +276,7 @@ namespace LibreLancer.Render
 		public int Start;
 		public int Count;
         public Lighting Lights;
-        public MaterialAnim MaterialAnim;
+        public MaterialAnim? MaterialAnim;
 		public int Hash;
 		public int Index;
         public int UserData;
@@ -286,7 +289,7 @@ namespace LibreLancer.Render
 		}
 		public unsafe void Run(RenderContext context)
         {
-            if (CmdType == RenderCmdType.Material || CmdType == RenderCmdType.MaterialFade)
+            if (CmdType is RenderCmdType.Material or RenderCmdType.MaterialFade)
 			{
 				var Material = (RenderMaterial)Source;
 				if (Material == null)

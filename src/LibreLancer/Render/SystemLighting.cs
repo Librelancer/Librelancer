@@ -12,7 +12,7 @@ namespace LibreLancer.Render
 	{
         public int ID = Environment.TickCount;
 		public Color4 Ambient = Color4.Black;
-		public List<DynamicLight> Lights = new List<DynamicLight>();
+		public List<DynamicLight> Lights = [];
 		public FogModes FogMode = FogModes.None;
 		public float FogDensity = 0f;
 		public Color4 FogColor = Color4.Black;

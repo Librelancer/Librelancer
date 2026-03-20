@@ -12,8 +12,8 @@ namespace LibreLancer.Fx
         public AlchemyCurveAnimation Approach;
         public FxTurbulenceField (AlchemyNode ale) : base(ale)
         {
-            Magnitude = ale.GetCurveAnimation(AleProperty.TurbulenceField_Magnitude);
-            Approach = ale.GetCurveAnimation(AleProperty.TurbulenceField_Approach);
+            Magnitude = ale.GetCurveAnimation(AleProperty.TurbulenceField_Magnitude)!;
+            Approach = ale.GetCurveAnimation(AleProperty.TurbulenceField_Approach)!;
         }
 
         public FxTurbulenceField(string name) : base(name)

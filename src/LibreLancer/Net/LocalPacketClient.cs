@@ -12,7 +12,7 @@ namespace LibreLancer.Net
     {
         public int MaxSequencedSize => int.MaxValue;
 
-        public ConcurrentQueue<IPacket> Packets = new ConcurrentQueue<IPacket>();
+        public ConcurrentQueue<IPacket> Packets = new();
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             #if DEBUG

@@ -47,7 +47,7 @@ public class FreelancerData
     public HpTypesIni HpTypes = null!;
     public LoadoutsIni Loadouts = null!;
     public SolararchIni Solar = null!;
-    public StararchIni Stars = null!;
+    public StararchIni? Stars = null!;
     public BodypartsIni Bodyparts = null!;
     public CostumesIni Costumes = null!;
     public UniverseIni? Universe;
@@ -73,7 +73,7 @@ public class FreelancerData
     public FactionPropIni FactionProps = null!;
     public FormationsIni Formations = null!;
     public EmpathyIni Empathy = null!;
-    public NavmapIni Navmap = null!; //Extension
+    public NavmapIni? Navmap = null!; //Extension
     public NPCShipIni? NPCShips;
     public PilotsIni Pilots = null!;
     public StateGraphDb StateGraphDb = null!;

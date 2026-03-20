@@ -7,12 +7,11 @@ namespace LibreLancer.Physics;
 internal class DynamicObject : PhysicsObject
 {
     internal BodyReference BepuObject;
-    private PhysicsWorld world;
+    private readonly PhysicsWorld world;
 
-    internal DynamicObject(int id, PhysicsWorld world, BodyReference bepuObject, Collider col) : base(id)
+    internal DynamicObject(int id, PhysicsWorld world, BodyReference bepuObject, Collider col) : base(id, col)
     {
-        this.BepuObject = bepuObject;
-        this.Collider = col;
+        BepuObject = bepuObject;
         this.world = world;
     }
 
@@ -57,7 +56,9 @@ internal class DynamicObject : PhysicsObject
         {
             BepuObject.Velocity.Angular = value;
             if (value.LengthSquared() > 0)
+            {
                 BepuObject.Awake = true;
+            }
         }
     }
 
@@ -68,7 +69,9 @@ internal class DynamicObject : PhysicsObject
         {
             BepuObject.Velocity.Linear = value;
             if (value.LengthSquared() > 0)
+            {
                 BepuObject.Awake = true;
+            }
         }
     }
 
@@ -88,15 +91,17 @@ internal class DynamicObject : PhysicsObject
         world.dampings[BepuObject.Handle] = new Vector2(linearDamping, angularDamping);
     }
 
-    private const float ForceFactor = (1 / 60.0f);
+    private const float _forceFactor = (1 / 60.0f);
 
     public override void AddForce(Vector3 force)
     {
-        if (force.LengthSquared() > 0)
+        if (!(force.LengthSquared() > 0))
         {
-            BepuObject.ApplyImpulse(force * ForceFactor, Vector3.Zero);
-            BepuObject.Awake = true;
+            return;
         }
+
+        BepuObject.ApplyImpulse(force * _forceFactor, Vector3.Zero);
+        BepuObject.Awake = true;
     }
 
     public override void Activate()
@@ -106,20 +111,24 @@ internal class DynamicObject : PhysicsObject
 
     public override void Impulse(Vector3 force)
     {
-        if (force.LengthSquared() > 0)
+        if (!(force.LengthSquared() > 0))
         {
-            BepuObject.ApplyImpulse(force, Vector3.Zero);
-            BepuObject.Awake = true;
+            return;
         }
+
+        BepuObject.ApplyImpulse(force, Vector3.Zero);
+        BepuObject.Awake = true;
     }
 
     public override void AddTorque(Vector3 torque)
     {
-        if (torque.LengthSquared() > 0)
+        if (!(torque.LengthSquared() > 0))
         {
-            BepuObject.ApplyAngularImpulse(torque * ForceFactor);
-            BepuObject.Awake = true;
+            return;
         }
+
+        BepuObject.ApplyAngularImpulse(torque * _forceFactor);
+        BepuObject.Awake = true;
     }
 
     public override void PredictionStep(float timestep)

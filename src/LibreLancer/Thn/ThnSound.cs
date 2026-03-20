@@ -11,7 +11,7 @@ namespace LibreLancer.Thn
     {
         public ThnObject Object;
         public bool Spatial;
-        public Media.SoundInstance Instance;
+        public Media.SoundInstance? Instance;
 
         public ThnSoundInstance(ThnSound snd, Media.SoundInstance ms)
         {
@@ -22,20 +22,23 @@ namespace LibreLancer.Thn
         public void Start(bool loop, float time_offset)
         {
             lastTranslate = Object.Translate;
-            Instance.Play(loop, time_offset / 1000f);
+            Instance!.Play(loop, time_offset / 1000f);
         }
-        Vector3 lastTranslate;
+
+        private Vector3 lastTranslate;
         public void Update(double delta)
         {
-            if (Instance != null)
+            if (Instance == null)
             {
-                Instance.SetAttenuation(Object.Sound.Attenuation);
-                if(Spatial)
-                {
-                    Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
-                    Instance.SetPosition(Object.Translate);
-                    lastTranslate = Object.Translate;
-                }
+                return;
+            }
+
+            Instance.SetAttenuation(Object.Sound!.Attenuation);
+            if(Spatial)
+            {
+                Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
+                Instance.SetPosition(Object.Translate);
+                lastTranslate = Object.Translate;
             }
         }
     }
@@ -45,7 +48,7 @@ namespace LibreLancer.Thn
         public bool Spatial;
         public string SoundName;
         public float Attenuation;
-        public ThnAudioProps Props;
+        public ThnAudioProps? Props;
         public ThnSound(string soundname, SoundManager man, ThnAudioProps props, ThnObject obj)
         {
             Object = obj;
@@ -57,13 +60,13 @@ namespace LibreLancer.Thn
                 Attenuation = props.Attenuation;
             }
         }
-        SoundManager man;
-        public ThnSoundInstance CreateInstance(bool oneShot)
+
+        private SoundManager man;
+        public ThnSoundInstance? CreateInstance(bool oneShot)
         {
-            var inst = man.GetInstance(SoundName, Attenuation, Props.Dmin, Props.Dmax,
+            var inst = man.GetInstance(SoundName, Attenuation, Props!.Dmin, Props!.Dmax,
                 Spatial ? (Vector3?) Object.Translate : null);
-            if(inst == null) return null;
-            return new ThnSoundInstance(this, inst);
+            return inst == null ? null : new ThnSoundInstance(this, inst);
         }
 
     }

@@ -16,14 +16,17 @@ namespace LibreLancer.Render
     public class SunRenderer : ObjectRenderer
 	{
         public Sun Sun { get; private set; }
-		Vector3 pos;
-		SystemRenderer sysr;
-        int ID;
-        VertexBillboardColor2[] vertices;
+        private Vector3 pos;
+        private SystemRenderer? sysr;
+        private int ID;
+        private VertexBillboardColor2[]? vertices;
 
-        private SunSpineMaterial spineMaterial;
-        private SunRadialMaterial centerMaterial;
-        private SunRadialMaterial glowMaterial;
+        private SunSpineMaterial spineMaterial = null!;
+        private SunRadialMaterial centerMaterial = null!;
+        private SunRadialMaterial glowMaterial = null!;
+
+        private Vector3 genPos;
+        private int bufferIndex;
 
 		public SunRenderer (Sun sun)
 		{
@@ -31,7 +34,7 @@ namespace LibreLancer.Render
             pos = Vector3.Zero;
         }
 
-        static void AddQuad(VertexBillboardColor2[] vx, ref int i, Vector3 pos, Vector2 size, float angle, Color4 c1, Color4 c2)
+        private static void AddQuad(VertexBillboardColor2[] vx, ref int i, Vector3 pos, Vector2 size, float angle, Color4 c1, Color4 c2)
         {
             vx[i++] = new VertexBillboardColor2(
                 pos, -0.5f * size.X, -0.5f * size.Y, angle,
@@ -55,9 +58,6 @@ namespace LibreLancer.Render
             );
         }
 
-        private Vector3 genPos;
-        private int bufferIndex;
-
         public override void Update(double elapsed, Vector3 position, Matrix4x4 transform)
         {
             pos = position;
@@ -65,32 +65,33 @@ namespace LibreLancer.Render
 
         public static int GetVertexCount(Sun sun)
         {
-            int count = 4; //glow quad
+            var count = 4; // glow quad
             if (sun.CenterSprite != null)
-                count += 4; //center quad
+                count += 4; // center quad
             if (sun.SpinesSprite != null)
-                count += sun.Spines.Count * 4;
+                count += sun.Spines!.Count * 4;
             return count;
         }
 
         public static void CreateVertices(VertexBillboardColor2[] vx, Vector3 pos, Sun sun)
         {
-            int idx = 0;
-            //center
+            var idx = 0;
+            // center
             if (sun.CenterSprite != null)
                 AddQuad(vx, ref idx, pos, new Vector2(sun.Radius * sun.CenterScale), 0,
                     new Color4(sun.CenterColorInner, 1),
                     new Color4(sun.CenterColorOuter, 1));
-            //glow
+            // glow
             AddQuad(vx, ref idx, pos, new Vector2(sun.Radius * sun.GlowScale), 0,
                 new Color4(sun.GlowColorInner, 1),
                 new Color4(sun.GlowColorOuter, 1));
-            //spines
+
+            // spines
             if (sun.SpinesSprite != null)
             {
                 double current_angle = 0;
-                double delta_angle = (2 * Math.PI) / sun.Spines.Count;
-                for (int i = 0; i < sun.Spines.Count; i++)
+                var delta_angle = (2 * Math.PI) / sun.Spines!.Count;
+                for (var i = 0; i < sun.Spines.Count; i++)
                 {
                     current_angle += delta_angle;
                     var s = sun.Spines[i];
@@ -110,14 +111,18 @@ namespace LibreLancer.Render
         {
             if (sysr == null)
             {
-                spineMaterial = new SunSpineMaterial(sys.ResourceManager);
-                spineMaterial.Texture = Sun.SpinesSprite;
-                spineMaterial.SizeMultiplier = Vector2.One;
-                centerMaterial = new SunRadialMaterial(sys.ResourceManager);
-                centerMaterial.Texture = Sun.CenterSprite;
-                centerMaterial.Additive = true;
-                glowMaterial = new SunRadialMaterial(sys.ResourceManager);
-                glowMaterial.Texture = Sun.GlowSprite;
+                spineMaterial = new SunSpineMaterial(sys.ResourceManager, Sun.SpinesSprite!, Vector2.One);
+
+                centerMaterial = new SunRadialMaterial(sys.ResourceManager)
+                {
+                    Texture = Sun.CenterSprite!,
+                    Additive = true
+                };
+
+                glowMaterial = new SunRadialMaterial(sys.ResourceManager)
+                {
+                    Texture = Sun.GlowSprite!
+                };
             }
 
             sysr = sys;
@@ -133,38 +138,42 @@ namespace LibreLancer.Render
             return true;
         }
 
-        public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
+        public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer? nr)
         {
             if (sysr == null || vertices == null || bufferIndex == -1)
+            {
                 return;
-            float z = RenderHelpers.GetZ(Matrix4x4.Identity, camera.Position, pos);
+            }
+
+            var z = RenderHelpers.GetZ(Matrix4x4.Identity, camera.Position, pos);
             if (z > 900000) // Reduce artefacts from fast Z-sort calculation. This'll probably cause issues somewhere else
+            {
                 z = 900000;
-            var dist_scale = nr != null ? nr.Nebula.SunBurnthroughScale : 1;
+            }
+
+            var distScale = nr != null ? nr.Nebula.SunBurnthroughScale : 1;
             var alpha = nr != null ? nr.Nebula.SunBurnthroughIntensity : 1;
             var idx = bufferIndex;
-            //draw center
+            // draw center
             if (Sun.CenterSprite != null)
             {
-                centerMaterial.SizeMultiplier = new Vector2(dist_scale);
+                centerMaterial.SizeMultiplier = new Vector2(distScale);
                 centerMaterial.OuterAlpha = alpha;
                 commands.AddCommand(centerMaterial, null, commands.WorldBuffer.Identity,
                     Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,
                     0, idx, 2, SortLayers.SUN, z);
                 idx += 6;
             }
-            //draw glow
-            glowMaterial.SizeMultiplier = new Vector2(dist_scale);
+            // draw glow
+            glowMaterial.SizeMultiplier = new Vector2(distScale);
             glowMaterial.OuterAlpha = alpha;
             commands.AddCommand(glowMaterial, null, commands.WorldBuffer.Identity,
                 Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,
                 0, idx, 2, SortLayers.SUN, z, null, 1);
-            //next
+            // next
             idx += 6;
-            //draw spines
-            if (Sun.SpinesSprite != null
-                && Sun.Spines.Count > 0
-                && nr == null)
+            // draw spines
+            if (Sun is { SpinesSprite: not null, Spines.Count: > 0 } && nr == null)
             {
                 commands.AddCommand(spineMaterial, null, commands.WorldBuffer.Identity,
                     Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,

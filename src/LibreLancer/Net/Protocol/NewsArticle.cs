@@ -9,8 +9,8 @@ namespace LibreLancer.Net.Protocol
     [WattleScriptUserData]
     public class NewsArticle
     {
-        public string Icon;
-        public string Logo;
+        public string Icon = string.Empty;
+        public string Logo = string.Empty;
         public int Headline;
         public int Text;
 
@@ -24,8 +24,8 @@ namespace LibreLancer.Net.Protocol
 
         public static NewsArticle Read(PacketReader message) => new()
         {
-            Icon = message.GetString(),
-            Logo = message.GetString(),
+            Icon = message.GetString()!,
+            Logo = message.GetString()!,
             Headline = (int)message.GetVariableUInt32(),
             Text = (int)message.GetVariableUInt32()
         };

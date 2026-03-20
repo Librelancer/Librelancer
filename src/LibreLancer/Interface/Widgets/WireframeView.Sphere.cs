@@ -4,8 +4,9 @@ namespace LibreLancer.Interface;
 public partial class WireframeView
 {
     private static float SPHERE_OFFSET = -249;
-    static readonly Vector3[] sphereWireframe = 
-    {
+
+    private static readonly Vector3[] sphereWireframe =
+    [
         new(0.000f,100.000f,-0.000f), new(-0.000f,98.079f,-19.509f),
         new(-0.000f,98.079f,-19.509f), new(-7.466f,98.079f,-18.024f),
         new(-7.466f,98.079f,-18.024f), new(0.000f,100.000f,-0.000f),
@@ -501,6 +502,6 @@ public partial class WireframeView
         new(0.000f,-100.000f,-0.000f), new(19.509f,-98.079f,-0.000f),
         new(0.000f,-100.000f,-0.000f), new(18.024f,-98.079f,-7.466f),
         new(0.000f,-100.000f,-0.000f), new(13.795f,-98.079f,-13.795f),
-        new(0.000f,-100.000f,-0.000f), new(7.466f,-98.079f,-18.024f),
-    };
+        new(0.000f,-100.000f,-0.000f), new(7.466f,-98.079f,-18.024f)
+    ];
 }

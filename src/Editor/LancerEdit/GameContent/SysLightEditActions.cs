@@ -16,7 +16,7 @@ public abstract class SysLightModification<T>(LightSource target, T old, T updat
 }
 
 
-public class SysLightSetKind(LightSource target, LightKind old, LightKind updated, LightSourceList list)
+public class SysLightSetKind(LightSource target, LightKind old, LightKind updated)
     : SysLightModification<LightKind>(target, old, updated, "SetKind")
 {
     public override void Set(LightKind value)

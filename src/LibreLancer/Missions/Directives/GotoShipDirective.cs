@@ -21,7 +21,7 @@ public class GotoShipDirective : MissionDirective
 
     public GotoShipDirective(PacketReader reader)
     {
-        Target = reader.GetString();
+        Target = reader.GetString()!;
         CruiseKind = (GotoKind)reader.GetByte();
         Range = reader.GetFloat();
         Unknown = reader.GetBool();

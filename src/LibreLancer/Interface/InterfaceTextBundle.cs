@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace LibreLancer.Interface
 {
-    //Output of InterfaceEdit, works OK with version control
+    // Output of InterfaceEdit, works OK with version control
     public class InterfaceTextBundle
     {
         public SortedDictionary<string, byte[]> db { get; set; } = new();
@@ -24,7 +24,7 @@ namespace LibreLancer.Interface
 
         public static InterfaceTextBundle FromJSON(string text)
         {
-            //Quicker to use JsonDocument than to spin up a serializer
+            // Quicker to use JsonDocument than to spin up a serializer
             var doc = JsonDocument.Parse(text);
             var tb = new InterfaceTextBundle();
             var db = doc.RootElement.GetProperty("db");

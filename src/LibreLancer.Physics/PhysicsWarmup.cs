@@ -11,11 +11,11 @@ public static class PhysicsWarmup
     public static void Warmup() => RuntimeHelpers.RunClassConstructor(typeof(PhysicsWarmup).TypeHandle);
     static PhysicsWarmup() => RunWarmup();
 
-    class WarmupMeshes : IConvexMeshProvider
+    private class WarmupMeshes : IConvexMeshProvider
     {
-        Dictionary<uint, ConvexMesh[]> meshes = new();
+        private Dictionary<uint, ConvexMesh[]> meshes = new();
 
-        static readonly Vector3[] cubeVertices = new Vector3[]
+        private static readonly Vector3[] cubeVertices = new Vector3[]
         {
             new( 1,  1, -1), new( 1, -1, -1),
             new( 1,  1,  1), new( 1, -1,  1),
@@ -33,7 +33,7 @@ public static class PhysicsWarmup
             [new () { Indices = cubeIndices, Vertices = cubeVertices }];
     }
 
-    static void RunWarmup()
+    private static void RunWarmup()
     {
         var sw = Stopwatch.StartNew();
         using var collection = new ConvexMeshCollection(_ => new WarmupMeshes());
@@ -41,14 +41,16 @@ public static class PhysicsWarmup
         world.OnCollision += WorldOnOnCollision;
         var fileId = collection.UseFile("file");
 
-        bool anyCollided = false;
-        bool sphereCollided = false;
+        var anyCollided = false;
+        var sphereCollided = false;
 
         void WorldOnOnCollision(PhysicsObject objA, PhysicsObject objB)
         {
             anyCollided = true;
             if (objA.Collider is SphereCollider || objB.Collider is SphereCollider)
+            {
                 sphereCollided = true;
+            }
         }
 
         using var cubeCollider0 = new ConvexMeshCollider(world);
@@ -69,7 +71,7 @@ public static class PhysicsWarmup
             new Transform3D(new(0, 100, 0), Quaternion.Identity), sphereCollider);
 
 
-        for (int i = 0; i < 500; i++)
+        for (var i = 0; i < 500; i++)
         {
             cube1.AddForce(new(0, 0, 50));
             cube2.AddForce(new(0, 0, 50));
@@ -79,6 +81,8 @@ public static class PhysicsWarmup
         sw.Stop();
         FLLog.Debug("Physics", $"Warmup took {sw.Elapsed.TotalMilliseconds}ms");
         if (!anyCollided || !sphereCollided)
+        {
             throw new Exception("Physics warmup failed");
+        }
     }
 }

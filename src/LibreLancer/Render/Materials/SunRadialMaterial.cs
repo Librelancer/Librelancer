@@ -13,11 +13,11 @@ public class SunRadialMaterial : RenderMaterial
     public Vector2 SizeMultiplier;
     public float OuterAlpha;
     public bool Additive;
-    public string Texture;
+    public string? Texture;
 
-
-    public SunRadialMaterial(ResourceManager library) : base(library) { }
-
+    public SunRadialMaterial(ResourceManager library) : base(library)
+    {
+    }
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {

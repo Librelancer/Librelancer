@@ -322,7 +322,7 @@ internal class BlurgEngine : RichTextEngine
         return blurg.QueryFont(fontName, FontWeight.Regular, false)!.LineHeight(size);
     }
 
-    private void UpdateCache(ref CachedRenderString cache, string fontName, float size, string text, bool underline,
+    private void UpdateCache(ref CachedRenderString? cache, string fontName, float size, string text, bool underline,
         TextAlignment alignment, bool shadow, float maxWidth)
     {
         if (cache == null)
@@ -352,7 +352,7 @@ internal class BlurgEngine : RichTextEngine
         }
     }
 
-    public override void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text,
+    public override void DrawStringCached(ref CachedRenderString? cache, string fontName, float size, string text,
         float x, float y,
         Color4 color, bool underline = false, OptionalColor shadow = default,
         TextAlignment alignment = TextAlignment.Left,
@@ -379,12 +379,12 @@ internal class BlurgEngine : RichTextEngine
         }
     }
 
-    public override Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, float maxWidth,
+    public override Point MeasureStringCached(ref CachedRenderString? cache, string fontName, float size, float maxWidth,
         string text,
         bool underline, bool shadow, TextAlignment alignment)
     {
         UpdateCache(ref cache, fontName, size, text, underline, alignment, shadow, maxWidth);
-        var pc = (BlurgRenderCache)cache;
+        var pc = (BlurgRenderCache?)cache;
         return pc?.Result is null ? new Point(0, 0) : new Point((int) pc!.Result.Width, (int) pc.Result.Height);
     }
 }

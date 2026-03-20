@@ -49,7 +49,7 @@ namespace LibreLancer.Server
             World.RemoveSpawnedObject(obj, exploded);
         }
 
-        private Dictionary<string, GameObject> missionNPCs = new Dictionary<string, GameObject>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, GameObject> missionNPCs = new(StringComparer.OrdinalIgnoreCase);
 
         public void NpcDoAction(string nickname, Action<GameObject> act)
         {
@@ -65,12 +65,16 @@ namespace LibreLancer.Server
         }
 
         // Should be replaced with Faction class creating a random def
-        public ObjectName RandomName(Faction fac)
+        public ObjectName RandomName(Faction? fac)
         {
-            if (fac == null) return new ObjectName("NULL");
+            if (fac == null)
+            {
+                return new ObjectName("NULL");
+            }
+
             var rand = new Random();
             ValueRange<int>? firstName = null;
-            if (fac.Properties.FirstNameMale != null &&
+            if (fac.Properties!.FirstNameMale != null &&
                 fac.Properties.FirstNameFemale != null)
             {
                 firstName = rand.Next(0, 2) == 1 ? fac.Properties.FirstNameMale : fac.Properties.FirstNameFemale;
@@ -89,7 +93,7 @@ namespace LibreLancer.Server
         public GameObject SpawnJumper(JumperNpc jumper, MissionRuntime msn, string jumpObject)
         {
             var jumpPoint = World.GameWorld.GetObject(jumpObject);
-            var pos = jumpPoint.WorldTransform.Position;
+            var pos = jumpPoint!.WorldTransform.Position;
             var orient = jumpPoint.WorldTransform.Orientation;
             pos = Vector3.Transform(new Vector3(rand.Next(-50, 50), rand.Next(-50, 50), rand.Next(-300, -100)),
                 orient) + pos;
@@ -111,37 +115,42 @@ namespace LibreLancer.Server
 
         public GameObject DoSpawn(
             ObjectName name,
-            string nickname,
-            Faction affiliation,
-            string stateGraph,
-            CostumeEntry costume,
+            string? nickname,
+            Faction? affiliation,
+            string? stateGraph,
+            CostumeEntry? costume,
             ObjectLoadout loadout,
-            Pilot pilot,
+            Pilot? pilot,
             Vector3 position,
             Quaternion orient,
-            string arrivalObj,
+            string? arrivalObj,
             int arrivalIndex,
-            MissionRuntime msn = null
+            MissionRuntime? msn = null
             )
         {
             var ship = World.Server.GameData.Items.Ships.Get(loadout.Archetype);
-            GameObject spawnPoint = World.GameWorld.GetObject(arrivalObj);
-            SDockableComponent sdock = null;
+            GameObject spawnPoint = World.GameWorld.GetObject(arrivalObj)!;
+            SDockableComponent? sdock = null;
             if (spawnPoint?.TryGetComponent<SDockableComponent>(out sdock) ?? false)
             {
                 if (arrivalIndex == 0)
+                {
                     arrivalIndex = sdock.GetUndockIndex();
+                }
+
                 var p = sdock.GetSpawnPoint(arrivalIndex);
                 position = p.Position;
                 orient = p.Orientation;
             }
-            var obj = new GameObject(ship, World.Server.Resources, false, true);
-            obj.Name = name;
-            obj.Nickname = nickname;
+            var obj = new GameObject(ship!, World.Server.Resources, false, true)
+            {
+                Name = name,
+                Nickname = nickname
+            };
             obj.SetLocalTransform(new Transform3D(position, orient));
             obj.AddComponent(new SHealthComponent(obj)
             {
-                CurrentHealth = ship.Hitpoints,
+                CurrentHealth = ship!.Hitpoints,
                 MaxHealth = ship.Hitpoints
             });
             obj.AddComponent(new SFuseRunnerComponent(obj) { DamageFuses = ship.Fuses });
@@ -153,9 +162,9 @@ namespace LibreLancer.Server
             var cargo = new SNPCCargoComponent(obj);
             cargo.Cargo.AddRange(loadout.Cargo);
             obj.AddComponent(cargo);
-            var stateDescription = new StateGraphDescription(stateGraph.ToUpperInvariant(), "LEADER");
+            var stateDescription = new StateGraphDescription(stateGraph!.ToUpperInvariant(), "LEADER");
             World.Server.GameData.Items.Ini.StateGraphDb.Tables.TryGetValue(stateDescription, out var stateTable);
-            var npcComponent = new SNPCComponent(obj, this, stateTable) { MissionRuntime = msn, Faction = affiliation };
+            var npcComponent = new SNPCComponent(obj, this, stateTable!) { MissionRuntime = msn, Faction = affiliation };
             npcComponent.SetPilot(pilot);
             npcComponent.CommHead = costume?.Head;
             npcComponent.CommBody = costume?.Body;
@@ -164,7 +173,7 @@ namespace LibreLancer.Server
             obj.AddComponent(npcComponent);
             obj.AddComponent(new AutopilotComponent(obj));
             obj.AddComponent(new ShipSteeringComponent(obj));
-            obj.AddComponent(new ShipPhysicsComponent(obj) { Ship = ship });
+            obj.AddComponent(new ShipPhysicsComponent(obj, ship));
             obj.AddComponent(new WeaponControlComponent(obj));
             obj.AddComponent(new SDestroyableComponent(obj, World));
             obj.AddComponent(new DirectiveRunnerComponent(obj));
@@ -172,9 +181,13 @@ namespace LibreLancer.Server
             if (sdock != null)
             {
                 sdock.UndockShip(obj, arrivalIndex);
-                obj.GetComponent<AutopilotComponent>().Undock(spawnPoint, arrivalIndex);
+                obj.GetComponent<AutopilotComponent>()!.Undock(spawnPoint!, arrivalIndex);
             }
-            if (nickname != null) missionNPCs[nickname] = obj;
+            if (nickname != null)
+            {
+                missionNPCs[nickname] = obj;
+            }
+
             return obj;
         }
     }

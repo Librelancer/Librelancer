@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.IO;
 using System.Text;
@@ -13,9 +12,9 @@ namespace LibreLancer.Utf
 {
     public abstract class AbstractConstruct
     {
-        const int STR_LENGTH = 64;
-        public string ParentName { get; set; }
-        public string ChildName { get; set; }
+        private const int STR_LENGTH = 64;
+        public string ParentName { get; set; } = null!;
+        public string ChildName { get; set; } = null!;
         public Vector3 Origin { get; set; }
         public Quaternion Rotation { get; set; }
 

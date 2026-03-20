@@ -47,7 +47,7 @@ namespace LibreLancer.Fx
 
                 if (DrawNormals)
                 {
-                    Debug.DrawLine(p - (n * 100), p + (n * 100), Color4.Red);
+                    Debug?.DrawLine(p - (n * 100), p + (n * 100), Color4.Red);
                 }
             }
             instance.Pool.DrawBuffer(

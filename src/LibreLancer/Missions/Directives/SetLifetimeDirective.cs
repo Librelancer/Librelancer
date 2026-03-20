@@ -26,7 +26,6 @@ public class SetLifetimeDirective : MissionDirective
     }
 
 
-
     public override void Put(PacketWriter writer)
     {
         writer.Put((byte)ObjListCommands.SetLifetime);

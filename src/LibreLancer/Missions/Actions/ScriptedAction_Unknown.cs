@@ -326,7 +326,7 @@ public class Act_LockManeuvers : ScriptedAction
     }
 }
 
-//Act_NagDistLeaving = takeTL34, escort, Li01_Trade_Lane_Ring_34, 21985, 1, NAG_ALWAYS
+// Act_NagDistLeaving = takeTL34, escort, Li01_Trade_Lane_Ring_34, 21985, 1, NAG_ALWAYS
 public class Act_NagDistLeaving : ScriptedAction
 {
     public string Nickname = string.Empty;
@@ -362,7 +362,7 @@ public class Act_NagDistLeaving : ScriptedAction
 
             if (act.Entry.Count > 5)
             {
-                NagType = Enum.Parse<NagType>(act.Entry[5].ToString()!, ignoreCase: true);
+                NagType = Enum.Parse<NagType>(act.Entry[5].ToString(), ignoreCase: true);
             }
         }
         else if (act.Entry.Count is >= 7 and <= 9)
@@ -382,7 +382,7 @@ public class Act_NagDistLeaving : ScriptedAction
 
             if (act.Entry.Count > 8)
             {
-                NagType = Enum.Parse<NagType>(act.Entry[8].ToString()!, ignoreCase: true);
+                NagType = Enum.Parse<NagType>(act.Entry[8].ToString(), ignoreCase: true);
             }
         }
         else
@@ -419,7 +419,7 @@ public class Act_NagDistLeaving : ScriptedAction
 
             if (NagType is not null)
             {
-                list.Add(NagType.ToString());
+                list.Add(NagType.ToString()!);
             }
         }
 
@@ -448,7 +448,7 @@ public class Act_NagOff : ScriptedAction
 
 public class Act_SetNNHidden : ScriptedAction
 {
-    public string Objective;
+    public string Objective = "";
     public bool Hide;
 
     public Act_SetNNHidden()
@@ -519,7 +519,7 @@ public class Act_NagDistTowards : ScriptedAction
 
             if (act.Entry.Count > 6)
             {
-                NagType = Enum.Parse<NagType>(act.Entry[6].ToString()!, ignoreCase: true);
+                NagType = Enum.Parse<NagType>(act.Entry[6].ToString(), ignoreCase: true);
             }
         }
         else
@@ -534,7 +534,7 @@ public class Act_NagDistTowards : ScriptedAction
 
             if (act.Entry.Count > 8)
             {
-                NagType = Enum.Parse<NagType>(act.Entry[8].ToString()!, ignoreCase: true);
+                NagType = Enum.Parse<NagType>(act.Entry[8].ToString(), ignoreCase: true);
             }
         }
     }
@@ -566,7 +566,7 @@ public class Act_NagDistTowards : ScriptedAction
 
             if (NagType is not null)
             {
-                list.Add(NagType.ToString());
+                list.Add(NagType.ToString()!);
             }
         }
 
@@ -658,7 +658,7 @@ public class Act_SetRep : ScriptedAction
         {
             NewValue = single;
         }
-        else if (Enum.TryParse<VibeSet>(act.Entry[2].ToString()!, ignoreCase: true, out var set))
+        else if (Enum.TryParse<VibeSet>(act.Entry[2].ToString(), ignoreCase: true, out var set))
         {
             VibeSet = set;
         }
@@ -720,7 +720,6 @@ public class Act_StaticCam : ScriptedAction
         section.Entry("Act_StaticCam", Position.X, Position.Y, Position.Z, Orientation.W, Orientation.X, Orientation.Y, Orientation.Z);
     }
 }
-
 
 
 public class Act_SetNNState : ScriptedAction

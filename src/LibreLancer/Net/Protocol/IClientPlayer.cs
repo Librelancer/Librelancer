@@ -9,7 +9,7 @@ namespace LibreLancer.Net.Protocol;
 public interface IClientPlayer
 {
     void UpdateBaselinePrices(BaselinePriceBundle prices);
-    void CallThorn(string script, ObjNetId mainObject);
+    void CallThorn(string? script, ObjNetId mainObject);
     void ListPlayers(bool isAdmin);
     void UpdateWeaponGroups(NetWeaponGroup[] wg);
 
@@ -57,7 +57,7 @@ public interface IClientPlayer
     [Channel(1)]
     void OnPlayerLeave(int id, string name);
 
-    [Channel(1)] //Low prio
+    [Channel(1)] // Low prio
     void VisitObject(uint hash, byte flags);
     void UpdateVisits(VisitBundle visits);
     void StopShip();

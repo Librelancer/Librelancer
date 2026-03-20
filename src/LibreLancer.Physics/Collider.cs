@@ -13,8 +13,8 @@ namespace LibreLancer.Physics
 {
     public abstract class Collider : IDisposable
     {
-        protected Simulation sim;
-        protected BufferPool pool;
+        protected Simulation Sim = null!;
+        protected BufferPool Pool = null!;
         private bool isDisposed = false;
         public TypedIndex Handle { get; protected set; }
 
@@ -24,16 +24,17 @@ namespace LibreLancer.Physics
             {
                 throw new ObjectDisposedException("Collider has already been disposed!");
             }
-            sim.Shapes.RemoveAndDispose(Handle, pool);
+
+            Sim.Shapes.RemoveAndDispose(Handle, Pool);
             Handle = new TypedIndex();
             isDisposed = true;
         }
         public abstract float Radius { get; }
 
-        internal virtual void Create(Simulation sim, BufferPool pool)
+        internal virtual void Create(Simulation simulation, BufferPool bufferPool)
         {
-            this.sim = sim;
-            this.pool = pool;
+            Sim = simulation;
+            Pool = bufferPool;
         }
 
         internal virtual void Draw(Matrix4x4 transform, IDebugRenderer renderer)

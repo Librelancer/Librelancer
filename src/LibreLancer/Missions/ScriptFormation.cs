@@ -9,8 +9,8 @@ public class ScriptFormation : NicknameItem
 {
     public Vector3 Position = Vector3.Zero;
     public Quaternion Orientation = Quaternion.Identity;
-    public string Formation;
-    public List<ScriptShip> Ships = new();
+    public string? Formation;
+    public List<ScriptShip> Ships = [];
     public MissionRelativePosition RelativePosition;
 
     public static ScriptFormation FromIni(
@@ -26,11 +26,15 @@ public class ScriptFormation : NicknameItem
             Formation = formation.Formation,
             RelativePosition = formation.RelativePosition
         };
+
         foreach (var s in formation.Ships)
         {
             if (ships.TryGetValue(s, out var ship))
+            {
                 fm.Ships.Add(ship);
+            }
         }
+        
         return fm;
     }
 }

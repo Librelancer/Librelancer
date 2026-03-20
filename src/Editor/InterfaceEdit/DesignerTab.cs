@@ -179,7 +179,7 @@ namespace InterfaceEdit
             ImGui.InvisibleButton("##renderThing", new Vector2(rtX, rtY));
             if (ImGui.IsItemHovered())
             {
-                context.Update(null, mainWindow.TotalTime, mX, mY, false);
+                context.Update(mainWindow.TotalTime, mX, mY, false);
                 if(ImGui.IsItemClicked(0)) context.OnMouseClick();
                 var isDown = ImGui.IsMouseDown(0);
                 if (lastDown && !isDown) context.OnMouseUp();
@@ -188,7 +188,7 @@ namespace InterfaceEdit
                 lastDown = isDown;
             }
             else {
-                context.Update(null, mainWindow.TotalTime, 0, 0, false);
+                context.Update(mainWindow.TotalTime, 0, 0, false);
                 context.MouseLeftDown = false;
                 if (lastDown)
                 {

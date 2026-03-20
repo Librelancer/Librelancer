@@ -15,21 +15,24 @@ namespace LibreLancer.Render
 {
 	public class LineRenderer :  IDisposable, Physics.IDebugRenderer
 	{
-		const int MAX_LINES = 8192;
-		VertexPositionColor[] lines = new VertexPositionColor[MAX_LINES * 2];
-		VertexBuffer linebuffer;
-		int lineVertices = 0;
-        public string SkeletonHighlight;
+        private const int MAX_LINES = 8192;
+        private VertexPositionColor[] lines = new VertexPositionColor[MAX_LINES * 2];
+        private VertexBuffer linebuffer;
+        private int lineVertices = 0;
+        public string SkeletonHighlight = "";
 
-		Shader shader;
+        private Shader shader;
+        private RenderContext rstate;
+
 		public LineRenderer(RenderContext rstate)
         {
+            this.rstate = rstate;
+
             AllShaders.CompilePhysicsDebug(rstate);
             shader = AllShaders.PhysicsDebug.Get(0);
 			linebuffer = new VertexBuffer(rstate, typeof(VertexPositionColor), MAX_LINES * 2, true);
 		}
 
-		RenderContext rstate;
 		public void StartFrame(RenderContext rs)
 		{
 			rstate = rs;
@@ -43,6 +46,7 @@ namespace LibreLancer.Render
                 Render();
                 lineVertices = 0;
             }
+
             lines[lineVertices++] = new VertexPositionColor(start, color);
             lines[lineVertices++] = new VertexPositionColor(end, color);
         }
@@ -60,7 +64,7 @@ namespace LibreLancer.Render
 
         public void DrawTriangleMesh(Matrix4x4 mat, Vector3[] positions, int[] indices, Color4 color)
         {
-            for(int i = 1; i < indices.Length; i++)
+            for(var i = 1; i < indices.Length; i++)
             {
                 var p1 = positions[indices[i - 1]];
                 var p2 = positions[indices[i]];
@@ -68,33 +72,33 @@ namespace LibreLancer.Render
             }
         }
 
-        private static readonly Vector3[] cubeVerts = new[]
-        {
-            //Front
+        private static readonly Vector3[] cubeVerts =
+        [
+            // Front
             new Vector3(-1,-1,1),
             new Vector3(-1, 1, 1),
             new Vector3(1, 1, 1),
             new Vector3(1, -1, 1),
-            //Back
+            // Back
             new Vector3(-1,-1,-1),
             new Vector3(-1, 1, -1),
             new Vector3(1, 1, -1),
-            new Vector3(1, -1, -1),
-        };
+            new Vector3(1, -1, -1)
+        ];
 
-        private static readonly int[] cubeIndices = new[]
-        {
-            //Front
+        private static readonly int[] cubeIndices =
+        [
+            // Front
             0,1, 1,2, 2,3, 3,0,
-            //Back
+            // Back
             4,5, 5,6, 6,7, 7,4,
-            //Join
-            0,4, 1,5, 2,6, 3,7,
-        };
+            // Join
+            0,4, 1,5, 2,6, 3,7
+        ];
 
         public void DrawCube(Matrix4x4 world, float scale, Color4 color)
         {
-            for (int i = 0; i < cubeIndices.Length; i += 2)
+            for (var i = 0; i < cubeIndices.Length; i += 2)
             {
                 var a = Vector3.Transform(cubeVerts[cubeIndices[i]] * scale, world);
                 var b = Vector3.Transform(cubeVerts[cubeIndices[i + 1]] * scale, world);
@@ -103,7 +107,7 @@ namespace LibreLancer.Render
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        struct MaterialParameters
+        private struct MaterialParameters
         {
             public Color4 Dc;
             public float Oc;
@@ -119,7 +123,7 @@ namespace LibreLancer.Render
             var p = new MaterialParameters() { Dc = color, Oc = 1 };
             shader.SetUniformBlock(3, ref p);
             rstate.Shader = shader;
-            resource.VertexBuffer.DrawImmediateElements(
+            resource.VertexBuffer!.DrawImmediateElements(
                 PrimitiveTypes.LineList,
                 wire.VertexOffset + resource.BaseVertex,
                 wire.Indices

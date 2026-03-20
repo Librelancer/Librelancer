@@ -13,22 +13,24 @@ namespace LibreLancer.Render
 {
     public class VertexResource : IDisposable
     {
-        internal VertexResourceAllocator Allocator { get; set; }
+        internal VertexResourceAllocator? Allocator { get; set; }
         public FVFVertex VertexType { get; init; }
-        public VertexBuffer VertexBuffer { get; private set; }
+        public VertexBuffer? VertexBuffer { get; private set; }
         public int BaseVertex { get; init; }
         public int VertexCount { get; init; }
         public int StartIndex { get; init; }
         public int IndexCount { get; init; }
         public bool IsDisposed { get; private set; }
 
-        public VertexResource(VertexBuffer buffer) =>
-            VertexBuffer = buffer;
+        public VertexResource(VertexBuffer? buffer) => VertexBuffer = buffer;
 
         public void Dispose()
         {
             if (IsDisposed)
+            {
                 return;
+            }
+
             IsDisposed = true;
             VertexBuffer = null;
             Allocator?.OnFree(this);
@@ -43,12 +45,15 @@ namespace LibreLancer.Render
 
         public int IndexCount { get; init; }
 
-        internal VertexResourceAllocator Allocator { get; set; }
+        internal VertexResourceAllocator? Allocator { get; set; }
 
         public void Dispose()
         {
             if (IsDisposed)
+            {
                 return;
+            }
+
             IsDisposed = true;
             Allocator?.OnFree(this);
         }
@@ -59,11 +64,11 @@ namespace LibreLancer.Render
         private const int INITIAL_ELEMENT_BUFFER_SIZE = 2 * 1024 * 1024;
 
         private ElementBuffer elementBuffer;
-        private FreeList indexFree = new FreeList();
+        private FreeList indexFree = new();
 
-        private Dictionary<D3DFVF, VertexResourceBuffer> buffersByType = new Dictionary<D3DFVF, VertexResourceBuffer>();
-        private List<VertexResource> resources = new List<VertexResource>();
-        private List<IndexResource> indexResources = new List<IndexResource>();
+        private Dictionary<D3DFVF, VertexResourceBuffer> buffersByType = new();
+        private List<VertexResource> resources = [];
+        private List<IndexResource> indexResources = [];
 
         private RenderContext context;
 
@@ -76,20 +81,23 @@ namespace LibreLancer.Render
 
         public VertexResource Allocate(FVFVertex format, byte[] vertices, ushort[] indices)
         {
-            if (!indexFree.TryAllocate(indices.Length, out int startIndex))
+            if (!indexFree.TryAllocate(indices.Length, out var startIndex))
             {
                 FLLog.Debug("Vertices", $"Growing GPU element buffer");
                 startIndex = elementBuffer.IndexCount;
                 indexFree.AddItem(startIndex + indices.Length, INITIAL_ELEMENT_BUFFER_SIZE - indices.Length);
                 elementBuffer.Expand(elementBuffer.IndexCount + INITIAL_ELEMENT_BUFFER_SIZE);
             }
+
             elementBuffer.SetData(indices, indices.Length, startIndex);
+
             if (!buffersByType.TryGetValue(format.FVF, out var buffer))
             {
                 buffer = new VertexResourceBuffer(context, format, elementBuffer);
                 buffersByType[format.FVF] = buffer;
             }
-            buffer.Allocate(vertices, out int baseVertex);
+
+            buffer.Allocate(vertices, out var baseVertex);
             var r = new VertexResource(buffer.VertexBuffer)
             {
                 Allocator = this,
@@ -105,13 +113,14 @@ namespace LibreLancer.Render
 
         public IndexResource AllocateIndex(ushort[] indices)
         {
-            if (!indexFree.TryAllocate(indices.Length, out int startIndex))
+            if (!indexFree.TryAllocate(indices.Length, out var startIndex))
             {
                 FLLog.Debug("Vertices", $"Growing GPU element buffer");
                 startIndex = elementBuffer.IndexCount;
                 indexFree.AddItem(startIndex + indices.Length, INITIAL_ELEMENT_BUFFER_SIZE - indices.Length);
                 elementBuffer.Expand(elementBuffer.IndexCount + INITIAL_ELEMENT_BUFFER_SIZE);
             }
+
             elementBuffer.SetData(indices, indices.Length, startIndex);
             var r = new IndexResource()
             {
@@ -139,32 +148,36 @@ namespace LibreLancer.Render
         public void Dispose()
         {
             elementBuffer.Dispose();
+
             foreach (var r in resources)
             {
                 r.Allocator = null;
                 r.Dispose();
             }
-            resources = null;
+
+            resources = null!;
+
             foreach (var i in indexResources)
             {
                 i.Allocator = null;
                 i.Dispose();
             }
-            indexResources = null;
-            foreach(var b in buffersByType.Values)
+
+            indexResources = null!;
+            foreach (var b in buffersByType.Values)
                 b.Dispose();
-            buffersByType = null;
+            buffersByType = null!;
         }
 
-        class FreeList
+        private class FreeList
         {
-            struct FreeItem
+            private struct FreeItem
             {
                 public int Start;
                 public int Count;
             }
 
-            private List<FreeItem> list = new List<FreeItem>();
+            private List<FreeItem> list = [];
 
             public void AddItem(int start, int count)
             {
@@ -178,16 +191,23 @@ namespace LibreLancer.Render
                     .Where(x => x.Count >= length)
                     .DefaultIfEmpty()
                     .MinBy(x => x.Count);
+
                 if (freeItem.Count != 0)
                 {
                     if (freeItem.Count > length)
+                    {
                         list[freeItem.Index] = new FreeItem()
-                            {Start = freeItem.Start + length, Count = freeItem.Count - length};
+                            { Start = freeItem.Start + length, Count = freeItem.Count - length };
+                    }
                     else
+                    {
                         list.RemoveAt(freeItem.Index);
+                    }
+
                     start = freeItem.Start;
                     return true;
                 }
+
                 start = 0;
                 return false;
             }
@@ -196,12 +216,14 @@ namespace LibreLancer.Render
             {
                 list.Add(new FreeItem() { Start = start, Count = count });
                 list.Sort((x, y) => x.Start.CompareTo(y.Start));
-                for (int i = 0; i < list.Count; i++) {
+
+                for (var i = 0; i < list.Count; i++)
+                {
                     while (i + 1 < list.Count
-                        && list[i + 1].Start == (list[i].Start + list[i].Count))
+                           && list[i + 1].Start == (list[i].Start + list[i].Count))
                     {
                         list[i] = new FreeItem()
-                            { Start = list[i].Start, Count = list[i].Count + list[i + 1].Count};
+                            { Start = list[i].Start, Count = list[i].Count + list[i + 1].Count };
                         list.RemoveAt(i + 1);
                     }
                 }
@@ -210,13 +232,12 @@ namespace LibreLancer.Render
             }
         }
 
-        class VertexResourceBuffer : IDisposable
+        private class VertexResourceBuffer : IDisposable
         {
-            const int VERTEX_BUFSIZE = (int)(8 * 1024 * 1024);
+            private const int VERTEX_BUFSIZE = (int) (8 * 1024 * 1024);
 
-            private FreeList freeList = new FreeList();
-            private int resizeCount = 0;
-            public VertexBuffer VertexBuffer;
+            private FreeList freeList = new();
+            public VertexBuffer? VertexBuffer;
 
             private ElementBuffer elementBuffer;
             private FVFVertex type;
@@ -244,19 +265,23 @@ namespace LibreLancer.Render
                     VertexBuffer.SetElementBuffer(elementBuffer);
                     freeList.AddItem(0, chunkSize);
                 }
+
                 //
-                if (!freeList.TryAllocate(vertices.Length / Stride, out baseVertex)){
+                if (!freeList.TryAllocate(vertices.Length / Stride, out baseVertex))
+                {
                     FLLog.Debug("Vertices", $"Expanding GPU resource for {type}");
                     baseVertex = VertexBuffer.VertexCount;
-                    freeList.AddItem(baseVertex + (vertices.Length / type.Stride), chunkSize - (vertices.Length / type.Stride));
+                    freeList.AddItem(baseVertex + (vertices.Length / type.Stride),
+                        chunkSize - (vertices.Length / type.Stride));
                     VertexBuffer.Expand(VertexBuffer.VertexCount + chunkSize);
                 }
+
                 VertexBuffer.SetData<byte>(vertices, baseVertex);
             }
 
             public void Free(VertexResource resource)
             {
-                if (freeList.Free(resource.BaseVertex, resource.VertexCount, VertexBuffer.VertexCount))
+                if (freeList.Free(resource.BaseVertex, resource.VertexCount, VertexBuffer!.VertexCount))
                 {
                     FLLog.Debug("Vertices", $"Deleting GPU resource for {type}, all allocations free");
                     VertexBuffer.Dispose();
@@ -267,7 +292,7 @@ namespace LibreLancer.Render
 
             public void Dispose()
             {
-                VertexBuffer.Dispose();
+                VertexBuffer?.Dispose();
                 VertexBuffer = null;
                 freeList = new FreeList();
             }

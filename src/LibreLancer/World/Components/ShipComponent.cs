@@ -14,13 +14,15 @@ public class ShipComponent : GameComponent
 
     public void ActivateShieldBubble(string hardpoint)
     {
-        if (string.IsNullOrWhiteSpace(Ship.ShieldLinkSource) ||
-            string.IsNullOrWhiteSpace(Ship.ShieldLinkHull) ||
-            Parent.PhysicsComponent == null)
+        if (string.IsNullOrWhiteSpace(Ship.ShieldLinkSource) || string.IsNullOrWhiteSpace(Ship.ShieldLinkHull) ||
+            Parent?.PhysicsComponent == null)
+        {
             return;
+        }
+
         if (hardpoint.Equals(Ship.ShieldLinkSource, StringComparison.OrdinalIgnoreCase))
         {
-            var hp = Parent.GetHardpoint(Ship.ShieldLinkHull);
+            var hp = Parent.GetHardpoint(Ship.ShieldLinkHull)!;
             Parent.PhysicsComponent?.ActivateHardpoint(hp);
         }
     }
@@ -29,11 +31,12 @@ public class ShipComponent : GameComponent
     {
         if (string.IsNullOrWhiteSpace(Ship.ShieldLinkSource) ||
             string.IsNullOrWhiteSpace(Ship.ShieldLinkHull) ||
-            Parent.PhysicsComponent == null)
+            Parent?.PhysicsComponent == null)
             return;
+
         if (hardpoint.Equals(Ship.ShieldLinkSource, StringComparison.OrdinalIgnoreCase))
         {
-            var hp = Parent.GetHardpoint(Ship.ShieldLinkHull);
+            var hp = Parent.GetHardpoint(Ship.ShieldLinkHull)!;
             Parent.PhysicsComponent?.DeactivateHardpoint(hp);
         }
     }

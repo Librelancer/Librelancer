@@ -9,15 +9,15 @@ namespace LibreLancer.Net.Protocol
 {
     public struct SoldGood
     {
-        //Name of Good (CRC)
+        // Name of Good (CRC)
         public uint GoodCRC;
-        //Required player rank
+        // Required player rank
         public int Rank;
-        //Required reputation [-1,1]
+        // Required reputation [-1,1]
         public float Rep;
-        //Price
+        // Price
         public ulong Price;
-        //For Sale
+        // For Sale
         public bool ForSale;
 
         public void Put(PacketWriter message)
@@ -38,7 +38,6 @@ namespace LibreLancer.Net.Protocol
             ForSale = message.GetBool()
         };
     }
-
 
     public struct BaselinePriceBundle
     {
@@ -69,8 +68,10 @@ namespace LibreLancer.Net.Protocol
             var compressed = message.GetRemainingBytes();
             using var comp = new ZstdSharp.Decompressor();
             var reader = new PacketReader(new NetDataReader(comp.Unwrap(compressed).ToArray()));
-            var bp = new BaselinePriceBundle();
-            bp.Prices = new BaselinePrice[reader.GetBigVarUInt32()];
+            var bp = new BaselinePriceBundle
+            {
+                Prices = new BaselinePrice[reader.GetBigVarUInt32()]
+            };
             bp.Prices[0].GoodCRC = reader.GetUInt();
             for (int i = 1; i < bp.Prices.Length; i++)
                 bp.Prices[i].GoodCRC = (uint)(reader.GetBigVarUInt32() + bp.Prices[i - 1].GoodCRC);
@@ -82,9 +83,9 @@ namespace LibreLancer.Net.Protocol
 
     public struct BaselinePrice
     {
-        //Name of Good (CRC)
+        // Name of Good (CRC)
         public uint GoodCRC;
-        //Price
+        // Price
         public ulong Price;
     }
 }

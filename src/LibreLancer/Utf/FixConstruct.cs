@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -13,7 +12,7 @@ namespace LibreLancer.Utf
 {
     public class FixConstruct : AbstractConstruct
     {
-		Transform3D fixtransform;
+        private Transform3D fixtransform;
         public override Transform3D LocalTransform { get { return internalGetTransform(fixtransform); } }
 
         public FixConstruct() : base()
@@ -31,9 +30,11 @@ namespace LibreLancer.Utf
 		protected FixConstruct(FixConstruct cf) : base(cf) { }
 		public override AbstractConstruct Clone()
 		{
-			var newc = new FixConstruct(this);
-			newc.fixtransform = fixtransform;
-			return newc;
+			var newc = new FixConstruct(this)
+            {
+                fixtransform = fixtransform
+            };
+            return newc;
 		}
         public override void Reset()
         {

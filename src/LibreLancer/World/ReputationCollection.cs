@@ -5,12 +5,15 @@ namespace LibreLancer.World;
 
 public class ReputationCollection
 {
-    public Dictionary<Faction, float> Reputations = new Dictionary<Faction, float>();
+    public Dictionary<Faction, float> Reputations = new();
 
-    public float GetReputation(Faction f)
+    public float GetReputation(Faction? f)
     {
-        if (f == null) return 0;
-        if (Reputations.TryGetValue(f, out var r)) return r;
-        else return 0;
+        if (f == null)
+        {
+            return 0;
+        }
+
+        return Reputations.TryGetValue(f, out var r) ? r : 0;
     }
 }

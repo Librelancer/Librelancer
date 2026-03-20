@@ -20,7 +20,7 @@ public enum CommSequenceSource
 
 public class CommSequence
 {
-    public string? Event;
+    public string Event = "";
     public CommSequenceTarget Target;
     public float Unknown1;
     public float Unknown2;

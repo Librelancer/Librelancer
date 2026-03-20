@@ -12,9 +12,10 @@ using LibreLancer.Data.Ini;
 namespace LibreLancer
 {
     [ParsedSection]
+    [Serializable]
 	public partial class GameConfig
 	{
-        public GameSettings Settings = new GameSettings();
+        public GameSettings Settings = new();
 
         [Entry("freelancer_path")]
 		public string FreelancerPath = "";
@@ -23,10 +24,13 @@ namespace LibreLancer
         [Entry("res_height")]
 		public int BufferHeight = 768;
         [Entry("uuid")]
-		public Guid? UUID;
+		public Guid UUID = Guid.Empty;
 
         [XmlIgnore]
-		public Func<FreelancerGame, GameState> CustomState;
+		public Func<FreelancerGame, GameState>? CustomState;
+
+        public event Action<GameConfig>? Saved;
+        private Func<string> filePath;
 
 		private GameConfig(Func<string> filePath)
 		{
@@ -35,9 +39,8 @@ namespace LibreLancer
 
 		public GameConfig()
 		{
+            filePath = DefaultConfigPath;
 		}
-
-		Func<string> filePath;
 
 		public static bool CheckFLDirectory(string dir)
         {
@@ -50,8 +53,7 @@ namespace LibreLancer
             {
                 return false;
             }
-            return fs.FileExists("librelancer.ini") ||
-                   fs.FileExists("EXE\\freelancer.ini");
+            return fs.FileExists("librelancer.ini") || fs.FileExists("EXE\\freelancer.ini");
         }
 
         public void Validate()
@@ -62,7 +64,7 @@ namespace LibreLancer
             }
         }
 
-		public static GameConfig Create(bool loadFile = true, Func<string> filePath = null)
+		public static GameConfig Create(bool loadFile = true, Func<string>? filePath = null)
 		{
             if (!loadFile)
             {
@@ -72,14 +74,15 @@ namespace LibreLancer
 			var cfgpath = (filePath ?? DefaultConfigPath)();
             if (File.Exists(cfgpath))
             {
-                var allS = IniFile.ParseFile(cfgpath, null, false, null);
+                var allS = IniFile.ParseFile(cfgpath, null, false, null).ToArray();
                 var lS = allS.FirstOrDefault(x => x.Name == "Librelancer");
                 var set = allS.FirstOrDefault(x => x.Name == "Settings");
-                GameConfig cfg;
+
+                GameConfig? cfg;
                 if (lS != null)
                 {
                     TryParse(lS, out cfg);
-                    cfg.filePath = (filePath ?? DefaultConfigPath);
+                    cfg!.filePath = (filePath ?? DefaultConfigPath);
                 }
                 else
                 {
@@ -87,18 +90,25 @@ namespace LibreLancer
                 }
                 if (set != null)
                 {
-                    GameSettings.TryParse(set, out cfg.Settings);
-                    cfg.Settings ??= new();
+                    GameSettings.TryParse(set, out var settings);
+                    cfg.Settings = settings ?? new();
                 }
-                if (cfg.UUID == null)
+
+                if (cfg.UUID == Guid.Empty)
+                {
                     cfg.UUID = Guid.NewGuid();
+                }
+
                 return cfg;
             }
             else
             {
                 var cfg = new GameConfig((filePath ?? DefaultConfigPath));
-                if (cfg.UUID == null)
+                if (cfg.UUID == Guid.Empty)
+                {
                     cfg.UUID = Guid.NewGuid();
+                }
+
                 cfg.Save();
                 return cfg;
             }
@@ -113,14 +123,12 @@ namespace LibreLancer
             writer.WriteLine($"freelancer_path = {FreelancerPath}");
             writer.WriteLine($"res_width = {BufferWidth}");
             writer.WriteLine($"res_height = {BufferHeight}");
-            writer.WriteLine($"uuid = {UUID.Value:D}");
+            writer.WriteLine($"uuid = {UUID:D}");
             writer.WriteLine();
             Settings.Write(writer);
         }
 
-        public event Action<GameConfig> Saved;
-
-		static string DefaultConfigPath()
+        private static string DefaultConfigPath()
 		{
 			return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "librelancer.ini");
 		}

@@ -12,69 +12,121 @@ namespace LibreLancer.Interface
 {
     public abstract class UiWidget : IDisposable
     {
-        public string ID { get; set;  }
-        public string ClassName { get; set; }
+        public string? ID { get; set; }
+        public string? ClassName { get; set; }
         public AnchorKind Anchor { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
         public float Width { get; set; }
         public float Height { get; set; }
-        public UiRenderable Background { get; set; }
-        public UiRenderable Border { get; set; }
+        public UiRenderable? Background { get; set; }
+        public UiRenderable? Border { get; set; }
 
         public bool Visible { get; set; } = true;
+
         public bool Enabled { get; set; } = true;
-        //Style resolution code
+
+        // Style resolution code
         protected static T Cascade<T>(T? style, T? style2, T self) where T : struct
         {
-            if (!IsDefault(self)) return self;
-            if (CheckValue(style2)) return style2.Value;
-            if (CheckValue(style)) return style.Value;
-            return default(T);
-        }
-        static bool CheckValue<T>(T? value) where T : struct => !(value is null) && !IsDefault(value.Value);
-        static bool IsDefault<T>(T value) => EqualityComparer<T>.Default.Equals(value, default(T));
-        protected static T Cascade<T>(T style, T style2, T self) where T : class => (self ?? style2 ?? style);
+            if (!IsDefault(self))
+            {
+                return self;
+            }
 
-        static TextAlignment CastAlign(HorizontalAlignment h)
+            if (CheckValue(style2))
+            {
+                return style2!.Value;
+            }
+
+            if (CheckValue(style))
+            {
+                return style!.Value;
+            }
+
+            return default;
+        }
+
+        private static bool CheckValue<T>(T? value) where T : struct => value is not null && !IsDefault(value.Value);
+        private static bool IsDefault<T>(T value) => EqualityComparer<T>.Default.Equals(value, default(T));
+        protected static T? Cascade<T>(T? style, T? style2, T? self) where T : class => (self ?? style2 ?? style);
+
+        private static TextAlignment CastAlign(HorizontalAlignment h)
         {
-            if (h == HorizontalAlignment.Center) return TextAlignment.Center;
-            if (h == HorizontalAlignment.Right) return TextAlignment.Right;
+            if (h == HorizontalAlignment.Center)
+            {
+                return TextAlignment.Center;
+            }
+
+            if (h == HorizontalAlignment.Right)
+            {
+                return TextAlignment.Right;
+            }
+
             return TextAlignment.Left;
         }
+
         protected void DrawText(
             UiContext context,
-            ref CachedRenderString cache,
+            ref CachedRenderString? cache,
             RectangleF myRectangle,
             float textSize,
-            string font,
-            InterfaceColor textColor,
-            InterfaceColor shadowColor,
+            string? font,
+            InterfaceColor? textColor,
+            InterfaceColor? shadowColor,
             HorizontalAlignment horizontalAlign,
             VerticalAlignment verticalAlign,
             bool clip,
             string text,
             float alpha = 1f,
             bool wrap = false
-         )
+        )
         {
-            if (string.IsNullOrEmpty(text)) return;
-            if (myRectangle.Width <= 1 || myRectangle.Height <= 1) return;
-            if (string.IsNullOrEmpty(font)) font = "$Normal";
-            if (textSize <= 0) textSize = 10;
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            if (myRectangle.Width <= 1 || myRectangle.Height <= 1)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(font))
+            {
+                font = "$Normal";
+            }
+
+            if (textSize <= 0)
+            {
+                textSize = 10;
+            }
+
             var color = (textColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             color.A *= alpha;
-            if (color.A < float.Epsilon) return;
+
+            if (color.A < float.Epsilon)
+            {
+                return;
+            }
+
             var fnt = context.Data.GetFont(font);
             var size = context.TextSize(textSize);
             var lineHeight = context.RenderContext.Renderer2D.LineHeight(fnt, size);
             var drawRect = context.PointsToPixels(myRectangle);
-            var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false, shadowColor != null, CastAlign(horizontalAlign),
+            var sz = context.RenderContext.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false,
+                shadowColor != null, CastAlign(horizontalAlign),
                 wrap ? drawRect.Width : 0);
-            //workaround for font substitution causing layout issues - e.g. CJK
-            //TODO: How to get max lineheight of fonts in string?
-            if (sz.Y > lineHeight && sz.Y < (lineHeight * 2)) lineHeight = sz.Y;
+
+            // workaround for font substitution causing layout issues - e.g. CJK
+            // TODO: How to get max lineheight of fonts in string?
+            if (sz.Y > lineHeight && sz.Y < (lineHeight * 2))
+            {
+                lineHeight = sz.Y;
+            }
+
             float drawX, drawY;
+
             if (!wrap)
             {
                 switch (horizontalAlign)
@@ -98,35 +150,47 @@ namespace LibreLancer.Interface
             {
                 drawX = drawRect.X;
             }
-            switch (verticalAlign) {
+
+            switch (verticalAlign)
+            {
                 case VerticalAlignment.Top:
                     drawY = drawRect.Y;
                     break;
                 case VerticalAlignment.Bottom:
                     drawY = drawRect.Y + drawRect.Height - lineHeight;
                     break;
-                default: //Center
+                default: // Center
                     drawY = drawRect.Y + (drawRect.Height / 2) - lineHeight / 2;
                     break;
             }
+
             var shadow = new OptionalColor();
-            if (shadowColor != null) {
+
+            if (shadowColor != null)
+            {
                 shadow = new OptionalColor(shadowColor.Color);
                 shadow.Color.A *= alpha;
             }
 
-            bool restoreClip = false;
-            Rectangle restoreRect = default;
             if (clip && !context.RenderContext.PushScissor(drawRect))
+            {
                 return;
-            context.RenderContext.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false, shadow, CastAlign(horizontalAlign),
+            }
+
+            context.RenderContext.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false,
+                shadow, CastAlign(horizontalAlign),
                 wrap ? drawRect.Width : 0);
+
             if (clip)
+            {
                 context.RenderContext.PopScissor();
+            }
         }
+
         public abstract void Render(UiContext context, RectangleF parentRectangle);
 
-        private Stylesheet _lastSheet;
+        private Stylesheet? _lastSheet;
+
         public virtual void ApplyStylesheet(Stylesheet sheet)
         {
             _lastSheet = sheet;
@@ -134,53 +198,69 @@ namespace LibreLancer.Interface
 
         public void ReloadStyle()
         {
-            if(_lastSheet != null) ApplyStylesheet(_lastSheet);
+            if (_lastSheet != null)
+            {
+                ApplyStylesheet(_lastSheet);
+            }
         }
+
         public virtual void UnFocus()
         {
         }
 
-        protected UiAnimation CurrentAnimation;
+        protected UiAnimation? CurrentAnimation;
         private float aspectRatio = 1;
+
         protected void Update(UiContext context, Vector2 myPos)
         {
             aspectRatio = context.ViewportWidth / context.ViewportHeight;
             double delta = context.DeltaTime;
-            callback?.Invoke(delta);
-            if (CurrentAnimation != null) {
-                CurrentAnimation.SetWidgetPosition(myPos);
-                CurrentAnimation.Update(delta, aspectRatio);
-                if (!CurrentAnimation.Running)
-                {
-                    if (CurrentAnimation.FinalPositionSet.HasValue)
-                    {
-                        animSetPos = CurrentAnimation.FinalPositionSet.Value;
-                    }
-                    CurrentAnimation = null;
-                }
+            Callback?.Invoke(delta);
+
+            if (CurrentAnimation == null)
+            {
+                return;
             }
+
+            CurrentAnimation.SetWidgetPosition(myPos);
+            CurrentAnimation.Update(delta, aspectRatio);
+
+            if (CurrentAnimation.Running)
+            {
+                return;
+            }
+
+            if (CurrentAnimation.FinalPositionSet.HasValue)
+            {
+                animSetPos = CurrentAnimation.FinalPositionSet.Value;
+            }
+
+            CurrentAnimation = null;
         }
 
-        private event Action<double> callback;
+        private event Action<double>? Callback;
+
         public void OnUpdate(Closure handler)
         {
-            callback += (x) =>
-            {
-                handler.Call(x);
-            };
+            Callback += (x) => { handler.Call(x); };
         }
 
-        private event Action escapePressed;
+        private event Action? EscapePressed;
+
         public void OnEscape(Closure handler)
         {
-            escapePressed += () => handler.Call();
+            EscapePressed += () => handler.Call();
         }
 
         private Vector2? animSetPos;
+
         protected Vector2 AnimatedPosition(Vector2 myPos)
         {
             if (CurrentAnimation != null && CurrentAnimation.Running)
+            {
                 return CurrentAnimation.CurrentPosition;
+            }
+
             return animSetPos ?? myPos;
         }
 
@@ -189,8 +269,10 @@ namespace LibreLancer.Interface
             switch (name.ToLowerInvariant())
             {
                 case "flyinleft":
-                    var left = new FlyInLeft(Vector2.Zero, offsetTime, duration);
-                    left.From = -GetDimensions().X - 10;
+                    var left = new FlyInLeft(Vector2.Zero, offsetTime, duration)
+                    {
+                        From = -GetDimensions().X - 10
+                    };
                     CurrentAnimation = left;
                     CurrentAnimation.Begin(aspectRatio);
                     break;
@@ -200,8 +282,10 @@ namespace LibreLancer.Interface
                     CurrentAnimation.Begin(aspectRatio);
                     break;
                 case "flyoutleft":
-                    var outleft = new FlyOutLeft(Vector2.Zero, offsetTime, duration);
-                    outleft.To = -GetDimensions().X - 10;
+                    var outleft = new FlyOutLeft(Vector2.Zero, offsetTime, duration)
+                    {
+                        To = -GetDimensions().X - 10
+                    };
                     CurrentAnimation = outleft;
                     CurrentAnimation.Begin(aspectRatio);
                     break;
@@ -234,33 +318,59 @@ namespace LibreLancer.Interface
         }
 
         [WattleScriptHidden]
-        public virtual bool WantsEscape() => Visible && escapePressed != null;
+        public virtual bool WantsEscape() => Visible && EscapePressed != null;
 
         [WattleScriptHidden]
         public virtual void OnEscapePressed()
         {
-            if(Visible)
-                escapePressed?.Invoke();
+            if (Visible)
+            {
+                EscapePressed?.Invoke();
+            }
         }
 
-        public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle) { }
-
-        public virtual void OnMouseClick(UiContext context, RectangleF parentRectangle) {}
-
-        public virtual void OnMouseDoubleClick(UiContext context, RectangleF parentRectangle) { }
-
-        public virtual void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta) { }
-
-        public virtual void OnMouseUp(UiContext context, RectangleF parentRectangle) { }
-        public virtual void OnKeyDown(UiContext context, Keys key, bool control) { }
-        public virtual void OnTextInput(string text) { }
-        public virtual Vector2 GetDimensions() => new Vector2(Width, Height);
-        public virtual UiWidget GetElement(string elementID)
+        public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle)
         {
-            if (string.IsNullOrWhiteSpace(elementID)) return null;
-            if (elementID.Equals(ID, StringComparison.OrdinalIgnoreCase)) return this;
-            return null;
         }
-        public virtual void Dispose()  { }
+
+        public virtual void OnMouseClick(UiContext context, RectangleF parentRectangle)
+        {
+        }
+
+        public virtual void OnMouseDoubleClick(UiContext context, RectangleF parentRectangle)
+        {
+        }
+
+        public virtual void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        {
+        }
+
+        public virtual void OnMouseUp(UiContext context, RectangleF parentRectangle)
+        {
+        }
+
+        public virtual void OnKeyDown(UiContext context, Keys key, bool control)
+        {
+        }
+
+        public virtual void OnTextInput(string text)
+        {
+        }
+
+        public virtual Vector2 GetDimensions() => new(Width, Height);
+
+        public virtual UiWidget? GetElement(string elementID)
+        {
+            if (string.IsNullOrWhiteSpace(elementID))
+            {
+                return null;
+            }
+
+            return elementID.Equals(ID, StringComparison.OrdinalIgnoreCase) ? this : null;
+        }
+
+        public virtual void Dispose()
+        {
+        }
     }
 }

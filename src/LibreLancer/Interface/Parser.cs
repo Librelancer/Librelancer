@@ -11,31 +11,33 @@ namespace LibreLancer.Interface
 {
     public static class Parser
     {
-        static float InvariantFloat(string s) => float.Parse(s, CultureInfo.InvariantCulture);
+        private static float InvariantFloat(string s) => float.Parse(s, CultureInfo.InvariantCulture);
         public static float Percentage(string s)
         {
-            if (s.EndsWith("%"))
+            if (s.EndsWith('%'))
                 return InvariantFloat(s.TrimEnd('%')) / 100;
             else
                 return InvariantFloat(s);
         }
-        static Dictionary<string, Color4> namedColors = new Dictionary<string, Color4>(StringComparer.InvariantCultureIgnoreCase);
+
+        private static Dictionary<string, Color4> namedColors = new(StringComparer.InvariantCultureIgnoreCase);
         static Parser()
         {
             foreach(var f in typeof(Color4).GetProperties(BindingFlags.Public | BindingFlags.Static)) {
-                namedColors.Add(f.Name, (Color4)f.GetValue(null));
+                namedColors.Add(f.Name, (Color4)f.GetValue(null)!);
             }
         }
-        static int GetDigit(char c)
+
+        private static int GetDigit(char c)
         {
             var i = (int)c;
-            if (i >= '0' && i <= '9')
-                return i - '0';
-            if (i >= 'a' && i <= 'f')
-                return 10 + (i - 'a');
-            if (i >= 'A' && i <= 'F')
-                return 10 + (i - 'A');
-            throw new Exception("Invalid hex digit " + c);
+            return i switch
+            {
+                >= '0' and <= '9' => i - '0',
+                >= 'a' and <= 'f' => 10 + (i - 'a'),
+                >= 'A' and <= 'F' => 10 + (i - 'A'),
+                _ => throw new Exception("Invalid hex digit " + c)
+            };
         }
 
         public static bool TryParseColor(ReadOnlySpan<char> s, out Color4 t)
@@ -83,7 +85,7 @@ namespace LibreLancer.Interface
                 if (split.Length != 4) return false;
                 var floats = split.Select((x) => float.Parse(x.Trim(), CultureInfo.InvariantCulture)).ToArray();
                 var alpha = Percentage(split[3].Trim());
-                if (alpha > 1) alpha = (alpha / 255f); //out of spec but I'm allowed to ;)
+                if (alpha > 1) alpha = (alpha / 255f); // out of spec but I'm allowed to ;)
                 t = new Color4(floats[0] / 255, floats[1] / 255, floats[2] / 255, alpha);
                 return true;
             }

@@ -7,8 +7,8 @@ public class AllowedDocking
 {
     public bool CanDock = true;
     public bool CanTl = true;
-    public HashSet<uint> DockExceptions;
-    public HashSet<uint> TlExceptions;
+    public HashSet<uint> DockExceptions = [];
+    public HashSet<uint> TlExceptions = [];
 
     public void Put(PacketWriter message)
     {
@@ -52,6 +52,7 @@ public class AllowedDocking
         {
             tl.Add(message.GetUInt());
         }
+
         return new()
         {
             CanDock = (flags & (1 << 0)) != 0,

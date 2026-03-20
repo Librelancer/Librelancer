@@ -72,6 +72,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibreLancer.Data.Generator"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StringSquash", "extern\StringSquash\StringSquash\StringSquash.csproj", "{BF225004-7B9E-4316-BBC9-54D787C9A605}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "RootFiles", "RootFiles", "{403B7140-41DD-4874-A83F-2140514F0BC3}"
+	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+		LICENSE = LICENSE
+		README.md = README.md
+		shell.nix = shell.nix
+		Credits.txt = Credits.txt
+		build.sh = build.sh
+		build.ps1 = build.ps1
+		build.config = build.config
+		CMakeLists.txt = CMakeLists.txt
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

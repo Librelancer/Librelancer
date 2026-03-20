@@ -11,7 +11,7 @@ namespace LibreLancer.World
 {
     public class ShipFormation
     {
-        static uint _counter;
+        private static uint _counter;
 
         public uint ID { get; } = Interlocked.Increment(ref _counter);
 
@@ -19,30 +19,28 @@ namespace LibreLancer.World
 
         public ulong Hash => (ulong)Version | (((ulong)ID) << 32);
 
-        public GameObject LeadShip { get; private set; }
+        public GameObject LeadShip { get; private set; } = null!;
         public IReadOnlyList<GameObject> Followers => _followers;
 
-        List<GameObject> _followers = new List<GameObject>();
+        private List<GameObject> _followers = [];
 
-        public Vector3[] Offsets = new[]
-        {
+        public Vector3[] Offsets =
+        [
             new Vector3(-60, 0, 0),
             new Vector3(60, 0, 0),
             new Vector3(0, -60, 0),
             new Vector3(0, 60, 0)
-        };
+        ];
 
-
-
-        static Vector3[] defaultOffsets = new[]
-        {
+        private static Vector3[] defaultOffsets =
+        [
             new Vector3(-1, 0, 0),
             new Vector3(1, 0, 0),
             new Vector3(0, -1, 0),
             new Vector3(0, 1, 0)
-        };
+        ];
 
-        static Vector3 DefaultOffset(int i)
+        private static Vector3 DefaultOffset(int i)
         {
             var dir = defaultOffsets[i % 4];
             var len = 60 + (i / 4) * 20;
@@ -87,7 +85,7 @@ namespace LibreLancer.World
         public void Add(GameObject obj)
         {
             _followers.Add(obj);
-            //Sort player to end (SP formations)
+            // Sort player to end (SP formations)
             if (PlayerPosition != null)
             {
                 var pobj = _followers.FirstOrDefault(x => (x.Flags & GameObjectFlags.Player) == GameObjectFlags.Player);
@@ -125,7 +123,7 @@ namespace LibreLancer.World
         public ShipFormation(GameObject lead, FormationDef formation)
         {
             LeadShip = lead;
-            _followers = new List<GameObject>();
+            _followers = [];
             Offsets = formation.Positions.Skip(1).ToArray();
             PlayerPosition = formation.PlayerPosition;
         }
@@ -136,7 +134,7 @@ namespace LibreLancer.World
             _followers = new List<GameObject>(follow);
         }
 
-        static int GetId(GameObject obj, GameObject self)
+        private static int GetId(GameObject obj, GameObject self)
         {
             if (obj == self) return 0;
             return obj.NetID;
@@ -144,11 +142,13 @@ namespace LibreLancer.World
 
         public NetFormation ToNetFormation(GameObject self)
         {
-            var nf = new NetFormation();
-            nf.Exists = true;
-            nf.LeadShip = GetId(LeadShip, self);
-            nf.Followers = Followers.Select(x => GetId(x, self)).ToArray();
-            nf.YourPosition = PlayerPosition ?? GetShipOffset(self);
+            var nf = new NetFormation
+            {
+                Exists = true,
+                LeadShip = GetId(LeadShip, self),
+                Followers = Followers.Select(x => GetId(x, self)).ToArray(),
+                YourPosition = PlayerPosition ?? GetShipOffset(self)
+            };
             return nf;
         }
 

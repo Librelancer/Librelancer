@@ -16,7 +16,7 @@ namespace LibreLancer.Utf.Ale
 
         public ALEffectLib()
         {
-            Effects = new();
+            Effects = [];
         }
 
         public ALEffectLib(LeafNode node)
@@ -30,14 +30,16 @@ namespace LibreLancer.Utf.Ale
             for (int ef = 0; ef < effectCount; ef++)
             {
                 string name = ReadName(reader);
+
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
                 if (version == 1.1f)
                 {
-                    //Skip unused floats
+                    // Skip unused floats
                     reader.Skip(4 * sizeof(float));
                 }
-                Effects.Add(new ALEffect {
-                    Name = name,
+
+                Effects.Add(new ALEffect(name)
+                {
                     CRC = CrcTool.FLAleCrc(name),
                     Fx = ReadAlchemyNodeReferences(reader),
                     Pairs = ReadPairs(reader)
@@ -61,6 +63,7 @@ namespace LibreLancer.Utf.Ale
         {
             int fxCount = reader.ReadInt32();
             List<AlchemyNodeRef> refs = new(fxCount);
+
             for (int i = 0; i < fxCount; i++)
             {
                 refs.Add(new AlchemyNodeRef(
@@ -78,7 +81,7 @@ namespace LibreLancer.Utf.Ale
         {
             int pairsCount = reader.ReadInt32();
             List<(uint, uint)> pairs = new(pairsCount);
-            int remainingBytes = (int)(reader.BaseStream.Length - reader.BaseStream.Position);
+            int remainingBytes = (int) (reader.BaseStream.Length - reader.BaseStream.Position);
             int pairByteSize = (sizeof(uint) * 2);
             int requiredBytes = pairsCount * pairByteSize;
 
@@ -93,4 +96,3 @@ namespace LibreLancer.Utf.Ale
         }
     }
 }
-

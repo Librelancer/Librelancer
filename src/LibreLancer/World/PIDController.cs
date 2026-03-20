@@ -10,8 +10,8 @@ namespace LibreLancer.World
 		public double I;
 		public double D;
 
-		double integral;
-		double lastError;
+        private double integral;
+        private double lastError;
 
 		public void Reset()
 		{

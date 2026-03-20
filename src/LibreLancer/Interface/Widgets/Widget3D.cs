@@ -23,7 +23,7 @@ namespace LibreLancer.Interface
         }
 
         protected Vector2 OrbitPan;
-        Vector2 dragStart = Vector2.Zero;
+        private Vector2 dragStart = Vector2.Zero;
         private bool dragging = false;
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
@@ -51,7 +51,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        private LookAtCamera cam = new LookAtCamera();
+        private LookAtCamera cam = new();
         protected LookAtCamera GetCamera(float zoom, UiContext context, RectangleF rect)
         {
             var pxRect = context.PointsToPixels(rect);
@@ -67,7 +67,7 @@ namespace LibreLancer.Interface
             context.RenderContext.Flush();
             var pxRect = context.PointsToPixels(rect);
             if(pxRect.Width <= 0 || pxRect.Height <= 0) return;
-            //setup
+            // setup
             var rTarget = new RenderTarget2D(context.RenderContext, pxRect.Width, pxRect.Height);
             var prevRt = context.RenderContext.RenderTarget;
             context.RenderContext.RenderTarget = rTarget;
@@ -76,16 +76,16 @@ namespace LibreLancer.Interface
             context.RenderContext.DepthEnabled = true;
             context.RenderContext.ClearColor = Color4.Transparent;
             context.RenderContext.ClearAll();
-            //draw
+            // draw
             Draw3DContent(context, rect);
-            //blit to screen
+            // blit to screen
             context.RenderContext.PopViewport();
             context.RenderContext.DepthEnabled = false;
             context.RenderContext.RenderTarget = prevRt;
             context.RenderContext.Renderer2D.Draw(rTarget.Texture, new Rectangle(0, 0, pxRect.Width, pxRect.Height),
                 pxRect,
                 Color4.White, BlendMode.Normal, true);
-            context.RenderContext.Flush(); //need to flush before disposing RT
+            context.RenderContext.Flush(); // need to flush before disposing RT
             rTarget.Dispose();
         }
 

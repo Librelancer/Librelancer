@@ -16,7 +16,7 @@ namespace LibreLancer.Server.Components
             set => _health = value;
         }
 
-        float _health;
+        private float _health;
 
         public ShieldEquipment Equip;
 
@@ -48,19 +48,18 @@ namespace LibreLancer.Server.Components
             if (Health >= MinHealth && !shieldHpActive)
             {
                 shieldHpActive = true;
-                if (Parent.Parent.TryGetComponent<ShipComponent>(out var ship)) {
-                    ship.ActivateShieldBubble(Parent.Attachment.Name);
+                if (Parent.Parent!.TryGetComponent<ShipComponent>(out var ship)) {
+                    ship.ActivateShieldBubble(Parent.Attachment!.Name);
                 }
             }
             else if (Health < MinHealth && shieldHpActive)
             {
                 shieldHpActive = false;
-                if (Parent.Parent.TryGetComponent<ShipComponent>(out var ship)) {
-                    ship.DeactivateShieldBubble(Parent.Attachment.Name);
+                if (Parent.Parent!.TryGetComponent<ShipComponent>(out var ship)) {
+                    ship.DeactivateShieldBubble(Parent.Attachment!.Name);
                 }
             }
         }
-
 
         public bool Damage(float incomingDamage)
         {
@@ -71,7 +70,8 @@ namespace LibreLancer.Server.Components
                 {
                     _health = 0;
                 }
-                if(Parent.Parent.TryGetComponent<SNPCComponent>(out var n))
+
+                if(Parent.Parent!.TryGetComponent<SNPCComponent>(out var n))
                     n.TakingDamage(incomingDamage);
                 return true;
             }

@@ -164,7 +164,7 @@ public unsafe class Renderer2D : IDisposable
         CreateRichTextEngine().DrawStringBaseline(fontName, size, text, x, y, color, underline, shadow);
     }
 
-    public void DrawStringCached(ref CachedRenderString cache, string fontName, float size, string text,
+    public void DrawStringCached(ref CachedRenderString? cache, string fontName, float size, string text,
         float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default,
         TextAlignment alignment = TextAlignment.Left, float maxWidth = 0)
     {
@@ -173,7 +173,7 @@ public unsafe class Renderer2D : IDisposable
         CreateRichTextEngine().DrawStringCached(ref cache, fontName, size, text, x, y, color, underline, shadow, alignment, maxWidth);
     }
 
-    public Point MeasureStringCached(ref CachedRenderString cache, string fontName, float size, string text, bool underline = false, bool shadow = false, TextAlignment alignment = TextAlignment.Left, float maxWidth = 0)
+    public Point MeasureStringCached(ref CachedRenderString? cache, string fontName, float size, string text, bool underline = false, bool shadow = false, TextAlignment alignment = TextAlignment.Left, float maxWidth = 0)
     {
         if (text == "" || size < 1) //skip empty str
             return Point.Zero;

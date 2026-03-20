@@ -10,7 +10,7 @@ namespace LibreLancer.Interface
 {
     public interface INavmapIcons
     {
-        UiRenderable GetSystemObject(string name);
+        UiRenderable GetSystemObject(string? name);
         UiRenderable GetBackground();
         IEnumerable<string> Libraries();
     }
@@ -18,7 +18,7 @@ namespace LibreLancer.Interface
     public class IniNavmapIcons : INavmapIcons
     {
         private NavmapIni ini;
-        Dictionary<string, UiRenderable> renderables = new Dictionary<string, UiRenderable>();
+        private Dictionary<string, UiRenderable> renderables = new();
         public IniNavmapIcons(NavmapIni ini)
         {
             this.ini = ini;
@@ -30,13 +30,13 @@ namespace LibreLancer.Interface
 
         public IEnumerable<string> Libraries() => ini.LibraryFiles.SelectMany(x => x.Files);
 
-        public UiRenderable GetSystemObject(string name)
+        public UiRenderable GetSystemObject(string? name)
         {
             var type = ini.Type?.Type ?? NavIconType.Model;
             if (string.IsNullOrEmpty(name)) return GetSystemObject("nav_depot");
             if (!renderables.TryGetValue(name, out var renderable))
             {
-                if (!ini.Icons.Map.TryGetValue(name, out var model))
+                if (!ini.Icons!.Map.TryGetValue(name, out var model))
                 {
                     return GetSystemObject("nav_depot");
                 }
@@ -62,34 +62,37 @@ namespace LibreLancer.Interface
                     });
                 }
 
-
                 renderables.Add(name, renderable);
             }
             return renderable;
         }
 
-        private UiRenderable background;
+        private UiRenderable? background;
         public UiRenderable GetBackground()
         {
-            if (background == null) {
-                background = new UiRenderable();
-                background.AddElement(new DisplayImage()
-                {
-                    Image = new InterfaceImage()
-                    {
-                        TexName = ini.Background?.Texture ?? "NAV_zoomedliberty.tga"
-                    }
-                });
+            if (background != null)
+            {
+                return background;
             }
+
+            background = new UiRenderable();
+            background.AddElement(new DisplayImage()
+            {
+                Image = new InterfaceImage()
+                {
+                    TexName = ini.Background?.Texture ?? "NAV_zoomedliberty.tga"
+                }
+            });
+
             return background;
         }
     }
     public class NavmapIcons : INavmapIcons
     {
-        //TODO: Turn this into directory lookup + .3db like vanilla
+        // TODO: Turn this into directory lookup + .3db like vanilla
         private const string DIR = "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/SPACEOBJECTS/";
 
-        Dictionary<string, UiRenderable> renderables = new Dictionary<string, UiRenderable>();
+        private Dictionary<string, UiRenderable> renderables = new();
 
         public IEnumerable<string> Libraries()
         {
@@ -98,7 +101,7 @@ namespace LibreLancer.Interface
             yield return "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/navmaptextures.txm";
             yield return "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/zoomedmap_liberty.3db";
         }
-        public UiRenderable GetSystemObject(string name)
+        public UiRenderable GetSystemObject(string? name)
         {
             if (string.IsNullOrEmpty(name)) return GetSystemObject("nav_depot");
             if (!renderables.TryGetValue(name, out var renderable))
@@ -114,19 +117,22 @@ namespace LibreLancer.Interface
             return renderable;
         }
 
-        private UiRenderable background;
+        private UiRenderable? background;
         public UiRenderable GetBackground()
         {
-            if (background == null) {
-                background = new UiRenderable();
-                background.AddElement(new DisplayImage()
-                {
-                    Image = new InterfaceImage()
-                    {
-                        TexName = "NAV_zoomedliberty.tga"
-                    }
-                });
+            if (background != null)
+            {
+                return background;
             }
+
+            background = new UiRenderable();
+            background.AddElement(new DisplayImage()
+            {
+                Image = new InterfaceImage()
+                {
+                    TexName = "NAV_zoomedliberty.tga"
+                }
+            });
             return background;
         }
     }

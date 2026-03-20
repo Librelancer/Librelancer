@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;
 using LibreLancer.World;
@@ -9,13 +10,13 @@ namespace LibreLancer.Net.Protocol;
 public struct PacketReader
 {
     private NetDataReader reader;
-    private NetHpidReader hpids;
+    private NetHpidReader? hpids;
 
-    public NetHpidReader HpidReader => hpids;
+    public NetHpidReader? HpidReader => hpids;
 
     public int Size => reader.RawDataSize;
 
-    public PacketReader(NetDataReader reader, NetHpidReader hpids = null)
+    public PacketReader(NetDataReader reader, NetHpidReader? hpids = null)
     {
         this.reader = reader;
         this.hpids = hpids;
@@ -74,7 +75,7 @@ public struct PacketReader
         long b = reader.GetByte();
         ulong a = (ulong) (b & 0x7f);
         int extraCount = 0;
-        //first extra
+        // first extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -82,7 +83,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //second extra
+        // second extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -90,7 +91,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //third extra
+        // third extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -98,7 +99,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //fourth extra
+        // fourth extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -106,7 +107,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //fifth extra
+        // fifth extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -114,7 +115,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //sixth extra
+        // sixth extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -122,7 +123,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //seventh extra
+        // seventh extra
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -130,7 +131,7 @@ public struct PacketReader
             extraCount++;
         }
 
-        //Full ulong
+        // Full ulong
         if ((b & 0x80) == 0x80)
         {
             b = reader.GetByte();
@@ -149,23 +150,29 @@ public struct PacketReader
             case 7: a += 567382630129903; break;
             case 8: a += 72624976668057839; break;
         }
+
         return a;
     }
 
-    public ObjectName GetObjectName()
+    public ObjectName? GetObjectName()
     {
         var c = GetVariableUInt32();
-        if (c == 0) return null;
-        if (c == 1)
+        switch (c)
         {
-            return new ObjectName(GetString());
-        }
-        else
-        {
-            var ids = new int[c - 2];
-            for (int i = 0; i < ids.Length; i++)
-                ids[i] = GetVariableInt32();
-            return new ObjectName(ids);
+            case 0:
+                return null;
+            case 1:
+                return new ObjectName(GetString());
+            default:
+            {
+                var ids = new int[c - 2];
+                for (int i = 0; i < ids.Length; i++)
+                {
+                    ids[i] = GetVariableInt32();
+                }
+
+                return new ObjectName(ids);
+            }
         }
     }
 
@@ -225,8 +232,7 @@ public struct PacketReader
         return g;
     }
 
-
-    bool TryPeekByte(ref int o, out byte v)
+    private bool TryPeekByte(ref int o, out byte v)
     {
         v = 0;
         if (reader.AvailableBytes < o) return false;
@@ -241,28 +247,28 @@ public struct PacketReader
         if (!TryPeekByte(ref offset, out byte b)) return false;
         a = (uint) (b & 0x7f);
         int extraCount = 0;
-        //first extra
+        // first extra
         if ((b & 0x80) == 0x80)
         {
             if (!TryPeekByte(ref offset, out b)) return false;
             a |= (uint) ((b & 0x7f) << 7);
             extraCount++;
         }
-        //second extra
+        // second extra
         if ((b & 0x80) == 0x80)
         {
             if (!TryPeekByte(ref offset, out b)) return false;
             a |= (uint) ((b & 0x7f) << 7);
             extraCount++;
         }
-        //third extra
+        // third extra
         if ((b & 0x80) == 0x80)
         {
             if (!TryPeekByte(ref offset, out b)) return false;
             a |= (uint) ((b & 0x7f) << 7);
             extraCount++;
         }
-        //fourth extra
+        // fourth extra
         if ((b & 0x80) == 0x80)
         {
             if (!TryPeekByte(ref offset, out b)) return false;
@@ -278,7 +284,7 @@ public struct PacketReader
         return true;
     }
 
-    public bool TryGetString(out string str, uint maxLength = 2048)
+    public bool TryGetString(out string? str, uint maxLength = 2048)
     {
         str = null;
         if (reader.AvailableBytes < 1) return false;
@@ -287,16 +293,19 @@ public struct PacketReader
         {
             return false;
         }
+
         if (len == 0)
         {
             str = null;
             return true;
         }
+
         if (len == 1)
         {
             str = "";
             return true;
         }
+
         len--;
         if (reader.AvailableBytes < off + len) return false;
         reader.SkipBytes(off);
@@ -304,15 +313,18 @@ public struct PacketReader
         return true;
     }
 
-    public string GetString()
+    public string? GetString()
     {
         var len = GetVariableUInt32();
-        if (len == 0) return null;
-        if (len == 1) return "";
-        return StringSquash.StringSquasher.Unpack(GetBytes((int)(len - 1)));
+        return len switch
+        {
+            0 => null,
+            1 => "",
+            _ => StringSquash.StringSquasher.Unpack(GetBytes((int) (len - 1)))
+        };
     }
 
-    public string GetHpid()
+    public string? GetHpid()
     {
         if (hpids == null) throw new InvalidOperationException();
         var idx = GetVariableUInt32();
