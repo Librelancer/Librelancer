@@ -62,7 +62,7 @@ namespace LibreLancer.Client.Components
             var tr = Ship.WorldTransform;
             var pos = tr.Position;
             var vel = Vector3.Zero;
-            if (Ship.PhysicsComponent is not null && Ship.PhysicsComponent.Body is not null)
+            if (Ship.PhysicsComponent is not null)
             {
                 vel = Ship.PhysicsComponent.Body.LinearVelocity;
             }

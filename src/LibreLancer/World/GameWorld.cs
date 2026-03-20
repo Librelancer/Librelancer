@@ -318,25 +318,22 @@ namespace LibreLancer.World
 
         public void Update(double t)
         {
-            if (Physics is not null)
+            Projectiles?.Update(t);
+            for (int i = 0; i < objects.Count; i++)
             {
-                Projectiles.Update(t);
-            }
-
-            foreach (var obj in objects)
-            {
-                obj.PhysicsComponent?.SetOldTransform();
-                obj.Update(t);
+                objects[i].PhysicsComponent?.SetOldTransform();
+                objects[i].Update(t);
             }
 
             Physics?.StepSimulation((float) t);
 
-            foreach (var obj in objects)
+            for (int i = 0; i < objects.Count; i++)
             {
-                obj.PhysicsComponent?.Update(t);
-                SpatialLookup.UpdatePosition(obj, obj.WorldTransform.Position);
+                objects[i].PhysicsComponent?.Update(t);
+                SpatialLookup.UpdatePosition(objects[i], objects[i].WorldTransform.Position);
             }
         }
+
 
         public void UpdateInterpolation(float fraction)
         {

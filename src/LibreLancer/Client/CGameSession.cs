@@ -1613,8 +1613,7 @@ namespace LibreLancer.Client
             {
                 return;
             }
-
-            // Component only present in multiplayer
+            
             if (obj.TryGetComponent<CEngineComponent>(out var eng))
             {
                 eng.Speed = update.Throttle;
