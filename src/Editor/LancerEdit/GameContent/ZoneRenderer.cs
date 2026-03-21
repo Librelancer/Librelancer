@@ -15,28 +15,6 @@ namespace LancerEdit.GameContent;
 
 public class ZoneRenderer
 {
-    static (VertexBuffer, int) LoadMesh(RenderContext context, string name)
-    {
-        using (var stream = typeof(ZoneRenderer).Assembly.GetManifestResourceStream(name))
-        {
-            var msh = SimpleMesh.Model.FromStream(stream)
-                .AutoselectRoot(out _)
-                .ApplyRootTransforms(true);
-
-            if ((msh.Roots[0].Geometry.Attributes & VertexAttributes.Normal) == 0)
-                throw new Exception("Missing normals");
-            var vertices = msh.Roots[0].Geometry.Vertices.Select(x => new VertexPositionNormal(x.Position, x.Normal)).ToArray();
-            var indices = msh.Roots[0].Geometry.Indices.Indices16;
-
-            var elementBuf = new ElementBuffer(context, indices.Length);
-            elementBuf.SetData(indices);
-            var vbo = new VertexBuffer(context, typeof(VertexPositionNormal), vertices.Length);
-            vbo.SetData<VertexPositionNormal>(vertices);
-            vbo.SetElementBuffer(elementBuf);
-            return (vbo, indices.Length / 3);
-        }
-    }
-
     private static RenderContext rstate;
     private static Material material;
     private static WorldMatrixBuffer buf = new WorldMatrixBuffer();

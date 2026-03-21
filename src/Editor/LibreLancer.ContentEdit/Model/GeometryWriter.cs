@@ -29,7 +29,7 @@ namespace LibreLancer.ContentEdit.Model
                 writer.Write(CrcTool.FLModelCrc(nodename));
                 //Fields used for referencing sections of VMeshData
                 writer.Write((ushort)0); //StartVertex - BaseVertex in drawcall
-                writer.Write((ushort)g.Vertices.Length); //VertexCount (idk?)
+                writer.Write((ushort)g.Vertices.Count); //VertexCount (idk?)
                 writer.Write((ushort)0); //StartIndex
                 writer.Write((ushort)g.Indices.Length); //IndexCount
                 writer.Write((ushort)0); //StartMesh
@@ -55,16 +55,16 @@ namespace LibreLancer.ContentEdit.Model
         public static D3DFVF FVF(Geometry g, bool withTangents)
         {
             D3DFVF fvf = D3DFVF.XYZ;
-            if ((g.Attributes & VertexAttributes.Normal) == VertexAttributes.Normal)
+            if ((g.Vertices.Descriptor.Normal > 0))
                 fvf |= D3DFVF.NORMAL;
-            if ((g.Attributes & VertexAttributes.Diffuse) == VertexAttributes.Diffuse)
+            if ((g.Vertices.Descriptor.Diffuse > 0))
                 fvf |= D3DFVF.DIFFUSE;
             int texCount = 0;
-            if ((g.Attributes & VertexAttributes.Texture2) == VertexAttributes.Texture2)
+            if (g.Vertices.Descriptor.Texture2 > 0)
                 texCount = 2;
-            else if ((g.Attributes & VertexAttributes.Texture1) == VertexAttributes.Texture1)
+            else if (g.Vertices.Descriptor.Texture1 > 0)
                 texCount = 1;
-            if ((g.Attributes & VertexAttributes.Tangent) == VertexAttributes.Tangent)
+            if (withTangents && g.Vertices.Descriptor.Tangent > 0)
                 texCount += 2;
             fvf |= texCount switch
             {
@@ -87,7 +87,7 @@ namespace LibreLancer.ContentEdit.Model
                 writer.Write((ushort)(g.Indices.Length)); //IndexCount
                 D3DFVF fvf = overrideFVF ?? FVF(g, withTangents);
                 writer.Write((ushort)fvf); //FVF
-                writer.Write((ushort)g.Vertices.Length); //VertexCount
+                writer.Write((ushort)g.Vertices.Count); //VertexCount
 
                 int startTri = 0;
                 foreach(var dc in g.Groups) {
@@ -101,7 +101,7 @@ namespace LibreLancer.ContentEdit.Model
                     int max = 0;
                     for (int i = 0; i < dc.IndexCount; i++)
                     {
-                        max = Math.Max(max, g.Indices.Indices16[i + dc.StartIndex]);
+                        max = Math.Max(max, (int)g.Indices[i + dc.StartIndex]);
                     }
 
                     max += dc.BaseVertex;
@@ -115,36 +115,36 @@ namespace LibreLancer.ContentEdit.Model
                 var desc = new FVFVertex(fvf);
 
 
-                foreach (var idx in g.Indices.Indices16) writer.Write(idx);
-                foreach(var v in g.Vertices) {
-                    writer.Write(v.Position.X);
-                    writer.Write(v.Position.Y);
-                    writer.Write(v.Position.Z);
+                foreach (var idx in g.Indices.Indices16!) writer.Write(idx);
+                for(int i = 0; i < g.Vertices.Count; i++) {
+                    writer.Write(g.Vertices.Position[i].X);
+                    writer.Write(g.Vertices.Position[i].Y);
+                    writer.Write(g.Vertices.Position[i].Z);
                     if((fvf & D3DFVF.NORMAL) == D3DFVF.NORMAL) {
-                        writer.Write(v.Normal.X);
-                        writer.Write(v.Normal.Y);
-                        writer.Write(v.Normal.Z);
+                        writer.Write(g.Vertices.Normal[i].X);
+                        writer.Write(g.Vertices.Normal[i].Y);
+                        writer.Write(g.Vertices.Normal[i].Z);
                     }
                     if ((fvf & D3DFVF.DIFFUSE) == D3DFVF.DIFFUSE) {
-                        writer.Write((VertexDiffuse)v.Diffuse.ToSrgb());
+                        writer.Write((VertexDiffuse)g.Vertices.Diffuse[i].ToSrgb());
                     }
 
                     if (desc.TexCoords > 0)
                     {
-                        writer.Write(v.Texture1.X);
-                        writer.Write(v.Texture1.Y);
+                        writer.Write(g.Vertices.Texture1[i].X);
+                        writer.Write(g.Vertices.Texture1[i].Y);
                     }
                     if (desc.TexCoords > 1 && desc.TexCoords != 3)
                     {
-                        writer.Write(v.Texture2.X);
-                        writer.Write(v.Texture2.Y);
+                        writer.Write(g.Vertices.Texture2[i].X);
+                        writer.Write(g.Vertices.Texture2[i].Y);
                     }
                     if (desc.TexCoords == 3 || desc.TexCoords == 4)
                     {
-                        writer.Write(v.Tangent.X);
-                        writer.Write(v.Tangent.Y);
-                        writer.Write(v.Tangent.Z);
-                        writer.Write(v.Tangent.W);
+                        writer.Write(g.Vertices.Tangent[i].X);
+                        writer.Write(g.Vertices.Tangent[i].Y);
+                        writer.Write(g.Vertices.Tangent[i].Z);
+                        writer.Write(g.Vertices.Tangent[i].W);
                     }
                 }
                 return stream.ToArray();

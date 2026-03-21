@@ -469,13 +469,14 @@ public class ImportModelTab : EditorTab
         var d = Vector3.Transform(Vector3.Zero, pm.Transform * parent).Length();
         var r = g.Radius;
         if (d + r > radius) radius = d + r;
-        var vertices = g.Vertices.Select(x =>
-            new VertexPositionNormalDiffuseTexture(
-                x.Position,
-                x.Normal,
-                (VertexDiffuse)x.Diffuse.ToSrgb(),
-                Vector2.One)
-        ).ToArray();
+        var vertices = new VertexPositionNormalDiffuseTexture[g.Vertices.Count];
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            var diffuse = VertexDiffuse.White;
+            if (g.Vertices.Descriptor.Diffuse > 0)
+                diffuse = (VertexDiffuse)g.Vertices.Diffuse[i].ToSrgb();
+            vertices[i] = new(g.Vertices.Position[i], g.Vertices.Normal[i], diffuse, Vector2.One);
+        }
         var elements = g.Indices.Indices16;
         pm.Vertices = new VertexBuffer(win.RenderContext, typeof(VertexPositionNormalDiffuseTexture), vertices.Length);
         pm.Elements = new ElementBuffer(win.RenderContext, elements.Length);

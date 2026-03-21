@@ -108,7 +108,7 @@ public class ImportedModel
             {
                 return EditResult<bool>.Error($"Node {node.Name ?? "(noname)"} has >65535 indices");
             }
-            if (node.Def.Geometry.Vertices.Length > ushort.MaxValue)
+            if (node.Def.Geometry.Vertices.Count > ushort.MaxValue)
             {
                 return EditResult<bool>.Error($"Node {node.Name ?? "(noname)"} has >65535 vertices");
             }
@@ -757,14 +757,14 @@ public class ImportedModel
         ushort[] newIndices = new ushort[vmeshwire.Indices.Length];
         for (int i = 0; i < vmeshwire.Indices.Length; i++)
         {
-            var pos = vmeshwire.Vertices[vmeshwire.Indices.Indices16[i]].Position;
+            var pos = vmeshwire.Vertices.Position[(int)vmeshwire.Indices[i]];
             int j;
-            for (j = 0; j < lod.Vertices.Length; j++)
+            for (j = 0; j < lod.Vertices.Count; j++)
             {
-                if (Vector3.Distance(lod.Vertices[j].Position, pos) < 0.0001f)
+                if (Vector3.Distance(lod.Vertices.Position[j], pos) < 0.0001f)
                     break;
             }
-            if (j == lod.Vertices.Length)
+            if (j == lod.Vertices.Count)
                 return null;
             newIndices[i] = (ushort)j;
         }
@@ -798,11 +798,9 @@ public class ImportedModel
         {
             if (settings.AdvancedMaterials)
             {
-                if (mdl.LODs[i].Geometry.Groups.Any(x => x.Material.NormalTexture != null) &&
-                    ((mdl.LODs[i].Geometry.Attributes & VertexAttributes.Tangent) != VertexAttributes.Tangent))
+                if (mdl.LODs[i].Geometry.Groups.Any(x => x.Material.NormalTexture != null))
                 {
-                    TangentGeneration.GenerateMikkTSpace(mdl.LODs[i].Geometry);
-                    mdl.LODs[i].Geometry.Attributes |= VertexAttributes.Tangent;
+                    mdl.LODs[i].Geometry.CalculateTangents();
                 }
             }
             var n = new LUtfNode()

@@ -6,31 +6,24 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using System.Text;
-using BepuUtilities;
 using LibreLancer.ContentEdit.Model;
+using LibreLancer.Graphics.Vertices;
 using LibreLancer.Utf.Mat;
-using LibreLancer.Utf.Vms;
 using SimpleMesh;
 
 namespace LibreLancer.ContentEdit
 {
     public static class UiIconGenerator
     {
-        static Vertex IcoVert(Vector3 pos, Vector2 tex1) => new Vertex(
-            pos, Vector3.UnitZ, LinearColor.White, Vector4.Zero,
-            tex1, Vector2.Zero, Vector2.Zero, Vector2.Zero);
+        private static VertexPositionTexture[] vertices_ship =
+        [
+            new(new Vector3(0.035523005f,-0.034072388f,-8.816621E-08f), new Vector2(0.99950f,0.00050f)),
+            new(new Vector3(0.035523005f, 0.034072228f,-8.765389E-08f), new Vector2(0.99950f,0.99950f)),
+            new(new Vector3(-0.035523012f,-0.034072388f,-8.816621E-08f), new Vector2(0.00050f,0.00050f)),
+            new(new Vector3(-0.035523012f, 0.034072217f,-8.765389E-08f), new Vector2(0.00050f,0.99950f))
+        ];
 
-        private static Vertex[] vertices_ship = {
-            IcoVert(new Vector3(0.035523005f,-0.034072388f,-8.816621E-08f), new Vector2(0.99950f,0.00050f)),
-            IcoVert(new Vector3(0.035523005f, 0.034072228f,-8.765389E-08f), new Vector2(0.99950f,0.99950f)),
-            IcoVert(new Vector3(-0.035523012f,-0.034072388f,-8.816621E-08f), new Vector2(0.00050f,0.00050f)),
-            IcoVert(new Vector3(-0.035523012f, 0.034072217f,-8.765389E-08f), new Vector2(0.00050f,0.99950f)),
-        };
-
-        private static ushort[] indices_ship = {
-            0, 1, 2, 1, 3, 2
-        };
+        private static uint[] indices_ship = [0, 1, 2, 1, 3, 2];
 
         public static EditableUtf UncompressedFromFile(string iconName, string filename, bool alpha)
         {
@@ -62,14 +55,18 @@ namespace LibreLancer.ContentEdit
             string materialName = $"data.icon.{iconName}.{unique}";
             string meshName = $"data.icon.{iconName}.lod0-{unique}.vms";
             //VMeshLibrary
-            var geom = new Geometry();
-            geom.Vertices = vertices_ship;
-            geom.Indices = new Indices { Indices16 = indices_ship };
-            geom.Attributes = VertexAttributes.Position | VertexAttributes.Normal | VertexAttributes.Texture1;
-            geom.Groups = new TriangleGroup[]
+            var va = new VertexArray(VertexAttributes.Texture1, vertices_ship.Length);
+            for (int i = 0; i < vertices_ship.Length; i++)
             {
-                new TriangleGroup() { BaseVertex =  0, StartIndex = 0, Material = new SimpleMesh.Material() { Name = materialName }, IndexCount = 6 }
-            };
+                va.Position[i] = vertices_ship[i].Position;
+                va.Texture1[i] = vertices_ship[i].TextureCoordinate;
+            }
+
+            var geom = new Geometry(va, Indices.FromBuffer(indices_ship));
+            geom.Groups =
+            [
+                new TriangleGroup(new SimpleMesh.Material() { Name = materialName }) { BaseVertex =  0, StartIndex = 0, IndexCount = 6 }
+            ];
             geom.Min = new Vector3(-0.03552301f, -0.03407239f, -0.00000009f);
             geom.Max = new Vector3(0.035523f, 0.03407223f, 0.00000009f);
             geom.Center = new Vector3(0.00066627f, -0.00288963f, -0.00000009f);

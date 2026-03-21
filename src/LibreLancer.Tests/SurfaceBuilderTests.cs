@@ -17,7 +17,7 @@ public class SurfaceBuilderTests
     ImportedModel Load(string path)
     {
         using var stream = File.OpenRead(path);
-        var mdl = Model.FromStream(stream).AutoselectRoot(out _).ApplyScale().ApplyRootTransforms(false)
+        var mdl = Model.FromStream(stream).AutoselectRoot(out _).ApplyScale(out _).ApplyRootTransforms(false)
             .CalculateBounds();
         var import = ImportedModel.FromSimpleMesh(path, mdl);
         Assert.True(import.IsSuccess);

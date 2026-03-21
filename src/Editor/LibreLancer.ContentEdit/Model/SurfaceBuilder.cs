@@ -460,7 +460,7 @@ public static class SurfaceBuilder
         var tr = h.Transform * parentTransform;
         foreach (var i in h.Geometry.Indices.Indices16)
         {
-            verts.AddIfUnique(Vector3.Transform(h.Geometry.Vertices[i].Position, tr), out int index);
+            verts.AddIfUnique(Vector3.Transform(h.Geometry.Vertices.Position[i], tr), out int index);
             indices.Add(index);
         }
 

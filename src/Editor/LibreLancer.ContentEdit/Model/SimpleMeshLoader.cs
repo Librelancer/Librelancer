@@ -22,7 +22,10 @@ public static class SimpleMeshLoader
         return model.Then(x =>
         {
             var mdl = x.Data.AutoselectRoot(out _)
-                .ApplyScale();
+                .ApplyScale(out var scaleApplied);
+            if (!scaleApplied)
+                return EditResult<SimpleMesh.Model>.Error(
+                    "Model contains nodes with non-uniform scale, which cannot be applied. Please apply scales in your modelling software.");
             var rootPos = Vector3.Transform(Vector3.Zero, mdl.Roots[0].Transform);
             var modelWarning = rootPos.Length() > 0.0001;
             mdl = mdl.ApplyRootTransforms(false)

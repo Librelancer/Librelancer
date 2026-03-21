@@ -6,6 +6,8 @@ namespace LibreLancer;
 [StructLayout(LayoutKind.Explicit)]
 public struct VertexDiffuse(byte r, byte g, byte b, byte a)
 {
+    public static readonly VertexDiffuse White = (VertexDiffuse)0xFFFFFFFF;
+
     [FieldOffset(0)]
     public uint Pixel;
 

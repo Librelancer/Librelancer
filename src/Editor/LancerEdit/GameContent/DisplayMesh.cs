@@ -5,6 +5,7 @@ using System.Numerics;
 using LibreLancer;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
+using LibreLancer.ImUI;
 using SimpleMesh;
 
 namespace LancerEdit.GameContent;
@@ -40,11 +41,17 @@ public class DisplayMesh
                 .AutoselectRoot(out _)
                 .ApplyRootTransforms(true);
 
-            if ((msh.Roots[0].Geometry.Attributes & VertexAttributes.Normal) == 0)
+            var geo = msh.Roots[0].Geometry;
+            if (geo == null)
+                throw new InvalidOperationException("No geometry");
+            if ((geo.Vertices.Descriptor.Attributes & VertexAttributes.Normal) == 0)
                 throw new Exception("Missing normals");
-            var vertices = msh.Roots[0].Geometry.Vertices.Select(x => new VertexPositionNormal(x.Position, x.Normal)).ToArray();
-            var indices = msh.Roots[0].Geometry.Indices.Indices16;
-
+            var vertices = new VertexPositionNormal[geo.Vertices.Count];
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] = new(geo.Vertices.Position[i], geo.Vertices.Normal[i]);
+            }
+            var indices = geo.Indices.Indices16!;
             var elementBuf = new ElementBuffer(context, indices.Length);
             elementBuf.SetData(indices);
             var vbo = new VertexBuffer(context, typeof(VertexPositionNormal), vertices.Length);
@@ -52,15 +59,14 @@ public class DisplayMesh
             vbo.SetElementBuffer(elementBuf);
 
             List<Drawcall> dcs = new List<Drawcall>();
-            foreach (var g in msh.Roots[0].Geometry.Groups)
+            foreach (var g in geo.Groups)
             {
                 var col = (Color4)((g.Material?.DiffuseColor ?? LinearColor.White).ToSrgb());
                 dcs.Add(new(g.BaseVertex, g.StartIndex, g.IndexCount / 3, col));
             }
 
             msh.CalculateBounds();
-            Bounds = new BoundingBox(msh.Roots[0].Geometry.Min, msh.Roots[0].Geometry.Max);
-
+            Bounds = new BoundingBox(geo.Min, geo.Max);
             Drawcalls = dcs.ToArray();
             VertexBuffer = vbo;
         }

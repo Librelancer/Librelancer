@@ -10,7 +10,6 @@ using LibreLancer.Sur;
 using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 using SimpleMesh;
 using Material = SimpleMesh.Material;
 
@@ -172,9 +171,9 @@ public static class ModelExporter
                 var h = hulls[i];
                 var geo = GeometryFromSur($"{def.Name}.{i}$hull", h, resources, materials, geometries);
                 Matrix4x4.Invert(n.Transform, out var inverse);
-                for (int j = 0; j < geo.Vertices.Length; j++)
+                for (int j = 0; j < geo.Vertices.Count; j++)
                 {
-                    geo.Vertices[j].Position = Vector3.Transform(geo.Vertices[j].Position, inverse);
+                    geo.Vertices.Position[j] = Vector3.Transform(geo.Vertices.Position[j], inverse);
                 }
                 var hn = new ModelNode();
                 hn.Geometry = geo;
@@ -288,9 +287,6 @@ public static class ModelExporter
         return sm.AsResult();
     }
 
-
-
-
     static int IndexFromFlags(int flags)
     {
         var sf = (SamplerFlags)flags;
@@ -338,45 +334,14 @@ public static class ModelExporter
         return m;
     }
 
-    class VertexBufferBuilder
-    {
-        public List<Vertex> Vertices = new List<Vertex>();
-        public int BaseVertex { get; private set; }
-
-        private Dictionary<Vertex, int> indices = new Dictionary<Vertex, int>();
-        public void Chunk()
-        {
-            indices = new Dictionary<Vertex, int>();
-            BaseVertex = Vertices.Count;
-        }
-        public int Add(ref Vertex vert)
-        {
-            if (!indices.TryGetValue(vert, out int idx))
-            {
-                idx = Vertices.Count;
-                Vertices.Add(vert);
-                indices.Add(vert, idx);
-            }
-            return idx;
-        }
-    }
-
     static Geometry GeometryFromSur(string name, ConvexMesh ms, ResourceManager resources, Dictionary<string, Material> materials, List<Geometry> geometries)
     {
-        var geo = new Geometry();
+        var va = new VertexArray(VertexAttributes.None, ms.Vertices.Length);
+        for (int i = 0; i < ms.Vertices.Length; i++)
+            va.Position[i] = ms.Vertices[i];
+        var geo = new Geometry(va, Indices.FromBuffer(ms.Indices.Select(x => (uint)x).ToArray()));
         geo.Name = name;
-        geo.Vertices = ms.Vertices.Select(x => new Vertex() {Position = x}).ToArray();
-        geo.Indices = Indices.FromBuffer(ms.Indices.Select(x => (uint)x).ToArray());
-        geo.Groups = new TriangleGroup[] {
-            new TriangleGroup()
-            {
-                BaseVertex =  0,
-                StartIndex = 0,
-                IndexCount = ms.Indices.Length,
-                Material = GetMaterial(0, resources, materials)
-            }
-        };
-        geo.Attributes = VertexAttributes.Position;
+        geo.Groups = [new TriangleGroup(GetMaterial(0, resources, materials)) { IndexCount = ms.Indices.Length }];
         return geo;
     }
 
@@ -384,65 +349,47 @@ public static class ModelExporter
     static Geometry GeometryFromVMeshWire(string name, VMeshWire wire, ResourceManager resources,
         Dictionary<string, Material> materials, List<Geometry> allGeos)
     {
-        var geo = new Geometry();
-        allGeos.Add(geo);
-        geo.Name = name + "." + ".wire.mesh";
-        geo.Attributes = VertexAttributes.Position;
+        var gb = new GeometryBuilder(VertexAttributes.None);
         var mesh = resources.FindMeshData(wire.MeshCRC);
-        var vbo = new VertexBufferBuilder();
-        List<uint> indices = new List<uint>();
         for (int i = 0; i < wire.NumIndices; i++)
         {
             var idx = wire.VertexOffset + wire.Indices[i];
             var vert = new Vertex() {Position = mesh.GetPosition(idx)};
-            indices.Add((uint) vbo.Add(ref vert));
+            gb.Add(ref vert);
         }
-        geo.Vertices = vbo.Vertices.ToArray();
-        geo.Indices = Indices.FromBuffer(indices.ToArray());
-        geo.Groups = new TriangleGroup[] {
-            new TriangleGroup()
-            {
-                BaseVertex =  0,
-                StartIndex = 0,
-                IndexCount = indices.Count,
-                Material = GetMaterial(0, resources, materials)
-            }
-        };
+        gb.AddGroup(GetMaterial(0, resources, materials));
+        var geo = gb.Finish();
+        geo.Name = $"{name}.wire.mesh";
         geo.Kind = GeometryKind.Lines;
+        allGeos.Add(geo);
         return geo;
     }
 
     // Get just the referenced geometry from the VMeshData
     static EditResult<Geometry> GeometryFromRef(string name, int level, VMeshRef vms, Dictionary<string,Material> materials, List<Geometry> geometries, ResourceManager resources)
     {
-        var geo = new Geometry();
         var mesh = resources.FindMeshData(vms.MeshCrc);
         if (vms.MeshCrc == 0)
             return new EditResult<Geometry>(null);
         if ((mesh == null))
             return EditResult<Geometry>.Error($"{name} - VMeshData lookup failed 0x{vms.MeshCrc}");
-        geo.Name = name + "." + (int) mesh.VertexFormat.FVF + ".level" + level;
-        var vbo = new VertexBufferBuilder();
-        List<uint> indices = new List<uint>();
-        List<TriangleGroup> groups = new List<TriangleGroup>();
-        geo.Attributes = VertexAttributes.Position;
+
+        var attrs = VertexAttributes.None;
         if (mesh.VertexFormat.Normal)
-            geo.Attributes |= VertexAttributes.Normal;
+            attrs |= VertexAttributes.Normal;
         if (mesh.VertexFormat.Diffuse)
-            geo.Attributes |= VertexAttributes.Diffuse;
+            attrs |= VertexAttributes.Diffuse;
         if (mesh.VertexFormat.TexCoords > 1 && mesh.VertexFormat.TexCoords != 3)
         {
-            geo.Attributes |= VertexAttributes.Texture1 | VertexAttributes.Texture2;
+            attrs |= VertexAttributes.Texture1 | VertexAttributes.Texture2;
         }
         else if (mesh.VertexFormat.TexCoords == 1)
-            geo.Attributes |= VertexAttributes.Texture1;
+            attrs |= VertexAttributes.Texture1;
+
+        var gb = new GeometryBuilder(attrs);
         for (int meshi = vms.StartMesh; meshi < vms.StartMesh + vms.MeshCount; meshi++)
         {
             var m = mesh.Meshes[meshi];
-            var dc = new TriangleGroup();
-            dc.StartIndex = indices.Count;
-            dc.IndexCount = m.NumRefVertices;
-            dc.Material = GetMaterial(m.MaterialCrc, resources, materials);
             for (int i = m.TriangleStart; i < m.TriangleStart + m.NumRefVertices; i++)
             {
                 int idx = mesh.Indices[i] + m.StartVertex + vms.StartVertex;
@@ -460,26 +407,12 @@ public static class ModelExporter
                 {
                     vert.Texture1 = mesh.GetTexCoord(idx, 0);
                 }
-                indices.Add((uint)vbo.Add(ref vert));
+                gb.Add(ref vert);
             }
-            groups.Add(dc);
+            gb.AddGroup(GetMaterial(m.MaterialCrc, resources, materials));
         }
-        geo.Vertices = vbo.Vertices.ToArray();
-        //Reconstruct base vertex
-        foreach (var group in groups)
-        {
-            uint min = uint.MaxValue;
-            for (int i = group.StartIndex; i < group.StartIndex + group.IndexCount; i++) {
-                if (indices[i] < min)
-                    min = indices[i];
-            }
-            group.BaseVertex = (int)min;
-            for (int i = group.StartIndex; i < group.StartIndex + group.IndexCount; i++) {
-                indices[i] -= min;
-            }
-        }
-        geo.Indices = Indices.FromBuffer(indices.ToArray());
-        geo.Groups = groups.ToArray();
+        var geo = gb.Finish();
+        geo.Name = $"{name}.{(int)mesh.VertexFormat.FVF}.level{level}";
         geometries.Add(geo);
         return geo.AsResult();
     }
