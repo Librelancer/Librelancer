@@ -482,15 +482,70 @@ public static class Controls
         ImGui.PopStyleVar();
     }
 
-    public static bool EditButtonRow(string name, string value)
+    public static (bool editButtonClicked, bool copyButtonClicked) EditAndCopyButtonRow(string name, string value, bool includeCopyButton = false)
     {
+        var editButton = $"{Icons.Edit}";
+        var copyButton = $"{Icons.Copy}";
+        var buttonWidth = -ButtonWidth(editButton);
+
+        if (includeCopyButton)
+        {
+            buttonWidth -= ButtonWidth(copyButton);
+        }
+
+        bool copyButtonClicked = false;
         ImGui.PushID(name);
-        EditControlSetup(name, 0, -ButtonWidth($"{Icons.Edit}"));
+        EditControlSetup(name, 0, buttonWidth);
         ImGui.LabelText("", value);
+
+        if (includeCopyButton)
+        {
+            ImGui.SameLine();
+            copyButtonClicked = ImGui.Button(copyButton);
+        }
+
         ImGui.SameLine();
-        var r = ImGui.Button($"{Icons.Edit}");
+        var r = ImGui.Button(editButton);
         ImGui.PopID();
-        return r;
+
+        return (r, copyButtonClicked);
+    }
+
+    public static void RotationCopyPopup(string popupLabel, Matrix4x4 mat, MainWindow win)
+    {
+        if (!ImGui.BeginPopup(popupLabel))
+        {
+            return;
+        }
+
+        if (ImGui.MenuItem("Euler Angles"))
+        {
+            var rot = mat.GetEulerDegrees();
+            win.SetClipboardText($"{rot.X: 0.00}, {rot.Y:0.00}, {rot.Z: 0.00}");
+        }
+
+        if (ImGui.MenuItem("WXYZ Quaternion"))
+        {
+            var rot = Quaternion.CreateFromRotationMatrix(mat);
+            string rotWxyz =
+                $"{rot.W.ToStringInvariant()}, {rot.X.ToStringInvariant()}, {rot.Y.ToStringInvariant()}, {rot.Z.ToStringInvariant()}";
+            win.SetClipboardText(rotWxyz);
+        }
+
+        if (ImGui.MenuItem("Orientation Matrix"))
+        {
+            var matText = $$"""
+                            {
+                              {{{mat.M11.ToStringInvariant()}}, {{mat.M12.ToStringInvariant()}}, {{mat.M13.ToStringInvariant()}}},
+                              {{{mat.M21.ToStringInvariant()}}, {{mat.M22.ToStringInvariant()}}, {{mat.M23.ToStringInvariant()}}},
+                              {{{mat.M31.ToStringInvariant()}}, {{mat.M32.ToStringInvariant()}}, {{mat.M33.ToStringInvariant()}}}
+                            }
+                            """;
+
+            win.SetClipboardText(matText);
+        }
+
+        ImGui.EndPopup();
     }
 
     public static void EndEditorTable()
