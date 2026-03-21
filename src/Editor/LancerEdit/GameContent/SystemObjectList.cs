@@ -6,6 +6,7 @@ using ImGuiNET;
 using LancerEdit.GameContent.Filters;
 using LibreLancer;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.ImUI;
 using LibreLancer.World;
 
 namespace LancerEdit.GameContent;
@@ -66,7 +67,7 @@ public class SystemObjectList
                 Selection.Add(obj);
             }
         }
-        
+
     }
 
     private GameWorld prevWorld;
@@ -175,7 +176,7 @@ public class SystemObjectList
             if (doScroll && isPrimary)
                 ImGui.SetScrollHereY();
             if (isSelected && !isPrimary)
-                ImGui.PushStyleColor(ImGuiCol.Header, new Color4(120, 83, 101, 255));
+                ImGui.PushStyleColor(ImGuiCol.Header, Theme.SecondarySelection);
             if(addSecondary && !isPrimary)
                 ImGui.PushStyleColor(ImGuiCol.HeaderHovered, new Color4(156, 107, 131, 255));
             if (ImGui.Selectable(obj.Nickname, isSelected, ImGuiSelectableFlags.AllowDoubleClick))
@@ -218,7 +219,7 @@ public class SystemObjectList
                             OnDelete(o);
                         }
                     }
-                        
+
                 }
                 ImGui.EndPopup();
             }

@@ -14,7 +14,7 @@ namespace LibreLancer.Fx
         public bool QuadTexture = true;
         public bool MotionBlur;
         public AlchemyColorAnimation Color;
-        public AlchemyFloatAnimation Alpha = null!;
+        public AlchemyFloatAnimation Alpha;
         public AlchemyFloatAnimation? HToVAspect;
         public AlchemyFloatAnimation? Rotate;
         public AlchemyFloatAnimation Size;
@@ -50,7 +50,7 @@ namespace LibreLancer.Fx
 
             if (ale.TryGetParameter(AleProperty.BasicApp_BlendInfo, out var temp))
             {
-                BlendInfo = BlendMap.Map((Tuple<uint, uint>) temp.Value!);
+                BlendInfo = BlendMap.Map((Tuple<uint, uint>) temp.Value);
             }
         }
 
@@ -58,6 +58,7 @@ namespace LibreLancer.Fx
         {
             Size = new(1);
             Color = new(Color3f.White);
+            Alpha = new(1);
         }
 
         public override AlchemyNode SerializeNode()

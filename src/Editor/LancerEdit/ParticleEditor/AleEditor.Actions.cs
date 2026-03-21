@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data;
 using LibreLancer.Fx;
 
 namespace LancerEdit;
@@ -18,7 +19,6 @@ partial class AleEditor
                 Ed.currentEffect.Emitters.Add(em);
             if (NewRef is AppearanceReference ap)
                 Ed.currentEffect.Appearances.Add(ap);
-            Ed.OnTreeChange();
         }
 
         public override void Undo()
@@ -31,7 +31,6 @@ partial class AleEditor
                 Ed.currentEffect.Emitters.Remove(em);
             if (NewRef is AppearanceReference ap)
                 Ed.currentEffect.Appearances.Remove(ap);
-            Ed.OnTreeChange();
         }
     }
 
@@ -143,7 +142,6 @@ partial class AleEditor
                 pIndex = Ed.currentEffect.Tree.IndexOf(Node);
                 Ed.currentEffect.Tree.Remove(Node);
             }
-            Ed.OnTreeChange();
         }
 
         public override void Undo()
@@ -160,7 +158,6 @@ partial class AleEditor
                 Node.Parent.Children.Insert(pIndex, Node);
             else
                 Ed.currentEffect.Tree.Insert(pIndex, Node);
-            Ed.OnTreeChange();
         }
     }
 
@@ -200,4 +197,48 @@ partial class AleEditor
 
         public override string ToString() => $"Remove Node: {Value.NodeName}";
     }
+
+    class AddEffect(ParticleLibrary Library, ParticleEffect Effect)
+        : EditorAction
+    {
+        public override void Commit()
+        {
+            Effect.CRC = CrcTool.FLAleCrc(Effect.Nickname);
+            Library.Effects.Add(Effect);
+        }
+
+        public override void Undo() => Library.Effects.Remove(Effect);
+    }
+
+    class DeleteEffect(ParticleLibrary Library, ParticleEffect Effect, AleEditor tab)
+        : EditorAction
+    {
+        public override void Commit()
+        {
+            Library.Effects.Remove(Effect);
+            if (tab.currentEffect == Effect)
+                tab.currentEffect = Library.Effects.FirstOrDefault();
+        }
+        public override void Undo() => Library.Effects.Add(Effect);
+    }
+
+    class RenameEffect(ParticleLibrary Library, ParticleEffect Effect,
+        string OldName, string NewName)
+        : EditorAction
+    {
+        void Set(string current, string updated)
+        {
+            Effect.Nickname = current;
+            Effect.CRC = CrcTool.FLAleCrc(Effect.Nickname);
+            Library.Effects.Remove(Effect);
+            Effect.Nickname = updated;
+            Effect.CRC = CrcTool.FLAleCrc(Effect.Nickname);
+            Library.Effects.Add(Effect);
+        }
+
+        public override void Commit() => Set(OldName, NewName);
+        public override void Undo() => Set(NewName, OldName);
+    }
+
+
 }

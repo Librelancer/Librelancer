@@ -8,13 +8,9 @@ using System.Linq;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Ale;
 using LibreLancer.Dialogs;
-using LibreLancer.Utf.Ale;
 
 namespace LancerEdit
 {
-    /// <summary>
-    /// Implements the save features for the UTF files
-    /// </summary>
     internal class AleSaveStrategy : ISaveStrategy
     {
         private readonly MainWindow window;
@@ -86,7 +82,7 @@ namespace LancerEdit
                     aleTab.UpdateTitle();
                     aleTab.FilePath = f;
                 }
-            }, AppFilters.UtfFilters);
+            }, AppFilters.AleFilters);
         }
     }
 }

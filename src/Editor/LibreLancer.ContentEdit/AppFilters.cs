@@ -18,6 +18,10 @@ public class AppFilters
             new FileFilter("Ale Files","ale")
         );
 
+        public static readonly FileDialogFilters AleFilters = new(
+            new FileFilter("Ale Files", "ale")
+        );
+
         public static readonly FileDialogFilters IniFilters = new FileDialogFilters(
             new FileFilter("Ini Files", "ini")
         );

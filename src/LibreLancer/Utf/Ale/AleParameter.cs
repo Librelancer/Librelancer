@@ -9,15 +9,14 @@ namespace LibreLancer.Utf.Ale
 	public class AleParameter
 	{
 		public AleProperty Name;
-		public object? Value;
-		public AleParameter ()
-		{
-		}
+		public object Value;
 
         public AleParameter(AleProperty name, object value)
         {
             Name = name;
             Value = value;
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
         }
 
 		public override string ToString ()

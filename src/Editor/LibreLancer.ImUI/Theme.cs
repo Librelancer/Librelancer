@@ -26,6 +26,8 @@ namespace LibreLancer.ImUI
         public static readonly Vector4 ErrorInputHoverColor = new Vector4(0.6f, 0.1f, 0.1f, 1f);
         public static readonly Vector4 ErrorInputActiveColor = new Vector4(0.7f, 0.1f, 0.1f, 1f);
 
+        public static readonly Color4 SecondarySelection = new Color4(120, 83, 101, 255);
+
         public static float LabelWidth => 100f * ImGuiHelper.Scale;
         public static float LabelWidthMedium => 125f * ImGuiHelper.Scale;
         public static float LabelWidthLong => 135f * ImGuiHelper.Scale;

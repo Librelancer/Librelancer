@@ -1,13 +1,43 @@
 using System;
-using System.Globalization;
 using System.IO;
 using System.Text;
+using LibreLancer.Data;
 using LibreLancer.Utf.Ale;
 
 namespace LibreLancer.ContentEdit.Ale;
 
 public static class AleNodeWriter
 {
+    public static EditableUtf BlankAleFile()
+    {
+        var blankNodeLib = new AlchemyNodeLibrary();
+        var blankFxLib = new ALEffectLib();
+        blankFxLib.Effects.Add(new ALEffect("untitled")
+        {
+            CRC = CrcTool.FLAleCrc("untitled"),
+            Fx = [new(1,0,32768,0)],
+            Pairs = []
+        });
+
+        var utf = new EditableUtf();
+        var parentALfx = new LUtfNode() { Name = "ALEffectLib", Parent = utf.Root };
+        parentALfx.Children =
+        [
+            new() { Name = "ALEffectLib", Parent = parentALfx, Data = WriteALEffectLib(blankFxLib) }
+        ];
+        utf.Root.Children.Add(parentALfx);
+        var parentAlchemyNode = new LUtfNode() { Name = "AlchemyNodeLibrary", Parent = utf.Root };
+        parentAlchemyNode.Children =
+        [
+            new()
+            {
+                Name = "AlchemyNodeLibrary", Parent = parentAlchemyNode, Data = WriteAlchemyNodeLibrary(blankNodeLib)
+            }
+        ];
+        utf.Root.Children.Add(parentAlchemyNode);
+        return utf;
+    }
+
     public static byte[] WriteALEffectLib(ALEffectLib fxlib)
     {
         var ms = new MemoryStream();

@@ -9,62 +9,58 @@ using LibreLancer.Utf.Ale;
 
 namespace LibreLancer.Fx
 {
-    public class FxEmitter : FxNode
+    public abstract class FxEmitter : FxNode
     {
         public int InitialParticles;
         public AlchemyCurveAnimation? Frequency;
         public AlchemyCurveAnimation? EmitCount;
 
-        public AlchemyCurveAnimation? InitLifeSpan;
+        public AlchemyCurveAnimation InitLifeSpan = new (1);
 
         // public AlchemyCurveAnimation LODCurve; -- Not really relevant in a modern context
-        public AlchemyCurveAnimation? Pressure;
+        public AlchemyCurveAnimation Pressure = new(0);
         public AlchemyCurveAnimation? VelocityApproach;
         public AlchemyCurveAnimation? MaxParticles;
 
-        public FxEmitter(AlchemyNode ale) : base(ale)
+        protected FxEmitter(AlchemyNode ale) : base(ale)
         {
             if (ale.TryGetParameter(AleProperty.Emitter_InitialParticles, out var temp))
             {
-                InitialParticles = (int) (uint) temp.Value!;
+                InitialParticles = (int) (uint) temp.Value;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_Frequency, out temp))
             {
-                Frequency = (AlchemyCurveAnimation) temp.Value!;
+                Frequency = (AlchemyCurveAnimation) temp.Value;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_EmitCount, out temp))
             {
-                EmitCount = (AlchemyCurveAnimation) temp.Value!;
+                EmitCount = (AlchemyCurveAnimation) temp.Value;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_InitLifeSpan, out temp))
             {
-                InitLifeSpan = (AlchemyCurveAnimation) temp.Value!;
+                InitLifeSpan = (AlchemyCurveAnimation) temp.Value;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_Pressure, out temp))
             {
-                Pressure = (AlchemyCurveAnimation) temp.Value!;
+                Pressure = (AlchemyCurveAnimation) temp.Value;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_VelocityApproach, out temp))
             {
-                VelocityApproach = (AlchemyCurveAnimation) temp.Value!;
+                VelocityApproach = (AlchemyCurveAnimation) temp.Value;
             }
 
             if (ale.TryGetParameter(AleProperty.Emitter_MaxParticles, out temp))
             {
-                MaxParticles = (AlchemyCurveAnimation) temp.Value!;
+                MaxParticles = (AlchemyCurveAnimation) temp.Value;
             }
         }
 
-        public FxEmitter(string name) : base(name)
-        {
-            InitLifeSpan = new AlchemyCurveAnimation(1);
-
-        }
+        protected FxEmitter(string name) : base(name) { }
 
         public override AlchemyNode SerializeNode()
         {
@@ -85,15 +81,8 @@ namespace LibreLancer.Fx
                 n.Parameters.Add(new(AleProperty.Emitter_EmitCount, EmitCount));
             }
 
-            if (InitLifeSpan != null)
-            {
-                n.Parameters.Add(new(AleProperty.Emitter_InitLifeSpan, InitLifeSpan));
-            }
-
-            if (Pressure != null)
-            {
-                n.Parameters.Add(new(AleProperty.Emitter_Pressure, Pressure));
-            }
+            n.Parameters.Add(new(AleProperty.Emitter_InitLifeSpan, InitLifeSpan));
+            n.Parameters.Add(new(AleProperty.Emitter_Pressure, Pressure));
 
             if (VelocityApproach != null)
             {
@@ -184,7 +173,7 @@ namespace LibreLancer.Fx
                 : (int) Math.Ceiling(MaxParticles.GetValue(sparam, (float) instance.GlobalTime));
             var freq = Frequency?.GetValue(sparam, (float) instance.GlobalTime) ?? 0f;
             var spawnMs = freq <= 0 ? 0 : 1 / (double) freq;
-            var lifespan = InitLifeSpan?.GetValue(sparam, 0f);
+            var lifespan = InitLifeSpan.GetValue(sparam, 0f);
 
             if (lifespan <= 0)
             {
@@ -235,7 +224,7 @@ namespace LibreLancer.Fx
                         Debug.Assert(instance.Emitters[despawned].Count >= 0);
                     }
 
-                    particle.LifeSpan = lifespan!.Value;
+                    particle.LifeSpan = lifespan;
                     particle.TimeAlive = (float) dt;
                     particle.EmitterIndex = index;
                     particle.Orientation = Quaternion.Identity;

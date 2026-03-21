@@ -98,7 +98,7 @@ static class AleNodeEditor
         return r;
     }
 
-    static bool BeginComplex(string property, object complex, bool canCreate, out bool create)
+    static bool BeginComplex(string property, object complex, bool canDelete, out bool create)
     {
         create = false;
         Controls.EndEditorTable();
@@ -112,8 +112,9 @@ static class AleNodeEditor
         if (complex == null)
         {
             ImGui.Text("No Value");
+            ImGui.SameLine();
             ImGui.PushID(property);
-            if (canCreate && ImGui.Button("Create"))
+            if (ImGui.Button("Create"))
                 create = true;
             ImGui.PopID();
             ImGui.EndGroup();
@@ -232,6 +233,12 @@ static class AleNodeEditor
         var dl = ImGui.GetWindowDrawList();
         dl.PushClipRect(min, max, true);
         dl.AddRectFilled(min, max, (VertexDiffuse)c.Keyframes[^1].Value.ToColor4());
+        if (c.Keyframes[0].Time > 0)
+        {
+            var start = (VertexDiffuse)c.Keyframes[0].Value.ToColor4();
+            var x2 = min.X + (c.Keyframes[0].Time) * w;
+            dl.AddRectFilled(min, new(x2, max.Y), start);
+        }
         for (int i = 0; i < c.Keyframes.Count - 1; i++)
         {
             var cLeft = (VertexDiffuse)c.Keyframes[i].Value.ToColor4();
@@ -551,7 +558,7 @@ static class AleNodeEditor
 
     static void AppearanceCommon(FxBasicAppearance node, EditorUndoBuffer undo)
     {
-        Controls.InputTextIdUndo("Texture", undo, () => ref node.Texture);
+        Controls.InputTextUndo("Texture", undo, () => ref node.Texture);
         Controls.CheckboxUndo("Quad Texture", undo, () => ref node.QuadTexture);
         Controls.CheckboxUndo("Motion Blur", undo, () => ref node.MotionBlur);
         Controls.CheckboxUndo("Flip Horizontal", undo, () => ref node.FlipHorizontal);

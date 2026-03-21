@@ -23,14 +23,15 @@ public class ParticleBuffer
         segments = new SegmentInfo[counts.Length];
         for (int i = 0; i < counts.Length; i++)
         {
+            int c = counts[i] < 2 ? 2 : counts[i];
             segments[i] = new SegmentInfo() {
                 Start = total,
-                Capacity = counts[i],
+                Capacity = c, // required for editor to not crash
                 Count = 0,
-                Head =  counts[i] - 1,
+                Head =  c - 1,
                 Tail = 0,
             };
-            total += counts[i];
+            total += c;
         }
         backing = new Particle[total];
     }

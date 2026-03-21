@@ -52,7 +52,7 @@ namespace LibreLancer.Fx
                 p += translate;
                 n = Vector3.Transform(n, rotate);
             }
-			n *= Pressure!.GetValue(sparam, 0);
+			n *= Pressure.GetValue(sparam, 0);
 			var pr = p * radius;
 			particle.Position = pr;
 			particle.Normal = n;

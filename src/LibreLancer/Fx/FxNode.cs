@@ -14,19 +14,19 @@ namespace LibreLancer.Fx
 		public string NodeName = "LIBRELANCER:UNNAMED_NODE";
 		public uint CRC;
 		public float NodeLifeSpan = float.MaxValue;
-		public AlchemyTransform Transform = null!;
+        public AlchemyTransform Transform;
 
 		public FxNode(AlchemyNode ale)
 		{
             if (ale.TryGetParameter (AleProperty.Node_Name, out var temp))
             {
-				NodeName = (string)temp.Value!;
+				NodeName = (string)temp.Value;
 				CRC = CrcTool.FLAleCrc(NodeName);
 			}
 
 			if (ale.TryGetParameter (AleProperty.Node_Transform, out temp))
             {
-				Transform = (AlchemyTransform)temp.Value!;
+				Transform = (AlchemyTransform)temp.Value;
 			}
             else
             {
@@ -35,7 +35,7 @@ namespace LibreLancer.Fx
 
 			if (ale.TryGetParameter (AleProperty.Node_LifeSpan, out temp))
             {
-				NodeLifeSpan = (float)temp.Value!;
+				NodeLifeSpan = (float)temp.Value;
 			}
 		}
 
@@ -71,6 +71,7 @@ namespace LibreLancer.Fx
 		{
 			NodeName = nodename;
             CRC = CrcTool.FLAleCrc(nodename);
+            Transform = new();
         }
 	}
 }

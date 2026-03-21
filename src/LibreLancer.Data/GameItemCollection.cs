@@ -68,6 +68,15 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
         crcCollection[item.CRC] = item;
     }
 
+    public void Remove(T item)
+    {
+        if (!nicknameCollection.Remove(item.Nickname) ||
+            !crcCollection.Remove(item.CRC))
+        {
+            throw new KeyNotFoundException();
+        }
+    }
+
     public IEnumerator<T> GetEnumerator() => nicknameCollection.Values.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable) nicknameCollection.Values).GetEnumerator();

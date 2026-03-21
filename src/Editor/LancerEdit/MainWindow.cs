@@ -19,6 +19,7 @@ using LancerEdit.Updater;
 using LancerEdit.Utf.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
+using LibreLancer.ContentEdit.Ale;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
@@ -32,6 +33,7 @@ using LibreLancer.Media;
 using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.Shaders;
+using LibreLancer.Utf.Ale;
 
 namespace LancerEdit
 {
@@ -566,6 +568,14 @@ namespace LancerEdit
                             var t = new UtfTab(this, action.utf, action.name);
                             AddTab(t);
                         }));
+                    }
+
+                    if (ImGui.MenuItem("Ale Effect", true))
+                    {
+                        var utf = AleNodeWriter.BlankAleFile();
+                        var ale = new AleFile(utf.Export());
+                        var t = new AleEditor("untitled", null, ale, utf, this);
+                        AddTab(t);
                     }
                     ImGui.EndMenu();
                 }

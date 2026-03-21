@@ -12,6 +12,7 @@ using LibreLancer.Fx;
 using LibreLancer.Utf.Ale;
 using ImGuiNET;
 using LibreLancer.ContentEdit;
+using LibreLancer.Data;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
@@ -37,6 +38,8 @@ namespace LancerEdit
             new DropdownOption("Arcball", Icons.Globe, CameraModes.Arcball),
             new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough),
         };
+
+        private MainWindow window;
         //Tab
         public string FilePath;
         public ParticleLibrary ParticleFile;
@@ -62,6 +65,7 @@ namespace LancerEdit
 
         public AleEditor(string name, string? filePath, AleFile ale, EditableUtf utf, MainWindow main)
         {
+            window = main;
             Utf = utf;
             config = main.Config;
             cameraMode = main.Config.DefaultCameraMode;
@@ -97,13 +101,14 @@ namespace LancerEdit
         {
             allAppearances = currentEffect.Appearances.ToArray();
             allFields = GetEffectNodes(currentEffect).OfType<FieldReference>().ToArray();
-            SetupRender(currentEffect);
+            SetupRender();
         }
 
         ParticleEffectInstance instance;
-        void SetupRender(ParticleEffect effect)
+        void SetupRender()
         {
-            instance = new ParticleEffectInstance(effect);
+            currentEffect.CalculateInfo();
+            instance = new ParticleEffectInstance(currentEffect);
             instance.Pool = pool;
             instance.Resources = ParticleFile.Resources;
             lastEffect = currentEffect;
@@ -135,6 +140,16 @@ namespace LancerEdit
             ImGui.SliderFloat("SParam", ref sparam, 0, 1, "%f");
             ImGui.PopItemWidth();
             ImGui.SameLine();
+            if (ImGui.Button("Copy [VisEffect]"))
+            {
+                string visEffect = $@"[VisEffect]
+nickname = {currentEffect.Nickname}
+effect_crc = {currentEffect.CRC}
+alchemy = FILE_PATH_HERE
+; add textures = to reference texture files";
+                window.SetClipboardText(visEffect);
+            }
+            ImGui.SameLine();
             if (ImGuiExt.ToggleButton("Undo History", renderHistory))
                 renderHistory = !renderHistory;
             ImGui.Separator();
@@ -150,7 +165,7 @@ namespace LancerEdit
             ImGui.SameLine();
             if (ImGui.Button("Reset Fx"))
             {
-                instance.Reset();
+                OnChanged();
             }
             ImGui.SameLine();
             ImGui.Text(string.Format("T: {0:0.000}", instance.GlobalTime));
@@ -280,40 +295,47 @@ namespace LancerEdit
                 label = string.Format("Attachment##{0}", idx);
             else
                 label = ImGuiExt.IDWithExtra(reference.Node.NodeName, idx);
-            ImGui.PushStyleColor(ImGuiCol.Text, col);
-            if (reference.Children.Count > 0)
+            bool linked = false;
+            if (selectedReference != null && reference != selectedReference)
             {
-                bool isTreeOpen = Theme.IconTreeNode(NodeIcon(reference.Node), label,
-                    ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.OpenOnArrow);
-                NodeDropTarget(reference);
-                if(isTreeOpen)
+                if (selectedReference is EmitterReference emit)
                 {
-                    int j = 0;
-                    foreach (var child in reference.Children)
-                        DoNode(child, j++, enabled, disabled);
-                    ImGui.TreePop();
+                    if (reference is AppearanceReference a &&
+                        emit.Linked == a)
+                        linked = true;
                 }
-
+                if(selectedReference is AppearanceReference app)
+                {
+                    if (reference is FieldReference f &&
+                        app.Linked == f)
+                        linked = true;
+                }
             }
-            else
+            if(linked)
+                ImGui.PushStyleColor(ImGuiCol.Header, Theme.SecondarySelection);
+            ImGui.PushStyleColor(ImGuiCol.Text, col);
+            var tFlags = ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.OpenOnArrow;
+            if (selectedReference == reference || linked)
+                tFlags |= ImGuiTreeNodeFlags.Selected;
+            if (reference.Children.Count <= 0)
+                tFlags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.Bullet;
+            bool isTreeOpen = Theme.IconTreeNode(NodeIcon(reference.Node), label, tFlags);
+            ImGui.PopStyleColor(linked ? 2 : 1);
+            if (ImGui.IsItemClicked(0) && !reference.IsAttachmentNode)
+                selectedReference = reference;
+            NodeDropTarget(reference);
+            if(isTreeOpen)
             {
-                if (ImGui.Selectable($"{NodeIcon(reference.Node)}  {label}", selectedReference == reference)) {
-                    selectedReference = reference;
-                }
-                NodeDropTarget(reference);
+                int j = 0;
+                foreach (var child in reference.Children)
+                    DoNode(child, j++, enabled, disabled);
+                ImGui.TreePop();
             }
-            ImGui.PopStyleColor();
         }
 
         static unsafe bool AcceptDragDropPayload(string type, ImGuiDragDropFlags flags, out ImGuiPayloadPtr ptr)
         {
             return (ptr = ImGui.AcceptDragDropPayload(type, flags)) != null;
-        }
-
-        void OnTreeChange()
-        {
-            currentEffect.CalculateInfo();
-            SetupRender(currentEffect);
         }
 
         unsafe void NodeDropTarget(NodeReference self)
@@ -447,10 +469,57 @@ namespace LancerEdit
 
         void EffectsPanel()
         {
+            if (ImGui.Button("New Effect"))
+            {
+                var c = new NameInputConfig()
+                {
+                    Title = "New Effect",
+                    InUse = ParticleFile.Effects.Contains,
+                    Extra = () => ImGui.TextWrapped("Note: Particle effect names are case-sensitive")
+                };
+                popups.OpenPopup(new NameInputPopup(c, "", x =>
+                {
+                    var fx = new ParticleEffect(CrcTool.FLAleCrc(x), x, [], [], [
+                    new EmptyNodeReference(null!) { IsAttachmentNode = true }]);
+                    //AttachmentNode is allowed to be null, special case.
+                    undoBuffer.Commit(new AddEffect(ParticleFile, fx));
+                }));
+            }
+            ImGui.Separator();
             foreach (var fx in ParticleFile.Effects)
             {
+                ImGui.PushID((int)fx.CRC);
                 if (ImGui.Selectable($"{fx.Nickname} (0x{fx.CRC:X})", currentEffect == fx))
                     currentEffect = fx;
+                if (ImGui.BeginPopupContextItem("context"))
+                {
+                    if (Theme.IconMenuItem(Icons.Edit, "Rename", true))
+                    {
+                        var c = new NameInputConfig()
+                        {
+                            Title = "Rename",
+                            InUse = x => x != fx.Nickname && ParticleFile.Effects.Contains(x),
+                            Extra = () =>
+                                ImGui.TextWrapped(
+                                    "Note: Particle effect names are case-sensitive. [VisEffect] sections in inis must be updated after renaming an effect.")
+                        };
+                        popups.OpenPopup(new NameInputPopup(c, "", x =>
+                        {
+                            if (x == fx.Nickname)
+                                return;
+                            undoBuffer.Commit(new RenameEffect(ParticleFile, fx, fx.Nickname, x));
+                        }));
+                    }
+                    if (Theme.IconMenuItem(Icons.TrashAlt, "Delete", ParticleFile.Effects.Count > 1))
+                    {
+                        var msg = $"Are you sure you want to delete '{fx.Nickname}'?";
+                        window.Confirm(msg, () => {
+                            undoBuffer.Commit(new DeleteEffect(ParticleFile, fx, this));
+                        });
+                    }
+                    ImGui.EndPopup();
+                }
+                ImGui.PopID();
             }
         }
 
