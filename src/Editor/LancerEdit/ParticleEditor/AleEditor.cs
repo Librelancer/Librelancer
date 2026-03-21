@@ -135,9 +135,12 @@ namespace LancerEdit
                 selectedReference = null;
                 OnChanged();
             }
+            ImGui.AlignTextToFramePadding();
+            ImGui.Text("SParam");
             ImGui.SameLine();
-            ImGui.PushItemWidth(80);
-            ImGui.SliderFloat("SParam", ref sparam, 0, 1, "%f");
+            ImGui.PushItemWidth(250 * ImGuiHelper.Scale);
+            ImGui.SliderFloat("##sparam", ref sparam, 0, 1, "%f",
+                ImGuiSliderFlags.ClampOnInput);
             ImGui.PopItemWidth();
             ImGui.SameLine();
             if (ImGui.Button("Copy [VisEffect]"))
