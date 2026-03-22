@@ -29,6 +29,7 @@ using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.ImUI;
+using LibreLancer.ImUI.ImPlot;
 using LibreLancer.Media;
 using LibreLancer.Render;
 using LibreLancer.Resources;
@@ -57,6 +58,7 @@ namespace LancerEdit
         bool openError = false;
         bool finishLoading = false;
         private bool showDemoWindow = false;
+        private byte showImPlotDemoWindow = 0;
         public bool RequestExit = false;
 
         public List<TextDisplayWindow> TextWindows = new List<TextDisplayWindow>();
@@ -790,6 +792,10 @@ namespace LancerEdit
                 {
                     showDemoWindow = true;
                 }
+                if (Theme.IconMenuItem(Icons.Info, "ImPlot Demo", true))
+                {
+                    showImPlotDemoWindow = 1;
+                }
 #endif
 
                 if (Updater.Enabled && Theme.IconMenuItem(Icons.SyncAlt, "Check for updates", true))
@@ -810,6 +816,16 @@ namespace LancerEdit
             if (showDemoWindow)
             {
                 ImGui.ShowDemoWindow(ref showDemoWindow);
+            }
+
+            if (showImPlotDemoWindow != 0)
+            {
+                unsafe
+                {
+                    byte d = showImPlotDemoWindow;
+                    ImPlot.ShowDemoWindow(&d);
+                    showImPlotDemoWindow = d;
+                }
             }
 
             if (openLoading)

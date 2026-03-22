@@ -17,6 +17,11 @@ add_library(cimgui SHARED
     imgui-node-editor/imgui_node_editor_api.cpp
     imgui-node-editor/imgui_node_editor.cpp
     imgui-node-editor/cimgui_node_editor.cpp
+    implot/implot.cpp
+    implot/implot_items.cpp
+    implot/implot_demo.cpp
+    implot/cimplot.cpp
+    implot/cimplot_manual.cpp
     controls/cimgui_dock.cpp
     controls/cimgui_expression_input.cpp
     controls/cimgui_guizmo.cpp
@@ -38,6 +43,7 @@ target_compile_definitions(cimgui PUBLIC -DIMGUI_USER_CONFIG=<imconfig_ext.h>)
 target_link_libraries (cimgui PRIVATE boost_regex)
 
 set_target_properties(cimgui PROPERTIES C_VISIBILITY_PRESET hidden)
+set_target_properties(cimgui PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND ${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
     # link libgcc/libstdc++ into our .dll

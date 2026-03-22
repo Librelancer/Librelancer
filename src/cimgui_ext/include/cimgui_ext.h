@@ -20,7 +20,6 @@ extern "C" {
 #define CIMGUI_API __attribute__((visibility("default")))
 #endif
 #endif
-
 #include <stddef.h>
 #include <stdint.h>
 //version

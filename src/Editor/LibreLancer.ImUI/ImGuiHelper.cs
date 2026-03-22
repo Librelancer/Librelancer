@@ -131,6 +131,7 @@ namespace LibreLancer.ImUI
             context = ImGui.CreateContext();
             ImGui.SetCurrentContext(context);
             igGuizmoSetImGuiContext(context.Handle);
+            ImPlot.ImPlot.CreateContext();
             SetKeyMappings();
             var io = ImGui.GetIO();
             io.WantSaveIniSettings = false;
