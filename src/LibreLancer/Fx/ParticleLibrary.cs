@@ -158,10 +158,17 @@ namespace LibreLancer.Fx
             return null;
         }
 
+        public const uint CRC_ATTACHMENT_NODE = 0xEE223B51;
+
         public (ALEffectLib, AlchemyNodeLibrary) Serialize()
         {
             Dictionary<FxNode, AlchemyNode> nodes = new();
             List<ALEffect> effects = [];
+
+            foreach (var n in Nodes.Values)
+            {
+                nodes[n] = n.SerializeNode();
+            }
 
             foreach (var fx in Effects)
             {
@@ -179,11 +186,14 @@ namespace LibreLancer.Fx
                     // Init with 32768 for empty parent
                     if (nr.IsAttachmentNode)
                     {
-                        alfx.Fx.Add(new AlchemyNodeRef(1, 0, 32768, tree[nr]));
+                        alfx.Fx.Add(new AlchemyNodeRef(1, CRC_ATTACHMENT_NODE, 32768, tree[nr]));
+                    }
+                    else if (!nodes.ContainsKey(nr.Node))
+                    {
+                        throw new InvalidOperationException("Fx referenced node missing from dictionary");
                     }
                     else
                     {
-                        AddNode(nr.Node);
                         alfx.Fx.Add(new AlchemyNodeRef(0, nr.Node.CRC, 32768, tree[nr]));
                     }
                 }
@@ -241,6 +251,11 @@ namespace LibreLancer.Fx
                 }
             }
 
+            // serialize unused node
+
+
+            // return
+
             var nodelib = new AlchemyNodeLibrary
             {
                 Nodes = nodes.Values.ToList()
@@ -251,15 +266,8 @@ namespace LibreLancer.Fx
                 Effects = effects
             };
 
-            return (allib, nodelib);
 
-            void AddNode(FxNode fx)
-            {
-                if (!nodes.ContainsKey(fx))
-                {
-                    nodes[fx] = fx.SerializeNode();
-                }
-            }
+            return (allib, nodelib);
         }
     }
 }

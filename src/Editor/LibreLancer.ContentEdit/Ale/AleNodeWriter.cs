@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using LibreLancer.Data;
+using LibreLancer.Fx;
 using LibreLancer.Utf.Ale;
 
 namespace LibreLancer.ContentEdit.Ale;
@@ -15,7 +16,7 @@ public static class AleNodeWriter
         blankFxLib.Effects.Add(new ALEffect("untitled")
         {
             CRC = CrcTool.FLAleCrc("untitled"),
-            Fx = [new(1,0,32768,0)],
+            Fx = [new(1, ParticleLibrary.CRC_ATTACHMENT_NODE,32768,0)],
             Pairs = []
         });
 

@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Render;
 using LibreLancer.Utf.Ale;
 
@@ -13,9 +14,9 @@ namespace LibreLancer.Fx
 	{
 		public bool CenterOnPos;
 		public bool ViewingAngleFade;
-		public AlchemyFloatAnimation? Scale;
-		public AlchemyFloatAnimation? Length;
-		public AlchemyFloatAnimation? Width;
+		public AlchemyFloatAnimation Scale;
+		public AlchemyFloatAnimation Length;
+		public AlchemyFloatAnimation Width;
 
 		public FxRectAppearance (AlchemyNode ale) : base(ale)
 		{
@@ -29,19 +30,23 @@ namespace LibreLancer.Fx
 			{
 				ViewingAngleFade = (bool)temp.Value;
 			}
-			if (ale.TryGetParameter(AleProperty.RectApp_Scale, out temp))
-			{
-				Scale = (AlchemyFloatAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter(AleProperty.RectApp_Length, out temp))
-			{
-				Length = (AlchemyFloatAnimation)temp.Value;
-			}
-			if (ale.TryGetParameter(AleProperty.RectApp_Width, out temp))
-			{
-				Width = (AlchemyFloatAnimation)temp.Value;
-			}
+            Scale = ale.GetFloatAnimation(AleProperty.RectApp_Scale)!;
+            Length = ale.GetFloatAnimation(AleProperty.RectApp_Length)!;
+            Width = ale.GetFloatAnimation(AleProperty.RectApp_Width)!;
 		}
+
+        public override AlchemyNode SerializeNode()
+        {
+            var n = SerializeBaseNode();
+            SerializeColorTextureParameters(n);
+
+            n.Parameters.Add(new(AleProperty.RectApp_CenterOnPos, CenterOnPos));
+            n.Parameters.Add(new(AleProperty.RectApp_ViewingAngleFade, ViewingAngleFade));
+            n.Parameters.Add(new(AleProperty.RectApp_Scale, Scale));
+            n.Parameters.Add(new(AleProperty.RectApp_Length, Length));
+            n.Parameters.Add(new(AleProperty.RectApp_Width, Width));
+            return n;
+        }
 
         public FxRectAppearance(string name) : base(name)
         {

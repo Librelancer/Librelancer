@@ -61,72 +61,42 @@ namespace LibreLancer.Fx
             Alpha = new(1);
         }
 
-        public override AlchemyNode SerializeNode()
+        protected void SerializeColorTextureParameters(AlchemyNode n)
         {
-            var n = base.SerializeNode();
-
-            if (QuadTexture)
-            {
-                n.Parameters.Add(new(AleProperty.BasicApp_QuadTexture, true));
-            }
-            else
-            {
-                n.Parameters.Add(new(AleProperty.BasicApp_TriTexture, true));
-            }
-
-            if (MotionBlur)
-            {
-                n.Parameters.Add(new(AleProperty.BasicApp_MotionBlur, true));
-            }
-
+            n.Parameters.Add(new(AleProperty.BasicApp_QuadTexture, QuadTexture));
+            n.Parameters.Add(new(AleProperty.BasicApp_TriTexture, !QuadTexture));
             n.Parameters.Add(new(AleProperty.BasicApp_Color, Color));
             n.Parameters.Add(new(AleProperty.BasicApp_Alpha, Alpha));
-
-            if (HToVAspect != null)
-            {
-                n.Parameters.Add(new(AleProperty.BasicApp_HToVAspect, HToVAspect));
-            }
-
-            n.Parameters.Add(new(AleProperty.BasicApp_Size, Size));
-
             if (Rotate != null)
             {
                 n.Parameters.Add(new(AleProperty.BasicApp_Rotate, Rotate));
             }
-
             n.Parameters.Add(new(AleProperty.BasicApp_TexName, Texture));
-
-            if (UseCommonTexFrame)
-            {
-                n.Parameters.Add(new(AleProperty.BasicApp_UseCommonTexFrame, true));
-            }
-
+            n.Parameters.Add(new(AleProperty.BasicApp_UseCommonTexFrame, UseCommonTexFrame));
             if (TexFrame != null)
             {
                 n.Parameters.Add(new(AleProperty.BasicApp_TexFrame, TexFrame));
             }
-
             if (CommonTexFrame != null)
             {
                 n.Parameters.Add(new(AleProperty.BasicApp_CommonTexFrame, CommonTexFrame));
             }
+            n.Parameters.Add(new(AleProperty.BasicApp_FlipTexU, FlipHorizontal));
+            n.Parameters.Add(new(AleProperty.BasicApp_FlipTexV, FlipVertical));
+            var (src, dst) = BlendMode.Deconstruct(BlendInfo);
+            n.Parameters.Add(new(AleProperty.BasicApp_BlendInfo, new Tuple<uint, uint>((uint) src, (uint) dst)));
+        }
 
-            if (FlipHorizontal)
+        public override AlchemyNode SerializeNode()
+        {
+            var n = base.SerializeNode();
+            n.Parameters.Add(new(AleProperty.BasicApp_MotionBlur, MotionBlur));
+            if (HToVAspect != null)
             {
-                n.Parameters.Add(new(AleProperty.BasicApp_FlipTexU, true));
+                n.Parameters.Add(new(AleProperty.BasicApp_HToVAspect, HToVAspect));
             }
-
-            if (FlipVertical)
-            {
-                n.Parameters.Add(new(AleProperty.BasicApp_FlipTexV, true));
-            }
-
-            if (BlendInfo != BlendMode.Normal)
-            {
-                var (src, dst) = BlendMode.Deconstruct(BlendInfo);
-                n.Parameters.Add(new(AleProperty.BasicApp_BlendInfo, new Tuple<uint, uint>((uint) src, (uint) dst)));
-            }
-
+            n.Parameters.Add(new(AleProperty.BasicApp_Size, Size));
+            SerializeColorTextureParameters(n);
             return n;
         }
 

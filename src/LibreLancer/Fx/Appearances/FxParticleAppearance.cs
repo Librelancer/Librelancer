@@ -29,16 +29,8 @@ namespace LibreLancer.Fx
             var n = base.SerializeNode();
             n.Parameters.Add(new(AleProperty.ParticleApp_LifeName, LifeName));
             n.Parameters.Add(new(AleProperty.ParticleApp_DeathName, DeathName));
-            if (UseDynamicRotation)
-            {
-                n.Parameters.Add(new(AleProperty.ParticleApp_UseDynamicRotation, UseDynamicRotation));
-            }
-
-            if (SmoothRotation)
-            {
-                n.Parameters.Add(new(AleProperty.ParticleApp_SmoothRotation, SmoothRotation));
-            }
-
+            n.Parameters.Add(new(AleProperty.ParticleApp_UseDynamicRotation, UseDynamicRotation));
+            n.Parameters.Add(new(AleProperty.ParticleApp_SmoothRotation, SmoothRotation));
             return n;
         }
     }

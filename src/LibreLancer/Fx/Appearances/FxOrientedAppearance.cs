@@ -27,7 +27,8 @@ namespace LibreLancer.Fx
 
         public override AlchemyNode SerializeNode()
         {
-            var n = base.SerializeNode();
+            var n = SerializeBaseNode();
+            SerializeColorTextureParameters(n);
             n.Parameters.Add(new(AleProperty.OrientedApp_Height, Height!));
             n.Parameters.Add(new(AleProperty.OrientedApp_Width, Width!));
             return n;

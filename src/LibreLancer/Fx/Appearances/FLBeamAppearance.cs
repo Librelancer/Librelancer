@@ -26,6 +26,15 @@ namespace LibreLancer.Fx
         {
         }
 
+        public override AlchemyNode SerializeNode()
+        {
+            var n = base.SerializeNode();
+            n.Parameters.Add(new(AleProperty.BeamApp_DupeFirstParticle, DupeFirstParticle));
+            n.Parameters.Add(new(AleProperty.BeamApp_DisablePlaceHolder, DisablePlaceholder));
+            n.Parameters.Add(new(AleProperty.BeamApp_LineAppearance, LineAppearance));
+            return n;
+        }
+
         public override void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx, Matrix4x4 transform, float sparam)
 		{
             // get particles!
