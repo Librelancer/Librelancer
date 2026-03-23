@@ -66,10 +66,7 @@ namespace LibreLancer.Fx
         {
             var n = base.SerializeNode();
 
-            if (InitialParticles != 0)
-            {
-                n.Parameters.Add(new(AleProperty.Emitter_InitialParticles, (uint) InitialParticles));
-            }
+            n.Parameters.Add(new(AleProperty.Emitter_InitialParticles, (uint) InitialParticles));
 
             if (Frequency != null)
             {

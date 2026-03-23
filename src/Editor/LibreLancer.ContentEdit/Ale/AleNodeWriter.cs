@@ -44,11 +44,15 @@ public static class AleNodeWriter
         var ms = new MemoryStream();
         var bw = new BinaryWriter(ms);
 
-        bw.Write(1.0f); // No extra floats (1.1f == 16 unused bytes per fx)
+        bw.Write(1.1f);
         bw.Write(fxlib.Effects.Count);
         foreach (var fx in fxlib.Effects)
         {
             WriteString(bw, fx.Name);
+            bw.Write(0U);
+            bw.Write(0U);
+            bw.Write(0U);
+            bw.Write(0U);
             bw.Write(fx.Fx.Count);
             foreach(var fxref in fx.Fx)
             {

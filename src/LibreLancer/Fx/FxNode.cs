@@ -62,8 +62,7 @@ namespace LibreLancer.Fx
             var n = new AlchemyNode { ClassName = GetType().Name };
             n.Parameters.Add(new(AleProperty.Node_Name, NodeName));
             n.Parameters.Add(new(AleProperty.Node_Transform, Transform));
-            if(NodeLifeSpan <= 3.4e36f)
-                n.Parameters.Add(new(AleProperty.Node_LifeSpan, NodeLifeSpan));
+            n.Parameters.Add(new(AleProperty.Node_LifeSpan, NodeLifeSpan));
             if(this is FxAppearance)
                 n.Parameters.Add(new(AleProperty.Appearance_LODCurve, new AlchemyCurveAnimation(1)));
             if(this is FxEmitter)
