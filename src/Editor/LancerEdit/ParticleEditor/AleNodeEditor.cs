@@ -1,9 +1,11 @@
+using System;
 using System.Numerics;
 using ImGuiNET;
 using LibreLancer;
 using LibreLancer.Fx;
 using LibreLancer.Graphics;
 using LibreLancer.ImUI;
+using LibreLancer.ImUI.ImPlot;
 using LibreLancer.Utf.Ale;
 
 namespace LancerEdit;
@@ -134,6 +136,68 @@ static class AleNodeEditor
         Controls.BeginEditorTable("##ale");
     }
 
+    private static float _oldx;
+    private static float _oldy;
+    private static ulong? _editing;
+    static void DragPointUndo(int id, ref float x, ref float y, Color4 color,
+        Action<float,float,float,float> onApply)
+    {
+        var ogx = x;
+        var ogy = y;
+        var editId = ((ulong)(ImGui.GetItemID()) << 32) | (uint)id;
+        var dx = (double)x;
+        var dy = (double)y;
+        var isEdit = ImPlot.DragPoint(id, ref dx, ref dy, color);
+        if (isEdit && _editing != editId)
+        {
+            _oldx = ogx;
+            _oldy = ogy;
+            _editing = editId;
+        }
+        x = (float)dx;
+        y = (float)dy;
+        if (!isEdit && _editing == editId)
+        {
+            onApply(_oldx, _oldy, x, y);
+            _editing = null;
+        }
+    }
+
+
+    static void PlotFloatCurve(AlchemyFloats c, EditorUndoBuffer undo)
+    {
+        Span<Vector2> curve = stackalloc Vector2[100];
+        if (c.Keyframes.Count > 1 &&
+            ImPlot.BeginPlot("##curve", new(-1, 0), ImPlotFlags.CanvasOnly))
+        {
+            ImPlot.SetupAxes(null, null, ImPlotAxisFlags.Lock, 0);
+            ImPlot.SetupAxisLimits(ImAxis.X1, 0, 1);
+            ImPlot.SetupAxisLimits(ImAxis.Y1, 0, Math.Max(c.GetMax(false), 1));
+            for (int j = 0; j < c.Keyframes.Count; j++)
+            {
+                int idx = j;
+                DragPointUndo(j,
+                    ref c.Keyframes[j].Time, ref c.Keyframes[j].Value,
+                    Color4.AliceBlue,
+                    (ox, oy, nx, ny) =>
+                    {
+                        undo.Set("Keyframe", () => ref c.Keyframes[idx],
+                            new(ox, oy), new FloatKeyframe(nx, ny));
+                    });
+            }
+            float dt = 1 / 99f;
+            for (int j = 0; j < curve.Length; j++)
+            {
+                curve[j] = new(dt * j, c.GetValue(dt * j));
+            }
+            var spec = new ImPlotSpec();
+            spec.Offset = 0;
+            spec.Stride = 8;
+            ImPlot.PlotLine("##line", ref curve[0].X, ref curve[0].Y, curve.Length, spec);
+            ImPlot.EndPlot();
+        }
+    }
+
     static void EditFloatAnimation(string property, FieldAccessor<AlchemyFloatAnimation> anim, EditorUndoBuffer undo, bool optional = false)
     {
         var floats = anim();
@@ -162,6 +226,9 @@ static class AleNodeEditor
             Controls.InputFloatUndo("SParam", undo, () => ref c.SParam, null, "%.3f", 100 * ImGuiHelper.Scale);
             if (c.Keyframes.Count < 1)
                 c.Keyframes.Add(default);
+            ImGui.SameLine();
+            EditEasing("Easing", undo, () => ref c.Type);
+            PlotFloatCurve(c, undo);
             if (!ImGui.BeginTable("keyframes", c.Keyframes.Count > 1 ? 3 : 2,
                     ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit |
                     ImGuiTableFlags.NoPadOuterX))
