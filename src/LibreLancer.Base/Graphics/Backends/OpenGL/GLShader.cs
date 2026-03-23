@@ -242,6 +242,7 @@ internal class GLShader : IShader
             var blockCurrent = new Span<byte>((void*)b.BlockCurrent, size);
             if (!b.ForceUpdate && blockSet.SequenceEqual(blockCurrent))
                 continue;
+            b.ForceUpdate = false;
             blockCurrent.CopyTo(blockSet);
             if ((blocksInteger & (1 << i)) != 0)
             {
