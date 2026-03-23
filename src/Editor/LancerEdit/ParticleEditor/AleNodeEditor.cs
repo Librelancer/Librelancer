@@ -100,9 +100,8 @@ static class AleNodeEditor
         return r;
     }
 
-    static bool BeginComplex(string property, object complex, bool canDelete, out bool create)
+    static bool BeginComplex(string property, object complex)
     {
-        create = false;
         Controls.EndEditorTable();
         if (!PropertyHeader(property))
         {
@@ -111,19 +110,6 @@ static class AleNodeEditor
         }
 
         ImGui.BeginGroup();
-        if (complex == null)
-        {
-            ImGui.Text("No Value");
-            ImGui.SameLine();
-            ImGui.PushID(property);
-            if (ImGui.Button("Create"))
-                create = true;
-            ImGui.PopID();
-            ImGui.EndGroup();
-            Controls.BeginEditorTable("##ale");
-            return false;
-        }
-
         ImGui.PushID(property);
         return true;
     }
@@ -201,12 +187,29 @@ static class AleNodeEditor
     static void EditFloatAnimation(string property, FieldAccessor<AlchemyFloatAnimation> anim, EditorUndoBuffer undo, bool optional = false)
     {
         var floats = anim();
-        if (!BeginComplex(property, floats, optional, out var create))
+        if (floats == null)
         {
-            if (create)
+            Controls.EditControlSetup(property, 0);
+            if (ImGui.Button($"Add", new(ImGui.CalcItemWidth(), 0)))
                 undo.Set(property, anim, new AlchemyFloatAnimation());
             return;
         }
+
+        if (!floats.DisplayAnimated &&
+            floats.Items.Count == 1 &&
+            floats.Items[0].Keyframes.Count == 1)
+        {
+            if (Controls.InputFloatUndoOpt(property, undo,
+                    () => ref floats.Items[0].Keyframes[0].Value,
+                    $"{Icons.BezierCurve}", "%.5f"))
+            {
+                undo.Set($"Animate {property}", () => ref floats.DisplayAnimated, true);
+            }
+            return;
+        }
+
+        if (!BeginComplex(property, floats))
+            return;
         EditEasing("SParam Easing", undo, () => ref floats.Type);
         if (optional)
         {
@@ -319,9 +322,31 @@ static class AleNodeEditor
         dl.PopClipRect();
     }
 
-    static void EditColorAnimation(string property, AlchemyColorAnimation colors, EditorUndoBuffer undo)
+    static void EditColorAnimation(string property, FieldAccessor<AlchemyColorAnimation> anim, EditorUndoBuffer undo)
     {
-        if (!BeginComplex(property, colors, false, out _))
+        var colors = anim();
+        if (colors == null)
+        {
+            Controls.EditControlSetup(property, 100);
+            if (ImGui.Button($"Add", new(ImGui.CalcItemWidth(), 0)))
+                undo.Set(property, anim, new AlchemyColorAnimation(Color3f.White));
+            return;
+        }
+
+        if (!colors.DisplayAnimated &&
+            colors.Items.Count == 1 &&
+            colors.Items[0].Keyframes.Count == 1)
+        {
+            if (Controls.InputColor3fUndoOpt(property, undo,
+                    () => ref colors.Items[0].Keyframes[0].Value,
+                    $"{Icons.BezierCurve}"))
+            {
+                undo.Set($"Animate {property}", () => ref colors.DisplayAnimated, true);
+            }
+            return;
+        }
+
+        if (!BeginComplex(property, colors))
             return;
         EditEasing("SParam Easing", undo, () => ref colors.Type);
         ImGui.Separator();
@@ -336,14 +361,12 @@ static class AleNodeEditor
             if (c.Keyframes.Count < 1)
                 c.Keyframes.Add(default);
             DrawColorGradient(c);
-            if (!ImGui.BeginTable("keyframes", c.Keyframes.Count > 1 ? 5 : 4,
+            if (!ImGui.BeginTable("keyframes", c.Keyframes.Count > 1 ? 3 : 2,
                     ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit |
                     ImGuiTableFlags.NoPadOuterX))
                 continue;
             ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("R", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("G", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("B", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("Color", ImGuiTableColumnFlags.WidthStretch);
             if (c.Keyframes.Count > 1)
                 ImGui.TableSetupColumn("##", ImGuiTableColumnFlags.WidthFixed);
             ImGui.TableHeadersRow();
@@ -360,13 +383,7 @@ static class AleNodeEditor
                 Controls.InputFloatValueUndo("Time", undo, () => ref c.Keyframes[idx].Time, null, "%.5f");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1);
-                Controls.InputFloatValueUndo("R", undo, () => ref c.Keyframes[idx].Value.R, null, "%.5f");
-                ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(-1);
-                Controls.InputFloatValueUndo("G", undo, () => ref c.Keyframes[idx].Value.G, null, "%.5f");
-                ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(-1);
-                Controls.InputFloatValueUndo("B", undo, () => ref c.Keyframes[idx].Value.B, null, "%.5f");
+                Controls.InputColor3fUndo("Color", undo, () => ref c.Keyframes[idx].Value, true);
                 if (c.Keyframes.Count > 1)
                 {
                     ImGui.TableNextColumn();
@@ -410,12 +427,30 @@ static class AleNodeEditor
     static void EditCurveAnimation(string property, FieldAccessor<AlchemyCurveAnimation> anim, EditorUndoBuffer undo, bool optional = false)
     {
         var curve = anim();
-        if (!BeginComplex(property, curve, optional, out var create))
+        if (curve == null)
         {
-            if (create)
+            Controls.EditControlSetup(property, 100);
+            if (ImGui.Button($"Add", new(ImGui.CalcItemWidth(), 0)))
                 undo.Set(property, anim, new AlchemyCurveAnimation(0));
             return;
         }
+
+        if (!curve.DisplayAnimated &&
+            curve.Items.Count == 1 &&
+            (curve.Items[0].Keyframes.Count <= 1 || !curve.Items[0].IsCurve))
+        {
+            FieldAccessor<float> value = curve.Items[0].IsCurve && curve.Items[0].Keyframes.Count == 1
+                ? () => ref curve.Items[0].Keyframes[0].Value
+                : () => ref curve.Items[0].Value;
+            if (Controls.InputFloatUndoOpt(property, undo, value, $"{Icons.BezierCurve}", "%.5f"))
+            {
+                undo.Set($"Animate {property}", () => ref curve.DisplayAnimated, true);
+            }
+            return;
+        }
+
+        if (!BeginComplex(property, curve))
+            return;
         EditEasing("SParam Easing", undo, () => ref curve.Type);
         if (optional)
         {
@@ -632,7 +667,7 @@ static class AleNodeEditor
         Controls.CheckboxUndo("Flip Vertical", undo, () => ref node.FlipVertical);
         Controls.CheckboxUndo("Use CommonTexFrame", undo, () => ref node.UseCommonTexFrame);
         EditBlend(() => ref node.BlendInfo, undo);
-        EditColorAnimation("Color", node.Color, undo);
+        EditColorAnimation("Color", () => ref node.Color, undo);
         EditFloatAnimation("Alpha", () => ref node.Alpha, undo);
         EditFloatAnimation("Tex Frame", () => ref node.TexFrame, undo, true);
         EditCurveAnimation("Common Tex Frame", () => ref node.CommonTexFrame, undo, true);

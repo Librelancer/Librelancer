@@ -11,6 +11,7 @@ namespace LibreLancer.Utf.Ale
 	{
 		public EasingTypes Type;
 		public List<AlchemyCurve> Items;
+        public bool DisplayAnimated = false; // UI Only
 
         public AlchemyCurveAnimation()
         {

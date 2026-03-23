@@ -12,6 +12,7 @@ namespace LibreLancer.Utf.Ale
     {
         public EasingTypes Type;
         public List<AlchemyColors> Items = [];
+        public bool DisplayAnimated = false; // UI Only
 
         public AlchemyColorAnimation()
         {

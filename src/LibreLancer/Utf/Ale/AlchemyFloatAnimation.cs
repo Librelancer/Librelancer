@@ -11,6 +11,7 @@ namespace LibreLancer.Utf.Ale
 	{
 		public EasingTypes Type;
         public List<AlchemyFloats> Items;
+        public bool DisplayAnimated = false; // UI only
 
         public AlchemyFloatAnimation()
         {

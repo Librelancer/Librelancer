@@ -197,6 +197,57 @@ public static class Controls
             width);
     }
 
+    private static Color3f oldColor;
+    public static void InputColor3fUndo(
+        string label,
+        EditorUndoBuffer buffer,
+        FieldAccessor<Color3f> value,
+        bool isValue = false
+    )
+    {
+        ImGui.PushID(label);
+        if(!isValue)
+            EditControlSetup(label, 0);
+        ref Color3f v = ref value();
+        Color3f oldCopy = v;
+        ImGui.ColorEdit3("##input", ref Unsafe.As<Color3f, Vector3>(ref v));
+        if (ImGui.IsItemActivated())
+        {
+            oldColor = oldCopy;
+        }
+        if (ImGui.IsItemDeactivatedAfterEdit())
+        {
+            buffer.Set(label, value, oldColor, v);
+        }
+        ImGui.PopID();
+    }
+
+    public static bool InputColor3fUndoOpt(
+        string label,
+        EditorUndoBuffer buffer,
+        FieldAccessor<Color3f> value,
+        string option
+    )
+    {
+        ImGui.PushID(label);
+        EditControlSetup(label, 0, -ButtonWidth(option));
+        ref Color3f v = ref value();
+        Color3f oldCopy = v;
+        ImGui.ColorEdit3("##input", ref Unsafe.As<Color3f, Vector3>(ref v));
+        if (ImGui.IsItemActivated())
+        {
+            oldColor = oldCopy;
+        }
+        if (ImGui.IsItemDeactivatedAfterEdit())
+        {
+            buffer.Set(label, value, oldColor, v);
+        }
+        ImGui.SameLine();
+        var retval = ImGui.Button(option);
+        ImGui.PopID();
+        return retval;
+    }
+
     private static int oldInt = 0;
 
     public static void InputIntUndo(
@@ -278,6 +329,33 @@ public static class Controls
             buffer.Set(id, value, oldFloat, v, hook);
         }
         ImGui.PopID();
+    }
+
+    public static bool InputFloatUndoOpt(
+        string label,
+        EditorUndoBuffer buffer,
+        FieldAccessor<float> value,
+        string option,
+        string format = "%.3f"
+    )
+    {
+        ImGui.PushID(label);
+        EditControlSetup(label, 0, -ButtonWidth(option));
+        ref float v = ref value();
+        float oldCopy = v;
+        ImGui.InputFloat("##input", ref v, 0, 0, format);
+        if (ImGui.IsItemActivated())
+        {
+            oldFloat = oldCopy;
+        }
+        if (ImGui.IsItemDeactivatedAfterEdit())
+        {
+            buffer.Set(label, value, oldFloat, v);
+        }
+        ImGui.SameLine();
+        var retval = ImGui.Button(option);
+        ImGui.PopID();
+        return retval;
     }
 
 
