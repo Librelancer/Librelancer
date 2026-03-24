@@ -27,27 +27,41 @@ namespace LibreLancer.Utf.Ale
 		}
 		public Color3f GetValue(float time)
 		{
-			// Only have one keyframe? Just return it.
-			if (Keyframes.Count == 1) {
+			if (Keyframes.Count == 1)
+            {
 				return Keyframes [0].Value;
 			}
-			// Locate the keyframes to interpolate between
-			float t1 = float.NegativeInfinity;
-			float t2 = 0;
-			Color3f v1 = new(), v2 = new();
-			for (int i = 0; i < Keyframes.Count - 1; i++) {
-				if (time >= Keyframes [i].Time && time <= Keyframes [i + 1].Time) {
-					t1 = Keyframes [i].Time;
-					t2 = Keyframes [i + 1].Time;
-					v1 = Keyframes [i].Value;
-					v2 = Keyframes [i + 1].Value;
-                    break;
-                }
-			}
-			// Time wasn't between any values. Return max.
-			if (t1 == float.NegativeInfinity) {
-				return Keyframes [Keyframes.Count - 1].Value;
-			}
+
+            if (time <= Keyframes[0].Time)
+            {
+                return Keyframes[0].Value;
+            }
+
+            if (time >= Keyframes[^1].Time)
+            {
+                return Keyframes[^1].Value;
+            }
+
+            int left = 0;
+            int right = Keyframes.Count;
+
+            while (left < right)
+            {
+                int mid = (left + right) >> 1;
+
+                if (Keyframes[mid].Time <= time)
+                    left = mid + 1;
+                else
+                    right = mid;
+            }
+
+            int i1 = left - 1;
+            int i2 = left;
+
+            float t1 = Keyframes[i1].Time;
+            float t2 = Keyframes[i2].Time;
+            Color3f v1 = Keyframes[i1].Value;
+            Color3f v2 = Keyframes[i2].Value;
 			// Interpolate!
 			return Easing.EaseColorRGB(Type,time, t1, t2, v1, v2);
 		}

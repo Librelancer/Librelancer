@@ -29,6 +29,7 @@ namespace LibreLancer.Utf.Ale
             }
             return max;
         }
+
         public float GetValue(float time) {
 			if (!IsCurve)
 				return Value;
@@ -36,32 +37,33 @@ namespace LibreLancer.Utf.Ale
 				return Keyframes [0].Value;
 			if (time <= Keyframes[0].Time)
 				return Keyframes[0].Value;
-			if (time >= Keyframes[Keyframes.Count - 1].Time)
+			if (time >= Keyframes[^1].Time)
 			{
 				switch (Flags)
 				{
 					case LoopFlags.PlayOnce:
-						return Keyframes[Keyframes.Count - 1].Value;
+						return Keyframes[^1].Value;
                     case LoopFlags.Repeat:
-                        time = time % Keyframes[Keyframes.Count - 1].Time;
+                        time = time % Keyframes[^1].Time;
                         break;
                     default:
-                        return Keyframes[Keyframes.Count - 1].Value;
+                        return Keyframes[^1].Value;
 				}
-
 			}
-			for (int i = 0; i < Keyframes.Count - 1; i++)
-			{
-				var a = Keyframes[i];
-				var b = Keyframes[i + 1];
-                // TODO: Actually do this properly with InTangent and OutTangent
-                if (time >= a.Time && time <= b.Time)
-                {
-                    if(Math.Abs(a.Time - b.Time) < float.Epsilon) return b.Value;
-                    return ValueAt(a, b, time);
-                }
+            int left = 0;
+            int right = Keyframes.Count;
+
+            while (left < right)
+            {
+                int mid = (left + right) >> 1;
+
+                if (Keyframes[mid].Time <= time)
+                    left = mid + 1;
+                else
+                    right = mid;
             }
-            return Keyframes[Keyframes.Count - 1].Value;
+
+            return ValueAt(Keyframes[left - 1], Keyframes[left], time);
 		}
 
         private static float ValueAt(CurveKeyframe a, CurveKeyframe b, float t)

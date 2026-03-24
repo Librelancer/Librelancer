@@ -151,7 +151,7 @@ static class AleNodeEditor
 
     static void PlotFloatCurve(AlchemyFloats c, EditorUndoBuffer undo)
     {
-        Span<Vector2> curve = stackalloc Vector2[100];
+        Span<Vector2> curve = stackalloc Vector2[192];
         if (c.Keyframes.Count > 1 &&
             ImPlot.BeginPlot("##curve", new(-1, 0), ImPlotFlags.CanvasOnly))
         {
@@ -170,7 +170,7 @@ static class AleNodeEditor
                             new(ox, oy), new FloatKeyframe(nx, ny));
                     });
             }
-            float dt = 1 / 99f;
+            float dt = 1.0f / (curve.Length - 1);
             for (int j = 0; j < curve.Length; j++)
             {
                 curve[j] = new(dt * j, c.GetValue(dt * j));

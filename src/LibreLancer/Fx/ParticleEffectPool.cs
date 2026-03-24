@@ -79,6 +79,8 @@ namespace LibreLancer.Fx
             bool flipU,
             bool flipV)
         {
+            if (color.A <= 0.0001f) //won't render
+                return;
             if (nextParticle == MaxParticles)
                 return;
             var frameNo = (int) Math.Floor((texture.FrameCount - 1) * frame);
