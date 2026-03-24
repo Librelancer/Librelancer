@@ -79,6 +79,8 @@ namespace LibreLancer.Fx
             bool flipU,
             bool flipV)
         {
+            if (nextParticle == MaxParticles)
+                return;
             var frameNo = (int) Math.Floor((texture.FrameCount - 1) * frame);
             var texCoords = texture.GetCoordinates(frameNo);
             float top = flipV ? texCoords.Y + texCoords.W : texCoords.Y;
@@ -126,7 +128,10 @@ namespace LibreLancer.Fx
                 SortLayers.OBJECT, z, null, drawIndex,
                 particleMaterial.AddParameters(texture, app.BlendInfo, drawKind, start, count)
             );
-            nextParticle = sbo.GetAlignedIndex(nextParticle);
+            if (nextParticle != MaxParticles)
+            {
+                nextParticle = sbo.GetAlignedIndex(nextParticle);
+            }
             lastDrawCommand = nextParticle;
         }
 
