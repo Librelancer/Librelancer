@@ -30,26 +30,27 @@ namespace LibreLancer.Utf.Ale
             return max;
         }
 
-        public float GetValue(float time) {
+        public float GetValue(float time)
+        {
 			if (!IsCurve)
 				return Value;
 			if (Keyframes.Count == 1)
 				return Keyframes [0].Value;
-			if (time <= Keyframes[0].Time)
-				return Keyframes[0].Value;
-			if (time >= Keyframes[^1].Time)
-			{
-				switch (Flags)
-				{
-					case LoopFlags.PlayOnce:
-						return Keyframes[^1].Value;
+            if (time >= Keyframes[^1].Time)
+            {
+                switch (Flags)
+                {
+                    case LoopFlags.PlayOnce:
+                        return Keyframes[^1].Value;
                     case LoopFlags.Repeat:
                         time = time % Keyframes[^1].Time;
                         break;
                     default:
                         return Keyframes[^1].Value;
-				}
-			}
+                }
+            }
+			if (time <= Keyframes[0].Time)
+				return Keyframes[0].Value;
             int left = 0;
             int right = Keyframes.Count;
 
