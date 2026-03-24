@@ -62,4 +62,8 @@
   <ItemGroup>
     <Shader Include="Shaders\*.txt" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ClCompile Include="Shaders\Particle.vert.hlsl" />
+  </ItemGroup>
 </Project>

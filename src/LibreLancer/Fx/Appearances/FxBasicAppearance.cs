@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer.Graphics;
+using LibreLancer.Render.Materials;
 using LibreLancer.Utf.Ale;
 
 namespace LibreLancer.Fx
@@ -114,18 +115,19 @@ namespace LibreLancer.Fx
                 var p = Vector3.Transform(Vector3.Transform(particle.Position, particle.Orientation), nodeTr);
                 var c = Color.GetValue(sparam, time);
                 var a = Alpha.GetValue(sparam, time);
-                instance.Pool?.AddBasic(
+                instance.Pool?.AddParticle(
                     TextureHandler,
                     p,
                     new Vector2(Size?.GetValue(sparam, time) ?? 1.0f) * 2,
                     new Color4(c, a),
                     GetFrame((float) instance.GlobalTime, sparam, ref particle),
+                    Vector3.Zero,
                     Rotate == null ? 0f : MathHelper.DegreesToRadians(Rotate.GetValue(sparam, time)),
                     FlipHorizontal, FlipVertical
                 );
             }
 
-            instance.Pool?.DrawBuffer(this, instance.Resources!, transform, (instance.DrawIndex << 11) + nodeIdx);
+            instance.Pool?.DrawBuffer(ParticleDrawKind.Basic, this, instance.Resources!, transform, (instance.DrawIndex << 11) + nodeIdx);
         }
 
         public readonly ParticleTexture TextureHandler = new();

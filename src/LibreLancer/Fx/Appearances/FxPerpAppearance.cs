@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Render.Materials;
 using LibreLancer.Utf.Ale;
 namespace LibreLancer.Fx
 {
@@ -34,7 +35,7 @@ namespace LibreLancer.Fx
                 var p = Vector3.Transform(particle.Position, transform);
                 var p2 = Vector3.Transform(particle.Position + particle.Normal, transform);
                 var n = (p - p2).Normalized();
-                instance.Pool.AddPerp(
+                instance.Pool.AddParticle(
                     TextureHandler,
                     Vector3.Transform(particle.Position, transform),
                     new Vector2(Size.GetValue(sparam, time)),
@@ -51,6 +52,7 @@ namespace LibreLancer.Fx
                 }
             }
             instance.Pool.DrawBuffer(
+                ParticleDrawKind.Perp,
                 this,
                 instance.Resources,
                 transform,
