@@ -6,19 +6,29 @@ struct Input
     int Blend: TEXCOORD3;
 };
 
+float BlendAuto(float v1, float v2, float x)
+{
+    return lerp(v1, v2, v1 > v2 ? 1.0f - (1.0f - x) * (1.0f - x) : x * x);
+}
+
 float4 main(Input input) : SV_Target0
 {
     float t = input.T;
     switch (input.Blend)
     {
         case 2: //Ease-In
-            return lerp(input.Color1, input.Color2, pow(t, 1.685));
+            return lerp(input.Color1, input.Color2, t * t);
         case 3: //Ease-Out
-            return lerp(input.Color1, input.Color2, 1.0 - pow(1.0 - t, 1.685));
-        case 4: //Ease-In-Out
-            return lerp(input.Color1, input.Color2,  t < 0.5f ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1);
-        case 5: // Step (Don't use, use direct geometry instead)
-            return input.Color1;
+            return lerp(input.Color1, input.Color2, 1.0f - (1.0f - t) * (1.0f - t));
+        case 4: // Ease smooth
+            return lerp(input.Color1, input.Color2,  t * t * (3.0f - 2 * t));
+        case 5: // Ease Auto
+            return float4(
+                BlendAuto(input.Color1.r, input.Color2.r, t),
+                BlendAuto(input.Color1.g, input.Color2.g, t),
+                BlendAuto(input.Color1.b, input.Color2.b, t),
+                BlendAuto(input.Color1.a, input.Color2.a, t)
+                );
         default: // Linear (Don't use, use direct geometry instead)
             return lerp(input.Color1, input.Color2, t);
     }

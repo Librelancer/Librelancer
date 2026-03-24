@@ -48,23 +48,22 @@ static class AleNodeEditor
         return og != op;
     }
 
+    private static readonly string[] _easeNames = ["Step", "Linear", "Ease In", "Ease Out", "Ease In-Out", "Ease Auto"];
+
     static void EditEasing(string id, EditorUndoBuffer undo, FieldAccessor<EasingTypes> easing)
     {
         ImGui.PushID(id);
         Controls.EditControlSetup(id, 100);
         ref var v = ref easing();
-        if (ImGui.BeginCombo("##easing", v.ToString()))
+        var vi = (int)v;
+
+        if (ImGui.BeginCombo("##easing",  vi <= 5 ? _easeNames[vi] : vi.ToString()))
         {
-            if (ImGui.Selectable("Linear", v == EasingTypes.Linear) && v != EasingTypes.Linear)
-                undo.Set("Easing", easing, EasingTypes.Linear);
-            if (ImGui.Selectable("Ease In", v == EasingTypes.EaseIn) && v != EasingTypes.EaseIn)
-                undo.Set("Easing", easing, EasingTypes.EaseIn);
-            if (ImGui.Selectable("Ease Out", v == EasingTypes.EaseOut) && v != EasingTypes.EaseOut)
-                undo.Set("Easing", easing, EasingTypes.EaseOut);
-            if (ImGui.Selectable("Ease In-Out", v == EasingTypes.EaseInOut) && v != EasingTypes.EaseInOut)
-                undo.Set("Easing", easing, EasingTypes.EaseInOut);
-            if (ImGui.Selectable("Step", v == EasingTypes.Step) && v != EasingTypes.Step)
-                undo.Set("Easing", easing, EasingTypes.Step);
+            for (int i = 0; i < _easeNames.Length; i++)
+            {
+                if (ImGui.Selectable(_easeNames[i], vi == i) && vi != i)
+                    undo.Set("Easing", easing, (EasingTypes)i);
+            }
             ImGui.EndCombo();
         }
 
