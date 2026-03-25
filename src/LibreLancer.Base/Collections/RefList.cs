@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace LibreLancer;
 
@@ -199,7 +200,10 @@ public class RefList<T> : IList<T>
             {
                 throw new IndexOutOfRangeException();
             }
-            return ref backing[index];
+            return ref Unsafe.Add(
+                ref MemoryMarshal.GetArrayDataReference(backing),
+                index
+            );
         }
     }
 
