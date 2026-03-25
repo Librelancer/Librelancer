@@ -51,6 +51,10 @@ dotnet_naming_style.nounderscore.required_prefix =
 dotnet_naming_style.underscored.capitalization = camel_case
 dotnet_naming_style.underscored.required_prefix = _
 
+# Define the 'pascalcase' naming style
+dotnet_naming_style.pascalcase.capitalization = pascal_case
+dotnet_naming_style.pascalcase.required_prefix =
+
 # Define the 'private_static_fields_underscored' naming rule
 dotnet_naming_rule.private_static_fields_underscored.symbols = private_static_fields
 dotnet_naming_rule.private_static_fields_underscored.style = underscored
@@ -60,6 +64,16 @@ dotnet_naming_rule.private_static_fields_underscored.severity = suggestion
 dotnet_naming_rule.private_fields_nounderscore.symbols = private_fields
 dotnet_naming_rule.private_fields_nounderscore.style = nounderscore
 dotnet_naming_rule.private_fields_nounderscore.severity = suggestion
+
+# Const naming
+dotnet_naming_symbols.consts.applicable_kinds = field
+dotnet_naming_symbols.consts.required_modifiers = const
+dotnet_naming_rule.consts_pascal_case.symbols = consts
+dotnet_naming_rule.consts_pascal_case.style = pascalcase
+dotnet_naming_rule.consts_pascal_case.severity = suggestion
+
+
+
 
 # Rider/Resharper specific rules
 resharper_replace_slice_with_range_indexer_highlighting = none
