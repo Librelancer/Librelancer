@@ -227,7 +227,7 @@ public static class AleNodeWriter
         bw.Write((byte)0x3);
         bw.Write((byte)0x5);
         // Write curves if present
-        bw.Write(tr.HasTransform ? (byte)1 : (byte)0);
+        bw.Write(tr.HasTransform ? (byte)0x80 : (byte)0);
         if (!tr.HasTransform)
             return;
         WriteCurveAnimation(bw, tr.TranslateX);
