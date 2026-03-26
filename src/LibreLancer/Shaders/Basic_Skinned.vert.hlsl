@@ -24,6 +24,7 @@ struct VSInput
     [[vk::location(0)]] float3 position: POSITION;
     [[vk::location(2)]] float3 normal: NORMAL;
     [[vk::location(3)]] float2 uv: TEXCOORD0;
+    [[vk::location(4)]] float2 uv1: TEXCOORD1;
     [[vk::location(10)]] int4 boneIds: TEXCOORD8;
     [[vk::location(11)]] float4 boneWeights: TEXCOORD9;
 };
@@ -62,7 +63,7 @@ Output main(VSInput input)
         (input.uv.x + MaterialAnim.x) * MaterialAnim.z,
         (input.uv.y + MaterialAnim.y) * MaterialAnim.w
     );
-    output.texCoord2 = output.texCoord1;
+    output.texCoord2 = input.uv1;
     output.color = float4(1.0, 1.0, 1.0, 1.0);
 
 #ifdef VERTEX_LIGHTING

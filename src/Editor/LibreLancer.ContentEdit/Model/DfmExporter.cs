@@ -135,8 +135,13 @@ public static class DfmExporter
         var output = new SimpleMesh.Model() {Materials = new Dictionary<string, Material>()};
 
         var mesh = dfm.Levels[0];
-        var va = new VertexArray(VertexAttributes.Normal | VertexAttributes.Texture1 | VertexAttributes.Joints,
-            mesh.PointIndices.Length);
+        var a = VertexAttributes.Normal | VertexAttributes.Texture1 | VertexAttributes.Joints;
+        if (mesh.UV1Indices != null &&
+            mesh.UV1 != null)
+        {
+            a |= VertexAttributes.Texture2;
+        }
+        var va = new VertexArray(a, mesh.PointIndices.Length);
         for (int i = 0; i < mesh.PointIndices.Length; i++)
         {
             var first = mesh.PointBoneFirst[mesh.PointIndices[i]];
@@ -171,6 +176,10 @@ public static class DfmExporter
             va.Position[i] = mesh.Points[mesh.PointIndices[i]];
             va.Normal[i] = mesh.VertexNormals[mesh.PointIndices[i]];
             va.Texture1[i] = mesh.UV0[mesh.UV0Indices[i]];
+            if (mesh.UV1 != null && mesh.UV1Indices != null)
+            {
+                va.Texture2[i] = mesh.UV1[mesh.UV1Indices[i]];
+            }
             va.JointIndices[i] = new((ushort)id1, (ushort)id2, (ushort)id3, (ushort)id4);
             va.JointWeights[i] = weights;
         }

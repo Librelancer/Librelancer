@@ -20,7 +20,7 @@ namespace LibreLancer.Utf.Dfm
         public List<FaceGroup> FaceGroups { get; private set; } = [];
         public int[] PointIndices { get; private set; } = [];
         public int[] UV0Indices { get; private set; } = [];
-        public int[] UV1Indices { get; private set; } = [];
+        public int[]? UV1Indices { get; private set; }
         public Vector3[] Points { get; private set; } = [];
         public int[] PointBoneFirst { get; private set; } = [];
         public int[] PointBoneCount { get; private set; } = [];
@@ -28,7 +28,7 @@ namespace LibreLancer.Utf.Dfm
         public float[] BoneWeightChain { get; private set; } = [];
         public Vector3[] VertexNormals { get; private set; } = [];
         public Vector2[] UV0 { get; private set; } = [];
-        public Vector2[] UV1 { get; private set; } = [];
+        public Vector2[]? UV1 { get; private set; }
 
         public LeafNode? UVBoneId { get; set; }
         public LeafNode? UVVertexCount { get; set; }
@@ -233,7 +233,18 @@ namespace LibreLancer.Utf.Dfm
                     throw new IndexOutOfRangeException("Bone index is out of range (<0 or >255)");
                 }
 
-                vertices.Add(new DfmVertex(Points[PointIndices[i]], VertexNormals[PointIndices[i]], UV0[UV0Indices[i]],
+                Vector2 uv1 = Vector2.Zero;
+                if (UV1Indices != null &&
+                    UV1 != null)
+                {
+                    uv1 = UV1[UV1Indices[i]];
+                }
+
+                vertices.Add(new DfmVertex(
+                    Points[PointIndices[i]],
+                    VertexNormals[PointIndices[i]],
+                    UV0[UV0Indices[i]],
+                    uv1,
                     weights, (byte) id1, (byte) id2, (byte) id3, (byte) id4));
             }
 

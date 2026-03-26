@@ -15,17 +15,19 @@ namespace LibreLancer.Utf.Dfm
 	{
 		public Vector3 Position;
 		public Vector3 Normal;
-		public Vector2 TextureCoordinate;
+		public Vector2 Texture1;
+        public Vector2 Texture2;
 		public Vector4 BoneWeights;
 		public byte BoneId1;
         public byte BoneId2;
         public byte BoneId3;
         public byte BoneId4;
-		public DfmVertex(Vector3 pos, Vector3 normal, Vector2 texcoord, Vector4 boneWeights,  byte id1, byte id2, byte id3, byte id4)
+		public DfmVertex(Vector3 pos, Vector3 normal, Vector2 texcoord1, Vector2 texcoord2, Vector4 boneWeights,  byte id1, byte id2, byte id3, byte id4)
 		{
 			Position = pos;
 			Normal = normal;
-			TextureCoordinate = texcoord;
+			Texture1 = texcoord1;
+            Texture2 = texcoord2;
             BoneWeights = boneWeights;
             BoneId1 = id1;
             BoneId2 = id2;
@@ -36,12 +38,18 @@ namespace LibreLancer.Utf.Dfm
 		public VertexDeclaration GetVertexDeclaration()
 		{
 			return new VertexDeclaration(
-				sizeof(float) * 3 + sizeof(float) * 3 + sizeof(float) * 2 + sizeof(float) * 4 + sizeof(byte) * 4,
+				sizeof(float) * 3 +
+                sizeof(float) * 3 +
+                sizeof(float) * 2 +
+                sizeof(float) * 2 +
+                sizeof(float) * 4 +
+                sizeof(byte) * 4,
 				new VertexElement(VertexSlots.Position, 3, VertexElementType.Float, false, 0),
 				new VertexElement(VertexSlots.Normal, 3, VertexElementType.Float, false, sizeof(float) * 3),
 				new VertexElement(VertexSlots.Texture1, 2, VertexElementType.Float, false, sizeof(float) * 6),
-				new VertexElement(VertexSlots.BoneWeights, 4, VertexElementType.Float, false, sizeof(float) * 8),
-				new VertexElement(VertexSlots.BoneIds, 4, VertexElementType.UnsignedByte, false, sizeof(float) * 12, true)
+                new VertexElement(VertexSlots.Texture2, 2, VertexElementType.Float, false, sizeof(float) * 8),
+				new VertexElement(VertexSlots.BoneWeights, 4, VertexElementType.Float, false, sizeof(float) * 10),
+				new VertexElement(VertexSlots.BoneIds, 4, VertexElementType.UnsignedByte, false, sizeof(float) * 14, true)
 			);
 		}
 	}
