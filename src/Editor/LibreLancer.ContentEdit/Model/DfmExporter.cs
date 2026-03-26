@@ -61,6 +61,8 @@ public static class DfmExporter
         var duration = script.CalculateDuration();
 
         int frameCount = (int)(duration / (1 / 60.0f));
+        if (frameCount < 1)
+            frameCount = 1;
 
         var channels = new (TranslationChannel T, RotationChannel R)[skinning.Instances.Length];
         for (int i = 0; i < skinning.Instances.Length; i++)
@@ -97,7 +99,7 @@ public static class DfmExporter
 
         for (int i = 0; i < frameCount; i++)
         {
-            float t = i * (duration / (frameCount - 1));
+            float t = i * duration <= 0 ? 0 : (duration / (frameCount - 1));
 
             for (int j = 0; j < skinning.Instances.Length; j++)
             {
