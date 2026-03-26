@@ -116,7 +116,7 @@ namespace LibreLancer.Fx
                 cmd.AddCommand(
                     particleMaterial, null,
                     cmd.WorldBuffer.Identity, Lighting.Empty,
-                    vbo, PrimitiveTypes.TriangleList, -1, 0, 256 * 6,
+                    vbo, PrimitiveTypes.TriangleList, -1, 0, 256 * 2,
                     SortLayers.OBJECT, z, null, drawIndex,
                     particleMaterial.AddParameters(texture, app.BlendInfo, drawKind, start, 256)
                 );
@@ -126,7 +126,7 @@ namespace LibreLancer.Fx
             cmd.AddCommand(
                 particleMaterial, null,
                 cmd.WorldBuffer.Identity, Lighting.Empty,
-                vbo, PrimitiveTypes.TriangleList, -1, 0, count * 6,
+                vbo, PrimitiveTypes.TriangleList, -1, 0, count * 2,
                 SortLayers.OBJECT, z, null, drawIndex,
                 particleMaterial.AddParameters(texture, app.BlendInfo, drawKind, start, count)
             );
