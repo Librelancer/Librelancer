@@ -191,7 +191,7 @@ public static class DfmExporter
             var crc = CrcTool.FLModelCrc(fg.MaterialName);
             var start = indices.Count;
             indices.AddRange(TriangleStripToList(fg.TriangleStripIndices));
-            tg.Add(new TriangleGroup(ModelExporter.GetMaterial(crc, resources, output.Materials))
+            tg.Add(new TriangleGroup(MaterialExporter.GetMaterial(crc, resources, output.Materials))
             {
                 StartIndex = start,
                 IndexCount =  indices.Count - start
@@ -282,7 +282,7 @@ public static class DfmExporter
         output.Geometries = [g];
         output.Skins = [sk];
         output.Animations = anims.ToArray();
-        output.Images = ModelExporter.ExportImages(resources, output.Materials);
+        output.Images = MaterialExporter.ExportImages(resources, output.Materials);
         return output;
     }
 }
