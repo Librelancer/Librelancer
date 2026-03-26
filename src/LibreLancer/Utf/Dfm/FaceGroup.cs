@@ -12,12 +12,12 @@ namespace LibreLancer.Utf.Dfm
 {
 	public class FaceGroup
 	{
-        public string MaterialName { get; private set; } = null!;
+        public string? MaterialName { get; private set; }
 
         public int StartIndex;
-		public ushort[] TriangleStripIndices { get; private set; } = null!;
-        public ushort[] EdgeIndices { get; private set; } = null!;
-        public float[] EdgeAngles { get; private set; } = null!;
+		public ushort[]? TriangleStripIndices { get; private set; }
+        public ushort[]? FaceIndices { get; private set; }
+
 
         public FaceGroup(IntermediateNode root)
 		{
@@ -29,11 +29,8 @@ namespace LibreLancer.Utf.Dfm
 					break;
 				case "tristrip_indices": TriangleStripIndices = node.UInt16ArrayData;
 					break;
-				case "edge_indices": EdgeIndices = node.UInt16ArrayData;
-					break;
-				case "edge_angles": EdgeAngles = node.SingleArrayData;
-					break;
-				default: throw new Exception("Invalid node in " + root.Name + ": " + node.Name);
+                case "face_indices": FaceIndices = node.UInt16ArrayData;
+                    break;
 				}
 			}
 		}

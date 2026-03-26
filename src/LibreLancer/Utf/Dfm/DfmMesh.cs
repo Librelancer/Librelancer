@@ -256,7 +256,14 @@ namespace LibreLancer.Utf.Dfm
             foreach (FaceGroup faceGroup in FaceGroups)
             {
                 faceGroup.StartIndex = indexCount;
-                indexCount += faceGroup.TriangleStripIndices.Length;
+                if (faceGroup.TriangleStripIndices != null)
+                {
+                    indexCount += faceGroup.TriangleStripIndices.Length;
+                }
+                else if (faceGroup.FaceIndices != null)
+                {
+                    indexCount += faceGroup.FaceIndices.Length;
+                }
             }
 
             var indices = new ushort[indexCount];
@@ -265,8 +272,16 @@ namespace LibreLancer.Utf.Dfm
 
             foreach (FaceGroup faceGroup in FaceGroups)
             {
-                faceGroup.TriangleStripIndices.CopyTo(indices, indexCount);
-                indexCount += faceGroup.TriangleStripIndices.Length;
+                if (faceGroup.TriangleStripIndices != null)
+                {
+                    faceGroup.TriangleStripIndices.CopyTo(indices, indexCount);
+                    indexCount += faceGroup.TriangleStripIndices.Length;
+                }
+                else if (faceGroup.FaceIndices != null)
+                {
+                    faceGroup.FaceIndices.CopyTo(indices, indexCount);
+                    indexCount += faceGroup.FaceIndices.Length;
+                }
             }
 
             elementBuffer.SetData(indices);
@@ -281,16 +296,28 @@ namespace LibreLancer.Utf.Dfm
             foreach (FaceGroup faceGroup in FaceGroups)
             {
                 var mat = overrideMat ?? res.FindMaterial(CrcTool.FLModelCrc(faceGroup.MaterialName))!;
+                int primCount;
+                PrimitiveTypes primType;
+                if (faceGroup.TriangleStripIndices != null)
+                {
+                    primCount = faceGroup.TriangleStripIndices.Length - 2;
+                    primType = PrimitiveTypes.TriangleStrip;
+                }
+                else
+                {
+                    primCount = faceGroup.FaceIndices!.Length / 3;
+                    primType = PrimitiveTypes.TriangleList;
+                }
                 buffer.AddCommand(
                     mat.Render,
                     null,
                     wh,
                     light,
                     vertexBuffer,
-                    PrimitiveTypes.TriangleStrip,
+                    primType,
                     0,
                     faceGroup.StartIndex,
-                    faceGroup.TriangleStripIndices.Length - 2,
+                    primCount,
                     SortLayers.OPAQUE,
                     0,
                     skinning
@@ -298,7 +325,7 @@ namespace LibreLancer.Utf.Dfm
             }
         }
 
-        private DfmSkinning skinning = null!;
+        private DfmSkinning? skinning;
 
         public void SetSkinning(DfmSkinning skinning)
         {
