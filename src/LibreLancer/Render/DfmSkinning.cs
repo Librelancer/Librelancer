@@ -16,9 +16,9 @@ namespace LibreLancer.Render
     public class DfmSkinning
     {
         private DfmFile dfm;
-        private BoneInstance?[] instanceArray;
         private List<BoneInstance> starts = [];
         public Dictionary<string, BoneInstance> Bones = new(StringComparer.OrdinalIgnoreCase);
+        public BoneInstance?[] Instances;
         public int BufferOffset;
         public BoundingBox BoundingBox;
 
@@ -26,13 +26,13 @@ namespace LibreLancer.Render
         {
             this.dfm = dfm;
             var length = (dfm.Parts.Keys.Max() + 1);
-            instanceArray = new BoneInstance[length];
+            Instances = new BoneInstance[length];
 
             foreach (var kv in dfm.Parts)
             {
                 var inst = new BoneInstance(kv.Value.objectName, Transform3D.FromMatrix(kv.Value.Bone.BoneToRoot),
                     kv.Value.Bone.Min, kv.Value.Bone.Max);
-                instanceArray[kv.Key] = inst;
+                Instances[kv.Key] = inst;
                 Bones.Add(inst.Name, inst);
             }
 
@@ -111,9 +111,9 @@ namespace LibreLancer.Render
             var bounds = new BoundingBox();
             var set = false;
 
-            for (var i = 0; i < instanceArray.Length; i++)
+            for (var i = 0; i < Instances.Length; i++)
             {
-                if (instanceArray[i] == null)
+                if (Instances[i] == null)
                 {
                     continue;
                 }
@@ -121,11 +121,11 @@ namespace LibreLancer.Render
                 if (!set)
                 {
                     set = true;
-                    bounds = instanceArray[i]!.BoundingBox;
+                    bounds = Instances[i]!.BoundingBox;
                 }
                 else
                 {
-                    bounds = BoundingBox.CreateMerged(bounds, instanceArray[i]!.BoundingBox);
+                    bounds = BoundingBox.CreateMerged(bounds, Instances[i]!.BoundingBox);
                 }
             }
 
@@ -144,11 +144,11 @@ namespace LibreLancer.Render
         {
             var cb = connectionBone ?? Transform3D.Identity;
 
-            for (var i = 0; i < instanceArray.Length; i++)
+            for (var i = 0; i < Instances.Length; i++)
             {
-                if (instanceArray[i] != null)
+                if (Instances[i] != null)
                 {
-                    bonesBuffer.Data<Matrix4x4>(i + offset) = instanceArray[i]!.BoneMatrix;
+                    bonesBuffer.Data<Matrix4x4>(i + offset) = Instances[i]!.BoneMatrix;
                 }
                 else
                 {
@@ -157,7 +157,7 @@ namespace LibreLancer.Render
             }
 
             BufferOffset = offset;
-            offset += instanceArray.Length;
+            offset += Instances.Length;
             lastSet = offset;
             offset = bonesBuffer.GetAlignedIndex(offset);
         }
@@ -215,7 +215,7 @@ namespace LibreLancer.Render
                 or DfmDrawMode.DebugMeshBonesHardpoints)
             {
                 // bones red
-                foreach (var instance in instanceArray)
+                foreach (var instance in Instances)
                 {
                     if (instance == null)
                     {

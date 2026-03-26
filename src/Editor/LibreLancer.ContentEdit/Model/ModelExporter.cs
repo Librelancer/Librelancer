@@ -102,7 +102,8 @@ public static class ModelExporter
         attempted.Add(tex);
         return null;
     }
-    static Dictionary<string, ImageData> ExportImages(ResourceManager resources, Dictionary<string, Material> materials)
+
+    public static Dictionary<string, ImageData> ExportImages(ResourceManager resources, Dictionary<string, Material> materials)
     {
         HashSet<string> attempted = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var result = new Dictionary<string, ImageData>();
@@ -293,7 +294,7 @@ public static class ModelExporter
         return ((sf & SamplerFlags.SecondUV) == SamplerFlags.SecondUV) ? 1 : 0;
     }
 
-    static Material GetMaterial(uint crc, ResourceManager resources, Dictionary<string, Material> materials)
+    public static Material GetMaterial(uint crc, ResourceManager resources, Dictionary<string, Material> materials)
     {
         LibreLancer.Utf.Mat.Material mat;
         Color4 dc;

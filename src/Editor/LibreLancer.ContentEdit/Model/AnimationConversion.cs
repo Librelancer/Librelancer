@@ -261,7 +261,7 @@ static class AnimationConversion
 
 
     // Optimize a linear set of keyframes from a SimpleMesh rotation channel
-    static SM.RotationChannel Resample(SM.RotationChannel input)
+    public static SM.RotationChannel Resample(SM.RotationChannel input)
     {
         if (input.Keyframes.Length < 3)
             return input;
@@ -300,7 +300,7 @@ static class AnimationConversion
         return newChannel;
     }
 
-    static SM.TranslationChannel Resample(SM.TranslationChannel input)
+    public static SM.TranslationChannel Resample(SM.TranslationChannel input)
     {
         if (input.Keyframes.Length < 3)
             return input;

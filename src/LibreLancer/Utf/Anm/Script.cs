@@ -22,6 +22,17 @@ namespace LibreLancer.Utf.Anm
             JointMaps = [];
         }
 
+        public float CalculateDuration()
+        {
+            float duration = 0;
+            foreach (var j in JointMaps)
+            {
+                duration = Math.Max(duration, j.Channel.Duration);
+            }
+            return duration;
+        }
+
+
         public Script(IntermediateNode root, AnmBuffer buffer, StringDeduplication strings)
         {
             Name = root.Name;

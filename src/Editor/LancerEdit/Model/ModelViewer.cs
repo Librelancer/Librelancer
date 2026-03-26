@@ -3,12 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Utf.Cmp;
@@ -17,7 +16,6 @@ using LibreLancer.Utf;
 using Anm = LibreLancer.Utf.Anm;
 using DF = LibreLancer.Utf.Dfm;
 using ImGuiNET;
-using LibreLancer.Client.Components;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Dialogs;
@@ -27,6 +25,8 @@ using LibreLancer.Resources;
 using LibreLancer.Sur;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using SimpleMesh;
+using Material = LibreLancer.Utf.Mat.Material;
 
 namespace LancerEdit
 {
@@ -196,6 +196,8 @@ namespace LancerEdit
             layout.TabsLeft.Add(new(Icons.Paintbrush,"Render", 3));
             if(drawable is CmpFile || drawable is ModelFile)
                 layout.TabsLeft.Add(new(Icons.FileExport, "Export", 4));
+            if(drawable is DF.DfmFile)
+                layout.TabsLeft.Add(new(Icons.FileExport, "Export", 6));
             layout.TabsLeft.Add(new(Icons.Cog, "Presets", 5));
         }
 
@@ -220,6 +222,9 @@ namespace LancerEdit
                     break;
                 case 5:
                     PresetPanel();
+                    break;
+                case 6:
+                    DfmExportPanel();
                     break;
             }
         }
@@ -976,6 +981,7 @@ namespace LancerEdit
         bool drawSkeleton = false;
         private string skeletonHighlight;
         Anm.AnmFile dfmAnimFile;
+        private BitArray dfmExports;
 
         void SkeletonPanel()
         {
@@ -985,6 +991,7 @@ namespace LancerEdit
                 {
                     using var stream = File.OpenRead(file);
                     dfmAnimFile = new Anm.AnmFile(file, stream);
+                    dfmExports = new BitArray(dfmAnimFile.Scripts.Count);
                 });
             }
 
@@ -1026,6 +1033,54 @@ namespace LancerEdit
                         ImGui.EndPopup();
                     }
                 }
+            }
+        }
+
+        IEnumerable<Anm.Script> DfmExportScripts()
+        {
+            int i = 0;
+            foreach (var sc in dfmAnimFile.Scripts)
+            {
+                if (dfmExports[i])
+                    yield return sc.Value;
+                i++;
+            }
+        }
+
+        void DfmExportPanel()
+        {
+            if (ImGui.Button("Export GLTF 2.0 (.glb)"))
+            {
+                FileDialog.Save(output =>
+                {
+                    var exported = DfmExporter.Export((DF.DfmFile)drawable,
+                        dfmAnimFile == null ? [] : DfmExportScripts(), _window.Resources);
+                    using var os = File.Create(output);
+                    exported.SaveTo(os, ModelSaveFormat.GLB);
+                }, AppFilters.GlbFilter);
+            }
+            ImGui.Separator();
+            ImGui.Text("Animations");
+            ImGui.Separator();
+            if (dfmAnimFile != null)
+            {
+                if (ImGui.Button("Select All"))
+                    dfmExports.SetAll(true);
+                ImGui.SameLine();
+                if (ImGui.Button("Deselect All"))
+                    dfmExports.SetAll(false);
+                int i = 0;
+                foreach (var sc in dfmAnimFile.Scripts)
+                {
+                    bool s = dfmExports[i];
+                    ImGui.Checkbox(sc.Key, ref s);
+                    dfmExports[i] = s;
+                    i++;
+                }
+            }
+            else
+            {
+                ImGui.Text("No .anm file open");
             }
         }
 
@@ -1141,6 +1196,8 @@ namespace LancerEdit
                 }, AppFilters.BlenderFilter);
             }
         }
+
+
 
         void PresetPanel()
         {
