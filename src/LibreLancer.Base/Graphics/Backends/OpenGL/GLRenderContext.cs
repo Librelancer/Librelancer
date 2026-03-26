@@ -83,7 +83,9 @@ internal class GLRenderContext : IRenderContext
 
     private static bool CreateContextCore(IntPtr sdlWin, out IntPtr ctx)
     {
-        ctx = SDLGL_Create(sdlWin, 3, 1, false);
+        var use32 = Environment.GetEnvironmentVariable("LIBRELANCER_GL32");
+        int minorVersion = use32 == "1" ? 2 : 1;
+        ctx = SDLGL_Create(sdlWin, 3, minorVersion, false);
         if (ctx == IntPtr.Zero) return false;
         if (!GL.CheckStringSDL())
         {
