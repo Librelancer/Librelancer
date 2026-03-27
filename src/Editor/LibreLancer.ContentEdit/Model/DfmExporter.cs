@@ -58,77 +58,63 @@ public static class DfmExporter
 
         var translations = new List<TranslationChannel>();
         var rotations = new List<RotationChannel>();
-        var duration = script.CalculateDuration();
 
-        int frameCount = (int)(duration / (1 / 60.0f));
-        if (frameCount < 1)
-            frameCount = 1;
-
-        var channels = new (TranslationChannel T, RotationChannel R)[skinning.Instances.Length];
-        for (int i = 0; i < skinning.Instances.Length; i++)
+        for (int idx = 0; idx < script.JointMaps.Count; idx++)
         {
-            if (skinning.Instances[i] == null)
-                continue;
-            var tr = new TranslationChannel()
-            {
-                Target = skinning.Instances[i].Name,
-                Keyframes = new TranslationKeyframe[frameCount]
-            };
-            var rot = new RotationChannel()
-            {
-                Target = skinning.Instances[i].Name,
-                Keyframes = new RotationKeyframe[frameCount]
-            };
-            channels[i] = (tr, rot);
-            translations.Add(tr);
-            rotations.Add(rot);
-        }
-
-        int[] cursors = new int[skinning.Instances.Length];
-        int[] maps = new int[skinning.Instances.Length];
-        for (int i = 0; i < maps.Length; i++)
-            maps[i] = -1;
-
-        for (int i = 0; i < script.JointMaps.Count; i++)
-        {
-            ref var joint = ref script.JointMaps[i];
+            ref var joint = ref script.JointMaps[idx];
             if (!skinning.Bones.TryGetValue(joint.ChildName, out var b))
                 continue;
-            maps[Array.IndexOf(skinning.Instances, b)] = i;
+            ref var ch = ref joint.Channel;
+            if (ch.HasPosition)
+            {
+                var tr = new TranslationChannel() { Target = b.Name, Keyframes = new TranslationKeyframe[ch.FrameCount] };
+                for (int i = 0; i < ch.FrameCount; i++)
+                {
+                    tr.Keyframes[i] = new(ch.GetTime(i), ch.GetPosition(i) + b.Origin);
+                }
+                translations.Add(tr);
+            }
+
+            if (ch.HasOrientation)
+            {
+                var rot = new RotationChannel() { Target = b.Name, Keyframes = new RotationKeyframe[ch.FrameCount] };
+                for (int i = 0; i < ch.FrameCount; i++)
+                {
+                    rot.Keyframes[i] = new(ch.GetTime(i),
+                        Quaternion.Concatenate(b.OriginalRotation, ch.GetQuaternion(i)));
+                }
+                rotations.Add(rot);
+            }
         }
 
-        for (int i = 0; i < frameCount; i++)
+        if (script.ObjectMaps.Count == 1)
         {
-            float t = i * duration <= 0 ? 0 : (duration / (frameCount - 1));
-
-            for (int j = 0; j < skinning.Instances.Length; j++)
+            ref var ch = ref script.ObjectMaps[0].Channel;
+            if (ch.HasPosition)
             {
-                if (skinning.Instances[j] == null)
-                    continue;
-                if (maps[j] != -1)
+                var tr = new TranslationChannel() { Target = "Armature", Keyframes = new TranslationKeyframe[ch.FrameCount] };
+                for (int i = 0; i < ch.FrameCount; i++)
                 {
-                    ref var joint = ref script.JointMaps[maps[j]];
-                    ref var ch = ref joint.Channel;
-                    if (ch.HasOrientation)
-                        skinning.Instances[j].Rotation = ch.QuaternionAtTime(t, ref cursors[j]);
-                    if (ch.HasPosition)
-                        skinning.Instances[j].Translation = ch.PositionAtTime(t, ref cursors[j]);
+                    tr.Keyframes[i] = new(ch.GetTime(i), ch.GetPosition(i));
                 }
-                channels[j].T.Keyframes[i] = new(
-                    t, skinning.Instances[j].Translation + skinning.Instances[j].Origin
-                );
-                channels[j].R.Keyframes[i] = new(
-                    t, Quaternion.Concatenate(skinning.Instances[j].OriginalRotation,
-                        skinning.Instances[j].Rotation)
-                );
+                translations.Add(tr);
+            }
+            if (ch.HasOrientation)
+            {
+                var rot = new RotationChannel() { Target = "Armature", Keyframes = new RotationKeyframe[ch.FrameCount] };
+                for (int i = 0; i < ch.FrameCount; i++)
+                {
+                    rot.Keyframes[i] = new(ch.GetTime(i), ch.GetQuaternion(i));
+                }
+                rotations.Add(rot);
             }
         }
 
         return new()
         {
             Name = script.Name,
-            Translations = translations.Select(AnimationConversion.Resample).ToArray(),
-            Rotations = rotations.Select(AnimationConversion.Resample).ToArray()
+            Translations = translations.ToArray(),
+            Rotations = rotations.ToArray()
         };
     }
 
@@ -255,7 +241,7 @@ public static class DfmExporter
                 bones[i] = attachment;
         }
 
-        var root = new ModelNode() { Name = "MESH", Geometry = g };
+        var root = new ModelNode() { Name = "Armature" };
         root.Children.Add(attachment);
 
         foreach (var b in bonesByName.Values)
@@ -266,6 +252,8 @@ public static class DfmExporter
             }
         }
 
+        var meshNode = new ModelNode() { Name = "MESH", Geometry = g };
+        root.Children.Add(meshNode);
 
         var anims = new List<Animation>();
         if (anm != null)
@@ -278,7 +266,7 @@ public static class DfmExporter
 
 
         var sk = new Skin() { Bones = bones, InverseBindMatrices = inverseBindMatrices, Name = "SKIN" };
-        root.Skin = sk;
+        meshNode.Skin = sk;
 
         output.Roots = [root];
         output.Geometries = [g];
