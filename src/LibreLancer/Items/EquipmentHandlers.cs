@@ -37,7 +37,7 @@ public static class EquipmentHandlers
         EquipmentType type, string? hardpoint, Equipment equip)
     {
         var sh = (CountermeasureEquipment) equip;
-        var obj = GameObject.WithModel(sh.ModelFile!, type != EquipmentType.Server, parent.Resources!);
+        var obj = GameObject.WithModel(sh.ModelFile!, type != EquipmentType.Server, res);
         return obj;
     }
 
@@ -167,7 +167,7 @@ public static class EquipmentHandlers
         string? hardpoint, Equipment equip)
     {
         var sh = (ShieldEquipment) equip;
-        var obj = GameObject.WithModel(sh.ModelFile!, type != EquipmentType.Server, parent.Resources!);
+        var obj = GameObject.WithModel(sh.ModelFile!, type != EquipmentType.Server, res);
 
         switch (type)
         {
@@ -187,7 +187,7 @@ public static class EquipmentHandlers
         string? hardpoint, Equipment equip)
     {
         var th = (ThrusterEquipment) equip;
-        var obj = GameObject.WithModel(th.ModelFile!, type != EquipmentType.Server, parent.Resources!);
+        var obj = GameObject.WithModel(th.ModelFile!, type != EquipmentType.Server, res);
 
         switch (type)
         {

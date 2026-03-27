@@ -182,7 +182,6 @@ namespace LibreLancer.World
     {
         //Static
         private static int _unique = 0;
-        public static object ClientPlayerTag = new();
 
         //Public Fields
         public readonly int Unique = Interlocked.Increment(ref _unique);
@@ -191,23 +190,20 @@ namespace LibreLancer.World
         public GameObjectFlags Flags;
         public ShipFormation? Formation = null;
         public GameObjectKind Kind = GameObjectKind.None;
-        public object? Tag;
         public string? ArchetypeName;
         public int NetID;
-        public Hardpoint? _attachment;
         public SystemObject? SystemObject;
         public DestructibleModel? Model;
-        public ResourceManager? Resources;
         public GameWorld World = null!;
         public List<ObjectRenderer> ExtraRenderers = [];
 
         //Private Fields
+        private Hardpoint? _attachment;
         private Transform3D _localTransform = Transform3D.Identity;
         private string? _nickname;
         private bool transformDirty = false;
         private Transform3D worldTransform = Transform3D.Identity;
         private GameObject? _parent;
-        private IDrawable? dr;
         public readonly List<GameObject> Children = [];
         private readonly Dictionary<Type, GameComponent> componentLookup = new();
 
@@ -417,11 +413,10 @@ namespace LibreLancer.World
             AddComponent(new ShipComponent(ship, this));
         }
 
-        public GameObject(RigidModel model, CollisionMeshHandle collider, ResourceManager res, string partName,
+        public GameObject(RigidModel model, CollisionMeshHandle collider, string partName,
             float mass, bool draw)
         {
             Model = new DestructibleModel(model, []);
-            Resources = res;
 
             if (draw && Model != null)
             {
@@ -563,8 +558,7 @@ namespace LibreLancer.World
                 return;
             }
 
-            Resources = res;
-            dr = drawable.Drawable;
+            var dr = drawable.Drawable;
             PhysicsComponent? phys = null;
             bool isCmp = false;
 
@@ -612,7 +606,7 @@ namespace LibreLancer.World
             }
         }
 
-        public void SetLoadout(ObjectLoadout loadout, SoundManager? snd, bool cutscene = false)
+        public void SetLoadout(ObjectLoadout loadout, ResourceManager resources, SoundManager? snd, bool cutscene = false)
         {
             foreach (var item in loadout.Items)
             {
@@ -628,7 +622,7 @@ namespace LibreLancer.World
                 }
                 else
                 {
-                    EquipmentObjectManager.InstantiateEquipment(this, Resources!, snd,
+                    EquipmentObjectManager.InstantiateEquipment(this, resources, snd,
                         type, item.Hardpoint ?? "internal", item.Equipment);
                 }
             }
@@ -843,12 +837,10 @@ namespace LibreLancer.World
             World = null!;
             Kind = GameObjectKind.None;
             NetID = 0;
-            Tag = null;
             ArchetypeName = null;
             _attachment = null;
             SystemObject = null;
             Model = null;
-            Resources = null;
             RenderComponent = null;
             PhysicsComponent = null;
             AnimationComponent = null;

@@ -800,7 +800,7 @@ namespace LibreLancer.Server
                 var mdl = ((IRigidModelFile) src.Drawable).CreateRigidModel(false, Server.Resources);
                 var newmodel = mdl.Parts[part].CloneAsRoot(mdl);
                 var id = IdGenerator.Allocate();
-                var go = new GameObject(newmodel, collider, Server.Resources, part, mass, false)
+                var go = new GameObject(newmodel, collider, part, mass, false)
                 {
                     Model =
                     {

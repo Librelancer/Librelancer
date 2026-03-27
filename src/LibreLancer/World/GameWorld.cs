@@ -106,11 +106,11 @@ namespace LibreLancer.World
 
             if (loadout != null)
             {
-                g.SetLoadout(loadout, snd);
+                g.SetLoadout(loadout, res, snd);
             }
             else if (arch.Loadout != null)
             {
-                g.SetLoadout(arch.Loadout, snd);
+                g.SetLoadout(arch.Loadout, res, snd);
             }
 
             g.World = this;
@@ -217,10 +217,7 @@ namespace LibreLancer.World
 
             foreach (var field in sys.AsteroidFields)
             {
-                var g = new GameObject
-                {
-                    Resources = res
-                };
+                var g = new GameObject();
                 g.AddComponent(new AsteroidFieldComponent(field, res, g));
                 AddObject(g);
                 g.Register(Physics);

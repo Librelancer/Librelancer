@@ -181,8 +181,6 @@ World Time: {12:F2}
                 FLLog.Error("Ship", "Mass < 0");
             }
 
-            player.Tag = GameObject.ClientPlayerTag;
-
             foreach (var equipment in session.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
             {
                 EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, Game.Sound,

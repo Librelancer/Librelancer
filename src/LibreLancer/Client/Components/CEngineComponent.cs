@@ -162,7 +162,8 @@ namespace LibreLancer.Client.Components
                 var hps = Ship.GetHardpoints();
                 ParticleEffect? trailFx = null;
                 var trailFxName = Engine.Def.TrailEffect;
-                if (Parent!.Tag == GameObject.ClientPlayerTag && !string.IsNullOrEmpty(Engine.Def.TrailEffectPlayer))
+                if ((Parent.Flags & GameObjectFlags.Player) == GameObjectFlags.Player
+                    && !string.IsNullOrEmpty(Engine.Def.TrailEffectPlayer))
                     trailFxName = Engine.Def.TrailEffectPlayer;
                 if (!string.IsNullOrEmpty(trailFxName))
                 {

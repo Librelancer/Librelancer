@@ -1261,7 +1261,7 @@ namespace LibreLancer.Client
             var newmodel = mdl!.Parts![obj.DebrisPart].CloneAsRoot(mdl);
             var partName = newmodel.Root.Name!;
             var sepInfo = sep.FirstOrDefault(x => x.Part.Equals(partName, StringComparison.OrdinalIgnoreCase));
-            var go = new GameObject(newmodel, collider, Game.ResourceManager, partName, sepInfo?.Mass ?? 1, true)
+            var go = new GameObject(newmodel, collider, partName, sepInfo?.Mass ?? 1, true)
             {
                 Kind = GameObjectKind.Debris,
                 Model =
@@ -1613,7 +1613,7 @@ namespace LibreLancer.Client
             {
                 return;
             }
-            
+
             if (obj.TryGetComponent<CEngineComponent>(out var eng))
             {
                 eng.Speed = update.Throttle;
