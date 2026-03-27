@@ -1049,12 +1049,14 @@ namespace LancerEdit
 
         void DfmExportPanel()
         {
+            ImGui.Checkbox("Include Hardpoints", ref exportSettings.IncludeHardpoints);
+            ImGui.Checkbox("Include Textures", ref exportSettings.IncludeTextures);
             if (ImGui.Button("Export GLTF 2.0 (.glb)"))
             {
                 FileDialog.Save(output =>
                 {
                     var exported = DfmExporter.Export((DF.DfmFile)drawable,
-                        dfmAnimFile == null ? [] : DfmExportScripts(), _window.Resources);
+                        dfmAnimFile == null ? [] : DfmExportScripts(), _window.Resources, exportSettings);
                     using var os = File.Create(output);
                     exported.SaveTo(os, ModelSaveFormat.GLB);
                 }, AppFilters.GlbFilter);
@@ -1069,13 +1071,17 @@ namespace LancerEdit
                 ImGui.SameLine();
                 if (ImGui.Button("Deselect All"))
                     dfmExports.SetAll(false);
-                int i = 0;
-                foreach (var sc in dfmAnimFile.Scripts)
+                if (ImGui.BeginChild("##animations"))
                 {
-                    bool s = dfmExports[i];
-                    ImGui.Checkbox(sc.Key, ref s);
-                    dfmExports[i] = s;
-                    i++;
+                    int i = 0;
+                    foreach (var sc in dfmAnimFile.Scripts)
+                    {
+                        bool s = dfmExports[i];
+                        ImGui.Checkbox(sc.Key, ref s);
+                        dfmExports[i] = s;
+                        i++;
+                    }
+                    ImGui.EndChild();
                 }
             }
             else

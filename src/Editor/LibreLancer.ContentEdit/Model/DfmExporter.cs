@@ -6,6 +6,7 @@ using LibreLancer.Resources;
 using LibreLancer.Data;
 using LibreLancer.Render;
 using LibreLancer.Utf.Anm;
+using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Dfm;
 using SimpleMesh;
 
@@ -118,7 +119,28 @@ public static class DfmExporter
         };
     }
 
-    public static SimpleMesh.Model Export(DfmFile dfm, IEnumerable<Script> anm, ResourceManager resources)
+    static ModelNode FromHardpoint(HardpointDefinition def)
+    {
+        var n = new ModelNode();
+        n.Name = def.Name;
+        n.Transform = def.Transform.Matrix();
+        n.Properties["hardpoint"] = true;
+        if (def is FixedHardpointDefinition)
+        {
+            n.Properties["hptype"] = "fix";
+        }
+        else if (def is RevoluteHardpointDefinition rev)
+        {
+            n.Properties["hptype"] = "rev";
+            n.Properties["min"] = MathHelper.RadiansToDegrees(rev.Min);
+            n.Properties["max"] = MathHelper.RadiansToDegrees(rev.Max);
+            n.Properties["axis"] = rev.Axis;
+        }
+        return n;
+    }
+
+    public static SimpleMesh.Model Export(DfmFile dfm, IEnumerable<Script> anm, ResourceManager resources,
+        ModelExporterSettings settings)
     {
         var output = new SimpleMesh.Model() {Materials = new Dictionary<string, Material>()};
 
@@ -178,7 +200,10 @@ public static class DfmExporter
         {
             var crc = CrcTool.FLModelCrc(fg.MaterialName);
             var start = indices.Count;
-            indices.AddRange(TriangleStripToList(fg.TriangleStripIndices));
+            var groupIndices = fg.TriangleStripIndices != null
+                ? TriangleStripToList(fg.TriangleStripIndices)
+                : fg.FaceIndices!;
+            indices.AddRange(groupIndices);
             tg.Add(new TriangleGroup(MaterialExporter.GetMaterial(crc, resources, output.Materials))
             {
                 StartIndex = start,
@@ -204,7 +229,6 @@ public static class DfmExporter
 
         foreach (var kv in dfm.Parts)
         {
-
             Matrix4x4.Invert(kv.Value.Bone.BoneToRoot, out inverseBindMatrices[kv.Key]);
             var b = new ModelNode()
             {
@@ -212,6 +236,13 @@ public static class DfmExporter
             };
             bones[kv.Key] = b;
             bonesByName[b.Name] = b;
+            if (settings.IncludeHardpoints)
+            {
+                foreach (var hp in kv.Value.Bone.Hardpoints)
+                {
+                    b.Children.Add(FromHardpoint(hp));
+                }
+            }
         }
 
         HashSet<ModelNode> withParents = new();
@@ -272,7 +303,10 @@ public static class DfmExporter
         output.Geometries = [g];
         output.Skins = [sk];
         output.Animations = anims.ToArray();
-        output.Images = MaterialExporter.ExportImages(resources, output.Materials);
+        if (settings.IncludeTextures)
+        {
+            output.Images = MaterialExporter.ExportImages(resources, output.Materials);
+        }
         return output;
     }
 }
