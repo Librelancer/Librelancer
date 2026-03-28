@@ -79,6 +79,7 @@ dotnet_naming_rule.consts_pascal_case.severity = suggestion
 resharper_replace_slice_with_range_indexer_highlighting = none
 resharper_for_can_be_converted_to_foreach_highlighting=none
 resharper_invert_if_highlighting=none
+resharper_private_field_can_be_converted_to_local_variable_highlighting=none
 
 [*.csproj]
 indent_size = 2
