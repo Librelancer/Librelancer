@@ -17,12 +17,12 @@ namespace LibreLancer.Server.Ai
             this.target = target;
         }
 
-        public override void OnStart(GameObject obj, SNPCComponent ai)
+        public override void OnStart(GameObject obj, GameWorld world, SNPCComponent ai)
         {
 
         }
 
-        public override void Update(GameObject obj, SNPCComponent ai, double time)
+        public override void Update(GameObject obj, GameWorld world, SNPCComponent ai, double time)
         {
             if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
@@ -31,10 +31,10 @@ namespace LibreLancer.Server.Ai
                 if (fireInfo.ShouldFireRegular || fireInfo.ShouldFireAutoTurrets)
                 {
                     // Fire weapon groups based on fire info
-                    ai.FireWeaponGroups(weapons, fireInfo);
+                    ai.FireWeaponGroups(weapons, fireInfo, world);
                 }
                 if (ai.ShouldFireMissiles(time))
-                    weapons.FireMissiles();
+                    weapons.FireMissiles(world);
             }
         }
     }

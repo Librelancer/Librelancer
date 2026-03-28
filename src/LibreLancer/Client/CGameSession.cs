@@ -527,7 +527,7 @@ namespace LibreLancer.Client
             physComponent.EnginePower = moveState[i].Throttle;
             physComponent.Steering = moveState[i].Steering;
             physComponent.ThrustEnabled = moveState[i].Thrust;
-            physComponent.Update(1 / 60.0f);
+            physComponent.Update(1 / 60.0f, gameplay.world);
             gameplay.player.PhysicsComponent!.Body!.PredictionStep(1 / 60.0f);
             moveState[i].Position = player.PhysicsComponent!.Body!.Position;
             moveState[i].Orientation = player.PhysicsComponent.Body.Orientation;
@@ -616,7 +616,7 @@ namespace LibreLancer.Client
                     }
 
                     SmoothError(gp.player, predictedPos, predictedOrient);
-                    gp.player.PhysicsComponent.Update(1 / 60.0);
+                    gp.player.PhysicsComponent.Update(1 / 60.0, gp.world);
                 }
 
                 break;
@@ -790,7 +790,7 @@ namespace LibreLancer.Client
                                 target = p.OtherTargets[tgtUnique++];
                             }
 
-                            wc.NetOrderWeapons[i].Fire(target, null, true);
+                            wc.NetOrderWeapons[i].Fire(target, spaceGameplay.world, null, true);
                         }
                     }
                 }
@@ -860,7 +860,7 @@ namespace LibreLancer.Client
 
                 go.AddComponent(new CMissileComponent(go, mn));
                 spaceGameplay!.world.AddObject(go);
-                go.Register(go.World!.Physics);
+                go.Register(spaceGameplay!.world);
             });
         }
 
@@ -879,7 +879,7 @@ namespace LibreLancer.Client
                             despawn.LocalTransform.Position);
                     }
 
-                    despawn.Unregister(spaceGameplay.world.Physics);
+                    despawn.Unregister(spaceGameplay.world);
                     spaceGameplay.world.RemoveObject(despawn);
                     FLLog.Debug("Client", $"Destroyed missile {id}");
                 }
@@ -1024,7 +1024,7 @@ namespace LibreLancer.Client
         void IClientPlayer.RunDirectives(MissionDirective[] directives)
         {
             FLLog.Debug("Client", "Received directives for player");
-            RunSync(() => { spaceGameplay!.Directives.SetDirectives(directives); });
+            RunSync(() => { spaceGameplay!.Directives.SetDirectives(directives, spaceGameplay.world); });
         }
 
         void IClientPlayer.SpawnObjects(ObjectSpawnInfo[] objects)
@@ -1095,7 +1095,7 @@ namespace LibreLancer.Client
                     // disable parts
                     foreach (var p in objInfo.DestroyedParts)
                     {
-                        newObj.DisableCmpPart(p, Game.ResourceManager, out _);
+                        newObj.DisableCmpPart(p, spaceGameplay.world, Game.ResourceManager, out _);
                     }
 
                     newObj.Name ??= objInfo.Name;
@@ -1175,7 +1175,7 @@ namespace LibreLancer.Client
                     }
 
                     spaceGameplay!.world.AddObject(newObj);
-                    newObj.Register(spaceGameplay.world.Physics);
+                    newObj.Register(spaceGameplay.world);
 
                     if ((objInfo.Flags & ObjectSpawnFlags.Debris) == ObjectSpawnFlags.Debris ||
                         (objInfo.Flags & ObjectSpawnFlags.Loot) == ObjectSpawnFlags.Loot)
@@ -1192,7 +1192,7 @@ namespace LibreLancer.Client
                     {
                         var fx = new CNetEffectsComponent(newObj);
                         newObj.AddComponent(fx);
-                        fx.UpdateEffects(objInfo.Effects);
+                        fx.UpdateEffects(objInfo.Effects, spaceGameplay!.world);
                     }
 
                     FLLog.Debug("Client", $"Spawned {newObj.NetID}");
@@ -1343,7 +1343,7 @@ namespace LibreLancer.Client
                         spaceGameplay.Explode(despawn);
                     }
 
-                    despawn.Unregister(spaceGameplay.world.Physics);
+                    despawn.Unregister(spaceGameplay.world);
                     spaceGameplay.world.RemoveObject(despawn);
                     FLLog.Debug("Client", $"Despawned {id}");
                 }
@@ -1361,7 +1361,7 @@ namespace LibreLancer.Client
 
         void IClientPlayer.DestroyPart(ObjNetId id, uint part)
         {
-            RunSync(() => { spaceGameplay!.world.GetObject(id)?.DisableCmpPart(part, Game.ResourceManager, out _); });
+            RunSync(() => { spaceGameplay!.world.GetObject(id)?.DisableCmpPart(part, spaceGameplay!.world, Game.ResourceManager, out _); });
         }
 
         void IClientPlayer.RunMissionDialog(NetDlgLine[] lines)
@@ -1496,7 +1496,7 @@ namespace LibreLancer.Client
                         obj.AddComponent(fx);
                     }
 
-                    fx.UpdateEffects(effect);
+                    fx.UpdateEffects(effect, spaceGameplay!.world);
                 }
             });
         }

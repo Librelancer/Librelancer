@@ -180,7 +180,7 @@ namespace LibreLancer.Server
             World.OnNPCSpawn(obj);
             if (sdock != null)
             {
-                sdock.UndockShip(obj, arrivalIndex);
+                sdock.UndockShip(obj, World.GameWorld, arrivalIndex);
                 obj.GetComponent<AutopilotComponent>()!.Undock(spawnPoint!, arrivalIndex);
             }
             if (nickname != null)

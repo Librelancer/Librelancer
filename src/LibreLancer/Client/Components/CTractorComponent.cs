@@ -50,7 +50,7 @@ public class CTractorComponent(TractorEquipment equipment, GameObject parent) : 
     public Vector3 WorldOrigin;
     public int BeamCount => renderer.TractorBeams.Count;
 
-    public override void Update(double time)
+    public override void Update(double time, GameWorld world)
     {
         for (var i = 0; i < renderer.TractorBeams.Count; i++)
         {
@@ -68,12 +68,12 @@ public class CTractorComponent(TractorEquipment equipment, GameObject parent) : 
         WorldOrigin = renderer.Origin = GetBeamOrigin();
     }
 
-    public override void Register(PhysicsWorld? physics)
+    public override void Register(GameWorld world)
     {
         Parent!.ExtraRenderers.Add(renderer);
     }
 
-    public override void Unregister(PhysicsWorld? physics)
+    public override void Unregister(GameWorld world)
     {
         Parent!.ExtraRenderers.Remove(renderer);
     }

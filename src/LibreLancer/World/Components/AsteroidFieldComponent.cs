@@ -50,16 +50,16 @@ namespace LibreLancer.World.Components
 
         private PhysicsWorld? phys;
 
-        public override void Register(PhysicsWorld? physics)
+        public override void Register(GameWorld world)
         {
-            if (physics == null)
+            if (world.Physics == null)
             {
                 return;
             }
 
-            phys = physics;
+            phys = world.Physics;
             shape = new ConvexMeshCollider(phys);
-            var resourceManager = GetResourceManager();
+            var resourceManager = GetResourceManager(world);
 
             if (Field.Cube is not null && resourceManager is not null)
             {
@@ -75,28 +75,34 @@ namespace LibreLancer.World.Components
                 }
             }
 
-            spawnedA = new QuickList<SpawnedCube>(64, physics.BufferPool);
-            spawnedB = new QuickList<SpawnedCube>(64, physics.BufferPool);
+            spawnedA = new QuickList<SpawnedCube>(64, phys.BufferPool);
+            spawnedB = new QuickList<SpawnedCube>(64, phys.BufferPool);
         }
 
-        public override void Unregister(PhysicsWorld? physics)
+        public override void Unregister(GameWorld world)
         {
-            shape?.Dispose();
+            if (phys != world.Physics)
+            {
+                throw new InvalidOperationException();
+            }
 
             if (phys == null)
             {
                 return;
             }
 
-            phys = null;
+            shape?.Dispose();
+
             var oldList = useA ? ref spawnedA : ref spawnedB;
             for (var i = 0; i < oldList.Count; i++)
             {
-                physics?.RemoveUnmanagedStatic(ref oldList[i].Object);
+                phys.RemoveUnmanagedStatic(ref oldList[i].Object);
             }
 
-            spawnedA.Dispose(physics?.BufferPool);
-            spawnedB.Dispose(physics?.BufferPool);
+            spawnedA.Dispose(phys.BufferPool);
+            spawnedB.Dispose(phys.BufferPool);
+
+            phys = null;
         }
 
         private const float COLLIDE_DISTANCE = 600;
@@ -138,14 +144,12 @@ namespace LibreLancer.World.Components
             }
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             if (phys == null)
             {
                 return;
             }
-
-            var world = Parent.GetWorld();
 
             var amountCubes = (int) Math.Floor((COLLIDE_DISTANCE / Field.CubeSize)) + 1;
 

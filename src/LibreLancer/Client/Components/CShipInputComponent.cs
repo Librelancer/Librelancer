@@ -28,7 +28,7 @@ namespace LibreLancer.Client.Components
         public PIDController PitchControl = new() { P = 3.5f };
         public PIDController YawControl = new() { P = 3.5f };
         public PIDController RollControl = new() { P = 4f };
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             steering ??= Parent!.GetComponent<ShipSteeringComponent>();
             if (Camera == null || steering == null)

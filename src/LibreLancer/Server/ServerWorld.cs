@@ -176,7 +176,7 @@ namespace LibreLancer.Server
 
             var missile = obj.GetComponent<SMissileComponent>();
             var pos = obj.LocalTransform.Position;
-            obj.Unregister(GameWorld.Physics);
+            obj.Unregister(GameWorld);
             GameWorld.RemoveObject(obj);
             updatingObjects.Remove(obj);
             IdGenerator.Free(obj.NetID);
@@ -401,7 +401,7 @@ namespace LibreLancer.Server
         {
             player.VisitSystem(System);
             Interlocked.Increment(ref PlayerCount);
-            var obj = new GameObject(player.Character!.Ship!, Server.Resources, false, true) { World = GameWorld };
+            var obj = new GameObject(player.Character!.Ship!, Server.Resources, false, true);
             foreach (var item in player.Character.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
                 EquipmentObjectManager.InstantiateEquipment(obj, Server.Resources, null, EquipmentType.Server,
                     item.Hardpoint, item.Equipment!);
@@ -424,7 +424,7 @@ namespace LibreLancer.Server
             obj.NetID = player.ID;
             obj.Flags |= GameObjectFlags.Player;
             GameWorld.AddObject(obj);
-            obj.Register(GameWorld.Physics);
+            obj.Register(GameWorld);
             FLLog.Debug("Server", $"Spawning player with rotation {orientation}");
             obj.SetLocalTransform(new Transform3D(position, orientation));
             int objSpawn = 0;
@@ -527,7 +527,7 @@ namespace LibreLancer.Server
                     owner.PhysicsComponent!.Body.LinearVelocity.Length() + muzzleVelocity));
 
                 GameWorld.AddObject(go);
-                go.Register(GameWorld.Physics);
+                go.Register(GameWorld);
                 updatingObjects.Add(go);
 
                 foreach (var p in Players)
@@ -566,7 +566,7 @@ namespace LibreLancer.Server
                             target = projectiles.OtherTargets[tgtUnique++];
                         }
 
-                        if (!wo.NetOrderWeapons[i].Fire(target))
+                        if (!wo.NetOrderWeapons[i].Fire(target, GameWorld))
                         {
                             FLLog.Debug("Server", $"Request failed firing {wo.NetOrderWeapons[i].Parent.Attachment}");
                         }
@@ -590,7 +590,7 @@ namespace LibreLancer.Server
 
                     if (x?.TryGetComponent<MissileLauncherComponent>(out var ml) ?? false)
                     {
-                        ml.Fire(Vector3.Zero, GetObject(m.Target));
+                        ml.Fire(Vector3.Zero, GameWorld, GetObject(m.Target));
                     }
                 }
             });
@@ -632,7 +632,7 @@ namespace LibreLancer.Server
 
         private void RemoveObjectInternal(GameObject obj)
         {
-            obj.Unregister(GameWorld.Physics);
+            obj.Unregister(GameWorld);
             GameWorld.RemoveObject(obj);
             withAnimations.Remove(obj);
             updatingObjects.Remove(obj);
@@ -672,7 +672,7 @@ namespace LibreLancer.Server
                 if (Players.TryGetValue(player, out var p))
                 {
                     var phys = p.GetComponent<SPlayerComponent>()!;
-                    phys.QueueInput(input);
+                    phys.QueueInput(input, GameWorld);
                 }
             });
         }
@@ -696,7 +696,6 @@ namespace LibreLancer.Server
 
             gameobj.SetLocalTransform(new Transform3D(position, orientation));
             gameobj.Nickname = nickname;
-            gameobj.World = GameWorld;
             gameobj.AddComponent(new SSolarComponent(gameobj) { Faction = rep });
 
             if (!string.IsNullOrWhiteSpace(dockWith))
@@ -713,7 +712,7 @@ namespace LibreLancer.Server
             }
 
             GameWorld.AddObject(gameobj);
-            gameobj.Register(GameWorld.Physics);
+            gameobj.Register(GameWorld);
             spawnedObjects.Add(gameobj);
             updatingObjects.Add(gameobj);
 
@@ -749,7 +748,7 @@ namespace LibreLancer.Server
                 go.SetLocalTransform(transform);
                 GameWorld.AddObject(go);
                 updatingObjects.Add(go);
-                go.Register(GameWorld.Physics);
+                go.Register(GameWorld);
                 go.PhysicsComponent.Body.SetDamping(0.5f, 0.2f);
                 spawnedObjects.Add(go);
                 go.AddComponent(new SHealthComponent(go)
@@ -810,7 +809,7 @@ namespace LibreLancer.Server
 
                 foreach (var p in destroyedParts)
                 {
-                    go.DisableCmpPart(p, Server.Resources, out _);
+                    go.DisableCmpPart(p, GameWorld, Server.Resources, out _);
                 }
 
                 go.NetID = id;
@@ -839,7 +838,7 @@ namespace LibreLancer.Server
 
                 GameWorld.AddObject(go);
                 updatingObjects.Add(go);
-                go.Register(GameWorld.Physics);
+                go.Register(GameWorld);
                 go.PhysicsComponent!.Body.Impulse(initialForce);
                 go.PhysicsComponent.Body.SetDamping(0.5f, 0.2f);
                 spawnedObjects.Add(go);
@@ -855,9 +854,8 @@ namespace LibreLancer.Server
         public void OnNPCSpawn(GameObject obj)
         {
             obj.NetID = IdGenerator.Allocate();
-            obj.World = GameWorld;
             GameWorld.AddObject(obj);
-            obj.Register(GameWorld.Physics);
+            obj.Register(GameWorld);
             updatingObjects.Add(obj);
             spawnedObjects.Add(obj);
 

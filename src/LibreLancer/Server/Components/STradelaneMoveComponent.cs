@@ -80,11 +80,10 @@ namespace LibreLancer.Server.Components
 
         private float totalTime = 0;
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             var cmp = currenttradelane.GetComponent<SDockableComponent>()!;
-            var tradelaneComponent = Parent.GetWorld()
-                .GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);
+            var tradelaneComponent = world.GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);
 
             if (tradelaneComponent is null)
             {

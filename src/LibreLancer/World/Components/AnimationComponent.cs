@@ -240,7 +240,7 @@ namespace LibreLancer.World.Components
             return anm.Scripts.ContainsKey(animationName);
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             if ((GameObject?)Parent != null && Parent.RenderComponent is CharacterRenderer characterRenderer)
             {

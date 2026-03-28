@@ -80,7 +80,7 @@ namespace LibreLancer.Server
         public NPCWattleInstance getnpc(DynValue id)
         {
             var obj = LookupObject(id, "getnpc", 1);
-            if(obj != null) return new NPCWattleInstance(obj, this);
+            if(obj != null) return new NPCWattleInstance(obj, manager.World.GameWorld, this);
             throw new ScriptRuntimeException($"Could not find object {id}");
         }
 
@@ -108,7 +108,7 @@ namespace LibreLancer.Server
 
             var position = new Vector3(x, y, z);
             var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount), null, null,  "FIGHTER", null, resolved, p, position, Quaternion.Identity, arrivalObj, 0);
-            return new NPCWattleInstance(obj, this);
+            return new NPCWattleInstance(obj, manager.World.GameWorld, this);
         }
     }
 
@@ -121,10 +121,14 @@ namespace LibreLancer.Server
         [WattleScriptHidden]
         internal NPCWattleScripting Scripting;
 
-        internal NPCWattleInstance(GameObject obj, NPCWattleScripting scripting)
+        [WattleScriptHidden]
+        internal GameWorld World;
+
+        internal NPCWattleInstance(GameObject obj, GameWorld world, NPCWattleScripting scripting)
         {
-            this.Object = obj;
-            this.Scripting = scripting;
+            Object = obj;
+            Scripting = scripting;
+            World = world;
         }
 
         public override string ToString() => Object.NetID.ToString() + " " + Object.ToString();
@@ -143,7 +147,7 @@ namespace LibreLancer.Server
             var tgt = Scripting.LookupObject(obj, "dock", 1);
             if (tgt == null) throw new ScriptRuntimeException($"Could not find object {obj}");
             if (Object.TryGetComponent<SNPCComponent>(out var n))
-                n.DockWith(tgt);
+                n.DockWith(tgt, World);
         }
 
         public void attack(DynValue obj)

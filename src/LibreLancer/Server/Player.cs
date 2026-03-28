@@ -1247,7 +1247,7 @@ namespace LibreLancer.Server
                     if (undockFrom != null)
                     {
                         rpcClient.UndockFrom(undockFrom, undockIndex);
-                        sd!.UndockShip(pship, undockIndex);
+                        sd!.UndockShip(pship, world.GameWorld, undockIndex);
 
                     }
 

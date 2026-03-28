@@ -18,7 +18,7 @@ namespace LibreLancer.Server.Ai
             this.GotoKind = gotoKind;
         }
 
-        public override void OnStart(GameObject obj, SNPCComponent ai)
+        public override void OnStart(GameObject obj, GameWorld world, SNPCComponent ai)
         {
             if (obj.TryGetComponent<AutopilotComponent>(out var ap) &&
                target.TryGetComponent<SDockableComponent>(out var dock))
@@ -28,7 +28,7 @@ namespace LibreLancer.Server.Ai
             }
         }
 
-        public override void Update(GameObject obj, SNPCComponent ai, double time)
+        public override void Update(GameObject obj, GameWorld world, SNPCComponent ai, double time)
         {
         }
     }

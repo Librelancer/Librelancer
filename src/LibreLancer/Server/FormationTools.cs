@@ -28,10 +28,10 @@ public class FormationTools
         }
     }
 
-    public static void MakeNewFormation(GameObject obj, string formation, List<string?> others)
+    public static void MakeNewFormation(GameObject obj, GameWorld world, string formation, List<string?> others)
     {
         // TODO: Gross
-        var formDef = obj.World.Server.Server.GameData.Items.GetFormation(formation);
+        var formDef = world.Server!.Server.GameData.Items.GetFormation(formation);
         GameObject? player = null;
         bool playerLead = false;
         // Preserve player (required)
@@ -65,7 +65,7 @@ public class FormationTools
         obj.Formation = form;
         foreach (var tgt in others)
         {
-            var o = obj.World.GetObject(tgt);
+            var o = world.GetObject(tgt);
             if (o == null)
             {
                 continue;

@@ -230,9 +230,8 @@ World Time: {12:F2}
             // Game.GameData.PreloadObjects(session.Preloads);
             world.LoadSystem(sys, Game.ResourceManager, Game.Sound, false);
             session.WorldReady();
-            player.World = world;
             world.AddObject(player);
-            player.Register(world.Physics);
+            player.Register(world);
             world.Projectiles.Player = player; // For sending projectile spawns over the network
             cur_arrow = Game.ResourceManager.GetCursor("arrow")!;
             cur_cross = Game.ResourceManager.GetCursor("cross")!;
@@ -242,7 +241,6 @@ World Time: {12:F2}
             Game.Keyboard.KeyDown += Keyboard_KeyDown;
             Game.Mouse.MouseDown += Mouse_MouseDown;
             Game.Mouse.MouseUp += Mouse_MouseUp;
-            player.World = world;
             pilotComponent.BehaviorChanged += BehaviorChanged;
             Game.Sound.ResetListenerVelocity();
             contactList = new ContactList(this);
@@ -1526,19 +1524,19 @@ World Time: {12:F2}
 
             if (Input.IsActionDown(InputAction.USER_FIRE_WEAPONS))
             {
-                weapons.FireAll();
+                weapons.FireAll(world);
             }
 
             if (Input.IsActionDown(InputAction.USER_LAUNCH_MISSILES))
             {
-                weapons.FireMissiles();
+                weapons.FireMissiles(world);
             }
 
             for (int i = 0; i < 10; i++)
             {
                 if (Input.IsActionDown(InputAction.USER_FIRE_WEAPON1 + i))
                 {
-                    weapons.FireIndex(i);
+                    weapons.FireIndex(i, world);
                 }
             }
 
@@ -1712,9 +1710,8 @@ World Time: {12:F2}
                         Name = new ObjectName(1091) // Mission Waypoint
                     };
                     missionWaypoint.SetLocalTransform(new Transform3D(pos, Quaternion.Identity));
-                    missionWaypoint.World = world;
                     world.AddObject(missionWaypoint);
-                    missionWaypoint.Register(world.Physics);
+                    missionWaypoint.Register(world);
                 }
             }
         }

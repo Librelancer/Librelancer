@@ -76,7 +76,7 @@ namespace LibreLancer.World.Components
             }
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             if (!Active) return;
             if (CruiseEnabled)

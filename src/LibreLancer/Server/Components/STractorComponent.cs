@@ -18,7 +18,7 @@ public class STractorComponent : GameComponent
         Equipment = equipment;
     }
 
-    public void TryTractor(GameObject other)
+    public void TryTractor(GameObject other, ServerWorld world)
     {
         if (other.Kind != GameObjectKind.Loot ||
             !other.Flags.HasFlag(GameObjectFlags.Exists))
@@ -32,7 +32,7 @@ public class STractorComponent : GameComponent
         }
 
         beams.Add(new(other, 0, 0));
-        Parent.GetWorld().Server.StartTractor(Parent, other);
+        world.StartTractor(Parent, other);
     }
 
     private Vector3 GetBeamOrigin()
@@ -53,7 +53,7 @@ public class STractorComponent : GameComponent
         return Parent.WorldTransform.Position;
     }
 
-    public override void Update(double time)
+    public override void Update(double time, GameWorld world)
     {
         var origin = GetBeamOrigin();
         for (int i = 0; i < beams.Count; i++)
@@ -67,7 +67,7 @@ public class STractorComponent : GameComponent
             }
             if (dist > Equipment.Def.MaxLength)
             {
-                Parent.GetWorld().Server.EndTractor(Parent, beams[i].Other);
+                world.Server!.EndTractor(Parent, beams[i].Other);
                 if (Parent.TryGetComponent<SPlayerComponent>(out var player))
                 {
                     player.Player.RpcClient.TractorFailed();
@@ -82,8 +82,8 @@ public class STractorComponent : GameComponent
             }
             else if (beams[i].Time >= 1.0f)
             {
-                Parent.GetWorld().Server.PickupObject(Parent, beams[i].Other);
-                Parent.GetWorld().Server.EndTractor(Parent, beams[i].Other);
+                world.Server!.PickupObject(Parent, beams[i].Other);
+                world.Server!.EndTractor(Parent, beams[i].Other);
                 beams.RemoveAt(i);
                 i--;
             }

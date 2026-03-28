@@ -23,7 +23,7 @@ namespace LibreLancer.World.Components
 
         public abstract int IdsName { get; }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             CurrentCooldown -= time;
             if (CurrentCooldown < 0)
@@ -146,9 +146,9 @@ namespace LibreLancer.World.Components
             return angle;
         }
 
-        protected abstract bool OnFire(Vector3 point, GameObject? target, bool server);
+        protected abstract bool OnFire(Vector3 point, GameWorld world, GameObject? target, bool server);
 
-        public bool Fire(Vector3 point, GameObject? target = null, bool fromServer = false)
+        public bool Fire(Vector3 point, GameWorld world, GameObject? target = null, bool fromServer = false)
         {
             if (!fromServer && Parent.Parent!.TryGetComponent<ShipPhysicsComponent>(out var flight) &&
                 flight.EngineState is EngineStates.Cruise or EngineStates.CruiseCharging)
@@ -162,7 +162,7 @@ namespace LibreLancer.World.Components
             }
 
             // Cloaked ships can't fire weapons
-            return !Parent.Parent!.Flags.HasFlag(GameObjectFlags.Cloaked) && OnFire(point, target, fromServer);
+            return !Parent.Parent!.Flags.HasFlag(GameObjectFlags.Cloaked) && OnFire(point, world, target, fromServer);
         }
     }
 }

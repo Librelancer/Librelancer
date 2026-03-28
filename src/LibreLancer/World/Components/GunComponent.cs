@@ -25,7 +25,7 @@ namespace LibreLancer.World.Components
         private ProjectileData toSpawn = null!;
         private Hardpoint[] hpfires = [];
 
-        protected override bool OnFire(Vector3 point, GameObject? target, bool fromServer)
+        protected override bool OnFire(Vector3 point, GameWorld world, GameObject? target, bool fromServer)
         {
             if (!fromServer)
             {
@@ -46,7 +46,7 @@ namespace LibreLancer.World.Components
             {
                 hpfires = Parent!.GetHardpoints()
                     .Where((x) => x.Name.StartsWith("hpfire", StringComparison.CurrentCultureIgnoreCase)).ToArray();
-                projectiles = Parent.GetWorld().Projectiles!;
+                projectiles = world.Projectiles!;
                 toSpawn = projectiles.GetData(Object);
             }
 

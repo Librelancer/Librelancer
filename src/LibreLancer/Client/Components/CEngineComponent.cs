@@ -57,7 +57,7 @@ namespace LibreLancer.Client.Components
         private bool triggeredStart = false;
         private bool triggeredEnd = false;
 
-		public override void Update(double time)
+		public override void Update(double time, GameWorld world)
         {
             var tr = Ship.WorldTransform;
             var pos = tr.Position;
@@ -153,12 +153,12 @@ namespace LibreLancer.Client.Components
                 fx.SParam = MathHelper.Clamp(Speed, 0, 1);
             }
         }
-		public override void Register(PhysicsWorld? physics)
+		public override void Register(GameWorld world)
         {
-            GameDataManager? gameData = GetGameData();
+            GameDataManager? gameData = GetGameData(world);
             if (gameData is not null)
             {
-                var resourceManager = GetResourceManager()!;
+                var resourceManager = GetResourceManager(world)!;
                 var hps = Ship.GetHardpoints();
                 ParticleEffect? trailFx = null;
                 var trailFxName = Engine.Def.TrailEffect;
@@ -201,7 +201,7 @@ namespace LibreLancer.Client.Components
 
             SoundManager? sound;
 
-            if (!PlaySound || (sound = GetSoundManager()) == null)
+            if (!PlaySound || (sound = GetSoundManager(world)) == null)
             {
                 return;
             }
@@ -266,7 +266,7 @@ namespace LibreLancer.Client.Components
             }
         }
 
-        public override void Unregister(PhysicsWorld? physics)
+        public override void Unregister(GameWorld world)
 		{
             foreach (var fx in fireFx)
             {

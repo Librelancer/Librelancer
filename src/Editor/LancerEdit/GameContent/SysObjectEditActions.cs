@@ -89,14 +89,14 @@ public class SysDeleteObject : EditorAction
 
     public override void Commit()
     {
-        obj.Unregister(tab.World.Physics);
+        obj.Unregister(tab.World);
         tab.World.RemoveObject(obj);
         tab.OnRemoved(obj);
     }
 
     public override void Undo()
     {
-        obj.Register(tab.World.Physics);
+        obj.Register(tab.World);
         tab.World.AddObject(obj);
         tab.RefreshObjects();
     }
@@ -126,7 +126,7 @@ public class SysCreateObject : EditorAction
     {
         var n = Object.Nickname;
         tab.World.RemoveObject(Object);
-        Object.ClearAll(tab.World.Physics);
+        Object.ClearAll(tab.World);
         Object.Nickname = n;
         tab.OnRemoved(Object);
         tab.ObjectsList.Refresh();

@@ -51,13 +51,13 @@ namespace LibreLancer.Server.Components
 
         private MissionDirective[]? directives;
 
-        public void SetDirectives(MissionDirective[] directives)
+        public void SetDirectives(MissionDirective[]? directives)
         {
             this.directives = directives;
             Player.RpcClient.RunDirectives(directives);
         }
 
-        public void RunDirective(int index)
+        public void RunDirective(int index, GameWorld world)
         {
             if (directives == null ||
                 index < 0 || index >= directives.Length)
@@ -68,15 +68,15 @@ namespace LibreLancer.Server.Components
 
             if (directives[index] is MakeNewFormationDirective form)
             {
-                FormationTools.MakeNewFormation(Parent, form.Formation, form.Ships);
+                FormationTools.MakeNewFormation(Parent, world, form.Formation, form.Ships);
             }
             else if (directives[index] is FollowPlayerDirective followPlayer)
             {
-                FormationTools.MakeNewFormation(Parent, followPlayer.Formation, followPlayer.Ships);
+                FormationTools.MakeNewFormation(Parent, world, followPlayer.Formation, followPlayer.Ships);
             }
             else if (directives[index] is FollowDirective followOther)
             {
-                var tgtObject = Parent.World.GetObject(followOther.Target)!;
+                var tgtObject = world.GetObject(followOther.Target)!;
                 FormationTools.EnterFormation(Parent, tgtObject, followOther.Offset);
             }
         }
@@ -161,33 +161,33 @@ namespace LibreLancer.Server.Components
 
         public uint LatestReceived;
 
-        public void QueueInput(InputUpdatePacket input)
+        public void QueueInput(InputUpdatePacket input, GameWorld world)
         {
             MostRecentAck = input.Acks;
             // Select object immediately
-            SelectedObject = Parent.World.GetObject(input.SelectedObject);
-            Enqueue(input.HistoryC);
-            Enqueue(input.HistoryB);
-            Enqueue(input.HistoryA);
-            Enqueue(input.Current);
+            SelectedObject = world.GetObject(input.SelectedObject);
+            Enqueue(input.HistoryC, world);
+            Enqueue(input.HistoryB, world);
+            Enqueue(input.HistoryA, world);
+            Enqueue(input.Current, world);
             LatestReceived = input.Current.Tick;
         }
 
-        private void Enqueue(NetInputControls controls)
+        private void Enqueue(NetInputControls controls, GameWorld world)
         {
             if (controls.Tick == 0)
                 return;
-            if (controls.Tick >= GetCurrentTick())
+            if (controls.Tick >= GetCurrentTick(world))
                 inputs.Enqueue(controls, controls.Tick);
         }
 
-        private uint GetCurrentTick() => Parent.World.Server.CurrentTick;
+        private uint GetCurrentTick(GameWorld world) => world.Server.CurrentTick;
 
-        private bool GetInput(out NetInputControls packet)
+        private bool GetInput(GameWorld world, out NetInputControls packet)
         {
             NetInputControls currentTick = default;
             bool found = false;
-            var tick = GetCurrentTick();
+            var tick = GetCurrentTick(world);
 
             while (inputs.TryDequeue(out var entry, out _))
             {
@@ -215,9 +215,9 @@ namespace LibreLancer.Server.Components
             Scanning = null;
         }
 
-        public void Scan(GameObject obj)
+        public void Scan(GameObject obj, GameWorld world)
         {
-            if (TryScan(obj, out _))
+            if (TryScan(obj, world, out _))
             {
                 Scanning = obj;
                 Player.MissionRuntime?.CargoScanned("Player", obj.Nickname!);
@@ -229,23 +229,23 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        private bool TryScan(GameObject obj, [MaybeNullWhen(false)] out NetLoadout loadout)
+        private bool TryScan(GameObject obj, GameWorld world, [MaybeNullWhen(false)] out NetLoadout loadout)
         {
             loadout = null;
             return Parent.TryGetComponent<ScannerComponent>(out var scanner) &&
                    scanner.CanScan(obj) &&
-                   Parent.GetWorld().Server.TryScanCargo(obj, out loadout);
+                   world.Server.TryScanCargo(obj, out loadout);
         }
 
         private ulong formationHash = 0;
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var phys))
             {
                 var wpc = Parent.GetComponent<WeaponControlComponent>()!;
 
-                if (GetInput(out var input))
+                if (GetInput(world, out var input))
                 {
                     wpc.AimPoint = input.AimPoint;
 
@@ -265,7 +265,7 @@ namespace LibreLancer.Server.Components
                         phys.ThrustEnabled = input.Thrust;
                         phys.CruiseEnabled = input.Cruise;
                         if (input.FireCommand != null)
-                            Parent.GetWorld().Server.FireProjectiles(input.FireCommand.Value, Player);
+                            world.Server!.FireProjectiles(input.FireCommand.Value, Player);
                     }
                 }
             }
@@ -282,7 +282,7 @@ namespace LibreLancer.Server.Components
                 Player.RpcClient.UpdateFormation(Parent.Formation.ToNetFormation(Parent));
             }
 
-            foreach (var obj in Parent.GetWorld().SpatialLookup
+            foreach (var obj in world.SpatialLookup
                          .GetNearbyObjects(Parent, Parent.WorldTransform.Position, 10000))
             {
                 if (obj.SystemObject != null)
@@ -293,7 +293,7 @@ namespace LibreLancer.Server.Components
 
             if (Scanning != null)
             {
-                if (TryScan(Scanning, out var ld))
+                if (TryScan(Scanning, world, out var ld))
                 {
                     Player.UpdateScan(Scanning, ld);
                 }

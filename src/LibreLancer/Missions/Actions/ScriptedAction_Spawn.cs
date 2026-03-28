@@ -181,7 +181,7 @@ namespace LibreLancer.Missions.Actions
                     npcDef.SpaceCostume,
                     ld!, pilot, pos, orient, null, 0, runtime);
                 var drComp = obj.GetComponent<DirectiveRunnerComponent>();
-                drComp!.SetDirectives(directives);
+                drComp!.SetDirectives(directives, runtime.Player.Space.World.GameWorld);
                 var dstComp = obj.GetComponent<SDestroyableComponent>();
                 dstComp!.OnKilled = () => { runtime.ObjectDestroyed(ship.Nickname); };
             });
@@ -269,7 +269,7 @@ namespace LibreLancer.Missions.Actions
             {
                 var world = runtime.Player.Space!.World;
                 var lead = world.GameWorld.GetObject(form.Ships[0].Nickname)!;
-                FormationTools.MakeNewFormation(lead, formDef?.Nickname!, form.Ships.Skip(1)
+                FormationTools.MakeNewFormation(lead, world.GameWorld, formDef?.Nickname!, form.Ships.Skip(1)
                     .Select(string? (x) => x.Nickname).ToList());
             });
         }

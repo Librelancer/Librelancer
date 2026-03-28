@@ -13,7 +13,7 @@ namespace LibreLancer.Server.Components
         {
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             if (Parent.TryGetFirstChildComponent<SShieldComponent>(out var shield))
             {

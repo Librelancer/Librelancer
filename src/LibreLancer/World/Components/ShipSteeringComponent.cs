@@ -28,7 +28,7 @@ namespace LibreLancer.World.Components
 
         public Vector3 OutputSteering;
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             var physics = Parent.GetComponent<ShipPhysicsComponent>(); // Get mounted engine
 

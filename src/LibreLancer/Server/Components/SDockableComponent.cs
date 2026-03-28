@@ -26,7 +26,7 @@ namespace LibreLancer.Server.Components
 
         private const float OPEN_DURATION = 10;
 
-        public void TriggerOpen(GameObject parent)
+        public void TriggerOpen(GameObject parent, GameWorld world)
         {
             CloseTimer = OPEN_DURATION;
             if (Open)
@@ -34,11 +34,11 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            Animate(false, parent);
+            Animate(false, parent, world);
             Open = true;
         }
 
-        private void Animate(bool close, GameObject parent)
+        private void Animate(bool close, GameObject parent, GameWorld world)
         {
             var component = parent.GetComponent<AnimationComponent>();
             if (component == null)
@@ -52,11 +52,11 @@ namespace LibreLancer.Server.Components
             }
 
             component.StartAnimation(DockSphere.Script!, false, 0, 1, 0, close);
-            parent.World.Server.StartAnimation(parent);
+            world.Server!.StartAnimation(parent);
             FLLog.Debug("Server", $"{(close ? "closing" : "opening")} {parent.Nickname} {DockSphere.Script}");
         }
 
-        public void Update(GameObject parent, float dt)
+        public void Update(GameObject parent, GameWorld world, float dt)
         {
             if (Open)
             {
@@ -65,7 +65,7 @@ namespace LibreLancer.Server.Components
                 if (CloseTimer < 0)
                 {
                     Open = false;
-                    Animate(true, parent);
+                    Animate(true, parent, world);
                 }
             }
         }
@@ -86,7 +86,7 @@ namespace LibreLancer.Server.Components
             hardpoints = new(Action, DockPoints);
         }
 
-        private void TryTriggerAnimation(int i, GameObject obj)
+        private void TryTriggerAnimation(int i, GameObject obj, GameWorld world)
         {
             float animRadius = 30;
             if (Action.Kind == DockKinds.Tradelane)
@@ -104,7 +104,7 @@ namespace LibreLancer.Server.Components
 
                 if (dist < animRadius + rad)
                 {
-                    TriggerAnimation(i);
+                    TriggerAnimation(i, world);
                     break;
                 }
             }
@@ -155,24 +155,24 @@ namespace LibreLancer.Server.Components
         private int inactiveTicksRight = 0;
         private const int INACTIVE_TIME = 16;
 
-        private void TriggerAnimation(int i)
+        private void TriggerAnimation(int i, GameWorld world)
         {
             if (Action.Kind == DockKinds.Tradelane &&
                 DockPoints[i].DockSphere.Hardpoint.Equals("hpleftlane", StringComparison.OrdinalIgnoreCase))
             {
-                Parent.World.Server.ActivateLane(Parent, true);
+                world.Server!.ActivateLane(Parent, true);
                 inactiveTicksLeft = INACTIVE_TIME;
                 leftActive = true;
             }
             else if (Action.Kind == DockKinds.Tradelane &&
                      DockPoints[i].DockSphere.Hardpoint.Equals("hprightlane", StringComparison.OrdinalIgnoreCase))
             {
-                Parent.World.Server.ActivateLane(Parent, false);
+                world.Server!.ActivateLane(Parent, false);
                 inactiveTicksRight = INACTIVE_TIME;
                 rightActive = true;
             }
 
-            DockPoints[i].TriggerOpen(Parent);
+            DockPoints[i].TriggerOpen(Parent, world);
         }
 
         private class DockingAction
@@ -236,9 +236,9 @@ namespace LibreLancer.Server.Components
 
         private List<(GameObject Ship, int Index)> undockers = [];
 
-        public void UndockShip(GameObject ship, int index)
+        public void UndockShip(GameObject ship, GameWorld world, int index)
         {
-            TriggerAnimation(index);
+            TriggerAnimation(index, world);
             undockers.Add((ship, index));
         }
 
@@ -265,7 +265,7 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             bool leftThisTick = false;
             bool rightThisTick = false;
@@ -286,7 +286,7 @@ namespace LibreLancer.Server.Components
                 {
                     FLLog.Debug("Docking", $"{undock.Ship} launch complete (insufficient hardpoints {hps.Length})");
                     undockers.RemoveAt(i);
-                    Parent.GetWorld().Server?.LaunchComplete(undock.Ship);
+                    world.Server!.LaunchComplete(undock.Ship);
                     continue;
                 }
 
@@ -298,7 +298,7 @@ namespace LibreLancer.Server.Components
                 {
                     undockers.RemoveAt(i);
                     FLLog.Debug("Docking", $"{undock.Ship} launch complete {pDistance} + 20 >= {totaldistance}");
-                    Parent.GetWorld().Server?.LaunchComplete(undock.Ship);
+                    world.Server!.LaunchComplete(undock.Ship);
                 }
             }
 
@@ -324,7 +324,7 @@ namespace LibreLancer.Server.Components
                     }
                 }
 
-                TryTriggerAnimation(dock.Dock, dock.Ship);
+                TryTriggerAnimation(dock.Dock, dock.Ship, world);
                 if (!CanDock(dock.Dock, dock.Ship, dock.TLHardpoint))
                 {
                     continue;
@@ -345,7 +345,7 @@ namespace LibreLancer.Server.Components
                 {
                     if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
                     {
-                        player.Player.JumpTo(Action.Target!, Action.Exit!, Parent.World.Server.GatherJumpers());
+                        player.Player.JumpTo(Action.Target!, Action.Exit!, world.Server!.GatherJumpers());
                     }
                     else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
                     {
@@ -368,7 +368,7 @@ namespace LibreLancer.Server.Components
             }
 
             foreach (var dp in DockPoints)
-                dp.Update(Parent, (float) time);
+                dp.Update(Parent, world, (float) time);
 
             if (inactiveTicksLeft > 0 && !leftThisTick)
             {
@@ -377,7 +377,7 @@ namespace LibreLancer.Server.Components
                 if (inactiveTicksLeft == 0)
                 {
                     leftActive = false;
-                    Parent.World.Server.DeactivateLane(Parent, true);
+                    world.Server!.DeactivateLane(Parent, true);
                 }
             }
 
@@ -388,7 +388,7 @@ namespace LibreLancer.Server.Components
                 if (inactiveTicksRight == 0)
                 {
                     rightActive = false;
-                    Parent.World.Server.DeactivateLane(Parent, false);
+                    world.Server!.DeactivateLane(Parent, false);
                 }
             }
         }

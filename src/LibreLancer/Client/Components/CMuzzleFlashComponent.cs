@@ -28,9 +28,9 @@ public class CMuzzleFlashComponent : GameComponent
         }
     }
 
-    public override void Register(PhysicsWorld? physics)
+    public override void Register(GameWorld world)
     {
-        var resManager = GetResourceManager();
+        var resManager = GetResourceManager(world);
         if (Object.FlashEffect == null || resManager == null)
         {
             return;
@@ -55,7 +55,7 @@ public class CMuzzleFlashComponent : GameComponent
 
     }
 
-    public override void Unregister(PhysicsWorld? physics)
+    public override void Unregister(GameWorld world)
     {
         foreach (var renderer in Renderers)
         {

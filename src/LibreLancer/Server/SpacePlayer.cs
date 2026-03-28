@@ -45,14 +45,14 @@ public class SpacePlayer : ISpacePlayer
 
             if (other != null && obj.TryGetComponent<STractorComponent>(out var tractor))
             {
-                tractor.TryTractor(other);
+                tractor.TryTractor(other, world);
             }
         });
     }
 
     public void RunDirectiveIndex(int index)
     {
-        world.EnqueueAction(() => { World.Players[player].GetComponent<SPlayerComponent>()!.RunDirective(index); });
+        world.EnqueueAction(() => { World.Players[player].GetComponent<SPlayerComponent>()!.RunDirective(index, World.GameWorld); });
     }
 
     public void RequestDock(ObjNetId id) => world.RequestDock(player, id);
@@ -130,7 +130,7 @@ public class SpacePlayer : ISpacePlayer
 
             if (other != null)
             {
-                World.Players[player].GetComponent<SPlayerComponent>()!.Scan(other);
+                World.Players[player].GetComponent<SPlayerComponent>()!.Scan(other, world.GameWorld);
             }
         });
     }

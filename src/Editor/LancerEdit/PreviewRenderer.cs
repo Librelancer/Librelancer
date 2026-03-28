@@ -72,7 +72,6 @@ public class PreviewRenderer : IDisposable
         var world = new GameWorld(renderer, resources, null, false);
         var obj = new GameObject(mdl, resources, true, false);
         obj.SetLocalTransform(Transform3D.Identity);
-        obj.World = world;
         world.AddObject(obj);
         return RenderWorldAndDispose(obj, world, width, height);
     }
@@ -124,9 +123,8 @@ public class PreviewRenderer : IDisposable
         if(archetype.Loadout != null)
             obj.SetLoadout(archetype.Loadout, resources, null);
         obj.SetLocalTransform(Transform3D.Identity);
-        obj.World = world;
         world.AddObject(obj);
-        obj.Register(world.Physics); //no physics but register method called
+        obj.Register(world); //no physics but register method called
         return RenderWorldAndDispose(obj, world, width, height);
     }
 

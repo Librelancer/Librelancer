@@ -4,7 +4,6 @@ using System.Numerics;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.Schema.Pilots;
 using LibreLancer.Missions;
-using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Ai;
 using LibreLancer.World;
 using LibreLancer.World.Components;
@@ -69,15 +68,15 @@ namespace LibreLancer.Server.Components
             manager.Despawn(Parent, false);
         }
 
-        public void Attack(GameObject tgt)
+        public void Attack(GameObject tgt, GameWorld world)
         {
-            SetState(new AiAttackState(tgt));
+            SetState(new AiAttackState(tgt), world);
         }
 
-        public void SetState(AiState state)
+        public void SetState(AiState state, GameWorld world)
         {
             this.CurrentDirective = state;
-            state?.OnStart(Parent, this);
+            state?.OnStart(Parent, world, this);
         }
 
         private Dictionary<GameObjectKind, int> attackPref = new();
@@ -248,7 +247,7 @@ namespace LibreLancer.Server.Components
             return fireInfo;
         }
 
-        public void FireWeaponGroups(WeaponControlComponent weapons, FireInfo fireInfo)
+        public void FireWeaponGroups(WeaponControlComponent weapons, FireInfo fireInfo, GameWorld world)
         {
             // Get all weapons and group them by type
             var regularGuns = new List<GunComponent>();
@@ -308,7 +307,7 @@ namespace LibreLancer.Server.Components
                 for (int i = 0; i < weaponsToFire && i < regularGuns.Count; i++)
                 {
                     int weaponIndex = (weaponGroupIndex + i) % regularGuns.Count;
-                    regularGuns[weaponIndex].Fire(regularAim);
+                    regularGuns[weaponIndex].Fire(regularAim, world);
                 }
 
                 // Advance weapon group for next firing cycle
@@ -336,7 +335,7 @@ namespace LibreLancer.Server.Components
                 for (int i = 0; i < turretsToFire && i < autoTurrets.Count; i++)
                 {
                     int turretIndex = (fireCycle * turretsToFire + i) % autoTurrets.Count;
-                    autoTurrets[turretIndex].Fire(autoTurretAim);
+                    autoTurrets[turretIndex].Fire(autoTurretAim, world);
                 }
             }
         }
@@ -413,14 +412,14 @@ namespace LibreLancer.Server.Components
             return AddInaccuracy(otherPos, myPos, staticDist, maxRange, isAutoTurret);
         }
 
-        private GameObject? GetHostileAndFire(double time)
+        private GameObject? GetHostileAndFire(double time, GameWorld world)
         {
             // Get hostile
             GameObject? shootAt = null;
             int shootAtWeight = -1000;
             var myPos = Parent.WorldTransform.Position;
 
-            foreach (var other in Parent.GetWorld().SpatialLookup
+            foreach (var other in world.SpatialLookup
                          .GetNearbyObjects(Parent, myPos, 5000))
             {
                 if ((other.Flags & GameObjectFlags.Cloaked) == GameObjectFlags.Cloaked)
@@ -479,7 +478,7 @@ namespace LibreLancer.Server.Components
 
                     if (missileTimer <= 0)
                     {
-                        weapons.FireMissiles();
+                        weapons.FireMissiles(world);
                         missileTimer = ValueWithVariance(Pilot?.Missile?.LaunchIntervalTime,
                             Pilot?.Missile?.LaunchVariancePercent);
                         missileTimer = Pilot?.Missile?.LaunchIntervalTime ?? 0;
@@ -494,7 +493,7 @@ namespace LibreLancer.Server.Components
                     if (fireInfo.ShouldFireRegular || fireInfo.ShouldFireAutoTurrets)
                     {
                         // Fire regular guns and auto-turrets separately based on their timers
-                        FireWeaponGroups(weapons, fireInfo);
+                        FireWeaponGroups(weapons, fireInfo, world);
                     }
                 }
             }
@@ -624,7 +623,7 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             if (!Parent.TryGetComponent<AutopilotComponent>(out var ap))
             {
@@ -644,9 +643,9 @@ namespace LibreLancer.Server.Components
                 damageTaken = 0;
             }
 
-            CurrentDirective?.Update(Parent, this, time);
+            CurrentDirective?.Update(Parent, world, this, time);
 
-            var shootAt = GetHostileAndFire(time);
+            var shootAt = GetHostileAndFire(time, world);
             lastShootAt = shootAt;
 
             var runningDirective = Parent.TryGetComponent<DirectiveRunnerComponent>(out var directiveRunner) &&
@@ -717,9 +716,9 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        public void DockWith(GameObject tgt)
+        public void DockWith(GameObject tgt, GameWorld world)
         {
-            SetState(new AiDockState(tgt, GotoKind.Goto));
+            SetState(new AiDockState(tgt, GotoKind.Goto), world);
         }
     }
 }

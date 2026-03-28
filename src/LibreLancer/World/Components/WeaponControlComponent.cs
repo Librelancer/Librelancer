@@ -26,7 +26,7 @@ namespace LibreLancer.World.Components
         {
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             DryFireTimer += time;
 
@@ -35,7 +35,7 @@ namespace LibreLancer.World.Components
                 return;
             }
 
-            Parent?.World?.DrawDebug(AimPoint);
+            world.DrawDebug(AimPoint);
 
             foreach (var wp in Parent?.GetChildComponents<WeaponComponent>()!)
             {
@@ -50,7 +50,7 @@ namespace LibreLancer.World.Components
                 .ToArray();
         }
 
-        public override void Register(PhysicsWorld? physics)
+        public override void Register(GameWorld world)
         {
             UpdateNetWeapons();
         }
@@ -96,7 +96,7 @@ namespace LibreLancer.World.Components
             return Parent!.GetChildComponents<MissileLauncherComponent>().Select(wp => wp.MaxRange).Prepend(0).Max();
         }
 
-        public bool CanFireWeapons()
+        public bool CanFireWeapons(GameWorld world)
         {
             if (Enabled && (Parent!.Flags & GameObjectFlags.Cloaked) != GameObjectFlags.Cloaked &&
                 (!Parent.TryGetComponent<ShipPhysicsComponent>(out var flight) ||
@@ -105,56 +105,55 @@ namespace LibreLancer.World.Components
                 return true;
             }
 
-            PlayDryFireSound();
+            PlayDryFireSound(world);
             return false;
 
         }
 
-        private void PlayDryFireSound()
+        private void PlayDryFireSound(GameWorld world)
         {
             if (DryFireTimer < 1.0)
                 return;
 
             DryFireTimer = 0.0;
-            var snd = Parent?.World?.Renderer?.Game.GetService<SoundManager>();
-            snd?.PlayOneShot("fire_dry");
+            GetSoundManager(world)?.PlayOneShot("fire_dry");
         }
 
-        public void FireIndex(int index)
+        public void FireIndex(int index, GameWorld world)
         {
-            if (!CanFireWeapons()) return;
+            if (!CanFireWeapons(world)) return;
             var wp = Parent?.GetChildComponents<WeaponComponent>()
                 .Skip(index).FirstOrDefault();
-            wp?.Fire(AimPoint);
+            wp?.Fire(AimPoint, world);
         }
 
-        public void FireMissiles()
+        public void FireMissiles(GameWorld world)
         {
-            if (!CanFireWeapons()) return;
+            if (!CanFireWeapons(world)) return;
 
             foreach (var wp in Parent?.GetChildComponents<MissileLauncherComponent>()!)
             {
-                wp?.Fire(AimPoint);
+                wp?.Fire(AimPoint, world);
             }
         }
 
-        public void FireGuns()
+        public void FireGuns(GameWorld world)
         {
-            if (!CanFireWeapons()) return;
+            if (!CanFireWeapons(world)) return;
 
             foreach (var wp in Parent?.GetChildComponents<GunComponent>()!)
             {
-                wp?.Fire(AimPoint);
+                wp?.Fire(AimPoint, world);
             }
         }
 
-        public void FireAll()
+        public void FireAll(GameWorld world)
         {
-            if (!CanFireWeapons()) return;
+            if (!CanFireWeapons(world)) return;
 
             foreach (var wp in Parent?.GetChildComponents<WeaponComponent>()!)
             {
-                wp?.Fire(AimPoint);
+                wp?.Fire(AimPoint, world);
             }
         }
 

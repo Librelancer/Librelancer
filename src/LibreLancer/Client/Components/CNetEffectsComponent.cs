@@ -22,10 +22,11 @@ namespace LibreLancer.Client.Components
 
         private List<ParticleEffectRenderer> spawned = [];
 
-        private void Spawn(SpawnedEffect effect)
+        private void Spawn(SpawnedEffect effect, GameWorld world)
         {
-            var fx = Parent?.World?.Renderer?.Game?.GetService<GameDataManager>()?.Items.Effects.Get(effect.Effect);
-            var pfx = fx?.GetEffect(Parent?.World?.Renderer?.ResourceManager!);
+
+            var fx = GetGameData(world).Items?.Effects?.Get(effect.Effect);
+            var pfx = fx?.GetEffect(world?.Renderer?.ResourceManager!);
 
             if (pfx is null)
             {
@@ -47,7 +48,7 @@ namespace LibreLancer.Client.Components
             }
         }
 
-        public void UpdateEffects(SpawnedEffect[] fx)
+        public void UpdateEffects(SpawnedEffect[] fx, GameWorld world)
         {
             foreach (var f in fx)
             {
@@ -59,7 +60,7 @@ namespace LibreLancer.Client.Components
                         break;
                     }
                 }
-                if(!found) Spawn(f);
+                if (!found) Spawn(f, world);
             }
             effects = fx;
         }

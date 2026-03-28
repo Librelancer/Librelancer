@@ -12,15 +12,15 @@ namespace LibreLancer.World
     {
 		public GameObject Parent = parent;
 
-        public virtual void Update(double time)
+        public virtual void Update(double time, GameWorld world)
 		{
 		}
 
-		public virtual void Register(PhysicsWorld? physics)
+		public virtual void Register(GameWorld world)
 		{
 		}
 
-		public virtual void Unregister(PhysicsWorld? physics)
+		public virtual void Unregister(GameWorld world)
 		{
 		}
 
@@ -28,22 +28,19 @@ namespace LibreLancer.World
         {
         }
 
-        protected SoundManager? GetSoundManager()
+        protected SoundManager? GetSoundManager(GameWorld world)
         {
-            return Parent?.GetWorld()?.Renderer != null ? Parent.GetWorld().Renderer!.Game.GetService<SoundManager>() : null;
+            return world.Renderer != null ? world.Renderer!.Game.GetService<SoundManager>() : null;
         }
 
-        protected GameDataManager? GetGameData()
+        protected GameDataManager? GetGameData(GameWorld world)
         {
-            var w = Parent?.GetWorld();
-            return w?.Server != null ? w.Server.Server.GameData : w?.Renderer?.Game.GetService<GameDataManager>();
-
+            return world.Server != null ? world.Server.Server.GameData : world?.Renderer?.Game.GetService<GameDataManager>();
         }
 
-        protected ResourceManager? GetResourceManager()
+        protected ResourceManager? GetResourceManager(GameWorld world)
         {
-            var w = Parent?.GetWorld();
-            return w?.Renderer != null ? w.Renderer!.ResourceManager : w?.Server?.Server.Resources;
+            return world.Renderer != null ? world.Renderer!.ResourceManager : world?.Server?.Server.Resources;
         }
 	}
 }

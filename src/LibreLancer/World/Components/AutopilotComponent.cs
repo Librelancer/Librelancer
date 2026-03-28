@@ -449,7 +449,7 @@ namespace LibreLancer.World.Components
             instance?.Start(GotoKind.Goto, Vector3.Zero, 1, 10);
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             var control = Parent?.GetComponent<ShipSteeringComponent>();
             var input = Parent?.GetComponent<ShipInputComponent>();

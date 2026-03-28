@@ -17,23 +17,23 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
     private int splineIndex = -1;
     private MissionDirective[]? currentDirectives;
 
-    public void SetDirectives(MissionDirective[]? directives)
+    public void SetDirectives(MissionDirective[]? directives, GameWorld world)
     {
         currentDirectives = directives;
         index = directives == null ? -1 : 0;
         if (directives != null && index < directives.Length)
         {
-            StartDirective(directives[index]);
+            StartDirective(directives[index], world);
         }
     }
 
     private double currentDelay = 0;
 
-    public override void Update(double time)
+    public override void Update(double time, GameWorld world)
     {
         if (CheckDirective())
         {
-            UpdateDirective(currentDirectives![index], time);
+            UpdateDirective(currentDirectives![index], world, time);
         }
     }
 
@@ -42,7 +42,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             ? 1
             : inThrottle / 100.0f;
 
-    private void StartDirective(MissionDirective directive)
+    private void StartDirective(MissionDirective directive, GameWorld world)
     {
         splineIndex = -1;
         FLLog.Debug("ObjList", $"{Parent!.Nickname} running '{directive}'");
@@ -50,7 +50,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         {
             case DockDirective dock:
             {
-                var tgt = Parent!.World!.GetObject(dock.Target)!;
+                var tgt = world.GetObject(dock.Target)!;
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     if (tgt.TryGetComponent<SDockableComponent>(out var sd))
@@ -69,7 +69,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             }
             case GotoShipDirective ship:
             {
-                var tgt = Parent.World!.GetObject(ship.Target);
+                var tgt = world.GetObject(ship.Target);
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     ap.GotoObject(tgt!, ship.CruiseKind, Throttle(ship.MaxThrottle),
@@ -110,7 +110,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                     Parent.Formation?.Remove(Parent);
                 }
 
-                NextDirective();
+                NextDirective(world);
                 break;
             }
             case FollowDirective follow:
@@ -121,11 +121,11 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 }
                 else
                 {
-                    var tgtObject = Parent.World!.GetObject(follow.Target)!;
+                    var tgtObject = world.GetObject(follow.Target)!;
                     FormationTools.EnterFormation(Parent, tgtObject, follow.Offset);
                 }
 
-                NextDirective();
+                NextDirective(world);
                 break;
             }
             case FollowPlayerDirective followPlayer:
@@ -136,11 +136,11 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 }
                 else
                 {
-                    FormationTools.MakeNewFormation(Parent.World!.GetObject("Player")!, followPlayer.Formation,
+                    FormationTools.MakeNewFormation(world.GetObject("Player")!, world, followPlayer.Formation,
                         followPlayer.Ships);
                 }
 
-                NextDirective();
+                NextDirective(world);
                 break;
             }
             case MakeNewFormationDirective newFormation:
@@ -151,10 +151,10 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 }
                 else
                 {
-                    FormationTools.MakeNewFormation(Parent, newFormation.Formation, newFormation.Ships);
+                    FormationTools.MakeNewFormation(Parent, world, newFormation.Formation, newFormation.Ships);
                 }
 
-                NextDirective();
+                NextDirective(world);
                 break;
             }
             case DelayDirective delay:
@@ -189,16 +189,16 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                     Parent.Formation?.Remove(Parent);
                 }
 
-                NextDirective();
+                NextDirective(world);
                 break;
             }
             default:
-                NextDirective();
+                NextDirective(world);
                 break;
         }
     }
 
-    private void UpdateDirective(MissionDirective directive, double time)
+    private void UpdateDirective(MissionDirective directive, GameWorld world, double time)
     {
         switch (directive)
         {
@@ -208,7 +208,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 {
                     if (ap.CurrentBehavior != AutopilotBehaviors.Dock)
                     {
-                        NextDirective();
+                        NextDirective(world);
                     }
                 }
 
@@ -219,7 +219,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 currentDelay -= time;
                 if (currentDelay <= 0)
                 {
-                    NextDirective();
+                    NextDirective(world);
                 }
 
                 break;
@@ -237,13 +237,13 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                         }
                         else
                         {
-                            NextDirective();
+                            NextDirective(world);
                         }
                     }
                 }
                 else
                 {
-                    NextDirective();
+                    NextDirective(world);
                 }
 
                 break;
@@ -254,11 +254,11 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     if (ap.CurrentBehavior == AutopilotBehaviors.None)
-                        NextDirective();
+                        NextDirective(world);
                 }
                 else
                 {
-                    NextDirective();
+                    NextDirective(world);
                 }
 
                 break;
@@ -316,12 +316,12 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         return true;
     }
 
-    private void NextDirective()
+    private void NextDirective(GameWorld world)
     {
         index++;
         if (CheckDirective())
         {
-            StartDirective(currentDirectives![index]);
+            StartDirective(currentDirectives![index], world);
         }
     }
 }

@@ -26,7 +26,7 @@ public class SMissileComponent : GameComponent
 
     private double totalTime;
 
-    public override void Update(double time)
+    public override void Update(double time, GameWorld world)
     {
         totalTime += time;
         if (Missile.Motor != null)
@@ -57,7 +57,7 @@ public class SMissileComponent : GameComponent
 
         if (totalTime > Missile.Def.Lifetime)
         {
-            Parent.World.Server.ExplodeMissile(Parent); // Todo: does this do damage?
+            world.Server!.ExplodeMissile(Parent); // Todo: does this do damage?
         }
     }
 

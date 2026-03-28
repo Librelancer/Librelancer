@@ -13,7 +13,7 @@ namespace LibreLancer.Client.Components
         {
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             if (Parent?.RenderComponent == null)
             {

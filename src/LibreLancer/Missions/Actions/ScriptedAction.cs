@@ -753,7 +753,7 @@ namespace LibreLancer.Missions.Actions
             section.Entry("Act_GiveObjList", Target, List);
         }
 
-        private void GiveObjList(GameObject obj, MissionDirective[] directives)
+        private void GiveObjList(GameObject obj, GameWorld world, MissionDirective[]? directives)
         {
             if (obj.TryGetComponent<SPlayerComponent>(out var player))
             {
@@ -761,7 +761,7 @@ namespace LibreLancer.Missions.Actions
             }
             else if (obj.TryGetComponent<DirectiveRunnerComponent>(out var dr))
             {
-                dr.SetDirectives(directives);
+                dr.SetDirectives(directives, world);
             }
         }
 
@@ -784,19 +784,20 @@ namespace LibreLancer.Missions.Actions
                 ol = script.ObjLists[List].Directives.ToArray();
             }
 
+            var gw = runtime.Player.Space.World.GameWorld;
             if (script.Formations.TryGetValue(Target, out var formation))
             {
                 foreach (var s in formation.Ships)
                 {
                     runtime.Player.Space!.World.NPCs.NpcDoAction(s.Nickname,
-                        (npc) => { GiveObjList(npc, ol!); });
+                        (npc) => { GiveObjList(npc, gw, ol); });
                 }
             }
             else
             {
                 runtime.Player.Space!.World.EnqueueAction(() =>
                 {
-                    var tgt = runtime.Player.Space.World.GameWorld.GetObject(Target);
+                    var tgt = gw.GetObject(Target);
 
                     if (tgt == null)
                     {
@@ -804,7 +805,7 @@ namespace LibreLancer.Missions.Actions
                     }
                     else
                     {
-                        GiveObjList(tgt, ol!);
+                        GiveObjList(tgt, gw, ol);
                     }
                 });
             }

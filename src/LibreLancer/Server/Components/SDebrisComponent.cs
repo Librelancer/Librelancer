@@ -16,12 +16,12 @@ public class SDebrisComponent : GameComponent
         Lifespan = lifespan;
     }
 
-    public override void Update(double time)
+    public override void Update(double time, GameWorld world)
     {
         Lifespan -= time;
         if (Lifespan <= 0.0f)
         {
-            Parent.GetWorld().Server.RemoveSpawnedObject(Parent, true);
+            world.Server!.RemoveSpawnedObject(Parent, true);
         }
     }
 }

@@ -84,7 +84,7 @@ namespace LibreLancer.World.Components
             lastOrientation = Body.Orientation * PredictionErrorQuat;
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             // Sanity check to ensure that an uninitialised object is not updated
             if ((PhysicsObject?)Body == null)
@@ -127,14 +127,15 @@ namespace LibreLancer.World.Components
             Parent!.SetLocalTransform(new Transform3D(pos + PredictionErrorPos, quat * PredictionErrorQuat), true);
         }
 
-        public override void Register(PhysicsWorld? physics)
+        public override void Register(GameWorld world)
         {
-            if (pworld == physics)
+            if (world.Physics == null ||
+                pworld == world.Physics)
             {
                 return;
             }
 
-            pworld = physics;
+            pworld = world.Physics;
             Collider? cld = null;
             if(!SurPath.Valid)
             { //sphere
@@ -143,7 +144,7 @@ namespace LibreLancer.World.Components
             else
             {
                 var meshId = SurPath.FileId;
-                _convexMesh = new ConvexMeshCollider(physics!);
+                _convexMesh = new ConvexMeshCollider(world.Physics!);
                 cld = _convexMesh;
 
                 if(Parent?.Model?.RigidModel.Source == RigidModelSource.SinglePart)
@@ -173,7 +174,7 @@ namespace LibreLancer.World.Components
                 FLLog.Error("Sur", $"Hull load failure for object {Parent!.Nickname ?? Parent!.NetID.ToString()}");
             }
 
-            Body = Mass < float.Epsilon ? physics!.AddStaticObject(Parent!.WorldTransform, cld) : physics!.AddDynamicObject(Mass, Parent!.WorldTransform, cld, Inertia);
+            Body = Mass < float.Epsilon ? world.Physics!.AddStaticObject(Parent!.WorldTransform, cld) : world.Physics!.AddDynamicObject(Mass, Parent!.WorldTransform, cld, Inertia);
             Body.Tag = Parent;
             collider = cld;
         }
@@ -210,10 +211,10 @@ namespace LibreLancer.World.Components
             _convexMesh?.FinishUpdatePart();
         }
 
-        public override void Unregister(PhysicsWorld? physics)
+        public override void Unregister(GameWorld world)
         {
             pworld = null;
-            physics?.RemoveObject(Body);
+            world.Physics?.RemoveObject(Body);
             collider?.Dispose();
         }
     }

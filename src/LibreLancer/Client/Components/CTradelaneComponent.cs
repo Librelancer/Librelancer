@@ -18,14 +18,14 @@ public class CTradelaneComponent : GameComponent
         Def = tl;
     }
 
-    public override void Register(PhysicsWorld? physics)
+    public override void Register(GameWorld world)
     {
-        if (GetGameData() == null)
+        if (GetGameData(world) == null)
         {
             return;
         }
 
-        var resman = GetResourceManager()!;
+        var resman = GetResourceManager(world)!;
         var laneFx = Def.RingActive?.GetEffect(resman);
 
         var leftHp = Parent?.GetHardpoint("HpLeftLane");

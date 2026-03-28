@@ -62,7 +62,7 @@ namespace LibreLancer.Server.Components
 
         private uint fxID = 1;
 
-        private void Update(double time, FuseInstance instance)
+        private void Update(double time, GameWorld world, FuseInstance instance)
         {
             instance.T += time / instance.Fuse.Fuse.Lifetime;
             FuseAction act;
@@ -78,17 +78,17 @@ namespace LibreLancer.Server.Components
                         ID = fxID++, Effect = fxact.Effect,
                         Hardpoints = fxact.Hardpoints.ToArray(),
                     });
-                    Parent.World.Server.EffectSpawned(Parent);
+                    world.Server!.EffectSpawned(Parent);
                 }
                 else if (act is FuseDestroyGroup dst)
                 {
                     if (dst.Fate == FusePartFate.disappear)
                     {
-                        Parent.DisableCmpPart(dst.GroupName!, GetResourceManager()!, out _);
+                        Parent.DisableCmpPart(dst.GroupName!, world, GetResourceManager(world)!, out _);
                     }
                     else if (dst.Fate == FusePartFate.debris)
                     {
-                        Parent.SpawnDebris(dst.GroupName!, GetResourceManager()!);
+                        Parent.SpawnDebris(dst.GroupName!, world, GetResourceManager(world)!);
                     }
                 }
                 else if (act is FuseDestroyHpAttachment)
@@ -116,7 +116,7 @@ namespace LibreLancer.Server.Components
                     if (start)
                     {
                         FLLog.Debug("Fuse", $"Igniting {ig.Fuse}");
-                        Run(GetGameData()!.Items.Fuses.Get(ig.Fuse)!);
+                        Run(GetGameData(world)!.Items.Fuses.Get(ig.Fuse)!);
                     }
                 }
                 else if (act is FuseDestroyRoot)
@@ -131,11 +131,12 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
+
         {
             for (int i = 0; i < instances.Count; i++)
             {
-                Update(time, instances[i]);
+                Update(time, world, instances[i]);
             }
         }
     }

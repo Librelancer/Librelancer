@@ -20,7 +20,7 @@ public class CSoundEffectComponent : GameComponent
         }
     }
 
-    public override void Update(double time)
+    public override void Update(double time, GameWorld world)
     {
         if (sound == null)
         {
@@ -42,5 +42,5 @@ public class CSoundEffectComponent : GameComponent
         sound.Update();
     }
 
-    public override void Unregister(PhysicsWorld? physics) => sound?.Stop();
+    public override void Unregister(GameWorld world) => sound?.Stop();
 }

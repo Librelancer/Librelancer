@@ -63,8 +63,6 @@ namespace LibreLancer.Thn
         public void ConstructEntities(Dictionary<string, ThnObject> objects, bool spawnObjects)
         {
             this.Objects = objects;
-            if (spawnObjects && Cutscene.PlayerShip != null)
-                Cutscene.PlayerShip.World = Cutscene.World;
             List<ThnObject> monitors = [];
 
             foreach (var kv in thn.Entities)

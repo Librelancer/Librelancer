@@ -18,7 +18,7 @@ namespace LibreLancer.World.Components
             CurrentEnergy = Equip.Capacity;
         }
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             CurrentEnergy += (float) (time * Equip.ChargeRate);
             CurrentEnergy = MathHelper.Clamp(CurrentEnergy, 0, Equip.Capacity);

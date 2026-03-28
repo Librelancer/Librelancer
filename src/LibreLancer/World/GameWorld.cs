@@ -31,7 +31,7 @@ namespace LibreLancer.World
         public readonly SystemRenderer? Renderer;
         public readonly ProjectileManager Projectiles = null!;
 
-        public ServerWorld Server = null!;
+        public ServerWorld? Server;
 
         private List<GameObject> objects = [];
         private Dictionary<int, GameObject> netIDLookup = new();
@@ -83,7 +83,7 @@ namespace LibreLancer.World
             if (reinit)
             {
                 RemoveObject(g);
-                g.ClearAll(Physics);
+                g.ClearAll(this);
             }
 
             var arch = (changedArch ?? obj.Archetype)!;
@@ -112,8 +112,6 @@ namespace LibreLancer.World
             {
                 g.SetLoadout(arch.Loadout, res, snd);
             }
-
-            g.World = this;
 
             if (g.RenderComponent is ModelRenderer mr)
             {
@@ -153,7 +151,7 @@ namespace LibreLancer.World
             }
 
             AddObject(g);
-            g.Register(Physics);
+            g.Register(this);
         }
 
         public void NewObject(SystemObject obj, ResourceManager res, SoundManager? snd, bool server,
@@ -171,7 +169,7 @@ namespace LibreLancer.World
             {
                 foreach (var g in objects)
                 {
-                    g.Unregister(Physics);
+                    g.Unregister(this);
                 }
             }
 
@@ -220,7 +218,7 @@ namespace LibreLancer.World
                 var g = new GameObject();
                 g.AddComponent(new AsteroidFieldComponent(field, res, g));
                 AddObject(g);
-                g.Register(Physics);
+                g.Register(this);
             }
 
             GC.Collect();
@@ -255,7 +253,6 @@ namespace LibreLancer.World
 
         public void AddObject(GameObject obj)
         {
-            obj.World = this;
             objects.Add(obj);
 
             if (timeSource != null)
@@ -310,7 +307,7 @@ namespace LibreLancer.World
         public void RegisterAll()
         {
             foreach (var obj in objects)
-                obj.Register(Physics);
+                obj.Register(this);
         }
 
         public void Update(double t)
@@ -319,14 +316,14 @@ namespace LibreLancer.World
             for (int i = 0; i < objects.Count; i++)
             {
                 objects[i].PhysicsComponent?.SetOldTransform();
-                objects[i].Update(t);
+                objects[i].Update(t, this);
             }
 
             Physics?.StepSimulation((float) t);
 
             for (int i = 0; i < objects.Count; i++)
             {
-                objects[i].PhysicsComponent?.Update(t);
+                objects[i].PhysicsComponent?.Update(t, this);
                 SpatialLookup.UpdatePosition(objects[i], objects[i].WorldTransform.Position);
             }
         }

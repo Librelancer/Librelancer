@@ -96,9 +96,8 @@ public class AsteroidFieldEdit
             var c = field.Cube[i];
             var res = CreatePatchedModel(c.Archetype.ModelFile, mw.OpenDataContext.Resources, matCrc);
             var obj = new GameObject(res, mw.OpenDataContext.Resources);
-            obj.World = world;
             world.AddObject(obj);
-            obj.Register(world.Physics);
+            obj.Register(world);
             asteroids[i] = obj;
         }
         renderer.PhysicsHook = () =>

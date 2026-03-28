@@ -65,7 +65,7 @@ namespace LibreLancer.World.Components
                 : null;
         }
 
-        protected override bool OnFire(Vector3 point, GameObject? target, bool fromServer)
+        protected override bool OnFire(Vector3 point, GameWorld world, GameObject? target, bool fromServer)
         {
             // Consume ammo
             if (Object.Munition.Def.RequiresAmmo)
@@ -76,8 +76,6 @@ namespace LibreLancer.World.Components
                     return false;
                 }
             }
-
-            var world = Parent.GetWorld();
 
             if (hpFire == null)
             {
@@ -101,7 +99,7 @@ namespace LibreLancer.World.Components
             {
                 var hp = Parent.Attachment!.Name;
 
-                projectiles ??= Parent.GetWorld().Projectiles;
+                projectiles ??= world.Projectiles;
 
                 // Play sound locally for latency reasons,
                 // we won't play it again for missiles owned by us

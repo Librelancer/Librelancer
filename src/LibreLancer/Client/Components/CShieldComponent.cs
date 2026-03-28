@@ -51,7 +51,7 @@ namespace LibreLancer.Client.Components
 
         private bool shieldHpActive = false;
 
-        public override void Update(double time)
+        public override void Update(double time, GameWorld world)
         {
             if (Health >= MinHealth && !shieldHpActive)
             {
