@@ -101,6 +101,11 @@ public unsafe class AudioDecoder : Stream
     private ld_stream* self;
     private ld_pcmstream* decoder;
 
+    private ReadFn selfRead;
+    private SeekFn selfSeek;
+    private TellFn selfTell;
+    private CloseFn selfClose;
+
     private ReadFn decoderRead;
     private SeekFn decoderSeek;
     private Stream baseStream;
@@ -173,10 +178,14 @@ public unsafe class AudioDecoder : Stream
         baseStream = stream;
         self = ld_stream_new();
 
-        self->read = Marshal.GetFunctionPointerForDelegate(StreamRead);
-        self->seek = Marshal.GetFunctionPointerForDelegate(StreamSeek);
-        self->tell = Marshal.GetFunctionPointerForDelegate(StreamTell);
-        self->close = Marshal.GetFunctionPointerForDelegate(StreamClose);
+        selfRead = StreamRead;
+        selfSeek = StreamSeek;
+        selfTell = StreamTell;
+        selfClose = StreamClose;
+        self->read = Marshal.GetFunctionPointerForDelegate(selfRead);
+        self->seek = Marshal.GetFunctionPointerForDelegate(selfSeek);
+        self->tell = Marshal.GetFunctionPointerForDelegate(selfTell);
+        self->close = Marshal.GetFunctionPointerForDelegate(selfClose);
 
         var errorPtr = IntPtr.Zero;
         decoder = ld_pcmstream_open(self, IntPtr.Zero, &errorPtr);
