@@ -6,15 +6,15 @@ namespace InterfaceEdit;
 [XmlRoot("InterfaceProject")]
 public class ProjectConfiguration
 {
-    static XmlSerializer _xml = new XmlSerializer(typeof(ProjectConfiguration));
+    private static XmlSerializer _xml = new XmlSerializer(typeof(ProjectConfiguration));
 
-    public string DataFolder { get; set; }
-    public string OutputFilename { get; set; }
+    public string DataFolder { get; set; } = "";
+    public string OutputFilename { get; set; } = "";
 
     public static ProjectConfiguration Read(string filename)
     {
         using var reader = new StreamReader(filename);
-        return (ProjectConfiguration)_xml.Deserialize(reader);
+        return (ProjectConfiguration)_xml.Deserialize(reader)!;
     }
 
     public void Write(string filename)

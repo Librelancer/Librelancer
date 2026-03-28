@@ -4,13 +4,12 @@
 
 using System.Reflection;
 
-namespace InterfaceEdit
+namespace InterfaceEdit;
+
+public static class ReflectionExtensions
 {
-    public static class ReflectionExtensions
+    public static T ValueOrDefault<T>(this PropertyInfo property, object obj, T d)
     {
-        public static T ValueOrDefault<T>(this PropertyInfo property, object obj, T d)
-        {
-            return (T) (property.GetValue(obj) ?? d);
-        }
+        return (T)(property.GetValue(obj) ?? d)!;
     }
 }

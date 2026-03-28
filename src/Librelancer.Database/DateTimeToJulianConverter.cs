@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace LibreLancer.Database;
 
-public class DateTimeToJulianConverter(ConverterMappingHints mappingHints) :
+public class DateTimeToJulianConverter(ConverterMappingHints? mappingHints) :
     ValueConverter<DateTime, double>(
     v => ToJulianDays(v),
     v => FromJulianDays(v),

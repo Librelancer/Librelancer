@@ -64,7 +64,7 @@ public class Toolbar : IDisposable
         }
     }
 
-    public bool ButtonItem(string name, bool enabled = true, string tooltip = null)
+    public bool ButtonItem(string name, bool enabled = true, string? tooltip = null)
     {
         if (DoOverflow(name, 15))
         {

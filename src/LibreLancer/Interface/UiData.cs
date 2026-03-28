@@ -22,12 +22,12 @@ namespace LibreLancer.Interface
         public InfocardManager? Infocards;
         public FontManager Fonts = null!;
         public FileSystem FileSystem = null!;
-        public Dictionary<string, string> NavbarIcons = null!;
+        public Dictionary<string, string>? NavbarIcons;
 
         public SoundManager Sounds = null!;
 
         // Ui
-        public Stylesheet Stylesheet = null!;
+        public Stylesheet? Stylesheet;
 
         public InterfaceResources Resources = null!;
 

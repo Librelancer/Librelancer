@@ -10,15 +10,15 @@ public unsafe partial class ImDrawListPtr
     private static int _id;
     private static readonly ConcurrentDictionary<int, CallBackInfo> _callbacks = new();
 
-    class CallBackInfo
+    private class CallBackInfo
     {
-        public ImDrawCallback Callback;
-        public IntPtr UserData;
-        public int UserDataSize;
+        public required ImDrawCallback Callback;
+        public required IntPtr UserData;
+        public required int UserDataSize;
     }
 
     [UnmanagedCallersOnly]
-    static void CbCall(ImDrawList* list, ImDrawCmd* cmd)
+    private static void CbCall(ImDrawList* list, ImDrawCmd* cmd)
     {
         if (_callbacks.TryRemove((int)cmd->UserCallbackData, out var cb))
         {
@@ -33,7 +33,10 @@ public unsafe partial class ImDrawListPtr
         var cb = new CallBackInfo() { Callback = callback, UserData = userData, UserDataSize = userDataSize };
         int newId = Interlocked.Increment(ref _id);
         if (!_callbacks.TryAdd(newId, cb))
+        {
             throw new InvalidOperationException("ConcurrentDictionary broke (should never happen)");
+        }
+
         ImGuiNative.ImDrawList_AddCallback(Handle, &CbCall, (IntPtr)newId, 0);
     }
 }

@@ -5,37 +5,36 @@
 using System.IO;
 using LibreLancer.ImUI;
 
-namespace InterfaceEdit
+namespace InterfaceEdit;
+
+public class ScriptEditor : SaveableTab
 {
-    public class ScriptEditor : SaveableTab
+    private string path;
+    private ColorTextEdit textEditor;
+
+    public override string Filename => path;
+
+    public ScriptEditor(string path)
     {
-        private string path;
-        private ColorTextEdit textEditor;
+        this.path = path;
+        Title = Path.GetFileName(path);
+        textEditor = new ColorTextEdit();
+        textEditor.SetMode(ColorTextEditMode.Lua);
+        textEditor.SetText(File.ReadAllText(path));
+    }
 
-        public override string Filename => path;
+    public override void Save()
+    {
+        File.WriteAllText(path, textEditor.GetText());
+    }
 
-        public ScriptEditor(string path)
-        {
-            this.path = path;
-            Title = Path.GetFileName(path);
-            textEditor = new ColorTextEdit();
-            textEditor.SetMode(ColorTextEditMode.Lua);
-            textEditor.SetText(File.ReadAllText(path));
-        }
+    public override void Draw(double elapsed)
+    {
+        textEditor.Render("##textEditor");
+    }
 
-        public override void Save()
-        {
-            File.WriteAllText(path, textEditor.GetText());
-        }
-
-        public override void Draw(double elapsed)
-        {
-            textEditor.Render("##textEditor");
-        }
-
-        public override void Dispose()
-        {
-            textEditor.Dispose();
-        }
+    public override void Dispose()
+    {
+        textEditor.Dispose();
     }
 }
