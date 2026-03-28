@@ -5,8 +5,8 @@ namespace LibreLancer.ImUI.Shaders;
 
 static class ImGuiShader
 {
-    public static ShaderBundle Shader;
-    public static ShaderBundle Gradient;
+    public static ShaderBundle Shader = null!;
+    public static ShaderBundle Gradient = null!;
 
     private static bool iscompiled;
 

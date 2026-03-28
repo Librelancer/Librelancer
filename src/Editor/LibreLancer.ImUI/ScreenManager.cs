@@ -5,9 +5,9 @@
     /// </summary>
     public sealed class ScreenManager
     {
-        private Screen current;
+        private Screen? current;
 
-        public Screen Current => current;
+        public Screen? Current => current;
 
         /// <summary>
         /// Switches to a new screen.

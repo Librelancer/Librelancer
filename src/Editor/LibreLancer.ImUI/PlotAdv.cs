@@ -24,11 +24,11 @@ public static unsafe class PlotAdv
         float size_y);
 
     [UnmanagedCallersOnly]
-    static float GetValue(IntPtr data, int index) => ((float*)data)[index];
+    static float GetValue(IntPtr data, int index) => ((float*) data)[index];
 
     delegate int NativeTooltipFunc(IntPtr data, int index, IntPtr buffer);
 
-    public static void PlotLines(string label, ReadOnlySpan<float> values, Func<int, float, string> get_tooltip,
+    public static void PlotLines(string label, ReadOnlySpan<float> values, Func<int, float, string?>? get_tooltip,
         string overlay_text, float scaleMin, float scaleMax, Vector2 size)
     {
         byte* labelBuf = stackalloc byte[256];
@@ -37,31 +37,37 @@ public static unsafe class PlotAdv
         using var utf8z_overlay = new ImGuiNET.UTF8ZHelper(overlayBuf, 256, overlay_text);
         //Tooltip function
         delegate* unmanaged<IntPtr, int, IntPtr, int> tooltipFunc = null;
-        NativeTooltipFunc toNative = null;
+        NativeTooltipFunc? toNative = null;
+
         if (get_tooltip != null)
         {
-            toNative = (data,  index, buffer) =>
+            toNative = (data, index, buffer) =>
             {
-                var str = get_tooltip(index, ((float*)data)[index]);
+                var str = get_tooltip(index, ((float*) data)[index]);
                 if (str == null)
                     return 0;
                 var bytes = Encoding.UTF8.GetBytes(str);
-                if (bytes.Length > 2048) {
+
+                if (bytes.Length > 2048)
+                {
                     Marshal.Copy(bytes, 0, buffer, 2047);
-                    ((byte*)buffer)[2047] = 0;
+                    ((byte*) buffer)[2047] = 0;
                 }
-                else {
+                else
+                {
                     Marshal.Copy(bytes, 0, buffer, bytes.Length);
-                    ((byte*)buffer)[bytes.Length] = 0;
+                    ((byte*) buffer)[bytes.Length] = 0;
                 }
+
                 return 1;
             };
             tooltipFunc =
-                (delegate* unmanaged<IntPtr, int, IntPtr, int>)Marshal.GetFunctionPointerForDelegate(toNative);
+                (delegate* unmanaged<IntPtr, int, IntPtr, int>) Marshal.GetFunctionPointerForDelegate(toNative);
         }
+
         fixed (float* ptr = &values.GetPinnableReference())
         {
-            igExtPlot(0, utf8z_label.Pointer, &GetValue, tooltipFunc, (IntPtr)ptr, values.Length,
+            igExtPlot(0, utf8z_label.Pointer, &GetValue, tooltipFunc, (IntPtr) ptr, values.Length,
                 0, utf8z_overlay.Pointer, scaleMin, scaleMax, size.X, size.Y);
         }
     }

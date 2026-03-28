@@ -39,7 +39,7 @@ public static unsafe partial class ImGui
     }
 
     public static bool InputText(string label, byte[] buf, uint buf_size,
-        ImGuiInputTextFlags flags = (ImGuiInputTextFlags)0, ImGuiInputTextCallback callback = null,
+        ImGuiInputTextFlags flags = (ImGuiInputTextFlags)0, ImGuiInputTextCallback? callback = null,
         IntPtr user_data = 0)
     {
         fixed (byte* ptr = buf)
@@ -49,7 +49,7 @@ public static unsafe partial class ImGui
     }
 
     public static bool InputText(string label, ref string buf, uint buf_size,
-        ImGuiInputTextFlags flags = (ImGuiInputTextFlags)0, ImGuiInputTextCallback callback = null,
+        ImGuiInputTextFlags flags = (ImGuiInputTextFlags)0, ImGuiInputTextCallback? callback = null,
         IntPtr user_data = 0)
     {
         byte* originalBuf = stackalloc byte[1024];
@@ -73,7 +73,7 @@ public static unsafe partial class ImGui
         var result = InputText(label, (IntPtr)editBuf, (IntPtr)buf_size, flags, callback, user_data);
         if (!UTF8ZEqual(utf8z_original.Pointer, editBuf, (int)buf_size))
         {
-            buf = Marshal.PtrToStringUTF8((IntPtr)editBuf);
+            buf = Marshal.PtrToStringUTF8((IntPtr)editBuf)!;
         }
         if (alloc != IntPtr.Zero)
         {
@@ -84,7 +84,7 @@ public static unsafe partial class ImGui
 
     public static bool InputTextMultiline(string label, ref string buf, uint buf_size,
         System.Numerics.Vector2 size = default, ImGuiInputTextFlags flags = (ImGuiInputTextFlags)0,
-        ImGuiInputTextCallback callback = null, IntPtr user_data = 0)
+        ImGuiInputTextCallback? callback = null, IntPtr user_data = 0)
     {
         byte* originalBuf = stackalloc byte[1024];
         byte* editBuf = stackalloc byte[1024];
@@ -108,7 +108,7 @@ public static unsafe partial class ImGui
         var result = InputTextMultiline(label, (IntPtr)editBuf, (IntPtr)buf_size,  size, flags, callback, user_data);
         if (!UTF8ZEqual(utf8z_original.Pointer, editBuf, (int)buf_size))
         {
-            buf = Marshal.PtrToStringUTF8((IntPtr)editBuf);
+            buf = Marshal.PtrToStringUTF8((IntPtr)editBuf)!;
         }
         if (alloc != IntPtr.Zero)
         {
@@ -118,7 +118,7 @@ public static unsafe partial class ImGui
     }
 
     public static bool InputTextWithHint(string label, string hint, ref string buf, uint buf_size,
-        ImGuiInputTextFlags flags = (ImGuiInputTextFlags)0, ImGuiInputTextCallback callback = null,
+        ImGuiInputTextFlags flags = (ImGuiInputTextFlags)0, ImGuiInputTextCallback? callback = null,
         IntPtr user_data = 0)
     {
         byte* originalBuf = stackalloc byte[1024];
@@ -137,7 +137,7 @@ public static unsafe partial class ImGui
         var result = InputTextWithHint(label, hint, (IntPtr)editBuf, (IntPtr)buf_size, flags, callback, user_data);
         if (!UTF8ZEqual(utf8z_original.Pointer, editBuf, (int)buf_size))
         {
-            buf = Marshal.PtrToStringUTF8((IntPtr)editBuf);
+            buf = Marshal.PtrToStringUTF8((IntPtr)editBuf)!;
         }
         if (alloc != IntPtr.Zero)
         {

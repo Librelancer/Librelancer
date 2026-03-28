@@ -6,31 +6,30 @@ using System;
 using System.Reflection;
 using ImGuiNET;
 
-namespace InterfaceEdit
+namespace InterfaceEdit;
+
+public class FloatEditor : PropertyEditor
 {
-    public class FloatEditor : PropertyEditor
+    private float originalValue;
+    private float currentValue;
+    public FloatEditor(object obj, PropertyInfo property) : base(obj, property)
     {
-        private float originalValue;
-        private float currentValue;
-        public FloatEditor(object obj, PropertyInfo property) : base(obj, property)
+        currentValue = originalValue = property.ValueOrDefault(obj, 0.0f);
+    }
+
+    public override bool Edit()
+    {
+        ImGui.Text(Property.Name);
+        ImGui.NextColumn();
+        var enterPressed = ImGui.InputFloat($"##{Property.Name}", ref currentValue, 0.0f, 0f, "%.3f",
+            ImGuiInputTextFlags.EnterReturnsTrue);
+        ImGui.NextColumn();
+        if (enterPressed)
         {
-            currentValue = originalValue = property.ValueOrDefault(obj, 0.0f);
+            Property.SetValue(Object, currentValue);
+            return true;
         }
 
-        public override bool Edit()
-        {
-            ImGui.Text(Property.Name);
-            ImGui.NextColumn();
-            var enterPressed = ImGui.InputFloat($"##{Property.Name}", ref currentValue, 0.0f, 0f, "%.3f",
-                ImGuiInputTextFlags.EnterReturnsTrue);
-            ImGui.NextColumn();
-            if (enterPressed)
-            {
-                Property.SetValue(Object, currentValue);
-                return true;
-            }
-
-            return false;
-        }
+        return false;
     }
 }

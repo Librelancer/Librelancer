@@ -28,7 +28,7 @@ public static unsafe class NodeEditor
     public static Style* GetStyle() => axGetStyle();
 
     public static string GetStyleColorName(StyleColor styleColor) =>
-        UnsafeHelpers.PtrToStringUTF8(axGetStyleColorName(styleColor));
+        UnsafeHelpers.PtrToStringUTF8(axGetStyleColorName(styleColor))!;
 
     public static void PushStyleColor(StyleColor colorIndex, Color4 color)
     {

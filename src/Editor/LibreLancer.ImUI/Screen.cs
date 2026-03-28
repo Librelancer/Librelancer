@@ -8,7 +8,7 @@
     {
         protected readonly ScreenManager sm;
         protected readonly PopupManager pm;
-        public string Title { get; protected set; }
+        public string Title { get; protected set; } = "Screen";
         protected Screen(ScreenManager screens, PopupManager popups)
         {
             sm = screens;

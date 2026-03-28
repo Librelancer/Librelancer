@@ -7,9 +7,9 @@ namespace LibreLancer.ImUI;
 public class TabControl
 {
     public List<DockTab> Tabs { get; private set; } = new List<DockTab>();
-    public DockTab Selected { get; private set; } = null;
+    public DockTab? Selected { get; private set; } = null;
 
-    private DockTab _setSelected;
+    private DockTab? _setSelected;
 
     public void SetSelected(DockTab tab)
     {
@@ -19,16 +19,27 @@ public class TabControl
     public void CloseAll()
     {
         foreach(var t in Tabs)
+        {
             t.Dispose();
+        }
+
         Tabs.Clear();
         Selected = null;
     }
 
     public void CloseTab(DockTab t)
     {
-        if (!Tabs.Contains(t)) throw new InvalidOperationException();
+        if (!Tabs.Contains(t))
+        {
+            throw new InvalidOperationException();
+        }
+
         t.Dispose();
-        if (Selected == t) Selected = null;
+        if (Selected == t)
+        {
+            Selected = null;
+        }
+
         Tabs.Remove(t);
     }
 
@@ -48,7 +59,11 @@ public class TabControl
                 bool isTabOpen = true;
                 bool selectedThis = false;
                 var tabFlags = Tabs[i] == _setSelected ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
-                if (Tabs[i].UnsavedDocument) tabFlags |= ImGuiTabItemFlags.UnsavedDocument;
+                if (Tabs[i].UnsavedDocument)
+                {
+                    tabFlags |= ImGuiTabItemFlags.UnsavedDocument;
+                }
+
                 if (Tabs[i].TabColor == TabColor.Alternate)
                 {
                     ImGui.PushStyleColor(ImGuiCol.TabSelected, AlternateActive);
@@ -96,12 +111,18 @@ public class TabControl
                 }
                 if (!isTabOpen)
                 {
-                    if(Selected == Tabs[i]) Selected = null;
+                    if(Selected == Tabs[i])
+                    {
+                        Selected = null;
+                    }
+
                     Tabs[i].Dispose();
                     Tabs.RemoveAt(i);
                 }
                 else if (selectedThis)
+                {
                     Selected = Tabs[i];
+                }
             }
             ImGui.EndTabBar();
             if (thisIdx >= 0)
@@ -117,13 +138,23 @@ public class TabControl
                 var self = Tabs[thisIdx];
                 for (int i = start; i < end; i++)
                 {
-                    if (i == thisIdx) continue;
-                    if (Selected == Tabs[i]) Selected = null;
+                    if (i == thisIdx)
+                    {
+                        continue;
+                    }
+
+                    if (Selected == Tabs[i])
+                    {
+                        Selected = null;
+                    }
+
                     Tabs[i].Dispose();
                 }
                 Tabs.RemoveRange(start, end - start);
                 if (closeMode == 0)
+                {
                     Tabs.Add(self);
+                }
             }
         }
 

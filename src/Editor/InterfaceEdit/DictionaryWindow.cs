@@ -11,7 +11,7 @@ public class DictionaryWindow
     public IDictionary<string,string> Variables { get; private set; }
 
     public bool IsOpen;
-    private string newName;
+    private string newName = "";
 
     public DictionaryWindow(string title, Dictionary<string, string> variables)
     {

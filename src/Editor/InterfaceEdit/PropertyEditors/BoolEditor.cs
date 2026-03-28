@@ -6,28 +6,27 @@ using System;
 using System.Reflection;
 using ImGuiNET;
 
-namespace InterfaceEdit
-{
-    public class BoolEditor : PropertyEditor
-    {
-        bool check;            
-        public BoolEditor(object obj, PropertyInfo property) : base(obj, property)
-        {
-            check = (bool) property.GetValue(obj);
-        }
+namespace InterfaceEdit;
 
-        public override bool Edit()
+public class BoolEditor : PropertyEditor
+{
+    private bool check;
+    public BoolEditor(object obj, PropertyInfo property) : base(obj, property)
+    {
+        check = (bool) property.GetValue(obj)!;
+    }
+
+    public override bool Edit()
+    {
+        ImGui.Text(Property.Name);
+        ImGui.NextColumn();
+        if (ImGui.Checkbox($"##{Property.Name}", ref check))
         {
-            ImGui.Text(Property.Name);
+            Property.SetValue(Object, check);
             ImGui.NextColumn();
-            if (ImGui.Checkbox($"##{Property.Name}", ref check))
-            {
-                Property.SetValue(Object, check);
-                ImGui.NextColumn();
-                return true;
-            }
-            ImGui.NextColumn();
-            return false;
+            return true;
         }
+        ImGui.NextColumn();
+        return false;
     }
 }

@@ -5,22 +5,21 @@
 using System;
 using System.Reflection;
 
-namespace InterfaceEdit
+namespace InterfaceEdit;
+
+public abstract class PropertyEditor : IDisposable
 {
-    public abstract class PropertyEditor : IDisposable
+    public Object Object;
+    public PropertyInfo Property;
+    public PropertyEditor(object obj, PropertyInfo property)
     {
-        public Object Object;
-        public PropertyInfo Property;
-        public PropertyEditor(object obj, PropertyInfo property)
-        {
-            Object = obj;
-            Property = property;
-        }
-
-        public virtual void Dispose()
-        {
-        }
-
-        public abstract bool Edit();
+        Object = obj;
+        Property = property;
     }
+
+    public virtual void Dispose()
+    {
+    }
+
+    public abstract bool Edit();
 }

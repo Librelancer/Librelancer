@@ -9,76 +9,74 @@ using LibreLancer;
 using LibreLancer.ImUI;
 using LibreLancer.Interface;
 
-namespace InterfaceEdit
+namespace InterfaceEdit;
+
+public class StylesheetEditor : SaveableTab
 {
-    public class StylesheetEditor : SaveableTab
+    private Stylesheet currentStylesheet = null!;
+    private UiData uiContext;
+    private UiXmlLoader xml;
+    private string path;
+    private ColorTextEdit textEditor;
+    private bool validXml = false;
+    private string exceptionText = "Error: Nothing typed yet";
+
+    public override string Filename => path;
+
+    public StylesheetEditor(string xmlFolder, UiXmlLoader xml, UiData context)
     {
-        private Stylesheet currentStylesheet;
-        private UiData uiContext;
-        private UiXmlLoader xml;
-        private string path;
-        private ColorTextEdit textEditor;
-        private bool validXml = false;
-        private string exceptionText = "Error: Nothing typed yet";
+        Title = "Stylesheet";
+        textEditor = new ColorTextEdit();
+        uiContext = context;
+        path = Path.Combine(xmlFolder, "stylesheet.xml");
+        textEditor.SetText(File.ReadAllText(path));
+        this.xml = xml;
+        TextChanged();
+    }
 
-        public override string Filename => path;
-
-        public StylesheetEditor(string xmlFolder, UiXmlLoader xml, UiData context)
+    public override void Save()
+    {
+        if (validXml)
         {
-            Title = "Stylesheet";
-            textEditor = new ColorTextEdit();
-            uiContext = context;
-            path = Path.Combine(xmlFolder, "stylesheet.xml");
-            textEditor.SetText(File.ReadAllText(path));
-            this.xml = xml;
-            TextChanged();
+            File.WriteAllText(path, textEditor.GetText());
+            uiContext.Stylesheet = currentStylesheet;
         }
-
-        public override void Save()
+        else
         {
-            if (validXml)
-            {
-                File.WriteAllText(path, textEditor.GetText());
-                uiContext.Stylesheet = currentStylesheet;
-            }
-            else
-            {
-                Bell.Play();
-            }
+            Bell.Play();
         }
+    }
 
-        public override void Draw(double elapsed)
-        {
-            if (!validXml) {
-                ImGui.TextColored(Color4.Red, exceptionText);
-            }
-            textEditor.Render("##stylesheeteditor");
-            if (textEditor.TextChanged()) TextChanged();
+    public override void Draw(double elapsed)
+    {
+        if (!validXml) {
+            ImGui.TextColored(Color4.Red, exceptionText);
         }
+        textEditor.Render("##stylesheeteditor");
+        if (textEditor.TextChanged()) TextChanged();
+    }
 
-        void TextChanged()
+    private void TextChanged()
+    {
+        try
         {
-            try
-            {
-                var text = textEditor.GetText();
-                if (string.IsNullOrEmpty(text) || string.IsNullOrWhiteSpace(text))
-                {
-                    validXml = false;
-                    exceptionText = "Error: Nothing typed yet";
-                    return;
-                }
-                currentStylesheet = (Stylesheet) xml.FromString(text, null);
-                validXml = true;
-            }
-            catch (Exception e)
+            var text = textEditor.GetText();
+            if (string.IsNullOrEmpty(text) || string.IsNullOrWhiteSpace(text))
             {
                 validXml = false;
-                if (e is NullReferenceException)
-                    exceptionText = $"Error: {e.Message}\n{e.StackTrace}";
-                else
-                    exceptionText = $"Error: {e.Message}";
+                exceptionText = "Error: Nothing typed yet";
+                return;
             }
+            currentStylesheet = (Stylesheet) xml.FromString(text, null);
+            validXml = true;
         }
-
+        catch (Exception e)
+        {
+            validXml = false;
+            exceptionText = e is NullReferenceException
+                ? $"Error: {e.Message}\n{e.StackTrace}"
+                : $"Error: {e.Message}";
+        }
     }
+
 }

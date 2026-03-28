@@ -28,14 +28,14 @@ sealed class MessageBoxPopup : PopupWindow
 
     private string text;
     private MessageBoxButtons buttons;
-    private Action<MessageBoxResponse> callback;
+    private Action<MessageBoxResponse>? callback;
     private MessageBoxResponse response;
     private bool multiline;
 
     public MessageBoxPopup(string title, string text,
         bool multiline = false,
         MessageBoxButtons buttons = MessageBoxButtons.OkCancel,
-        Action<MessageBoxResponse> callback = null)
+        Action<MessageBoxResponse>? callback = null)
     {
         Title = title;
         this.text = text;
@@ -66,6 +66,7 @@ sealed class MessageBoxPopup : PopupWindow
         {
             ImGui.Text(text);
         }
+
         if (buttons == MessageBoxButtons.Ok)
         {
             if (ImGui.Button("Ok"))

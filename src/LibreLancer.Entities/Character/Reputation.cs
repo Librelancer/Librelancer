@@ -3,14 +3,13 @@
 // LICENSE, which is part of this source code package
 using LibreLancer.Entities.Abstract;
 
-namespace LibreLancer.Entities.Character
-{
-    public class Reputation : BaseEntity
-    {
-        public long CharacterId { get; set; }
+namespace LibreLancer.Entities.Character;
 
-        public Character Character { get; set; } = null!;
-        public float ReputationValue { get; set; }
-        public string RepGroup { get; set; }
-    }
+public class Reputation : BaseEntity
+{
+    public long CharacterId { get; set; }
+
+    public Character Character { get; set; } = null!;
+    public float ReputationValue { get; set; }
+    public string? RepGroup { get; set; }
 }
