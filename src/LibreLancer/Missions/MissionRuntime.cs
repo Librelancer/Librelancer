@@ -333,6 +333,11 @@ namespace LibreLancer.Missions
 
         public void CheckMissionScript()
         {
+            if (Player.Dead)
+            {
+                return;
+            }
+
             // Iterate with indexer to avoid foreach invalidation
             for (int i = 0; i < activeTriggers.Count; i++)
             {
