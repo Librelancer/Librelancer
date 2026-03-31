@@ -363,12 +363,17 @@ namespace LibreLancer.Server
                 await using var ctx = CreateDbContext();
                 // Get account
                 var acc = ctx.Accounts.First(x => x.AccountIdentifier == playerGuid);
+
                 // Init object
-                var c = new Character();
+                var c = new Character
+                {
+                    Account = acc,
+                    UpdateDate =  DateTime.UtcNow,
+                    CreationDate =  DateTime.UtcNow,
+                };
+
                 fillCharacter(c);
-                var nowUtc = DateTime.UtcNow;
-                c.UpdateDate = c.CreationDate = nowUtc;
-                c.Account = acc;
+
                 // Add
                 ctx.Characters.Add(c);
                 await ctx.SaveChangesAsync();

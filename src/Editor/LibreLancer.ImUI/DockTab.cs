@@ -3,53 +3,53 @@
 // LICENSE, which is part of this source code package
 
 using System;
-namespace LibreLancer.ImUI
+namespace LibreLancer.ImUI;
+
+public enum TabColor
 {
-    public enum TabColor
+    Normal,
+    Alternate
+}
+public abstract class DockTab : IDisposable
+{
+    public string DocumentName = "document";
+    private string _title = "tab";
+
+    public TabColor TabColor = TabColor.Normal;
+
+    public string Title
     {
-        Normal,
-        Alternate
+        get { return _title;  }
+        set { _title = value; UpdateRenderTitle(); }
     }
-	public abstract class DockTab : IDisposable
-	{
-        public string DocumentName = "document";
-        string _title = "tab";
 
-        public TabColor TabColor = TabColor.Normal;
+    public string RenderTitle { get; private set; } = "Render";
 
-        public string Title
-        {
-            get { return _title;  }
-            set { _title = value; UpdateRenderTitle(); }
-        }
-        public string RenderTitle { get; private set; }
+    public virtual string Tooltip { get; } = "";
 
-        public virtual string Tooltip { get; }
+    private static long _ids = 1;
+    private static Random rand = new Random();
+    public long Unique { get; private set; }
 
-        static long _ids = 1;
-		static Random rand = new Random();
-		public long Unique { get; private set; }
+    public virtual bool UnsavedDocument { get; }
 
-        public virtual bool UnsavedDocument { get; }
+    private void UpdateRenderTitle()
+    {
+        RenderTitle = ImGuiExt.IDWithExtra(_title, Unique.ToString());
+    }
 
-        void UpdateRenderTitle()
-        {
-            RenderTitle = ImGuiExt.IDWithExtra(_title, Unique.ToString());
-        }
+    protected DockTab()
+    {
+        Unique = _ids;
+        _ids += 2;
+        UpdateRenderTitle();
+    }
 
-        protected DockTab()
-		{
-			Unique = _ids;
-			_ids += 2;
-            UpdateRenderTitle();
-		}
-
-        public abstract void Draw(double elapsed);
-		public virtual void Update(double elapsed)
-		{
-		}
-		public virtual void Dispose()
-		{
-		}
-	}
+    public abstract void Draw(double elapsed);
+    public virtual void Update(double elapsed)
+    {
+    }
+    public virtual void Dispose()
+    {
+    }
 }

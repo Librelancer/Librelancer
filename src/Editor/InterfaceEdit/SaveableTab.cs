@@ -5,11 +5,10 @@
 using LibreLancer.ImUI;
 
 
-namespace InterfaceEdit
+namespace InterfaceEdit;
+
+public abstract class SaveableTab : DockTab
 {
-    public abstract class SaveableTab : DockTab
-    {
-        public abstract string Filename { get; }
-        public abstract void Save();
-    }
+    public abstract string Filename { get; }
+    public abstract void Save();
 }

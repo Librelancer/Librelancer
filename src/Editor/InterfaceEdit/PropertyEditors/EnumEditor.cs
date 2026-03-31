@@ -6,39 +6,38 @@ using System;
 using System.Reflection;
 using ImGuiNET;
 
-namespace InterfaceEdit
-{
-    public class EnumEditor : PropertyEditor
-    {
-        private string[] items;
-        private int originalIndex;
-        private int selectedIndex;
-        public EnumEditor(object obj, PropertyInfo property) : base(obj, property)
-        {
-            items = Enum.GetNames(property.PropertyType);
-            var v = property.GetValue(obj).ToString();
-            for (int i = 0; i < items.Length; i++)
-            {
-                if (items[i].Equals(v))
-                {
-                    originalIndex = selectedIndex = i;
-                    break;
-                }
-            }
-        }
+namespace InterfaceEdit;
 
-        public override bool Edit()
+public class EnumEditor : PropertyEditor
+{
+    private string[] items;
+    private int originalIndex;
+    private int selectedIndex;
+    public EnumEditor(object obj, PropertyInfo property) : base(obj, property)
+    {
+        items = Enum.GetNames(property.PropertyType);
+        var v = property.GetValue(obj)!.ToString();
+        for (int i = 0; i < items.Length; i++)
         {
-            ImGui.Text(Property.Name);
-            ImGui.NextColumn();
-            ImGui.Combo($"##{Property.Name}", ref selectedIndex, items, items.Length);
-            ImGui.NextColumn();
-            if (selectedIndex != originalIndex)
+            if (items[i].Equals(v))
             {
-                Property.SetValue(Object, Enum.Parse(Property.PropertyType, items[selectedIndex]));
-                return true;
+                originalIndex = selectedIndex = i;
+                break;
             }
-            return false;
         }
+    }
+
+    public override bool Edit()
+    {
+        ImGui.Text(Property.Name);
+        ImGui.NextColumn();
+        ImGui.Combo($"##{Property.Name}", ref selectedIndex, items, items.Length);
+        ImGui.NextColumn();
+        if (selectedIndex != originalIndex)
+        {
+            Property.SetValue(Object, Enum.Parse(Property.PropertyType, items[selectedIndex]));
+            return true;
+        }
+        return false;
     }
 }

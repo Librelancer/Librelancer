@@ -30,15 +30,14 @@ public struct ResizeCallbackData
 
 public class NodeEditorConfig : NativeObject, IDisposable
 {
-    private ConfigSession beginSave;
-    private ConfigSession endSave;
-    private ConfigSaveSettings saveSettings;
-    private ConfigLoadSettings loadSettings;
-    private Func<IntPtr, IntPtr, UIntPtr, SaveReasonFlags, IntPtr, int> saveNodeSettings;
-    private Func<IntPtr, IntPtr, IntPtr, UIntPtr> loadNodeSettings;
-    private ConfigNodeDraggedHook nodeDraggedHook;
-    private ConfigNodeResizedHook nodeResizedHook;
-
+    private ConfigSession? beginSave;
+    private ConfigSession? endSave;
+    private ConfigSaveSettings? saveSettings;
+    private ConfigLoadSettings? loadSettings;
+    private Func<IntPtr, IntPtr, UIntPtr, SaveReasonFlags, IntPtr, int>? saveNodeSettings;
+    private Func<IntPtr, IntPtr, IntPtr, UIntPtr>? loadNodeSettings;
+    private ConfigNodeDraggedHook? nodeDraggedHook;
+    private ConfigNodeResizedHook? nodeResizedHook;
 
     public NodeEditorConfig()
     {
@@ -73,8 +72,7 @@ public class NodeEditorConfig : NativeObject, IDisposable
 
     public void SetSaveNodeSettings(ConfigSaveNodeSettings cb)
     {
-        saveNodeSettings = (a, b, c, d, e) =>
-            cb(a, b, c, d, e) ? 1 : 0;
+        saveNodeSettings = (a, b, c, d, e) => cb(a, b, c, d, e) ? 1 : 0;
         axConfig_set_SaveNodeSettings(Handle, Marshal.GetFunctionPointerForDelegate(cb));
     }
 
@@ -97,9 +95,9 @@ public class NodeEditorConfig : NativeObject, IDisposable
     }
 
 
-    private NativeBuffer lastSet = null;
+    private NativeBuffer? lastSet = null;
 
-    public string SettingsFile
+    public string? SettingsFile
     {
         get => UnsafeHelpers.PtrToStringUTF8(axConfig_get_SettingsFile(Handle));
         set

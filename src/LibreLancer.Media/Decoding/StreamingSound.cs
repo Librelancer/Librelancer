@@ -4,22 +4,24 @@
 
 using System;
 using System.IO;
-namespace LibreLancer.Media
+namespace LibreLancer.Media;
+
+internal class StreamingSound : IDisposable
 {
-	class StreamingSound : IDisposable
-	{
-		public Stream Data;
-		public int Format;
-		public int Frequency;
-		public int Size = -1;
+    public Stream Data;
+    public int Format;
+    public int Frequency;
+    public int Size = -1;
 
-		internal StreamingSound()
-		{
-		}
+    internal StreamingSound(Stream data, int format, int frequency)
+    {
+        Data = data;
+        Format = format;
+        Frequency = frequency;
+    }
 
-		public void Dispose()
-		{
-			Data.Dispose();
-		}
-	}
+    public void Dispose()
+    {
+        Data.Dispose();
+    }
 }

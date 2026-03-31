@@ -7,58 +7,57 @@ using ImGuiNET;
 using LibreLancer.ImUI;
 using System.Reflection;
 
-namespace InterfaceEdit
+namespace InterfaceEdit;
+
+public class ObjectStringEditor : PropertyEditor
 {
-    public class ObjectStringEditor : PropertyEditor
+    private string ogString;
+    private TextBuffer textBuffer = new TextBuffer();
+    private string editId;
+    private string popupId;
+    private bool open = false;
+    public ObjectStringEditor(object obj, PropertyInfo property) : base(obj, property)
     {
-        private string ogString;
-        TextBuffer textBuffer = new TextBuffer();
-        private string editId;
-        private string popupId;
-        private bool open = false;
-        public ObjectStringEditor(object obj, PropertyInfo property) : base(obj, property)
+        ogString = property.ValueOrDefault<string>(obj, "");
+        editId = $"...##editButton{Property.Name}";
+        popupId = $"{Property.Name}##stringEditor";
+    }
+
+    public override bool Edit()
+    {
+        ImGui.Text(Property.Name);
+        ImGui.NextColumn(); 
+        ImGui.Text(ogString);
+        ImGui.SameLine();
+        if (ImGui.Button(editId))
         {
-            ogString = property.ValueOrDefault<string>(obj, "");
-            editId = $"...##editButton{Property.Name}";
-            popupId = $"{Property.Name}##stringEditor";
+            textBuffer.SetText(ogString);
+            ImGui.OpenPopup(popupId);
+            open = true;
         }
 
-        public override bool Edit()
+        if (ImGui.BeginPopupModal(popupId, ref open, ImGuiWindowFlags.AlwaysAutoResize))
         {
-            ImGui.Text(Property.Name);
-            ImGui.NextColumn(); 
-            ImGui.Text(ogString);
+            textBuffer.InputText("Value", ImGuiInputTextFlags.None, 200);
+            if (ImGui.Button("Ok"))
+            {
+                ImGui.CloseCurrentPopup();
+                Property.SetValue(Object, textBuffer.GetText());
+                return true;
+            }
             ImGui.SameLine();
-            if (ImGui.Button(editId))
+            if (ImGui.Button("Cancel"))
             {
-                textBuffer.SetText(ogString);
-                ImGui.OpenPopup(popupId);
-                open = true;
+                ImGui.CloseCurrentPopup();
             }
-
-            if (ImGui.BeginPopupModal(popupId, ref open, ImGuiWindowFlags.AlwaysAutoResize))
-            {
-                textBuffer.InputText("Value", ImGuiInputTextFlags.None, 200);
-                if (ImGui.Button("Ok"))
-                {
-                    ImGui.CloseCurrentPopup();
-                    Property.SetValue(Object, textBuffer.GetText());
-                    return true;
-                }
-                ImGui.SameLine();
-                if (ImGui.Button("Cancel"))
-                {
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGui.EndPopup();
-            }
-            ImGui.NextColumn();
-            return false;
+            ImGui.EndPopup();
         }
+        ImGui.NextColumn();
+        return false;
+    }
 
-        public override void Dispose()
-        {
-            textBuffer.Dispose();
-        }
+    public override void Dispose()
+    {
+        textBuffer.Dispose();
     }
 }

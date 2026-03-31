@@ -10,139 +10,138 @@ using LibreLancer.Infocards;
 using LibreLancer.Interface;
 using LibreLancer.Resources;
 
-namespace InterfaceEdit
+namespace InterfaceEdit;
+
+public class Project
 {
-    public class Project
+    public UiData UiData = null!;
+    public UiXmlLoader XmlLoader = null!;
+
+    public ProjectConfiguration Configuration { get; set; } = null!;
+    public string XmlFolder { get; private set; } = null!;
+    public string FlFolder => ProjectVariable.Substitute(Configuration.DataFolder, ProjectVariables());
+
+    public string OutputFilename => ProjectVariable.Substitute(
+        Configuration.OutputFilename,
+        ProjectVariables(),
+        Path.Combine(XmlFolder, "out", "interface.json")
+    );
+
+
+    public string ProjectFile = null!;
+
+    public Infocard TestingInfocard = null!;
+    public Infocard ShipInfocard = null!;
+    private MainWindow window;
+    public Project(MainWindow window)
     {
-        public UiData UiData;
-        public UiXmlLoader XmlLoader;
+        this.window = window;
+    }
 
-        public ProjectConfiguration Configuration { get; set; }
-        public string XmlFolder { get; private set; }
-        public string FlFolder => ProjectVariable.Substitute(Configuration.DataFolder, ProjectVariables());
+    private IDictionary<string, string> ProjectVariables()
+    {
+        var variables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var v in window.Variables)
+            variables[v.Key] = v.Value;
+        variables["ProjectFolder"] = XmlFolder;
+        return variables;
+    }
 
-        public string OutputFilename => ProjectVariable.Substitute(
-            Configuration.OutputFilename,
-            ProjectVariables(),
-            Path.Combine(XmlFolder, "out", "interface.json")
-        );
+    public string ResolvedDataDir { get; private set; } = null!;
 
 
-        public string ProjectFile;
+    private void Load()
+    {
+        UiData.FlDirectory = FlFolder;
+        UiData.FileSystem = FileSystem.FromPath(FlFolder);
+        UiData.ResourceManager = new GameResourceManager(window, UiData.FileSystem);
+        UiData.Fonts = window.Fonts;
+        var flIni = new FreelancerIni(UiData.FileSystem);
+        var dataPath = "/";
+        ResolvedDataDir = dataPath;
+        UiData.DataPath = flIni.DataPath;
+        //TODO: Fix to work with custom game
+        UiData.NavmapIcons = new NavmapIcons();
+        UiData.OpenFolder(XmlFolder);
 
-        public Infocard TestingInfocard;
-        public Infocard ShipInfocard;
-        private MainWindow window;
-        public Project(MainWindow window)
+        try
         {
-            this.window = window;
+            var navbarIni = new BaseNavBarIni(dataPath, UiData.FileSystem);
+            UiData.NavbarIcons = navbarIni.Navbar;
+        }
+        catch (Exception)
+        {
+            UiData.NavbarIcons = null;
         }
 
-        IDictionary<string, string> ProjectVariables()
+        try
         {
-            var variables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var v in window.Variables)
-                variables[v.Key] = v.Value;
-            variables["ProjectFolder"] = XmlFolder;
-            return variables;
-        }
-
-        public string ResolvedDataDir { get; private set; }
-
-
-        void Load()
-        {
-            UiData.FlDirectory = FlFolder;
-            UiData.FileSystem = FileSystem.FromPath(FlFolder);
-            UiData.ResourceManager = new GameResourceManager(window, UiData.FileSystem);
-            UiData.Fonts = window.Fonts;
-            var flIni = new FreelancerIni(UiData.FileSystem);
-            var dataPath = "/";
-            ResolvedDataDir = dataPath;
-            UiData.DataPath = flIni.DataPath;
-            //TODO: Fix to work with custom game
-            UiData.NavmapIcons = new NavmapIcons();
-            UiData.OpenFolder(XmlFolder);
-
-            try
+            var hud = new HudIni();
+            hud.AddIni(flIni.HudPath!, UiData.FileSystem);
+            var maneuvers = new List<Maneuver>();
+            foreach (var m in hud.Maneuvers)
             {
-                var navbarIni = new BaseNavBarIni(dataPath, UiData.FileSystem);
-                UiData.NavbarIcons = navbarIni.Navbar;
-            }
-            catch (Exception)
-            {
-                UiData.NavbarIcons = null;
-            }
-
-            try
-            {
-                var hud = new HudIni();
-                hud.AddIni(flIni.HudPath, UiData.FileSystem);
-                var maneuvers = new List<Maneuver>();
-                foreach (var m in hud.Maneuvers)
+                maneuvers.Add(new Maneuver()
                 {
-                    maneuvers.Add(new Maneuver()
-                    {
-                        Action = m.Action,
-                        ActiveModel = m.ActiveModel,
-                        InactiveModel = m.InactiveModel
-                    });
-                }
-                window.TestApi.ManeuverData = maneuvers.ToArray();
+                    Action = m.Action,
+                    ActiveModel = m.ActiveModel,
+                    InactiveModel = m.InactiveModel
+                });
             }
-            catch (Exception)
-            {
-                window.TestApi.ManeuverData = null;
-            }
-
-            UiData.Infocards = new InfocardManager(flIni.Resources);
-            XmlLoader = new UiXmlLoader(UiData.Resources);
-            try
-            {
-                UiData.Stylesheet = (Stylesheet)XmlLoader.FromString(UiData.ReadAllText("stylesheet.xml"), null);
-            }
-            catch (Exception)
-            {
-            }
-            window.Fonts.LoadFontsFromIni(flIni, window.RenderContext, UiData.FileSystem);
-            //unioners infocard
-            var im = new InfocardManager(flIni.Resources);
-            TestingInfocard = RDLParse.Parse(im.GetXmlResource(65546), window.Fonts);
-            ShipInfocard = RDLParse.Parse(im.GetXmlResource(66598), window.Fonts);
+            window.TestApi.ManeuverData = maneuvers.ToArray();
         }
-
-        public bool Open(string projectpath)
+        catch (Exception)
         {
-            UiData = new UiData();
-            XmlFolder = Path.GetDirectoryName(projectpath);
-            ProjectFile = projectpath;
-            Configuration = ProjectConfiguration.Read(projectpath);
-            if (!Directory.Exists(FlFolder))
-                return false;
-            Load();
-            return true;
+            window.TestApi.ManeuverData = null;
         }
 
-        public void Create(string folder, string projectpath)
+        UiData.Infocards = new InfocardManager(flIni.Resources);
+        XmlLoader = new UiXmlLoader(UiData.Resources);
+        try
         {
-            UiData = new UiData();
-            UiData.NavmapIcons = new NavmapIcons();
-            XmlFolder = Path.GetDirectoryName(projectpath);
-            WriteBlankFiles();
-            ProjectFile = projectpath;
-            Configuration = new ProjectConfiguration();
-            Configuration.DataFolder = folder;
-            Configuration.Write(projectpath);
-            Load();
+            UiData.Stylesheet = (Stylesheet)XmlLoader.FromString(UiData.ReadAllText("stylesheet.xml"), null);
         }
-
-        public void WriteResources() => File.WriteAllText(Path.Combine(XmlFolder, "resources.xml"), UiData.Resources.ToXml());
-
-        void WriteBlankFiles()
+        catch (Exception)
         {
-            var resources = new InterfaceResources();
-            File.WriteAllText(Path.Combine(XmlFolder, "resources.xml"), resources.ToXml());
-            File.WriteAllText(Path.Combine(XmlFolder, "stylesheet.xml"), "<Stylesheet></Stylesheet>");
         }
+        window.Fonts.LoadFontsFromIni(flIni, window.RenderContext, UiData.FileSystem);
+        //unioners infocard
+        var im = new InfocardManager(flIni.Resources);
+        TestingInfocard = RDLParse.Parse(im.GetXmlResource(65546), window.Fonts);
+        ShipInfocard = RDLParse.Parse(im.GetXmlResource(66598), window.Fonts);
+    }
+
+    public bool Open(string projectpath)
+    {
+        UiData = new UiData();
+        XmlFolder = Path.GetDirectoryName(projectpath)!;
+        ProjectFile = projectpath;
+        Configuration = ProjectConfiguration.Read(projectpath);
+        if (!Directory.Exists(FlFolder))
+            return false;
+        Load();
+        return true;
+    }
+
+    public void Create(string folder, string projectpath)
+    {
+        UiData = new UiData();
+        UiData.NavmapIcons = new NavmapIcons();
+        XmlFolder = Path.GetDirectoryName(projectpath)!;
+        WriteBlankFiles();
+        ProjectFile = projectpath;
+        Configuration = new ProjectConfiguration();
+        Configuration.DataFolder = folder;
+        Configuration.Write(projectpath);
+        Load();
+    }
+
+    public void WriteResources() => File.WriteAllText(Path.Combine(XmlFolder, "resources.xml"), UiData.Resources.ToXml());
+
+    private void WriteBlankFiles()
+    {
+        var resources = new InterfaceResources();
+        File.WriteAllText(Path.Combine(XmlFolder, "resources.xml"), resources.ToXml());
+        File.WriteAllText(Path.Combine(XmlFolder, "stylesheet.xml"), "<Stylesheet></Stylesheet>");
     }
 }

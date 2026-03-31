@@ -5,20 +5,18 @@
 using System;
 using LibreLancer;
 
-namespace InterfaceEdit
-{
-    class MainClass
-    {
+namespace InterfaceEdit;
 
-        [STAThread]
-        public static void Main(string[] args)
+internal class MainClass
+{
+    [STAThread]
+    public static void Main(string[] args)
+    {
+        MainWindow? mw = null;
+        AppHandler.Run(() =>
         {
-            MainWindow mw = null;
-            AppHandler.Run(() =>
-            {
-                mw = new MainWindow();
-                mw.Run();
-            }, () => mw.Crashed());
-        }
+            mw = new MainWindow();
+            mw.Run();
+        }, () => mw?.Crashed());
     }
 }
