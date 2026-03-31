@@ -11,7 +11,6 @@ using ImGuiNET;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
-using ResourceType = LibreLancer.ContentEdit.EditableInfocardManager.ResourceType;
 using LibreLancer.Graphics.Text;
 using LibreLancer.ImUI;
 using LibreLancer.Infocards;
@@ -20,6 +19,8 @@ namespace LancerEdit.GameContent;
 
 public class InfocardBrowserTab : GameContentTab
 {
+    public readonly EditableInfocardManager Manager;
+
     private readonly Infocard blankInfocard = new()
     {
         Nodes = new List<RichTextNode>(new[] {new RichTextTextNode {FontName = "Arial", FontSize = 12, Contents = ""}})
@@ -35,7 +36,6 @@ public class InfocardBrowserTab : GameContentTab
     private int id;
     private int[] infocardsIds;
     private bool isSearchInfocards;
-    private readonly EditableInfocardManager manager;
 
     private bool showStrings = true;
 
@@ -52,16 +52,17 @@ public class InfocardBrowserTab : GameContentTab
     {
         this.win = win;
         fonts = gameData.Fonts;
-        manager = gameData.Infocards;
+        Manager = gameData.Infocards;
         ResetListContent();
         Title = "Infocard Browser";
         display = new InfocardControl(win, blankInfocard, 100);
+        SaveStrategy = new InfocardSaveStrategy(this);
     }
 
     void ResetListContent()
     {
-        stringsIds = manager.StringIds.ToArray();
-        infocardsIds = manager.InfocardIds.ToArray();
+        stringsIds = Manager.StringIds.ToArray();
+        infocardsIds = Manager.InfocardIds.ToArray();
     }
 
     private void GotoString()
@@ -82,7 +83,7 @@ public class InfocardBrowserTab : GameContentTab
             {
                 gotoItem = i;
                 currentInfocard = i;
-                currentXml = manager.GetXmlResource(infocardsIds[currentInfocard]);
+                currentXml = Manager.GetXmlResource(infocardsIds[currentInfocard]);
                 DisplayInfoXml();
             }
     }
@@ -95,7 +96,7 @@ public class InfocardBrowserTab : GameContentTab
             return;
         }
 
-        display.SetInfocard(RDLParse.Parse(manager.GetXmlResource(infocardsIds[currentInfocard]), fonts));
+        display.SetInfocard(RDLParse.Parse(Manager.GetXmlResource(infocardsIds[currentInfocard]), fonts));
     }
 
     private void DisplayInfoString()
@@ -106,7 +107,7 @@ public class InfocardBrowserTab : GameContentTab
             return;
         }
 
-        var str = manager.GetStringResource(stringsIds[currentString]);
+        var str = Manager.GetStringResource(stringsIds[currentString]);
         if (string.IsNullOrWhiteSpace(str))
         {
             display.SetInfocard(blankInfocard);
@@ -171,13 +172,13 @@ public class InfocardBrowserTab : GameContentTab
         if (ImGui.Button("Search..."))
         {
             if (showStrings)
-                popups.OpenPopup(IdsSearch.SearchStrings(manager, fonts, win, x =>
+                popups.OpenPopup(IdsSearch.SearchStrings(Manager, fonts, win, x =>
                 {
                     id = x;
                     GotoString();
                 }));
             else
-                popups.OpenPopup(IdsSearch.SearchInfocards(manager, fonts, win, x =>
+                popups.OpenPopup(IdsSearch.SearchInfocards(Manager, fonts, win, x =>
                 {
                     id = x;
                     GotoInfocard();
@@ -187,7 +188,7 @@ public class InfocardBrowserTab : GameContentTab
         ImGui.SameLine();
         if (ImGui.Button("Add"))
         {
-            popups.OpenPopup(new Popups.AddIdsPopup(manager, win, !showStrings, (newId) =>
+            popups.OpenPopup(new Popups.AddIdsPopup(Manager, win, !showStrings, (newId) =>
             {
                 id = newId;
                 ResetListContent();
@@ -199,12 +200,8 @@ public class InfocardBrowserTab : GameContentTab
         }
 
         ImGui.SameLine();
-        if (ImGuiExt.Button("Save", manager.Dirty))
-            manager.Save();
-
-        ImGui.SameLine();
-        if (ImGuiExt.Button("Clear Changes", manager.Dirty)) {
-            manager.Reset();
+        if (ImGuiExt.Button("Clear Changes", Manager.Dirty)) {
+            Manager.Reset();
             ResetListContent();
         }
 
@@ -216,9 +213,9 @@ public class InfocardBrowserTab : GameContentTab
             if (ImGui.Begin("Dll List", ref showDllList))
             {
                 ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
-                for (int i = 0; i < manager.Dlls.Count; i++)
+                for (int i = 0; i < Manager.Dlls.Count; i++)
                 {
-                    ImGui.Text($"{i * 65536} - {i * 65536 + 65535}: {Path.GetFileName(manager.Dlls[i].SavePath)}");
+                    ImGui.Text($"{i * 65536} - {i * 65536 + 65535}: {Path.GetFileName(Manager.Dlls[i].SavePath)}");
                 }
                 ImGui.PopFont();
             }
@@ -265,7 +262,7 @@ public class InfocardBrowserTab : GameContentTab
                         if (ImGui.Selectable(infocardsIds[i] + "##" + i, currentInfocard == i))
                         {
                             currentInfocard = i;
-                            currentXml = manager.GetXmlResource(infocardsIds[currentInfocard]);
+                            currentXml = Manager.GetXmlResource(infocardsIds[currentInfocard]);
                             DisplayInfoXml();
                         }
 
@@ -293,7 +290,7 @@ public class InfocardBrowserTab : GameContentTab
                 ImGui.Text(stringsIds[currentString].ToString());
                 ImGui.SameLine();
                 if (ImGui.Button("Copy Text"))
-                    win.SetClipboardText(manager.GetStringResource(stringsIds[currentString]));
+                    win.SetClipboardText(Manager.GetStringResource(stringsIds[currentString]));
                 ImGui.SameLine();
                 if (ImGui.Button("Edit"))
                 {
@@ -321,7 +318,7 @@ public class InfocardBrowserTab : GameContentTab
                 if (ImGui.Button("Edit"))
                 {
                     xmlEditIds = infocardsIds[currentInfocard];
-                    xmlEditText = XmlFormatter.Prettify(manager.GetXmlResource(infocardsIds[currentInfocard]));
+                    xmlEditText = XmlFormatter.Prettify(Manager.GetXmlResource(infocardsIds[currentInfocard]));
                     editingXml = true;
                 }
                 ImGui.SameLine();
@@ -339,7 +336,7 @@ public class InfocardBrowserTab : GameContentTab
         win.Confirm($"Delete {strid}?", () =>
         {
             currentString = -1;
-            manager.RemoveStringResource(strid);
+            Manager.RemoveStringResource(strid);
             ResetListContent();
         });
     }
@@ -349,7 +346,7 @@ public class InfocardBrowserTab : GameContentTab
         win.Confirm($"Delete {ifc}?", () =>
         {
             currentInfocard = -1;
-            manager.RemoveXmlResource(ifc);
+            Manager.RemoveXmlResource(ifc);
             ResetListContent();
         });
     }
@@ -366,7 +363,7 @@ public class InfocardBrowserTab : GameContentTab
         ImGui.Text($"Editing: {xmlEditIds}");
         if (ImGui.Button("Save"))
         {
-            manager.SetXmlResource(xmlEditIds, XmlFormatter.Minimize(xmlEditText));
+            Manager.SetXmlResource(xmlEditIds, XmlFormatter.Minimize(xmlEditText));
             DisplayInfoXml();
             editingXml = false;
         }
@@ -417,7 +414,7 @@ public class InfocardBrowserTab : GameContentTab
         {
             this.ids = ids;
             this.tab = tab;
-            text = tab.manager.GetStringResource(ids);
+            text = tab.Manager.GetStringResource(ids);
         }
 
         public override void Draw(bool appearing)
@@ -427,7 +424,7 @@ public class InfocardBrowserTab : GameContentTab
             ImGui.InputTextMultiline("##new_text", ref text, ushort.MaxValue, Vector2.Zero);
             if (ImGui.Button("Save"))
             {
-                tab.manager.SetStringResource(ids, text);
+                tab.Manager.SetStringResource(ids, text);
                 tab.DisplayInfoString();
                 ImGui.CloseCurrentPopup();
             }
