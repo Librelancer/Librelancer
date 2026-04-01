@@ -27,11 +27,11 @@ public class VignetteTree
     {
         // Construct tree from VignetteParamsIni
         var tree = new VignetteTree();
-
         HashSet<int> unreferenced = [];
         // Construct nodes
         int newId = 0;
-        foreach (var n in vparams.Nodes) {
+        foreach (var n in vparams.Nodes)
+        {
             if (n is DecisionNode dec)
             {
                 tree.Nodes[n.NodeId] = new AstDecision(n.NodeId, dec);
@@ -208,8 +208,8 @@ public class AstDecision(int id, DecisionNode decision) : VignetteAst(id)
 {
     public DecisionNode Decision = decision;
 
-    public string[] GroupA = [];
-    public string[] GroupB = [];
+    public string[]? GroupA;
+    public string[]? GroupB;
 
     public override string ToString() => $"{id}: {Decision?.Nickname}";
 }
