@@ -77,40 +77,28 @@ namespace LibreLancer.Render
         private int GetLevel(RigidModelPart file, Vector3 center, Vector3 camera)
         {
             var ranges = LODRanges ?? file.Mesh?.Switch2;
-            var dsq = Vector3.DistanceSquared(center, camera);
-
-            if (ranges == null)
-            {
-                CurrentLevel = 0;
+            if (ranges == null || ranges.Length == 0)
                 return 0;
-            }
 
-            var lvl = -1;
+            float dsq = Vector3.DistanceSquared(center, camera);
+            float mul = sysr?.Settings.LodMultiplier ?? 1f;
+            float mulSq = mul * mul;
 
-            for (var i = 0; i < ranges.Length; i++)
+            for (int i = ranges.Length - 1; i >= 0; i--)
             {
-                var d = ranges[i];
+                float r = ranges[i];
+                float rSq = r * r * mulSq;
 
-                if (i > 0 && ranges[i] < ranges[i - 1])
+                if (dsq >= rSq)
                 {
-                    break;
-                }
+                    if (i == ranges.Length - 1)
+                        return -1;
 
-                if (dsq < (d * sysr?.Settings.LodMultiplier) * (d * sysr?.Settings.LodMultiplier))
-                {
-                    break;
+                    return i;
                 }
-
-                if (i >= file.Mesh?.Levels?.Length)
-                {
-                    CurrentLevel = -1;
-                    return -1;
-                }
-
-                CurrentLevel = lvl = i;
             }
 
-            return lvl;
+            return 0;
         }
 
         public override bool OutOfView(ICamera camera)
