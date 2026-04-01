@@ -9,6 +9,7 @@ Welcome to the documentation for LancerEdit $(VERSION).
 - [Hardpoint Editor](modeltab.md#editing-hardpoints)
 
 ### Tools
+- [FRC Compiler](frc.md)
 - [Generating .3db icons](genicons.md)
 
 ### Scripting
