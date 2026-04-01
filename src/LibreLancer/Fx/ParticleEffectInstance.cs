@@ -47,6 +47,16 @@ namespace LibreLancer.Fx
 
         public ParticleBuffer Buffer;
 
+        public int CountAll()
+        {
+            int total = 0;
+            for (var i = 0; i < Effect.Appearances.Count; i++)
+            {
+                total += Buffer.GetCount(i);
+            }
+            return total;
+        }
+
         public bool IsFinished()
         {
             for (var i = 0; i < Emitters.Length; i++)

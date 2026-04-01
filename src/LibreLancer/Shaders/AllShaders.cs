@@ -24,6 +24,7 @@ public static class AllShaders
     public static ShaderBundle NebulaMaterial = null!;
     public static ShaderBundle Nomad = null!;
     public static ShaderBundle Particle = null!;
+    public static ShaderBundle ParticleBeam = null!;
     public static ShaderBundle PBR = null!;
     public static ShaderBundle PhysicsDebug = null!;
     public static ShaderBundle Sprite = null!;
@@ -67,6 +68,7 @@ public static class AllShaders
         NebulaMaterial ??= Compile(context, "NebulaMaterial");
         Nomad ??= Compile(context, "Nomad");
         Particle ??= Compile(context, "Particle");
+        ParticleBeam ??= Compile(context, "ParticleBeam");
         PBR ??= Compile(context, "PBR");
         PhysicsDebug ??= Compile(context, "PhysicsDebug");
         Sprite ??= Compile(context, "Sprite");

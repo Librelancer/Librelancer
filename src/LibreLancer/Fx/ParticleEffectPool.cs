@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
@@ -29,6 +30,18 @@ namespace LibreLancer.Fx
             public Vector2 HalfSize;
             // Padding After
         }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1, Size = PARTICLE_SIZE)]
+        struct BeamData
+        {
+            public Vector3 Position;
+            private float padding;
+            public Vector3 Normal;
+            public float HalfSize;
+            public Vector4 TextureCoordinates;
+            public Color4 Color;
+        }
+
         public const int MaxParticles = 30_000;
 
         private VertexBuffer vbo;
@@ -37,11 +50,10 @@ namespace LibreLancer.Fx
         private CommandBuffer cmd;
 
         private ParticleMaterial particleMaterial;
+        private ParticleBeamMaterial beamMaterial;
 
         private ICamera camera = null!;
         public ICamera Camera => camera;
-        public PolylineRender Lines = null!;
-
 
         public ParticleEffectPool(RenderContext context, CommandBuffer commands)
         {
@@ -51,17 +63,15 @@ namespace LibreLancer.Fx
             sbo = new StorageBuffer(context, MaxParticles * PARTICLE_SIZE,
                 PARTICLE_SIZE, typeof(ParticleData), true);
             particleMaterial = new(sbo);
+            beamMaterial = new(sbo);
         }
 
-
-
-        public void StartFrame(ICamera camera, PolylineRender lines)
+        public void StartFrame(ICamera camera)
         {
             this.camera = camera;
-            Lines = lines;
-            lines.StartFrame();
             sbo.BeginStreaming();
             particleMaterial.Parameters.Clear();
+            beamMaterial.Parameters.Clear();
             lastDrawCommand = nextParticle = 0;
         }
 
@@ -98,6 +108,69 @@ namespace LibreLancer.Fx
                 TextureCoordinates = new(left,top,right,bottom),
                 HalfSize = size * 0.5f
             };
+        }
+
+        ref BeamData Beam(int index) => ref Unsafe.As<ParticleData, BeamData>(ref sbo.Data<ParticleData>(index));
+
+        public void AddBeamPoint(
+            Vector3 position,
+            Vector3 forward,
+            float halfSize,
+            Vector4 textureCoordinates,
+            Color4 color
+        )
+        {
+            Beam(nextParticle++) = new()
+            {
+                Position = position,
+                Normal = forward,
+                HalfSize = halfSize,
+                TextureCoordinates = textureCoordinates,
+                Color = color
+            };
+        }
+
+        public void DrawBeamBuffer(Texture texture, ushort blendInfo, float z)
+        {
+            int start = lastDrawCommand;
+            int count = nextParticle - lastDrawCommand;
+
+            if (count > 256)
+            {
+                throw new InvalidOperationException("256-limit for FLBeamAppearance exceeded (should never happen)");
+            }
+
+            var triCount = (count - 1) * 2;
+            if (triCount == 0)
+            {
+                if (nextParticle != MaxParticles)
+                {
+                    nextParticle = sbo.GetAlignedIndex(nextParticle);
+                }
+                lastDrawCommand = nextParticle;
+                return;
+            }
+            // Section one
+            cmd.AddCommand(
+                beamMaterial, null,
+                cmd.WorldBuffer.Identity, Lighting.Empty,
+                vbo, PrimitiveTypes.TriangleStrip, -1, 0, triCount,
+                SortLayers.OBJECT, z, null, 0,
+                beamMaterial.AddParameters(texture, blendInfo, false, start, count)
+            );
+            // Rotated section
+            cmd.AddCommand(
+                beamMaterial, null,
+                cmd.WorldBuffer.Identity, Lighting.Empty,
+                vbo, PrimitiveTypes.TriangleStrip, -1, 0, triCount,
+                SortLayers.OBJECT, z, null, 1,
+                beamMaterial.AddParameters(texture, blendInfo, true, start, count)
+            );
+            if (nextParticle != MaxParticles)
+            {
+                nextParticle = sbo.GetAlignedIndex(nextParticle);
+            }
+            lastDrawCommand = nextParticle;
         }
 
 
@@ -139,7 +212,6 @@ namespace LibreLancer.Fx
 
         public void EndFrame()
         {
-            Lines.EndFrame();
             sbo.EndStreaming(lastDrawCommand);
         }
 

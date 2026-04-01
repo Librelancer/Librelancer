@@ -27,7 +27,6 @@ namespace LancerEdit
         Viewport3D aleViewport;
         RenderContext rstate;
         CommandBuffer buffer;
-        PolylineRender polyline;
         LineRenderer debug;
         ParticleEffectPool pool;
         ResourceManager res;
@@ -84,7 +83,6 @@ namespace LancerEdit
             aleViewport.ResetControls();
             aleViewport.Draw3D = DrawGL;
             buffer = main.Commands;
-            polyline = main.Polyline;
             debug = main.LineRenderer;
             layout = new VerticalTabLayout(DrawLeft, DrawRight, DrawMiddle);
             layout.TabsLeft.Add(new(Icons.Tree, "Nodes", 0));
@@ -171,7 +169,7 @@ alchemy = FILE_PATH_HERE
                 OnChanged();
             }
             ImGui.SameLine();
-            ImGui.Text(string.Format("T: {0:0.000}", instance.GlobalTime));
+            ImGui.Text($"T: {instance.GlobalTime:0.000}, Particle Count: {instance.CountAll()}");
         }
 
 
@@ -539,7 +537,7 @@ alchemy = FILE_PATH_HERE
             rstate.SetCamera(cam);
             buffer.StartFrame(rstate);
             debug.StartFrame(rstate);
-            pool.StartFrame(cam, polyline);
+            pool.StartFrame(cam);
             instance.Draw(transform, sparam);
             pool.EndFrame();
             buffer.DrawOpaque(rstate);

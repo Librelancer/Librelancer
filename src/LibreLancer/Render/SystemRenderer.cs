@@ -344,7 +344,8 @@ namespace LibreLancer.Render
 
             DebugRenderer.StartFrame(rstate);
             Commands.StartFrame(rstate);
-            FxPool.StartFrame(camera, Polyline);
+            FxPool.StartFrame(camera);
+            Polyline.StartFrame();
             rstate.DepthEnabled = true;
             // Optimisation for dictionary lookups
             LightEquipRenderer.FrameStart();
@@ -387,6 +388,7 @@ namespace LibreLancer.Render
 
             billboards.End();
             FxPool.EndFrame();
+            Polyline.EndFrame();
             // Opaque Pass
             rstate.DepthEnabled = true;
             Commands.DrawOpaque(rstate);

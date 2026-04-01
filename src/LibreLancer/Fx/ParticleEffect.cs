@@ -148,6 +148,16 @@ namespace LibreLancer.Fx
                 }
             }
 
+            // Beams can have a max of 256 particles
+            for (int i = 0; i < Appearances.Count; i++)
+            {
+                if (Appearances[i].Node is not FLBeamAppearance)
+                    continue;
+                if (ParticleCounts[i] > 256)
+                    ParticleCounts[i] = 256;
+            }
+
+
             Radius = radius;
         }
 

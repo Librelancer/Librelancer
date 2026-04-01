@@ -3,7 +3,6 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
@@ -13,7 +12,7 @@ namespace LibreLancer.Render
 {
 	public unsafe class PolylineRender : IDisposable
 	{
-        private const int MAX_VERTICES = 32768;
+        private const int MAX_VERTICES = 16384;
 
         private VertexPositionColorTexture* vertices;
         private VertexBuffer vbo;
@@ -32,58 +31,10 @@ namespace LibreLancer.Render
             vertices = (VertexPositionColorTexture*)vbo.BeginStreaming();
         }
 
-        public void StartLine(Texture2D tex, ushort blend)
-		{
-			if (pointsCount != 0)
-				throw new Exception("Polyline bad state");
-			texture = tex;
-			this.blend = blend;
-		}
-
         private ushort blend;
         private Texture2D texture = null!;
         private int vertexCount = 0;
         private int pointsCount = 0;
-		public void AddPoint(Vector3 a, Vector3 b, Vector2 uv1, Vector2 uv2, Color4 color)
-        {
-            if (vertices == (VertexPositionColorTexture*) 0)
-                throw new InvalidOperationException();
-			vertices[vertexCount++] = new VertexPositionColorTexture(
-				a,
-				color,
-				uv1);
-			vertices[vertexCount++] = new VertexPositionColorTexture(
-				b,
-				color,
-				uv2
-			);
-			pointsCount++;
-		}
-
-		public void FinishLine(float z)
-		{
-			if (pointsCount < 2)
-			{
-				vertexCount -= pointsCount * 2;
-				pointsCount = 0;
-				return;
-			}
-
-			var startPos = vertexCount - (pointsCount * 2);
-
-			buffer.AddCommand(
-                material, null, buffer.WorldBuffer.Identity, Lighting.Empty,
-				vbo,
-				PrimitiveTypes.TriangleStrip,
-                -1,
-				startPos,
-				(pointsCount - 1) * 2,
-				SortLayers.OBJECT,
-				z, null, 0, material.Parameters.Count
-			);
-            material.Parameters.Add((texture, blend));
-			pointsCount = 0;
-		}
 
         public void StartQuadLine(Texture2D tex, ushort blend)
         {

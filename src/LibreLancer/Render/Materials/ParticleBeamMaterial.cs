@@ -5,31 +5,25 @@ using LibreLancer.Shaders;
 
 namespace LibreLancer.Render.Materials;
 
-public enum ParticleDrawKind
-{
-    Basic,
-    Rect,
-    Perp
-}
 
-public class ParticleMaterial(StorageBuffer buffer) : RenderMaterial(null)
+public class ParticleBeamMaterial(StorageBuffer buffer) : RenderMaterial(null)
 {
-    public List<(Texture texture, ushort blendMode, ParticleDrawKind drawKind, int drawStart, int drawCount)> Parameters = [];
+    public List<(Texture texture, ushort blendMode, bool rotate, int drawStart, int drawCount)> Parameters = [];
 
     public StorageBuffer Buffer = buffer;
 
 
-    public int AddParameters(Texture texture, ushort blendMode, ParticleDrawKind drawKind, int drawStart, int drawCount)
+    public int AddParameters(Texture texture, ushort blendMode, bool rotate, int drawStart, int drawCount)
     {
-        Parameters.Add((texture, blendMode, drawKind, drawStart, drawCount));
+        Parameters.Add((texture, blendMode, rotate, drawStart, drawCount));
         return Parameters.Count - 1;
     }
 
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
-        var shader = AllShaders.Particle.Get(0);
+        var shader = AllShaders.ParticleBeam.Get(0);
         Parameters[userData].texture.BindTo(0);
-        var dk = Parameters[userData].drawKind;
+        int dk = Parameters[userData].rotate ? 1 : 0;
         shader.SetUniformBlock(3, ref dk);
         rstate.BlendMode = Parameters[userData].blendMode;
         rstate.Shader = shader;

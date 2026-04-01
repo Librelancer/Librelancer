@@ -65,5 +65,6 @@
 
   <ItemGroup>
     <ClCompile Include="Shaders\Particle.vert.hlsl" />
+    <ClCompile Include="Shaders\ParticleBeam.vert.hlsl" />
   </ItemGroup>
 </Project>
