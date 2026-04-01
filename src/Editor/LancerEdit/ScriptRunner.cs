@@ -283,14 +283,16 @@ namespace LancerEdit
             proc.BeginOutputReadLine();
             if (arguments.Count > 0)
             {
-                proc.StandardInput.Write(arguments[0].GetValue());
-                for (int i = 1; i < arguments.Count; i++)
+                int written = 0;
+                for (int i = 0; i < arguments.Count; i++)
                 {
                     var v = arguments[i].GetValue();
                     if (!string.IsNullOrEmpty(v))
                     {
-                        proc.StandardInput.WriteLine();
+                        if(written > 0)
+                            proc.StandardInput.WriteLine();
                         proc.StandardInput.Write(v);
+                        written++;
                     }
                 }
                 proc.StandardInput.Close();
