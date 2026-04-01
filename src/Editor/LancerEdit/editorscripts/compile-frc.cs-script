@@ -35,7 +35,7 @@ using System.Linq;
 using LibreLancer.ContentEdit.Frc;
 using LibreLancer.ContentEdit.RandomMissions;
 
-ScriptUsage(@"input output [-d] [index=int]
+ScriptUsage(@"input output [-d] [--index=int]
 If -d is specified, input and output must be directories, otherwise they will be an frc file and dll file respectively
 If index is specified extra checks will be added to ensure that absolute numbers match the specifed index");
 
