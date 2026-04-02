@@ -11,6 +11,11 @@ struct Input
     float3 V : TEXCOORD2;
 };
 
+cbuffer MaterialParameters : register(b3, UNIFORM_SPACE)
+{
+    float Oc;
+};
+
 float4 main(Input input) : SV_Target0
 {
     float ratio = (dot(normalize(input.V), normalize(input.N)) + 1.0) / 2.0;
@@ -19,5 +24,5 @@ float4 main(Input input) : SV_Target0
     float4 nt = NtTexture.Sample(NtSampler, float2(ratio, 0.0));
     float4 dt = DtTexture.Sample(DtSampler, input.texCoord);
 
-    return float4(dt.rgb + nt.rgb, dt.a * nt.a);
+    return float4(dt.rgb + nt.rgb, dt.a * nt.a * Oc);
 }

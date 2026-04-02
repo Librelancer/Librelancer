@@ -163,7 +163,7 @@ namespace LibreLancer.Render
             if (vertexCountSpear > 0)
             {
                 commands.AddCommand(material, null, commands.WorldBuffer.Identity, Lighting.Empty,
-                    bufferSpear,
+                    bufferSpear, 1.0f,
                     PrimitiveTypes.TriangleList, 0, 0, spearCount * (spearIndices.Length / 3), SortLayers.OBJECT);
                 spearCount = 0;
                 vertexCountSpear = 0;
@@ -171,7 +171,7 @@ namespace LibreLancer.Render
             if (boltCount > 0)
             {
                 commands.AddCommand(material, null, commands.WorldBuffer.Identity, Lighting.Empty,
-                    bufferBolt,
+                    bufferBolt, 1.0f,
                     PrimitiveTypes.TriangleList, 0, 0, boltCount * (boltIndices.Length / 3),SortLayers.OBJECT);
                 vertexCountBolt = 0;
                 boltCount = 0;

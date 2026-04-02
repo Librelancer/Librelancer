@@ -160,7 +160,7 @@ namespace LibreLancer.Render
                 centerMaterial.SizeMultiplier = new Vector2(distScale);
                 centerMaterial.OuterAlpha = alpha;
                 commands.AddCommand(centerMaterial, null, commands.WorldBuffer.Identity,
-                    Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,
+                    Lighting.Empty, sysr.QuadBuffer.VertexBuffer, 1.0f, PrimitiveTypes.TriangleList,
                     0, idx, 2, SortLayers.SUN, z);
                 idx += 6;
             }
@@ -168,7 +168,7 @@ namespace LibreLancer.Render
             glowMaterial.SizeMultiplier = new Vector2(distScale);
             glowMaterial.OuterAlpha = alpha;
             commands.AddCommand(glowMaterial, null, commands.WorldBuffer.Identity,
-                Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,
+                Lighting.Empty, sysr.QuadBuffer.VertexBuffer, 1.0f, PrimitiveTypes.TriangleList,
                 0, idx, 2, SortLayers.SUN, z, null, 1);
             // next
             idx += 6;
@@ -176,7 +176,7 @@ namespace LibreLancer.Render
             if (Sun is { SpinesSprite: not null, Spines.Count: > 0 } && nr == null)
             {
                 commands.AddCommand(spineMaterial, null, commands.WorldBuffer.Identity,
-                    Lighting.Empty, sysr.QuadBuffer.VertexBuffer, PrimitiveTypes.TriangleList,
+                    Lighting.Empty, sysr.QuadBuffer.VertexBuffer, 1.0f, PrimitiveTypes.TriangleList,
                     0, idx, 2 * Sun.Spines.Count, SortLayers.SUN, z, null, 2);
             }
         }

@@ -177,6 +177,11 @@ namespace LibreLancer.Server
             obj.AddComponent(new WeaponControlComponent(obj));
             obj.AddComponent(new SDestroyableComponent(obj, World));
             obj.AddComponent(new DirectiveRunnerComponent(obj));
+            // NPCs spawn already cloaked
+            if (obj.TryGetComponent<CloakComponent>(out var cloak))
+            {
+                cloak.SetInitCloaked();
+            }
             World.OnNPCSpawn(obj);
             if (sdock != null)
             {
@@ -187,7 +192,6 @@ namespace LibreLancer.Server
             {
                 missionNPCs[nickname] = obj;
             }
-
             return obj;
         }
     }

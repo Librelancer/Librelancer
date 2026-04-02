@@ -362,6 +362,7 @@ namespace LibreLancer.Render
                                     buffer.WorldBuffer.SubmitMatrix(ref cubes[j].tr),
                                     lt,
                                     cubeMesh.VertexBuffer,
+                                    1.0f,
                                     PrimitiveTypes.TriangleList,
                                     dc.BaseVertex,
                                     dc.StartIndex,
@@ -449,7 +450,7 @@ namespace LibreLancer.Render
                     if (lt.FogMode != FogModes.Linear || Vector3.DistanceSquared(cameraPos, p) <=
                         (lightingRadius + lt.FogRange.Y) * (lightingRadius + lt.FogRange.Y))
                     {
-                        buffer.AddCommand(bandMaterial, null, bandHandle, lt, bandCylinder.VertexBuffer,
+                        buffer.AddCommand(bandMaterial, null, bandHandle, lt, bandCylinder.VertexBuffer, 1.0f,
                             PrimitiveTypes.TriangleList, 0, i * 6, 2, SortLayers.OBJECT, zcoord);
                     }
                 }

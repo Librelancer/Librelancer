@@ -43,6 +43,7 @@ namespace LibreLancer.Render
         }
 
         public int LightGroup = 0;
+        public float OpacityMultiplier = 1;
 
 		public virtual bool OutOfView(ICamera camera)
 		{

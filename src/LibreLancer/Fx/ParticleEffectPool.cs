@@ -154,7 +154,7 @@ namespace LibreLancer.Fx
             cmd.AddCommand(
                 beamMaterial, null,
                 cmd.WorldBuffer.Identity, Lighting.Empty,
-                vbo, PrimitiveTypes.TriangleStrip, -1, 0, triCount,
+                vbo, 1.0f, PrimitiveTypes.TriangleStrip, -1, 0, triCount,
                 SortLayers.OBJECT, z, null, 0,
                 beamMaterial.AddParameters(texture, blendInfo, false, start, count)
             );
@@ -162,7 +162,7 @@ namespace LibreLancer.Fx
             cmd.AddCommand(
                 beamMaterial, null,
                 cmd.WorldBuffer.Identity, Lighting.Empty,
-                vbo, PrimitiveTypes.TriangleStrip, -1, 0, triCount,
+                vbo, 1.0f, PrimitiveTypes.TriangleStrip, -1, 0, triCount,
                 SortLayers.OBJECT, z, null, 1,
                 beamMaterial.AddParameters(texture, blendInfo, true, start, count)
             );
@@ -189,7 +189,7 @@ namespace LibreLancer.Fx
                 cmd.AddCommand(
                     particleMaterial, null,
                     cmd.WorldBuffer.Identity, Lighting.Empty,
-                    vbo, PrimitiveTypes.TriangleList, -1, 0, 256 * 2,
+                    vbo, 1.0f, PrimitiveTypes.TriangleList, -1, 0, 256 * 2,
                     SortLayers.OBJECT, z, null, drawIndex,
                     particleMaterial.AddParameters(texture, app.BlendInfo, drawKind, start, 256)
                 );
@@ -199,7 +199,7 @@ namespace LibreLancer.Fx
             cmd.AddCommand(
                 particleMaterial, null,
                 cmd.WorldBuffer.Identity, Lighting.Empty,
-                vbo, PrimitiveTypes.TriangleList, -1, 0, count * 2,
+                vbo, 1.0f, PrimitiveTypes.TriangleList, -1, 0, count * 2,
                 SortLayers.OBJECT, z, null, drawIndex,
                 particleMaterial.AddParameters(texture, app.BlendInfo, drawKind, start, count)
             );

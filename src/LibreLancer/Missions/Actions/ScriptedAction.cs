@@ -40,6 +40,39 @@ namespace LibreLancer.Missions.Actions
             FLLog.Warning("Missions", $"{GetType().Name}.Write() is not implemented!");
         }
 
+        protected IEnumerable<GameObject> GetObjects(string labelOrShip, MissionRuntime runtime)
+        {
+            var world = runtime.Player.Space?.World?.GameWorld;
+            if (world == null)
+            {
+                FLLog.Error("Mission", "GetObjects() called outside of space");
+                yield break;
+            }
+            if (runtime.Labels.TryGetValue(labelOrShip, out var label))
+            {
+                foreach (var s in label.Objects)
+                {
+                    GameObject? obj = world.GetObject(s);
+                    if (obj != null)
+                    {
+                        yield return obj;
+                    }
+                }
+            }
+            else
+            {
+                GameObject? obj = world.GetObject(labelOrShip);
+                if (obj != null)
+                {
+                    yield return obj;
+                }
+                else
+                {
+                    FLLog.Warning("Mission", $"Cannot find object {labelOrShip}");
+                }
+            }
+        }
+
         public static readonly TriggerActions[] Unsupported =
         [
             TriggerActions.Act_SetFlee,

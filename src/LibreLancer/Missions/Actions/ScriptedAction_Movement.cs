@@ -8,6 +8,7 @@ using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.Missions.Actions
 {
@@ -61,15 +62,19 @@ namespace LibreLancer.Missions.Actions
         {
             runtime.Player.MissionWorldAction(() =>
             {
-                var obj = runtime.Player.Space?.World.GameWorld.GetObject(Target);
-                if (obj == null)
+                var world = runtime.Player.Space!.World.GameWorld;
+                foreach (var obj in GetObjects(Target, runtime))
                 {
-                    return;
+                    FLLog.Debug("Mission", $"{obj} change cloaked to {Cloaked}");
+                    if (Cloaked)
+                    {
+                        obj.GetComponent<CloakComponent>()?.Cloak(world);
+                    }
+                    else
+                    {
+                        obj.GetComponent<CloakComponent>()?.Uncloak(world);
+                    }
                 }
-
-                FLLog.Debug("Mission", $"{obj} change cloaked to {Cloaked}");
-                if (Cloaked) obj.Flags |= GameObjectFlags.Cloaked;
-                else obj.Flags &= ~GameObjectFlags.Cloaked;
             });
         }
 

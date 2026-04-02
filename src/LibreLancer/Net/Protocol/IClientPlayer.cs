@@ -41,6 +41,8 @@ public interface IClientPlayer
     void StartTradelane();
     void TradelaneDisrupted();
     void EndTradelane();
+    void Cloak(ObjNetId ship);
+    void Uncloak(ObjNetId ship);
 
     void StartTractor(ObjNetId ship, ObjNetId target);
     void EndTractor(ObjNetId ship, ObjNetId target);

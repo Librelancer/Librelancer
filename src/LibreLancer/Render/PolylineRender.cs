@@ -112,6 +112,7 @@ namespace LibreLancer.Render
             buffer.AddCommand(
                 material, null, buffer.WorldBuffer.Identity, Lighting.Empty,
                 vbo,
+                1.0f,
                 PrimitiveTypes.TriangleList,
                 -1,
                 startPos,

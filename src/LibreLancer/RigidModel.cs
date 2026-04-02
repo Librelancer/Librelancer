@@ -91,7 +91,8 @@ namespace LibreLancer
         public float[]? Switch2;
 
         public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world,
-            ref Lighting lights, MaterialAnimCollection? mc, int userData = 0, Material? overrideMat = null)
+            ref Lighting lights, MaterialAnimCollection? mc, int userData = 0, Material? overrideMat = null,
+            float opacity = 1.0f)
         {
             if (Levels == null || Levels.Length <= level)
             {
@@ -155,6 +156,7 @@ namespace LibreLancer
                     wm,
                     lights,
                     l.Resource.VertexResource!.VertexBuffer!,
+                    opacity,
                     PrimitiveTypes.TriangleList,
                     l.Resource.VertexResource.BaseVertex + dc.BaseVertex,
                     l.Resource.VertexResource.StartIndex + dc.StartIndex,
@@ -173,7 +175,7 @@ namespace LibreLancer
         }
 
         public unsafe void DrawImmediate(int level, ResourceManager res, RenderContext renderContext, Matrix4x4 world,
-            ref Lighting lights, MaterialAnimCollection? mc, int userData = 0, Material? overrideMat = null)
+            ref Lighting lights, MaterialAnimCollection? mc, int userData = 0, Material? overrideMat = null, float opacity = 1.0f)
         {
             if (Levels == null || Levels.Length < level)
             {
@@ -231,6 +233,7 @@ namespace LibreLancer
                 handle.ID = ulong.MaxValue;
                 mat.Render.World = handle;
                 mat.Render.MaterialAnim = ma;
+                mat.Render.OpacityMultiplier = opacity;
                 mat.Render.Use(renderContext, l.Resource.VertexResource!.VertexBuffer!.VertexType, ref lights, userData);
                 l.Resource.VertexResource.VertexBuffer.Draw(
                     PrimitiveTypes.TriangleList,
@@ -444,7 +447,7 @@ namespace LibreLancer
         }
 
         public void DrawImmediate(RenderContext renderContext, ResourceManager res, Matrix4x4 world, ref Lighting lights,
-            int userData = 0, Material? overrideMat = null)
+            int userData = 0, Material? overrideMat = null, float opacity = 1.0f)
         {
             foreach (var part in AllParts)
             {
@@ -454,12 +457,12 @@ namespace LibreLancer
                 }
 
                 var w = part.LocalTransform.Matrix() * world;
-                part.Mesh!.DrawImmediate(0, res, renderContext, w, ref lights, MaterialAnims, userData, overrideMat);
+                part.Mesh!.DrawImmediate(0, res, renderContext, w, ref lights, MaterialAnims, userData, overrideMat, opacity);
             }
         }
 
         public void DrawBuffer(int level, CommandBuffer buffer, ResourceManager res, Matrix4x4 world,
-            ref Lighting lights, int userData = 0, Material? overrideMat = null)
+            ref Lighting lights, int userData = 0, Material? overrideMat = null, float opacity = 1.0f)
         {
             for (int i = 0; i < AllParts.Length; i++)
             {
@@ -467,7 +470,7 @@ namespace LibreLancer
                 {
                     var w = AllParts[i].LocalTransform.Matrix() * world;
                     AllParts[i].Mesh!.DrawBuffer(level, res, buffer, w, ref lights, MaterialAnims, userData,
-                        overrideMat);
+                        overrideMat, opacity);
                 }
             }
         }

@@ -163,7 +163,8 @@ namespace LibreLancer.Net.Protocol
         Neutral = (1 << 4),
         Important = (1 << 5),
         Loot = (1 << 6),
-        Mask = 0x7f
+        Hidden = (1 << 7),
+        Mask = 0xFF
     }
 
     public struct ObjectSpawnInfo
@@ -179,14 +180,15 @@ namespace LibreLancer.Net.Protocol
             Neutral = (1 << 4),
             Important = (1 << 5),
             Loot = (1 << 6),
+            Hidden = (1 << 7),
             // internal field != default
-            Name = (1 << 7),
-            Affiliation = (1 << 8),
-            Comm = (1 << 9),
-            Dock = (1 << 10),
-            Destroyed = (1 << 11),
-            Effects = (1 << 12),
-            NicknameNotNull = (1 << 13),
+            Name = (1 << 8),
+            Affiliation = (1 << 9),
+            Comm = (1 << 10),
+            Dock = (1 << 11),
+            Destroyed = (1 << 12),
+            Effects = (1 << 13),
+            NicknameNotNull = (1 << 14),
         }
         public ObjNetId ID;
         public string? Nickname;

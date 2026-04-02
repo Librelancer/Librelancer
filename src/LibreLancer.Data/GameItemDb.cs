@@ -1025,6 +1025,18 @@ public class GameItemDb
                 equip = eq;
             }
 
+            if (val is CloakingDevice clk)
+            {
+                var eq = new CloakEquipment()
+                {
+                    CloakInFx = clk.CloakInFx == null ? null : Effects.Get(clk.CloakInFx),
+                    CloakOutFx = clk.CloakOutFx == null ? null : Effects.Get(clk.CloakOutFx),
+                    CloakInTime = clk.CloakInTime,
+                    CloakOutTime = clk.CloakOutTime
+                };
+                equip = eq;
+            }
+
             if (val is LootCrate lc)
             {
                 var eq = new LootCrateEquipment

@@ -35,6 +35,7 @@ namespace LibreLancer.Render
         public bool Fade = false;
         public float FadeNear = 0;
         public float FadeFar = 0;
+        public float OpacityMultiplier = 1;
         public StorageBuffer? Bones;
         public int BufferOffset;
         public abstract void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData);

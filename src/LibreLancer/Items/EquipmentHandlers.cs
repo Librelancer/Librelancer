@@ -19,6 +19,7 @@ public static class EquipmentHandlers
             return;
         _registered = true;
 
+        EquipmentObjectManager.RegisterType<CloakEquipment>(Cloak);
         EquipmentObjectManager.RegisterType<CountermeasureEquipment>(Countermeasure);
         EquipmentObjectManager.RegisterType<EffectEquipment>(Effect);
         EquipmentObjectManager.RegisterType<EngineEquipment>(Engine);
@@ -71,6 +72,15 @@ public static class EquipmentHandlers
         obj.AddComponent(new CSoundEffectComponent(parent, snd, e.Particles.Sound.Nickname));
 
         return obj;
+    }
+
+    private static GameObject? Cloak(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+        string? hardpoint, Equipment equip)
+    {
+        var clk = (CloakEquipment)equip;
+        parent.AddComponent(new CloakComponent(parent, clk, type == EquipmentType.RemoteObject ||
+                                                            type == EquipmentType.LocalPlayer));
+        return null;
     }
 
     private static GameObject? Engine(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using LibreLancer.Graphics;
 using LibreLancer.Utf.Cmp;
 
@@ -47,6 +48,7 @@ namespace LibreLancer.Render
             WorldMatrixHandle world,
             Lighting lights,
             VertexBuffer buffer,
+            float opacity,
             PrimitiveTypes primitive,
             int baseVertex,
             int start,
@@ -61,7 +63,7 @@ namespace LibreLancer.Render
             {
                 throw new ArgumentException("count cannot be 0");
             }
-			if (material.IsTransparent)
+			if (material.IsTransparent || opacity < 1)
 			{
 				Transparents[transparentCommand++] = new RenderCommand()
 				{
@@ -76,6 +78,7 @@ namespace LibreLancer.Render
                     Type = RenderCommand.MakeType(RenderCmdType.Material, primitive),
                     World = world,
                     UserData = userData,
+                    Hash = Unsafe.BitCast<float,int>(opacity)
                 };
 			}
 			else
@@ -105,7 +108,7 @@ namespace LibreLancer.Render
             }
 		}
 		// TODO: Implement MaterialAnim for asteroids
-		public unsafe void AddCommandFade(
+		public void AddCommandFade(
             RenderMaterial material,
             WorldMatrixHandle world,
             Lighting lights,
@@ -131,8 +134,8 @@ namespace LibreLancer.Render
 				Count = count,
                 Type = RenderCommand.MakeType(RenderCmdType.MaterialFade, primitive),
                 BaseVertex = baseVertex,
-                Hash = *(int*)(&fadeParams.X),
-				Index = *(int*)(&fadeParams.Y),
+                Hash = Unsafe.BitCast<float,int>(fadeParams.X),
+				Index = Unsafe.BitCast<float, int>(fadeParams.Y),
 				World = world,
                 UserData = userData
             };
@@ -229,14 +232,14 @@ namespace LibreLancer.Render
 	{
 		Material,
         MaterialFade,
+        MaterialOverride,
 		Billboard
 	}
 
     public enum RenderType
     {
         Opaque,
-        Starsphere,
-        Transparent
+        Transparent,
     }
 	public struct RenderCommand
 	{
@@ -289,21 +292,30 @@ namespace LibreLancer.Render
 		}
 		public unsafe void Run(RenderContext context)
         {
-            if (CmdType is RenderCmdType.Material or RenderCmdType.MaterialFade)
+            if (CmdType >= RenderCmdType.Billboard)
+            {
+                var Billboards = (Billboards)Source;
+                Billboards.Render(Index, Hash, context);
+            }
+            else
 			{
 				var Material = (RenderMaterial)Source;
 				if (Material == null)
 					return;
 				Material.MaterialAnim = MaterialAnim;
 				Material.World = World;
-				if (CmdType == RenderCmdType.MaterialFade)
+                Material.OpacityMultiplier = 1;
+                if (CmdType == RenderCmdType.MaterialFade)
 				{
 					Material.Fade = true;
-					var fn = Hash;
-					var ff = Index;
-					Material.FadeNear = *(float*)(&fn);
-					Material.FadeFar = *(float*)(&ff);
-				}
+                    Material.FadeNear = Unsafe.BitCast<int, float>(Hash);
+                    Material.FadeFar = Unsafe.BitCast<int, float>(Index);
+                    Material.OpacityMultiplier = 1;
+                }
+                else
+                {
+                    Material.OpacityMultiplier = Unsafe.BitCast<int, float>(Hash);
+                }
                 if (Material.DisableCull || Material.DoubleSided) context.Cull = false;
 				Material.Use(context, Buffer.VertexType, ref Lights, UserData);
 				if ((CmdType != RenderCmdType.MaterialFade) && BaseVertex != -1)
@@ -311,11 +323,6 @@ namespace LibreLancer.Render
 				else
 					Buffer.Draw(Primitive, Start, Count);
                 if (Material.DisableCull || Material.DoubleSided) context.Cull = true;
-			}
-            else if (CmdType == RenderCmdType.Billboard)
-			{
-				var Billboards = (Billboards)Source;
-				Billboards.Render(Index, Hash, context);
 			}
 		}
 	}

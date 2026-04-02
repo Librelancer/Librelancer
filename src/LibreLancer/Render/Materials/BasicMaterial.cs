@@ -209,7 +209,9 @@ namespace LibreLancer.Render.Materials
             }
 
             // Blending
-            if (AlphaEnabled || Fade || OcEnabled || dxt1 || AlphaTest || (userData & ForceAlpha) == ForceAlpha)
+            if (AlphaEnabled || Fade || OcEnabled || dxt1 || AlphaTest ||
+                (userData & ForceAlpha) == ForceAlpha ||
+                OpacityMultiplier < 1.0f)
             {
                 rstate.BlendMode = BlendMode.Normal;
             }
@@ -252,7 +254,7 @@ namespace LibreLancer.Render.Materials
             if (pbr)
             {
                 var param = new PBRParameters()
-                    { Dc = dcValue, Ec = Ec, Metallic = Metallic ?? 1.0f, Roughness = Roughness ?? 1.0f, Oc = Oc };
+                    { Dc = dcValue, Ec = Ec, Metallic = Metallic ?? 1.0f, Roughness = Roughness ?? 1.0f, Oc = Oc * OpacityMultiplier };
                 shader.SetUniformBlock(3, ref param);
 
                 if (!string.IsNullOrEmpty(MtSampler))
@@ -270,7 +272,7 @@ namespace LibreLancer.Render.Materials
             else
             {
                 var param = new BasicParameters()
-                    { Dc = dcValue, Ec = Ec, FadeRange = new Vector2(FadeNear, FadeFar), Oc = Oc };
+                    { Dc = dcValue, Ec = Ec, FadeRange = new Vector2(FadeNear, FadeFar), Oc = Oc * OpacityMultiplier };
                 shader.SetUniformBlock(3, ref param);
                 SetTextureCoordinates(shader, DtFlags, EtFlags, NmFlags);
             }

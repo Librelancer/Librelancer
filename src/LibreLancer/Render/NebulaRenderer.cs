@@ -384,7 +384,7 @@ namespace LibreLancer.Render
 			{
 				var p = Exterior[i];
                 buffer.AddCommand(p.Material, null, wh, Lighting.Empty
-                    , sysr.QuadBuffer.VertexBuffer,
+                    , sysr.QuadBuffer.VertexBuffer, 1.0f,
                     PrimitiveTypes.TriangleList, 0, idx, 2, inside ? SortLayers.NEBULA_INSIDE : SortLayers.NEBULA_NORMAL,
                     z, null, i, *(int*)&factor);
                 idx += 6;
@@ -574,6 +574,7 @@ namespace LibreLancer.Render
                 world,
                 Lighting.Empty,
                 sysr.QuadBuffer.VertexBuffer,
+                1.0f,
                 PrimitiveTypes.TriangleList,
                 0,
                 0,

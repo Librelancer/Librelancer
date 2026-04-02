@@ -188,6 +188,12 @@ namespace LibreLancer.Client
             Statistics.BattleshipsKilled = stats.BattleshipsKilled;
         }
 
+        void IClientPlayer.Cloak(ObjNetId ship) => RunSync(() =>
+            spaceGameplay!.world.GetObject(ship)?.GetComponent<CloakComponent>()?.Cloak(spaceGameplay!.world));
+
+        void IClientPlayer.Uncloak(ObjNetId ship) => RunSync(() =>
+            spaceGameplay!.world.GetObject(ship)?.GetComponent<CloakComponent>()?.Uncloak(spaceGameplay!.world));
+
         public double CharacterPlayTime => playerTotalTime + (DateTime.UtcNow - playerSessionStart).TotalSeconds;
 
         private bool hasChanged = false;
@@ -1185,6 +1191,12 @@ namespace LibreLancer.Client
                     else
                     {
                         newObj.AddComponent(new WeaponControlComponent(newObj));
+                    }
+
+                    if ((objInfo.Flags & ObjectSpawnFlags.Hidden) == ObjectSpawnFlags.Hidden &&
+                        newObj.TryGetComponent<CloakComponent>(out var cloaked))
+                    {
+                        cloaked.SetInitCloaked();
                     }
 
                     // add fx

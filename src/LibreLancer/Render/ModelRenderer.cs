@@ -246,7 +246,8 @@ namespace LibreLancer.Render
                     if (lighting.FogMode != FogModes.Linear ||
                         Vector3.DistanceSquared(camera.Position, center) <= (r * r))
                     {
-                        part.Mesh.DrawBuffer(lvl, sysr.ResourceManager, commands, w, ref lighting, Model.MaterialAnims);
+                        part.Mesh.DrawBuffer(lvl, sysr.ResourceManager, commands, w, ref lighting, Model.MaterialAnims,
+                            0, null, OpacityMultiplier);
                     }
                 }
             }

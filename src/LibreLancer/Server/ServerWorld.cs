@@ -102,6 +102,23 @@ namespace LibreLancer.Server
             }
         }
 
+        public void OnCloak(GameObject obj)
+        {
+            foreach (var p in Players)
+            {
+                p.Key.RpcClient.Cloak(obj);
+            }
+        }
+
+        public void OnUncloak(GameObject obj)
+        {
+            foreach (var p in Players)
+            {
+                p.Key.RpcClient.Uncloak(obj);
+            }
+        }
+
+
         public void PickupObject(GameObject obj, GameObject pickup)
         {
             if (!pickup.Flags.HasFlag(GameObjectFlags.Exists) ||
@@ -293,6 +310,11 @@ namespace LibreLancer.Server
             var tr = obj.WorldTransform;
             info.Position = tr.Position;
             info.Orientation = tr.Orientation;
+
+            if ((obj.Flags & GameObjectFlags.Hidden) == GameObjectFlags.Hidden)
+            {
+                info.Flags |= ObjectSpawnFlags.Hidden;
+            }
 
             if (obj.TryGetComponent<SRepComponent>(out var rep))
             {

@@ -314,6 +314,7 @@ namespace LibreLancer.Utf.Dfm
                     wh,
                     light,
                     vertexBuffer,
+                    1.0f,
                     primType,
                     0,
                     faceGroup.StartIndex,

@@ -21,12 +21,12 @@ namespace LibreLancer.Render.Materials
 		public string BtSampler;
 		public SamplerFlags BtFlags;
 
-		public string NtSampler;
+		public string? NtSampler;
 		public SamplerFlags NtFlags;
 
 		public float Oc = 1f;
 
-        public NomadMaterial(ResourceManager library, string dtSampler, string btSampler, string ntSampler) :
+        public NomadMaterial(ResourceManager library, string dtSampler, string btSampler, string? ntSampler) :
             base(library)
         {
             DtSampler = dtSampler;
@@ -50,6 +50,8 @@ namespace LibreLancer.Render.Materials
             var shader = AllShaders.Nomad.Get(0);
             SetWorld(shader);
             // Colors
+            float oc = Oc * OpacityMultiplier;
+            shader.SetUniformBlock(3, ref oc);
             // Dc unused in shader rn (investigate)
 			// Dt
 			BindTexture(rstate, 0, DtSampler, 0, DtFlags);

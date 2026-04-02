@@ -174,6 +174,7 @@ namespace LibreLancer.World
         Hostile = 1 << 4,
         Cloaked = 1 << 5, //Bad
         Player = 1 << 6,
+        Hidden = 1 << 7,
         Reputations = Neutral | Friendly | Hostile,
     }
 
@@ -813,6 +814,10 @@ namespace LibreLancer.World
 
         public void PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool parentCull = false)
         {
+            if ((Flags & GameObjectFlags.Hidden) == GameObjectFlags.Hidden)
+            {
+                return;
+            }
             if (RenderComponent == null || RenderComponent.PrepareRender(camera, nr, sys, parentCull))
             {
                 //Guns etc. aren't drawn when parent isn't on LOD0
