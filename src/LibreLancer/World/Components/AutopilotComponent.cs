@@ -176,7 +176,7 @@ namespace LibreLancer.World.Components
                 control.Cruise = false; // Disable cruise at small distance
             }
 
-            var distrad = radius < 0 ? (targetRadius + myRadius + range) : radius + myRadius;
+            var distrad = targetRadius + myRadius + radius + range;
             var distanceSatisfied = distrad >= distance;
 
             if (distanceSatisfied && shouldStop)
@@ -188,8 +188,6 @@ namespace LibreLancer.World.Components
                 targetPower = maxSpeed;
             }
 
-            var directionSatisfied = TurnTowards(time, point);
-
             if (targetPower > maxSpeed)
             {
                 targetPower = maxSpeed;
@@ -197,6 +195,12 @@ namespace LibreLancer.World.Components
 
             input?.AutopilotThrottle = targetPower;
             control.InThrottle = targetPower;
+
+            if (distanceSatisfied)
+                return true;
+
+            var directionSatisfied = TurnTowards(time, point);
+
 
             return distanceSatisfied && directionSatisfied;
         }

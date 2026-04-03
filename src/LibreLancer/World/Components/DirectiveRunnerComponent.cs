@@ -94,7 +94,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             {
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
-                    ap.GotoVec(vec.Target, vec.CruiseKind, Throttle(vec.MaxThrottle));
+                    ap.GotoVec(vec.Target, vec.CruiseKind, Throttle(vec.MaxThrottle), vec.Range);
                 }
 
                 break;

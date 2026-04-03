@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using LibreLancer.Data.GameData;
-using LibreLancer.Server.Ai;
+using LibreLancer.Missions.Directives;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 using LibreLancer.World.Components;
@@ -29,6 +29,7 @@ namespace LibreLancer.Server
             script.Options.IndexTablesFrom = 0;
             script.Globals["spawnnpc"] = DynValue.FromObject(script, spawnnpc);
             script.Globals["spawnnpcbase"] = DynValue.FromObject(script, spawnnpcbase);
+            script.Globals["spawnnpcrot"] = DynValue.FromObject(script, spawnnpcrot);
             script.Globals["getnpc"] = DynValue.FromObject(script, getnpc);
             script.Globals["runscript"] = DynValue.FromObject(script, runscript);
         }
@@ -96,7 +97,13 @@ namespace LibreLancer.Server
             return DoSpawn(loadout, pilot, 0, 0, 0, arrivalObj);
         }
 
-        private NPCWattleInstance DoSpawn(string loadout, string? pilot, float x, float y, float z, string? arrivalObj)
+        public NPCWattleInstance spawnnpcrot(string loadout, string pilot, float x, float y, float z,
+            float rw, float rx, float ry, float rz)
+        {
+            return DoSpawn(loadout, pilot, x, y, z, null, new(rx, ry, rz, rw));
+        }
+
+        private NPCWattleInstance DoSpawn(string loadout, string? pilot, float x, float y, float z, string? arrivalObj, Quaternion? rot = null)
         {
             if (!manager.World.Server.GameData.Items.TryGetLoadout(loadout, out var resolved))
                 throw new ScriptRuntimeException($"Could not get loadout {loadout}");
@@ -107,7 +114,7 @@ namespace LibreLancer.Server
             }
 
             var position = new Vector3(x, y, z);
-            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount), null, null,  "FIGHTER", null, resolved, p, position, Quaternion.Identity, arrivalObj, 0);
+            var obj = manager.DoSpawn(new ObjectName("spawned " + ++spawnCount), null, null,  "FIGHTER", null, resolved, p, position, rot ?? Quaternion.Identity, arrivalObj, 0);
             return new NPCWattleInstance(obj, manager.World.GameWorld, this);
         }
     }
@@ -156,6 +163,21 @@ namespace LibreLancer.Server
             if (tgt == null) throw new ScriptRuntimeException($"Could not find object {obj}");
             if (Object.TryGetComponent<SNPCComponent>(out var n))
                 n.SetAttitude(tgt, RepAttitude.Hostile);
+        }
+
+        public void gotovec(float x, float y, float z, float range, float maxthrottle)
+        {
+            if (Object.TryGetComponent<DirectiveRunnerComponent>(out var n))
+            {
+                n.SetDirectives([
+                    new GotoVecDirective()
+                    {
+                        Target = new(x, y, z),
+                        MaxThrottle = maxthrottle,
+                        Range = range
+                    }
+                ], World);
+            }
         }
 
         public string state()
