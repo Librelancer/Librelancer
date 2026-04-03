@@ -190,11 +190,19 @@ public class ThnObjectParent(ThnSceneObject obj, IRenderHardpoint? hardpoint, Ri
         var tr = obj.GetTransform();
         if (part != null)
         {
+            if (obj.HpMount != null)
+            {
+                tr = obj.HpMount.Transform.Inverse() * tr;
+            }
             return part.LocalTransform * tr;
         }
 
         if (hardpoint != null)
         {
+            if (obj.HpMount != null)
+            {
+                tr = obj.HpMount.Transform.Inverse() * tr;
+            }
             return hardpoint.Transform * tr;
         }
 
