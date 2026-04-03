@@ -153,12 +153,12 @@ namespace LibreLancer.Net
                     var dw = new PacketWriter();
                     dw.Put((byte) 1);
                     dw.Put(unique);
-                    dw.PutVariableUInt32((uint)Port);
                     dw.Put(game.ServerName);
                     dw.Put(game.ServerDescription);
                     dw.Put(game.GameData.Items.DataVersion);
                     dw.PutVariableUInt32((uint) Server.ConnectedPeersCount);
                     dw.PutVariableUInt32((uint) MaxConnections);
+                    dw.PutVariableUInt32((uint)Port);
                     broadcastServer.SendUnconnectedMessage(dw, point);
                 }
             };
