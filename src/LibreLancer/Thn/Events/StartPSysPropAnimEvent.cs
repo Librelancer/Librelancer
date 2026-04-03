@@ -71,15 +71,15 @@ namespace LibreLancer.Thn.Events
 
         private class SParamAnimation : ThnEventProcessor
         {
-            public readonly ThnObject Object;
+            public readonly ThnSceneObject SceneObject;
             public readonly StartPSysPropAnimEvent Event;
             public readonly float StartValue;
 
             private double time;
 
-            public SParamAnimation(ThnObject obj, StartPSysPropAnimEvent @event, float startValue)
+            public SParamAnimation(ThnSceneObject obj, StartPSysPropAnimEvent @event, float startValue)
             {
-                Object = obj;
+                SceneObject = obj;
                 Event = @event;
                 StartValue = startValue;
             }
@@ -89,13 +89,13 @@ namespace LibreLancer.Thn.Events
                 time += delta;
                 var value = MathHelper.Lerp(StartValue, Event.SParam, Event.GetT((float) time));
 
-                if (Object.Engine != null)
+                if (SceneObject.Engine != null)
                 {
-                    Object.Engine.Speed = value;
+                    SceneObject.Engine.Speed = value;
                 }
                 else
                 {
-                    var ren = ((ParticleEffectRenderer)Object.Object!.RenderComponent!);
+                    var ren = ((ParticleEffectRenderer)SceneObject.Object!.RenderComponent!);
                     ren.SParam = value;
                 }
 

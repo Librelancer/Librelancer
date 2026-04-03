@@ -9,19 +9,19 @@ namespace LibreLancer.Thn
 {
     public class ThnSoundInstance
     {
-        public ThnObject Object;
+        public ThnSceneObject SceneObject;
         public bool Spatial;
         public Media.SoundInstance? Instance;
 
         public ThnSoundInstance(ThnSound snd, Media.SoundInstance ms)
         {
-            Object = snd.Object;
+            SceneObject = snd.SceneObject;
             Spatial = snd.Spatial;
             Instance = ms;
         }
         public void Start(bool loop, float time_offset)
         {
-            lastTranslate = Object.Translate;
+            lastTranslate = SceneObject.Translate;
             Instance!.Play(loop, time_offset / 1000f);
         }
 
@@ -33,25 +33,25 @@ namespace LibreLancer.Thn
                 return;
             }
 
-            Instance.SetAttenuation(Object.Sound!.Attenuation);
+            Instance.SetAttenuation(SceneObject.Sound!.Attenuation);
             if(Spatial)
             {
-                Instance.SetVelocity((Object.Translate - lastTranslate) * (float) delta);
-                Instance.SetPosition(Object.Translate);
-                lastTranslate = Object.Translate;
+                Instance.SetVelocity((SceneObject.Translate - lastTranslate) * (float) delta);
+                Instance.SetPosition(SceneObject.Translate);
+                lastTranslate = SceneObject.Translate;
             }
         }
     }
     public class ThnSound
     {
-        public ThnObject Object;
+        public ThnSceneObject SceneObject;
         public bool Spatial;
         public string SoundName;
         public float Attenuation;
         public ThnAudioProps? Props;
-        public ThnSound(string soundname, SoundManager man, ThnAudioProps props, ThnObject obj)
+        public ThnSound(string soundname, SoundManager man, ThnAudioProps props, ThnSceneObject obj)
         {
-            Object = obj;
+            SceneObject = obj;
             this.man = man;
             SoundName = soundname;
             man.LoadSound(soundname);
@@ -65,7 +65,7 @@ namespace LibreLancer.Thn
         public ThnSoundInstance? CreateInstance(bool oneShot)
         {
             var inst = man.GetInstance(SoundName, Attenuation, Props!.Dmin, Props!.Dmax,
-                Spatial ? (Vector3?) Object.Translate : null);
+                Spatial ? (Vector3?) SceneObject.Translate : null);
             return inst == null ? null : new ThnSoundInstance(this, inst);
         }
 

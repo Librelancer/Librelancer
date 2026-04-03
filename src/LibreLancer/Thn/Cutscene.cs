@@ -12,383 +12,334 @@ using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.World;
 
-namespace LibreLancer.Thn
-{
-    public class ThnObject
-    {
-        public string Name = null!;
-        public Vector3 Translate;
-        public Quaternion Rotate;
-        public string? Actor;
-        public GameObject? Object;
-        public DynamicLight? Light;
-        public ThnEntity Entity = null!;
-        public ThnCameraProps? Camera;
-        public Vector3 LightDir;
-        public Hardpoint? HpMount;
-        public ThnSound? Sound;
-        public bool Animating = false;
-        public bool PosFromObject = false;
-        public CEngineComponent? Engine;
-        public int MonitorIndex = 0;
+namespace LibreLancer.Thn;
 
-        public void UpdateIfMain()
+public class Cutscene : IDisposable
+{
+    // Public variables
+    public GameWorld World = null!;
+    public SystemRenderer? Renderer;
+    public GameObject? PlayerShip => scriptContext.PlayerShip;
+
+    public CEngineComponent PlayerEngine => scriptContext.PlayerEngine;
+
+    // Public properties
+    public GameResourceManager ResourceManager => resourceManager;
+    public ICamera CameraHandle => camera;
+    public Dictionary<string, string> Substitutions => scriptContext.Substitutions;
+    public GameObject MainObject => scriptContext.MainObject;
+    public GameDataManager GameData => gameData;
+    public SoundManager? SoundManager => soundManager;
+    public bool Running => running;
+
+    public double CurrentTime => currentTime;
+
+    // Private variables
+    private double currentTime = 0;
+
+    private Dictionary<string, ThnSceneObject> sceneObjects = new(StringComparer.OrdinalIgnoreCase);
+    private Game game;
+    private ThnCamera camera;
+    private bool spawnObjects = true;
+    private List<Tuple<IDrawable, ThnSceneObject>> layers = [];
+    private ThnDisplayText? text;
+    private GameDataManager gameData;
+    private GameResourceManager resourceManager;
+    private SoundManager? soundManager;
+    private bool hasScene = false;
+    private bool running = false;
+
+    private ThnScriptContext scriptContext;
+    private List<ThnScriptInstance> instances = [];
+    private ThnSceneObject[] starSphereObjects = [];
+    public event Action<ThnScript>? ScriptFinished;
+
+    public void OnScriptFinished(ThnScript thn) => ScriptFinished?.Invoke(thn);
+
+    public void AddStarsphere(IDrawable drawable, ThnSceneObject obj)
+    {
+        layers.Add(new Tuple<IDrawable, ThnSceneObject>(drawable, obj));
+    }
+
+    public void SetDisplayText(ThnDisplayText text)
+    {
+        this.text = text;
+    }
+
+    public void SetAmbient(Vector3 amb)
+    {
+        if (hasScene)
         {
-            if (Object != null && PosFromObject)
-            {
-                var tr = Object.Parent!.WorldTransform;
-                Translate = tr.Position;
-                Rotate = tr.Orientation;
-            }
+            return;
         }
 
-        public void Update()
+        if (Renderer != null)
         {
-            if (Object != null)
-            {
-                if (PosFromObject)
-                {
-                    Translate = Object.Parent!.WorldTransform.Position;
-                    Rotate = Object.Parent.WorldTransform.Orientation;
-                }
-                else
-                {
-                    if (Object.RenderComponent is CharacterRenderer charRen)
-                    {
-                        if (charRen.Skeleton.ApplyRootMotion)
-                        {
-                            var accum = Rotate * charRen.Skeleton.RootRotation;
-                            var movement = Quaternion.Inverse(charRen.Skeleton.RootRotationAccumulator) * accum;
-                            Translate += Vector3.Transform(charRen.Skeleton.RootTranslation, movement);
-                            Rotate = accum;
-                        }
+            Renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
+        }
 
-                        Translate.Y = charRen.Skeleton.FloorHeight + charRen.Skeleton.RootHeight;
-                    }
+        hasScene = true;
+    }
 
-                    if (HpMount == null)
-                    {
-                        Object.SetLocalTransform(new Transform3D(Translate, Rotate));
-                    }
-                    else
-                    {
-                        Object.SetLocalTransform(HpMount.Transform.Inverse() * new Transform3D(Translate, Rotate));
-                    }
-                }
-            }
-            if(Light != null)
-            {
-                Light.Light.Position = Translate;
-                Light.Light.Direction = Vector3.Transform(LightDir.Normalized(), Rotate);
-            }
+    public Cutscene(ThnScriptContext context,
+        Game flgame, GameDataManager data, GameWorld world, GameResourceManager resources)
+    {
+        game = flgame;
+        gameData = data;
+        World = world;
+        spawnObjects = false;
+        camera = new ThnCamera(game.RenderContext.CurrentViewport);
+        resourceManager = resources;
+        scriptContext = context;
+    }
+
+    public Cutscene(ThnScriptContext context, SpaceGameplay gameplay)
+    {
+        game = gameplay.FlGame;
+        gameData = gameplay.FlGame.GameData;
+        World = gameplay.world;
+        spawnObjects = false;
+        camera = new ThnCamera(gameplay.FlGame.RenderContext.CurrentViewport);
+        resourceManager = gameplay.FlGame.ResourceManager;
+        soundManager = gameplay.FlGame.Sound;
+        scriptContext = context;
+    }
+
+    public Cutscene(ThnScriptContext context, GameDataManager gameData, GameResourceManager resources,
+        SoundManager sound, Rectangle viewport, Game game)
+    {
+        scriptContext = context;
+        this.soundManager = sound;
+        this.gameData = gameData;
+        this.resourceManager = resources;
+        this.game = game;
+        camera = new ThnCamera(viewport);
+    }
+
+    public void UpdateViewport(Rectangle vp, float fullRatio)
+    {
+        camera?.SetViewport(vp, fullRatio);
+    }
+
+    public void AddObject(ThnSceneObject obj)
+    {
+        sceneObjects[obj.Name] = obj;
+        if (obj.Object != null)
+        {
+            World.AddObject(obj.Object);
         }
     }
-    public class Cutscene : IDisposable
-	{
-        public const float LETTERBOX_HEIGHT = 0.138021f;
-        // Public variables
-		public GameWorld World = null!;
-		public SystemRenderer? Renderer;
-        public GameObject? PlayerShip => scriptContext.PlayerShip;
-        public CEngineComponent PlayerEngine => scriptContext.PlayerEngine;
-        // Public properties
-        public GameResourceManager ResourceManager => resourceManager;
-        public ICamera CameraHandle => camera;
-        public Dictionary<string, string> Substitutions => scriptContext.Substitutions;
-        public GameObject MainObject => scriptContext.MainObject;
-        public GameDataManager GameData => gameData;
-        public SoundManager? SoundManager => soundManager;
-        public bool Running => running;
-        public double CurrentTime => currentTime;
-        // Private variables
-        private double currentTime = 0;
 
-        private Dictionary<string, ThnObject> sceneObjects = new(StringComparer.OrdinalIgnoreCase);
-        private Game game;
-        private ThnCamera camera;
-        private bool spawnObjects = true;
-        private List<Tuple<IDrawable, ThnObject>> layers = [];
-        private ThnDisplayText? text;
-        private GameDataManager gameData;
-        private GameResourceManager resourceManager;
-        private SoundManager? soundManager;
-        private bool hasScene = false;
-        private bool running = false;
+    public void BeginScene(params ThnScript[] scene) => BeginScene((IEnumerable<ThnScript>)scene);
 
-        private ThnScriptContext scriptContext;
-        private List<ThnScriptInstance> instances = [];
-        private ThnObject[] starSphereObjects= [];
-        public event Action<ThnScript>? ScriptFinished;
+    public void BeginScene(IEnumerable<ThnScript> scene)
+    {
+        var scripts = scene.ToArray();
+        SceneSetup(scripts);
+    }
 
-        public void OnScriptFinished(ThnScript thn) => ScriptFinished?.Invoke(thn);
+    public void FidgetScript(ThnScript scene)
+    {
+        SceneSetup([scene], false);
+    }
 
-        public void AddStarsphere(IDrawable drawable, ThnObject obj)
+    private void SceneSetup(ThnScript[] scripts, bool resetObjects = true)
+    {
+        hasScene = false;
+        currentTime = 0;
+        if (resetObjects)
         {
-            layers.Add(new Tuple<IDrawable, ThnObject>(drawable, obj));
+            sceneObjects = new Dictionary<string, ThnSceneObject>(StringComparer.OrdinalIgnoreCase);
+            layers = [];
         }
 
-        public void SetDisplayText(ThnDisplayText text)
+        if (spawnObjects && resetObjects)
         {
-            this.text = text;
-        }
-
-        public void SetAmbient(Vector3 amb)
-        {
-            if (hasScene)
-            {
-                return;
-            }
-
-            if(Renderer != null)
-            {
-                Renderer.SystemLighting.Ambient = new Color4(amb.X / 255f, amb.Y / 255f, amb.Z / 255f, 1);
-            }
-
-            hasScene = true;
-        }
-
-        public Cutscene(ThnScriptContext context, SpaceGameplay gameplay)
-        {
-            game = gameplay.FlGame;
-            gameData = gameplay.FlGame.GameData;
-            World = gameplay.world;
-            spawnObjects = false;
-            camera = new ThnCamera(gameplay.FlGame.RenderContext.CurrentViewport);
-            resourceManager = gameplay.FlGame.ResourceManager;
-            soundManager = gameplay.FlGame.Sound;
-            scriptContext = context;
-        }
-
-        public Cutscene(ThnScriptContext context, GameDataManager gameData, GameResourceManager resources, SoundManager sound, Rectangle viewport, Game game)
-        {
-            scriptContext = context;
-            this.soundManager = sound;
-            this.gameData = gameData;
-            this.resourceManager = resources;
-            this.game = game;
-			camera = new ThnCamera(viewport);
-        }
-
-        public void UpdateViewport(Rectangle vp, float fullRatio)
-        {
-            camera?.SetViewport(vp, fullRatio);
-        }
-
-        public void AddObject(ThnObject obj)
-        {
-            sceneObjects[obj.Name] = obj;
-            if (obj.Object != null)
-            {
-                World.AddObject(obj.Object);
-            }
-        }
-
-        public void BeginScene(params ThnScript[] scene) => BeginScene((IEnumerable<ThnScript>)scene);
-        public void BeginScene(IEnumerable<ThnScript> scene)
-        {
-            var scripts = scene.ToArray();
-            SceneSetup(scripts);
-        }
-
-        public void FidgetScript(ThnScript scene)
-        {
-            SceneSetup([scene], false);
-        }
-
-        private void SceneSetup(ThnScript[] scripts, bool resetObjects = true)
-        {
-            hasScene = false;
-            currentTime = 0;
-            if (resetObjects)
-            {
-                sceneObjects = new Dictionary<string, ThnObject>(StringComparer.OrdinalIgnoreCase);
-                layers = [];
-            }
-
-            if (spawnObjects && resetObjects)
-            {
-                if (Renderer != null)
-                {
-                    Renderer.Dispose();
-                    World.Dispose();
-                }
-
-                Renderer = new SystemRenderer(camera, resourceManager, game);
-                World = new GameWorld(Renderer, resourceManager, null, false);
-            }
-
-            if (scriptContext.SetScript != null && resetObjects)
-            {
-                var inst = new ThnScriptInstance(this, scriptContext.SetScript);
-                inst.ConstructEntities(sceneObjects, spawnObjects);
-            }
-
-            if(resetObjects)
-            {
-                foreach (var inst in instances)
-                {
-                    inst.Cleanup();
-                }
-
-                instances = [];
-            }
-
-            int startIdx = instances.Count;
-            foreach (var script in scripts)
-            {
-                var ts = new ThnScriptInstance(this, script);
-                ts.ConstructEntities(sceneObjects, spawnObjects && resetObjects);
-                instances.Add(ts);
-            }
-
-            if (resetObjects)
-            {
-                var firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
-                if (firstCamera == null)
-                {
-                    firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
-                }
-
-                if (firstCamera != null)
-                {
-                    camera.Object = firstCamera;
-                }
-            }
-
-            if (spawnObjects && resetObjects)
-            {
-                // Add starspheres in the right order
-                var sorted = ((IEnumerable<Tuple<IDrawable, ThnObject>>) layers).Reverse()
-                    .OrderBy(x => x.Item2.Entity.SortGroup).ToArray();
-                Renderer!.StarSphereModels = new RigidModel[sorted.Length];
-                Renderer.StarSphereWorlds = new Matrix4x4[sorted.Length];
-                Renderer.StarSphereLightings = new Lighting[sorted.Length];
-                starSphereObjects = new ThnObject[sorted.Length];
-
-                for (int i = 0; i < sorted.Length; i++)
-                {
-                    Renderer.StarSphereModels[i] = ((sorted[i].Item1 as IRigidModelFile)!).CreateRigidModel(true, ResourceManager);
-                    Renderer.StarSphereWorlds[i] = Matrix4x4.CreateFromQuaternion(sorted[i].Item2.Rotate) * Matrix4x4.CreateTranslation(sorted[i].Item2.Translate);
-                    Renderer.StarSphereLightings[i] = Lighting.Empty;
-                    starSphereObjects[i] = sorted[i].Item2;
-                }
-
-                // Add objects to the renderer
-                World.RegisterAll();
-            }
-
-            for (int i = startIdx; i < instances.Count; i++)
-            {
-                instances[i].Update(0);
-            }
-
-            // Init
-            running = true;
-        }
-
-        private void UpdateStarsphere()
-        {
-            if (Renderer is null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < starSphereObjects.Length; i++)
-            {
-                Renderer.StarSphereWorlds[i] = Matrix4x4.CreateFromQuaternion(starSphereObjects[i].Rotate) * Matrix4x4.CreateTranslation(starSphereObjects[i].Translate);
-                var ldynamic = (starSphereObjects[i].Entity.ObjectFlags & ThnObjectFlags.LitDynamic) == ThnObjectFlags.LitDynamic;
-                var lambient = (starSphereObjects[i].Entity.ObjectFlags & ThnObjectFlags.LitAmbient) == ThnObjectFlags.LitAmbient;
-                var nofog = starSphereObjects[i].Entity.NoFog;
-                Renderer.StarSphereLightings[i] = RenderHelpers.ApplyLights(Renderer.SystemLighting,
-                    starSphereObjects[i].Entity.LightGroup, Vector3.Zero, float.MaxValue, null,
-                    lambient, ldynamic, nofog);
-            }
-        }
-
-        private int lagCounter = 0;
-        private int LAG_LIMIT = 5;
-        private const double LAG_THRESHOLD = 1 / 20.0;
-		public void Update(double delta)
-        {
-            if (lagCounter < LAG_LIMIT && delta > LAG_THRESHOLD)
-            {
-                lagCounter++;
-                return;
-            }
-            _Update(delta);
-        }
-
-        public void _Update(double delta)
-        {
-            if (Running)
-            {
-                var pos = camera.Object!.Translate;
-                var forward = Vector3.Transform(-Vector3.UnitZ, camera.Object.Rotate);
-                var up = Vector3.Transform(Vector3.UnitY, camera.Object.Rotate);
-                soundManager?.UpdateListener(delta, pos, forward, up);
-            }
-
-			currentTime += delta;
-            foreach (var obj in sceneObjects.Values) obj.UpdateIfMain();
-            if (text != null)
-            {
-                if (currentTime > text.Start)
-                {
-                    // game.GetService<Interface.Typewriter>().PlayString(gameData.GetString(text.TextIDS));
-                    // text = null;
-                }
-            }
-
-            foreach (var instance in instances)
-            {
-                instance.Update(delta);
-            }
-
-            foreach (var obj in sceneObjects.Values)
-            {
-                obj.Update();
-            }
-
-            camera.Update();
             if (Renderer != null)
             {
-                World.Update(delta);
+                Renderer.Dispose();
+                World.Dispose();
             }
+
+            Renderer = new SystemRenderer(camera, resourceManager, game);
+            World = new GameWorld(Renderer, resourceManager, null, false);
         }
 
-		public void Draw(double delta, int renderWidth, int renderHeight)
+        if (scriptContext.SetScript != null && resetObjects)
         {
-            UpdateStarsphere();
+            var inst = new ThnScriptInstance(this, scriptContext.SetScript);
+            inst.ConstructEntities(sceneObjects, spawnObjects);
+        }
 
-            if (Renderer == null)
+        if (resetObjects)
+        {
+            foreach (var inst in instances)
             {
-                return;
+                inst.Cleanup();
             }
 
-            World.RenderUpdate(delta);
-            Renderer.Draw(renderWidth, renderHeight);
+            instances = [];
         }
 
-        public ThnObject? GetObject(string? name)
+        int startIdx = instances.Count;
+        foreach (var script in scripts)
         {
-            if (string.IsNullOrEmpty(name))
+            var ts = new ThnScriptInstance(this, script);
+            ts.ConstructEntities(sceneObjects, spawnObjects && resetObjects);
+            instances.Add(ts);
+        }
+
+        if (resetObjects)
+        {
+            var firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
+            if (firstCamera == null)
             {
-                return null;
+                firstCamera = sceneObjects.Values.FirstOrDefault(x => x.Camera != null);
             }
 
-            return sceneObjects.TryGetValue(name, out var o) ? o : null;
+            if (firstCamera != null)
+            {
+                camera.Object = firstCamera;
+            }
         }
 
-        public void SetCamera(string name)
+        if (spawnObjects && resetObjects)
         {
-            var cam = GetObject(name);
-            camera.Object = cam;
-            soundManager!.ResetListenerVelocity();
+            // Add starspheres in the right order
+            var sorted = ((IEnumerable<Tuple<IDrawable, ThnSceneObject>>)layers).Reverse()
+                .OrderBy(x => x.Item2.Entity.SortGroup).ToArray();
+            Renderer!.StarSphereModels = new RigidModel[sorted.Length];
+            Renderer.StarSphereWorlds = new Matrix4x4[sorted.Length];
+            Renderer.StarSphereLightings = new Lighting[sorted.Length];
+            starSphereObjects = new ThnSceneObject[sorted.Length];
+
+            for (int i = 0; i < sorted.Length; i++)
+            {
+                Renderer.StarSphereModels[i] =
+                    ((sorted[i].Item1 as IRigidModelFile)!).CreateRigidModel(true, ResourceManager);
+                Renderer.StarSphereWorlds[i] = Matrix4x4.CreateFromQuaternion(sorted[i].Item2.Rotate) *
+                                               Matrix4x4.CreateTranslation(sorted[i].Item2.Translate);
+                Renderer.StarSphereLightings[i] = Lighting.Empty;
+                starSphereObjects[i] = sorted[i].Item2;
+            }
+
+            // Add objects to the renderer
+            World.RegisterAll();
         }
 
-        public void Dispose()
-		{
-			Renderer?.Dispose();
-		}
-	}
+        for (int i = startIdx; i < instances.Count; i++)
+        {
+            instances[i].Update(0);
+        }
+
+        // Init
+        running = true;
+    }
+
+    private void UpdateStarsphere()
+    {
+        if (Renderer is null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < starSphereObjects.Length; i++)
+        {
+            Renderer.StarSphereWorlds[i] = Matrix4x4.CreateFromQuaternion(starSphereObjects[i].Rotate) *
+                                           Matrix4x4.CreateTranslation(starSphereObjects[i].Translate);
+            var ldynamic = (starSphereObjects[i].Entity.ObjectFlags & ThnObjectFlags.LitDynamic) ==
+                           ThnObjectFlags.LitDynamic;
+            var lambient = (starSphereObjects[i].Entity.ObjectFlags & ThnObjectFlags.LitAmbient) ==
+                           ThnObjectFlags.LitAmbient;
+            var nofog = starSphereObjects[i].Entity.NoFog;
+            Renderer.StarSphereLightings[i] = RenderHelpers.ApplyLights(Renderer.SystemLighting,
+                starSphereObjects[i].Entity.LightGroup, Vector3.Zero, float.MaxValue, null,
+                lambient, ldynamic, nofog);
+        }
+    }
+
+    private int lagCounter = 0;
+    private int LAG_LIMIT = 5;
+    private const double LAG_THRESHOLD = 1 / 20.0;
+
+    public void Update(double delta)
+    {
+        if (lagCounter < LAG_LIMIT && delta > LAG_THRESHOLD)
+        {
+            lagCounter++;
+            return;
+        }
+
+        _Update(delta);
+    }
+
+    public void _Update(double delta)
+    {
+        if (Running)
+        {
+            var pos = camera.Object!.Translate;
+            var forward = Vector3.Transform(-Vector3.UnitZ, camera.Object.Rotate);
+            var up = Vector3.Transform(Vector3.UnitY, camera.Object.Rotate);
+            soundManager?.UpdateListener(delta, pos, forward, up);
+        }
+
+        currentTime += delta;
+        Console.WriteLine(" -- BEGIN UPDATE --");
+        foreach (var obj in sceneObjects.Values) obj.Update();
+        if (text != null)
+        {
+            if (currentTime > text.Start)
+            {
+                // game.GetService<Interface.Typewriter>().PlayString(gameData.GetString(text.TextIDS));
+                // text = null;
+            }
+        }
+
+        foreach (var instance in instances)
+        {
+            instance.Update(delta);
+        }
+
+        Console.WriteLine(" -- END UPDATE --");
+        camera.Update();
+        if (Renderer != null)
+        {
+            World.Update(delta);
+        }
+    }
+
+    public void Draw(double delta, int renderWidth, int renderHeight)
+    {
+        UpdateStarsphere();
+
+        if (Renderer == null)
+        {
+            return;
+        }
+
+        World.RenderUpdate(delta);
+        Renderer.Draw(renderWidth, renderHeight);
+    }
+
+    public ThnSceneObject? GetObject(string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return null;
+        }
+
+        return sceneObjects.TryGetValue(name, out var o) ? o : null;
+    }
+
+    public void SetCamera(string name)
+    {
+        var cam = GetObject(name);
+        camera.Object = cam;
+        soundManager?.ResetListenerVelocity();
+    }
+
+    public void Dispose()
+    {
+        Renderer?.Dispose();
+    }
 }

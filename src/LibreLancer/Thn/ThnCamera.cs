@@ -13,7 +13,7 @@ namespace LibreLancer.Thn
 	{
 		public long frameNo = 0;
 
-        public ThnObject? Object = new()
+        public ThnSceneObject? Object = new()
         {
             Camera = new ThnCameraProps(),
             Translate = Vector3.Zero,

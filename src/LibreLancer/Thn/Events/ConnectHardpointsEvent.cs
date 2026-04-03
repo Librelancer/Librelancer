@@ -91,14 +91,14 @@ namespace LibreLancer.Thn.Events
 
         private class ProcessConnection : ThnEventProcessor
         {
-            public ThnObject Parent;
-            public ThnObject Child;
+            public ThnSceneObject Parent;
+            public ThnSceneObject Child;
             public IRenderHardpoint ParentHardpoint;
             public IRenderHardpoint ChildHardpoint;
             private double time = 0;
             public double Duration;
 
-            public ProcessConnection(ThnObject parent, ThnObject child, IRenderHardpoint parentHardpoint,
+            public ProcessConnection(ThnSceneObject parent, ThnSceneObject child, IRenderHardpoint parentHardpoint,
                 IRenderHardpoint childHardpoint, double duration)
             {
                 Parent = parent;

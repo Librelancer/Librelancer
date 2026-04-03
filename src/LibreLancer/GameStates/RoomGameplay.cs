@@ -755,11 +755,11 @@ namespace LibreLancer
 
         private class RTCHotspot
         {
-            public ThnObject obj;
+            public ThnSceneObject obj;
             public StoryCutsceneIni ini;
             public string npc;
 
-            public RTCHotspot(ThnObject obj, StoryCutsceneIni ini, string npc)
+            public RTCHotspot(ThnSceneObject obj, StoryCutsceneIni ini, string npc)
             {
                 this.obj = obj;
                 this.ini = ini;
@@ -813,7 +813,7 @@ namespace LibreLancer
 
                 var pos = scene!.GetObject(spot)!.Translate;
                 obj.SetLocalTransform(new Transform3D(pos, Quaternion.Identity));
-                var thnObj = new ThnObject
+                var thnObj = new ThnSceneObject
                 {
                     Name = npc.Actor!,
                     Rotate = Quaternion.Identity,

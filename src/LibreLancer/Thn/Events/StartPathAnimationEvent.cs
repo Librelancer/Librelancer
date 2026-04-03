@@ -33,48 +33,50 @@ namespace LibreLancer.Thn.Events
         {
             var obj = instance.Objects[Targets[0]];
             var path = instance.Objects[Targets[1]];
-            instance.AddProcessor(new PathAnimation(obj, path, this));
-        }
 
-        private class PathAnimation : ThnEventProcessor
-        {
-            public ThnObject Object;
-            public ThnObject Path;
-            public StartPathAnimationEvent Event;
-
-            public PathAnimation(ThnObject obj, ThnObject path, StartPathAnimationEvent ev)
+            var parent = new ThnPathParent(path);
+            parent.Offset = Offset;
+            parent.T = StartPercent;
+            var attachment = new ThnAttachment(parent);
+            if ((Flags & AttachFlags.LookAt) == AttachFlags.LookAt)
             {
-                Object = obj;
-                Path = path;
-                Event = ev;
+                attachment.PathLookAt = true;
+                attachment.Orientation = true;
+            }
+            else if ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation)
+            {
+                attachment.Orientation = true;
+            }
+            if ((Flags & AttachFlags.Position) == AttachFlags.Position)
+            {
+                attachment.Position = true;
             }
 
-            private double time = 0;
+            obj.Attachments.Add(attachment);
+            instance.AddProcessor(new PathAnimation(obj, attachment, parent, this));
+        }
+
+        private class PathAnimation(ThnSceneObject child, ThnAttachment attachment,
+            ThnPathParent parent, StartPathAnimationEvent ev) : ThnEventProcessor
+        {
+            public StartPathAnimationEvent Event = ev;
+            public ThnSceneObject Child = child;
+            public ThnAttachment Attachment = attachment;
+            public ThnPathParent Parent = parent;
+
+            private double time;
 
             public override bool Run(double delta)
             {
                 time += delta;
-                Process(Event.GetT((float)time));
+                float pct = MathHelper.Lerp(Event.StartPercent, Event.StopPercent, Event.GetT((float)time));
+                Parent.T = pct;
+                if (time >= Event.Duration)
+                {
+                    Child.Attachments.Remove(Attachment);
+                    return false;
+                }
                 return true;
-            }
-
-            private void Process(float t)
-            {
-                float pct = MathHelper.Lerp(Event.StartPercent, Event.StopPercent, t);
-                var path = Path.Entity.Path!;
-                if ((Event.Flags & AttachFlags.LookAt) == AttachFlags.LookAt)
-                {
-                    Object.Rotate =QuaternionEx.LookRotation(path.GetDirection(pct, Event.StartPercent > Event.StopPercent), Vector3.UnitY) * Path.Rotate;
-                }
-                else if ((Event.Flags & AttachFlags.Orientation) == AttachFlags.Orientation)
-                {
-                    Object.Rotate = path.GetOrientation(pct) * Path.Rotate;
-                }
-
-                if ((Event.Flags & AttachFlags.Position) == AttachFlags.Position)
-                {
-                    Object.Translate = new Transform3D(Path.Translate, Path.Rotate).Transform(path.GetPosition(pct) + Event.Offset);
-                }
             }
         }
     }

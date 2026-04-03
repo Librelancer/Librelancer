@@ -191,7 +191,7 @@ namespace LibreLancer.Thn.Events
             public bool HasQuat;
             public AxisRotation AxisRot;
             public Quaternion OriginalRotate;
-            public required ThnObject This;
+            public required ThnSceneObject This;
 
             private double time;
 
@@ -272,7 +272,7 @@ namespace LibreLancer.Thn.Events
 
         private class FollowSpatialRoutine : SpatialAnimRoutine
         {
-            public required ThnObject Follow;
+            public required ThnSceneObject Follow;
 
             protected override Quaternion QEnd()
             {

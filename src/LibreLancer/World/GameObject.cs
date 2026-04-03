@@ -279,8 +279,6 @@ namespace LibreLancer.World
             }
         }
 
-        public void ForceTransformDirty() => TransformDirty = true;
-
         private Transform3D CalculateTransform()
         {
             var tr = LocalTransform;

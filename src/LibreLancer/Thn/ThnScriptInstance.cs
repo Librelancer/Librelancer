@@ -33,7 +33,7 @@ namespace LibreLancer.Thn
 
         public Cutscene Cutscene;
 
-        public Dictionary<string, ThnObject> Objects = [];
+        public Dictionary<string, ThnSceneObject> Objects = [];
         public Dictionary<string, ThnSoundInstance> Sounds = new();
 
         private readonly ThnScript thn;
@@ -60,16 +60,16 @@ namespace LibreLancer.Thn
             return sub != null && type == e.Type && e.Template.Equals(templateName, StringComparison.OrdinalIgnoreCase);
         }
 
-        public void ConstructEntities(Dictionary<string, ThnObject> objects, bool spawnObjects)
+        public void ConstructEntities(Dictionary<string, ThnSceneObject> objects, bool spawnObjects)
         {
             this.Objects = objects;
-            List<ThnObject> monitors = [];
+            List<ThnSceneObject> monitors = [];
 
             foreach (var kv in thn.Entities)
             {
                 if (Objects.ContainsKey(kv.Key)) continue;
                 if ((kv.Value.ObjectFlags & ThnObjectFlags.Reference) == ThnObjectFlags.Reference) continue;
-                var obj = new ThnObject
+                var obj = new ThnSceneObject
                 {
                     Name = kv.Key,
                     Translate = kv.Value.Position ?? Vector3.Zero,
@@ -236,19 +236,18 @@ namespace LibreLancer.Thn
                 }
                 else if (kv.Value.Type == EntityTypes.Marker)
                 {
-                    obj.Object = new GameObject
-                    {
-                        Name = new ObjectName("Marker"),
-                        Nickname = ""
-                    };
-
                     if (kv.Value.MainObject && Cutscene.MainObject != null)
                     {
-                        obj.Object.Parent = Cutscene.MainObject;
-                        obj.Object.AddComponent(new DirtyTransformComponent(obj.Object));
+                        obj.Object = Cutscene.MainObject;
                         obj.PosFromObject = true;
-                        obj.Translate = Cutscene.MainObject.WorldTransform.Position;
-                        obj.Rotate = Cutscene.MainObject.WorldTransform.Orientation;
+                    }
+                    else
+                    {
+                        obj.Object = new GameObject
+                        {
+                            Name = new ObjectName("Marker"),
+                            Nickname = ""
+                        };
                     }
                 }
                 else if (kv.Value.Type == EntityTypes.Deformable)
@@ -277,7 +276,6 @@ namespace LibreLancer.Thn
                         {
                             act.Translate = obj.Translate;
                             act.Rotate = obj.Rotate;
-                            act.Update();
                         }
                     }
                 }
@@ -299,9 +297,8 @@ namespace LibreLancer.Thn
                     {
                         Vector3 transform = kv.Value.Position ?? Vector3.Zero;
                         obj.Object.SetLocalTransform(new Transform3D(transform, kv.Value.Rotation));
+                        Cutscene.World.AddObject(obj.Object);
                     }
-
-                    Cutscene.World.AddObject(obj.Object);
                 }
 
                 obj.Entity = kv.Value;

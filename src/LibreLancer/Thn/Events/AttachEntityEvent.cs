@@ -20,80 +20,26 @@ namespace LibreLancer.Thn.Events
      */
     public class AttachEntityEvent : ThnEvent
     {
-        private class AttachEntityProcessor : ThnEventProcessor
+        private class AttachEntityProcessor(float duration, ThnSceneObject child, ThnAttachment attachment) : ThnEventProcessor
         {
-            public float Duration;
-            public ThnObject Child = null!;
-            public Vector3 Offset;
-            public EntityTarget Parent = null!;
-            public Quaternion LastRotate;
-            public bool Position;
-            public bool Orientation;
-            public bool OrientationRelative;
-            public bool EntityRelative;
-            public bool LookAt;
-            private double t = 0;
+            public float Duration = duration;
+            public ThnSceneObject Child = child;
+            public ThnAttachment Attachment = attachment;
+
+            private double t;
 
             public override bool Run(double delta)
             {
-                var (translate, rotate) = Parent.GetTransform();
-
-                if (Orientation && OrientationRelative)
-                {
-                    var qCurrent = rotate;
-                    var diff = qCurrent * Quaternion.Inverse(LastRotate);
-                    var qChild = Child.Rotate;
-                    rotate = qChild * diff;
-                    LastRotate = qCurrent;
-                }
                 t += delta;
-
-                if (Position)
+                if (t > Duration)
                 {
-                    if (Offset != Vector3.Zero)
-                    {
-                        // TODO: This can be optimised
-                        var off = Offset;
-                        if (EntityRelative)
-                        {
-                            off = Vector3.Transform(Offset, rotate);
-                        }
-
-                        var tr = new Transform3D(translate, rotate) * new Transform3D(off, Quaternion.Identity);
-                        Child.Translate = tr.Position;
-                    }
-                    else
-                    {
-                        Child.Translate = translate;
-                    }
+                    Child.Attachments.Remove(Attachment);
+                    return false;
                 }
-                if (Orientation)
-                {
-                    Child.Rotate = rotate;
-                }
-                if (LookAt)
-                {
-                    Child.Rotate = QuaternionEx.LookRotation(Vector3.Normalize(Child.Translate - translate), Vector3.UnitY);
-                }
-                return (t <= Duration);
+                return true;
             }
         }
 
-        private class EntityTarget(ThnObject obj, IRenderHardpoint? hardpoint, RigidModelPart? part)
-        {
-            public Transform3D GetTransform()
-            {
-                if (part != null)
-                {
-                    return  part.LocalTransform * obj.Object!.LocalTransform;
-                }
-                if (hardpoint != null)
-                {
-                    return hardpoint.Transform * obj.Object!.LocalTransform;
-                }
-                return new(obj.Translate, obj.Rotate);
-            }
-        }
 
         public AttachEntityEvent() { }
 
@@ -166,27 +112,26 @@ namespace LibreLancer.Thn.Events
                 }
             }
 
-            var tgt = new EntityTarget(objB, hardpoint, part);
+            var tgt = new ThnObjectParent(objB, hardpoint, part);
             Quaternion lastRotate = Quaternion.Identity;
             if ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation &&
                 (Flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative)
             {
-                var (_, tr) = tgt.GetTransform();
+                var (_, tr) = tgt.GetTransform(false);
                 lastRotate = tr;
             }
-            instance.AddProcessor(new AttachEntityProcessor()
+            var attachment = new ThnAttachment(tgt)
             {
-                Duration = Duration,
-                Child = objA,
-                Parent = tgt,
                 Position = ((Flags & AttachFlags.Position) == AttachFlags.Position),
                 Orientation = ((Flags & AttachFlags.Orientation) == AttachFlags.Orientation),
                 OrientationRelative = ((Flags & AttachFlags.OrientationRelative) == AttachFlags.OrientationRelative),
                 EntityRelative = ((Flags & AttachFlags.EntityRelative) == AttachFlags.EntityRelative),
                 LookAt = ((Flags & AttachFlags.LookAt) == AttachFlags.LookAt),
                 LastRotate = lastRotate,
-                Offset = Offset
-            });
+                Offset = Offset,
+            };
+            objA.Attachments.Add(attachment);
+            instance.AddProcessor(new AttachEntityProcessor(Duration, objA, attachment));
         }
     }
 }
