@@ -284,7 +284,6 @@ public class Cutscene : IDisposable
         }
 
         currentTime += delta;
-        Console.WriteLine(" -- BEGIN UPDATE --");
         foreach (var obj in sceneObjects.Values) obj.Update();
         if (text != null)
         {
@@ -300,7 +299,6 @@ public class Cutscene : IDisposable
             instance.Update(delta);
         }
 
-        Console.WriteLine(" -- END UPDATE --");
         camera.Update();
         if (Renderer != null)
         {
