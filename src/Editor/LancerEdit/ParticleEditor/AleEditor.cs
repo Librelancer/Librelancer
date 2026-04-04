@@ -48,6 +48,7 @@ namespace LancerEdit
         private FieldReference[] allFields;
 
         float sparam = 1;
+        private bool paused = false;
 
         private VerticalTabLayout layout;
         private EditorConfiguration config;
@@ -124,7 +125,6 @@ namespace LancerEdit
                 EffectsPanel();
         }
 
-
         void DrawMiddle()
         {
             //Fx management
@@ -167,6 +167,12 @@ alchemy = FILE_PATH_HERE
             if (ImGui.Button("Reset Fx"))
             {
                 OnChanged();
+            }
+            ImGui.SameLine();
+            string playPause = paused ? "Resume" : "Pause";
+            if (ImGui.Button($"{playPause}###playPause"))
+            {
+                paused = !paused;
             }
             ImGui.SameLine();
             ImGui.Text($"T: {instance.GlobalTime:0.000}, Particle Count: {instance.CountAll()}");
@@ -583,7 +589,7 @@ alchemy = FILE_PATH_HERE
         public override void Update(double elapsed)
         {
             transform = Matrix4x4.CreateRotationX(aleViewport.ModelRotation.Y) * Matrix4x4.CreateRotationY(aleViewport.ModelRotation.X);
-            instance.Update(elapsed, transform, sparam);
+            instance.Update(paused ? 0 : elapsed, transform, sparam);
         }
 
         public override void Dispose()
