@@ -193,7 +193,7 @@ namespace LibreLancer.Net.Protocol
         public ObjNetId ID;
         public string? Nickname;
         public ObjectSpawnFlags Flags;
-        public ObjectName Name;
+        public ObjectName? Name;
         public Vector3 Position;
         public Quaternion Orientation;
 

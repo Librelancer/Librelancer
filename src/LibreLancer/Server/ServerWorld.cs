@@ -304,7 +304,7 @@ namespace LibreLancer.Server
 
             if (obj.Name is not LootName)
             {
-                info.Name = obj.Name!;
+                info.Name = obj.Name;
             }
 
             var tr = obj.WorldTransform;
@@ -442,9 +442,9 @@ namespace LibreLancer.Server
             {
                 obj.Nickname = "Player"; // HACK: Set local player ID for mission script
             }
-
+            obj.Name = new ObjectName(player.Name);
             obj.NetID = player.ID;
-            obj.Flags |= GameObjectFlags.Player;
+            obj.Flags |= GameObjectFlags.Player | GameObjectFlags.Important;
             GameWorld.AddObject(obj);
             obj.Register(GameWorld);
             FLLog.Debug("Server", $"Spawning player with rotation {orientation}");
