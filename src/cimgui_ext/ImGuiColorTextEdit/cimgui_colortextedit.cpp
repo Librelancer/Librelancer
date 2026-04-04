@@ -8,6 +8,9 @@
 #include <string>
 #include <cstring>
 
+
+
+
 CIMGUI_API texteditor_t igExtTextEditorInit()
 {
 	TextEditor *editor = new TextEditor();
@@ -19,10 +22,10 @@ CIMGUI_API void igExtTextEditorSetMode(texteditor_t textedit, texteditor_mode_t 
 {
     TextEditor *editor = (TextEditor*)textedit;
     if(mode == TEXTEDITOR_MODE_LUA) {
-        editor->SetLanguageDefinition(TextEditor::LanguageDefinitionId::Lua);
+        editor->SetLanguage(TextEditor::Language::WattleScript());
     }
     else {
-        editor->SetLanguageDefinition(TextEditor::LanguageDefinitionId::None);
+        editor->SetLanguage(nullptr);
     }
 }
 CIMGUI_API void igExtTextEditorSetReadOnly(texteditor_t textedit, int readonly)
@@ -57,16 +60,15 @@ CIMGUI_API int igExtTextEditorGetUndoIndex(texteditor_t textedit)
 CIMGUI_API void igExtTextEditorGetCoordinates(texteditor_t textedit, int32_t *x, int32_t *y)
 {
 	TextEditor *editor = (TextEditor*)textedit;
-    int cposX = 0, cposY = 0;
-	editor->GetCursorPosition(cposX, cposY);
-	*x = cposX;
-	*y = cposY;
+	auto cursor = editor->GetCursorPosition(0);
+	*x = cursor.column;
+	*y = cursor.line;
 }
 
 CIMGUI_API void igExtTextEditorRender(texteditor_t textedit, const char *id)
 {
 	TextEditor *editor = (TextEditor*)textedit;
-	editor->Render(id, false, ImVec2(0,0), false);
+	editor->Render(id, ImVec2(0,0), false);
 }
 
 CIMGUI_API void igExtTextEditorFree(texteditor_t textedit)

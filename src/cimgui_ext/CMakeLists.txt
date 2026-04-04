@@ -9,9 +9,6 @@ add_library(cimgui SHARED
     ../../extern/imgui/imgui_demo.cpp
     ../../extern/imgui/imgui_tables.cpp
     ImGuiColorTextEdit/TextEditor.cpp
-    ImGuiColorTextEdit/LanguageDefinitions.cpp
-    ImGuiColorTextEdit/ImGuiDebugPanel.cpp
-    ImGuiColorTextEdit/UnitTests.cpp
     ImGuiColorTextEdit/cimgui_colortextedit.cpp
     imgui-node-editor/imgui_canvas.cpp
     imgui-node-editor/imgui_node_editor_api.cpp

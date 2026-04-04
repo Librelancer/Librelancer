@@ -44,9 +44,6 @@
 [submodule "extern/StringSquash"]
 	path = extern/StringSquash
 	url = https://github.com/CallumDev/StringSquash
-[submodule "extern/regex"]
-	path = extern/regex
-	url = https://github.com/boostorg/regex
 [submodule "extern/imgui"]
 	path = extern/imgui
 	url = https://github.com/ocornut/imgui
