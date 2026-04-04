@@ -2047,6 +2047,7 @@ public class GameItemDb
                 HoldSize = orig.HoldSize,
                 Mass = orig.Mass,
                 Class = orig.ShipClass,
+                LinearDrag = orig.LinearDrag,
                 AngularDrag = orig.AngularDrag,
                 RotationInertia = orig.RotationInertia,
                 SteeringTorque = orig.SteeringTorque,

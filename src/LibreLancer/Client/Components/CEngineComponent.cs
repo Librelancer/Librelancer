@@ -24,6 +24,8 @@ namespace LibreLancer.Client.Components
         private AttachedSound? cruiseLoop;
         private AttachedSound? cruiseStart;
         private AttachedSound? cruiseEnd;
+        private AttachedSound? killSound;
+
         private GameObject Ship = parent;
 
         private bool _active = true;
@@ -56,6 +58,8 @@ namespace LibreLancer.Client.Components
 
         private bool triggeredStart = false;
         private bool triggeredEnd = false;
+
+        private bool lastEk = false;
 
 		public override void Update(double time, GameWorld world)
         {
@@ -146,6 +150,21 @@ namespace LibreLancer.Client.Components
                 cruiseEnd.Position = pos;
                 cruiseEnd.Velocity = vel;
                 cruiseEnd.Update();
+            }
+
+            if (killSound != null)
+            {
+                if (lastEk != EngineKill)
+                {
+                    if (EngineKill)
+                    {
+                        killSound.Play(false);
+                    }
+                    lastEk = EngineKill;
+                }
+                killSound.Position = pos;
+                killSound.Velocity = vel;
+                killSound.Update();
             }
 
             foreach (var fx in fireFx)
@@ -245,6 +264,14 @@ namespace LibreLancer.Client.Components
             if (!string.IsNullOrWhiteSpace(Engine.Def.CruiseStopSound))
             {
                 cruiseEnd = new AttachedSound(sound, Engine.Def.CruiseStopSound)
+                {
+                    Cone = cone
+                };
+            }
+
+            if (!string.IsNullOrWhiteSpace(Engine.Def.EngineKillSound))
+            {
+                killSound = new AttachedSound(sound, Engine.Def.EngineKillSound)
                 {
                     Cone = cone
                 };

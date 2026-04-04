@@ -1075,6 +1075,7 @@ namespace LibreLancer.Server
                 if (obj.TryGetComponent<SEngineComponent>(out var eng))
                 {
                     update.Throttle = eng.Speed;
+                    update.EngineKill = eng.EngineKill;
                 }
 
                 if (obj.TryGetComponent<ShipPhysicsComponent>(out var objPhysics))

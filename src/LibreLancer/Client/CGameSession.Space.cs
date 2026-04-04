@@ -32,6 +32,7 @@ public partial class CGameSession
         public float Throttle;
         public StrafeControls Strafe;
         public bool Thrust;
+        public bool EngineKill;
         public bool CruiseEnabled;
         public ProjectileFireCommand? FireCommand;
     }
@@ -77,6 +78,7 @@ public partial class CGameSession
             Throttle = moveState[^i].Throttle,
             Cruise = moveState[^i].CruiseEnabled,
             Thrust = moveState[^i].Thrust,
+            EngineKill = moveState[^1].EngineKill,
             FireCommand = moveState[^i].FireCommand
         };
     }
@@ -113,6 +115,7 @@ public partial class CGameSession
                 Throttle = phys.EnginePower,
                 Thrust = steering.Thrust,
                 CruiseEnabled = steering.Cruise,
+                EngineKill = steering.EngineKill,
                 FireCommand = gp.world.Projectiles!.GetQueuedRequest()
             });
 
@@ -349,7 +352,7 @@ public partial class CGameSession
         if (obj.TryGetComponent<CEngineComponent>(out var eng))
         {
             eng.Speed = update.Throttle;
-
+            eng.EngineKill = update.EngineKill;
             foreach (var comp in obj.GetChildComponents<CThrusterComponent>())
                 comp.Enabled = update.CruiseThrust == CruiseThrustState.Thrusting;
         }
@@ -389,6 +392,7 @@ public partial class CGameSession
         physComponent.EnginePower = moveState[i].Throttle;
         physComponent.Steering = moveState[i].Steering;
         physComponent.ThrustEnabled = moveState[i].Thrust;
+        physComponent.EngineKillEnabled = moveState[i].EngineKill;
         physComponent.Update(1 / 60.0f, gameplay.world);
         gameplay.player.PhysicsComponent!.Body!.PredictionStep(1 / 60.0f);
         moveState[i].Position = player.PhysicsComponent!.Body!.Position;

@@ -1259,12 +1259,17 @@ World Time: {12:F2}
             {
                 case InputAction.USER_CRUISE:
                     steering.Cruise = !steering.Cruise;
+                    steering.EngineKill = false;
                     break;
                 case InputAction.USER_TURN_SHIP:
                     mouseFlight = !mouseFlight;
                     break;
                 case InputAction.USER_AUTO_TURRET:
                     isTurretView = !isTurretView;
+                    break;
+                case InputAction.USER_MANEUVER_ENGINEKILL:
+                    steering.Cruise = false;
+                    steering.EngineKill = true;
                     break;
             }
         }
@@ -1345,6 +1350,7 @@ World Time: {12:F2}
             steering.Thrust = false;
             shipInput.Reverse = false;
             steering.Cruise = false;
+            steering.EngineKill = false;
         }
 
         private bool GetCrosshair(out Vector2 screenPos, out Vector3 worldPos)
@@ -1435,12 +1441,14 @@ World Time: {12:F2}
                 {
                     shipInput.Throttle += (float) (delta);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
+                    steering.EngineKill = false;
                 }
 
                 else if (Input.IsActionDown(InputAction.USER_DEC_THROTTLE))
                 {
                     shipInput.Throttle -= (float) (delta);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
+                    steering.EngineKill = false;
                 }
 
                 steering.Thrust = Input.IsActionDown(InputAction.USER_AFTERBURN);

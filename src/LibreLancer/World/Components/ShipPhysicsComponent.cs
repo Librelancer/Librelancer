@@ -22,9 +22,9 @@ namespace LibreLancer.World.Components
 	public enum EngineStates
 	{
 		Standard,
+        EngineKill,
 		CruiseCharging,
 		Cruise,
-		EngineKill
 	}
     public class ShipPhysicsComponent : GameComponent
     {
@@ -36,7 +36,8 @@ namespace LibreLancer.World.Components
                                        // Some mods have a per-ship (engine?) cruise speed. Check how this is implemented, and include as native feature.
         public bool ThrustEnabled = false;
         public bool CruiseEnabled = false;
-        public EngineStates EngineState = EngineStates.Standard;
+        public bool EngineKillEnabled = false;
+        public EngineStates EngineState { get; private set; }
         public StrafeControls CurrentStrafe = StrafeControls.None;
         public float ChargePercent;
         public Vector3 Steering;
@@ -89,6 +90,12 @@ namespace LibreLancer.World.Components
                     CruiseAccelPct = 0f;
                 }
             }
+            else if (EngineKillEnabled)
+            {
+                EngineState = EngineStates.EngineKill;
+                ChargePercent = 0;
+                CruiseAccelPct = 0;
+            }
             else
             {
                 EngineState = EngineStates.Standard;
@@ -108,31 +115,63 @@ namespace LibreLancer.World.Components
             if (engine == null) return;
             if (power == null) return;
             // Drag = -linearDrag * Velocity
-            if (EnginePower <= 0) {
-                EnginePower = MathHelper.Clamp(EnginePower, -engine.Engine.Def.ReverseFraction, 1);
+
+            float requestedEnginePower = EnginePower;
+            if (requestedEnginePower <= 0)
+            {
+                requestedEnginePower = MathHelper.Clamp(EnginePower, -engine.Engine.Def.ReverseFraction, 1);
             }
-            var drag = -engine.Engine.Def.LinearDrag * Parent.PhysicsComponent.Body.LinearVelocity;
-            if (EngineState == EngineStates.CruiseCharging) {
-                EnginePower = 1f;
-            }
-            var engine_force = EnginePower * engine.Engine.Def.MaxForce;
+
+            float totalDrag = Ship.LinearDrag;
+            float thrusterForce = 0;
+
             power.CurrentThrustCapacity += power.Equip.ThrustChargeRate * (float)(time);
             power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
             foreach (var thruster in Parent.GetChildComponents<ThrusterComponent>())
             {
                 thruster.Enabled = false;
             }
-            if (ThrustEnabled)
+            if (ThrustEnabled && EngineState <= EngineStates.EngineKill)
             {
                 foreach (var thruster in Parent.GetChildComponents<ThrusterComponent>())
                 {
-                    engine_force += thruster.Equip.Force;
+                    thrusterForce += thruster.Equip.Force;
                     thruster.Enabled = true;
                     power.CurrentThrustCapacity -= (float)(thruster.Equip.Drain * time);
                     power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
                     if (power.CurrentThrustCapacity == 0) ThrustEnabled = false;
                 }
             }
+
+            if (EngineState == EngineStates.EngineKill)
+            {
+                if (thrusterForce > 0 || CurrentStrafe != StrafeControls.None ||
+                    requestedEnginePower < 0)
+                {
+                    requestedEnginePower = requestedEnginePower < 0 ? requestedEnginePower : 1;
+                    totalDrag += engine.Engine.Def.LinearDrag;
+                    engine.EngineKill = false;
+                }
+                else
+                {
+                    requestedEnginePower = 0;
+                    engine.EngineKill = true;
+                }
+            }
+            else
+            {
+                totalDrag += engine.Engine.Def.LinearDrag;
+                engine.EngineKill = false;
+            }
+            var drag = -totalDrag * Parent.PhysicsComponent.Body.LinearVelocity;
+            if (EngineState == EngineStates.CruiseCharging)
+            {
+                requestedEnginePower = EnginePower = 1f;
+            }
+
+            var engineForce = requestedEnginePower * engine.Engine.Def.MaxForce
+                              + thrusterForce;
+
 
             if (EngineState == EngineStates.CruiseCharging) {
                 EnginePower = 1f;
@@ -156,14 +195,14 @@ namespace LibreLancer.World.Components
                 CruiseAccelPct += (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
                 if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
                 var cruise_force = engine.Engine.CruiseSpeed * engine.Engine.Def.LinearDrag;
-                engine_force = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * CruiseAccelPct;
+                engineForce = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * CruiseAccelPct;
                 // Set fx sparam. TODO: This is poorly named
                 engine.Speed = 1.0f;
                 ChargePercent = 1f;
             }
             else
             {
-                engine.Speed = Math.Clamp(EnginePower * 0.9f, 0, 1);
+                engine.Speed = Math.Clamp(requestedEnginePower * 0.9f, 0, 1);
             }
 
             Vector3 strafe = Vector3.Zero;
@@ -197,7 +236,7 @@ namespace LibreLancer.World.Components
             var totalForce = (
                 drag +
                 strafe +
-                (Parent.PhysicsComponent.Body.RotateVector(-Vector3.UnitZ) * engine_force)
+                (Parent.PhysicsComponent.Body.RotateVector(-Vector3.UnitZ) * engineForce)
             );
             var angularForce = Steering * Ship.SteeringTorque;
             angularForce += (Parent.PhysicsComponent.Body.AngularVelocity * -1) * Ship.AngularDrag;

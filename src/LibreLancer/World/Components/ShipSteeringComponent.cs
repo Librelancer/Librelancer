@@ -19,6 +19,7 @@ namespace LibreLancer.World.Components
         public bool Cruise;
         public bool Thrust;
         public int Tick;
+        public bool EngineKill;
 
         public bool PlayerInput;
 
@@ -58,6 +59,7 @@ namespace LibreLancer.World.Components
             physics.EnginePower = InThrottle;
             physics.ThrustEnabled = Thrust;
             physics.CruiseEnabled = Cruise;
+            physics.EngineKillEnabled = EngineKill;
         }
 
         // Specific decomposition for roll

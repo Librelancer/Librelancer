@@ -84,7 +84,7 @@ public partial class Ship
     [Entry("mission_property")]
     public string? MissionProperty;
     [Entry("linear_drag")]
-    public float LinearDrag;
+    public float LinearDrag = 1f;
     [Entry("cockpit")]
     public string? Cockpit;
     [Entry("pilot_mesh")]

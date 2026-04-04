@@ -11,5 +11,6 @@ namespace LibreLancer.Server.Components
     {
         public EngineEquipment Engine = engine;
         public float Speed;
+        public bool EngineKill;
     }
 }

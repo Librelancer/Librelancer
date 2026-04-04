@@ -18,6 +18,7 @@ public class Ship : NamedItem
     public float[]? LODRanges;
     public int[]? ExtraIdsInfo;
     public ResolvedModel? ModelFile;
+    public float LinearDrag;
     public Vector3 SteeringTorque;
     public Vector3 AngularDrag;
     public Vector3 RotationInertia;
