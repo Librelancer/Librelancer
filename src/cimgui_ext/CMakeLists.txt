@@ -37,8 +37,6 @@ target_include_directories(cimgui PRIVATE "." "../../extern/imgui" "ImGuiColorTe
 target_compile_definitions (cimgui PRIVATE -DBUILDING_CIMGUI)
 target_compile_definitions(cimgui PUBLIC -DIMGUI_USER_CONFIG=<imconfig_ext.h>)
 
-target_link_libraries (cimgui PRIVATE boost_regex)
-
 set_target_properties(cimgui PROPERTIES C_VISIBILITY_PRESET hidden)
 set_target_properties(cimgui PROPERTIES CXX_VISIBILITY_PRESET hidden)
 
