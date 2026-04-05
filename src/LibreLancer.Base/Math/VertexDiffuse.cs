@@ -2,8 +2,6 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Intrinsics;
-using System.Runtime.Intrinsics.Arm;
-using System.Runtime.Intrinsics.X86;
 
 namespace LibreLancer;
 
@@ -45,8 +43,16 @@ public struct VertexDiffuse(byte r, byte g, byte b, byte a)
     public static explicit operator VertexDiffuse(Color4 color) =>
         (VertexDiffuse)Unsafe.BitCast<Color4, Vector4>(color);
 
+    public static explicit operator Vector4(VertexDiffuse diffuse)
+    {
+        var ui = Vector128.CreateScalar((uint)diffuse).AsByte();
+        var uvec4 = Vector128.WidenLower(Vector128.WidenLower(ui));
+        var s = Vector128.ConvertToSingle(uvec4);
+        return Vector128.Divide(s, 255f).AsVector4();
+    }
+
     public static explicit operator Color4(VertexDiffuse diffuse) =>
-        new Color4(diffuse.R / 255f, diffuse.G / 255f, diffuse.B / 255f, diffuse.A / 255f);
+        Unsafe.BitCast<Vector4, Color4>((Vector4)diffuse);
 
     public static explicit operator VertexDiffuse(uint source)
     {
