@@ -285,6 +285,7 @@ public unsafe class AudioManager
             InitSourceProperties(sid, ref instance.SetProperties, instance.Category);
             instance.Buffer = BufferData(instance.Data);
             Al.alSourcei(sid, Al.AL_BUFFER, (int)instance.Buffer);
+            Al.alSourcef(sid, Al.AL_SEC_OFFSET, offset);
             Al.alSourcei(sid, Al.AL_LOOPING, looping ? 1 : 0);
             Al.alSourcePlay(sid);
             allocatedSounds.Add(instance);
@@ -452,6 +453,7 @@ public unsafe class AudioManager
                         {
                             StartSource(message.Instance, message.Data.X, message.Instance.Looping);
                         }
+
                         message.Instance.StartTime = audioClock.Elapsed.TotalSeconds;
                         if (!message.Instance.Active)
                         {
