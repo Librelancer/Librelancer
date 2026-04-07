@@ -55,7 +55,7 @@ namespace LibreLancer.Fx
 			n *= Pressure.GetValue(sparam, 0);
 			var pr = p * radius;
 			particle.Position = pr;
-			particle.Normal = n;
+			particle.Velocity = n;
 		}
 	}
 }

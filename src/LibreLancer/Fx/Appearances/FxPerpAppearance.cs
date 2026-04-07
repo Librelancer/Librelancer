@@ -33,7 +33,7 @@ namespace LibreLancer.Fx
                     (float)instance.LastTime, (float)instance.GlobalTime);
                 particle.Orientation = q;
                 var p = Vector3.Transform(particle.Position, transform);
-                var p2 = Vector3.Transform(particle.Position + particle.Normal, transform);
+                var p2 = Vector3.Transform(particle.Position + particle.Velocity, transform);
                 var n = (p - p2).Normalized();
                 instance.Pool.AddParticle(
                     TextureHandler,

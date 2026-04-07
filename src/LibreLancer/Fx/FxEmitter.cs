@@ -110,7 +110,7 @@ namespace LibreLancer.Fx
             var idx = -1;
             var pr = reference;
 
-            while (pr.Parent != null && !pr.IsAttachmentNode)
+            while (pr != null && !pr.IsAttachmentNode)
             {
                 if (pr.Node.Transform.HasTransform)
                 {
@@ -236,16 +236,17 @@ namespace LibreLancer.Fx
 
                     particle.Position = Vector3.Transform(
                         particle.Position, transform);
-                    var len = particle.Normal.Length();
+                    var len = particle.Velocity.Length();
 
                     if (!(Math.Abs(len) > float.Epsilon))
                     {
                         continue;
                     }
 
-                    var nr = particle.Normal.Normalized();
+                    var nr = particle.Velocity.Normalized();
                     var transformed = Vector3.TransformNormal(nr, transform).Normalized();
-                    particle.Normal = transformed * len;
+                    particle.Velocity = transformed * len;
+                    particle.Normal = nr;
                 }
             }
             else

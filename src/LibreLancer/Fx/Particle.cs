@@ -10,7 +10,8 @@ namespace LibreLancer.Fx
 	public struct Particle
 	{
 		public Vector3 Position;
-		public Vector3 Normal;
+		public Vector3 Velocity;
+        public Vector3 Normal;
 		public float LifeSpan;
 		public float TimeAlive;
         public Quaternion Orientation;

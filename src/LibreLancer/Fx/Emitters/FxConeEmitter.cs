@@ -65,7 +65,7 @@ namespace LibreLancer.Fx
             var p = n * radius + translate;
 			n *= Pressure!.GetValue(sparam, 0);
             particle.Position = p;
-            particle.Normal = n;
+            particle.Velocity = n;
 		}
 
 		// Different direction to FxCubeEmitter

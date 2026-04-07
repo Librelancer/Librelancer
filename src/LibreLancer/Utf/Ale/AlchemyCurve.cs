@@ -64,6 +64,10 @@ namespace LibreLancer.Utf.Ale
                     right = mid;
             }
 
+            if (left == 0)
+                return Keyframes[0].Value;
+            if(left >= Keyframes.Count)
+                return Keyframes[^1].Value;
             return ValueAt(Keyframes[left - 1], Keyframes[left], time);
 		}
 

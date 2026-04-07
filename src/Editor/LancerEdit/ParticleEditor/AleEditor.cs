@@ -230,12 +230,28 @@ alchemy = FILE_PATH_HERE
         }
 
         NodeReference selectedReference = null;
-        void NodeHierachy()
+        unsafe void NodeHierachy()
         {
             var enabledColor = (Vector4)ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
             var disabledColor = (Vector4)ImGui.GetStyle().Colors[(int)ImGuiCol.TextDisabled];
 
             var isTreeOpen = ImGui.TreeNodeEx("Effect", ImGuiTreeNodeFlags.DefaultOpen);
+            if (ImGui.BeginDragDropTarget())
+            {
+                if (AcceptDragDropPayload("NodeLib", ImGuiDragDropFlags.None, out var ptr)
+                    && ptr.DataSize == 4)
+                {
+                    var crc = *(uint*)ptr.Data;
+                    var fxnode = ParticleFile.Nodes.Values.FirstOrDefault(x => x.CRC == crc);
+                    if (ptr.Delivery)
+                    {
+                        var r = NodeReference.Create(fxnode);
+                        r.Parent = null;
+                        undoBuffer.Commit(new AddNodeReference(this, null, r));
+                    }
+                }
+                ImGui.EndDragDropTarget();
+            }
             if (isTreeOpen)
             {
                 foreach (var reference in instance.Effect.Tree)

@@ -80,16 +80,14 @@ namespace LibreLancer.Fx
                 var sc = Scale!.GetValue(sparam, time);
                 if (!CenterOnPos)
                 {
-                    var nd = particle.Normal.Normalized();
-                    src_pos += nd * (l * sc * 0.25f);
+                    src_pos += particle.Normal * (l * sc * 0.25f);
                 }
 
                 var p = Vector3.Transform(src_pos, node_tr);
                 var c = Color!.GetValue(sparam, time);
                 var a = Alpha!.GetValue(sparam, time);
-                var p2 = Vector3.Transform(src_pos + (particle.Normal * 20), node_tr);
-                // var n = (p2 - p).Normalized();
                 var n = Vector3.TransformNormal(particle.Normal, transform).Normalized();
+
                 instance.Pool.AddParticle(
                     TextureHandler,
                     p,

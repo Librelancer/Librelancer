@@ -117,6 +117,11 @@ namespace LibreLancer.Fx
             // Update particles
             for (var i = 0; i < Effect.Appearances.Count; i++)
             {
+                var app = Effect.Appearances[i];
+                for (int j = 0; j < app.Linked.Count; j++)
+                {
+                   app.Linked[j].Field.Update(this, app.Linked[j], i, transform, sparam, (float)delta);
+                }
                 var count = Buffer.GetCount(i);
                 for (var j = 0; j < count; j++)
                 {
@@ -132,7 +137,7 @@ namespace LibreLancer.Fx
                     }
                     else
                     {
-                        particle.Position += (float) delta * particle.Normal;
+                        particle.Position += (float) delta * particle.Velocity;
                     }
                 }
             }
