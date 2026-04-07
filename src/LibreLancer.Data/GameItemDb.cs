@@ -292,6 +292,8 @@ public class GameItemDb
                 b.MsgIdPrefix = mBase.MsgIdPrefix;
                 b.Diff = mBase.Diff;
                 b.LocalFaction = Factions.Get(mBase.LocalFaction);
+                b.LocalFactionNickname = mBase.LocalFaction;
+                b.FactionNickname = mBase.Faction;
 
                 if (mBase.MVendor != null)
                 {
@@ -309,15 +311,28 @@ public class GameItemDb
                         Head = npc.Head,
                         LeftHand = npc.LeftHand,
                         RightHand = npc.RightHand,
-                        Accessory = npc.Accessory,
+                        Accessories = npc.Accessories.ToList(),
                         IndividualName = npc.IndividualName,
                         Affiliation = Factions.Get(npc.Affiliation ?? ""),
+                        AffiliationNickname = npc.Affiliation,
                         Voice = npc.Voice,
                         Room = npc.Room,
                         Know = npc.Know,
                         Rumors = npc.Rumors,
                         Bribes = npc.Bribes,
                         Mission = npc.Mission,
+                    });
+                }
+
+                foreach (var fac in mBase.Factions)
+                {
+                    b.BaseFactions.Add(new MBaseBaseFaction
+                    {
+                        Faction = fac.Faction,
+                        Weight = fac.Weight,
+                        Npcs = fac.Npcs,
+                        OffersMissions = fac.OffersMissions,
+                        Missions = fac.Missions,
                     });
                 }
             }
@@ -379,6 +394,7 @@ public class GameItemDb
 
                 if (mRoom.TryGetValue(room.Nickname, out var mroom))
                 {
+                    nr.MaxCharacters = mroom.CharacterDensity;
                     foreach (var npc in mroom.NPCs)
                     {
                         nr.FixedNpcs.Add(new BaseFixedNpc
@@ -386,7 +402,7 @@ public class GameItemDb
                             Placement = npc.StandMarker,
                             FidgetScript = ResolveThn(npc.Script),
                             Action = npc.Action,
-                            Npc = b.Npcs.Find(n => n.Nickname == npc.Npc)
+                            Npc = b.Npcs.Find(n => string.Equals(n.Nickname, npc.Npc, StringComparison.OrdinalIgnoreCase))
                         });
                     }
                 }

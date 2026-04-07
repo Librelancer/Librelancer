@@ -24,8 +24,8 @@ public partial class GfNpc
     public string? LeftHand;
     [Entry("righthand")]
     public string? RightHand;
-    [Entry("accessory")]
-    public string? Accessory;
+    public List<string> Accessories = [];
+    public string? Accessory => Accessories.Count > 0 ? Accessories[0] : null;
     [Entry("individual_name")]
     public int IndividualName;
     [Entry("affiliation")]
@@ -59,6 +59,9 @@ public partial class GfNpc
     private void HandleBribe(Entry e) => Bribes.Add(
         new NpcBribe(e[0].ToString(), e[1].ToInt32(), e[2].ToInt32())
     );
+
+    [EntryHandler("accessory")]
+    private void HandleAccessory(Entry e) => Accessories.Add(e[0].ToString());
 
     [EntryHandler("misn", MinComponents = 3)]
     private void HandleMisn(Entry e) => Mission = new NpcMission(e[0].ToString(), e[1].ToSingle(), e[2].ToSingle());

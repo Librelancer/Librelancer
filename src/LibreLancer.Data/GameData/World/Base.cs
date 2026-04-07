@@ -34,11 +34,14 @@ public class Base : NamedItem
 
     //Populated from mbases
     public Faction? LocalFaction;
+    public string? LocalFactionNickname;
+    public string? FactionNickname;
     public int Diff;
     public string? MsgIdPrefix;
     public int MinMissionOffers;
     public int MaxMissionOffers; //not respected by vanilla (?)
     public List<BaseNpc> Npcs = [];
+    public List<MBaseBaseFaction> BaseFactions = [];
 
     public ulong GetUnitPrice(Items.Equipment eq)
     {
@@ -57,9 +60,20 @@ public class BaseNpc
     public required string? Head;
     public required string? LeftHand;
     public required string? RightHand;
-    public required string? Accessory;
+    public List<string> Accessories = [];
+    public string? Accessory
+    {
+        get => Accessories.Count > 0 ? Accessories[0] : null;
+        set
+        {
+            Accessories.Clear();
+            if (!string.IsNullOrWhiteSpace(value))
+                Accessories.Add(value!);
+        }
+    }
     public required int IndividualName;
     public required Faction? Affiliation;
+    public string? AffiliationNickname;
     public required string? Voice;
     public required string? Room;
 
@@ -67,4 +81,13 @@ public class BaseNpc
     public List<NpcRumor> Rumors = [];
     public List<NpcBribe> Bribes = [];
     public required NpcMission? Mission;
+}
+
+public class MBaseBaseFaction
+{
+    public required string Faction;
+    public float Weight;
+    public List<string> Npcs = [];
+    public bool OffersMissions;
+    public List<BaseFactionMission> Missions = [];
 }

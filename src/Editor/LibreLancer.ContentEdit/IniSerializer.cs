@@ -521,18 +521,35 @@ public static class IniSerializer
         var ib = new IniBuilder();
         foreach (var b in bases)
         {
-            ib.Section("MBase")
-                .Entry("nickname", b.Nickname)
-                .OptionalEntry("local_faction", b.LocalFaction?.Nickname)
-                .OptionalEntry("diff", b.Diff)
+            var mbaseSection = ib.Section("MBase")
+                .Entry("nickname", b.Nickname);
+
+            var localFacStr = b.LocalFactionNickname ?? b.LocalFaction?.Nickname;
+            if (!string.IsNullOrEmpty(localFacStr))
+                mbaseSection.Entry("local_faction", localFacStr);
+            mbaseSection.OptionalEntry("faction", b.FactionNickname);
+            mbaseSection.OptionalEntry("diff", b.Diff)
                 .OptionalEntry("msg_id_prefix", b.MsgIdPrefix);
 
             if (b.MinMissionOffers != 0 || b.MaxMissionOffers != 0)
                 ib.Section("MVendor")
                     .Entry("num_offers", b.MinMissionOffers, b.MaxMissionOffers);
 
+            foreach (var fac in b.BaseFactions)
+            {
+                var facSection = ib.Section("BaseFaction")
+                    .Entry("faction", fac.Faction)
+                    .OptionalEntry("weight", fac.Weight)
+                    .OptionalEntry("offers_missions", fac.OffersMissions);
+                foreach (var mt in fac.Missions)
+                    facSection.Entry("mission_type", mt.Type, mt.MinDiff, mt.MaxDiff);
+                foreach (var npcNick in fac.Npcs)
+                    facSection.Entry("npc", npcNick);
+            }
+
             foreach (var npc in b.Npcs)
             {
+                var affilStr = npc.AffiliationNickname ?? npc.Affiliation?.Nickname;
                 var section = ib.Section("GF_NPC")
                     .Entry("nickname", npc.Nickname)
                     .OptionalEntry("base_appr", npc.BaseAppr)
@@ -541,8 +558,10 @@ public static class IniSerializer
                     .OptionalEntry("lefthand", npc.LeftHand)
                     .OptionalEntry("righthand", npc.RightHand)
                     .OptionalEntry("individual_name", npc.IndividualName)
-                    .OptionalEntry("affiliation", npc.Affiliation?.Nickname)
+                    .OptionalEntry("affiliation", affilStr)
                     .OptionalEntry("voice", npc.Voice);
+                foreach (var accessory in npc.Accessories)
+                    section.Entry("accessory", accessory);
                 if (npc.Mission != null)
                     section.Entry("misn", npc.Mission.Kind, npc.Mission.Min, npc.Mission.Max);
                 section.OptionalEntry("room", npc.Room);
@@ -577,10 +596,11 @@ public static class IniSerializer
             {
                 var section = ib.Section("MRoom")
                     .Entry("nickname", room.Nickname)
-                    .OptionalEntry("character_density", room.MaxCharacters);
+                    .Entry("character_density", room.MaxCharacters);
                 foreach (var npc in room.FixedNpcs)
                 {
-                    section.Entry("fixture", npc.Npc.Nickname, npc.Placement, npc.FidgetScript.SourcePath, npc.Action);
+                    if (npc.Npc == null) continue;
+                    section.Entry("fixture", npc.Npc.Nickname, npc.Placement, npc.FidgetScript?.SourcePath, npc.Action);
                 }
             }
         }

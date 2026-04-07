@@ -648,6 +648,14 @@ namespace LancerEdit
                     else
                         AddTab(new NewsEditorTab(OpenDataContext, this));
                 }
+                if (Theme.IconMenuItem(Icons.PersonRunning, "Base NPC Editor", OpenDataContext != null))
+                {
+                    var fd = TabControl.Tabs.FirstOrDefault(x => x is BaseNpcEditorTab);
+                    if (fd != null)
+                        TabControl.SetSelected(fd);
+                    else
+                        AddTab(new BaseNpcEditorTab(OpenDataContext, this));
+                }
                 if (Theme.IconMenuItem(Icons.Table, "Mission Script Editor", OpenDataContext != null))
                 {
                     FileDialog.Open(x =>
