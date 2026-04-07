@@ -99,15 +99,14 @@ partial class AleEditor
             }
             else if (node is FieldReference fl)
             {
-                foreach (var emit in GetEffectNodes(effect)
+                foreach (var app in GetEffectNodes(effect)
                              .Where(x => !toRemove.Contains(x))
                              .OfType<AppearanceReference>())
                 {
-                    if (emit.Linked == fl)
+                    int idx = app.Linked.IndexOf(fl);
+                    if (idx != -1)
                     {
-                        actions.Add(EditorPropertyModification<FieldReference>.Create(
-                            "Linked", () => ref emit.Linked, fl, null, null)
-                        );
+                        actions.Add(new ListRemove<FieldReference>("Linked", app.Linked, idx, fl));
                     }
                 }
             }

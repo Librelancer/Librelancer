@@ -101,7 +101,7 @@ namespace LibreLancer.Fx
                             er.Linked = ar;
                             break;
                         case AppearanceReference ap when n2 is FieldReference fp:
-                            ap.Linked = fp;
+                            ap.Linked.Add(fp);
                             break;
                     }
                 }
@@ -215,11 +215,14 @@ namespace LibreLancer.Fx
                             alfx.Pairs.Add((self, other));
                             break;
                         }
-                        case AppearanceReference ap when ap.Linked != null:
+                        case AppearanceReference ap:
                         {
                             var self = tree[nodeReference];
-                            var other = tree[ap.Linked];
-                            alfx.Pairs.Add((self, other));
+                            foreach (var l in ap.Linked)
+                            {
+                                var other = tree[l];
+                                alfx.Pairs.Add((self, other));
+                            }
                             break;
                         }
                     }

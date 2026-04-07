@@ -284,12 +284,37 @@ alchemy = FILE_PATH_HERE
             {
                 ImGui.AlignTextToFramePadding();
                 ImGui.Text("Linked: ");
-                ImGui.SameLine();
-                SearchDropdown<FieldReference>.Draw("linked-app",
-                    ref app.Linked, allFields, x => x?.Node?.NodeName ?? "(none)",
-                    (old, upd) =>
-                        undoBuffer.Set("Linked", () => ref app.Linked, old, upd),
-                    true);
+
+                int del = -1;
+                for (int i = 0; i < app.Linked.Count; i++)
+                {
+                    if (ImGui.Button($"{Icons.TrashAlt}##{i}"))
+                    {
+                        del = i;
+                    }
+                    ImGui.SameLine();
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text(app.Linked[i].Node.NodeName);
+                }
+                if (del != -1)
+                {
+                    undoBuffer.Commit(new ListRemove<FieldReference>("Linked", app.Linked, del, app.Linked[del]));
+                }
+                if(ImGui.Button($"{Icons.PlusCircle}"))
+                    ImGui.OpenPopup("addField");
+                if (ImGui.BeginPopup("addField"))
+                {
+                    foreach (var f in allFields)
+                    {
+                        if (app.Linked.Contains(f))
+                            continue;
+                        if (ImGui.MenuItem(f.Field.NodeName))
+                        {
+                            undoBuffer.Commit(new ListAdd<FieldReference>("Linked", app.Linked, f));
+                        }
+                    }
+                    ImGui.EndPopup();
+                }
             }
             // Re-order hierarchy
         }
@@ -314,7 +339,7 @@ alchemy = FILE_PATH_HERE
                 if(selectedReference is AppearanceReference app)
                 {
                     if (reference is FieldReference f &&
-                        app.Linked == f)
+                        app.Linked.Contains(f))
                         linked = true;
                 }
             }

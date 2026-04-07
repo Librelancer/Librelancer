@@ -58,7 +58,7 @@ namespace LibreLancer.Fx
         public readonly FxAppearance Appearance = app;
         public override FxNode Node => Appearance;
 
-        public FieldReference? Linked;
+        public List<FieldReference> Linked = [];
     }
 
     public class FieldReference(FxField field) : NodeReference
