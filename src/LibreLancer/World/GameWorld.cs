@@ -38,6 +38,8 @@ namespace LibreLancer.World
 
         public IReadOnlyList<GameObject> Objects => objects;
 
+        public IReadOnlyList<GameObject> AllObjects => objects;
+
         public readonly SpatialLookup SpatialLookup = new();
 
         private Func<double>? timeSource;

@@ -292,8 +292,6 @@ public class GameItemDb
                 b.MsgIdPrefix = mBase.MsgIdPrefix;
                 b.Diff = mBase.Diff;
                 b.LocalFaction = Factions.Get(mBase.LocalFaction);
-                b.LocalFactionNickname = mBase.LocalFaction;
-                b.FactionNickname = mBase.Faction;
 
                 if (mBase.MVendor != null)
                 {
@@ -314,7 +312,6 @@ public class GameItemDb
                         Accessories = npc.Accessories.ToList(),
                         IndividualName = npc.IndividualName,
                         Affiliation = Factions.Get(npc.Affiliation ?? ""),
-                        AffiliationNickname = npc.Affiliation,
                         Voice = npc.Voice,
                         Room = npc.Room,
                         Know = npc.Know,
@@ -328,7 +325,7 @@ public class GameItemDb
                 {
                     b.BaseFactions.Add(new MBaseBaseFaction
                     {
-                        Faction = fac.Faction,
+                        Faction = Factions.Get(fac.Faction),
                         Weight = fac.Weight,
                         Npcs = fac.Npcs,
                         OffersMissions = fac.OffersMissions,

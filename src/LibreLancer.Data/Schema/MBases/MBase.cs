@@ -15,8 +15,6 @@ public partial class MBase
 {
     [Entry("nickname", Required = true)]
     public string Nickname = null!;
-    [Entry("faction")]
-    public string? Faction;
     [Entry("local_faction", Required = true)]
     public string LocalFaction = null!;
 

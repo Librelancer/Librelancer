@@ -34,8 +34,6 @@ public class Base : NamedItem
 
     //Populated from mbases
     public Faction? LocalFaction;
-    public string? LocalFactionNickname;
-    public string? FactionNickname;
     public int Diff;
     public string? MsgIdPrefix;
     public int MinMissionOffers;
@@ -73,7 +71,6 @@ public class BaseNpc
     }
     public required int IndividualName;
     public required Faction? Affiliation;
-    public string? AffiliationNickname;
     public required string? Voice;
     public required string? Room;
 
@@ -85,7 +82,7 @@ public class BaseNpc
 
 public class MBaseBaseFaction
 {
-    public required string Faction;
+    public Faction? Faction;
     public float Weight;
     public List<string> Npcs = [];
     public bool OffersMissions;

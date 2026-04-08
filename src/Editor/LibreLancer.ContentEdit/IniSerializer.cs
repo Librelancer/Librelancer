@@ -521,14 +521,10 @@ public static class IniSerializer
         var ib = new IniBuilder();
         foreach (var b in bases)
         {
-            var mbaseSection = ib.Section("MBase")
-                .Entry("nickname", b.Nickname);
-
-            var localFacStr = b.LocalFactionNickname ?? b.LocalFaction?.Nickname;
-            if (!string.IsNullOrEmpty(localFacStr))
-                mbaseSection.Entry("local_faction", localFacStr);
-            mbaseSection.OptionalEntry("faction", b.FactionNickname);
-            mbaseSection.OptionalEntry("diff", b.Diff)
+            ib.Section("MBase")
+                .Entry("nickname", b.Nickname)
+                .OptionalEntry("local_faction", b.LocalFaction?.Nickname)
+                .OptionalEntry("diff", b.Diff)
                 .OptionalEntry("msg_id_prefix", b.MsgIdPrefix);
 
             if (b.MinMissionOffers != 0 || b.MaxMissionOffers != 0)
@@ -538,7 +534,7 @@ public static class IniSerializer
             foreach (var fac in b.BaseFactions)
             {
                 var facSection = ib.Section("BaseFaction")
-                    .Entry("faction", fac.Faction)
+                    .Entry("faction", fac.Faction?.Nickname)
                     .OptionalEntry("weight", fac.Weight)
                     .OptionalEntry("offers_missions", fac.OffersMissions);
                 foreach (var mt in fac.Missions)
@@ -549,7 +545,6 @@ public static class IniSerializer
 
             foreach (var npc in b.Npcs)
             {
-                var affilStr = npc.AffiliationNickname ?? npc.Affiliation?.Nickname;
                 var section = ib.Section("GF_NPC")
                     .Entry("nickname", npc.Nickname)
                     .OptionalEntry("base_appr", npc.BaseAppr)
@@ -558,7 +553,7 @@ public static class IniSerializer
                     .OptionalEntry("lefthand", npc.LeftHand)
                     .OptionalEntry("righthand", npc.RightHand)
                     .OptionalEntry("individual_name", npc.IndividualName)
-                    .OptionalEntry("affiliation", affilStr)
+                    .OptionalEntry("affiliation", npc.Affiliation?.Nickname)
                     .OptionalEntry("voice", npc.Voice);
                 foreach (var accessory in npc.Accessories)
                     section.Entry("accessory", accessory);
