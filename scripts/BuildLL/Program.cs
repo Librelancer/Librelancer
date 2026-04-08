@@ -225,36 +225,6 @@ namespace BuildLL
                 }
             });
 
-            static string GetFileArgs(string dir, string glob)
-            {
-                return string.Join(" ", Directory.GetFiles(dir, glob).Select(x => Quote(x)));
-            }
-            Target("BuildShaders", () =>
-            {
-                Directory.CreateDirectory("shaders/natives/bin");
-                if (IsWindows) {
-                    CMake.Run("shaders/natives", new CMakeSettings() {
-                        OutputPath = "shaders/natives/bin",
-                        Generator = "Visual Studio 17 2022",
-                        Platform = "x64",
-                        BuildType = "MinSizeRel"
-                    });
-                    MSBuild.Run("./shaders/natives/bin/shadercompiler.sln", "/m /p:Configuration=MinSizeRel", VSVersion.VS2022, MSBuildPlatform.x86);
-                } else {
-                    CMake.Run("shaders/natives", new CMakeSettings()
-                    {
-                        OutputPath = "shaders/natives/bin",
-                        Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix },
-                        BuildType = "MinSizeRel"
-                    });
-                    string pl = "";
-                    if (parallel > 0) pl = "-j" + parallel;
-                    RunCommand("make", pl, "shaders/natives/bin");
-                }
-                var args =  $"-d LibreLancer.Graphics.RenderContext -b -t ShaderVariables -c ShaderVariables.Compile -x ShaderVariables.Log -n LibreLancer.Shaders -o ./src/LibreLancer/Shaders {GetFileArgs("./shaders/","*.glsl")}";
-                Dotnet.Run("./shaders/ShaderProcessor/ShaderProcessor.csproj", args);
-            });
-
             Target("ShaderDependencies", () =>
             {
                 Directory.CreateDirectory("bin/builddeps");
@@ -393,14 +363,12 @@ namespace BuildLL
             });
             Target("BuildDocumentation", DependsOn("GenerateVersion", "ShaderDependencies"), () =>
             {
-                string[] apiDlls = new string[]
-                {
-                    "LibreLancer.ContentEdit.dll"
-                };
-                Dotnet.BuildRelease("./src/Editor/LancerEdit/LancerEdit.csproj");
+                string[] apiDlls = [
+                    "./obj/artifacts/bin/LibreLancer.ContentEdit/release/LibreLancer.ContentEdit.dll"
+                ];
+                Dotnet.BuildRelease("./src/Editor/LibreLancer.ContentEdit/LibreLancer.ContentEdit.csproj", "./obj/artifacts");
 
-                DocumentationBuilder.BuildDocs("./docs/", "./bin/docs/", VersionString,
-                    apiDlls.Select(x => Path.Combine("./src/Editor/LancerEdit/bin/Release/net10.0", x)));
+                DocumentationBuilder.BuildDocs("./docs/", "./bin/docs/", VersionString, apiDlls);
             });
             Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives", "ShaderDependencies"), async () =>
             {
@@ -411,12 +379,13 @@ namespace BuildLL
                 if(!IsWindows)
                     await FullBuild(GetLinuxRid(), true);
             });
-            Target("Test", DependsOn("GenerateVersion", "ShaderDependencies"), () => {
-                Dotnet.Test("./src/LibreLancer.Tests/LibreLancer.Tests.csproj");
+            Target("Test", DependsOn("GenerateVersion", "ShaderDependencies"), () =>
+            {
+                Dotnet.Test("./src/LibreLancer.Tests/LibreLancer.Tests.csproj", "./obj/artifacts");
                 Console.WriteLine("Testing compile of editor scripts");
                 var files = Directory.GetFiles("./src/Editor/LancerEdit/editorscripts", "*.cs-script").Select(Quote);
                 var args = $"--test-compile {string.Join(' ', files)}";
-                Dotnet.Run("./src/Editor/lleditscript/lleditscript.csproj", args);
+                Dotnet.Run("./src/Editor/lleditscript/lleditscript.csproj", "./obj/artifacts", args);
             });
 
             static void TarDirectory(string file, string dir)
