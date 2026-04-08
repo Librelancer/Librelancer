@@ -350,6 +350,19 @@ namespace LibreLancer.World
                 obj.RenderUpdate(t);
         }
 
+        public void AdjustCharacterHeights()
+        {
+            foreach (var obj in objects)
+            {
+                if (obj.RenderComponent is not CharacterRenderer cr)
+                    continue;
+                
+                var p = obj.LocalTransform.Position;
+                p.Y = cr.Skeleton.FloorHeight + cr.Skeleton.RootHeight;
+                obj.SetLocalTransform(new Transform3D(p, obj.LocalTransform.Orientation));
+            }
+        }
+
         public GameObject? GetSelection(ICamera camera, GameObject self, float x, float y, float vpWidth,
             float vpHeight)
         {

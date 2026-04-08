@@ -404,7 +404,27 @@ public class BaseNpcEditorTab : GameContentTab
 
         roomCutscene.Update(roomDrawElapsed);
         roomCutscene.UpdateViewport(new Rectangle(0, 0, w, h), (float)w / h);
+        
+        // Adjust character heights based on skeleton data before drawing
+        AdjustCharacterHeights();
+        
         roomCutscene.Draw(roomDrawElapsed, w, h);
+    }
+
+    private void AdjustCharacterHeights()
+    {
+        if (roomCutscene?.World == null)
+            return;
+
+        foreach (var obj in roomCutscene.World.AllObjects)
+        {
+            if (obj.RenderComponent is not PreviewCharacterRenderer cr)
+                continue;
+            
+            var p = obj.LocalTransform.Position;
+            p.Y = cr.Skeleton.FloorHeight + cr.Skeleton.RootHeight;
+            obj.SetLocalTransform(new Transform3D(p, obj.LocalTransform.Orientation));
+        }
     }
 
     private void UpdateCameraPosition()
