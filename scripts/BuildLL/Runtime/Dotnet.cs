@@ -17,9 +17,10 @@ namespace BuildLL
         {
             return CPUCount > 0 ? $"-maxcpucount:{CPUCount}" : "";
         }
-        public static void Restore(string project, string rid)
+        public static void Restore(string project, string rid, string artifactsPath)
         {
-            RunCommand("dotnet", $"restore {M()} {Verbosity} -r {rid} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+            RunCommand("dotnet",
+                $"restore {M()} {Verbosity} -r {rid} -p:UseArtifactsOutput=true -p:ArtifactsPath={P(artifactsPath)} /nr:false {P(project)}");
         }
 
         public static void BuildDebug(string project)
@@ -51,11 +52,11 @@ namespace BuildLL
         public static void Publish(string project, DotnetPublishSettings settings = null)
         {
             var argbuilder = new StringBuilder();
-            argbuilder.Append($"publish {M()} --no-restore /nr:false");
+            argbuilder.Append($"publish {M()} --no-restore");
             if (!string.IsNullOrWhiteSpace(settings?.Configuration))
                 argbuilder.Append(" -c ").Append(settings.Configuration);
             if (!string.IsNullOrWhiteSpace(settings?.OutputDirectory))
-                argbuilder.Append(" -o ").Append(P(settings.OutputDirectory));
+                argbuilder.Append(" -p:UseArtifactsOutput=true -p:ArtifactsPath=").Append(P(settings.OutputDirectory));
             if (!string.IsNullOrWhiteSpace(settings?.Runtime))
                 argbuilder.Append(" -r ").Append(settings.Runtime);
             if (settings != null && settings.SelfContained)

@@ -64,25 +64,29 @@ namespace BuildLL
             RmDir("./bin/");
         }
 
-       static  List<string> publishedProjects = new List<string>();
+        private static HashSet<string> published = [];
 
         static async Task FullBuild(string rid, bool sdk)
         {
-            Dotnet.Restore("LibreLancer.sln", rid);
-
             var projs = sdk ? sdkProjects : engineProjects;
-            var objDir = "./obj/projs-";
+            var objDir = "./obj/artifacts";
             var binDir = sdk ? "./bin/librelancer-sdk-" : "./bin/librelancer-";
             var outdir = binDir + rid;
+            Dotnet.Restore("LibreLancer.sln", rid, objDir);
             foreach (var proj in projs)
             {
-                var name = Path.GetFileName(proj);
-                if (!publishedProjects.Contains(rid + ":" + proj)) {
-                    CustomPublish.PatchedPublish(proj, objDir + rid + "/" + name, rid);
-                    publishedProjects.Add(rid + ":" + proj);
-                }
+                if (!published.Add($"{proj}:{rid}"))
+                    continue;
+                var settings = new DotnetPublishSettings()
+                {
+                    Configuration = "Release",
+                    OutputDirectory = objDir,
+                    Runtime = rid,
+                    SelfContained = true
+                };
+                Dotnet.Publish(proj, settings);
             }
-            await CustomPublish.Merge(objDir + rid, binDir + rid, rid,
+            await CustomPublish.MergeAndPatch(objDir, binDir + rid, rid,
                 projs.Select(x => Path.GetFileNameWithoutExtension(x)).ToArray());
             if (sdk)
             {

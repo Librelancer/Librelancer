@@ -38,18 +38,21 @@ namespace BuildLL
             }
         }
 
-        public static async Task Merge(string sourceDir, string outputDir, string rid, string[] directories)
+        public static async Task MergeAndPatch(string artifactsDir, string binDir, string rid, string[] projects)
         {
             var splitRID = rid.Split('-');
-            var win32 = splitRID[0].ToLowerInvariant() == "win7";
+            var win32 = splitRID[0].ToLowerInvariant() == "win";
             var arch = splitRID[splitRID.Length - 1].ToLowerInvariant();
 
             var hashes = new Dictionary<string,string>();
-
             bool valid = true;
-            foreach(var dir in Directory.GetDirectories(sourceDir))
+
+            var inputDirs =
+                projects.Select(x => Path.Combine(artifactsDir, "publish", x, $"release_{rid}")).ToArray();
+
+
+            foreach(var dir in inputDirs)
             {
-                if (!directories.Contains(Path.GetFileNameWithoutExtension(dir))) continue;
                 Console.WriteLine($"Validating {dir}");
                 List<Task<(string File, string Hash)>> calculatedHashes = new List<Task<(string File, string Hash)>>();
                 foreach(var file in Directory.GetFiles(dir,"*", SearchOption.AllDirectories))
@@ -70,20 +73,37 @@ namespace BuildLL
             }
 
             if (!valid) throw new Exception("Publish validation failed");
+
+            var outputDir = Path.Combine(binDir, "lib");
+
             Directory.CreateDirectory(outputDir);
             var output = new DirectoryInfo(outputDir);
             var copiedFiles = new List<string>();
 
-            foreach(var dir in new DirectoryInfo(sourceDir).GetDirectories()) {
-                if (!directories.Contains(Path.GetFileNameWithoutExtension(dir.Name))) continue;
+            foreach(var dir in inputDirs) {
                 Console.WriteLine($"Copying {dir}");
-                CopyFilesRecursively(dir, output, copiedFiles);
+                CopyFilesRecursively(new DirectoryInfo(dir), output, copiedFiles);
             }
 
             if(!win32 || arch == "x64") RmDir(Path.Combine(outputDir, "x86"));
             if(!win32 || arch =="x86") RmDir(Path.Combine(outputDir, "x64"));
 
-            Console.WriteLine("Publish Complete");
+            //Delete junk files
+            DeleteFilesGlob(outputDir,
+                "BepuPhysics.xml",
+                "BepuUtilities.xml",
+                "LiteNetLib.xml",
+                "createdump",
+                "SOS_README.md"
+            );
+
+            //
+            foreach (var d in projects)
+            {
+                var filename = win32 ? d + ".exe" : d;
+                File.Move(Path.Combine(outputDir, filename), Path.Combine(binDir, filename));
+                PatchApphost(Path.Combine(binDir, filename), win32);
+            }
         }
 
         static void DeleteFilesGlob(string dir, params string[] globs)
@@ -119,70 +139,28 @@ namespace BuildLL
             return true;
         }
 
-        private const int E_LFANEW = 0x3C;
-        private const int SUBSYSTEM_OFFSET = 0x5C;
-        private static Regex winExe = new Regex(@"<\s*OutputType\s*>\s*WinExe", RegexOptions.IgnoreCase);
-        public static void PatchedPublish(string proj, string outputDirectory, string rid)
+        public static void PatchApphost(string apphost, bool win32)
         {
-            Directory.CreateDirectory(outputDirectory);
-            string publishDir = Path.Combine(outputDirectory,"lib");
-            //Publish
-            var publishSettings = new DotnetPublishSettings
-            {
-                Configuration = "Release",
-                OutputDirectory = publishDir,
-                SelfContained = true,
-                Runtime = rid
-            };
-            Dotnet.Publish(proj, publishSettings);
-            //Delete junk files
-            DeleteFilesGlob(publishDir,
-                "BepuPhysics.xml",
-                "BepuUtilities.xml",
-                "LiteNetLib.xml",
-                "createdump",
-                "SOS_README.md"
-            );
-            //TODO: Fix this msbuild side
-            if(!rid.Contains("win")) {
-                RmDir(Path.Combine(publishDir, "x64"));
-            }
             //Move the AppHost
-            var apphostName = Path.GetFileNameWithoutExtension(proj);
+            var apphostName = Path.GetFileNameWithoutExtension(apphost);
             var origName = apphostName + ".dll";
-            if(rid.StartsWith("win", StringComparison.OrdinalIgnoreCase)) apphostName += ".exe";
-            string appHostPath = Path.Combine(outputDirectory, apphostName);
-            if(File.Exists(appHostPath)) File.Delete(appHostPath);
-            File.Move(Path.Combine(publishDir, apphostName), appHostPath);
             //Patch the AppHost
             var origPathBytes = Encoding.UTF8.GetBytes(origName + "\0");
             var libDir = IsWindows ? "lib\\" : "lib/";
             var newPath = libDir + origName;
             var newPathBytes = Encoding.UTF8.GetBytes(newPath + "\0");
-            var apphostExe = File.ReadAllBytes(appHostPath);
+            var apphostExe = File.ReadAllBytes(apphost);
             int offset = FindBytes(apphostExe, origPathBytes);
             if(offset < 0) {
-                throw new Exception("Could not patch apphost " + appHostPath);
+                throw new Exception("Could not patch apphost " + apphost);
             }
             for(int i = 0; i < newPathBytes.Length; i++)
                 apphostExe[offset + i] = newPathBytes[i];
-            if (!IsWindows && rid.StartsWith("win", StringComparison.OrdinalIgnoreCase))
-            {
-                if (winExe.IsMatch(File.ReadAllText(proj)))
-                {
-                    var peHeaderLocation = BitConverter.ToInt32(apphostExe, E_LFANEW);
-                    var subsystemLocation = peHeaderLocation + SUBSYSTEM_OFFSET;
-                    Console.WriteLine($"Patching subsystem for {appHostPath}");
-                    var winexeBytes = BitConverter.GetBytes((ushort) Subsystem.WindowsGui);
-                    apphostExe[subsystemLocation] = winexeBytes[0];
-                    apphostExe[subsystemLocation + 1] = winexeBytes[1];
-                }
-            }
-            File.WriteAllBytes(appHostPath, apphostExe);
+            File.WriteAllBytes(apphost, apphostExe);
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                RunCommand("codesign", $"--force --deep -s - {Quote(appHostPath)}");
+                RunCommand("codesign", $"--force --deep -s - {Quote(apphost)}");
             }
         }
     }
