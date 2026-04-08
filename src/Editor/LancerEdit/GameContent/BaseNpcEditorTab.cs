@@ -83,110 +83,6 @@ public class BaseNpcEditorTab : GameContentTab
     // ── Add-NPC form ───────────────────────────────────────────────────────────
     private string newNpcNickname = "";
 
-    private sealed class PreviewCharacterRenderer : ObjectRenderer
-    {
-        public DfmSkeletonManager Skeleton;
-        public Accessory? Accessory;
-        public RigidModel? AccessoryModel;
-
-        private Matrix4x4 transform;
-        private SystemRenderer sysren = null!;
-        private double globalTime;
-
-        public PreviewCharacterRenderer(DfmSkeletonManager skeleton, Accessory? accessory, RigidModel? accessoryModel)
-        {
-            Skeleton = skeleton;
-            Accessory = accessory;
-            AccessoryModel = accessoryModel;
-        }
-
-        public override void Update(double time, Vector3 position, Matrix4x4 transform)
-        {
-            globalTime = time;
-            this.transform = transform;
-        }
-
-        public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
-        {
-            Skeleton.GetTransforms(transform,
-                out var headTransform,
-                out var leftTransform,
-                out var rightTransform
-            );
-            var radius = Vector3.Distance(Skeleton.Bounds.Min, Skeleton.Bounds.Max) / 2.0f;
-            var center = (Skeleton.Bounds.Min + Skeleton.Bounds.Max) / 2.0f;
-            if (sysren.DfmMode < DfmDrawMode.DebugBones)
-            {
-                var lighting = RenderHelpers.ApplyLights(
-                    lights, LightGroup,
-                    Vector3.Transform(center, transform), radius, nr,
-                    LitAmbient, LitDynamic, NoFog
-                );
-
-                Skeleton.Body.SetSkinning(Skeleton.BodySkinning);
-                Skeleton.Body.DrawBuffer(commands, transform, ref lighting);
-
-                if (Skeleton.Head != null)
-                {
-                    Skeleton.Head.SetSkinning(Skeleton.HeadSkinning!);
-                    Skeleton.Head.DrawBuffer(commands, headTransform, ref lighting);
-                }
-
-                if (Skeleton.LeftHand != null)
-                {
-                    Skeleton.LeftHand.SetSkinning(Skeleton.LeftHandSkinning!);
-                    Skeleton.LeftHand.DrawBuffer(commands, leftTransform, ref lighting);
-                }
-
-                if (Skeleton.RightHand != null)
-                {
-                    Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning!);
-                    Skeleton.RightHand.DrawBuffer(commands, rightTransform, ref lighting);
-                }
-
-                if (AccessoryModel != null && Accessory != null &&
-                    !string.IsNullOrWhiteSpace(Accessory.Hardpoint) &&
-                    !string.IsNullOrWhiteSpace(Accessory.BodyHardpoint) &&
-                    Skeleton.GetAccessoryTransform(AccessoryModel,
-                        Accessory.Hardpoint!,
-                        Accessory.BodyHardpoint!,
-                        transform,
-                        out var accessoryTransform))
-                {
-                    AccessoryModel.Update(globalTime);
-                    AccessoryModel.DrawBuffer(0, commands, sysren.ResourceManager, accessoryTransform, ref lighting);
-                }
-            }
-
-            if (sysren.DfmMode != DfmDrawMode.Normal)
-            {
-                Skeleton.DebugDraw(sysren.DebugRenderer, transform, sysren.DfmMode);
-            }
-        }
-
-        public override bool OutOfView(ICamera camera)
-        {
-            var bounds = BoundingBox.TransformAABB(Skeleton.Bounds, transform);
-            return !camera.FrustumCheck(bounds);
-        }
-
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
-        {
-            var bounds = BoundingBox.TransformAABB(Skeleton.Bounds, transform);
-            if (camera.FrustumCheck(bounds))
-            {
-                sys.AddObject(this);
-                sysren = sys;
-                if (sysren.DfmMode < DfmDrawMode.DebugBones)
-                {
-                    Skeleton.UploadBoneData(sys.Commands.BonesBuffer, ref sys.Commands.BonesOffset, ref sys.Commands.BonesMax);
-                }
-                return true;
-            }
-            return false;
-        }
-    }
-
     // ──────────────────────────────────────────────────────────────────────────
     public BaseNpcEditorTab(GameDataContext gameData, MainWindow mainWindow)
     {
@@ -380,11 +276,11 @@ public class BaseNpcEditorTab : GameContentTab
             Nickname = npc.Nickname
         };
         var accessoryModel = accessory?.ModelFile?.LoadFile(Data.Resources)?.Drawable as IRigidModelFile;
-        obj.RenderComponent = new PreviewCharacterRenderer(
-            skel,
-            accessory,
-            accessoryModel?.CreateRigidModel(true, Data.Resources)
-        );
+        obj.RenderComponent = new CharacterRenderer(skel)
+        {
+            Accessory = accessory,
+            AccessoryModel = accessoryModel?.CreateRigidModel(true, Data.Resources)
+        };
         var animation = new AnimationComponent(obj, Data.GameData.GetCharacterAnimations());
         obj.AnimationComponent = animation;
         obj.AddComponent(animation);
@@ -418,7 +314,7 @@ public class BaseNpcEditorTab : GameContentTab
 
         foreach (var obj in roomCutscene.World.AllObjects)
         {
-            if (obj.RenderComponent is not PreviewCharacterRenderer cr)
+            if (obj.RenderComponent is not CharacterRenderer cr)
                 continue;
             
             var p = obj.LocalTransform.Position;
