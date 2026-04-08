@@ -531,6 +531,18 @@ public static class IniSerializer
                 ib.Section("MVendor")
                     .Entry("num_offers", b.MinMissionOffers, b.MaxMissionOffers);
 
+            foreach (var room in b.Rooms)
+            {
+                var section = ib.Section("MRoom")
+                    .Entry("nickname", room.Nickname)
+                    .Entry("character_density", room.MaxCharacters);
+                foreach (var npc in room.FixedNpcs)
+                {
+                    if (npc.Npc == null) continue;
+                    section.Entry("fixture", npc.Npc.Nickname, npc.Placement, npc.FidgetScript?.SourcePath, npc.Action);
+                }
+            }
+
             foreach (var fac in b.BaseFactions)
             {
                 var facSection = ib.Section("BaseFaction")
@@ -584,18 +596,6 @@ public static class IniSerializer
                     section.Entry("know", k.Ids1, k.Ids2, k.Price, k.RepRequired);
                     if (k.Objects != null)
                         section.Entry("knowdb", k.Objects);
-                }
-            }
-
-            foreach (var room in b.Rooms)
-            {
-                var section = ib.Section("MRoom")
-                    .Entry("nickname", room.Nickname)
-                    .Entry("character_density", room.MaxCharacters);
-                foreach (var npc in room.FixedNpcs)
-                {
-                    if (npc.Npc == null) continue;
-                    section.Entry("fixture", npc.Npc.Nickname, npc.Placement, npc.FidgetScript?.SourcePath, npc.Action);
                 }
             }
         }

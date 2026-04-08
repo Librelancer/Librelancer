@@ -744,8 +744,13 @@ public class GameItemDb
         var explosionTask = tasks.Begin(InitExplosions, effectsTask);
         var debrisTask = tasks.Begin(InitDebris);
         var shipsTask = tasks.Begin(InitShips, explosionTask, fusesTask, debrisTask);
+        var voicesTask = tasks.Begin(InitVoices);
+        var equipmentTask = tasks.Begin(InitEquipment, effectsTask);
+        var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
+        var npcShips = tasks.Begin(InitNpcShips, shipsTask, loadoutsTask);
+        var factionsTask = tasks.Begin(InitFactions, voicesTask, npcShips);
         List<Schema.Universe.Base> introBases = [];
-        var baseTask = tasks.Begin(() => introBases.AddRange(InitBases(tasks)));
+        var baseTask = tasks.Begin(() => introBases.AddRange(InitBases(tasks)), factionsTask);
         tasks.Begin(() =>
         {
             FLLog.Info("Game", "Loading intro scenes");
@@ -787,15 +792,10 @@ public class GameItemDb
                 }
             }
         }, baseTask);
-        var voicesTask = tasks.Begin(InitVoices);
-        var equipmentTask = tasks.Begin(InitEquipment, effectsTask);
         var goodsTask = tasks.Begin(InitGoods, equipmentTask);
-        var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
         var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask);
         var starsTask = tasks.Begin(InitStars);
         var astsTask = tasks.Begin(InitAsteroids);
-        var npcShips = tasks.Begin(InitNpcShips, shipsTask, loadoutsTask);
-        var factionsTask = tasks.Begin(InitFactions, voicesTask, npcShips);
         tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
         tasks.Begin(InitBodyParts);
         tasks.Begin(InitNews, baseTask);
@@ -816,6 +816,7 @@ public class GameItemDb
         GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
         GC.Collect(); //We produced a crapload of garbage
     }
+
 
     private void InitBodyParts()
     {
