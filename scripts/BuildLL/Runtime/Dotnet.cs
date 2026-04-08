@@ -17,9 +17,10 @@ namespace BuildLL
         {
             return CPUCount > 0 ? $"-maxcpucount:{CPUCount}" : "";
         }
-        public static void Restore(string project, string rid)
+        public static void Restore(string project, string rid, string artifactsPath)
         {
-            RunCommand("dotnet", $"restore {M()} {Verbosity} -r {rid} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+            RunCommand("dotnet",
+                $"restore {M()} {Verbosity} -r {rid} -p:UseArtifactsOutput=true -p:ArtifactsPath={P(artifactsPath)} /nr:false {P(project)}");
         }
 
         public static void BuildDebug(string project)
@@ -27,35 +28,35 @@ namespace BuildLL
             RunCommand("dotnet", $"build -c Debug {Verbosity} {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
 
-        public static void BuildRelease(string project)
+        public static void BuildRelease(string project, string artifactsDir)
         {
-            RunCommand("dotnet", $"build -c Release {Verbosity} {M()} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+            RunCommand("dotnet", $"build -c Release {Verbosity} {M()}  -p:UseArtifactsOutput=true -p:ArtifactsPath={P(artifactsDir)} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
 
         public static void Clean(string project)
         {
             RunCommand("dotnet", $"clean {M()} {Verbosity} -c Release -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
-        public static void Run(string project, string args = null)
+        public static void Run(string project, string artifactsDir, string args = null)
         {
             string a = "";
             if (!string.IsNullOrWhiteSpace(args)) a = $" -- {args}";
-            RunCommand("dotnet", $"run --project {P(project)}{a}");
+            RunCommand("dotnet", $"run -c Release -p:UseArtifactsOutput=true -p:ArtifactsPath={P(artifactsDir)} --project {P(project)}{a}");
         }
 
-        public static void Test(string project)
+        public static void Test(string project, string artifactsDir)
         {
-            RunCommand("dotnet", $"test -c Release {P(project)}");
+            RunCommand("dotnet", $"test -c Release -p:UseArtifactsOutput=true -p:ArtifactsPath={P(artifactsDir)} {P(project)}");
         }
 
         public static void Publish(string project, DotnetPublishSettings settings = null)
         {
             var argbuilder = new StringBuilder();
-            argbuilder.Append($"publish {M()} --no-restore /nr:false");
+            argbuilder.Append($"publish {M()} --no-restore");
             if (!string.IsNullOrWhiteSpace(settings?.Configuration))
                 argbuilder.Append(" -c ").Append(settings.Configuration);
             if (!string.IsNullOrWhiteSpace(settings?.OutputDirectory))
-                argbuilder.Append(" -o ").Append(P(settings.OutputDirectory));
+                argbuilder.Append(" -p:UseArtifactsOutput=true -p:ArtifactsPath=").Append(P(settings.OutputDirectory));
             if (!string.IsNullOrWhiteSpace(settings?.Runtime))
                 argbuilder.Append(" -r ").Append(settings.Runtime);
             if (settings != null && settings.SelfContained)

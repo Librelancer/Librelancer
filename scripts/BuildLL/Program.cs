@@ -64,25 +64,29 @@ namespace BuildLL
             RmDir("./bin/");
         }
 
-       static  List<string> publishedProjects = new List<string>();
+        private static HashSet<string> published = [];
 
         static async Task FullBuild(string rid, bool sdk)
         {
-            Dotnet.Restore("LibreLancer.sln", rid);
-
             var projs = sdk ? sdkProjects : engineProjects;
-            var objDir = "./obj/projs-";
+            var objDir = "./obj/artifacts";
             var binDir = sdk ? "./bin/librelancer-sdk-" : "./bin/librelancer-";
             var outdir = binDir + rid;
+            Dotnet.Restore("LibreLancer.sln", rid, objDir);
             foreach (var proj in projs)
             {
-                var name = Path.GetFileName(proj);
-                if (!publishedProjects.Contains(rid + ":" + proj)) {
-                    CustomPublish.PatchedPublish(proj, objDir + rid + "/" + name, rid);
-                    publishedProjects.Add(rid + ":" + proj);
-                }
+                if (!published.Add($"{proj}:{rid}"))
+                    continue;
+                var settings = new DotnetPublishSettings()
+                {
+                    Configuration = "Release",
+                    OutputDirectory = objDir,
+                    Runtime = rid,
+                    SelfContained = true
+                };
+                Dotnet.Publish(proj, settings);
             }
-            await CustomPublish.Merge(objDir + rid, binDir + rid, rid,
+            await CustomPublish.MergeAndPatch(objDir, binDir + rid, rid,
                 projs.Select(x => Path.GetFileNameWithoutExtension(x)).ToArray());
             if (sdk)
             {
@@ -219,36 +223,6 @@ namespace BuildLL
                     File.WriteAllText("./src/CommonVersion.props", commonVersion);
                     Console.WriteLine("Updated version file ./src/CommonVersion.props");
                 }
-            });
-
-            static string GetFileArgs(string dir, string glob)
-            {
-                return string.Join(" ", Directory.GetFiles(dir, glob).Select(x => Quote(x)));
-            }
-            Target("BuildShaders", () =>
-            {
-                Directory.CreateDirectory("shaders/natives/bin");
-                if (IsWindows) {
-                    CMake.Run("shaders/natives", new CMakeSettings() {
-                        OutputPath = "shaders/natives/bin",
-                        Generator = "Visual Studio 17 2022",
-                        Platform = "x64",
-                        BuildType = "MinSizeRel"
-                    });
-                    MSBuild.Run("./shaders/natives/bin/shadercompiler.sln", "/m /p:Configuration=MinSizeRel", VSVersion.VS2022, MSBuildPlatform.x86);
-                } else {
-                    CMake.Run("shaders/natives", new CMakeSettings()
-                    {
-                        OutputPath = "shaders/natives/bin",
-                        Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix },
-                        BuildType = "MinSizeRel"
-                    });
-                    string pl = "";
-                    if (parallel > 0) pl = "-j" + parallel;
-                    RunCommand("make", pl, "shaders/natives/bin");
-                }
-                var args =  $"-d LibreLancer.Graphics.RenderContext -b -t ShaderVariables -c ShaderVariables.Compile -x ShaderVariables.Log -n LibreLancer.Shaders -o ./src/LibreLancer/Shaders {GetFileArgs("./shaders/","*.glsl")}";
-                Dotnet.Run("./shaders/ShaderProcessor/ShaderProcessor.csproj", args);
             });
 
             Target("ShaderDependencies", () =>
@@ -389,14 +363,12 @@ namespace BuildLL
             });
             Target("BuildDocumentation", DependsOn("GenerateVersion", "ShaderDependencies"), () =>
             {
-                string[] apiDlls = new string[]
-                {
-                    "LibreLancer.ContentEdit.dll"
-                };
-                Dotnet.BuildRelease("./src/Editor/LancerEdit/LancerEdit.csproj");
+                string[] apiDlls = [
+                    "./obj/artifacts/bin/LibreLancer.ContentEdit/release/LibreLancer.ContentEdit.dll"
+                ];
+                Dotnet.BuildRelease("./src/Editor/LibreLancer.ContentEdit/LibreLancer.ContentEdit.csproj", "./obj/artifacts");
 
-                DocumentationBuilder.BuildDocs("./docs/", "./bin/docs/", VersionString,
-                    apiDlls.Select(x => Path.Combine("./src/Editor/LancerEdit/bin/Release/net10.0", x)));
+                DocumentationBuilder.BuildDocs("./docs/", "./bin/docs/", VersionString, apiDlls);
             });
             Target("BuildSdk", DependsOn("GenerateVersion", "BuildDocumentation", "BuildNatives", "ShaderDependencies"), async () =>
             {
@@ -407,12 +379,13 @@ namespace BuildLL
                 if(!IsWindows)
                     await FullBuild(GetLinuxRid(), true);
             });
-            Target("Test", DependsOn("GenerateVersion", "ShaderDependencies"), () => {
-                Dotnet.Test("./src/LibreLancer.Tests/LibreLancer.Tests.csproj");
+            Target("Test", DependsOn("GenerateVersion", "ShaderDependencies"), () =>
+            {
+                Dotnet.Test("./src/LibreLancer.Tests/LibreLancer.Tests.csproj", "./obj/artifacts");
                 Console.WriteLine("Testing compile of editor scripts");
                 var files = Directory.GetFiles("./src/Editor/LancerEdit/editorscripts", "*.cs-script").Select(Quote);
                 var args = $"--test-compile {string.Join(' ', files)}";
-                Dotnet.Run("./src/Editor/lleditscript/lleditscript.csproj", args);
+                Dotnet.Run("./src/Editor/lleditscript/lleditscript.csproj", "./obj/artifacts", args);
             });
 
             static void TarDirectory(string file, string dir)
