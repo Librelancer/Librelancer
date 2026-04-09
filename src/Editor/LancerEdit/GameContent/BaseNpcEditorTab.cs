@@ -789,16 +789,8 @@ public class BaseNpcEditorTab : GameContentTab
             var current = npc.Accessories[i];
             ImGui.PushID(i);
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - (80 * ImGuiHelper.Scale));
-            if (ImGui.BeginCombo($"##acc_{i}", current.Nickname))
-            {
-                foreach (var choice in Data.GameData.Items.Accessories)
-                {
-                    bool selected = choice == current;
-                    if (ImGui.Selectable(choice.Nickname, selected) && !selected)
-                        undoBuffer.Commit(new ListSet<Accessory>("Accessory", npc.Accessories, i, current, choice));
-                }
-                ImGui.EndCombo();
-            }
+            Data.Accessories.Draw($"##acc_{i}", ref current,
+                (old, updated) => undoBuffer.Commit(new ListSet<Accessory>("Accessory", npc.Accessories, i, old, updated)));
             ImGui.SameLine();
             if (Controls.SmallButton($"{Icons.TrashAlt}##rmacc"))
             {
@@ -820,7 +812,7 @@ public class BaseNpcEditorTab : GameContentTab
 
         if (Controls.SmallButton($"{Icons.PlusCircle} Add Accessory##addacc"))
         {
-            var first = Data.GameData.Items.Accessories.FirstOrDefault();
+            var first = Data.Accessories.Options.FirstOrDefault();
             if (first != null)
                 undoBuffer.Commit(new ListAdd<Accessory>("Accessory", npc.Accessories, first));
         }
