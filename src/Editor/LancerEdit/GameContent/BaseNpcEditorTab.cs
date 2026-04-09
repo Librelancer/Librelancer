@@ -931,13 +931,17 @@ public class BaseNpcEditorTab : GameContentTab
 
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1);
-                Data.StoryIndices.Draw("##start", ref r.Start, (o, u) =>
+                var start = r.Start;
+                Data.StoryIndices.Draw("##start", ref start, (o, u) =>
                     undoBuffer.Set("Rumor Start", () => ref r.Start!, o, u), allowNull: true);
+                r.Start = start;
 
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1);
-                Data.StoryIndices.Draw("##end", ref r.End, (o, u) =>
+                var end = r.End;
+                Data.StoryIndices.Draw("##end", ref end, (o, u) =>
                     undoBuffer.Set("Rumor End", () => ref r.End!, o, u), allowNull: true);
+                r.End = end;
 
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(-1);
@@ -968,7 +972,15 @@ public class BaseNpcEditorTab : GameContentTab
             ImGui.TextDisabled("No rumors.");
 
         if (ImGui.Button($"{Icons.PlusCircle} Add Rumor"))
-            undoBuffer.Commit(new ListAdd<BaseNpcRumor>("Rumor", npc.Rumors, new BaseNpcRumor { RepRequired = 1 }));
+        {
+            var first = Data.GameData.Items.Story.FirstOrDefault();
+            undoBuffer.Commit(new ListAdd<BaseNpcRumor>("Rumor", npc.Rumors, new BaseNpcRumor 
+            { 
+                RepRequired = 1,
+                Start = first,
+                End = first
+            }));
+        }
     }
 
     public override void Dispose()
