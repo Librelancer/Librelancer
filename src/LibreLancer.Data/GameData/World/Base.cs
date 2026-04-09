@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.GameData.Market;
-using LibreLancer.Data.Schema.MBases;
 
 namespace LibreLancer.Data.GameData.World;
 
@@ -50,41 +49,11 @@ public class Base : NamedItem
     }
 }
 
-public class BaseNpc
-{
-    public required string Nickname;
-    public required string? BaseAppr;
-    public required string? Body;
-    public required string? Head;
-    public required string? LeftHand;
-    public required string? RightHand;
-    public List<string> Accessories = [];
-    public string? Accessory
-    {
-        get => Accessories.Count > 0 ? Accessories[0] : null;
-        set
-        {
-            Accessories.Clear();
-            if (!string.IsNullOrWhiteSpace(value))
-                Accessories.Add(value!);
-        }
-    }
-    public required int IndividualName;
-    public required Faction? Affiliation;
-    public required string? Voice;
-    public required string? Room;
-
-    public List<NpcKnow> Know = [];
-    public List<NpcRumor> Rumors = [];
-    public List<NpcBribe> Bribes = [];
-    public required NpcMission? Mission;
-}
-
 public class MBaseBaseFaction
 {
     public Faction? Faction;
     public float Weight;
     public List<string> Npcs = [];
     public bool OffersMissions;
-    public List<BaseFactionMission> Missions = [];
+    public List<BaseMissionOffer> Missions = [];
 }

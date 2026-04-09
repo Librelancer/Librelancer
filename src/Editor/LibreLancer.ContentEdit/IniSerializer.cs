@@ -550,7 +550,7 @@ public static class IniSerializer
                     .OptionalEntry("weight", fac.Weight)
                     .OptionalEntry("offers_missions", fac.OffersMissions);
                 foreach (var mt in fac.Missions)
-                    facSection.Entry("mission_type", mt.Type, mt.MinDiff, mt.MaxDiff);
+                    facSection.Entry("mission_type", "DestroyMission", mt.MinDiff, mt.MaxDiff);
                 foreach (var npcNick in fac.Npcs)
                     facSection.Entry("npc", npcNick);
             }
@@ -560,33 +560,33 @@ public static class IniSerializer
                 var section = ib.Section("GF_NPC")
                     .Entry("nickname", npc.Nickname)
                     .OptionalEntry("base_appr", npc.BaseAppr)
-                    .OptionalEntry("body", npc.Body)
-                    .OptionalEntry("head", npc.Head)
-                    .OptionalEntry("lefthand", npc.LeftHand)
-                    .OptionalEntry("righthand", npc.RightHand)
+                    .OptionalEntry("body", npc.Body?.Nickname)
+                    .OptionalEntry("head", npc.Head?.Nickname)
+                    .OptionalEntry("lefthand", npc.LeftHand?.Nickname)
+                    .OptionalEntry("righthand", npc.RightHand?.Nickname)
                     .OptionalEntry("individual_name", npc.IndividualName)
                     .OptionalEntry("affiliation", npc.Affiliation?.Nickname)
                     .OptionalEntry("voice", npc.Voice);
                 foreach (var accessory in npc.Accessories)
-                    section.Entry("accessory", accessory);
+                    section.Entry("accessory", accessory.Nickname);
                 if (npc.Mission != null)
                     section.Entry("misn", npc.Mission.Kind, npc.Mission.Min, npc.Mission.Max);
                 section.OptionalEntry("room", npc.Room);
                 foreach (var br in npc.Bribes)
                 {
-                    section.Entry("bribe", br.Faction, br.Price, br.Ids);
+                    section.Entry("bribe", br.Faction?.Nickname, br.Price, br.Ids);
                 }
 
                 foreach (var r in npc.Rumors.Where(x => !x.Type2))
                 {
-                    section.Entry("rumor", r.Start, r.End, r.RepRequired, r.Ids);
+                    section.Entry("rumor", r.Start?.Item.Nickname, r.End?.Item.Nickname, r.RepRequired, r.Ids);
                     if (r.Objects != null)
                         section.Entry("rumorknowdb", r.Objects);
                 }
 
                 foreach (var r2 in npc.Rumors.Where(x => x.Type2))
                 {
-                    section.Entry("rumor_type2", r2.Start, r2.End, r2.RepRequired, r2.Ids);
+                    section.Entry("rumor_type2", r2.Start?.Item.Nickname, r2.End?.Item.Nickname, r2.RepRequired, r2.Ids);
                     if (r2.Objects != null)
                         section.Entry("rumorknowdb", r2.Objects);
                 }

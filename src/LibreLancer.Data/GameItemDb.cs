@@ -305,18 +305,36 @@ public class GameItemDb
                     {
                         Nickname = npc.Nickname,
                         BaseAppr = npc.BaseAppr,
-                        Body = npc.Body,
-                        Head = npc.Head,
-                        LeftHand = npc.LeftHand,
-                        RightHand = npc.RightHand,
-                        Accessories = npc.Accessories.ToList(),
+                        Body = Bodyparts.Get(npc.Body ?? ""),
+                        Head = Bodyparts.Get(npc.Head ?? ""),
+                        LeftHand = Bodyparts.Get(npc.LeftHand ?? ""),
+                        RightHand = Bodyparts.Get(npc.RightHand ?? ""),
+                        Accessories = npc.Accessories
+                            .Select(a => Accessories.Get(a))
+                            .OfType<Accessory>()
+                            .ToList(),
                         IndividualName = npc.IndividualName,
                         Affiliation = Factions.Get(npc.Affiliation ?? ""),
                         Voice = npc.Voice,
                         Room = npc.Room,
                         Know = npc.Know,
-                        Rumors = npc.Rumors,
-                        Bribes = npc.Bribes,
+                        Rumors = npc.Rumors.Select(r => new BaseNpcRumor
+                        {
+                            Start = Story.FirstOrDefault(s =>
+                                s.Item.Nickname.Equals(r.Start, StringComparison.OrdinalIgnoreCase)),
+                            End = Story.FirstOrDefault(s =>
+                                s.Item.Nickname.Equals(r.End, StringComparison.OrdinalIgnoreCase)),
+                            RepRequired = r.RepRequired,
+                            Ids = r.Ids,
+                            Type2 = r.Type2,
+                            Objects = r.Objects,
+                        }).ToList(),
+                        Bribes = npc.Bribes.Select(br => new BaseNpcBribe
+                        {
+                            Faction = Factions.Get(br.Faction),
+                            Price = br.Price,
+                            Ids = br.Ids,
+                        }).ToList(),
                         Mission = npc.Mission,
                     });
                 }
@@ -329,7 +347,12 @@ public class GameItemDb
                         Weight = fac.Weight,
                         Npcs = fac.Npcs,
                         OffersMissions = fac.OffersMissions,
-                        Missions = fac.Missions,
+                        Missions = fac.Missions.Select(m => new BaseMissionOffer
+                        {
+                            MinDiff = m.MinDiff,
+                            MaxDiff = m.MaxDiff,
+                            Weight = m.Weight,
+                        }).ToList(),
                     });
                 }
             }
@@ -673,9 +696,13 @@ public class GameItemDb
         Ini.VignetteParams = null;
     }
 
-    private void InitNews()
+    private void InitStory()
     {
         Story = Ini.Storyline.Items.Select((x, y) => new StoryIndex(y, x)).ToList();
+    }
+
+    private void InitNews()
+    {
         News = new();
 
         foreach (var n in Ini.News.NewsItems)
@@ -749,8 +776,10 @@ public class GameItemDb
         var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
         var npcShips = tasks.Begin(InitNpcShips, shipsTask, loadoutsTask);
         var factionsTask = tasks.Begin(InitFactions, voicesTask, npcShips);
+        var storyTask = tasks.Begin(InitStory);
+        var bodyPartsTask = tasks.Begin(InitBodyParts);
         List<Schema.Universe.Base> introBases = [];
-        var baseTask = tasks.Begin(() => introBases.AddRange(InitBases(tasks)), factionsTask);
+        var baseTask = tasks.Begin(() => introBases.AddRange(InitBases(tasks)), factionsTask, storyTask, bodyPartsTask);
         tasks.Begin(() =>
         {
             FLLog.Info("Game", "Loading intro scenes");
@@ -797,7 +826,6 @@ public class GameItemDb
         var starsTask = tasks.Begin(InitStars);
         var astsTask = tasks.Begin(InitAsteroids);
         tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
-        tasks.Begin(InitBodyParts);
         tasks.Begin(InitNews, baseTask);
         tasks.Begin(() => InitSystems(tasks),
             baseTask,

@@ -58,22 +58,10 @@ public class BaseNpcEditorTab : GameContentTab
     private ObjectLookup<Bodypart> headLookup;
     private ObjectLookup<Bodypart> lhandLookup;
     private ObjectLookup<Bodypart> rhandLookup;
-    private string[] accNicknames   = [];
 
     // ── Thn marker cache ───────────────────────────────────────────────────────
     private string[] roomMarkers = [];
     private string? cachedMarkerRoom = null;
-
-    // ── Rumor form buffer ──────────────────────────────────────────────────────
-    private string rumorStart  = "base_0_rank";
-    private string rumorEnd    = "mission_end";
-    private int    rumorRep    = 1;
-    private int    rumorIds    = 0;
-
-    // ── Misn form buffer ───────────────────────────────────────────────────────
-    private string misnKind = "DestroyMission";
-    private float  misnMin  = 0f;
-    private float  misnMax  = 0.98f;
 
     // ── Scroll/first-frame helpers ─────────────────────────────────────────────
     private bool showHistory    = false;
@@ -107,9 +95,6 @@ public class BaseNpcEditorTab : GameContentTab
         headLookup  = Data.Bodyparts.Filter(IsHead);
         lhandLookup = Data.Bodyparts.Filter(IsLeftHand);
         rhandLookup = Data.Bodyparts.Filter(IsRightHand);
-
-        accNicknames = Data.GameData.Items.Accessories
-            .Select(x => x.Nickname).OrderBy(x => x).ToArray();
     }
 
     // ── Bodypart categorisation ────────────────────────────────────────────────
@@ -255,11 +240,11 @@ public class BaseNpcEditorTab : GameContentTab
 
     private void CreatePreviewNpcObject(BaseNpc npc, RoomSpot spot)
     {
-        var body = string.IsNullOrEmpty(npc.Body) ? null : Data.GameData.Items.Bodyparts.Get(npc.Body);
-        var head = string.IsNullOrEmpty(npc.Head) ? null : Data.GameData.Items.Bodyparts.Get(npc.Head);
-        var leftHand = string.IsNullOrEmpty(npc.LeftHand) ? null : Data.GameData.Items.Bodyparts.Get(npc.LeftHand);
-        var rightHand = string.IsNullOrEmpty(npc.RightHand) ? null : Data.GameData.Items.Bodyparts.Get(npc.RightHand);
-        var accessory = string.IsNullOrEmpty(npc.Accessory) ? null : Data.GameData.Items.Accessories.Get(npc.Accessory);
+        var body = npc.Body;
+        var head = npc.Head;
+        var leftHand = npc.LeftHand;
+        var rightHand = npc.RightHand;
+        var accessory = npc.Accessory;
 
         if (body == null && head == null && leftHand == null && rightHand == null)
             return;
@@ -665,7 +650,6 @@ public class BaseNpcEditorTab : GameContentTab
                 Head           = null,
                 LeftHand       = null,
                 RightHand      = null,
-                Accessory      = null,
                 IndividualName = 0,
                 Affiliation    = null,
                 Voice          = "rvp106", // I don't know yet how to extract the list of possible voices, a default value and a text box should suffice.
@@ -750,10 +734,10 @@ public class BaseNpcEditorTab : GameContentTab
             // Nickname
             Controls.InputTextUndo("Nickname", undoBuffer, () => ref npc.Nickname);
 
-            DrawBodypartField("Body", npc, bodyLookup, () => ref npc.Body);
-            DrawBodypartField("Head", npc, headLookup, () => ref npc.Head);
-            DrawBodypartField("L Hand", npc, lhandLookup, () => ref npc.LeftHand);
-            DrawBodypartField("R Hand", npc, rhandLookup, () => ref npc.RightHand);
+            DrawBodypartField("Body",   bodyLookup,  () => ref npc.Body!);
+            DrawBodypartField("Head",   headLookup,  () => ref npc.Head!);
+            DrawBodypartField("L Hand", lhandLookup, () => ref npc.LeftHand!);
+            DrawBodypartField("R Hand", rhandLookup, () => ref npc.RightHand!);
             DrawAccessoryListField(npc);
 
             // Individual Name (IDS)
@@ -785,13 +769,9 @@ public class BaseNpcEditorTab : GameContentTab
 
     // ── Field helpers ──────────────────────────────────────────────────────────
 
-    private void DrawBodypartField(string label, BaseNpc npc, ObjectLookup<Bodypart> lookup, FieldAccessor<string?> accessor)
+    private void DrawBodypartField(string label, ObjectLookup<Bodypart> lookup, FieldAccessor<Bodypart> accessor)
     {
-        ref var fieldValue = ref accessor();
-        Bodypart? current = !string.IsNullOrEmpty(fieldValue) ? Data.GameData.Items.Bodyparts.Get(fieldValue) : null;
-        lookup.Draw(label, ref current, (old, updated) =>
-            undoBuffer.Set(label, accessor, updated?.Nickname),
-            allowNull: true);
+        lookup.DrawUndo(label, undoBuffer, accessor, allowNull: true);
     }
 
     private void DrawAccessoryListField(BaseNpc npc)
@@ -803,25 +783,19 @@ public class BaseNpcEditorTab : GameContentTab
         ImGui.TableNextColumn();
 
         int removeIndex = -1;
-        string removeValue = null!;
+        Accessory removeValue = null!;
         for (int i = 0; i < npc.Accessories.Count; i++)
         {
             var current = npc.Accessories[i];
             ImGui.PushID(i);
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - (80 * ImGuiHelper.Scale));
-            var display = string.IsNullOrWhiteSpace(current) ? "(none)" : current;
-            if (ImGui.BeginCombo($"##acc_{i}", display))
+            if (ImGui.BeginCombo($"##acc_{i}", current.Nickname))
             {
-                if (ImGui.Selectable("(none)", string.IsNullOrWhiteSpace(current)))
+                foreach (var choice in Data.GameData.Items.Accessories)
                 {
-                    if (!string.IsNullOrWhiteSpace(current))
-                        undoBuffer.Commit(new ListSet<string>("Accessory", npc.Accessories, i, current, ""));
-                }
-                foreach (var choice in accNicknames)
-                {
-                    bool selected = string.Equals(choice, current, StringComparison.OrdinalIgnoreCase);
-                    if (ImGui.Selectable(choice, selected) && !selected)
-                        undoBuffer.Commit(new ListSet<string>("Accessory", npc.Accessories, i, current, choice));
+                    bool selected = choice == current;
+                    if (ImGui.Selectable(choice.Nickname, selected) && !selected)
+                        undoBuffer.Commit(new ListSet<Accessory>("Accessory", npc.Accessories, i, current, choice));
                 }
                 ImGui.EndCombo();
             }
@@ -845,20 +819,14 @@ public class BaseNpcEditorTab : GameContentTab
         }
 
         if (Controls.SmallButton($"{Icons.PlusCircle} Add Accessory##addacc"))
-            undoBuffer.Commit(new ListAdd<string>("Accessory", npc.Accessories, ""));
+        {
+            var first = Data.GameData.Items.Accessories.FirstOrDefault();
+            if (first != null)
+                undoBuffer.Commit(new ListAdd<Accessory>("Accessory", npc.Accessories, first));
+        }
 
         if (removeIndex >= 0)
-            undoBuffer.Commit(new ListRemove<string>("Accessory", npc.Accessories, removeIndex, removeValue));
-    }
-
-    private string GetInfocardPreview(int ids)
-    {
-        if (!Data.Infocards.HasXmlResource(ids))
-            return string.Empty;
-        var xml = Data.Infocards.GetXmlResource(ids);
-        if (string.IsNullOrWhiteSpace(xml))
-            return string.Empty;
-        return RDLParse.Parse(xml, Data.Fonts).ExtractText();
+            undoBuffer.Commit(new ListRemove<Accessory>("Accessory", npc.Accessories, removeIndex, removeValue));
     }
 
     private void DrawRoomAssignField(BaseNpc npc)
@@ -932,19 +900,9 @@ public class BaseNpcEditorTab : GameContentTab
         }
         else
         {
-            // Add-mission row using the buffer fields
-            ImGui.SetNextItemWidth(160 * ImGuiHelper.Scale);
-            ImGui.InputText("Type##newmisn", ref misnKind, 64);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(80 * ImGuiHelper.Scale);
-            ImGui.InputFloat("Min##newmisnmin", ref misnMin, 0f, 0f, "%.3f");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(80 * ImGuiHelper.Scale);
-            ImGui.InputFloat("Max##newmisnmax", ref misnMax, 0f, 0f, "%.3f");
-            ImGui.SameLine();
             if (ImGui.Button($"{Icons.PlusCircle} Add Mission"))
             {
-                undoBuffer.Set("Mission", () => ref npc.Mission, new NpcMission(misnKind, misnMin, misnMax));
+                undoBuffer.Set("Mission", () => ref npc.Mission, new NpcMission("DestroyMission", 0f, 0.98f));
             }
         }
     }
@@ -952,97 +910,68 @@ public class BaseNpcEditorTab : GameContentTab
     // ── Rumor list ─────────────────────────────────────────────────────────────
     private void DrawRumors(BaseNpc npc)
     {
-        if (npc.Rumors.Count == 0)
+        const ImGuiTableFlags tableFlags =
+            ImGuiTableFlags.BordersOuter |
+            ImGuiTableFlags.BordersInnerV |
+            ImGuiTableFlags.RowBg |
+            ImGuiTableFlags.SizingStretchProp;
+
+        if (ImGui.BeginTable("##rumortable", 5, tableFlags))
         {
-            ImGui.TextDisabled("No rumors set.");
-        }
-        else
-        {
+            ImGui.TableSetupColumn("Start",  ImGuiTableColumnFlags.WidthStretch, 2f);
+            ImGui.TableSetupColumn("End",    ImGuiTableColumnFlags.WidthStretch, 2f);
+            ImGui.TableSetupColumn("Rep",    ImGuiTableColumnFlags.WidthFixed,   50 * ImGuiHelper.Scale);
+            ImGui.TableSetupColumn("IDS",    ImGuiTableColumnFlags.WidthStretch, 1f);
+            ImGui.TableSetupColumn("##del",  ImGuiTableColumnFlags.WidthFixed,   ImGui.GetFrameHeight());
+            ImGui.TableHeadersRow();
+
+            int removeIdx = -1;
             int idx = 0;
-            foreach (var r in npc.Rumors.ToArray())
+            foreach (var r in npc.Rumors)
             {
+                ImGui.TableNextRow();
                 ImGui.PushID(idx);
-                ImGui.SeparatorText($"Rumor {idx + 1}");
 
-                string start = r.Start;
-                ImGui.SetNextItemWidth(140 * ImGuiHelper.Scale);
-                if (ImGui.InputText("Start", ref start, 64) && start != r.Start)
-                    undoBuffer.Set("Rumor Start", () => ref r.Start, start);
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1);
+                Data.StoryIndices.Draw("##start", ref r.Start, (o, u) =>
+                    undoBuffer.Set("Rumor Start", () => ref r.Start!, o, u), allowNull: true);
 
-                ImGui.SameLine();
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1);
+                Data.StoryIndices.Draw("##end", ref r.End, (o, u) =>
+                    undoBuffer.Set("Rumor End", () => ref r.End!, o, u), allowNull: true);
 
-                string end = r.End;
-                ImGui.SetNextItemWidth(140 * ImGuiHelper.Scale);
-                if (ImGui.InputText("End", ref end, 64) && end != r.End)
-                    undoBuffer.Set("Rumor End", () => ref r.End, end);
-
-                ImGui.SameLine();
-
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1);
                 int rep = r.RepRequired;
-                ImGui.SetNextItemWidth(60 * ImGuiHelper.Scale);
-                if (ImGui.InputInt("Rep", ref rep) && rep != r.RepRequired)
+                if (ImGui.InputInt("##rep", ref rep, 0) && rep != r.RepRequired)
                     undoBuffer.Set("Rumor Rep", () => ref r.RepRequired, rep);
 
-                ImGui.SameLine();
+                ImGui.TableNextColumn();
+                ImGui.SetNextItemWidth(-1);
+                Controls.IdsInputXmlUndo("##ids", window, Data, popups, undoBuffer,
+                    () => ref r.Ids, showTooltipOnHover: true, inputWidth: 0f);
 
-                int ids = r.Ids;
-                ImGui.SetNextItemWidth(120 * ImGuiHelper.Scale);
-                if (ImGui.InputInt("IDS", ref ids) && ids != r.Ids)
-                    undoBuffer.Set("Rumor IDS", () => ref r.Ids, ids);
-                ImGui.SameLine();
-                if (ImGui.Button($"{Icons.Edit}##rumorids"))
-                {
-                    popups.OpenPopup(new InfocardSelection(r.Ids, window, Data.Infocards, Data.Fonts,
-                        v => undoBuffer.Set("Rumor IDS", () => ref r.Ids, v)));
-                }
-                ImGui.SameLine();
-                if (ImGui.Button($"{Icons.TrashAlt} Remove"))
-                {
-                    var rumorIdx = npc.Rumors.IndexOf(r);
-                    undoBuffer.Commit(new ListRemove<NpcRumor>("Rumor", npc.Rumors, rumorIdx, r));
-                }
-
-                var idsText = GetInfocardPreview(r.Ids);
-                if (!string.IsNullOrWhiteSpace(idsText))
-                    ImGui.TextWrapped(idsText);
-                else
-                    ImGui.TextDisabled("No infocard preview available.");
+                ImGui.TableNextColumn();
+                if (Controls.SmallButton($"{Icons.TrashAlt}##del"))
+                    removeIdx = idx;
 
                 ImGui.PopID();
                 idx++;
             }
+
+            ImGui.EndTable();
+
+            if (removeIdx >= 0)
+                undoBuffer.Commit(new ListRemove<BaseNpcRumor>("Rumor", npc.Rumors, removeIdx, npc.Rumors[removeIdx]));
         }
 
-        // Add-rumor form
-        ImGui.SeparatorText("Add Rumor");
-        ImGui.SetNextItemWidth(140 * ImGuiHelper.Scale);
-        ImGui.InputText("Start##rs", ref rumorStart, 64);
-        ImGui.SameLine();
-        ImGui.SetNextItemWidth(140 * ImGuiHelper.Scale);
-        ImGui.InputText("End##re",   ref rumorEnd,   64);
-        ImGui.SameLine();
-        ImGui.SetNextItemWidth(60 * ImGuiHelper.Scale);
-        ImGui.InputInt("Rep##rr", ref rumorRep);
-        ImGui.SameLine();
-        ImGui.SetNextItemWidth(120 * ImGuiHelper.Scale);
-        ImGui.InputInt("IDS##ri", ref rumorIds);
-        ImGui.SameLine();
-        if (ImGui.Button($"{Icons.Edit}##browsrumids"))
-        {
-            popups.OpenPopup(new InfocardSelection(rumorIds, window, Data.Infocards, Data.Fonts, v => rumorIds = v));
-        }
-        ImGui.SameLine();
-        if (ImGui.Button($"{Icons.PlusCircle}##addrumorBtn"))
-        {
-            var r = new NpcRumor(rumorStart, rumorEnd, rumorRep, rumorIds, false);
-            undoBuffer.Commit(new ListAdd<NpcRumor>("Rumor", npc.Rumors, r));
-        }
-        if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Add rumor to this NPC");
+        if (npc.Rumors.Count == 0)
+            ImGui.TextDisabled("No rumors.");
 
-        var addPreview = GetInfocardPreview(rumorIds);
-        if (!string.IsNullOrWhiteSpace(addPreview))
-            ImGui.TextWrapped(addPreview);
+        if (ImGui.Button($"{Icons.PlusCircle} Add Rumor"))
+            undoBuffer.Commit(new ListAdd<BaseNpcRumor>("Rumor", npc.Rumors, new BaseNpcRumor { RepRequired = 1 }));
     }
 
     public override void Dispose()
