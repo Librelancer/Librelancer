@@ -17,8 +17,10 @@ public static unsafe class SearchDropdown<T>
 
     private static string GetName(T value, Func<T, string> displayName)
     {
+        if (value == null)
+            return "(none)";
         return displayName == null
-            ? (value?.ToString() ?? "(none)")
+            ? value.ToString()
             : displayName(value);
     }
 
