@@ -784,13 +784,17 @@ public class BaseNpcEditorTab : GameContentTab
 
         int removeIndex = -1;
         Accessory removeValue = null!;
+
+        bool wasInTable = Controls.InEditorTable;
+        Controls.InEditorTable = false;
         for (int i = 0; i < npc.Accessories.Count; i++)
         {
+            var idx = i;
             var current = npc.Accessories[i];
             ImGui.PushID(i);
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - (80 * ImGuiHelper.Scale));
-            Data.Accessories.Draw($"##acc_{i}", ref current,
-                (old, updated) => undoBuffer.Commit(new ListSet<Accessory>("Accessory", npc.Accessories, i, old, updated)));
+            Data.Accessories.Draw($"##acc_{i}", ref current, (old, updated) =>
+                undoBuffer.Commit(new ListSet<Accessory>("Accessory", npc.Accessories, idx, old, updated)));
             ImGui.SameLine();
             if (Controls.SmallButton($"{Icons.TrashAlt}##rmacc"))
             {
@@ -799,6 +803,7 @@ public class BaseNpcEditorTab : GameContentTab
             }
             ImGui.PopID();
         }
+        Controls.InEditorTable = wasInTable;
 
         if (npc.Accessories.Count == 0)
         {
@@ -810,9 +815,9 @@ public class BaseNpcEditorTab : GameContentTab
             ImGui.SameLine(0, 4 * ImGuiHelper.Scale);
         }
 
-        if (Controls.SmallButton($"{Icons.PlusCircle} Add Accessory##addacc"))
+        if (Controls.SmallButton($"{Icons.PlusCircle} Add##addacc"))
         {
-            var first = Data.Accessories.Options.FirstOrDefault();
+            var first = Data.GameData.Items.Accessories.FirstOrDefault();
             if (first != null)
                 undoBuffer.Commit(new ListAdd<Accessory>("Accessory", npc.Accessories, first));
         }
