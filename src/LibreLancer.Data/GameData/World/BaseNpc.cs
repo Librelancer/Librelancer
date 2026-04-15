@@ -7,25 +7,29 @@ using LibreLancer.Data.Schema.MBases;
 
 namespace LibreLancer.Data.GameData.World;
 
-public class BaseNpc
+public class BaseNpc : NicknameItem
 {
-    public required string Nickname;
-    public required string? BaseAppr;
-    public required Bodypart? Body;
-    public required Bodypart? Head;
-    public required Bodypart? LeftHand;
-    public required Bodypart? RightHand;
+    public BaseNpc(string nickname)
+    {
+        Nickname = nickname;
+    }
+
+    public string? BaseAppr;
+    public Bodypart? Body;
+    public Bodypart? Head;
+    public Bodypart? LeftHand;
+    public Bodypart? RightHand;
     public List<Accessory> Accessories = [];
     public Accessory? Accessory => Accessories.Count > 0 ? Accessories[0] : null;
-    public required int IndividualName;
-    public required Faction? Affiliation;
-    public required string? Voice;
-    public required string? Room;
+    public int IndividualName;
+    public Faction? Affiliation;
+    public string? Voice;
+    public string? Room;
 
     public List<NpcKnow> Know = [];
     public List<BaseNpcRumor> Rumors = [];
     public List<BaseNpcBribe> Bribes = [];
-    public required NpcMission? Mission;
+    public NpcMission? Mission;
 }
 
 public class BaseNpcRumor : RepInfo

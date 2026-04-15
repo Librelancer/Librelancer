@@ -301,9 +301,8 @@ public class GameItemDb
 
                 foreach (var npc in mBase.Npcs)
                 {
-                    b.Npcs.Add(new BaseNpc
+                    b.Npcs.Add(new BaseNpc(npc.Nickname)
                     {
-                        Nickname = npc.Nickname,
                         BaseAppr = npc.BaseAppr,
                         Body = Bodyparts.Get(npc.Body ?? ""),
                         Head = Bodyparts.Get(npc.Head ?? ""),

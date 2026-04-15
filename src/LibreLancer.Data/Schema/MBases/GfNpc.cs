@@ -83,7 +83,12 @@ public partial class GfNpc
     }
 }
 
-public record NpcMission(string Kind, float Min, float Max);
+public class NpcMission(string kind, float min, float max)
+{
+    public string Kind = kind;
+    public float Min = min;
+    public float Max = max;
+}
 
 public class RepInfo
 {

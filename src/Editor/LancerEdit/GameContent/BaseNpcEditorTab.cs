@@ -4,14 +4,12 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using LancerEdit.GameContent.Lookups;
-using LancerEdit.GameContent.Popups;
 using LibreLancer;
+using LibreLancer.Client;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.MBases;
-using LibreLancer.Graphics;
 using LibreLancer.ImUI;
-using LibreLancer.Infocards;
 using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.Thn;
@@ -39,8 +37,7 @@ public class BaseNpcEditorTab : GameContentTab
     private Cutscene? roomCutscene;
     private double roomDrawElapsed;
 
-    private record RoomSpot(string Name, Vector3 Position, Quaternion Rotation);
-    private RoomSpot[] roomSpots = [];
+    private ThnSceneObject[] roomSpots = [];
     private List<GameObject> previewNpcObjects = new();
     private const float PREVIEW_NPC_HEIGHT_OFFSET = 0.6f;
 
@@ -148,7 +145,7 @@ public class BaseNpcEditorTab : GameContentTab
                 .Where(e => e.Type == EntityTypes.Marker &&
                             e.Name.Contains("Zs/NPC", StringComparison.OrdinalIgnoreCase) &&
                             e.Position.HasValue)
-                .Select(e => new RoomSpot(e.Name, e.Position!.Value, e.Rotation))
+                .Select(e => roomCutscene!.GetObject(e.Name))
                 .OrderBy(x => x.Name)
                 .ToArray();
             roomSpots = markers;
@@ -179,16 +176,16 @@ public class BaseNpcEditorTab : GameContentTab
         try
         {
             var script = previewRoom.SetScript.LoadScript();
-            var ctx = new ThnScriptContext(null);
+            var ctx = ThnRoomHandler.CreateContext(selectedBase!, previewRoom);
             roomCutscene = new Cutscene(ctx, Data.GameData, Data.Resources, Data.Sounds, new Rectangle(0, 0, 240, 240), window);
-            roomCutscene.BeginScene(script);
+            roomCutscene.BeginScene(previewRoom.OpenScene());
             roomCutscene.Update(0.1);
 
             roomSpots = script.Entities.Values
                 .Where(e => e.Type == EntityTypes.Marker &&
                             e.Name.Contains("Zs/NPC", StringComparison.OrdinalIgnoreCase) &&
                             e.Position.HasValue)
-                .Select(e => new RoomSpot(e.Name, e.Position!.Value, e.Rotation))
+                .Select(e => roomCutscene.GetObject(e.Name))
                 .OrderBy(x => x.Name)
                 .ToArray();
             roomMarkers = roomSpots.Select(x => x.Name).ToArray();
@@ -238,7 +235,7 @@ public class BaseNpcEditorTab : GameContentTab
         }
     }
 
-    private void CreatePreviewNpcObject(BaseNpc npc, RoomSpot spot)
+    private void CreatePreviewNpcObject(BaseNpc npc, ThnSceneObject spot)
     {
         var body = npc.Body;
         var head = npc.Head;
@@ -269,7 +266,7 @@ public class BaseNpcEditorTab : GameContentTab
         var animation = new AnimationComponent(obj, Data.GameData.GetCharacterAnimations());
         obj.AnimationComponent = animation;
         obj.AddComponent(animation);
-        obj.SetLocalTransform(new Transform3D(spot.Position + Vector3.UnitY * PREVIEW_NPC_HEIGHT_OFFSET, spot.Rotation));
+        obj.SetLocalTransform(new Transform3D(spot.Translate + Vector3.UnitY * PREVIEW_NPC_HEIGHT_OFFSET, spot.Rotate));
         roomCutscene!.World.AddObject(obj);
         obj.Register(roomCutscene.World);
         previewNpcObjects.Add(obj);
@@ -285,10 +282,10 @@ public class BaseNpcEditorTab : GameContentTab
 
         roomCutscene.Update(roomDrawElapsed);
         roomCutscene.UpdateViewport(new Rectangle(0, 0, w, h), (float)w / h);
-        
+
         // Adjust character heights based on skeleton data before drawing
         AdjustCharacterHeights();
-        
+
         roomCutscene.Draw(roomDrawElapsed, w, h);
     }
 
@@ -301,7 +298,7 @@ public class BaseNpcEditorTab : GameContentTab
         {
             if (obj.RenderComponent is not CharacterRenderer cr)
                 continue;
-            
+
             var p = obj.LocalTransform.Position;
             p.Y = cr.Skeleton.FloorHeight + cr.Skeleton.RootHeight;
             obj.SetLocalTransform(new Transform3D(p, obj.LocalTransform.Orientation));
@@ -407,7 +404,7 @@ public class BaseNpcEditorTab : GameContentTab
 
         foreach (var spot in roomSpots)
         {
-            if (!WorldToScreen(spot.Position, out var screen))
+            if (!WorldToScreen(spot.Translate, out var screen))
                 continue;
 
             var p = min + screen;
@@ -642,19 +639,11 @@ public class BaseNpcEditorTab : GameContentTab
         ImGui.SameLine();
         if (ImGui.Button($"{Icons.PlusCircle}##addnpc") && !string.IsNullOrWhiteSpace(newNpcNickname))
         {
-            var npc = new BaseNpc
+            var npc = new BaseNpc(newNpcNickname)
             {
                 Nickname       = newNpcNickname,
-                BaseAppr       = null,
-                Body           = null,
-                Head           = null,
-                LeftHand       = null,
-                RightHand      = null,
-                IndividualName = 0,
-                Affiliation    = null,
                 Voice          = "rvp106", // I don't know yet how to extract the list of possible voices, a default value and a text box should suffice.
                 Room           = selectedRoom?.Nickname,
-                Mission        = null
             };
             undoBuffer.Commit(new ListAdd<BaseNpc>("NPC", selectedBase!.Npcs, npc));
             newNpcNickname = "";
@@ -864,36 +853,14 @@ public class BaseNpcEditorTab : GameContentTab
     {
         if (npc.Mission != null)
         {
-            var mission = npc.Mission;
-            ImGui.PushID("misn");
-            // Show current mission
+            if (Controls.BeginEditorTable("misn"))
+            {
+                Controls.InputFloatUndo("Min", undoBuffer, () => ref npc.Mission.Min);
+                Controls.InputFloatUndo("Max", undoBuffer, () => ref npc.Mission.Max);
+                Controls.EndEditorTable();
+            }
             if (ImGui.Button($"{Icons.TrashAlt} Clear Mission"))
                 undoBuffer.Set("Mission", () => ref npc.Mission, (NpcMission?)null);
-
-            ImGui.SameLine();
-            ImGui.Text($"{mission.Kind}  {mission.Min:F3} – {mission.Max:F3}");
-
-            // Editable fields
-            string kind  = mission.Kind;
-            float  mmin  = mission.Min;
-            float  mmax  = mission.Max;
-            bool changed = false;
-
-            ImGui.SetNextItemWidth(160 * ImGuiHelper.Scale);
-            if (ImGui.InputText("Type##misnk", ref kind, 64)) changed = true;
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(80 * ImGuiHelper.Scale);
-            if (ImGui.InputFloat("Min##misnmin", ref mmin, 0f, 0f, "%.3f")) changed = true;
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(80 * ImGuiHelper.Scale);
-            if (ImGui.InputFloat("Max##misnmax", ref mmax, 0f, 0f, "%.3f")) changed = true;
-
-            if (changed)
-            {
-                var newMisn = new NpcMission(kind, mmin, mmax);
-                undoBuffer.Set("Mission", () => ref npc.Mission, newMisn);
-            }
-            ImGui.PopID();
         }
         else
         {
@@ -974,8 +941,8 @@ public class BaseNpcEditorTab : GameContentTab
         if (ImGui.Button($"{Icons.PlusCircle} Add Rumor"))
         {
             var first = Data.GameData.Items.Story.FirstOrDefault();
-            undoBuffer.Commit(new ListAdd<BaseNpcRumor>("Rumor", npc.Rumors, new BaseNpcRumor 
-            { 
+            undoBuffer.Commit(new ListAdd<BaseNpcRumor>("Rumor", npc.Rumors, new BaseNpcRumor
+            {
                 RepRequired = 1,
                 Start = first,
                 End = first

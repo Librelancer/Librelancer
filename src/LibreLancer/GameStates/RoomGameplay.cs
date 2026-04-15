@@ -94,7 +94,6 @@ namespace LibreLancer
             currentBase = g.GameData.Items.Bases.Get(newBase) ??
                           throw new DataException($"Could not find base: {newBase}");
             currentRoom = room ?? currentBase.StartRoom;
-            currentRoom.InitForDisplay();
 
             var roomNickname = virtualRoom ?? currentRoom.Nickname;
             this.virtualRoom = virtualRoom;
@@ -679,10 +678,9 @@ namespace LibreLancer
             }
 
             session.OnUpdatePlayerShip = CreatePlayerEquipment;
-            var ctx = new ThnScriptContext(currentRoom.OpenSet())
-            {
-                PlayerShip = playerShip
-            };
+
+            var ctx = ThnRoomHandler.CreateContext(currentBase, currentRoom);
+            ctx.PlayerShip = playerShip;
 
             if (playerShip.TryGetComponent<CEngineComponent>(out var cengine))
             {
@@ -691,35 +689,6 @@ namespace LibreLancer
                 cengine.PlaySound = false;
             }
 
-            if (currentBase.TerrainTiny != null)
-            {
-                ctx.Substitutions.Add("$terrain_tiny", currentBase.TerrainTiny);
-            }
-
-            if (currentBase.TerrainSml != null)
-            {
-                ctx.Substitutions.Add("$terrain_sml", currentBase.TerrainSml);
-            }
-
-            if (currentBase.TerrainMdm != null)
-            {
-                ctx.Substitutions.Add("$terrain_mdm", currentBase.TerrainMdm);
-            }
-
-            if (currentBase.TerrainLrg != null)
-            {
-                ctx.Substitutions.Add("$terrain_lrg", currentBase.TerrainLrg);
-            }
-
-            if (currentBase.TerrainDyna1 != null)
-            {
-                ctx.Substitutions.Add("$terrain_dyna_01", currentBase.TerrainDyna1);
-            }
-
-            if (currentBase.TerrainDyna2 != null)
-            {
-                ctx.Substitutions.Add("$terrain_dyna_02", currentBase.TerrainDyna2);
-            }
 
             scene = new Cutscene(ctx, Game.GameData, Game.ResourceManager, Game.Sound,
                 Game.RenderContext.CurrentViewport, Game);

@@ -28,16 +28,6 @@ public class BaseRoom : IdentifiableItem
     //Populated from mbases
     public int MaxCharacters;
     public List<BaseFixedNpc> FixedNpcs = [];
-
-    internal Action? InitAction;
-    public void InitForDisplay()
-    {
-        if (InitAction != null)
-        {
-            InitAction();
-            InitAction = null;
-        }
-    }
 }
 public class BaseHotspot
 {
