@@ -28,7 +28,7 @@ public class ObjectLookup<T> where T : class
         bool allowNull = false)
     {
         ref var sel = ref accessor();
-        return Draw(label, ref sel, (o, u) => undoBuffer.Set(label, accessor, o, u));
+        return Draw(label, ref sel, (o, u) => undoBuffer.Set(label, accessor, o, u), allowNull);
     }
 
     public bool Draw(string label,

@@ -305,19 +305,54 @@ public class GameItemDb
                     {
                         Nickname = npc.Nickname,
                         BaseAppr = npc.BaseAppr,
-                        Body = npc.Body,
-                        Head = npc.Head,
-                        LeftHand = npc.LeftHand,
-                        RightHand = npc.RightHand,
-                        Accessory = npc.Accessory,
+                        Body = Bodyparts.Get(npc.Body ?? ""),
+                        Head = Bodyparts.Get(npc.Head ?? ""),
+                        LeftHand = Bodyparts.Get(npc.LeftHand ?? ""),
+                        RightHand = Bodyparts.Get(npc.RightHand ?? ""),
+                        Accessories = npc.Accessories
+                            .Select(a => Accessories.Get(a))
+                            .OfType<Accessory>()
+                            .ToList(),
                         IndividualName = npc.IndividualName,
                         Affiliation = Factions.Get(npc.Affiliation ?? ""),
                         Voice = npc.Voice,
                         Room = npc.Room,
                         Know = npc.Know,
-                        Rumors = npc.Rumors,
-                        Bribes = npc.Bribes,
+                        Rumors = npc.Rumors.Select(r => new BaseNpcRumor
+                        {
+                            Start = Story.FirstOrDefault(s =>
+                                s.Item.Nickname.Equals(r.Start, StringComparison.OrdinalIgnoreCase)),
+                            End = Story.FirstOrDefault(s =>
+                                s.Item.Nickname.Equals(r.End, StringComparison.OrdinalIgnoreCase)),
+                            RepRequired = r.RepRequired,
+                            Ids = r.Ids,
+                            Type2 = r.Type2,
+                            Objects = r.Objects,
+                        }).ToList(),
+                        Bribes = npc.Bribes.Select(br => new BaseNpcBribe
+                        {
+                            Faction = Factions.Get(br.Faction),
+                            Price = br.Price,
+                            Ids = br.Ids,
+                        }).ToList(),
                         Mission = npc.Mission,
+                    });
+                }
+
+                foreach (var fac in mBase.Factions)
+                {
+                    b.BaseFactions.Add(new MBaseBaseFaction
+                    {
+                        Faction = Factions.Get(fac.Faction),
+                        Weight = fac.Weight,
+                        Npcs = fac.Npcs,
+                        OffersMissions = fac.OffersMissions,
+                        Missions = fac.Missions.Select(m => new BaseMissionOffer
+                        {
+                            MinDiff = m.MinDiff,
+                            MaxDiff = m.MaxDiff,
+                            Weight = m.Weight,
+                        }).ToList(),
                     });
                 }
             }
@@ -379,6 +414,7 @@ public class GameItemDb
 
                 if (mRoom.TryGetValue(room.Nickname, out var mroom))
                 {
+                    nr.MaxCharacters = mroom.CharacterDensity;
                     foreach (var npc in mroom.NPCs)
                     {
                         nr.FixedNpcs.Add(new BaseFixedNpc
@@ -386,7 +422,7 @@ public class GameItemDb
                             Placement = npc.StandMarker,
                             FidgetScript = ResolveThn(npc.Script),
                             Action = npc.Action,
-                            Npc = b.Npcs.Find(n => n.Nickname == npc.Npc)
+                            Npc = b.Npcs.Find(n => string.Equals(n.Nickname, npc.Npc, StringComparison.OrdinalIgnoreCase))
                         });
                     }
                 }
@@ -660,9 +696,13 @@ public class GameItemDb
         Ini.VignetteParams = null;
     }
 
-    private void InitNews()
+    private void InitStory()
     {
         Story = Ini.Storyline.Items.Select((x, y) => new StoryIndex(y, x)).ToList();
+    }
+
+    private void InitNews()
+    {
         News = new();
 
         foreach (var n in Ini.News.NewsItems)
@@ -731,8 +771,15 @@ public class GameItemDb
         var explosionTask = tasks.Begin(InitExplosions, effectsTask);
         var debrisTask = tasks.Begin(InitDebris);
         var shipsTask = tasks.Begin(InitShips, explosionTask, fusesTask, debrisTask);
+        var voicesTask = tasks.Begin(InitVoices);
+        var equipmentTask = tasks.Begin(InitEquipment, effectsTask);
+        var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
+        var npcShips = tasks.Begin(InitNpcShips, shipsTask, loadoutsTask);
+        var factionsTask = tasks.Begin(InitFactions, voicesTask, npcShips);
+        var storyTask = tasks.Begin(InitStory);
+        var bodyPartsTask = tasks.Begin(InitBodyParts);
         List<Schema.Universe.Base> introBases = [];
-        var baseTask = tasks.Begin(() => introBases.AddRange(InitBases(tasks)));
+        var baseTask = tasks.Begin(() => introBases.AddRange(InitBases(tasks)), factionsTask, storyTask, bodyPartsTask);
         tasks.Begin(() =>
         {
             FLLog.Info("Game", "Loading intro scenes");
@@ -774,17 +821,11 @@ public class GameItemDb
                 }
             }
         }, baseTask);
-        var voicesTask = tasks.Begin(InitVoices);
-        var equipmentTask = tasks.Begin(InitEquipment, effectsTask);
         var goodsTask = tasks.Begin(InitGoods, equipmentTask);
-        var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
         var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask);
         var starsTask = tasks.Begin(InitStars);
         var astsTask = tasks.Begin(InitAsteroids);
-        var npcShips = tasks.Begin(InitNpcShips, shipsTask, loadoutsTask);
-        var factionsTask = tasks.Begin(InitFactions, voicesTask, npcShips);
         tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
-        tasks.Begin(InitBodyParts);
         tasks.Begin(InitNews, baseTask);
         tasks.Begin(() => InitSystems(tasks),
             baseTask,
@@ -803,6 +844,7 @@ public class GameItemDb
         GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
         GC.Collect(); //We produced a crapload of garbage
     }
+
 
     private void InitBodyParts()
     {

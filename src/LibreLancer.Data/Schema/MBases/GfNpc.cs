@@ -24,8 +24,9 @@ public partial class GfNpc
     public string? LeftHand;
     [Entry("righthand")]
     public string? RightHand;
-    [Entry("accessory")]
-    public string? Accessory;
+    [Entry("accessory", Multiline = true)]
+    public List<string> Accessories = [];
+    public string? Accessory => Accessories.Count > 0 ? Accessories[0] : null;
     [Entry("individual_name")]
     public int IndividualName;
     [Entry("affiliation")]

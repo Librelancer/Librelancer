@@ -258,7 +258,7 @@ public class FreelancerData
         {
             //mbases.ini
             MBases = new MBasesIni();
-            if (Freelancer.MBasesPaths != null)
+            if (Freelancer.MBasesPaths is { Count: > 0 })
             {
                 foreach (var f in Freelancer.MBasesPaths)
                     MBases.AddFile(f, VFS, stringPool);

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.GameData.Market;
-using LibreLancer.Data.Schema.MBases;
 
 namespace LibreLancer.Data.GameData.World;
 
@@ -39,6 +38,7 @@ public class Base : NamedItem
     public int MinMissionOffers;
     public int MaxMissionOffers; //not respected by vanilla (?)
     public List<BaseNpc> Npcs = [];
+    public List<MBaseBaseFaction> BaseFactions = [];
 
     public ulong GetUnitPrice(Items.Equipment eq)
     {
@@ -49,22 +49,11 @@ public class Base : NamedItem
     }
 }
 
-public class BaseNpc
+public class MBaseBaseFaction
 {
-    public required string Nickname;
-    public required string? BaseAppr;
-    public required string? Body;
-    public required string? Head;
-    public required string? LeftHand;
-    public required string? RightHand;
-    public required string? Accessory;
-    public required int IndividualName;
-    public required Faction? Affiliation;
-    public required string? Voice;
-    public required string? Room;
-
-    public List<NpcKnow> Know = [];
-    public List<NpcRumor> Rumors = [];
-    public List<NpcBribe> Bribes = [];
-    public required NpcMission? Mission;
+    public Faction? Faction;
+    public float Weight;
+    public List<string> Npcs = [];
+    public bool OffersMissions;
+    public List<BaseMissionOffer> Missions = [];
 }

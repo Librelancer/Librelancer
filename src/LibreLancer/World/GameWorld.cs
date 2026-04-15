@@ -38,6 +38,8 @@ namespace LibreLancer.World
 
         public IReadOnlyList<GameObject> Objects => objects;
 
+        public IReadOnlyList<GameObject> AllObjects => objects;
+
         public readonly SpatialLookup SpatialLookup = new();
 
         private Func<double>? timeSource;
@@ -346,6 +348,19 @@ namespace LibreLancer.World
 
             foreach (var obj in objects)
                 obj.RenderUpdate(t);
+        }
+
+        public void AdjustCharacterHeights()
+        {
+            foreach (var obj in objects)
+            {
+                if (obj.RenderComponent is not CharacterRenderer cr)
+                    continue;
+                
+                var p = obj.LocalTransform.Position;
+                p.Y = cr.Skeleton.FloorHeight + cr.Skeleton.RootHeight;
+                obj.SetLocalTransform(new Transform3D(p, obj.LocalTransform.Orientation));
+            }
         }
 
         public GameObject? GetSelection(ICamera camera, GameObject self, float x, float y, float vpWidth,

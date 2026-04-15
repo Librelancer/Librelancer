@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
+using LibreLancer.Data.GameData;
 
 namespace LibreLancer.Render
 {
@@ -13,14 +14,19 @@ namespace LibreLancer.Render
         // in the skeleton manager?
 
         public DfmSkeletonManager Skeleton;
+        public Accessory? Accessory;
+        public RigidModel? AccessoryModel;
+
 		public CharacterRenderer(DfmSkeletonManager skeleton)
 		{
 			this.Skeleton = skeleton;
 		}
 
         private Matrix4x4 transform;
+        private double globalTime;
         public override void Update(double time, Vector3 position, Matrix4x4 transform)
         {
+            globalTime = time;
             this.transform = transform;
         }
 
@@ -62,6 +68,19 @@ namespace LibreLancer.Render
                 {
                     Skeleton.RightHand.SetSkinning(Skeleton.RightHandSkinning!);
                     Skeleton.RightHand.DrawBuffer(commands, rightTransform, ref lighting);
+                }
+
+                if (AccessoryModel != null && Accessory != null &&
+                    !string.IsNullOrWhiteSpace(Accessory.Hardpoint) &&
+                    !string.IsNullOrWhiteSpace(Accessory.BodyHardpoint) &&
+                    Skeleton.GetAccessoryTransform(AccessoryModel,
+                        Accessory.Hardpoint!,
+                        Accessory.BodyHardpoint!,
+                        transform,
+                        out var accessoryTransform))
+                {
+                    AccessoryModel.Update(globalTime);
+                    AccessoryModel.DrawBuffer(0, commands, sysren.ResourceManager, accessoryTransform, ref lighting);
                 }
             }
             if (sysren.DfmMode != DfmDrawMode.Normal)
