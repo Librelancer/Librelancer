@@ -49,22 +49,22 @@ namespace LibreLancer.Thn
         public string SoundName;
         public float Attenuation;
         public ThnAudioProps? Props;
-        public ThnSound(string soundname, SoundManager man, ThnAudioProps props, ThnSceneObject obj)
+        public ThnSound(string soundname, SoundManager? man, ThnAudioProps props, ThnSceneObject obj)
         {
             SceneObject = obj;
             this.man = man;
             SoundName = soundname;
-            man.LoadSound(soundname);
+            man?.LoadSound(soundname);
             Props = props;
             if(Props != null) {
                 Attenuation = props.Attenuation;
             }
         }
 
-        private SoundManager man;
-        public ThnSoundInstance? CreateInstance(bool oneShot)
+        private SoundManager? man;
+        public ThnSoundInstance? CreateInstance()
         {
-            var inst = man.GetInstance(SoundName, Attenuation, Props!.Dmin, Props!.Dmax,
+            var inst = man?.GetInstance(SoundName, Attenuation, Props!.Dmin, Props!.Dmax,
                 Spatial ? (Vector3?) SceneObject.Translate : null);
             return inst == null ? null : new ThnSoundInstance(this, inst);
         }

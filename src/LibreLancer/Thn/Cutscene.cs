@@ -10,6 +10,7 @@ using LibreLancer.Client.Components;
 using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.Sounds;
+using LibreLancer.Thn.Events;
 using LibreLancer.World;
 
 namespace LibreLancer.Thn;
@@ -106,7 +107,7 @@ public class Cutscene : IDisposable
     }
 
     public Cutscene(ThnScriptContext context, GameDataManager gameData, GameResourceManager resources,
-        SoundManager sound, Rectangle viewport, Game game)
+        SoundManager? sound, Rectangle viewport, Game game)
     {
         scriptContext = context;
         this.soundManager = sound;
@@ -130,6 +131,15 @@ public class Cutscene : IDisposable
         }
     }
 
+    public void RemoveObject(ThnSceneObject obj)
+    {
+        if (obj.Object != null)
+        {
+            World.RemoveObject(obj.Object);
+        }
+        sceneObjects.Remove(obj.Name);
+    }
+
     public void BeginScene(params ThnScript[] scene) => BeginScene((IEnumerable<ThnScript>)scene);
 
     public void BeginScene(IEnumerable<ThnScript> scene)
@@ -138,9 +148,14 @@ public class Cutscene : IDisposable
         SceneSetup(scripts);
     }
 
-    public void FidgetScript(ThnScript scene)
+    public void FidgetScript(ThnScript scene, string targetObject)
     {
-        SceneSetup([scene], false);
+        var targeted = new ThnScript() { Duration = scene.Duration };
+        foreach (var ev in scene.Events.OfType<StartMotionEvent>())
+        {
+            targeted.Events.Add(ev.Clone(targetObject));
+        }
+        SceneSetup([targeted], false);
     }
 
     private void SceneSetup(ThnScript[] scripts, bool resetObjects = true)

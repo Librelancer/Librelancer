@@ -29,19 +29,19 @@ public class BaseRoom : IdentifiableItem
     public int MaxCharacters;
     public List<BaseFixedNpc> FixedNpcs = [];
 }
-public class BaseHotspot
+public class BaseHotspot(string name)
 {
-    public required string Name;
-    public required string? Behavior;
-    public required string? Room;
-    public required string? SetVirtualRoom;
-    public required string? VirtualRoom;
+    public string Name = name;
+    public string? Behavior;
+    public string? Room;
+    public string? SetVirtualRoom;
+    public string? VirtualRoom;
 }
 
-public class BaseFixedNpc
+public class BaseFixedNpc(BaseNpc npc, string placement)
 {
-    public BaseNpc? Npc;
-    public required string Placement;
-    public required ResolvedThn FidgetScript;
+    public BaseNpc Npc = npc;
+    public string Placement = placement;
+    public ResolvedThn? FidgetScript;
     public string? Action;
 }

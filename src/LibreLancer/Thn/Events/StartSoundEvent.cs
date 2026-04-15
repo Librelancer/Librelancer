@@ -30,17 +30,10 @@ namespace LibreLancer.Thn.Events
                 return;
             }
             if (obj.Sound == null) return;
-            var i = obj.Sound.CreateInstance(false);
-            if (i != null)
-            {
-                instance.Sounds[Targets[0]] = i;
-                i.Start((Flags & SoundFlags.Loop) == SoundFlags.Loop, StartTime);
-                instance.AddProcessor(new SoundRoutine(i, Targets[0], instance, Duration));
-            }
-            else
-            {
-                FLLog.Error("Thn", "Sfx overflow");
-            }
+            var i = obj.Sound.CreateInstance();
+            instance.Sounds[Targets[0]] = i;
+            i.Start((Flags & SoundFlags.Loop) == SoundFlags.Loop, StartTime);
+            instance.AddProcessor(new SoundRoutine(i, Targets[0], instance, Duration));
         }
 
         private class SoundRoutine : ThnEventProcessor

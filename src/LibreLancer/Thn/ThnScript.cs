@@ -112,6 +112,12 @@ namespace LibreLancer.Thn
             Initialize(runner.DoBytes(bytes), source);
         }
 
+        public ThnScript()
+        {
+
+        }
+
+
         private void Initialize(IDictionary<string, object> output, string source)
         {
             Duration = (float) output["duration"];

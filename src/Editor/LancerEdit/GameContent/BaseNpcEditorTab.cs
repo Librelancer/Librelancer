@@ -10,11 +10,8 @@ using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.MBases;
 using LibreLancer.ImUI;
-using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.Thn;
-using LibreLancer.World;
-using LibreLancer.World.Components;
 
 namespace LancerEdit.GameContent;
 
@@ -38,8 +35,6 @@ public class BaseNpcEditorTab : GameContentTab
     private double roomDrawElapsed;
 
     private ThnSceneObject[] roomSpots = [];
-    private List<GameObject> previewNpcObjects = new();
-    private const float PREVIEW_NPC_HEIGHT_OFFSET = 0.6f;
 
     // ── Camera control state ───────────────────────────────────────────────────
     private bool isRightMouseDown = false;
@@ -57,6 +52,7 @@ public class BaseNpcEditorTab : GameContentTab
     private ObjectLookup<Bodypart> rhandLookup;
 
     // ── Thn marker cache ───────────────────────────────────────────────────────
+    private List<ThnSceneObject> previewNpcObjects = [];
     private string[] roomMarkers = [];
     private string? cachedMarkerRoom = null;
 
@@ -163,7 +159,6 @@ public class BaseNpcEditorTab : GameContentTab
     {
         roomCutscene?.Dispose();
         roomCutscene = null;
-        previewNpcObjects.Clear();
 
         var previewRoom = room ?? selectedBase?.Rooms.FirstOrDefault() ?? selectedBase?.StartRoom;
         if (previewRoom?.SetScript == null)
@@ -177,7 +172,8 @@ public class BaseNpcEditorTab : GameContentTab
         {
             var script = previewRoom.SetScript.LoadScript();
             var ctx = ThnRoomHandler.CreateContext(selectedBase!, previewRoom);
-            roomCutscene = new Cutscene(ctx, Data.GameData, Data.Resources, Data.Sounds, new Rectangle(0, 0, 240, 240), window);
+            // SoundManager null on purpose.
+            roomCutscene = new Cutscene(ctx, Data.GameData, Data.Resources, null, new Rectangle(0, 0, 240, 240), window);
             roomCutscene.BeginScene(previewRoom.OpenScene());
             roomCutscene.Update(0.1);
 
@@ -189,10 +185,12 @@ public class BaseNpcEditorTab : GameContentTab
                 .OrderBy(x => x.Name)
                 .ToArray();
             roomMarkers = roomSpots.Select(x => x.Name).ToArray();
+            previewNpcObjects = [];
             BuildRoomPreviewObjects();
         }
-        catch
+        catch(Exception ex)
         {
+            FLLog.Error("NPC Editor", ex.ToString());
             roomSpots = [];
             roomMarkers = [];
         }
@@ -204,16 +202,17 @@ public class BaseNpcEditorTab : GameContentTab
 
         foreach (var obj in previewNpcObjects)
         {
-            roomCutscene.World.RemoveObject(obj);
+            roomCutscene.RemoveObject(obj);
         }
-        previewNpcObjects.Clear();
+
+        previewNpcObjects = [];
 
         if (selectedBase == null || roomSpots.Length == 0) return;
 
         var npcs = GetRoomNpcs().ToArray();
         var fixedNpcs = selectedRoom?.FixedNpcs
             .Where(f => f.Npc != null)
-            .ToDictionary(f => f.Placement, f => f.Npc!, StringComparer.OrdinalIgnoreCase);
+            .ToDictionary(f => f.Placement, f => f, StringComparer.OrdinalIgnoreCase);
 
         if (fixedNpcs != null && fixedNpcs.Count > 0)
         {
@@ -222,7 +221,7 @@ public class BaseNpcEditorTab : GameContentTab
                 if (!fixedNpcs.TryGetValue(spot.Name, out var npc))
                     continue;
 
-                CreatePreviewNpcObject(npc, spot);
+                CreatePreviewNpcObject(npc.Npc, spot, npc.FidgetScript);
             }
             return;
         }
@@ -231,11 +230,11 @@ public class BaseNpcEditorTab : GameContentTab
         {
             var npc = npcs[i];
             var spot = roomSpots[i];
-            CreatePreviewNpcObject(npc, spot);
+            CreatePreviewNpcObject(npc, spot, null);
         }
     }
 
-    private void CreatePreviewNpcObject(BaseNpc npc, ThnSceneObject spot)
+    private void CreatePreviewNpcObject(BaseNpc npc, ThnSceneObject spot, ResolvedThn? fidget)
     {
         var body = npc.Body;
         var head = npc.Head;
@@ -246,29 +245,20 @@ public class BaseNpcEditorTab : GameContentTab
         if (body == null && head == null && leftHand == null && rightHand == null)
             return;
 
-        var skel = new DfmSkeletonManager(
-            body?.LoadModel(Data.Resources)!, head?.LoadModel(Data.Resources),
-            leftHand?.LoadModel(Data.Resources), rightHand?.LoadModel(Data.Resources))
-        {
-            FloorHeight = 0
-        };
+        var obj = ThnRoomHandler.AddNpc(
+            roomCutscene,
+            Data.Resources,
+            Data.GameData.GetCharacterAnimations(),
+            npc.Nickname,
+            spot.Name,
+            head,
+            body,
+            rightHand,
+            leftHand,
+            accessory,
+            fidget
+        );
 
-        var obj = new GameObject
-        {
-            Nickname = npc.Nickname
-        };
-        var accessoryModel = accessory?.ModelFile?.LoadFile(Data.Resources)?.Drawable as IRigidModelFile;
-        obj.RenderComponent = new CharacterRenderer(skel)
-        {
-            Accessory = accessory,
-            AccessoryModel = accessoryModel?.CreateRigidModel(true, Data.Resources)
-        };
-        var animation = new AnimationComponent(obj, Data.GameData.GetCharacterAnimations());
-        obj.AnimationComponent = animation;
-        obj.AddComponent(animation);
-        obj.SetLocalTransform(new Transform3D(spot.Translate + Vector3.UnitY * PREVIEW_NPC_HEIGHT_OFFSET, spot.Rotate));
-        roomCutscene!.World.AddObject(obj);
-        obj.Register(roomCutscene.World);
         previewNpcObjects.Add(obj);
     }
 
@@ -283,26 +273,7 @@ public class BaseNpcEditorTab : GameContentTab
         roomCutscene.Update(roomDrawElapsed);
         roomCutscene.UpdateViewport(new Rectangle(0, 0, w, h), (float)w / h);
 
-        // Adjust character heights based on skeleton data before drawing
-        AdjustCharacterHeights();
-
         roomCutscene.Draw(roomDrawElapsed, w, h);
-    }
-
-    private void AdjustCharacterHeights()
-    {
-        if (roomCutscene?.World == null)
-            return;
-
-        foreach (var obj in roomCutscene.World.AllObjects)
-        {
-            if (obj.RenderComponent is not CharacterRenderer cr)
-                continue;
-
-            var p = obj.LocalTransform.Position;
-            p.Y = cr.Skeleton.FloorHeight + cr.Skeleton.RootHeight;
-            obj.SetLocalTransform(new Transform3D(p, obj.LocalTransform.Orientation));
-        }
     }
 
     private void UpdateCameraPosition()

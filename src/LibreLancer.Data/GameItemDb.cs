@@ -144,7 +144,8 @@ public class GameItemDb
         return true;
     }
 
-    private ResolvedThn ResolveThn(string? path)
+    // Should be private, pending more refactors
+    public ResolvedThn ResolveThn(string? path)
     {
         return new()
         {
@@ -390,9 +391,8 @@ public class GameItemDb
 
                 foreach (var hp in room.Hotspots)
                 {
-                    nr.Hotspots.Add(new BaseHotspot()
+                    nr.Hotspots.Add(new BaseHotspot(hp.Name)
                     {
-                        Name = hp.Name,
                         Behavior = hp.Behavior,
                         Room = hp.RoomSwitch,
                         SetVirtualRoom = hp.SetVirtualRoom,
@@ -416,13 +416,16 @@ public class GameItemDb
                     nr.MaxCharacters = mroom.CharacterDensity;
                     foreach (var npc in mroom.NPCs)
                     {
-                        nr.FixedNpcs.Add(new BaseFixedNpc
+                        var bn = b.Npcs.Find(n =>
+                            string.Equals(n.Nickname, npc.Npc, StringComparison.OrdinalIgnoreCase));
+                        if (bn != null)
                         {
-                            Placement = npc.StandMarker,
-                            FidgetScript = ResolveThn(npc.Script),
-                            Action = npc.Action,
-                            Npc = b.Npcs.Find(n => string.Equals(n.Nickname, npc.Npc, StringComparison.OrdinalIgnoreCase))
-                        });
+                            nr.FixedNpcs.Add(new BaseFixedNpc(bn, npc.StandMarker)
+                            {
+                                FidgetScript = ResolveThn(npc.Script),
+                                Action = npc.Action,
+                            });
+                        }
                     }
                 }
 

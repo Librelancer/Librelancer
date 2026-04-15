@@ -764,15 +764,6 @@ namespace LibreLancer
                 var obj = new GameObject() { Nickname = npc.Actor };
                 var costumeName = Game.GameData.GetCostumeForNPC(npc.Npc!)!;
                 Game.GameData.GetCostume(costumeName, out var body, out var head, out var lh, out var rh);
-                var skel = new DfmSkeletonManager(
-                    body?.LoadModel(Game.ResourceManager)!,
-                    head?.LoadModel(Game.ResourceManager),
-                    lh?.LoadModel(Game.ResourceManager),
-                    rh?.LoadModel(Game.ResourceManager));
-                obj.RenderComponent = new CharacterRenderer(skel);
-                var anmComponent = new AnimationComponent(obj, Game.GameData.GetCharacterAnimations());
-                obj.AnimationComponent = anmComponent;
-                obj.AddComponent(anmComponent);
                 string spot = npc.Spot!;
 
                 if (string.IsNullOrEmpty(spot))
@@ -780,25 +771,23 @@ namespace LibreLancer
                     spot = ct.Reserves[0].Spot[position++];
                 }
 
-                var pos = scene!.GetObject(spot)!.Translate;
-                obj.SetLocalTransform(new Transform3D(pos, Quaternion.Identity));
-                var thnObj = new ThnSceneObject
-                {
-                    Name = npc.Actor!,
-                    Rotate = Quaternion.Identity,
-                    Translate = pos,
-                    Object = obj
-                };
-                scene.AddObject(thnObj);
-                scene.FidgetScript(new ThnScript(
-                    session.Game.GameData.VFS.ReadAllBytes(session.Game.GameData.Items.DataPath(npc.Fidget)!),
-                    session.Game.GameData.Items.ThornReadCallback, npc.Fidget!));
-
+                var thnObj = ThnRoomHandler.AddNpc(
+                    scene,
+                    Game.ResourceManager,
+                    Game.GameData.GetCharacterAnimations(),
+                    npc.Actor!,
+                    spot,
+                    head,
+                    body,
+                    rh,
+                    lh,
+                    null,
+                    session.Game.GameData.Items.ResolveThn(npc.Fidget)
+                );
                 if (i == 0)
                 {
                     hotspots.Add(new RTCHotspot(thnObj, ct, npc.Npc!));
                 }
-
                 i++;
             }
         }

@@ -17,6 +17,8 @@ namespace LibreLancer.Thn.Events
         {
         }
 
+
+
         public StartMotionEvent(ThornTable table) : base(table)
         {
             if (!GetProps(table, out var props)) return;
@@ -26,6 +28,19 @@ namespace LibreLancer.Thn.Events
             GetValue(props, "time_scale", out TimeScale, 1f);
             GetValue(props, "event_flags", out Flags);
         }
+
+        public StartMotionEvent Clone(string target) => new()
+        {
+            Targets = [target],
+            Time = Time,
+            Duration = Duration,
+            ParamCurve = ParamCurve,
+            Type = Type,
+            Animation = Animation,
+            StartTime = StartTime,
+            TimeScale = TimeScale,
+            Flags = Flags
+        };
 
         public override void Run(ThnScriptInstance instance)
         {
