@@ -18,6 +18,7 @@ using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema.Interface;
 using LibreLancer.Data.IO;
 using LibreLancer.Data.Schema.Fonts;
+using LibreLancer.Data.Schema.GCS;
 using LibreLancer.Data.Schema.InitialWorld;
 using LibreLancer.Data.Schema.MBases;
 using LibreLancer.Data.Schema.Missions;
@@ -83,6 +84,7 @@ public class FreelancerData
     public ShipClassesIni ShipClasses = null!;
     public StorylineIni Storyline = null!;
     public VignetteParamsIni? VignetteParams;
+    public GenericScriptsIni GenericScripts;
     public string? DataVersion;
     public bool Loaded = false;
 
@@ -380,6 +382,14 @@ public class FreelancerData
             {
                 VignetteParams = new();
                 VignetteParams.AddFile(Freelancer.DataPath + "randommissions\\vignetteparams.ini", VFS);
+            }
+        });
+        Run(() =>
+        {
+            GenericScripts = new();
+            if (VFS.FileExists(Freelancer.DataPath + "scripts\\gcs\\genericscripts.ini"))
+            {
+                GenericScripts.AddFile(Freelancer.DataPath + "scripts\\gcs\\genericscripts.ini", VFS, stringPool);
             }
         });
         Run(() =>

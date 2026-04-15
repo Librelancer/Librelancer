@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using ImGuiNET;
 using LancerEdit.GameContent.Lookups;
 using LibreLancer;
@@ -120,6 +121,8 @@ public class BaseNpcEditorTab : GameContentTab
             firstSelected = true;
     }
 
+    private static Regex markerRegex = new(@"^Z([sg])\/(\w+)\/(\w+)\/(\d\d)\/(\w+)\/?(\w+)?$");
+
     // ── Thn marker loading ─────────────────────────────────────────────────────
     private void RefreshMarkers(BaseRoom room)
     {
@@ -139,7 +142,7 @@ public class BaseNpcEditorTab : GameContentTab
             var script = room.SetScript.LoadScript();
             var markers = script.Entities.Values
                 .Where(e => e.Type == EntityTypes.Marker &&
-                            e.Name.Contains("Zs/NPC", StringComparison.OrdinalIgnoreCase) &&
+                            markerRegex.IsMatch(e.Name) &&
                             e.Position.HasValue)
                 .Select(e => roomCutscene!.GetObject(e.Name))
                 .OrderBy(x => x.Name)
