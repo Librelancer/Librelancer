@@ -31,6 +31,7 @@ namespace LibreLancer.Thn.Events
             }
             if (obj.Sound == null) return;
             var i = obj.Sound.CreateInstance();
+            if (i == null) return;
             instance.Sounds[Targets[0]] = i;
             i.Start((Flags & SoundFlags.Loop) == SoundFlags.Loop, StartTime);
             instance.AddProcessor(new SoundRoutine(i, Targets[0], instance, Duration));
