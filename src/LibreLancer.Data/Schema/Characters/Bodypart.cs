@@ -4,6 +4,7 @@
 
 using System;
 using LibreLancer.Data.Ini;
+using LibreLancer.Data.Schema.Voices;
 
 namespace LibreLancer.Data.Schema.Characters;
 
@@ -15,5 +16,5 @@ public partial class Bodypart
 
     [Entry("mesh")]
     public string? Mesh;
-    public string? Sex;
+    public FLGender Sex;
 }

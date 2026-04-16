@@ -39,6 +39,7 @@ public class Cutscene : IDisposable
     private double currentTime = 0;
 
     private Dictionary<string, ThnSceneObject> sceneObjects = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, ThnScriptInstance> fidgets = new(StringComparer.OrdinalIgnoreCase);
     private Game game;
     private ThnCamera camera;
     private bool spawnObjects = true;
@@ -137,6 +138,11 @@ public class Cutscene : IDisposable
         {
             World.RemoveObject(obj.Object);
         }
+        if (fidgets.TryGetValue(obj.Name, out var fidget))
+        {
+            instances.Remove(fidget);
+            fidgets.Remove(obj.Name);
+        }
         sceneObjects.Remove(obj.Name);
     }
 
@@ -155,10 +161,12 @@ public class Cutscene : IDisposable
         {
             targeted.Events.Add(ev.Clone(targetObject));
         }
-        SceneSetup([targeted], false);
+
+        fidgets[targetObject] = SceneSetup([targeted], false)[0];
     }
 
-    private void SceneSetup(ThnScript[] scripts, bool resetObjects = true)
+
+    private ThnScriptInstance[] SceneSetup(ThnScript[] scripts, bool resetObjects = true)
     {
         hasScene = false;
         currentTime = 0;
@@ -197,11 +205,14 @@ public class Cutscene : IDisposable
         }
 
         int startIdx = instances.Count;
-        foreach (var script in scripts)
+        var newInstances = new ThnScriptInstance[scripts.Length];
+        for (int i = 0; i < scripts.Length; i++)
         {
+            var script = scripts[i];
             var ts = new ThnScriptInstance(this, script);
             ts.ConstructEntities(sceneObjects, spawnObjects && resetObjects);
             instances.Add(ts);
+            newInstances[i] = ts;
         }
 
         if (resetObjects)
@@ -249,6 +260,7 @@ public class Cutscene : IDisposable
 
         // Init
         running = true;
+        return newInstances;
     }
 
     private void UpdateStarsphere()
@@ -321,7 +333,7 @@ public class Cutscene : IDisposable
         }
     }
 
-    public void Draw(double delta, int renderWidth, int renderHeight)
+    public void Draw(double delta, int renderWidth, int renderHeight, ICamera? overrideCam = null)
     {
         UpdateStarsphere();
 
@@ -329,6 +341,8 @@ public class Cutscene : IDisposable
         {
             return;
         }
+
+        Renderer.Camera = overrideCam ?? camera;
 
         World.RenderUpdate(delta);
         Renderer.Draw(renderWidth, renderHeight);
@@ -343,6 +357,8 @@ public class Cutscene : IDisposable
 
         return sceneObjects.TryGetValue(name, out var o) ? o : null;
     }
+
+    public IEnumerable<ThnSceneObject> AllObjects => sceneObjects.Values;
 
     public void SetCamera(string name)
     {

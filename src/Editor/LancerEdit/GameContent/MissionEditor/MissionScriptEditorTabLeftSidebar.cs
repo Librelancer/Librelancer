@@ -210,7 +210,7 @@ public sealed partial class MissionScriptEditorTab
             inputWidth: 150f);
         gameData.Factions.DrawUndo("Affiliation", undoBuffer, () => ref selectedNpc.Affiliation);
         Controls.TableSeparatorText("Costume");
-        gameData.Costumes.Draw("Costume", undoBuffer,
+        gameData.SpaceCostumes.Draw("Costume", undoBuffer,
             () => ref selectedNpc.SpaceCostume.Head,
             () => ref selectedNpc.SpaceCostume.Body,
             () => ref selectedNpc.SpaceCostume.Accessory);

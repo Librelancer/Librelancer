@@ -1,7 +1,9 @@
+using LibreLancer.Data.Schema;
+
 namespace LibreLancer.Data.GameData;
 
 public class Bodypart : IdentifiableItem
 {
-    public string? Sex;
+    public FLGender Sex;
     public string? Path;
 }

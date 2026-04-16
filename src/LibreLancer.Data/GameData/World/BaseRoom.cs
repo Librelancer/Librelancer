@@ -27,7 +27,7 @@ public class BaseRoom : IdentifiableItem
 
     //Populated from mbases
     public int MaxCharacters;
-    public List<BaseFixedNpc> FixedNpcs = [];
+    public List<BaseNpc> Npcs = [];
 }
 public class BaseHotspot(string name)
 {
@@ -36,12 +36,4 @@ public class BaseHotspot(string name)
     public string? Room;
     public string? SetVirtualRoom;
     public string? VirtualRoom;
-}
-
-public class BaseFixedNpc(BaseNpc npc, string placement)
-{
-    public BaseNpc Npc = npc;
-    public string Placement = placement;
-    public ResolvedThn? FidgetScript;
-    public string? Action;
 }

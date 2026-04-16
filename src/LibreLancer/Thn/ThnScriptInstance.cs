@@ -256,10 +256,11 @@ namespace LibreLancer.Thn
                     if (string.IsNullOrEmpty(kv.Value.Actor) || !objects.ContainsKey(kv.Value.Actor))
                     {
                         obj.Object = new GameObject();
-                        gameData.GetCostume(template, out var body, out var head, out var leftHand,
-                            out var rightHand);
-                        var skel = new DfmSkeletonManager(body?.LoadModel(resman)!, head?.LoadModel(resman),
-                            leftHand?.LoadModel(resman), rightHand?.LoadModel(resman))
+                        var costume = gameData.Items.Costumes.Get(template)!;
+
+                        var skel = new DfmSkeletonManager(
+                            costume.Body.LoadModel(resman)!, costume.Head?.LoadModel(resman),
+                            costume.LeftHand?.LoadModel(resman), costume.RightHand?.LoadModel(resman))
                         {
                             FloorHeight = kv.Value.FloorHeight
                         };

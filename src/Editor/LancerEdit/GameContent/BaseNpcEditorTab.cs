@@ -2,15 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text.RegularExpressions;
 using ImGuiNET;
 using LancerEdit.GameContent.Lookups;
+using LancerEdit.GameContent.Popups;
 using LibreLancer;
 using LibreLancer.Client;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema;
 using LibreLancer.Data.Schema.MBases;
 using LibreLancer.ImUI;
+using LibreLancer.Render.Cameras;
 using LibreLancer.Resources;
 using LibreLancer.Thn;
 
@@ -18,12 +20,19 @@ namespace LancerEdit.GameContent;
 
 public class BaseNpcEditorTab : GameContentTab
 {
+    private static readonly DropdownOption[] camModes= new[]
+    {
+        new DropdownOption("Arcball", Icons.Globe, CameraModes.Arcball),
+        new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough),
+    };
+
     public GameDataContext Data;
     public bool Dirty;
 
     private MainWindow window;
     private EditorUndoBuffer undoBuffer = new();
     private PopupManager popups = new();
+    private int randomSeed = Environment.TickCount;
 
     // ── Data ───────────────────────────────────────────────────────────────────
     private Base[] allBases;
@@ -34,17 +43,12 @@ public class BaseNpcEditorTab : GameContentTab
     private Viewport3D roomViewport;
     private Cutscene? roomCutscene;
     private double roomDrawElapsed;
+    private int lastWidth = 1, lastHeight = 1;
+    private bool useFreeCamera = false;
+    private int cameraMode = 0;
+    private bool showMarkers = true;
 
-    private ThnSceneObject[] roomSpots = [];
-
-    // ── Camera control state ───────────────────────────────────────────────────
-    private bool isRightMouseDown = false;
-    private Vector2 lastMousePos = Vector2.Zero;
-    private float cameraYaw = 0f;
-    private float cameraPitch = 15f;
-    private float cameraDistance = 40f;
-    private const float MOUSE_SENSITIVITY = 0.5f;
-    private const float ZOOM_SENSITIVITY = 2f;
+    private (RoomNpcSpot Spot, ThnSceneObject Obj)[] roomSpots = [];
 
     // Bodypart lookups by category
     private ObjectLookup<Bodypart> bodyLookup;
@@ -83,6 +87,12 @@ public class BaseNpcEditorTab : GameContentTab
         roomViewport = new Viewport3D(mainWindow);
         roomViewport.EnableMSAA = false;
         roomViewport.Draw3D = DrawRoomGL;
+        roomViewport.Mode = CameraModes.Arcball;
+        roomViewport.DefaultOffset =
+            roomViewport.CameraOffset = new Vector3(0, 0, 50);
+        roomViewport.ModelScale = 4;
+        roomViewport.ResetControls();
+        roomViewport.ResetControls();
 
         // Build bodypart lookups grouped by path convention
         bodyLookup  = Data.Bodyparts.Filter(IsBody);
@@ -121,8 +131,6 @@ public class BaseNpcEditorTab : GameContentTab
             firstSelected = true;
     }
 
-    private static Regex markerRegex = new(@"^Z([sg])\/(\w+)\/(\w+)\/(\d\d)\/(\w+)\/?(\w+)?$");
-
     // ── Thn marker loading ─────────────────────────────────────────────────────
     private void RefreshMarkers(BaseRoom room)
     {
@@ -139,16 +147,12 @@ public class BaseNpcEditorTab : GameContentTab
 
         try
         {
-            var script = room.SetScript.LoadScript();
-            var markers = script.Entities.Values
-                .Where(e => e.Type == EntityTypes.Marker &&
-                            markerRegex.IsMatch(e.Name) &&
-                            e.Position.HasValue)
-                .Select(e => roomCutscene!.GetObject(e.Name))
-                .OrderBy(x => x.Name)
+            var markers = ThnRoomHandler.GetSpots(room)
+                .Select(e => (e, roomCutscene!.GetObject(e.Nickname)))
+                .OrderBy(x => x.Item1.Nickname)
                 .ToArray();
             roomSpots = markers;
-            roomMarkers = markers.Select(x => x.Name).ToArray();
+            roomMarkers = markers.Select(x => x.Item1.Nickname).ToArray();
             BuildRoomPreviewObjects();
         }
         catch
@@ -173,21 +177,18 @@ public class BaseNpcEditorTab : GameContentTab
 
         try
         {
-            var script = previewRoom.SetScript.LoadScript();
             var ctx = ThnRoomHandler.CreateContext(selectedBase!, previewRoom);
             // SoundManager null on purpose.
             roomCutscene = new Cutscene(ctx, Data.GameData, Data.Resources, null, new Rectangle(0, 0, 240, 240), window);
             roomCutscene.BeginScene(previewRoom.OpenScene());
             roomCutscene.Update(0.1);
 
-            roomSpots = script.Entities.Values
-                .Where(e => e.Type == EntityTypes.Marker &&
-                            e.Name.Contains("Zs/NPC", StringComparison.OrdinalIgnoreCase) &&
-                            e.Position.HasValue)
-                .Select(e => roomCutscene.GetObject(e.Name))
-                .OrderBy(x => x.Name)
+            var markers = ThnRoomHandler.GetSpots(room)
+                .Select(e => (e, roomCutscene!.GetObject(e.Nickname)))
+                .OrderBy(x => x.Item1.Nickname)
                 .ToArray();
-            roomMarkers = roomSpots.Select(x => x.Name).ToArray();
+            roomSpots = markers;
+            roomMarkers = markers.Select(x => x.Item1.Nickname).ToArray();
             previewNpcObjects = [];
             BuildRoomPreviewObjects();
         }
@@ -198,6 +199,8 @@ public class BaseNpcEditorTab : GameContentTab
             roomMarkers = [];
         }
     }
+
+
 
     private void BuildRoomPreviewObjects()
     {
@@ -210,43 +213,74 @@ public class BaseNpcEditorTab : GameContentTab
 
         previewNpcObjects = [];
 
-        if (selectedBase == null || roomSpots.Length == 0) return;
+        if (selectedBase == null || selectedRoom == null || roomSpots.Length == 0) return;
 
-        var npcs = GetRoomNpcs().ToArray();
-        var fixedNpcs = selectedRoom?.FixedNpcs
-            .Where(f => f.Npc != null)
-            .ToDictionary(f => f.Placement, f => f, StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, BaseNpc> fixedNpcs = new();
+        HashSet<string> used = new(StringComparer.OrdinalIgnoreCase);
 
-        if (fixedNpcs != null && fixedNpcs.Count > 0)
+        foreach (var n in selectedRoom.Npcs)
         {
-            foreach (var spot in roomSpots)
+            if (n.Placement != null)
             {
-                if (!fixedNpcs.TryGetValue(spot.Name, out var npc))
-                    continue;
-
-                CreatePreviewNpcObject(npc.Npc, spot, npc.FidgetScript);
+                fixedNpcs[n.Placement.Spot] = n;
+                used.Add(n.Placement.Spot);
             }
-            return;
         }
 
-        for (int i = 0; i < Math.Min(npcs.Length, roomSpots.Length); i++)
+        foreach (var spot in roomSpots)
         {
-            var npc = npcs[i];
-            var spot = roomSpots[i];
-            CreatePreviewNpcObject(npc, spot, null);
+            if (!fixedNpcs.TryGetValue(spot.Obj.Name, out var npc))
+                continue;
+
+            CreatePreviewNpcObject(npc, spot.Obj, npc.Placement!.FidgetScript);
+        }
+
+        var dynSpots = roomSpots.Where(x => x.Spot.Dynamic).ToArray();
+        var npcs = selectedRoom.Npcs.Where(x => x.Placement == null).ToArray();
+
+        var r = new Random(randomSeed);
+        r.Shuffle(dynSpots);
+        r.Shuffle(npcs);
+
+        int spawnCount = 0;
+        for (int i = 0; i < dynSpots.Length; i++)
+        {
+            if (spawnCount >= npcs.Length || spawnCount >= selectedRoom.MaxCharacters)
+                break;
+            if (used.Contains(dynSpots[i].Spot.Nickname))
+                continue;
+            var spot = dynSpots[i];
+            var npc = npcs[spawnCount];
+            var fidgetScripts = Data.GameData.Items.GetGCSScripts("fidget",
+                npc.Body?.Sex ?? FLGender.male, spot.Spot.Posture);
+            CreatePreviewNpcObject(npc, spot.Obj, fidgetScripts[0]);
+            spawnCount++;
         }
     }
 
     private void CreatePreviewNpcObject(BaseNpc npc, ThnSceneObject spot, ResolvedThn? fidget)
     {
-        var body = npc.Body;
-        var head = npc.Head;
-        var leftHand = npc.LeftHand;
-        var rightHand = npc.RightHand;
-        var accessory = npc.Accessory;
+        var body = npc.Body ?? npc.BaseAppr?.Body;
+        var head = npc.Head ?? npc.BaseAppr?.Head;
+        var leftHand = npc.LeftHand ?? npc.BaseAppr?.LeftHand;
+        var rightHand = npc.RightHand ?? npc.BaseAppr?.RightHand;
+        var accessory = npc.Accessory ?? npc.BaseAppr?.Accessory;
 
         if (body == null && head == null && leftHand == null && rightHand == null)
             return;
+
+        FLLog.Debug("NPC", $"Spawning {npc.Nickname}");
+        var existing = roomCutscene.GetObject(npc.Nickname);
+        if (existing != null)
+        {
+            if (previewNpcObjects.Contains(existing))
+            {
+                FLLog.Error("NPC Editor", "Duplicate npc!");
+                return;
+            }
+            FLLog.Warning("NPC Editor", "Object nickname clash");
+            roomCutscene.RemoveObject(existing);
+        }
 
         var obj = ThnRoomHandler.AddNpc(
             roomCutscene,
@@ -265,95 +299,57 @@ public class BaseNpcEditorTab : GameContentTab
         previewNpcObjects.Add(obj);
     }
 
+    LookAtCamera? GetFreeCamera(int renderWidth, int renderHeight)
+    {
+        if (!useFreeCamera)
+            return null;
+        var cam = new LookAtCamera();
+        Matrix4x4 rot = Matrix4x4.CreateRotationX(roomViewport.CameraRotation.Y) *
+                        Matrix4x4.CreateRotationY(roomViewport.CameraRotation.X);
+        var dir = Vector3.Transform(-Vector3.UnitZ, rot);
+        var to = roomViewport.CameraOffset + (dir * 10);
+        if (roomViewport.Mode == CameraModes.Arcball)
+            to = Vector3.Zero;
+        cam.Update(renderWidth, renderHeight, roomViewport.CameraOffset, to, rot);
+        return cam;
+    }
+
     private void DrawRoomGL(int w, int h)
     {
         if (roomCutscene == null)
             return;
-
+        lastWidth = w;
+        lastHeight = h;
         // Update camera position based on yaw/pitch/distance
-        UpdateCameraPosition();
+        UpdateThnCamera();
 
         roomCutscene.Update(roomDrawElapsed);
         roomCutscene.UpdateViewport(new Rectangle(0, 0, w, h), (float)w / h);
 
-        roomCutscene.Draw(roomDrawElapsed, w, h);
+        roomCutscene.Draw(roomDrawElapsed, w, h, GetFreeCamera(w, h));
     }
 
-    private void UpdateCameraPosition()
+
+    private void UpdateThnCamera()
     {
-        if (roomCutscene?.CameraHandle is not ThnCamera thnCamera) return;
-
-        // Convert spherical to cartesian coordinates for camera position
-        float yawRad = MathHelper.DegreesToRadians(cameraYaw);
-        float pitchRad = MathHelper.DegreesToRadians(cameraPitch);
-
-        float x = cameraDistance * (float)(Math.Cos(pitchRad) * Math.Sin(yawRad));
-        float y = cameraDistance * (float)Math.Sin(pitchRad);
-        float z = cameraDistance * (float)(Math.Cos(pitchRad) * Math.Cos(yawRad));
-
-        var cameraPos = new Vector3(x, y, z);
-        var world = Matrix4x4.CreateLookAt(cameraPos, Vector3.Zero, Vector3.UnitY);
-        Matrix4x4.Invert(world, out var worldTransform);
-        var transform = Transform3D.FromMatrix(worldTransform);
-        thnCamera.Object!.Translate = transform.Position;
-        thnCamera.Object.Rotate = transform.Orientation;
-        thnCamera.Update();
-    }
-
-    private void HandleRoomViewportInput()
-    {
-        // Only process input if mouse is over the viewport
-        if (!ImGui.IsItemHovered())
+        if (roomCutscene == null || selectedRoom == null)
             return;
 
-        var io = ImGui.GetIO();
-        var mousePos = io.MousePos;
-
-        // Right-click drag to rotate camera
-        if (ImGui.IsMouseDown(ImGuiMouseButton.Right))
-        {
-            if (isRightMouseDown)
-            {
-                // Calculate mouse delta
-                float deltaX = mousePos.X - lastMousePos.X;
-                float deltaY = mousePos.Y - lastMousePos.Y;
-
-                // Update yaw and pitch
-                cameraYaw += deltaX * MOUSE_SENSITIVITY;
-                cameraPitch += deltaY * MOUSE_SENSITIVITY;
-
-                // Clamp pitch to prevent flipping
-                cameraPitch = Math.Clamp(cameraPitch, -89f, 89f);
-
-                // Normalize yaw to 0-360
-                cameraYaw = cameraYaw % 360f;
-            }
-            isRightMouseDown = true;
-        }
-        else
-        {
-            isRightMouseDown = false;
-        }
-
-        // Mouse wheel zoom (only while right-click is held)
-        if (isRightMouseDown && Math.Abs(io.MouseWheel) > 0.001f)
-        {
-            cameraDistance -= io.MouseWheel * ZOOM_SENSITIVITY;
-            cameraDistance = Math.Clamp(cameraDistance, 5f, 200f);
-        }
-
-        // Update last mouse position for next frame
-        lastMousePos = mousePos;
+        var cam = selectedRoom.Camera;
+        if (cam == null)
+            cam = roomCutscene.AllObjects.FirstOrDefault(x => x.Camera != null)?.Name;
+        if(cam != null)
+            roomCutscene.SetCamera(cam);
     }
 
 
-    private bool WorldToScreen(Vector3 world, out Vector2 screen)
+    private bool WorldToScreen(Vector3 world, out Vector2 screen, LookAtCamera? freeCam)
     {
         screen = Vector2.Zero;
         if (roomCutscene == null)
             return false;
 
-        var proj = roomCutscene.CameraHandle.ViewProjection;
+        var proj = freeCam?.ViewProjection ?? roomCutscene.CameraHandle.ViewProjection;
         var clip = Vector4.Transform(new Vector4(world, 1), proj);
         if (Math.Abs(clip.W) < float.Epsilon)
             return false;
@@ -368,22 +364,25 @@ public class BaseNpcEditorTab : GameContentTab
         return true;
     }
 
+
     private void DrawRoomMarkerOverlay()
     {
-        if (roomCutscene == null || roomSpots.Length == 0)
+        if (roomCutscene == null || roomSpots.Length == 0 || !showMarkers)
             return;
+
+        var freeCam = GetFreeCamera(lastWidth, lastHeight);
 
         var min = ImGui.GetItemRectMin();
         var draw = ImGui.GetWindowDrawList();
 
         foreach (var spot in roomSpots)
         {
-            if (!WorldToScreen(spot.Translate, out var screen))
+            if (!WorldToScreen(spot.Obj.Translate, out var screen, freeCam))
                 continue;
 
             var p = min + screen;
             draw.AddCircleFilled(p, 6, ImGui.GetColorU32(new Vector4(1f, 0.4f, 0.1f, 0.9f)), 12);
-            draw.AddText(p + new Vector2(8, -8), ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 0.9f)), spot.Name);
+            draw.AddText(p + new Vector2(8, -8), ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 0.9f)), spot.Obj.Name);
         }
     }
 
@@ -393,6 +392,7 @@ public class BaseNpcEditorTab : GameContentTab
         if (hk == Hotkeys.Undo && undoBuffer.CanUndo) undoBuffer.Undo();
         if (hk == Hotkeys.Redo && undoBuffer.CanRedo) undoBuffer.Redo();
     }
+
 
     // ── Main draw ──────────────────────────────────────────────────────────────
     public override void Draw(double elapsed)
@@ -463,24 +463,37 @@ public class BaseNpcEditorTab : GameContentTab
         ImGui.EndChild();
     }
 
+    private float h1 = 200, h2 = 200;
+
+
     // ── Right-side main area ───────────────────────────────────────────────────
     private void DrawMain()
     {
-        if (selectedBase != null)
-        {
-            var canSave = Dirty;
-            if (!canSave) ImGui.BeginDisabled();
-            if (ImGui.Button($"{Icons.Save} Save NPCs"))
-                SaveStrategy.Save();
-            if (!canSave) ImGui.EndDisabled();
-            ImGui.SameLine();
-            ImGui.TextDisabled(canSave ? "Unsaved changes" : "Saved");
-            ImGui.Separator();
-        }
+        roomViewport.SetInputsEnabled(roomCutscene != null && useFreeCamera);
 
         // Room selector
         DrawRoomSelector();
+        ImGui.SameLine();
+        if (ImGui.Button($"{Icons.SyncAlt} Refresh"))
+        {
+            randomSeed = new Random(randomSeed).Next();
+            LoadRoomPreview(selectedRoom);
+        }
+        ImGui.SetItemTooltip("Regenerates the random NPC positioning");
+        ImGui.SameLine();
+        ImGui.Checkbox("Draw Labels", ref showMarkers);
+        ImGui.SameLine();
+        ImGui.Checkbox("Free Cam", ref useFreeCamera);
+        ImGui.SameLine();
+        ImGui.BeginDisabled(!useFreeCamera);
+        ImGuiExt.DropdownButton("Camera Mode", ref cameraMode, camModes);
+        roomViewport.Mode = (CameraModes) camModes[cameraMode].Tag;
+        ImGui.SameLine();
+        if (ImGui.Button("Reset Camera"))
+            roomViewport.ResetControls();
+        ImGui.EndDisabled();
         ImGui.Separator();
+
 
         var avail = ImGui.GetContentRegionAvail();
 
@@ -495,13 +508,14 @@ public class BaseNpcEditorTab : GameContentTab
 
             ImGui.TableNextColumn();
             DrawLeftPane();
-
             ImGui.TableNextColumn();
-            ImGui.BeginChild("##roompreview", new Vector2(0, 260 * ImGuiHelper.Scale), ImGuiChildFlags.None, ImGuiWindowFlags.None);
+            var totalH = ImGui.GetWindowHeight();
+            ImGuiExt.SplitterV(2f, ref h1, ref h2, 8, 8, -1);
+            h1 = totalH - h2 - 24f;
+            ImGui.BeginChild("##roompreview", new Vector2(-1, h1), ImGuiChildFlags.None, ImGuiWindowFlags.None);
             if (roomCutscene != null)
             {
                 roomViewport.Draw();
-                HandleRoomViewportInput();
                 DrawRoomMarkerOverlay();
             }
             else
@@ -509,11 +523,13 @@ public class BaseNpcEditorTab : GameContentTab
                 ImGui.TextDisabled("No room preview available.");
             }
             ImGui.EndChild();
-            ImGui.Separator();
+
+            ImGui.BeginChild("##npcform", Vector2.Zero, ImGuiChildFlags.None, ImGuiWindowFlags.None);
             if (selectedNpc != null)
                 DrawNpcForm();
             else
                 ImGui.TextDisabled("Select an NPC or click 'Add NPC'.");
+            ImGui.EndChild();
 
             ImGui.EndTable();
         }
@@ -535,7 +551,7 @@ public class BaseNpcEditorTab : GameContentTab
         var rooms = selectedBase.Rooms.ToArray();
         var currentLabel = selectedRoom?.Nickname ?? selectedBase.StartRoom?.Nickname ?? "(none)";
 
-        ImGui.SetNextItemWidth(220 * ImGuiHelper.Scale);
+        ImGui.SetNextItemWidth(140 * ImGuiHelper.Scale);
         if (ImGui.BeginCombo("##room", currentLabel))
         {
             for (int i = 0; i < rooms.Length; i++)
@@ -562,11 +578,8 @@ public class BaseNpcEditorTab : GameContentTab
             ImGui.Text("Density:");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(70 * ImGuiHelper.Scale);
-            int newDensity = selectedRoom.MaxCharacters;
-            if (ImGui.InputInt("##roomdensity", ref newDensity) && newDensity != selectedRoom.MaxCharacters)
-            {
-                undoBuffer.Set("Room Character Density", () => ref selectedRoom.MaxCharacters, newDensity, () => Dirty = true);
-            }
+            Controls.InputIntValueUndo("Density", undoBuffer, () => ref selectedRoom.MaxCharacters,
+                1, 1, ImGuiInputTextFlags.None, new(0, 1000));
         }
         ImGui.SameLine();
         ImGui.TextDisabled($"({roomMarkers.Length} NPC spots found)");
@@ -590,22 +603,7 @@ public class BaseNpcEditorTab : GameContentTab
         }
 
         // NPC list
-        var filteredNpcs = GetRoomNpcs().ToArray();
-        var totalNpcs    = selectedBase!.Npcs.Count;
-        bool roomFallback = filteredNpcs.Length == 0 && totalNpcs > 0;
-        if (roomFallback)
-            filteredNpcs = selectedBase.Npcs.ToArray();
-
-        var npcHeader = selectedRoom != null
-            ? $"{Icons.PersonRunning} NPCs ({filteredNpcs.Length}/{totalNpcs})"
-            : $"{Icons.PersonRunning} NPCs ({totalNpcs})";
-        ImGui.SeparatorText(npcHeader);
-
-        if (roomFallback)
-        {
-            ImGui.TextColored(new Vector4(1f, 0.8f, 0.2f, 1f),
-                $"No NPCs assigned to room '{selectedRoom!.Nickname}' — showing all.");
-        }
+        ImGui.SeparatorText($"{Icons.PersonRunning} NPCs ({selectedRoom.Npcs.Count})");
 
         // Add-NPC row
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X - (70 * ImGuiHelper.Scale));
@@ -617,9 +615,8 @@ public class BaseNpcEditorTab : GameContentTab
             {
                 Nickname       = newNpcNickname,
                 Voice          = "rvp106", // I don't know yet how to extract the list of possible voices, a default value and a text box should suffice.
-                Room           = selectedRoom?.Nickname,
             };
-            undoBuffer.Commit(new ListAdd<BaseNpc>("NPC", selectedBase!.Npcs, npc));
+            undoBuffer.Commit(new ListAdd<BaseNpc>("NPC", selectedRoom!.Npcs, npc));
             newNpcNickname = "";
             window.QueueUIThread(() =>
             {
@@ -635,17 +632,13 @@ public class BaseNpcEditorTab : GameContentTab
         if (ImGui.BeginChild("##npclist", new Vector2(0, listH), ImGuiChildFlags.None, ImGuiWindowFlags.None))
         {
             int idx = 0;
-            foreach (var npc in filteredNpcs)
+            foreach (var npc in selectedRoom.Npcs)
             {
                 ImGui.PushID(idx++);
                 bool isSel = selectedNpc == npc;
                 if (isSel && scrollToNpc)
                     ImGui.SetScrollHereY();
-
-                var label = roomFallback && !string.IsNullOrEmpty(npc.Room)
-                    ? $"{npc.Nickname}  [{npc.Room}]"
-                    : npc.Nickname;
-                if (ImGui.Selectable(label, isSel))
+                if (ImGui.Selectable(npc.Nickname, isSel))
                     SelectNpc(npc);
 
                 // Inline delete button
@@ -654,7 +647,7 @@ public class BaseNpcEditorTab : GameContentTab
                 {
                     window.Confirm($"Delete NPC '{npc.Nickname}'?", () =>
                     {
-                            undoBuffer.Commit(new NpcDeleteAction(selectedBase!, npc, this));
+                        undoBuffer.Commit(new NpcDeleteAction(selectedRoom!, npc, this));
                     });
                 }
                 ImGui.PopID();
@@ -663,32 +656,11 @@ public class BaseNpcEditorTab : GameContentTab
         ImGui.EndChild();
     }
 
-    private IReadOnlyCollection<BaseNpc> GetRoomNpcs()
-    {
-        if (selectedBase == null)
-            return Array.Empty<BaseNpc>();
-
-        IEnumerable<BaseNpc> npcs = selectedBase.Npcs;
-        if (selectedRoom != null)
-            npcs = npcs.Where(n => string.Equals(n.Room, selectedRoom.Nickname, StringComparison.OrdinalIgnoreCase));
-
-        var fixedNpcs = selectedRoom != null
-            ? selectedRoom.FixedNpcs
-            : selectedBase.Rooms.SelectMany(r => r.FixedNpcs);
-        npcs = npcs.Concat(fixedNpcs
-            .Where(f => f.Npc != null)
-            .Select(f => f.Npc!));
-
-        return npcs.GroupBy(n => n.Nickname, StringComparer.OrdinalIgnoreCase)
-                   .Select(g => g.First()).ToArray();
-    }
 
     // ── NPC editor form ────────────────────────────────────────────────────────
     private void DrawNpcForm()
     {
         var npc = selectedNpc!;
-
-        ImGui.BeginChild("##npcform", Vector2.Zero, ImGuiChildFlags.None, ImGuiWindowFlags.None);
 
         ImGui.SeparatorText($"NPC: {npc.Nickname}");
 
@@ -697,10 +669,11 @@ public class BaseNpcEditorTab : GameContentTab
             // Nickname
             Controls.InputTextUndo("Nickname", undoBuffer, () => ref npc.Nickname);
 
-            DrawBodypartField("Body",   bodyLookup,  () => ref npc.Body!);
-            DrawBodypartField("Head",   headLookup,  () => ref npc.Head!);
-            DrawBodypartField("L Hand", lhandLookup, () => ref npc.LeftHand!);
-            DrawBodypartField("R Hand", rhandLookup, () => ref npc.RightHand!);
+            Data.Costumes.DrawUndo("Base Appr", undoBuffer, () => ref npc.BaseAppr, true);
+            bodyLookup.DrawUndo("Body", undoBuffer, () => ref npc.Body, npc.BaseAppr?.Body != null);
+            headLookup.DrawUndo("Head",   undoBuffer,  () => ref npc.Head, true);
+            lhandLookup.DrawUndo("L Hand", undoBuffer, () => ref npc.LeftHand, true);
+            rhandLookup.DrawUndo("R Hand", undoBuffer, () => ref npc.RightHand, true);
             DrawAccessoryListField(npc);
 
             // Individual Name (IDS)
@@ -713,9 +686,33 @@ public class BaseNpcEditorTab : GameContentTab
             // Voice
             Controls.InputTextUndo("Voice", undoBuffer, () => ref npc.Voice!);
 
-            // Room
-            DrawRoomAssignField(npc);
-
+            // Placement
+            if (npc.Placement == null)
+            {
+                Controls.EditControlSetup("Placement", 0);
+                if (ImGui.Button($"Assign", new(ImGui.CalcItemWidth(), 0)))
+                {
+                    popups.OpenPopup(new NpcPlacementPopup(npc, roomSpots.Select(x => x.Spot).ToArray(), Data,
+                        x => undoBuffer.Set("Placement", () => ref npc.Placement, x)));
+                }
+            }
+            else
+            {
+                var btnWidths = -(Controls.ButtonWidth($"{Icons.Edit}") + Controls.ButtonWidth($"{Icons.TrashAlt}"));
+                Controls.EditControlSetup("Placement", 0, btnWidths);
+                ImGui.LabelText("", npc.Placement.ToString());
+                ImGui.SameLine();
+                if (ImGui.Button($"{Icons.Edit}##placement"))
+                {
+                    popups.OpenPopup(new NpcPlacementPopup(npc, roomSpots.Select(x => x.Spot).ToArray(), Data,
+                        x => undoBuffer.Set("Placement", () => ref npc.Placement, x)));
+                }
+                ImGui.SameLine();
+                if (ImGui.Button($"{Icons.TrashAlt}##placement"))
+                {
+                    undoBuffer.Set("Placement", () => ref npc.Placement, null);
+                }
+            }
             Controls.EndEditorTable();
         }
 
@@ -727,15 +724,9 @@ public class BaseNpcEditorTab : GameContentTab
         ImGui.SeparatorText("Rumors");
         DrawRumors(npc);
 
-        ImGui.EndChild();
     }
 
     // ── Field helpers ──────────────────────────────────────────────────────────
-
-    private void DrawBodypartField(string label, ObjectLookup<Bodypart> lookup, FieldAccessor<Bodypart> accessor)
-    {
-        lookup.DrawUndo(label, undoBuffer, accessor, allowNull: true);
-    }
 
     private void DrawAccessoryListField(BaseNpc npc)
     {
@@ -787,39 +778,6 @@ public class BaseNpcEditorTab : GameContentTab
 
         if (removeIndex >= 0)
             undoBuffer.Commit(new ListRemove<Accessory>("Accessory", npc.Accessories, removeIndex, removeValue));
-    }
-
-    private void DrawRoomAssignField(BaseNpc npc)
-    {
-        ImGui.TableNextRow();
-        ImGui.TableNextColumn();
-        ImGui.AlignTextToFramePadding();
-        ImGui.Text("Room");
-        ImGui.TableNextColumn();
-
-        ImGui.SetNextItemWidth(-1);
-        var rooms = selectedBase!.Rooms.ToArray();
-        var curRoom = npc.Room ?? "";
-        if (ImGui.BeginCombo("##npcroom", curRoom))
-        {
-            // free-text option (keep existing)
-            if (ImGui.Selectable("(none)", string.IsNullOrEmpty(curRoom)))
-            {
-                if (!string.IsNullOrEmpty(npc.Room))
-                    undoBuffer.Set("Room", () => ref npc.Room, (string?)null);
-            }
-            foreach (var r in rooms)
-            {
-                bool isSel = string.Equals(r.Nickname, curRoom,
-                    StringComparison.OrdinalIgnoreCase);
-                if (ImGui.Selectable(r.Nickname, isSel))
-                {
-                    if (!isSel)
-                        undoBuffer.Set("Room", () => ref npc.Room, r.Nickname);
-                }
-            }
-            ImGui.EndCombo();
-        }
     }
 
     // ── Mission section ────────────────────────────────────────────────────────

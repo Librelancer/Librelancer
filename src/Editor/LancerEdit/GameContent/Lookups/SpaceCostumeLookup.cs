@@ -5,12 +5,12 @@ using LibreLancer.Data.GameData;
 
 namespace LancerEdit.GameContent.Lookups;
 
-public class CostumeLookup
+public class SpaceCostumeLookup
 {
     public ObjectLookup<Bodypart> Bodyparts;
     public ObjectLookup<Accessory> Accessories;
 
-    public CostumeLookup(ObjectLookup<Bodypart> bodyparts, ObjectLookup<Accessory> accessories)
+    public SpaceCostumeLookup(ObjectLookup<Bodypart> bodyparts, ObjectLookup<Accessory> accessories)
     {
         Bodyparts = bodyparts;
         Accessories = accessories;

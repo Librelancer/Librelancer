@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData;
+using LibreLancer.Data.Schema;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Data.Schema.Voices;
 

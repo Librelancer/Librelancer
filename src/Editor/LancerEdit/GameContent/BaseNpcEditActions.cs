@@ -5,7 +5,7 @@ using LibreLancer.Data.Schema.MBases;
 namespace LancerEdit.GameContent;
 
 // NpcDeleteAction needs custom logic (tab.CheckDeleted), so it cannot be a simple ListRemove<T>.
-public sealed class NpcDeleteAction(Base target, BaseNpc npc, BaseNpcEditorTab tab) : EditorAction
+public sealed class NpcDeleteAction(BaseRoom target, BaseNpc npc, BaseNpcEditorTab tab) : EditorAction
 {
     private int index = -1;
 

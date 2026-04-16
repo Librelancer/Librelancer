@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using LibreLancer.Data.Schema.Voices;
+using LibreLancer.Data.Schema;
 
 namespace LibreLancer.Data.GameData;
 

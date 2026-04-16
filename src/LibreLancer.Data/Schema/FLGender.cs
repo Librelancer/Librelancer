@@ -1,4 +1,4 @@
-namespace LibreLancer.Data.Schema.Voices;
+namespace LibreLancer.Data.Schema;
 
 public enum FLGender
 {

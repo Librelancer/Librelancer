@@ -521,6 +521,9 @@ public static class IniSerializer
         var ib = new IniBuilder();
         foreach (var b in bases)
         {
+            // Do not change the order of sections.
+            // Each base _must_ be [MBase], [MVendor], [GF_NPC], [MRoom]
+            // or it will not load correctly into Freelancer.
             ib.Section("MBase")
                 .Entry("nickname", b.Nickname)
                 .OptionalEntry("local_faction", b.LocalFaction?.Nickname)
@@ -530,18 +533,6 @@ public static class IniSerializer
             if (b.MinMissionOffers != 0 || b.MaxMissionOffers != 0)
                 ib.Section("MVendor")
                     .Entry("num_offers", b.MinMissionOffers, b.MaxMissionOffers);
-
-            foreach (var room in b.Rooms)
-            {
-                var section = ib.Section("MRoom")
-                    .Entry("nickname", room.Nickname)
-                    .Entry("character_density", room.MaxCharacters);
-                foreach (var npc in room.FixedNpcs)
-                {
-                    if (npc.Npc == null) continue;
-                    section.Entry("fixture", npc.Npc.Nickname, npc.Placement, npc.FidgetScript?.SourcePath, npc.Action);
-                }
-            }
 
             foreach (var fac in b.BaseFactions)
             {
@@ -555,49 +546,64 @@ public static class IniSerializer
                     facSection.Entry("npc", npcNick);
             }
 
-            foreach (var npc in b.Npcs)
+            foreach (var e in b.Rooms.SelectMany(x => x.Npcs, (room, npc) => (room, npc)))
             {
                 var section = ib.Section("GF_NPC")
-                    .Entry("nickname", npc.Nickname)
-                    .OptionalEntry("base_appr", npc.BaseAppr)
-                    .OptionalEntry("body", npc.Body?.Nickname)
-                    .OptionalEntry("head", npc.Head?.Nickname)
-                    .OptionalEntry("lefthand", npc.LeftHand?.Nickname)
-                    .OptionalEntry("righthand", npc.RightHand?.Nickname)
-                    .OptionalEntry("individual_name", npc.IndividualName)
-                    .OptionalEntry("affiliation", npc.Affiliation?.Nickname)
-                    .OptionalEntry("voice", npc.Voice);
-                foreach (var accessory in npc.Accessories)
+                    .Entry("nickname", e.npc.Nickname)
+                    .OptionalEntry("base_appr", e.npc.BaseAppr?.Nickname)
+                    .OptionalEntry("body", e.npc.Body?.Nickname)
+                    .OptionalEntry("head", e.npc.Head?.Nickname)
+                    .OptionalEntry("lefthand", e.npc.LeftHand?.Nickname)
+                    .OptionalEntry("righthand", e.npc.RightHand?.Nickname)
+                    .OptionalEntry("individual_name", e.npc.IndividualName)
+                    .OptionalEntry("affiliation", e.npc.Affiliation?.Nickname)
+                    .OptionalEntry("voice", e.npc.Voice);
+                foreach (var accessory in e.npc.Accessories)
                     section.Entry("accessory", accessory.Nickname);
-                if (npc.Mission != null)
-                    section.Entry("misn", npc.Mission.Kind, npc.Mission.Min, npc.Mission.Max);
-                section.OptionalEntry("room", npc.Room);
-                foreach (var br in npc.Bribes)
+                if (e.npc.Mission != null)
+                    section.Entry("misn", e.npc.Mission.Kind, e.npc.Mission.Min, e.npc.Mission.Max);
+                if (e.npc.Placement == null)
+                    section.OptionalEntry("room", e.room.Nickname);
+                foreach (var br in e.npc.Bribes)
                 {
                     section.Entry("bribe", br.Faction?.Nickname, br.Price, br.Ids);
                 }
 
-                foreach (var r in npc.Rumors.Where(x => !x.Type2))
+                foreach (var r in e.npc.Rumors.Where(x => !x.Type2))
                 {
                     section.Entry("rumor", r.Start?.Item.Nickname, r.End?.Item.Nickname, r.RepRequired, r.Ids);
                     if (r.Objects != null)
                         section.Entry("rumorknowdb", r.Objects);
                 }
 
-                foreach (var r2 in npc.Rumors.Where(x => x.Type2))
+                foreach (var r2 in e.npc.Rumors.Where(x => x.Type2))
                 {
                     section.Entry("rumor_type2", r2.Start?.Item.Nickname, r2.End?.Item.Nickname, r2.RepRequired, r2.Ids);
                     if (r2.Objects != null)
                         section.Entry("rumorknowdb", r2.Objects);
                 }
 
-                foreach (var k in npc.Know)
+                foreach (var k in e.npc.Know)
                 {
                     section.Entry("know", k.Ids1, k.Ids2, k.Price, k.RepRequired);
                     if (k.Objects != null)
                         section.Entry("knowdb", k.Objects);
                 }
             }
+
+            foreach (var room in b.Rooms)
+            {
+                var section = ib.Section("MRoom")
+                    .Entry("nickname", room.Nickname)
+                    .Entry("character_density", room.MaxCharacters);
+                foreach (var npc in room.Npcs)
+                {
+                    if (npc.Placement == null) continue;
+                    section.Entry("fixture", npc.Nickname, npc.Placement.Spot, npc.Placement.FidgetScript?.SourcePath, npc.Placement.Action);
+                }
+            }
+
+
         }
 
         return ib.Sections;

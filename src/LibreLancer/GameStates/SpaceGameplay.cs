@@ -13,6 +13,8 @@ using LibreLancer.Client.Components;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema;
+using LibreLancer.Data.Schema.Voices;
 using LibreLancer.Infocards;
 using LibreLancer.Input;
 using LibreLancer.Interface;
@@ -1609,7 +1611,7 @@ World Time: {12:F2}
                 Body = costume.Body?.LoadModel(Game.ResourceManager)!,
                 Accessory = acc,
                 AccessoryModel = accModel,
-                Male = string.Equals(costume.Body?.Sex, "male", StringComparison.OrdinalIgnoreCase),
+                Male = costume.Body?.Sex != FLGender.female,
                 Scripts = scripts
             };
 

@@ -37,7 +37,6 @@ public class Base : NamedItem
     public string? MsgIdPrefix;
     public int MinMissionOffers;
     public int MaxMissionOffers; //not respected by vanilla (?)
-    public List<BaseNpc> Npcs = [];
     public List<MBaseBaseFaction> BaseFactions = [];
 
     public ulong GetUnitPrice(Items.Equipment eq)

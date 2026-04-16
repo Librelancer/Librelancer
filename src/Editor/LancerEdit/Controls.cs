@@ -280,6 +280,35 @@ public static class Controls
         ImGui.PopID();
     }
 
+    public static void InputIntValueUndo(
+        string id,
+        EditorUndoBuffer buffer,
+        FieldAccessor<int> value,
+        int step = 1,
+        int step_fast = 100,
+        ImGuiInputTextFlags flags = ImGuiInputTextFlags.None,
+        Point? clamp = null
+    )
+    {
+        ImGui.PushID(id);
+        ref int v = ref value();
+        int oldCopy = v;
+        ImGui.InputInt("##input", ref v, step, step_fast, flags);
+        if (clamp != null)
+        {
+            v = Math.Clamp(v, clamp.Value.X, clamp.Value.Y);
+        }
+        if (ImGui.IsItemActivated())
+        {
+            oldInt = oldCopy;
+        }
+        if (ImGui.IsItemDeactivatedAfterEdit())
+        {
+            buffer.Set(id, value, oldInt, v);
+        }
+        ImGui.PopID();
+    }
+
 
     private static float oldFloat = 0f;
     public static void SliderFloatUndo(

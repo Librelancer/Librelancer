@@ -401,24 +401,6 @@ public class GameDataManager
         return Items.Ini.BaseNavBar.Navbar;
     }
 
-    public bool GetCostume(string costume, out Bodypart? body, out Bodypart? head, out Bodypart? leftHand,
-        out Bodypart? rightHand)
-    {
-        var cs = Items.Ini.Costumes.FindCostume(costume);
-
-        if (cs is null)
-        {
-            head = body = leftHand = rightHand = null;
-            return false;
-        }
-
-        head = Items.Bodyparts.Get(cs.Head);
-        body = Items.Bodyparts.Get(cs.Body);
-        leftHand = Items.Bodyparts.Get(cs.LeftHand);
-        rightHand = Items.Bodyparts.Get(cs.RightHand);
-        return true;
-    }
-
     public string? GetCostumeForNPC(string npc)
     {
         return Items.Ini.SpecificNPCs.Npcs

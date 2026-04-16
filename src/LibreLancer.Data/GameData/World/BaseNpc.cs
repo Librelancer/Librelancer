@@ -14,7 +14,8 @@ public class BaseNpc : NicknameItem
         Nickname = nickname;
     }
 
-    public string? BaseAppr;
+    public BaseNpcPlacement? Placement;
+    public Costume? BaseAppr;
     public Bodypart? Body;
     public Bodypart? Head;
     public Bodypart? LeftHand;
@@ -24,12 +25,16 @@ public class BaseNpc : NicknameItem
     public int IndividualName;
     public Faction? Affiliation;
     public string? Voice;
-    public string? Room;
 
     public List<NpcKnow> Know = [];
     public List<BaseNpcRumor> Rumors = [];
     public List<BaseNpcBribe> Bribes = [];
     public NpcMission? Mission;
+}
+
+public record BaseNpcPlacement(string Spot, ResolvedThn FidgetScript, string Action)
+{
+    public override string ToString() => $"{Spot}, {(FidgetScript.SourcePath ?? "error")}, {Action}";
 }
 
 public class BaseNpcRumor : RepInfo

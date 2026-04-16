@@ -239,7 +239,7 @@ public sealed partial class MissionScriptEditorTab
         Controls.InputTextIdUndo("Voice", undoBuffer, () => ref selectedSolar.Voice);
         Controls.InputTextIdUndo("Pilot", undoBuffer, () => ref selectedSolar.Pilot);
         Controls.TableSeparatorText("Costume");
-        gameData.Costumes.Draw("costume", undoBuffer,
+        gameData.SpaceCostumes.Draw("costume", undoBuffer,
             () => ref selectedSolar.Costume.Head,
             () =>  ref selectedSolar.Costume.Body,
             () => ref selectedSolar.Costume.Accessory);

@@ -113,7 +113,8 @@ public class GameDataContext : IDisposable
         );
         Bodyparts = new(db.Bodyparts.OrderBy(x => x.Nickname));
         Accessories = new(db.Accessories.OrderBy(x => x.Nickname));
-        Costumes = new (Bodyparts, Accessories);
+        Costumes = new(db.Costumes.OrderBy(x => x.Nickname));
+        SpaceCostumes = new (Bodyparts, Accessories);
         StoryIndices = new(db.Story.Where(x => !x.Item.HideGui), x => x.Item.Nickname);
         Systems = new(
             db.Systems.OrderBy(x => x.Nickname),
@@ -129,7 +130,8 @@ public class GameDataContext : IDisposable
     public ObjectLookup<Equipment> Equipment;
     public ObjectLookup<Bodypart> Bodyparts;
     public ObjectLookup<Accessory> Accessories;
-    public CostumeLookup Costumes;
+    public SpaceCostumeLookup SpaceCostumes;
+    public ObjectLookup<Costume> Costumes;
     public ObjectLookup<StoryIndex> StoryIndices;
     public ObjectLookup<StarSystem> Systems;
 

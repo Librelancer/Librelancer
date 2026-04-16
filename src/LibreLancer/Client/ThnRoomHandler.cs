@@ -1,6 +1,10 @@
-using System.Numerics;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.GCS;
 using LibreLancer.Render;
 using LibreLancer.Resources;
 using LibreLancer.Thn;
@@ -45,6 +49,50 @@ public static class ThnRoomHandler
             ctx.Substitutions.Add("$terrain_dyna_02", currentBase.TerrainDyna2);
         }
         return ctx;
+    }
+
+    private static Regex markerRegex = new(@"^Z([sg])\/(\w+)\/(\w+)\/(\d\d)\/(\w+)\/?(\w+)?$");
+
+
+    public static RoomNpcSpot[] GetSpots(BaseRoom currentRoom)
+    {
+        var script = currentRoom.SetScript.LoadScript();
+        //HashSet<int> indices = new();
+        List<RoomNpcSpot> allSpots = new();
+        foreach (var e in script.Entities.Values.Where(e => e.Type == EntityTypes.Marker))
+        {
+            var match = markerRegex.Match(e.Name);
+            if (!match.Success)
+            {
+                continue;
+            }
+
+            // Exclude:
+            // Prop (doesn't have 7th group)
+            // Non-NPC markers
+            // Groups that are not Group A (not used)
+            if(match.Groups.Count != 7 ||
+               match.Groups[2].Value != "NPC" || match.Groups[5].Value != "A")
+            {
+                continue;
+            }
+
+            bool isDynamic = match.Groups[1].Value == "g";
+            // One each of 01/02/03 for dynamic
+            /*if (isDynamic)
+            {
+                if (!int.TryParse(match.Groups[4].Value, out var index))
+                    continue;
+                if (!indices.Add(index))
+                    continue;
+            }*/
+
+            if (!Enum.TryParse<Posture>(match.Groups[6].ValueSpan, out var posture))
+                continue;
+            allSpots.Add(new(e.Name, isDynamic, posture));
+        }
+
+        return allSpots.ToArray();
     }
 
     public static ThnSceneObject AddNpc(Cutscene scene,
@@ -93,3 +141,5 @@ public static class ThnRoomHandler
     }
 
 }
+
+public record struct RoomNpcSpot(string Nickname, bool Dynamic, Posture Posture);

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using System.Resources;
 using System.Runtime;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Archetypes;
@@ -21,6 +22,7 @@ using LibreLancer.Data.Schema.Audio;
 using LibreLancer.Data.Schema.Effects;
 using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Data.Schema.Fuses;
+using LibreLancer.Data.Schema.GCS;
 using LibreLancer.Data.Schema.Goods;
 using LibreLancer.Data.Schema.MBases;
 using LibreLancer.Data.Schema.Missions;
@@ -62,6 +64,7 @@ public class GameItemDb
     public readonly GameItemCollection<Asteroid> Asteroids = [];
     public readonly GameItemCollection<Base> Bases = [];
     public readonly GameItemCollection<Bodypart> Bodyparts = [];
+    public readonly GameItemCollection<Costume> Costumes = [];
     public readonly GameItemCollection<DebrisInfo> Debris = [];
     public readonly GameItemCollection<DynamicAsteroid> DynamicAsteroids = [];
     public readonly GameItemCollection<FuseResources> Fuses = [];
@@ -98,6 +101,8 @@ public class GameItemDb
     private Dictionary<string, string> shipToIcon = new(StringComparer.OrdinalIgnoreCase);
 
     private Dictionary<string, ResolvedTexturePanels> tpanels = new(StringComparer.OrdinalIgnoreCase);
+
+    private Dictionary<GenericScriptKey, ResolvedThn[]> gcsScripts = new();
 
     private object tPanelsLock = new();
 
@@ -191,7 +196,7 @@ public class GameItemDb
             VisEffects.Add(new ResolvedFx()
             {
                 AlePath = alePath,
-                VisFxCrc = (uint) fx.EffectCrc,
+                VisFxCrc = (uint)fx.EffectCrc,
                 LibraryFiles = libFiles!,
                 CRC = FLHash.CreateID(fx.Nickname),
                 Nickname = fx.Nickname
@@ -233,7 +238,7 @@ public class GameItemDb
             Effects.Add(new ResolvedFx
             {
                 AlePath = alePath,
-                VisFxCrc = (uint) (visFx?.EffectCrc ?? 0),
+                VisFxCrc = (uint)(visFx?.EffectCrc ?? 0),
                 LibraryFiles = (libraryFiles ?? [])!,
                 Spear = spear,
                 Bolt = bolt,
@@ -249,26 +254,11 @@ public class GameItemDb
         FLLog.Info("Game", "Initing " + flData.Universe!.Bases.Count + " bases");
         Dictionary<string, MBase> mbases = new(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var mbase in flData.MBases!.MBases)
-        {
-            mbases[mbase.Nickname] = mbase;
-        }
-
         foreach (var iniBase in flData.Universe.Bases)
         {
             if (iniBase.Nickname.StartsWith("intro", StringComparison.InvariantCultureIgnoreCase))
             {
                 yield return iniBase;
-            }
-
-            Dictionary<string, MRoom> mRoom = new(StringComparer.OrdinalIgnoreCase);
-
-            if (mbases.TryGetValue(iniBase.Nickname, out var mBase))
-            {
-                foreach (var r in mBase.Rooms)
-                {
-                    mRoom[r.Nickname] = r;
-                }
             }
 
             var b = new Base
@@ -287,75 +277,6 @@ public class GameItemDb
                 TerrainDyna1 = iniBase.TerrainDyna1,
                 TerrainDyna2 = iniBase.TerrainDyna2,
             };
-
-            if (mBase != null)
-            {
-                b.MsgIdPrefix = mBase.MsgIdPrefix;
-                b.Diff = mBase.Diff;
-                b.LocalFaction = Factions.Get(mBase.LocalFaction);
-
-                if (mBase.MVendor != null)
-                {
-                    b.MinMissionOffers = (int) mBase.MVendor.NumOffers.X;
-                    b.MaxMissionOffers = (int) mBase.MVendor.NumOffers.Y;
-                }
-
-                foreach (var npc in mBase.Npcs)
-                {
-                    b.Npcs.Add(new BaseNpc(npc.Nickname)
-                    {
-                        BaseAppr = npc.BaseAppr,
-                        Body = Bodyparts.Get(npc.Body ?? ""),
-                        Head = Bodyparts.Get(npc.Head ?? ""),
-                        LeftHand = Bodyparts.Get(npc.LeftHand ?? ""),
-                        RightHand = Bodyparts.Get(npc.RightHand ?? ""),
-                        Accessories = npc.Accessories
-                            .Select(a => Accessories.Get(a))
-                            .OfType<Accessory>()
-                            .ToList(),
-                        IndividualName = npc.IndividualName,
-                        Affiliation = Factions.Get(npc.Affiliation ?? ""),
-                        Voice = npc.Voice,
-                        Room = npc.Room,
-                        Know = npc.Know,
-                        Rumors = npc.Rumors.Select(r => new BaseNpcRumor
-                        {
-                            Start = Story.FirstOrDefault(s =>
-                                s.Item.Nickname.Equals(r.Start, StringComparison.OrdinalIgnoreCase)),
-                            End = Story.FirstOrDefault(s =>
-                                s.Item.Nickname.Equals(r.End, StringComparison.OrdinalIgnoreCase)),
-                            RepRequired = r.RepRequired,
-                            Ids = r.Ids,
-                            Type2 = r.Type2,
-                            Objects = r.Objects,
-                        }).ToList(),
-                        Bribes = npc.Bribes.Select(br => new BaseNpcBribe
-                        {
-                            Faction = Factions.Get(br.Faction),
-                            Price = br.Price,
-                            Ids = br.Ids,
-                        }).ToList(),
-                        Mission = npc.Mission,
-                    });
-                }
-
-                foreach (var fac in mBase.Factions)
-                {
-                    b.BaseFactions.Add(new MBaseBaseFaction
-                    {
-                        Faction = Factions.Get(fac.Faction),
-                        Weight = fac.Weight,
-                        Npcs = fac.Npcs,
-                        OffersMissions = fac.OffersMissions,
-                        Missions = fac.Missions.Select(m => new BaseMissionOffer
-                        {
-                            MinDiff = m.MinDiff,
-                            MaxDiff = m.MaxDiff,
-                            Weight = m.Weight,
-                        }).ToList(),
-                    });
-                }
-            }
 
             foreach (var room in iniBase.Rooms)
             {
@@ -409,31 +330,141 @@ public class GameItemDb
                 }
 
                 nr.Camera = room.Camera?.Name;
-                nr.FixedNpcs = [];
-
-                if (mRoom.TryGetValue(room.Nickname, out var mroom))
-                {
-                    nr.MaxCharacters = mroom.CharacterDensity;
-                    foreach (var npc in mroom.NPCs)
-                    {
-                        var bn = b.Npcs.Find(n =>
-                            string.Equals(n.Nickname, npc.Npc, StringComparison.OrdinalIgnoreCase));
-                        if (bn != null)
-                        {
-                            nr.FixedNpcs.Add(new BaseFixedNpc(bn, npc.StandMarker)
-                            {
-                                FidgetScript = ResolveThn(npc.Script),
-                                Action = npc.Action,
-                            });
-                        }
-                    }
-                }
-
                 b.Rooms.Add(nr);
             }
 
             Bases.Add(b);
         }
+
+        // Load information from MBases
+
+        foreach (var mbase in flData.MBases!.MBases)
+        {
+            mbases[mbase.Nickname] = mbase;
+        }
+
+        foreach (var b in Bases)
+        {
+            Dictionary<string, MRoom> mRoom = new(StringComparer.OrdinalIgnoreCase);
+
+            if (!mbases.TryGetValue(b.Nickname, out var mBase))
+                continue;
+
+            foreach (var r in mBase.Rooms)
+            {
+                mRoom[r.Nickname] = r;
+            }
+
+            b.MsgIdPrefix = mBase.MsgIdPrefix;
+            b.Diff = mBase.Diff;
+            b.LocalFaction = Factions.Get(mBase.LocalFaction);
+
+            if (mBase.MVendor != null)
+            {
+                b.MinMissionOffers = (int)mBase.MVendor.NumOffers.X;
+                b.MaxMissionOffers = (int)mBase.MVendor.NumOffers.Y;
+            }
+
+            Dictionary<string, BaseNpc> freeNpcs = new(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var npc in mBase.Npcs)
+            {
+                var n = new BaseNpc(npc.Nickname)
+                {
+                    BaseAppr = Costumes.Get(npc.BaseAppr),
+                    Body = Bodyparts.Get(npc.Body),
+                    Head = Bodyparts.Get(npc.Head),
+                    LeftHand = Bodyparts.Get(npc.LeftHand),
+                    RightHand = Bodyparts.Get(npc.RightHand),
+                    Accessories = npc.Accessories
+                        .Select(a => Accessories.Get(a))
+                        .OfType<Accessory>()
+                        .ToList(),
+                    IndividualName = npc.IndividualName,
+                    Affiliation = Factions.Get(npc.Affiliation),
+                    Voice = npc.Voice,
+                    Know = npc.Know,
+                    Rumors = npc.Rumors.Select(r => new BaseNpcRumor
+                    {
+                        Start = Story.FirstOrDefault(s =>
+                            s.Item.Nickname.Equals(r.Start, StringComparison.OrdinalIgnoreCase)),
+                        End = Story.FirstOrDefault(s =>
+                            s.Item.Nickname.Equals(r.End, StringComparison.OrdinalIgnoreCase)),
+                        RepRequired = r.RepRequired,
+                        Ids = r.Ids,
+                        Type2 = r.Type2,
+                        Objects = r.Objects,
+                    }).ToList(),
+                    Bribes = npc.Bribes.Select(br => new BaseNpcBribe
+                    {
+                        Faction = Factions.Get(br.Faction),
+                        Price = br.Price,
+                        Ids = br.Ids,
+                    }).ToList(),
+                    Mission = npc.Mission,
+                };
+
+                if (!string.IsNullOrEmpty(npc.Room))
+                {
+                    if (b.Rooms.TryGetValue(npc.Room, out var r))
+                    {
+                        r.Npcs.Add(n);
+                    }
+                    else
+                    {
+                        FLLog.Error("MBases", $"{npc.Room} not found for npc {b.Nickname}");
+                    }
+                }
+                else
+                {
+                    freeNpcs[n.Nickname] = n;
+                }
+            }
+
+            foreach (var fac in mBase.Factions)
+            {
+                b.BaseFactions.Add(new MBaseBaseFaction
+                {
+                    Faction = Factions.Get(fac.Faction),
+                    Weight = fac.Weight,
+                    Npcs = fac.Npcs,
+                    OffersMissions = fac.OffersMissions,
+                    Missions = fac.Missions.Select(m => new BaseMissionOffer
+                    {
+                        MinDiff = m.MinDiff,
+                        MaxDiff = m.MaxDiff,
+                        Weight = m.Weight,
+                    }).ToList(),
+                });
+            }
+
+            foreach (var room in b.Rooms)
+            {
+                if (!mRoom.TryGetValue(room.Nickname, out var mr))
+                    continue;
+                room.MaxCharacters = mr.CharacterDensity;
+                foreach (var n in mr.NPCs)
+                {
+                    if (freeNpcs.TryGetValue(n.Npc, out var npc))
+                    {
+                        room.Npcs.Add(npc);
+                        freeNpcs.Remove(n.Npc);
+                    }
+                    else
+                    {
+                        npc = room.Npcs.FirstOrDefault(x =>
+                            x.Nickname.Equals(n.Npc, StringComparison.OrdinalIgnoreCase));
+                    }
+                    if (npc == null)
+                    {
+                        FLLog.Error("MRoom", $"Unable to create fixed npc '{n.Npc}' for {b.Nickname}_{room.Nickname}");
+                        continue;
+                    }
+                    npc.Placement = new(n.StandMarker, ResolveThn(n.Script), n.Action ?? "");
+                }
+            }
+        }
+
 
         flData.MBases = null; //Free memory
     }
@@ -548,7 +579,7 @@ public class GameItemDb
                         Rep = gd.Rep,
                         Rank = gd.Rank,
                         Good = good!,
-                        Price = (ulong) ((double) good!.Ini.Price * gd.Multiplier),
+                        Price = (ulong)((double)good!.Ini.Price * gd.Multiplier),
                         ForSale = gd.Max > 0
                     });
                 }
@@ -578,6 +609,7 @@ public class GameItemDb
         {
             voiceProps[vp.Voice] = vp;
         }
+
         foreach (var v in flData.Voices.Voices.Values)
         {
             if (!voiceProps.TryGetValue(v.Nickname, out var p))
@@ -595,6 +627,7 @@ public class GameItemDb
                 n.Lines[line.Message] = info;
                 n.LinesByHash[FLHash.CreateID(line.Message)] = info;
             }
+
             Voices.Add(n);
         }
     }
@@ -621,7 +654,7 @@ public class GameItemDb
                 foreach (var v in fac.Properties.Voice)
                 {
                     var res = Voices.Get(v);
-                    if(res != null)
+                    if (res != null)
                         fac.NpcVoices.Add(res);
                     else
                         FLLog.Error("Faction", $"{f.Nickname} references unknown voice {v}");
@@ -641,6 +674,7 @@ public class GameItemDb
                                 lst = new();
                                 fac.ShipsByClass[cls] = lst;
                             }
+
                             lst.Add(res);
                         }
                     }
@@ -841,10 +875,30 @@ public class GameItemDb
             starsTask
         );
         tasks.Begin(InitVignetteTree);
+        tasks.Begin(InitGCSScripts);
         tasks.WaitAll();
         flData.Universe = null; //Free universe ini!
         GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
         GC.Collect(); //We produced a crapload of garbage
+    }
+
+    private void InitGCSScripts()
+    {
+        foreach (var kv in flData.GenericScripts.Scripts)
+        {
+            var scripts = kv.Value.Select(ResolveThn).Where(x => x.DataPath != null).ToArray();
+            gcsScripts[kv.Key] = scripts;
+        }
+    }
+
+    public ResolvedThn[] GetGCSScripts(string segment, FLGender gender, Posture posture)
+    {
+        if (gcsScripts.TryGetValue(new(segment, posture, gender), out var scripts))
+        {
+            return scripts;
+        }
+
+        return [];
     }
 
 
@@ -873,6 +927,28 @@ public class GameItemDb
                 ModelFile = ResolveDrawable(src.Mesh)
             };
             Accessories.Add(a);
+        }
+
+        foreach (var cst in flData.Costumes.Costumes)
+        {
+            var c = new Costume
+            {
+                Nickname = cst.Nickname,
+                CRC = FLHash.CreateID(cst.Nickname)
+            };
+            var b = Bodyparts.Get(cst.Body);
+            if (b == null)
+            {
+                FLLog.Error("Costumes", $"Costume {cst.Nickname} missing body");
+                continue;
+            }
+
+            c.Body = b;
+            c.Head = Bodyparts.Get(cst.Head);
+            c.LeftHand = Bodyparts.Get(cst.LeftHand);
+            c.RightHand = Bodyparts.Get(cst.RightHand);
+            c.Accessory = Accessories.Get(cst.Accessory);
+            Costumes.Add(c);
         }
     }
 
@@ -952,7 +1028,7 @@ public class GameItemDb
 
             if (val is AttachedFx)
             {
-                equip = GetAttachedFx((AttachedFx) val);
+                equip = GetAttachedFx((AttachedFx)val);
             }
 
             if (val is PowerCore pc)
@@ -1228,7 +1304,7 @@ public class GameItemDb
                 IdsName = inisys.IdsName,
                 IdsInfo = inisys.IdsInfo,
                 Nickname = inisys.Nickname,
-                Visit = (VisitFlags) inisys.Visit
+                Visit = (VisitFlags)inisys.Visit
             };
             sys.CRC = CrcTool.FLModelCrc(sys.Nickname);
             sys.MsgIdPrefix = inisys.MsgIdPrefix;
@@ -1430,9 +1506,9 @@ public class GameItemDb
                         IdsName = zne.IdsName,
                         IdsInfo = zne.IdsInfo,
                         EdgeFraction = zne.EdgeFraction ?? 0.25f,
-                        PropertyFlags = (ZonePropFlags) zne.PropertyFlags,
+                        PropertyFlags = (ZonePropFlags)zne.PropertyFlags,
                         PropertyFogColor = zne.PropertyFogColor,
-                        VisitFlags = (VisitFlags) (zne.Visit ?? 0),
+                        VisitFlags = (VisitFlags)(zne.Visit ?? 0),
                         Position = zne.Pos ?? Vector3.Zero,
                         Sort = zne.Sort ?? 0,
                         //
@@ -1486,7 +1562,7 @@ public class GameItemDb
                         z.RotationAngles = Vector3.Zero;
                     }
 
-                    z.Shape = (ShapeKind) (int) (zne.Shape ?? ZoneShape.SPHERE);
+                    z.Shape = (ShapeKind)(int)(zne.Shape ?? ZoneShape.SPHERE);
                     var sz = zne.Size ?? Vector3.One;
 
                     if (z.Shape == ShapeKind.Ring)
@@ -1903,7 +1979,7 @@ public class GameItemDb
     }
 
 
-    private ResolvedModel? ResolveDrawable(string? file) => ResolveDrawable((IEnumerable<string>?) null, file);
+    private ResolvedModel? ResolveDrawable(string? file) => ResolveDrawable((IEnumerable<string>?)null, file);
 
     private ResolvedModel? ResolveDrawable(string libs, string? file) => ResolveDrawable([libs], file);
 
@@ -2373,7 +2449,6 @@ public class GameItemDb
 
         l = null;
         return false;
-
     }
 
     public SystemObject? GetSystemObject(string? system, Schema.Universe.SystemObject o)
@@ -2382,7 +2457,7 @@ public class GameItemDb
         {
             Nickname = o.Nickname,
             Reputation = Factions.Get(o.Reputation),
-            Visit = (VisitFlags) (o.Visit ?? 0),
+            Visit = (VisitFlags)(o.Visit ?? 0),
             IdsName = o.IdsName,
             Position = o.Pos ?? Vector3.Zero,
             Parent = o.Parent,

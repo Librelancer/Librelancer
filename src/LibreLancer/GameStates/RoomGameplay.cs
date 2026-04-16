@@ -763,7 +763,7 @@ namespace LibreLancer
             {
                 var obj = new GameObject() { Nickname = npc.Actor };
                 var costumeName = Game.GameData.GetCostumeForNPC(npc.Npc!)!;
-                Game.GameData.GetCostume(costumeName, out var body, out var head, out var lh, out var rh);
+                var costume = Game.GameData.Items.Costumes.Get(costumeName)!;
                 string spot = npc.Spot!;
 
                 if (string.IsNullOrEmpty(spot))
@@ -777,11 +777,11 @@ namespace LibreLancer
                     Game.GameData.GetCharacterAnimations(),
                     npc.Actor!,
                     spot,
-                    head,
-                    body,
-                    rh,
-                    lh,
-                    null,
+                    costume.Head,
+                    costume.Body,
+                    costume.RightHand,
+                    costume.LeftHand,
+                    costume.Accessory,
                     session.Game.GameData.Items.ResolveThn(npc.Fidget)
                 );
                 if (i == 0)

@@ -21,7 +21,7 @@ public class BodypartsIni
         Bodyparts = [];
         Accessories = [];
 
-        string currentSkeletonSex = "";
+        FLGender currentSkeletonSex = FLGender.unset;
         using var stream = gdata.VFS.Open(path);
         foreach (Section s in IniFile.ParseFile(path, stream, true, false, stringPool))
         {
@@ -43,9 +43,10 @@ public class BodypartsIni
                 case "skeleton":
                     foreach (var e in s)
                     {
-                        if (e.Name.Equals("sex", StringComparison.OrdinalIgnoreCase))
+                        if (e.Name.Equals("sex", StringComparison.OrdinalIgnoreCase) &&
+                            Enum.TryParse<FLGender>(e[0].ToString(), true, out var cs))
                         {
-                            currentSkeletonSex = e[0].ToString();
+                            currentSkeletonSex = cs;
                         }
                     }
                     // TODO: Bodyparts Skeleton
