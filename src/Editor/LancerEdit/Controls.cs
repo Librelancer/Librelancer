@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using ImGuiNET;
 using LancerEdit.GameContent.Popups;
 using LibreLancer;
@@ -481,6 +482,83 @@ public static class Controls
             ImGuiInputTextFlags.CallbackCharFilter | ImGuiInputTextFlags.EnterReturnsTrue, callback);
         ImGui.PopID();
         return ret;
+    }
+
+    static bool HasFlag<T>(T value, T flag) where T : struct, Enum
+    {
+        var vu = MathHelper.FlagsAsUInt32(value);
+        var f = MathHelper.FlagsAsUInt32(flag);
+        return (vu & f) == f;
+    }
+
+    public static void InputFlagsUndo<T>(
+        string label,
+        EditorUndoBuffer buffer,
+        (T Flag, char Icon, string Name)[] flags,
+        FieldAccessor<T> value) where T: struct, Enum
+    {
+        Span<char> icons = stackalloc char[64];
+        int icnCount = 0;
+        EditControlSetup(label, 0, -ButtonWidth($"{Icons.Edit}"));
+        ref T v = ref value();
+        ImGui.PushID(label);
+        if (MathHelper.FlagsAsUInt32(v) == 0)
+        {
+            ImGui.LabelText("", "(none)");
+        }
+        else
+        {
+            for (int i = 0; i < flags.Length; i++)
+            {
+                if (HasFlag(v, flags[i].Flag))
+                {
+                    if (icnCount != 0 && icnCount % 5 == 0)
+                    {
+                        icons[icnCount++] = '\n';
+                    }
+                    icons[icnCount++] = flags[i].Icon;
+                }
+            }
+            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, 0);
+            ImGui.PushStyleColor(ImGuiCol.HeaderActive, 0);
+            var iconHeight = ImGui.CalcTextSize($"{Icons.Edit}").Y;
+            ImGui.Selectable(new(icons.Slice(0, icnCount)), false,
+                ImGuiSelectableFlags.AllowOverlap, new( ImGui.CalcItemWidth(), iconHeight));
+            ImGui.PopStyleColor(2);
+            if (ImGui.BeginItemTooltip())
+            {
+                for (int i = 0; i < flags.Length; i++)
+                {
+                    if (HasFlag(v, flags[i].Flag))
+                    {
+                        ImGui.Text($"{flags[i].Icon} {flags[i].Name}");
+                    }
+                }
+                ImGui.EndTooltip();
+            }
+        }
+        ImGui.SameLine();
+        if (ImGui.Button($"{Icons.Edit}"))
+        {
+            ImGui.OpenPopup("flags");
+        }
+        if (ImGui.BeginPopup("flags"))
+        {
+            for (int i = 0; i < flags.Length; i++)
+            {
+                if (Flag($"{flags[i].Icon} {flags[i].Name}", v, flags[i].Flag, out var set))
+                {
+                    var nv = v;
+                    if (set)
+                        MathHelper.SetFlag(ref nv, flags[i].Flag);
+                    else
+                        MathHelper.UnsetFlag(ref nv, flags[i].Flag);
+                    buffer.Set(label, value, nv);
+                }
+            }
+            ImGui.EndPopup();
+        }
+        ImGui.PopID();
     }
 
     public static bool SmallButton(string text)

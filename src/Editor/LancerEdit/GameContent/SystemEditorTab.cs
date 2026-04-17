@@ -1003,12 +1003,11 @@ public class SystemEditorTab : GameContentTab
         }
 
         //Visit
-        buttonClicks = Controls.EditAndCopyButtonRow("Visit", VisitFlagEditor.FlagsString(sel.SystemObject.Visit));
-        if (buttonClicks.editButtonClicked)
-        {
-            Popups.OpenPopup(new VisitFlagEditor(sel.SystemObject.Visit,
-                x => UndoBuffer.Set("Visit", () => ref sel.SystemObject.Visit, x)));
-        }
+        Controls.InputFlagsUndo("Visit", UndoBuffer, [
+            (VisitFlags.Visited, Icons.Check, "Visited"),
+            (VisitFlags.Wreck, Icons.Gift, "Wreck"),
+            (VisitFlags.Hidden, Icons.EyeSlash, "Hidden")
+        ], () => ref sel.SystemObject.Visit);
         Data.Factions.DrawUndo("Reputation", UndoBuffer, () => ref sel.SystemObject.Reputation, true);
         BaseRow(
             "Base",
