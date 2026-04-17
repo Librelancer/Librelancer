@@ -235,6 +235,29 @@ public static class MathHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static uint FlagsAsUInt32<T>(T flag) where T : struct, Enum
+    {
+        var underlying = typeof(T).GetEnumUnderlyingType();
+        if (underlying == typeof(byte) || underlying == typeof(sbyte))
+        {
+            return Unsafe.BitCast<T, byte>(flag);
+        }
+        if (underlying == typeof(short) || underlying == typeof(ushort))
+        {
+            return Unsafe.BitCast<T, ushort>(flag);
+        }
+        if (underlying == typeof(int) || underlying == typeof(uint))
+        {
+            return Unsafe.BitCast<T, uint>(flag);
+        }
+        if (underlying == typeof(long) || underlying == typeof(ulong))
+        {
+            return (uint)Unsafe.BitCast<T, ulong>(flag);
+        }
+        throw new InvalidOperationException();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void SetFlag<T>(ref T source, T flag) where T : struct, Enum
     {
         var underlying = typeof(T).GetEnumUnderlyingType();
