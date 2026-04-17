@@ -537,19 +537,11 @@ public class SystemEditorTab : GameContentTab
         Controls.InputFloatUndo("Interference", UndoBuffer, () => ref sel.Interference);
         Controls.InputFloatUndo("Drag Modifier", UndoBuffer, () => ref sel.DragModifier);
         Controls.InputFloatUndo("Edge Fraction", UndoBuffer, () => ref sel.EdgeFraction);
-        if ((sel.PropertyFlags & ZonePropFlags.Cloud) != 0)
-        {
-            Controls.EditControlSetup("Fog Color", 0);
-            var fogColor = sel.PropertyFogColor ?? new Color4(0.5f, 0.5f, 0.5f, 1f);
-            if (ImGui.ColorButton("##fogcolor", fogColor, ImGuiColorEditFlags.NoAlpha,
-                    new Vector2(ImGui.CalcItemWidth(), ImGui.GetFrameHeight())))
-            {
-                var capturedSel = sel;
-                var oldFogColor = sel.PropertyFogColor;
-                Popups.OpenPopup(new ColorPicker("Fog Color", fogColor, (c) =>
-                    UndoBuffer.Set("Fog Color", () => ref capturedSel.PropertyFogColor, oldFogColor, (Color4?)c)));
-            }
-        }
+        ImGui.BeginDisabled((sel.PropertyFlags & ZonePropFlags.Cloud) == 0);
+        var capturedSel = sel;
+        ColorProperty("Fog Color", sel.PropertyFogColor ?? new Color4(0.5f, 0.5f, 0.5f, 1f), c =>
+            UndoBuffer.Set("Fog Color", () => ref capturedSel.PropertyFogColor, (Color4?)c));
+        ImGui.EndDisabled();
         Controls.EndEditorTable();
         //Special
         var ast = ZoneList.AsteroidFields.Fields.FirstOrDefault(x => x.Zone == sel);
@@ -561,28 +553,11 @@ public class SystemEditorTab : GameContentTab
 
         // Visit Flags
         ImGui.SeparatorText("Visit Flags");
-        {
-            var capturedSel = sel;
-            var oldVisit = sel.VisitFlags;
-            if (ZoneFlagTags("visitflags", _visitFlagDefs, (int)oldVisit, out int newVisitInt))
-                UndoBuffer.Set("Visit Flags", () => ref capturedSel.VisitFlags, oldVisit, (VisitFlags)newVisitInt);
-        }
+        Controls.InputFlagsUndo("Visit Flags", UndoBuffer, _visitFlagDefs, () => ref sel.VisitFlags);
 
         // Property Flags
         ImGui.SeparatorText("Property Flags");
-        {
-            var capturedSel = sel;
-            var oldPropFlags = sel.PropertyFlags;
-            bool cloudWasEnabled = (oldPropFlags & ZonePropFlags.Cloud) != 0;
-            if (ZoneFlagTags("propflags", _propFlagDefs, (int)oldPropFlags, out int newPropInt))
-            {
-                var newPropFlags = (ZonePropFlags)newPropInt;
-                bool cloudIsNow = (newPropFlags & ZonePropFlags.Cloud) != 0;
-                UndoBuffer.Set("Property Flags", () => ref capturedSel.PropertyFlags, oldPropFlags, newPropFlags);
-                if (cloudWasEnabled && !cloudIsNow && capturedSel.PropertyFogColor.HasValue)
-                    UndoBuffer.Set("Fog Color", () => ref capturedSel.PropertyFogColor, capturedSel.PropertyFogColor, null);
-            }
-        }
+        Controls.InputFlagsUndo("Property Flags", UndoBuffer, _propFlagDefs, () => ref sel.PropertyFlags);
 
         //Comment
         ImGui.SeparatorText("Comment");
@@ -592,120 +567,32 @@ public class SystemEditorTab : GameContentTab
                 x => UndoBuffer.Commit(new SysZoneSetComment(sel, this, sel.Comment, x))));
     }
 
-    private static readonly (string Label, int Bit)[] _visitFlagDefs =
+    private static readonly (VisitFlags Flag, char Icon, string Name)[] _visitFlagDefs =
     [
-        ("Visited",         (int)VisitFlags.Visited),
-        ("Mineable Zone",   (int)VisitFlags.MineableZone),
-        ("Actively Visited",(int)VisitFlags.ActivelyVisited),
-        ("Wreck",           (int)VisitFlags.Wreck),
-        ("Zone",            (int)VisitFlags.Zone),
-        ("Faction",         (int)VisitFlags.Faction),
-        ("Hidden",          (int)VisitFlags.Hidden),
+        (VisitFlags.Hidden, Icons.EyeSlash, "Hidden"),
     ];
 
-    private static readonly (string Label, int Bit)[] _propFlagDefs =
+    private static readonly (ZonePropFlags Flag, char Icon, string Name)[] _propFlagDefs =
     [
-        ("Obj Density Low",    (int)ZonePropFlags.ObjDensityLow),
-        ("Obj Density Medium", (int)ZonePropFlags.ObjDensityMed),
-        ("Obj Density High",   (int)ZonePropFlags.ObjDensityHigh),
-        ("Danger Low",         (int)ZonePropFlags.DangerLow),
-        ("Danger Medium",      (int)ZonePropFlags.DangerMed),
-        ("Danger High",        (int)ZonePropFlags.DangerHigh),
-        ("Rock",               (int)ZonePropFlags.Rock),
-        ("Debris",             (int)ZonePropFlags.Debris),
-        ("Ice",                (int)ZonePropFlags.Ice),
-        ("Lava",               (int)ZonePropFlags.Lava),
-        ("Nomad",              (int)ZonePropFlags.Nomad),
-        ("Crystal",            (int)ZonePropFlags.Crystal),
-        ("Mines",              (int)ZonePropFlags.Mines),
-        ("Badlands",           (int)ZonePropFlags.Badlands),
-        ("Gas Pockets",        (int)ZonePropFlags.GasPockets),
-        ("Nebula/Cloud",       (int)ZonePropFlags.Cloud),
-        ("Exclusion",          (int)ZonePropFlags.Exclusion1),
-        ("Exclusion (2)",      (int)ZonePropFlags.Exclusion2),
+        (ZonePropFlags.ObjDensityLow,  Icons.Star,       "Obj Density Low"),
+        (ZonePropFlags.ObjDensityMed,  Icons.Star,       "Obj Density Medium"),
+        (ZonePropFlags.ObjDensityHigh, Icons.Star,       "Obj Density High"),
+        (ZonePropFlags.DangerLow,      Icons.Bolt,       "Danger Low"),
+        (ZonePropFlags.DangerMed,      Icons.Bolt,       "Danger Medium"),
+        (ZonePropFlags.DangerHigh,     Icons.Bolt,       "Danger High"),
+        (ZonePropFlags.Rock,           Icons.Cube,       "Rock"),
+        (ZonePropFlags.Debris,         Icons.TrashAlt,   "Debris"),
+        (ZonePropFlags.Ice,            Icons.IceCream,   "Ice"),
+        (ZonePropFlags.Lava,           Icons.Fire,       "Lava"),
+        (ZonePropFlags.Nomad,          Icons.Leaf,       "Nomad"),
+        (ZonePropFlags.Crystal,        Icons.Splotch,    "Crystal"),
+        (ZonePropFlags.Mines,          Icons.Bullseye,   "Mines"),
+        (ZonePropFlags.Badlands,       Icons.Map,        "Badlands"),
+        (ZonePropFlags.GasPockets,     Icons.Wind,       "Gas Pockets"),
+        (ZonePropFlags.Cloud,          Icons.Cloud,      "Nebula/Cloud"),
+        (ZonePropFlags.Exclusion1,     Icons.VectorSquare,"Exclusion"),
+        (ZonePropFlags.Exclusion2,     Icons.VectorSquare,"Exclusion (2)"),
     ];
-
-    bool ZoneFlagTags(string id, (string Label, int Bit)[] flags, int current, out int newValue)
-    {
-        newValue = current;
-        bool changed = false;
-
-        var style   = ImGui.GetStyle();
-        float padX  = style.FramePadding.X;
-        float spacing = style.ItemSpacing.X;
-        float rounding = ImGui.GetFrameHeight() * 0.5f;
-        uint tagBg   = ImGui.GetColorU32(ImGuiCol.ButtonActive);
-        uint tagBgHov = ImGui.GetColorU32(ImGuiCol.ButtonHovered);
-        uint tagText = ImGui.GetColorU32(ImGuiCol.Text);
-        uint xDim    = ImGui.GetColorU32(new Vector4(0.7f, 0.7f, 0.7f, 1f));
-        uint xBright = ImGui.GetColorU32(new Vector4(1f, 1f, 1f, 1f));
-
-        ImGui.PushID(id);
-        var drawList = ImGui.GetWindowDrawList();
-        float availW   = ImGui.GetContentRegionAvail().X;
-        float lineStartX = ImGui.GetCursorScreenPos().X;
-        bool firstOnLine = true;
-
-        // Active tags
-        foreach (var (label, bit) in flags)
-        {
-            if ((current & bit) == 0) continue;
-
-            string withX  = label + "  x";
-            float tagW = ImGui.CalcTextSize(withX).X + padX * 2;
-            float h    = ImGui.GetFrameHeight();
-
-            if (!firstOnLine)
-            {
-                float nextX = ImGui.GetCursorScreenPos().X;
-                if (nextX - lineStartX + tagW > availW)
-                    ImGui.NewLine();
-                else
-                    ImGui.SameLine(0, spacing);
-            }
-            firstOnLine = false;
-
-            Vector2 pos = ImGui.GetCursorScreenPos();
-            bool clicked = ImGui.InvisibleButton($"##tag{bit}", new Vector2(tagW, h));
-            bool hov     = ImGui.IsItemHovered();
-
-            drawList.AddRectFilled(pos, pos + new Vector2(tagW, h), hov ? tagBgHov : tagBg, rounding);
-
-            var labelSz = ImGui.CalcTextSize(label);
-            drawList.AddText(pos + new Vector2(padX, (h - labelSz.Y) * 0.5f), tagText, label);
-
-            var xSz = ImGui.CalcTextSize("x");
-            float xX = padX + labelSz.X + padX;
-            drawList.AddText(pos + new Vector2(xX, (h - xSz.Y) * 0.5f), hov ? xBright : xDim, "x");
-
-            if (clicked) { newValue &= ~bit; changed = true; }
-        }
-
-        // "+ Add" button opens a plain popup
-        if (!firstOnLine) ImGui.NewLine();
-        var inactive = System.Array.FindAll(flags, f => (current & f.Bit) == 0);
-        if (inactive.Length > 0)
-        {
-            if (ImGui.Button("+ Add"))
-                ImGui.OpenPopup("##flagadd");
-
-            if (ImGui.BeginPopup("##flagadd"))
-            {
-                foreach (var (label, bit) in inactive)
-                {
-                    if (ImGui.Selectable(label))
-                    {
-                        newValue |= bit;
-                        changed = true;
-                    }
-                }
-                ImGui.EndPopup();
-            }
-        }
-
-        ImGui.PopID();
-        return changed;
-    }
 
     private bool closeField = false;
     internal void AsteroidFieldClose()
@@ -1445,23 +1332,7 @@ public class SystemEditorTab : GameContentTab
             return;
         Controls.IdsInputStringUndo("Name", Data, Popups, UndoBuffer, () => ref CurrentSystem.IdsName);
         Controls.IdsInputXmlUndo("Infocard", win, Data, Popups, UndoBuffer, () => ref CurrentSystem.IdsInfo);
-        bool hasFarclip = CurrentSystem.FarClip != 20000;
-        if (ImGui.Checkbox("Enable##farclip", ref hasFarclip))
-        {
-            var oldVal = CurrentSystem.FarClip;
-            var newVal = hasFarclip ? 125000f : 20000f;
-            UndoBuffer.Set("Space Farclip", () => ref CurrentSystem.FarClip, oldVal, newVal);
-        }
-        ImGui.SameLine();
-        if (hasFarclip)
-        {
-            Controls.InputFloatUndo("Space Farclip", UndoBuffer, () => ref CurrentSystem.FarClip);
-        }
-        else
-        {
-            ImGui.TextDisabled("Space Farclip");
-        }
-        Data.Factions.DrawUndo("Local Faction", UndoBuffer, () => ref CurrentSystem.LocalFaction, true);
+        Controls.InputFloatUndo("Space Farclip", UndoBuffer, () => ref CurrentSystem.FarClip);
         Controls.TableSeparatorText("Dust");
         ImGui.PushID("Spacedust");
         Controls.EditControlSetup("Spacedust", 0);
