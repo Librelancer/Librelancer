@@ -56,6 +56,7 @@ public static class Icons
     public const char Paintbrush = '\uf1fc';
     public const char Star = '\uf005';
     public const char Table = '\uf0ce';
+    public const char Square = '\uf0c8';
     public const char UpRightFromSquare = '\uf35d';
     public const char VectorSquare = '\uf5cb';
     public const char Gift = '\uf06b';
@@ -70,6 +71,7 @@ public static class Icons
     public const char SquareCorners = '\uf065';
     public const char SquareCornersInverted = '\uf066';
     public const char QuestionCircle = '\uf059';
+    public const char Exclamation = '\uf12a';
     //View Mode
     public const char Image = '\uf03e';
     public const char Lightbulb = '\uf0eb';
@@ -92,11 +94,21 @@ public static class Icons
     public const char Images = '\uf302';
     public const char Stop = '\uf04d';
     public const char IceCream = '\uf810';
+    public const char Th = '\uf00a';
+    public const char ThLarge = '\uf009';
+    public const char Skull = '\uf54c';
+    public const char Cubes = '\uf1b3';
+    public const char Snowflake = '\uf2dc';
+    public const char Bomb = '\uf1e2';
+    public const char SkullCrossbones = '\uf714';
+    public const char Ban = '\uf05e';
+    public const char Hammer = '\uf6e3';
+    public const char Sitemap = '\uf0e8';
     //Icons to be tinted
     public const char SyncAlt = '\uf2f1';
     private const char ExpandArrowsAlt = '\uf31e';
     private const char SignInAlt = '\uf2f6';
-    private const char ExclamationTriangle = '\uf071';
+    public const char ExclamationTriangle = '\uf071';
 
     //Tinted icons
     public static readonly char Con_Pris;
