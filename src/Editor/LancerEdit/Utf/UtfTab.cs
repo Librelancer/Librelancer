@@ -274,24 +274,10 @@ namespace LancerEdit
 
                 if (tb.ButtonItem("Resolve Audio Hashes"))
                 {
-                    FileDialog.ChooseFolder(folder =>
-                    {
-                        var idtable = new IDTable(folder);
-                        foreach (var n in Utf.Root.IterateAll())
-                        {
-                            if (n.Name.StartsWith("0x"))
-                            {
-                                uint v;
-                                if (uint.TryParse(n.Name.Substring(2), NumberStyles.HexNumber,
-                                        CultureInfo.InvariantCulture, out v))
-                                {
-                                    idtable.UtfNicknameTable.TryGetValue(v, out n.ResolvedName);
-                                }
-                            }
-                            else
-                                n.ResolvedName = null;
-                        }
-                    });
+                    if (main.OpenDataContext != null)
+                        ApplyUtfNicknames(new IDTable(main.OpenDataContext));
+                    else
+                        FileDialog.ChooseFolder(folder => ApplyUtfNicknames(new IDTable(folder)));
                 }
                 if (tb.ButtonItem("Reload Resources"))
                 {
@@ -312,6 +298,24 @@ namespace LancerEdit
             }
 
             popups.Run();
+        }
+
+        void ApplyUtfNicknames(IDTable idtable)
+        {
+            foreach (var n in Utf.Root.IterateAll())
+            {
+                if (n.Name.StartsWith("0x"))
+                {
+                    uint v;
+                    if (uint.TryParse(n.Name.Substring(2), NumberStyles.HexNumber,
+                            CultureInfo.InvariantCulture, out v))
+                    {
+                        idtable.UtfNicknameTable.TryGetValue(v, out n.ResolvedName);
+                    }
+                }
+                else
+                    n.ResolvedName = null;
+            }
         }
 
         unsafe void NodeInformation()

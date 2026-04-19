@@ -16,6 +16,19 @@ namespace LancerEdit
     {
         public Dictionary<uint, string> UtfNicknameTable;
 
+        public IDTable(GameDataContext context)
+        {
+            UtfNicknameTable = new Dictionary<uint, string>();
+            foreach (var v in context.GameData.Items.Voices)
+            {
+                foreach (var l in v.Lines.Keys)
+                {
+                    UtfNicknameTable[FLHash.CreateID(l)] = l;
+                }
+            }
+        }
+
+
         public IDTable(string fldir)
         {
             UtfNicknameTable = new Dictionary<uint, string>();
