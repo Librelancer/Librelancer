@@ -187,6 +187,8 @@ namespace LibreLancer.Sounds
                 return loaded;
             }
 
+            loaded.Entry = ent;
+
             if (loaded.Entry.File.ToLowerInvariant().Replace('\\', '/') == "audio/null.wav")
             {
                 // HACK: Don't bother with sounds using null.wav, makes awful popping noise
