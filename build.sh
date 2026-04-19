@@ -20,6 +20,8 @@ if [ ! -f "$SCRIPT_DIR/extern/thorncompiler/CMakeLists.txt" ]; then
         echo "ERROR: Submodules not present and unable to clone"
         exit 1
     fi
+elif [ -f "$SCRIPT_DIR/.git/index" ]; then
+    ( cd "$SCRIPT_DIR" ; git submodule update --recursive )
 fi
 
 ere_quote() {

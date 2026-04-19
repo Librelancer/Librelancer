@@ -20,6 +20,8 @@ if ([string]::IsNullOrEmpty($DotNetVersion)) {
 }
 
 $TestSubmodulePath = Join-Path $PSScriptRoot "extern/thorncompiler/CMakeLists.txt"
+$TestGitPath = Join-Path $PSScriptRoot ".git/index"
+
 if (!(Test-Path $TestSubmodulePath)) {
     if (Get-Command git -ErrorAction SilentlyContinue) {
         "WARNING: Submodules not present. Attempting to clone."
@@ -31,6 +33,10 @@ if (!(Test-Path $TestSubmodulePath)) {
     } else {
         "ERROR: Submodules not present and unable to clone"
         exit 1
+    }
+} else if (Test-Path $TestGitPath) {
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        git submodule update --recursive
     }
 }
 
