@@ -527,6 +527,21 @@ public class SystemEditorTab : GameContentTab
         Controls.RotationCopyPopup("retcopy", sel.RotationMatrix, win);
 
         ShapeProperties(sel);
+        MusicProp("Music", () => ref sel.Music);
+        ImGui.PushID("Spacedust");
+        Controls.EditControlSetup("Spacedust", 0);
+        SearchDropdown<string>.DrawUndo("Spacedust", UndoBuffer, () => ref sel.Spacedust, Data.Spacedusts, null, true);
+        ImGui.PopID();
+        Controls.InputIntUndo("Max Particles", UndoBuffer, () => ref sel.SpacedustMaxParticles, clamp: new Point(0, int.MaxValue));
+        Controls.InputFloatUndo("Damage", UndoBuffer, () => ref sel.Damage);
+        Controls.InputFloatUndo("Interference", UndoBuffer, () => ref sel.Interference);
+        Controls.InputFloatUndo("Drag Modifier", UndoBuffer, () => ref sel.DragModifier);
+        Controls.InputFloatUndo("Edge Fraction", UndoBuffer, () => ref sel.EdgeFraction);
+        ImGui.BeginDisabled((sel.PropertyFlags & ZonePropFlags.Cloud) == 0);
+        var capturedSel = sel;
+        ColorProperty("Fog Color", sel.PropertyFogColor ?? new Color4(0.5f, 0.5f, 0.5f, 1f), c =>
+            UndoBuffer.Set("Fog Color", () => ref capturedSel.PropertyFogColor, (Color4?)c));
+        ImGui.EndDisabled();
         Controls.EndEditorTable();
         //Special
         var ast = ZoneList.AsteroidFields.Fields.FirstOrDefault(x => x.Zone == sel);
@@ -536,6 +551,14 @@ public class SystemEditorTab : GameContentTab
             openField = new AsteroidFieldEdit(ast, win, this);
         }
 
+        // Visit Flags
+        ImGui.SeparatorText("Visit Flags");
+        Controls.InputFlagsUndo("Visit Flags", UndoBuffer, _visitFlagDefs, () => ref sel.VisitFlags);
+
+        // Property Flags
+        ImGui.SeparatorText("Property Flags");
+        Controls.InputFlagsUndo("Property Flags", UndoBuffer, _propFlagDefs, () => ref sel.PropertyFlags);
+
         //Comment
         ImGui.SeparatorText("Comment");
         ImGui.TextWrapped(sel.Comment ?? "");
@@ -543,6 +566,33 @@ public class SystemEditorTab : GameContentTab
             Popups.OpenPopup(new CommentPopup(sel.Comment,
                 x => UndoBuffer.Commit(new SysZoneSetComment(sel, this, sel.Comment, x))));
     }
+
+    private static readonly (VisitFlags Flag, char Icon, string Name)[] _visitFlagDefs =
+    [
+        (VisitFlags.Hidden, Icons.EyeSlash, "Hidden"),
+    ];
+
+    private static readonly (ZonePropFlags Flag, char Icon, string Name)[] _propFlagDefs =
+    [
+        (ZonePropFlags.ObjDensityLow,  Icons.Star,       "Obj Density Low"),
+        (ZonePropFlags.ObjDensityMed,  Icons.Star,       "Obj Density Medium"),
+        (ZonePropFlags.ObjDensityHigh, Icons.Star,       "Obj Density High"),
+        (ZonePropFlags.DangerLow,      Icons.Bolt,       "Danger Low"),
+        (ZonePropFlags.DangerMed,      Icons.Bolt,       "Danger Medium"),
+        (ZonePropFlags.DangerHigh,     Icons.Bolt,       "Danger High"),
+        (ZonePropFlags.Rock,           Icons.Cube,       "Rock"),
+        (ZonePropFlags.Debris,         Icons.TrashAlt,   "Debris"),
+        (ZonePropFlags.Ice,            Icons.IceCream,   "Ice"),
+        (ZonePropFlags.Lava,           Icons.Fire,       "Lava"),
+        (ZonePropFlags.Nomad,          Icons.Leaf,       "Nomad"),
+        (ZonePropFlags.Crystal,        Icons.Splotch,    "Crystal"),
+        (ZonePropFlags.Mines,          Icons.Bullseye,   "Mines"),
+        (ZonePropFlags.Badlands,       Icons.Map,        "Badlands"),
+        (ZonePropFlags.GasPockets,     Icons.Wind,       "Gas Pockets"),
+        (ZonePropFlags.Cloud,          Icons.Cloud,      "Nebula/Cloud"),
+        (ZonePropFlags.Exclusion1,     Icons.VectorSquare,"Exclusion"),
+        (ZonePropFlags.Exclusion2,     Icons.VectorSquare,"Exclusion (2)"),
+    ];
 
     private bool closeField = false;
     internal void AsteroidFieldClose()
@@ -1282,6 +1332,12 @@ public class SystemEditorTab : GameContentTab
             return;
         Controls.IdsInputStringUndo("Name", Data, Popups, UndoBuffer, () => ref CurrentSystem.IdsName);
         Controls.IdsInputXmlUndo("Infocard", win, Data, Popups, UndoBuffer, () => ref CurrentSystem.IdsInfo);
+        Controls.InputFloatUndo("Space Farclip", UndoBuffer, () => ref CurrentSystem.FarClip);
+        Controls.TableSeparatorText("Dust");
+        ImGui.PushID("Spacedust");
+        Controls.EditControlSetup("Spacedust", 0);
+        SearchDropdown<string>.DrawUndo("Spacedust", UndoBuffer, () => ref CurrentSystem.Spacedust, Data.Spacedusts, null, true);
+        ImGui.PopID();
         Controls.TableSeparatorText("Colors");
         ColorProperty("Space", CurrentSystem.BackgroundColor, x =>
             UndoBuffer.Set("Space Color", () => ref CurrentSystem.BackgroundColor, x));

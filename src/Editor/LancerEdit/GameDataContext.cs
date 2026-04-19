@@ -42,6 +42,7 @@ public class GameDataContext : IDisposable
     public string[] GoodsByName;
     public string[] MusicByName;
     public string[] LoadoutsByName;
+    public string[] Spacedusts;
 
     private MainWindow win;
 
@@ -96,6 +97,11 @@ public class GameDataContext : IDisposable
         LoadoutsByName = db.Loadouts.Select(x => x.Nickname).Order().ToArray();
         GoodsByName = db.Goods.Select(x => x.Nickname).Order().ToArray();
         MusicByName = GameData.AllSounds.Where(x => x.Type == AudioType.Music).Select(x => x.Nickname).Order().ToArray();
+        Spacedusts = GameData.Items.Ini.Effects.Effects
+            .Where(x => x.EffectType == "EFT_MISC_DUST")
+            .Select(x => x.Nickname)
+            .Order()
+            .ToArray();
         Bases = new(
             db.Bases.OrderBy(x => x.Nickname),
             x => x == null ? "(none)" : $"{x.Nickname} ({GameData.GetString(x.IdsName)})"
