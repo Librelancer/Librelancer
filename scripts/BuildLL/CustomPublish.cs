@@ -101,7 +101,7 @@ namespace BuildLL
             foreach (var d in projects)
             {
                 var filename = win32 ? d + ".exe" : d;
-                File.Move(Path.Combine(outputDir, filename), Path.Combine(binDir, filename));
+                File.Move(Path.Combine(outputDir, filename), Path.Combine(binDir, filename), true);
                 PatchApphost(Path.Combine(binDir, filename), win32);
             }
         }
