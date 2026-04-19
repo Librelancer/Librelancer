@@ -569,20 +569,27 @@ public class SystemEditorTab : GameContentTab
 
     private static readonly (VisitFlags Flag, char Icon, string Name)[] _visitFlagDefs =
     [
+        (VisitFlags.Visited, Icons.Eye, "Visited"),
+        (VisitFlags.Unused, Icons.QuestionCircle, "Unused"),
+        (VisitFlags.MineableZone, Icons.Hammer, "Mineable Zone"),
+        (VisitFlags.ActivelyVisited, Icons.Check, "Looted Wreck"),
+        (VisitFlags.Wreck, Icons.Gift, "Wreck"),
+        (VisitFlags.Zone, Icons.Map, "Zone"),
+        (VisitFlags.Faction, Icons.Sitemap, "Faction"),
         (VisitFlags.Hidden, Icons.EyeSlash, "Hidden"),
     ];
 
     private static readonly (ZonePropFlags Flag, char Icon, string Name)[] _propFlagDefs =
     [
-        (ZonePropFlags.ObjDensityLow,  Icons.Star,       "Obj Density Low"),
-        (ZonePropFlags.ObjDensityMed,  Icons.Star,       "Obj Density Medium"),
-        (ZonePropFlags.ObjDensityHigh, Icons.Star,       "Obj Density High"),
-        (ZonePropFlags.DangerLow,      Icons.Bolt,       "Danger Low"),
-        (ZonePropFlags.DangerMed,      Icons.Bolt,       "Danger Medium"),
-        (ZonePropFlags.DangerHigh,     Icons.Bolt,       "Danger High"),
+        (ZonePropFlags.ObjDensityLow,  Icons.Square,     "Obj Density Low"),
+        (ZonePropFlags.ObjDensityMed,  Icons.ThLarge,    "Obj Density Medium"),
+        (ZonePropFlags.ObjDensityHigh, Icons.Th,         "Obj Density High"),
+        (ZonePropFlags.DangerLow,      Icons.Exclamation, "Danger Low"),
+        (ZonePropFlags.DangerMed,      Icons.ExclamationTriangle, "Danger Medium"),
+        (ZonePropFlags.DangerHigh,     Icons.Skull,      "Danger High"),
         (ZonePropFlags.Rock,           Icons.Cube,       "Rock"),
         (ZonePropFlags.Debris,         Icons.TrashAlt,   "Debris"),
-        (ZonePropFlags.Ice,            Icons.IceCream,   "Ice"),
+        (ZonePropFlags.Ice,            Icons.Snowflake,   "Ice"),
         (ZonePropFlags.Lava,           Icons.Fire,       "Lava"),
         (ZonePropFlags.Nomad,          Icons.Leaf,       "Nomad"),
         (ZonePropFlags.Crystal,        Icons.Splotch,    "Crystal"),
