@@ -629,20 +629,23 @@ public class BaseNpcEditorTab : GameContentTab
 
         // List
         float listH = ImGui.GetContentRegionAvail().Y - 3 * ImGuiHelper.Scale;
+        var itemH = ImGui.CalcTextSize("|").Y;
         if (ImGui.BeginChild("##npclist", new Vector2(0, listH), ImGuiChildFlags.None, ImGuiWindowFlags.None))
         {
             int idx = 0;
+            var w = ImGui.GetWindowWidth();
             foreach (var npc in selectedRoom.Npcs)
             {
                 ImGui.PushID(idx++);
                 bool isSel = selectedNpc == npc;
                 if (isSel && scrollToNpc)
                     ImGui.SetScrollHereY();
-                if (ImGui.Selectable(npc.Nickname, isSel))
+                var sz = new Vector2(w - Controls.ButtonWidth($"{Icons.TrashAlt}"), itemH);
+                if (ImGui.Selectable(npc.Nickname, isSel, 0, sz))
                     SelectNpc(npc);
 
                 // Inline delete button
-                ImGui.SameLine(ImGui.GetContentRegionAvail().X - 20 * ImGuiHelper.Scale);
+                ImGui.SameLine();
                 if (Controls.SmallButton($"{Icons.TrashAlt}"))
                 {
                     window.Confirm($"Delete NPC '{npc.Nickname}'?", () =>

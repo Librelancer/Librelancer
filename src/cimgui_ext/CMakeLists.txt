@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.15)
 project (cimgui)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 
 add_library(cimgui SHARED
     ../../extern/imgui/imgui.cpp
@@ -30,7 +30,7 @@ add_library(cimgui SHARED
     imgui_freetype.cpp
 )
 
-target_compile_features(cimgui PRIVATE cxx_std_20)
+# target_compile_features(cimgui PRIVATE cxx_std_20)
 
 target_include_directories(cimgui PRIVATE "." "../../extern/imgui" "ImGuiColorTextEdit" "imgui-node-editor" "include")
 

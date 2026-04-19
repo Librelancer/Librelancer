@@ -36,12 +36,12 @@ namespace LibreLancer.Render
 
         public class Connection
         {
-            private readonly HardpointDefinition parentHp;
-            private readonly BoneInstance parentBone;
-            private readonly HardpointDefinition childHp;
-            private readonly BoneInstance childBone;
-            private readonly HardpointDefinition connectionHp;
-            private readonly BoneInstance connectionBone;
+            private readonly HardpointDefinition? parentHp;
+            private readonly BoneInstance? parentBone;
+            private readonly HardpointDefinition? childHp;
+            private readonly BoneInstance? childBone;
+            private readonly HardpointDefinition? connectionHp;
+            private readonly BoneInstance? connectionBone;
             private readonly Transform3D invBindPose;
 
             public Transform3D Transform { get; private set; }
@@ -50,24 +50,31 @@ namespace LibreLancer.Render
             public Connection(DfmSkinning parent, DfmSkinning child,
                 string parentHpName, string childHpName, string connectionHpName)
             {
-                parent.GetHardpoint(parentHpName, out parentHp!, out parentBone!);
-                child.GetHardpoint(childHpName, out childHp!, out childBone!);
-                parent.GetHardpoint(connectionHpName, out connectionHp!, out connectionBone!);
+                parent.GetHardpoint(parentHpName, out parentHp, out parentBone);
+                child.GetHardpoint(childHpName, out childHp, out childBone);
+                parent.GetHardpoint(connectionHpName, out connectionHp, out connectionBone);
                 CalculateTransform();
-                invBindPose = (connectionHp.Transform * connectionBone.LocalTransform * Transform.Inverse()).Inverse();
+                invBindPose = (BoneTransform(connectionHp, connectionBone) * Transform.Inverse()).Inverse();
                 CalculateBone();
+            }
+
+            Transform3D BoneTransform(HardpointDefinition? hp, BoneInstance? bone)
+            {
+                if (hp == null || bone == null)
+                    return Transform3D.Identity;
+                return hp.Transform * bone.LocalTransform;
             }
 
             private void CalculateTransform()
             {
-                var invChild = (childHp.Transform * childBone.LocalTransform).Inverse();
-                var parent = parentHp.Transform * parentBone.LocalTransform;
+                var invChild = BoneTransform(childHp, childBone).Inverse();
+                var parent = BoneTransform(parentHp, parentBone);
                 Transform = invChild * parent;
             }
 
             private void CalculateBone()
             {
-                Bone = invBindPose * connectionHp.Transform * connectionBone.LocalTransform * Transform.Inverse();
+                Bone = invBindPose * BoneTransform(connectionHp, connectionBone) * Transform.Inverse();
             }
 
             public void Update()
