@@ -9,19 +9,45 @@ using System.Runtime.InteropServices;
 
 namespace LibreLancer.Dialogs;
 
-public class FileDialogFilters(params FileFilter[] filters)
+public class FileDialogFilters
 {
-    public readonly FileFilter[] Filters = filters;
+    public readonly FileFilter[] Filters;
     public static FileDialogFilters operator +(FileDialogFilters left, FileDialogFilters right)
     {
         return new FileDialogFilters(left.Filters.Concat(right.Filters).ToArray());
     }
+
+    public FileDialogFilters(FileFilter flt0)
+    {
+        Filters = [flt0];
+    }
+
+    public FileDialogFilters(FileFilter flt0, params FileFilter[] filters)
+    {
+        Filters = [flt0, ..filters];
+    }
+
+    public FileDialogFilters(FileFilter[] filters)
+    {
+        Filters = filters;
+    }
 }
 
-public class FileFilter(string? name, params string[] exts)
+public class FileFilter
 {
-    public readonly string? Name = name;
-    public readonly string[] Extensions = exts;
+    public readonly string? Name;
+    public readonly string[] Extensions;
+
+    public FileFilter(string? name, string ext0)
+    {
+        Name = name;
+        Extensions = [ext0];
+    }
+    public FileFilter(string? name, string ext0, params string[] exts)
+    {
+        Name = name;
+        Extensions = [ext0, ..exts];
+    }
 }
 
 public static class FileDialog

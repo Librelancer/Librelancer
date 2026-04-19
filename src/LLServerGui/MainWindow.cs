@@ -39,7 +39,7 @@ public class MainWindow() : Game(600, 600, true)
     private static readonly float LOGS_MIN_HEIGHT = 100f;
 
     private static readonly FileDialogFilters saveAsFilter = new(
-        new FileFilter("json")
+        new FileFilter("JSON files", "json")
         );
 
 #if DEBUG
