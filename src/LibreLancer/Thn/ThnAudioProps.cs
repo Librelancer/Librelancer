@@ -8,11 +8,11 @@ namespace LibreLancer.Thn
     {
         public float Rmix;
         public float Ain;
-        public float Dmax;
+        public float Dmax = 10000;
         public float Atout;
         public float Pan;
-        public float Dmin;
+        public float Dmin = 0;
         public float Aout;
-        public float Attenuation;
+        public float Attenuation = 0;
     }
 }

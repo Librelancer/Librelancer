@@ -777,6 +777,7 @@ namespace LibreLancer
                     Game.GameData.GetCharacterAnimations(),
                     npc.Actor!,
                     spot,
+                    null, // Story npcs don't have generic voices assigned
                     costume.Head,
                     costume.Body,
                     costume.RightHand,

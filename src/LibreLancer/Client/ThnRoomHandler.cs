@@ -100,6 +100,7 @@ public static class ThnRoomHandler
         AnmFile charAnimations,
         string name,
         string spot,
+        string? voice,
         Bodypart? head,
         Bodypart? body,
         Bodypart? rightHand,
@@ -130,7 +131,8 @@ public static class ThnRoomHandler
             Name = name,
             Translate = spotObj.Translate with { Y = 0 },
             Rotate = spotObj.Rotate,
-            Object = obj
+            Object = obj,
+            Voice = voice
         };
         scene.AddObject(thnObj);
         if (fidgetScript != null)

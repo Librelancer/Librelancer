@@ -325,6 +325,11 @@ namespace LibreLancer.Thn
                     e.Actor = o.ToString()!;
                 }
 
+                if (usertable.TryGetValue("speaker", out o!))
+                {
+                    e.Speaker = o.ToString()!;
+                }
+
                 if (usertable.TryGetValue("TextString", out o!))
                 {
                     e.DisplayText = new ThnDisplayText

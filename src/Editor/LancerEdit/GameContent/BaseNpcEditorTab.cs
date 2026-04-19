@@ -288,6 +288,7 @@ public class BaseNpcEditorTab : GameContentTab
             Data.GameData.GetCharacterAnimations(),
             npc.Nickname,
             spot.Name,
+            npc.Voice,
             head,
             body,
             rightHand,

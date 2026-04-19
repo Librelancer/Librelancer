@@ -20,6 +20,7 @@ namespace LibreLancer.Thn
 		public int UserFlag;
 		public string? MeshCategory;
         public string? Actor;
+        public string? Speaker;
 		public Vector3? Position;
 		public Quaternion Rotation = Quaternion.Identity;
 		public float? FovH;

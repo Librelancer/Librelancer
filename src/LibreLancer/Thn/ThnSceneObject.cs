@@ -14,6 +14,7 @@ public class ThnSceneObject
     public Vector3 Translate;
     public Quaternion Rotate;
     public string? Actor;
+    public string? Voice;
     public GameObject? Object;
     public DynamicLight? Light;
     public ThnEntity Entity = null!;

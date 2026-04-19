@@ -252,6 +252,7 @@ namespace LibreLancer.Thn
                 }
                 else if (kv.Value.Type == EntityTypes.Deformable)
                 {
+                    obj.Actor = kv.Value.Actor;
                     // TODO: Hacky with fidget/placement scripts
                     if (string.IsNullOrEmpty(kv.Value.Actor) || !objects.ContainsKey(kv.Value.Actor))
                     {
@@ -271,8 +272,6 @@ namespace LibreLancer.Thn
                     }
                     else
                     {
-                        obj.Actor = kv.Value.Actor;
-
                         if (Objects.TryGetValue(obj.Actor, out var act))
                         {
                             act.Translate = obj.Translate;
@@ -282,7 +281,8 @@ namespace LibreLancer.Thn
                 }
                 else if (kv.Value.Type == EntityTypes.Sound)
                 {
-                    obj.Sound = new ThnSound(kv.Value.Template, Cutscene.SoundManager!, kv.Value.AudioProps!, obj)
+                    obj.Sound = new ThnSound(kv.Value.Template,
+                        kv.Value.Speaker, Cutscene.SoundManager, kv.Value.AudioProps ?? new(), obj)
                     {
                         Spatial = (kv.Value.ObjectFlags & ThnObjectFlags.SoundSpatial) == ThnObjectFlags.SoundSpatial
                     };

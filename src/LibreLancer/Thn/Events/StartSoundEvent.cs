@@ -30,7 +30,7 @@ namespace LibreLancer.Thn.Events
                 return;
             }
             if (obj.Sound == null) return;
-            var i = obj.Sound.CreateInstance();
+            var i = obj.Sound.CreateInstance(instance);
             if (i == null) return;
             instance.Sounds[Targets[0]] = i;
             i.Start((Flags & SoundFlags.Loop) == SoundFlags.Loop, StartTime);

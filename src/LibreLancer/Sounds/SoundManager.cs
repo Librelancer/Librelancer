@@ -17,11 +17,35 @@ namespace LibreLancer.Sounds
 {
     public class SoundManager : IDisposable
     {
+        private record SoundKey(string Nickname, string? Voice, uint Hash);
+
+        private class LazyConcurrentDictionary<TKey, TValue> where TKey : notnull
+        {
+            private readonly ConcurrentDictionary<TKey, Lazy<TValue>> concurrentDictionary = new();
+
+            public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
+            {
+                var lazyResult = concurrentDictionary.GetOrAdd(key,
+                    k => new Lazy<TValue>(() => valueFactory(k), LazyThreadSafetyMode.ExecutionAndPublication));
+
+                return lazyResult.Value;
+            }
+        }
+
+        private LazyConcurrentDictionary<string, VoiceUtf> voiceUtfs = new();
+
+        static AudioEntry NullEntry(string nickname) => new ()
+        {
+            Nickname = nickname,
+            File = "audio/null.wav"
+        };
+
+
         private GameDataManager data = null!;
         private AudioManager audio;
         private bool isDisposed = false;
 
-        private LRUCache<string, LoadedSound> soundCache;
+        private LRUCache<SoundKey, LoadedSound> soundCache;
 
         private IUIThread ui;
 
@@ -29,14 +53,14 @@ namespace LibreLancer.Sounds
         {
             data = gameData;
             this.audio = audio;
-            soundCache = new LRUCache<string, LoadedSound>(64, LoadSoundAsync);
+            soundCache = new LRUCache<SoundKey, LoadedSound>(64, LoadSoundAsync);
             this.ui = ui;
         }
 
         public SoundManager(AudioManager audio, IUIThread ui)
         {
             this.audio = audio;
-            soundCache = new LRUCache<string, LoadedSound>(64, LoadSoundAsync);
+            soundCache = new LRUCache<SoundKey, LoadedSound>(64, LoadSoundAsync);
             this.ui = ui;
         }
 
@@ -130,26 +154,35 @@ namespace LibreLancer.Sounds
                 return;
             }
 
-            soundCache.Get(name);
+            soundCache.Get(new(name, null, 0));
         }
 
         private LoadedSound GetSound(string name)
         {
-            var l = soundCache.Get(name);
+            var l = soundCache.Get(new(name, null, 0));
             l.LoadTask?.Wait();
             l.LoadTask = null;
             return l;
         }
 
-        private LoadedSound LoadSoundAsync(string name)
+        private LoadedSound GetSound(string voice, uint hash)
+        {
+            var l = soundCache.Get(new("", voice, hash));
+            l.LoadTask?.Wait();
+            l.LoadTask = null;
+            return l;
+        }
+
+
+        LoadedSound LoadGenericSoundAsync(string name)
         {
             FLLog.Debug("Sounds", "Loading sound " + name);
             var loaded = new LoadedSound();
-            loaded.Entry = data.GetAudioEntry(name);
-            loaded.Name = name;
+            var ent = data.GetAudioEntry(name);
 
-            if (loaded.Entry == null)
+            if (ent == null)
             {
+                loaded.Entry = NullEntry(name);
                 loaded.Data = null;
                 return loaded;
             }
@@ -181,9 +214,53 @@ namespace LibreLancer.Sounds
             return loaded;
         }
 
-        private SoundCategory EntryType(string name)
+        private LoadedSound LoadVoiceLineAsync(string voice, uint hash)
         {
-            var e = GetEntry(name);
+            var path = data.GetVoicePath(voice);
+            if (path == null)
+            {
+                return new LoadedSound() { Entry = NullEntry($"{voice}.0x{hash:X}") };
+            }
+
+            var v = voiceUtfs.GetOrAdd(path, (s) => new VoiceUtf(s, data.VFS.Open(path)));
+
+            var loaded = new LoadedSound();
+
+            if (v.AudioFiles.TryGetValue(hash, out var file))
+            {
+                loaded.Entry = new AudioEntry()
+                {
+                    Nickname = $"{voice}.0x{hash:X}",
+                    Type = AudioType.Voice,
+                    Attenuation = (int)LineAttenuation(voice, hash)
+                };
+                loaded.Data = new SoundData();
+                loaded.LoadTask = Task.Run(() =>
+                {
+                    using var ms = new MemoryStream(file);
+                    loaded.Data.LoadStream(ms);
+                });
+            }
+
+            return loaded;
+        }
+
+
+        private LoadedSound LoadSoundAsync(SoundKey key)
+        {
+            if (key.Voice != null)
+            {
+                return LoadVoiceLineAsync(key.Voice, key.Hash);
+            }
+            else
+            {
+                return LoadGenericSoundAsync(key.Nickname);
+            }
+        }
+
+        private SoundCategory EntryType(string nickname)
+        {
+            var e = GetEntry(nickname);
 
             if (e == null)
             {
@@ -219,28 +296,15 @@ namespace LibreLancer.Sounds
             inst.Play();
         }
 
-        public SoundInstance? GetInstance(string name, float attenuation = 0, float mind = -1, float maxd = -1,
-            Vector3? pos = null)
+        SoundInstance? GetInstanceInternal(LoadedSound snd, SoundCategory category,
+            float attenuation, float mind, float maxd, Vector3? pos)
         {
-            if (isDisposed)
-            {
-                throw new ObjectDisposedException(nameof(SoundManager));
-            }
-
-            var snd = GetSound(name);
-            soundCache.UsedValue(snd);
-
             if (snd.Data == null)
             {
                 return null;
             }
 
-            var inst = audio.CreateInstance(snd.Data, EntryType(name));
-
-            if (inst == null)
-            {
-                return null;
-            }
+            var inst = audio.CreateInstance(snd.Data, category);
 
             inst.SetAttenuation(attenuation + snd.Entry!.Attenuation);
 
@@ -268,35 +332,39 @@ namespace LibreLancer.Sounds
             return inst;
         }
 
-        private class LazyConcurrentDictionary<TKey, TValue> where TKey : notnull
+        public SoundInstance? GetInstance(string name, float attenuation = 0, float mind = -1, float maxd = -1,
+            Vector3? pos = null)
         {
-            private readonly ConcurrentDictionary<TKey, Lazy<TValue>> concurrentDictionary = new();
-
-            public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
+            if (isDisposed)
             {
-                var lazyResult = concurrentDictionary.GetOrAdd(key,
-                    k => new Lazy<TValue>(() => valueFactory(k), LazyThreadSafetyMode.ExecutionAndPublication));
-
-                return lazyResult.Value;
+                throw new ObjectDisposedException(nameof(SoundManager));
             }
+
+            var snd = GetSound(name);
+            soundCache.UsedValue(snd);
+
+            return GetInstanceInternal(snd, EntryType(name), attenuation, mind, maxd, pos);
         }
 
-        private float LineAttenuation(string voice, string line)
+        public SoundInstance? GetInstance(string voice, uint hash, float attenuation = 0, float mind = -1, float maxd = -1,
+            Vector3? pos = null)
         {
-            var v = data.Items.Voices.Get(voice);
-
-            if (v == null)
+            if (isDisposed)
             {
-                return 0;
+                throw new ObjectDisposedException(nameof(SoundManager));
             }
 
-            if (!v.Lines.TryGetValue(line, out var ifo))
-            {
-                return 0;
-            }
+            var snd = GetSound(voice, hash);
+            soundCache.UsedValue(snd);
 
-            return ifo.Attenuation;
+            return GetInstanceInternal(snd, SoundCategory.Voice, attenuation, mind, maxd, pos);
         }
+
+        public SoundInstance? GetInstance(string? voice, string line,
+            float attenuation = 0, float mind = -1, float maxd = -1, Vector3? pos = null) => voice == null
+                ? GetInstance(line, attenuation, mind, maxd, pos)
+                : GetInstance(voice, FLHash.CreateID(line), attenuation, mind, maxd, pos);
+
 
         private float LineAttenuation(string voice, uint line)
         {
@@ -315,7 +383,6 @@ namespace LibreLancer.Sounds
             return ifo.Attenuation;
         }
 
-        private LazyConcurrentDictionary<string, VoiceUtf> voiceUtfs = new();
 
         public void PlayVoiceLine(string voice, string line, Action? onEnd = null)
         {
@@ -324,7 +391,7 @@ namespace LibreLancer.Sounds
                 throw new ObjectDisposedException(nameof(SoundManager));
             }
 
-            PlayVoiceLine(voice, FLHash.CreateID(line), LineAttenuation(voice, line), onEnd);
+            PlayVoiceLine(voice, FLHash.CreateID(line), onEnd);
         }
 
         public void PlayVoiceLine(string voice, uint lineHash, Action? onEnd = null)
@@ -334,32 +401,16 @@ namespace LibreLancer.Sounds
                 throw new ObjectDisposedException(nameof(SoundManager));
             }
 
-            PlayVoiceLine(voice, lineHash, LineAttenuation(voice, lineHash), onEnd);
-        }
-
-        private void PlayVoiceLine(string voice, uint lineHash, float attenuation, Action? onEnd = null)
-        {
-            Task.Run(() =>
+            var instance = GetInstance(voice, lineHash);
+            if (instance == null)
             {
-                var path = data.GetVoicePath(voice)!;
-                var v = voiceUtfs.GetOrAdd(path, (s) => new VoiceUtf(s, data.VFS.Open(path)));
-                var file = v.AudioFiles[lineHash];
-                var sn = new SoundData();
-                using var ms = new MemoryStream(file);
-                sn.LoadStream(ms);
-                ui.QueueUIThread(() =>
-                {
-                    var instance = audio.CreateInstance(sn, SoundCategory.Voice);
-                    instance.SetAttenuation(attenuation);
-                    instance.Priority = 2;
-                    instance.OnStop = () =>
-                    {
-                        sn.Dispose();
-                        onEnd?.Invoke();
-                    };
-                    instance.Play();
-                });
-            });
+                onEnd?.Invoke();
+            }
+            else
+            {
+                instance.OnStop = onEnd;
+                instance.Play();
+            }
         }
 
         public void PlayMusic(string name, float fadeTime, bool oneshot = false)
@@ -397,9 +448,8 @@ namespace LibreLancer.Sounds
 
     internal class LoadedSound : IDisposable
     {
-        public string? Name;
         public SoundData? Data;
-        public Data.Schema.Audio.AudioEntry? Entry;
+        public AudioEntry Entry;
         public Task? LoadTask;
 
         public void Dispose()
