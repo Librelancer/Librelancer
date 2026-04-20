@@ -27,12 +27,25 @@ internal class GLRenderContext : IRenderContext
 
     public uint NullVAO;
 
+    public bool UseFencedUBO;
+
     private GLRenderContext(IntPtr glContext)
     {
         this.glContext = glContext;
         glVersion = GL.GetString(GL.GL_VERSION);
         glRenderer = GL.GetString(GL.GL_RENDERER);
         renderName = $"OpenGL Renderer - {glVersion} ({glRenderer})";
+        if (glRenderer.StartsWith("Mesa Intel(R)") &&
+            glRenderer.Contains("HSW"))
+        {
+            // intel haswell doesn't seem to
+            // like our buffer management strategy
+            UseFencedUBO = false;
+        }
+        else
+        {
+            UseFencedUBO = GLExtensions.Sync;
+        }
     }
 
     public static GLRenderContext? Create(IntPtr sdlWindow)
@@ -208,7 +221,7 @@ internal class GLRenderContext : IRenderContext
 
     internal void ShaderResourcesUsed()
     {
-        if (!GLExtensions.Sync)
+        if (!UseFencedUBO)
             return;
         var a = applied.Shader as GLShader;
         if (a == null)

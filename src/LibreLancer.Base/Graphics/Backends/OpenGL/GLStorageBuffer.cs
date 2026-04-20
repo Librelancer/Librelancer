@@ -158,7 +158,7 @@ internal class GLStorageBuffer : IStorageBuffer
     public IntPtr BeginStreaming()
     {
         if (mapping != IntPtr.Zero) throw new InvalidOperationException("Already mapped!");
-        if (GLExtensions.Sync)
+        if (ctx.UseFencedUBO)
         {
             ActiveIdx = GetNextBuffer();
             GLBind.UniformBuffer(IDs[ActiveIdx]);
