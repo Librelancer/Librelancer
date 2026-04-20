@@ -48,7 +48,7 @@ internal interface IRenderContext
 
     bool HasFeature(GraphicsFeature feature);
 
-    string? GetRenderer();
+    string GetRenderer();
 
     void MakeCurrent(IntPtr sdlWindow);
     void SwapWindow(IntPtr sdlWindow, bool vsync, bool fullscreen);

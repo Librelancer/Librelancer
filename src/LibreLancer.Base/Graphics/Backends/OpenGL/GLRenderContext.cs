@@ -8,18 +8,44 @@ namespace LibreLancer.Graphics.Backends.OpenGL;
 
 internal class GLRenderContext : IRenderContext
 {
-    public uint NullVAO;
-
-    private GraphicsState applied;
-    private IntPtr glContext;
-
     public bool SupportsWireframe => !GL.GLES;
 
     public int MaxSamples { get; private set; }
     public int MaxAnisotropy { get; private set; }
 
-    private GLRenderContext(IntPtr glContext) =>
+
+
+    // Used by the backend
+
+    private string glVersion;
+    private string glRenderer;
+    private string renderName;
+    private GraphicsState applied;
+    private IntPtr glContext;
+
+    public uint NullVAO;
+
+    // Intel HD Graphics on linux doesn't work well with
+    // GL_MAP_INVALIDATE_BUFFER_BIT on ubo mappings
+    public bool CanInvalidateUniformBuffers;
+
+
+    private GLRenderContext(IntPtr glContext)
+    {
         this.glContext = glContext;
+        glVersion = GL.GetString(GL.GL_VERSION);
+        glRenderer = GL.GetString(GL.GL_RENDERER);
+        renderName = $"OpenGL Renderer - {glVersion} ({glRenderer})";
+        if (glRenderer.StartsWith("Mesa Intel(R) HD Graphics", StringComparison.OrdinalIgnoreCase))
+        {
+            FLLog.Info("GL", "Applying uniform buffer map workaround");
+            CanInvalidateUniformBuffers = false;
+        }
+        else
+        {
+            CanInvalidateUniformBuffers = true;
+        }
+    }
 
     public static GLRenderContext? Create(IntPtr sdlWindow)
     {
@@ -471,7 +497,7 @@ internal class GLRenderContext : IRenderContext
         _ => false
     };
 
-    public string? GetRenderer() => $"OpenGL Renderer - {GL.GetString(GL.GL_VERSION)} ({GL.GetString(GL.GL_RENDERER)})";
+    public string GetRenderer() => renderName;
 
     public void MakeCurrent(IntPtr sdlWindow)
     {
@@ -535,5 +561,5 @@ internal class GLRenderContext : IRenderContext
         => new GLMultisampleTarget(this, width, height, samples);
 
     public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type)
-        => new GLStorageBuffer(size, stride, type);
+        => new GLStorageBuffer(size, stride, type, this);
 }

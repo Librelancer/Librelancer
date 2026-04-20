@@ -116,7 +116,8 @@ internal class NullRenderContext : IRenderContext
 
     public bool HasFeature(GraphicsFeature feature) => false;
 
-    public string? GetRenderer() => "NULL";
+    public string GetRenderer() => "NULL";
+
     public void MakeCurrent(IntPtr sdlWindow)
     {
     }

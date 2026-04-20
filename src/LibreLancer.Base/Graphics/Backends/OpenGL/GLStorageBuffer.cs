@@ -15,8 +15,9 @@ internal class GLStorageBuffer : IStorageBuffer
     private int size;
     private int gAlignment;
     private IntPtr mapping;
+    private GLRenderContext ctx;
 
-    public GLStorageBuffer(int size, int stride, Type type)
+    public GLStorageBuffer(int size, int stride, Type type, GLRenderContext ctx)
     {
         if (stride % 16 != 0)
         {
@@ -25,6 +26,7 @@ internal class GLStorageBuffer : IStorageBuffer
 
         this.stride = stride;
         this.size = size;
+        this.ctx = ctx;
 
         storageType = type;
         ID = GL.GenBuffer();
@@ -76,20 +78,24 @@ internal class GLStorageBuffer : IStorageBuffer
             throw new InvalidOperationException();
         }
 
-        return ref (((T*) (IntPtr) mapping!)!)[i];
+        return ref ((T*) mapping)[i];
     }
 
     // NOTE: On buffer orphaning.
     // We use MAP_VALIDATE_BUFFER_BIT instead of glBufferData NULL because
-    // under renderdoc, and Haswell iGPU - glBufferData NULL takes
-    // a very long time to return, and doesn't seem to simply orphan the buffer.
-
+    // under renderdoc - glBufferData NULL does not orphan the buffer properly.
+    //
+    // HSW GT2 Intel on linux doesn't work properly when invalidating the uniform buffer.
+    // Fix by forcing the stall.
+    // Tested on Linux 6.12, Mesa 25.0.7, HD Graphics 4400 (i3-4030U).
     public IntPtr BeginStreaming()
     {
         if (mapping != IntPtr.Zero) throw new InvalidOperationException("Already mapped!");
         GLBind.UniformBuffer(ID);
-        mapping = GL.MapBufferRange(GL.GL_UNIFORM_BUFFER, 0, size * stride,
-            GL.GL_MAP_INVALIDATE_BUFFER_BIT | GL.GL_MAP_WRITE_BIT);
+        int flags = ctx.CanInvalidateUniformBuffers
+            ? GL.GL_MAP_INVALIDATE_BUFFER_BIT | GL.GL_MAP_WRITE_BIT
+            : GL.GL_MAP_WRITE_BIT;
+        mapping = GL.MapBufferRange(GL.GL_UNIFORM_BUFFER, 0, size * stride, (uint)flags);
         return mapping;
     }
 
