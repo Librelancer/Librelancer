@@ -111,7 +111,7 @@ internal class NullRenderContext : IRenderContext
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples) =>
         new NullMultisampleTarget(width, height);
 
-    public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false) =>
+    public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type) =>
         new NullStorageBuffer(size, stride);
 
     public bool HasFeature(GraphicsFeature feature) => false;

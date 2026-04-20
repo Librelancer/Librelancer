@@ -534,6 +534,6 @@ internal class GLRenderContext : IRenderContext
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples)
         => new GLMultisampleTarget(this, width, height, samples);
 
-    public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type, bool streaming = false)
-        => new GLStorageBuffer(size, stride, type, streaming);
+    public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type)
+        => new GLStorageBuffer(size, stride, type);
 }

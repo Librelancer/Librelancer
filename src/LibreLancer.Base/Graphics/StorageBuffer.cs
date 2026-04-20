@@ -10,18 +10,13 @@ namespace LibreLancer.Graphics;
 public class StorageBuffer : IDisposable
 {
     private IStorageBuffer impl;
-    public StorageBuffer(RenderContext renderContext, int size, int stride, Type type, bool streaming = false)
+    public StorageBuffer(RenderContext renderContext, int size, int stride, Type type)
     {
-        impl = renderContext.Backend.CreateUniformBuffer(size, stride, type, streaming);
+        impl = renderContext.Backend.CreateUniformBuffer(size, stride, type);
     }
 
     public int GetAlignedIndex(int input) => impl.GetAlignedIndex(input);
 
-    public void SetData<T>(T[] array, int start = 0, int length = -1) where T : unmanaged
-        => impl.SetData(array, start, length);
-
-    public unsafe void SetData<T>(ref T item, int index = 0) where T : unmanaged
-        => impl.SetData(ref item, index);
 
     public void BindTo(int binding, int start = 0, int count = 0)
         => impl.BindTo(binding, start, count);

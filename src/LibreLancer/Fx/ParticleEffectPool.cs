@@ -60,8 +60,7 @@ namespace LibreLancer.Fx
             cmd = commands;
             // Set up vertices
             vbo = new VertexBuffer(context, typeof(VertexPositionColorTexture), 0);
-            sbo = new StorageBuffer(context, MaxParticles * PARTICLE_SIZE,
-                PARTICLE_SIZE, typeof(ParticleData), true);
+            sbo = new StorageBuffer(context, MaxParticles * PARTICLE_SIZE, PARTICLE_SIZE, typeof(ParticleData));
             particleMaterial = new(sbo);
             beamMaterial = new(sbo);
         }

@@ -14,9 +14,9 @@ internal class GLStorageBuffer : IStorageBuffer
     private int stride;
     private int size;
     private int gAlignment;
-    private bool streaming;
+    private IntPtr mapping;
 
-    public GLStorageBuffer(int size, int stride, Type type, bool streaming = false)
+    public GLStorageBuffer(int size, int stride, Type type)
     {
         if (stride % 16 != 0)
         {
@@ -31,10 +31,7 @@ internal class GLStorageBuffer : IStorageBuffer
         GLBind.UniformBuffer(ID);
         GL.BufferData(GL.GL_UNIFORM_BUFFER, new IntPtr(size * stride), IntPtr.Zero, GL.GL_STREAM_DRAW);
         GL.GetIntegerv(GL.GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, out int align);
-        if (streaming)
-            buffer = UnsafeHelpers.Allocate(size * stride);
 
-        this.streaming = streaming;
         var lval = stride % align;
         gAlignment = lval == 0 ? 0 : align;
 #if DEBUG
@@ -55,39 +52,12 @@ internal class GLStorageBuffer : IStorageBuffer
         return aOffset / stride;
     }
 
-    public void SetData<T>(T[] array, int start = 0, int length = -1) where T : unmanaged
-    {
-        if (typeof(T) != storageType)
-        {
-            throw new InvalidOperationException();
-        }
-
-        var len = length < 0 ? array.Length : length;
-        GLBind.UniformBuffer(ID);
-        var handle = GCHandle.Alloc(array, GCHandleType.Pinned);
-        GL.BufferSubData(GL.GL_UNIFORM_BUFFER, (IntPtr) (start * stride), (IntPtr) (len * stride),
-            handle.AddrOfPinnedObject());
-        handle.Free();
-    }
-
-    public unsafe void SetData<T>(ref T item, int index = 0) where T : unmanaged
-    {
-        if (typeof(T) != storageType) throw new InvalidOperationException();
-        GLBind.UniformBuffer(ID);
-
-        fixed (T* p = &item)
-        {
-            GL.BufferSubData(GL.GL_UNIFORM_BUFFER, (IntPtr) (index * stride), (IntPtr) (stride), (IntPtr) p);
-        }
-    }
-
     public void BindTo(int binding, int start = 0, int count = 0)
     {
         if (GetAlignedIndex(start) != start)
         {
             throw new InvalidOperationException("Uniform buffer alignment error");
         }
-
         var startPtr = (IntPtr) (start * stride);
         var length = (IntPtr) ((count <= 0 ? size : count) * stride);
         if ((long) startPtr + (long) length > (size * stride))
@@ -101,31 +71,34 @@ internal class GLStorageBuffer : IStorageBuffer
         {
             throw new IndexOutOfRangeException();
         }
+        if (mapping == IntPtr.Zero)
+        {
+            throw new InvalidOperationException();
+        }
 
-        return ref (((T*) (IntPtr) buffer!)!)[i];
+        return ref (((T*) (IntPtr) mapping!)!)[i];
     }
 
-    private readonly NativeBuffer buffer = null!;
 
     public IntPtr BeginStreaming()
     {
-        if (!streaming) throw new InvalidOperationException("not streaming buffer");
-        return (IntPtr) buffer;
+        if (mapping != IntPtr.Zero) throw new InvalidOperationException("Already mapped!");
+        GLBind.UniformBuffer(ID);
+        mapping = GL.MapBufferRange(GL.GL_UNIFORM_BUFFER, 0, size * stride,
+            GL.GL_MAP_INVALIDATE_BUFFER_BIT | GL.GL_MAP_WRITE_BIT);
+        return mapping;
     }
 
-    //Count is for if emulation is required
-    public void EndStreaming(int count)
+    public unsafe void EndStreaming(int count)
     {
-        if (!streaming) throw new InvalidOperationException("not streaming buffer");
-        if (count == 0) return;
+        if (mapping == IntPtr.Zero) throw new InvalidOperationException("Not mapped!");
+        mapping = IntPtr.Zero;
         GLBind.UniformBuffer(ID);
-        GL.BufferData(GL.GL_UNIFORM_BUFFER, (IntPtr) (size * stride), IntPtr.Zero, GL.GL_STREAM_DRAW);
-        GL.BufferSubData(GL.GL_UNIFORM_BUFFER, IntPtr.Zero, (IntPtr) (count * stride), (IntPtr) buffer);
+        GL.UnmapBuffer(GL.GL_UNIFORM_BUFFER);
     }
 
     public void Dispose()
     {
         GL.DeleteBuffers(1, ref ID);
-        buffer?.Dispose();
     }
 }
