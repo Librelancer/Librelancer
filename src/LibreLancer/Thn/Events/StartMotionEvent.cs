@@ -50,21 +50,14 @@ namespace LibreLancer.Thn.Events
                 return;
             }
 
-            if (obj.Actor != null)
-            {
-                var a = obj.Actor;
-
-                if (!instance.Objects.TryGetValue(obj.Actor, out obj))
-                {
-                    FLLog.Error("Thn", $"Could not find object for actor {a}");
-                    return;
-                }
-            }
-
             if (obj.Object is { AnimationComponent: not null }) // Check if object has Cmp animation
             {
                 bool loop = (Flags == 2);
                 obj.Object.AnimationComponent.StartAnimation(Animation, loop, StartTime, TimeScale, Duration);
+            }
+            else
+            {
+                FLLog.Error("Thn", $"Unable to start animation on {Targets[0]}");
             }
         }
     }
