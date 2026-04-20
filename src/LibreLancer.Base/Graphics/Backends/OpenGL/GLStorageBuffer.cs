@@ -79,6 +79,10 @@ internal class GLStorageBuffer : IStorageBuffer
         return ref (((T*) (IntPtr) mapping!)!)[i];
     }
 
+    // NOTE: On buffer orphaning.
+    // We use MAP_VALIDATE_BUFFER_BIT instead of glBufferData NULL because
+    // under renderdoc, and Haswell iGPU - glBufferData NULL takes
+    // a very long time to return, and doesn't seem to simply orphan the buffer.
 
     public IntPtr BeginStreaming()
     {
