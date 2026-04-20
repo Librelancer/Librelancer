@@ -24,9 +24,11 @@ internal class GLVertexBuffer : IVertexBuffer
     private GLElementBuffer? glElements;
 
     public IVertexType VertexType => vertextype;
+    private GLRenderContext ctx;
 
-    public GLVertexBuffer(Type type, int length, bool isStream = false)
+    public GLVertexBuffer(GLRenderContext ctx, Type type, int length, bool isStream = false)
     {
+        this.ctx = ctx;
         this.type = type;
         try
         {
@@ -39,8 +41,9 @@ internal class GLVertexBuffer : IVertexBuffer
         Create(length, isStream);
     }
 
-    public GLVertexBuffer(IVertexType type, int length, bool isStream = false)
+    public GLVertexBuffer(GLRenderContext ctx, IVertexType type, int length, bool isStream = false)
     {
+        this.ctx = ctx;
         this.type = type.GetType();
         vertextype = type;
         Create(length, isStream);
@@ -116,7 +119,7 @@ internal class GLVertexBuffer : IVertexBuffer
                 GL.GL_UNSIGNED_SHORT,
                 (IntPtr)(startIndex * 2));
         }
-
+        ctx.ShaderResourcesUsed();
     }
 
     public unsafe void DrawImmediateElements(PrimitiveTypes primitiveTypes, int baseVertex, ReadOnlySpan<ushort> elements)
@@ -142,6 +145,7 @@ internal class GLVertexBuffer : IVertexBuffer
         }
         GL.DeleteBuffer(eb);
         GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, glElements?.Handle ?? 0);
+        ctx.ShaderResourcesUsed();
     }
 
     private const int STREAM_FLAGS = GL.GL_MAP_WRITE_BIT | GL.GL_MAP_INVALIDATE_BUFFER_BIT;
@@ -208,6 +212,7 @@ internal class GLVertexBuffer : IVertexBuffer
                 indexElementCount
             );
         }
+        ctx.ShaderResourcesUsed();
     }
     public void Draw(PrimitiveTypes primitiveType,int start, int primitiveCount)
     {
@@ -232,6 +237,7 @@ internal class GLVertexBuffer : IVertexBuffer
                 indexElementCount
             );
         }
+        ctx.ShaderResourcesUsed();
     }
 
     private int _activeBaseVertex = 0;

@@ -41,6 +41,9 @@ internal class GLShader : IShader
     private UniformBlock[] blocks;
     private ulong[] tags;
 
+    public List<int> UsedUniformBuffers = [];
+
+
     public unsafe GLShader(GLRenderContext context, ReadOnlySpan<byte> program)
     {
         this.context = context;
@@ -186,10 +189,13 @@ internal class GLShader : IShader
             var index = GL.GetUniformBlockIndex(programID, buf.Identifier);
             if (index != GL.GL_INVALID_INDEX)
             {
+                if(!UsedUniformBuffers.Contains(buf.Location))
+                    UsedUniformBuffers.Add(buf.Location);
                 GL.UniformBlockBinding(programID, (uint)index, (uint)buf.Location);
             }
         }
     }
+
 
     public unsafe void SetUniformBlock<T>(int index, ref T data, bool forceUpdate = false, int forceSize = -1) where T : unmanaged
     {

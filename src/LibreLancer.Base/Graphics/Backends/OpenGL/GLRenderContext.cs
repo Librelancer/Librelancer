@@ -22,13 +22,10 @@ internal class GLRenderContext : IRenderContext
     private string renderName;
     private GraphicsState applied;
     private IntPtr glContext;
+    internal GLStorageBuffer?[] BoundBuffers = new GLStorageBuffer?[32];
+    internal int[] BoundBufferIndex = new int[32];
 
     public uint NullVAO;
-
-    // Intel HD Graphics on linux doesn't work well with
-    // GL_MAP_INVALIDATE_BUFFER_BIT on ubo mappings
-    public bool CanInvalidateUniformBuffers;
-
 
     private GLRenderContext(IntPtr glContext)
     {
@@ -36,15 +33,6 @@ internal class GLRenderContext : IRenderContext
         glVersion = GL.GetString(GL.GL_VERSION);
         glRenderer = GL.GetString(GL.GL_RENDERER);
         renderName = $"OpenGL Renderer - {glVersion} ({glRenderer})";
-        if (glRenderer.StartsWith("Mesa Intel(R) HD Graphics", StringComparison.OrdinalIgnoreCase))
-        {
-            FLLog.Info("GL", "Applying uniform buffer map workaround");
-            CanInvalidateUniformBuffers = false;
-        }
-        else
-        {
-            CanInvalidateUniformBuffers = true;
-        }
     }
 
     public static GLRenderContext? Create(IntPtr sdlWindow)
@@ -197,6 +185,42 @@ internal class GLRenderContext : IRenderContext
         }
     }
 
+    internal void BindToIndex(int binding, IntPtr startPtr, IntPtr length, GLStorageBuffer storageBuffer)
+    {
+        GL.BindBufferRange(GL.GL_UNIFORM_BUFFER, (uint) binding,
+            storageBuffer.IDs[storageBuffer.ActiveIdx], startPtr, length);
+        BoundBuffers[binding] = storageBuffer;
+        BoundBufferIndex[binding] = storageBuffer.ActiveIdx;
+    }
+
+    void SyncBoundBuffer(int binding)
+    {
+        var buf = BoundBuffers[binding];
+        var index = BoundBufferIndex[binding];
+        if (buf == null)
+            return;
+        if (buf.Fences[index] != 0)
+        {
+            GL.DeleteSync(buf.Fences[index]);
+        }
+        buf.Fences[index] = GL.FenceSync(GL.GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    }
+
+    internal void ShaderResourcesUsed()
+    {
+        if (!GLExtensions.Sync)
+            return;
+        var a = applied.Shader as GLShader;
+        if (a == null)
+            return;
+        for (int i = 0; i < a.UsedUniformBuffers.Count; i++)
+        {
+            SyncBoundBuffer(a.UsedUniformBuffers[i]);
+        }
+    }
+
+
+
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     private struct CameraMatrices
     {
@@ -245,7 +269,6 @@ internal class GLRenderContext : IRenderContext
         ((GLShader)shader).UseProgram();
         applied.Shader = shader;
     }
-
 
 
     public void ApplyState(ref GraphicsState requested)
@@ -537,10 +560,10 @@ internal class GLRenderContext : IRenderContext
         new GLElementBuffer(this, count, isDynamic);
 
     public IVertexBuffer CreateVertexBuffer(Type type, int length, bool isStream = false) =>
-        new GLVertexBuffer(type, length, isStream);
+        new GLVertexBuffer(this, type, length, isStream);
 
     public IVertexBuffer CreateVertexBuffer(IVertexType type, int length, bool isStream = false) =>
-        new GLVertexBuffer(type, length, isStream);
+        new GLVertexBuffer(this, type, length, isStream);
 
     public IDepthBuffer CreateDepthBuffer(int width, int height) =>
         new GLDepthBuffer(width, height);
