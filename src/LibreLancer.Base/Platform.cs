@@ -43,6 +43,22 @@ public static class Platform
         MountsChanged?.Invoke(mounts);
     }
 
+    private static readonly Dictionary<string, string> hintValues = new(StringComparer.OrdinalIgnoreCase);
+
+    internal static string GetHintString(string hint, string def) => hintValues.GetValueOrDefault(hint, def);
+
+    internal static bool GetHintBoolean(string hint, bool def)
+    {
+        if (hintValues.TryGetValue(hint, out var v))
+        {
+            if (v == "0" || v.Equals("false", StringComparison.OrdinalIgnoreCase))
+                return false;
+            if (v == "1" || v.Equals("true", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return def;
+    }
+
     static Platform ()
     {
         OSDescription = $"{RuntimeInformation.OSDescription} - {RuntimeInformation.ProcessArchitecture}";
@@ -83,6 +99,16 @@ public static class Platform
                 break;
         }
         RegisterDllMap(typeof(Platform).Assembly);
+        var env = Environment.GetEnvironmentVariables();
+        foreach (object key in env.Keys)
+        {
+            var k = key.ToString() ?? "";
+            if (!string.IsNullOrWhiteSpace(k))
+            {
+                string value = env[key]?.ToString() ?? "";
+                hintValues[k] = value;
+            }
+        }
     }
 
     internal static void Init(string sdlBackend) => RunningPlatform.Init(sdlBackend);

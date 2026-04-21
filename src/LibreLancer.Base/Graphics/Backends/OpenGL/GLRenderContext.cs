@@ -27,12 +27,29 @@ internal class GLRenderContext : IRenderContext
 
     public uint NullVAO;
 
+    public bool FencedUBO;
+    public bool SSBO;
+
     private GLRenderContext(IntPtr glContext)
     {
         this.glContext = glContext;
         glVersion = GL.GetString(GL.GL_VERSION);
         glRenderer = GL.GetString(GL.GL_RENDERER);
         renderName = $"OpenGL Renderer - {glVersion} ({glRenderer})";
+
+        FencedUBO = GLExtensions.Sync;
+        if (glRenderer.Contains("V3D") || !Platform.GetHintBoolean("librelancer_fencedubo", true))
+        {
+            FencedUBO = false;
+        }
+        SSBO = GLExtensions.ShaderStorageBufferObjects;
+        if (Platform.GetHintBoolean("librelancer_nossbo", true))
+        {
+            SSBO = false;
+        }
+
+        string storageTarget = SSBO ? "SSBOs" : FencedUBO ? "Fenced UBOs" : "Invalidated UBOs";
+        FLLog.Info("GL", $"Storage target: {storageTarget}");
     }
 
     public static GLRenderContext? Create(IntPtr sdlWindow)
@@ -50,7 +67,7 @@ internal class GLRenderContext : IRenderContext
     {
         IntPtr glcontext = IntPtr.Zero;
 
-        if ("GLES".Equals(Environment.GetEnvironmentVariable("LIBRELANCER_RENDERER"), StringComparison.OrdinalIgnoreCase) ||
+        if (Platform.GetHintString("librelancer_renderer", "").Equals("gles", StringComparison.OrdinalIgnoreCase) ||
             !CreateContextCore(sdlWin, out glcontext))
         {
             if (!CreateContextES(sdlWin, out glcontext))
@@ -97,8 +114,7 @@ internal class GLRenderContext : IRenderContext
 
     private static bool CreateContextCore(IntPtr sdlWin, out IntPtr ctx)
     {
-        var use32 = Environment.GetEnvironmentVariable("LIBRELANCER_GL32");
-        int minorVersion = use32 == "1" ? 2 : 1;
+        int minorVersion = Platform.GetHintBoolean("librelancer_gl32", false) ? 2 : 1;
         ctx = SDLGL_Create(sdlWin, 3, minorVersion, false);
         if (ctx == IntPtr.Zero) return false;
         if (!GL.CheckStringSDL())
@@ -515,7 +531,7 @@ internal class GLRenderContext : IRenderContext
     {
         GraphicsFeature.Anisotropy => GLExtensions.Anisotropy,
         GraphicsFeature.DebugInfo => GLExtensions.DebugInfo,
-        GraphicsFeature.LargeStorageBuffers => GLExtensions.ShaderStorageBufferObjects,
+        GraphicsFeature.LargeStorageBuffers => SSBO,
         GraphicsFeature.S3TC => GLExtensions.S3TC,
         GraphicsFeature.GLES => GL.GLES,
         _ => false
@@ -585,7 +601,7 @@ internal class GLRenderContext : IRenderContext
         => new GLMultisampleTarget(this, width, height, samples);
 
     public IStorageBuffer CreateStorageBuffer(int size, int stride)
-        => GLExtensions.ShaderStorageBufferObjects
+        => SSBO
             ? new GLStorageBuffer(size, stride, this)
             : new GLUniformStorageBuffer(size, stride, this);
 }

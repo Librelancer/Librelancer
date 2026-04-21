@@ -15,7 +15,7 @@ internal static unsafe partial class SDL3
 
     static SDL3()
     {
-        if (Environment.GetEnvironmentVariable("LIBRELANCER_NO_SDL3") == "1")
+        if (Platform.GetHintBoolean("librelancer_no_sdl3", false))
         {
             Supported = false;
             return;

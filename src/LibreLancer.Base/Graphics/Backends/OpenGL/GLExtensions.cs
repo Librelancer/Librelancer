@@ -99,7 +99,6 @@ internal static class GLExtensions
                 PopulateExtensions();
                 _ssbo = ExtensionList!.Contains("GL_ARB_compute_shader") &&
                                     ExtensionList.Contains("GL_ARB_shader_storage_buffer_object");
-                if (_ssbo.Value) FLLog.Info("GL", "Using SSBOs");
             }
             return _ssbo.Value;
         }
