@@ -78,8 +78,6 @@ internal class NullRenderContext : IRenderContext
     {
     }
 
-    public IShader CreateShader(string vertex_source, string fragment_source) =>
-        new NullShader();
 
     public IShader CreateShader(ReadOnlySpan<byte> program) =>
         new NullShader();
@@ -111,7 +109,7 @@ internal class NullRenderContext : IRenderContext
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples) =>
         new NullMultisampleTarget(width, height);
 
-    public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type) =>
+    public IStorageBuffer CreateStorageBuffer(int size, int stride) =>
         new NullStorageBuffer(size, stride);
 
     public bool HasFeature(GraphicsFeature feature) => false;

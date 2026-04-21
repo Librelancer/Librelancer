@@ -1,5 +1,4 @@
 using System;
-using LibreLancer.Graphics.Backends.OpenGL;
 
 namespace LibreLancer.Graphics.Backends.OpenGL;
 
@@ -11,7 +10,6 @@ class GLStorageBuffer : IStorageBuffer
     private int stride;
     private int size;
 
-
     public GLStorageBuffer(int size, int stride, GLRenderContext ctx)
     {
         this.stride = stride;
@@ -20,12 +18,6 @@ class GLStorageBuffer : IStorageBuffer
         ID = GL.GenBuffer();
         GL.BindBuffer(GL.GL_SHADER_STORAGE_BUFFER, ID);
         GL.BufferData(GL.GL_SHADER_STORAGE_BUFFER, new IntPtr(size * stride), IntPtr.Zero, GL.GL_DYNAMIC_DRAW);
-    }
-
-
-    public void Dispose()
-    {
-        // TODO release managed resources here
     }
 
     public int GetAlignedIndex(int input)
@@ -74,5 +66,10 @@ class GLStorageBuffer : IStorageBuffer
         mapping = IntPtr.Zero;
         GL.BindBuffer(GL.GL_SHADER_STORAGE_BUFFER, ID);
         GL.UnmapBuffer(GL.GL_SHADER_STORAGE_BUFFER);
+    }
+
+    public void Dispose()
+    {
+        GL.DeleteBuffer(ID);
     }
 }

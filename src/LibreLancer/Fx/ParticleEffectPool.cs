@@ -48,6 +48,7 @@ namespace LibreLancer.Fx
         private StorageBuffer sbo;
 
         private CommandBuffer cmd;
+        private RenderContext ctx;
 
         private ParticleMaterial particleMaterial;
         private ParticleBeamMaterial beamMaterial;
@@ -58,9 +59,10 @@ namespace LibreLancer.Fx
         public ParticleEffectPool(RenderContext context, CommandBuffer commands)
         {
             cmd = commands;
+            ctx = context;
             // Set up vertices
             vbo = new VertexBuffer(context, typeof(VertexPositionColorTexture), 0);
-            sbo = new StorageBuffer(context, MaxParticles * PARTICLE_SIZE, PARTICLE_SIZE, typeof(ParticleData));
+            sbo = new StorageBuffer(context, MaxParticles * PARTICLE_SIZE, PARTICLE_SIZE);
             particleMaterial = new(sbo);
             beamMaterial = new(sbo);
         }
@@ -183,7 +185,8 @@ namespace LibreLancer.Fx
 
             int start = lastDrawCommand;
             int count = nextParticle - lastDrawCommand;
-            while (count > 256)
+            while (!ctx.HasFeature(GraphicsFeature.LargeStorageBuffers) &&
+                   count > 256)
             {
                 cmd.AddCommand(
                     particleMaterial, null,

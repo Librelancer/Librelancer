@@ -3,13 +3,11 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Runtime.InteropServices;
 
 namespace LibreLancer.Graphics.Backends.OpenGL;
 
 internal class GLUniformStorageBuffer : IStorageBuffer
 {
-    private Type storageType;
     private int stride;
     private int size;
     private int gAlignment;
@@ -22,7 +20,7 @@ internal class GLUniformStorageBuffer : IStorageBuffer
     internal int ActiveIdx = 0;
 
 
-    public GLUniformStorageBuffer(int size, int stride, Type type, GLRenderContext ctx)
+    public GLUniformStorageBuffer(int size, int stride, GLRenderContext ctx)
     {
         if (stride % 16 != 0)
         {
@@ -33,7 +31,6 @@ internal class GLUniformStorageBuffer : IStorageBuffer
         this.size = size;
         this.ctx = ctx;
 
-        storageType = type;
         AllocateBufferIndex(0);
 
         GL.GetIntegerv(GL.GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, out int align);
@@ -153,8 +150,21 @@ internal class GLUniformStorageBuffer : IStorageBuffer
     }
 
 
-    // NOTE: Buffer orphaning doesn't seem to work for GL_UNIFORM_BUFFER
-    // under intel or renderdoc. Do some fancy work instead
+    /*
+     *  HERE BE DRAGONS
+     *
+     *  Ideally your hardware supports GL 4.3 and is using the GLStorageBuffer class
+     *  instead of all this mess. HOWEVER! This may not be the case
+     *
+     *  Hardware not yet tested: Intel Sandybridge, Intel Ivybridge,
+     *  AMD+nVidia not new enough to support GL 4.3
+     *
+     *  The sync structure here is to avoid GL_MAP_INVALIDATE_BUFFER_BIT causing large
+     *  frametime spikes on Intel+Mesa with GL_UNIFORM_BUFFER.
+     *
+     * Note: glBufferData NULL orphaning also does not work here. It also causes
+     * performance issues when running under renderdoc.
+     */
     public IntPtr BeginStreaming()
     {
         if (mapping != IntPtr.Zero) throw new InvalidOperationException("Already mapped!");

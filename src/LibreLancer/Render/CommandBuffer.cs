@@ -30,7 +30,7 @@ namespace LibreLancer.Render
         public CommandBuffer(RenderContext context)
         {
             rstate = context;
-            BonesBuffer = new StorageBuffer(context, 65536, 64, typeof(Matrix4x4));
+            BonesBuffer = new StorageBuffer(context, 65536, 64);
             WorldBuffer = new WorldMatrixBuffer();
         }
 
