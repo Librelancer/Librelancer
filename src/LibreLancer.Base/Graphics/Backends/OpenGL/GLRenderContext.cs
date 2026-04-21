@@ -22,13 +22,15 @@ internal class GLRenderContext : IRenderContext
     private string renderName;
     private GraphicsState applied;
     private IntPtr glContext;
-    internal GLUniformStorageBuffer?[] BoundBuffers = new GLUniformStorageBuffer?[32];
+    internal GLCycledBuffer?[] BoundBuffers = new GLCycledBuffer?[32];
     internal int[] BoundBufferIndex = new int[32];
-
     public uint NullVAO;
 
     public bool FencedUBO;
     public bool SSBO;
+
+    Queue<SyncPoint> frameSyncs = new();
+    SyncPoint currentFrame = new();
 
     private GLRenderContext(IntPtr glContext)
     {
@@ -38,7 +40,7 @@ internal class GLRenderContext : IRenderContext
         renderName = $"OpenGL Renderer - {glVersion} ({glRenderer})";
 
         FencedUBO = GLExtensions.Sync;
-        if (glRenderer.Contains("V3D") || !Platform.GetHintBoolean("librelancer_fencedubo", true))
+        if (!Platform.GetHintBoolean("librelancer_fencedubo", true))
         {
             FencedUBO = false;
         }
@@ -201,12 +203,12 @@ internal class GLRenderContext : IRenderContext
         }
     }
 
-    internal void BindToIndex(int binding, IntPtr startPtr, IntPtr length, GLUniformStorageBuffer uniformStorageBuffer)
+    internal void BindToIndex(int target, int binding, IntPtr startPtr, IntPtr length, GLCycledBuffer storageBuffer)
     {
-        GL.BindBufferRange(GL.GL_UNIFORM_BUFFER, (uint) binding,
-            uniformStorageBuffer.IDs[uniformStorageBuffer.ActiveIdx], startPtr, length);
-        BoundBuffers[binding] = uniformStorageBuffer;
-        BoundBufferIndex[binding] = uniformStorageBuffer.ActiveIdx;
+        GL.BindBufferRange(target, (uint) binding,
+            storageBuffer.IDs[storageBuffer.ActiveIdx], startPtr, length);
+        BoundBuffers[binding] = storageBuffer;
+        BoundBufferIndex[binding] = storageBuffer.ActiveIdx;
     }
 
     void SyncBoundBuffer(int binding)
@@ -215,27 +217,21 @@ internal class GLRenderContext : IRenderContext
         var index = BoundBufferIndex[binding];
         if (buf == null)
             return;
-        if (buf.Fences[index] != 0)
-        {
-            GL.DeleteSync(buf.Fences[index]);
-        }
-        buf.Fences[index] = GL.FenceSync(GL.GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        buf.Fences[index] = currentFrame;
     }
 
     internal void ShaderResourcesUsed()
     {
-        if (!GLExtensions.Sync)
+        if (!FencedUBO)
             return;
         var a = applied.Shader as GLShader;
         if (a == null)
             return;
-        for (int i = 0; i < a.UsedUniformBuffers.Count; i++)
+        for (int i = 0; i < a.UsedStorageBindings.Count; i++)
         {
-            SyncBoundBuffer(a.UsedUniformBuffers[i]);
+            SyncBoundBuffer(a.UsedStorageBindings[i]);
         }
     }
-
-
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     private struct CameraMatrices
@@ -550,10 +546,20 @@ internal class GLRenderContext : IRenderContext
 
     public void SwapWindow(IntPtr sdlWindow, bool vsync, bool fullscreen)
     {
+        currentFrame.Set();
         lastHeight = GetDrawableSize(sdlWindow).Y;
         GLSwap.SwapWindow(sdlWindow, vsync, fullscreen);
         if (GL.FrameHadErrors()) //If there was a GL error, track it down.
             GL.ErrorChecking = true;
+        while(frameSyncs.TryPeek(out var sp))
+        {
+            if(sp.Passed())
+                frameSyncs.Dequeue();
+            else
+                break;
+        }
+        frameSyncs.Enqueue(currentFrame);
+        currentFrame = new();
     }
 
     public Point GetDrawableSize(IntPtr sdlWindow)

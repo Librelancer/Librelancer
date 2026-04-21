@@ -41,7 +41,7 @@ internal class GLShader : IShader
     private UniformBlock[] blocks;
     private ulong[] tags;
 
-    public List<int> UsedUniformBuffers = [];
+    public List<int> UsedStorageBindings = [];
 
 
     public unsafe GLShader(GLRenderContext context, ReadOnlySpan<byte> program)
@@ -193,6 +193,8 @@ internal class GLShader : IShader
                 var index = GL.GetProgramResourceIndex(programID, GL.GL_SHADER_STORAGE_BLOCK, buf.Identifier);
                 if (index != GL.GL_INVALID_INDEX)
                 {
+                    if(!UsedStorageBindings.Contains(buf.Location))
+                        UsedStorageBindings.Add(buf.Location);
                     GL.ShaderStorageBlockBinding(programID, (uint)index, (uint)buf.Location);
                 }
             }
@@ -204,8 +206,8 @@ internal class GLShader : IShader
                 var index = GL.GetUniformBlockIndex(programID, buf.Identifier);
                 if (index != GL.GL_INVALID_INDEX)
                 {
-                    if(!UsedUniformBuffers.Contains(buf.Location))
-                        UsedUniformBuffers.Add(buf.Location);
+                    if(!UsedStorageBindings.Contains(buf.Location))
+                        UsedStorageBindings.Add(buf.Location);
                     GL.UniformBlockBinding(programID, (uint)index, (uint)buf.Location);
                 }
             }

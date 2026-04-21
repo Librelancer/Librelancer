@@ -2,22 +2,18 @@ using System;
 
 namespace LibreLancer.Graphics.Backends.OpenGL;
 
-class GLStorageBuffer : IStorageBuffer
+class GLStorageBuffer : GLCycledBuffer, IStorageBuffer
 {
-    private uint ID;
     private IntPtr mapping;
-    private GLRenderContext ctx;
     private int stride;
     private int size;
+    private GLRenderContext ctx;
 
-    public GLStorageBuffer(int size, int stride, GLRenderContext ctx)
+    public GLStorageBuffer(int size, int stride, GLRenderContext ctx) : base(ctx)
     {
         this.stride = stride;
         this.size = size;
         this.ctx = ctx;
-        ID = GL.GenBuffer();
-        GL.BindBuffer(GL.GL_SHADER_STORAGE_BUFFER, ID);
-        GL.BufferData(GL.GL_SHADER_STORAGE_BUFFER, new IntPtr(size * stride), IntPtr.Zero, GL.GL_DYNAMIC_DRAW);
     }
 
     public int GetAlignedIndex(int input)
@@ -33,7 +29,7 @@ class GLStorageBuffer : IStorageBuffer
         var length = (IntPtr)((count <= 0 ? size : count) * stride);
         if ((long)startPtr + (long)length > (size * stride))
             throw new IndexOutOfRangeException();
-        GL.BindBufferRange(GL.GL_SHADER_STORAGE_BUFFER, (uint)binding, ID, startPtr, length);
+        ctx.BindToIndex(GL.GL_SHADER_STORAGE_BUFFER, binding, startPtr, length, this);
     }
 
     public unsafe ref T Data<T>(int i) where T : unmanaged
@@ -54,9 +50,10 @@ class GLStorageBuffer : IStorageBuffer
     public IntPtr BeginStreaming()
     {
         if (mapping != IntPtr.Zero) throw new InvalidOperationException("Already mapped!");
-        GL.BindBuffer(GL.GL_SHADER_STORAGE_BUFFER, ID);
+        ActiveIdx = GetNextBuffer();
+        GL.BindBuffer(GL.GL_SHADER_STORAGE_BUFFER, IDs[ActiveIdx]);
         mapping = GL.MapBufferRange(GL.GL_SHADER_STORAGE_BUFFER, 0, size * stride,
-            GL.GL_MAP_WRITE_BIT | GL.GL_MAP_INVALIDATE_BUFFER_BIT | GL.GL_MAP_UNSYNCHRONIZED_BIT);
+            GL.GL_MAP_WRITE_BIT | GL.GL_MAP_UNSYNCHRONIZED_BIT);
         return mapping;
     }
 
@@ -64,12 +61,15 @@ class GLStorageBuffer : IStorageBuffer
     {
         if (mapping == IntPtr.Zero) throw new InvalidOperationException("Not mapped!");
         mapping = IntPtr.Zero;
-        GL.BindBuffer(GL.GL_SHADER_STORAGE_BUFFER, ID);
+        GL.BindBuffer(GL.GL_SHADER_STORAGE_BUFFER, IDs[ActiveIdx]);
         GL.UnmapBuffer(GL.GL_SHADER_STORAGE_BUFFER);
     }
 
-    public void Dispose()
+    protected override uint GenerateBuffer()
     {
-        GL.DeleteBuffer(ID);
+        var id = GL.GenBuffer();
+        GL.BindBuffer(GL.GL_SHADER_STORAGE_BUFFER, id);
+        GL.BufferData(GL.GL_SHADER_STORAGE_BUFFER, new IntPtr(size * stride), IntPtr.Zero, GL.GL_DYNAMIC_DRAW);
+        return id;
     }
 }

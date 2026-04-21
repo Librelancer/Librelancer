@@ -6,7 +6,7 @@ using System;
 
 namespace LibreLancer.Graphics.Backends.OpenGL;
 
-internal class GLUniformStorageBuffer : IStorageBuffer
+internal sealed class GLUniformStorageBuffer : GLCycledBuffer, IStorageBuffer
 {
     private int stride;
     private int size;
@@ -14,13 +14,7 @@ internal class GLUniformStorageBuffer : IStorageBuffer
     private IntPtr mapping;
     private GLRenderContext ctx;
 
-    private bool allAllocated = false;
-    internal IntPtr[] Fences = [0, 0, 0];
-    internal uint[] IDs = [0, 0, 0];
-    internal int ActiveIdx = 0;
-
-
-    public GLUniformStorageBuffer(int size, int stride, GLRenderContext ctx)
+    public GLUniformStorageBuffer(int size, int stride, GLRenderContext ctx) : base(ctx)
     {
         if (stride % 16 != 0)
         {
@@ -43,20 +37,12 @@ internal class GLUniformStorageBuffer : IStorageBuffer
 #endif
     }
 
-    void AllocateBufferIndex(int idx)
+    protected override uint GenerateBuffer()
     {
-        IDs[idx] = GL.GenBuffer();
-        GLBind.UniformBuffer(IDs[idx]);
+        var id = GL.GenBuffer();
+        GLBind.UniformBuffer(id);
         GL.BufferData(GL.GL_UNIFORM_BUFFER, new IntPtr(size * stride), IntPtr.Zero, GL.GL_DYNAMIC_DRAW);
-        allAllocated = true;
-        for (int i = 0; i < IDs.Length; i++)
-        {
-            if (IDs[i] == 0)
-            {
-                allAllocated = false;
-                break;
-            }
-        }
+        return id;
     }
 
     public int GetAlignedIndex(int input)
@@ -83,7 +69,7 @@ internal class GLUniformStorageBuffer : IStorageBuffer
         if ((long)startPtr + (long)length > (size * stride))
             throw new IndexOutOfRangeException();
 
-        ctx.BindToIndex(binding, startPtr, length, this);
+        ctx.BindToIndex(GL.GL_UNIFORM_BUFFER, binding, startPtr, length, this);
     }
 
     public unsafe ref T Data<T>(int i) where T : unmanaged
@@ -101,74 +87,13 @@ internal class GLUniformStorageBuffer : IStorageBuffer
         return ref ((T*)mapping)[i];
     }
 
-    int GetNextBuffer()
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            int idx = (ActiveIdx + i) % 3;
-            if (IDs[idx] == 0)
-                continue;
-            if (Fences[idx] == 0)
-            {
-                return idx;
-            }
 
-            var r = GL.ClientWaitSync(Fences[idx], 0, 0);
-            if (r == GL.GL_CONDITION_SATISFIED ||
-                r == GL.GL_ALREADY_SIGNALED)
-            {
-                GL.DeleteSync(Fences[i]);
-                Fences[i] = 0;
-                return idx;
-            }
-        }
-
-        if (allAllocated)
-        {
-            int idx = (ActiveIdx + 1);
-            uint r;
-            do
-            {
-                r = GL.ClientWaitSync(Fences[idx], 0, 1000);
-            } while (r != GL.GL_CONDITION_SATISFIED && r != GL.GL_ALREADY_SIGNALED);
-
-            GL.DeleteSync(Fences[idx]);
-            Fences[idx] = 0;
-            return idx;
-        }
-
-        for (int i = 0; i < IDs.Length; i++)
-        {
-            if (IDs[i] == 0)
-            {
-                AllocateBufferIndex(i);
-                return i;
-            }
-        }
-
-        throw new InvalidOperationException("Unreachable");
-    }
-
-
-    /*
-     *  HERE BE DRAGONS
-     *
-     *  Ideally your hardware supports GL 4.3 and is using the GLStorageBuffer class
-     *  instead of all this mess. HOWEVER! This may not be the case
-     *
-     *  Hardware not yet tested: Intel Sandybridge, Intel Ivybridge,
-     *  AMD+nVidia not new enough to support GL 4.3
-     *
-     *  The sync structure here is to avoid GL_MAP_INVALIDATE_BUFFER_BIT causing large
-     *  frametime spikes on Intel+Mesa with GL_UNIFORM_BUFFER.
-     *
-     * Note: glBufferData NULL orphaning also does not work here. It also causes
-     * performance issues when running under renderdoc.
-     */
+    // GL_MAP_INVALIDATE_BUFFER_BIT causes slowdowns on intel hardware.
+    // Use buffer cycling when possible, GL_ARB_sync not guaranteed to be supported.
     public IntPtr BeginStreaming()
     {
         if (mapping != IntPtr.Zero) throw new InvalidOperationException("Already mapped!");
-        if (GLExtensions.Sync)
+        if (ctx.FencedUBO)
         {
             ActiveIdx = GetNextBuffer();
             GLBind.UniformBuffer(IDs[ActiveIdx]);
@@ -191,28 +116,5 @@ internal class GLUniformStorageBuffer : IStorageBuffer
         mapping = IntPtr.Zero;
         GLBind.UniformBuffer(IDs[ActiveIdx]);
         GL.UnmapBuffer(GL.GL_UNIFORM_BUFFER);
-    }
-
-    public void Dispose()
-    {
-        for (int i = 0; i < ctx.BoundBuffers.Length; i++)
-        {
-            if (ctx.BoundBuffers[i] == this)
-            {
-                ctx.BoundBuffers[i] = null;
-            }
-        }
-
-        for (int i = 0; i < Fences.Length; i++)
-        {
-            if (Fences[i] != 0)
-                GL.DeleteSync(Fences[i]);
-        }
-
-        for (int i = 0; i < IDs.Length; i++)
-        {
-            if (IDs[i] != 0)
-                GL.DeleteBuffer(IDs[i]);
-        }
     }
 }
