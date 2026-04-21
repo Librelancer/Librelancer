@@ -88,6 +88,23 @@ internal static class GLExtensions
         }
     }
 
+    public static bool? _arbComputeShader;
+
+    public static bool GL430
+    {
+        get
+        {
+            if (_arbComputeShader == null)
+            {
+                PopulateExtensions();
+                _arbComputeShader = ExtensionList!.Contains("GL_ARB_compute_shader");
+                if (_arbComputeShader.Value) FLLog.Info("GL", "GL 4.3 available, using SSBOs.");
+            }
+            return _arbComputeShader.Value;
+        }
+    }
+
+
     //Global method for checking extensions. Called upon GraphicsDevice creation
     public static void PopulateExtensions()
     {

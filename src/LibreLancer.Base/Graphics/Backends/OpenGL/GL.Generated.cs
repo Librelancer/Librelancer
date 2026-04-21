@@ -71,6 +71,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<int,int,int,IntPtr,void> _glUniformMatrix4fv;
         private static delegate* unmanaged<uint,uint,uint,void> _glUniformBlockBinding;
         private static delegate* unmanaged<uint,byte*,int> _glGetUniformBlockIndex;
+        private static delegate* unmanaged<uint,uint,uint,void> _glShaderStorageBlockBinding;
+        private static delegate* unmanaged<uint,int,byte*,int> _glGetProgramResourceIndex;
         private static delegate* unmanaged<int,uint*,void> _glGenBuffers;
         private static delegate* unmanaged<int,uint*,void> _glDeleteBuffers;
         private static delegate* unmanaged<int,uint,void> _glBindBuffer;
@@ -115,7 +117,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<IntPtr,void> _glDeleteSync;
         private static delegate* unmanaged<IntPtr,uint,ulong,uint> _glClientWaitSync;
         private static delegate* unmanaged<void> _glFlush;
-        
+
         public static void Load(Func<string,IntPtr> getProcAddress, bool isGles)
         {
             _glEnable = (delegate* unmanaged<int,void>)getProcAddress("glEnable");
@@ -182,6 +184,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glUniformMatrix4fv = (delegate* unmanaged<int,int,int,IntPtr,void>)getProcAddress("glUniformMatrix4fv");
             _glUniformBlockBinding = (delegate* unmanaged<uint,uint,uint,void>)getProcAddress("glUniformBlockBinding");
             _glGetUniformBlockIndex = (delegate* unmanaged<uint,byte*,int>)getProcAddress("glGetUniformBlockIndex");
+            _glShaderStorageBlockBinding = (delegate* unmanaged<uint,uint,uint,void>)getProcAddress("glShaderStorageBlockBinding");
+            _glGetProgramResourceIndex = (delegate* unmanaged<uint,int,byte*,int>)getProcAddress("glGetProgramResourceIndex");
             _glGenBuffers = (delegate* unmanaged<int,uint*,void>)getProcAddress("glGenBuffers");
             _glDeleteBuffers = (delegate* unmanaged<int,uint*,void>)getProcAddress("glDeleteBuffers");
             _glBindBuffer = (delegate* unmanaged<int,uint,void>)getProcAddress("glBindBuffer");
@@ -584,6 +588,23 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             ErrorCheck();
             return retval;
         }
+        public static void ShaderStorageBlockBinding(uint program, uint storageBlockIndex, uint storageBlockBinding)
+        {
+            _glShaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);
+            ErrorCheck();
+        }
+        public static int GetProgramResourceIndex(uint program, int programInterface, string name)
+        {
+            int retval;
+            Span<byte> _name_stack = stackalloc byte[256];
+            using var _name_utf8 = new UTF8ZHelper(_name_stack, name);
+            fixed (byte* _name_ptr = _name_utf8.ToUTF8Z())
+            {
+                retval = _glGetProgramResourceIndex(program, programInterface, _name_ptr);
+            }
+            ErrorCheck();
+            return retval;
+        }
         public static void GenBuffers(int n, out uint buffers)
         {
             fixed (uint* _buffers_ptr = &buffers)
@@ -828,4 +849,3 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         }
     }
 }
-

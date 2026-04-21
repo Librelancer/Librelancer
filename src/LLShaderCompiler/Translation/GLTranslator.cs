@@ -234,42 +234,50 @@ public static class GLTranslator
      *
      * And replaces instance._m0 access with instance
      */
-    static bool ProcessStorageBuffer(Dictionary<string, int> bufferSizes, ref string source)
+    static void ProcessStorageBuffers(Dictionary<string, int> bufferSizes, ref string source)
     {
         const string SSBO_DEF = "layout(std430) readonly buffer";
 
-        var idx = source.IndexOf(SSBO_DEF, StringComparison.Ordinal);
-        if (idx == -1)
-            return false;
+        int idx = 0;
+        while ((idx = source.IndexOf(SSBO_DEF, idx, StringComparison.Ordinal)) != -1)
+        {
+            var idxBlockStart = source.IndexOf("{", idx + SSBO_DEF.Length, StringComparison.Ordinal);
 
-        var idxBlockStart = source.IndexOf("{", idx + SSBO_DEF.Length, StringComparison.Ordinal);
-
-        var blockName = source.Substring(idx + SSBO_DEF.Length, idxBlockStart - idx - SSBO_DEF.Length).Trim();
-
-        int braces = 1;
-        int idxBlockEnd;
-        for (idxBlockEnd = idxBlockStart + 1; idxBlockEnd < source.Length; idxBlockEnd++) {
-            if (source[idxBlockEnd] == '}')
-            {
-                braces--;
+            var blockName = source.Substring(idx + SSBO_DEF.Length, idxBlockStart - idx - SSBO_DEF.Length).Trim();
+            int braces = 1;
+            int idxBlockEnd;
+            for (idxBlockEnd = idxBlockStart + 1; idxBlockEnd < source.Length; idxBlockEnd++) {
+                if (source[idxBlockEnd] == '}')
+                {
+                    braces--;
+                }
+                if (braces == 0)
+                {
+                    break;
+                }
             }
-            if (braces == 0)
-            {
-                break;
-            }
+            idxBlockEnd++;
+            var identifierEnd = source.IndexOf(";", idxBlockEnd, StringComparison.Ordinal);
+            var identifier = source.Substring(idxBlockEnd, identifierEnd - idxBlockEnd).Trim();
+
+            var std430buf = source.Substring(idx, idxBlockEnd - idx) + ";";
+
+            var sz = bufferSizes[blockName];
+
+            std430buf = std430buf.Replace("_m0", $"{identifier}");
+
+            var newBufDef = $@"#if USE_SSBO
+{std430buf}
+#else
+{std430buf.Replace("[]", $"[{sz}]").Replace(SSBO_DEF, "layout (std140) uniform")}
+#endif
+";
+            var newStr = source.Substring(0, idx) +
+                         newBufDef +
+                         source.Substring(identifierEnd + 1);
+            source = newStr.Replace($"{identifier}._m0", identifier);
+            idx += newBufDef.Length;
         }
-        idxBlockEnd++;
-        var identifierEnd = source.IndexOf(";", idxBlockEnd, StringComparison.Ordinal);
-        var identifier = source.Substring(idxBlockEnd, identifierEnd - idxBlockEnd).Trim();
-
-        var sz = bufferSizes[blockName];
-        // Remove the generated SPIRV-Cross block instance name as that is invalid GLSL 140.
-        // And set a fixed size for the SSBO->UBO translation
-        source = ReplaceFirst(source, idxBlockEnd, identifier, "");
-        source = ReplaceFirst(source, idxBlockStart, "_m0[]", $"{identifier}[{sz}]");
-        source = ReplaceFirst(source, idx, SSBO_DEF, "layout(std140) uniform");
-        source = source.Replace($"{identifier}._m0", $"{identifier}");
-        return true;
     }
 
     private const string ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_";
@@ -446,7 +454,7 @@ public static class GLTranslator
         var source = ReplaceFirst(Marshal.PtrToStringUTF8((IntPtr)translatedSource)!, 0, "#version 140\n",
             "");
 
-        while (ProcessStorageBuffer(bufferSizes, ref source)) ;
+        ProcessStorageBuffers(bufferSizes, ref source);
 
         return (source, varyingResults);
     }

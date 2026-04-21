@@ -22,7 +22,7 @@ internal class GLRenderContext : IRenderContext
     private string renderName;
     private GraphicsState applied;
     private IntPtr glContext;
-    internal GLStorageBuffer?[] BoundBuffers = new GLStorageBuffer?[32];
+    internal GLUniformStorageBuffer?[] BoundBuffers = new GLUniformStorageBuffer?[32];
     internal int[] BoundBufferIndex = new int[32];
 
     public uint NullVAO;
@@ -185,12 +185,12 @@ internal class GLRenderContext : IRenderContext
         }
     }
 
-    internal void BindToIndex(int binding, IntPtr startPtr, IntPtr length, GLStorageBuffer storageBuffer)
+    internal void BindToIndex(int binding, IntPtr startPtr, IntPtr length, GLUniformStorageBuffer uniformStorageBuffer)
     {
         GL.BindBufferRange(GL.GL_UNIFORM_BUFFER, (uint) binding,
-            storageBuffer.IDs[storageBuffer.ActiveIdx], startPtr, length);
-        BoundBuffers[binding] = storageBuffer;
-        BoundBufferIndex[binding] = storageBuffer.ActiveIdx;
+            uniformStorageBuffer.IDs[uniformStorageBuffer.ActiveIdx], startPtr, length);
+        BoundBuffers[binding] = uniformStorageBuffer;
+        BoundBufferIndex[binding] = uniformStorageBuffer.ActiveIdx;
     }
 
     void SyncBoundBuffer(int binding)
@@ -584,5 +584,7 @@ internal class GLRenderContext : IRenderContext
         => new GLMultisampleTarget(this, width, height, samples);
 
     public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type)
-        => new GLStorageBuffer(size, stride, type, this);
+        => GLExtensions.GL430
+            ? new GLStorageBuffer(size, stride, this)
+            : new GLUniformStorageBuffer(size, stride, type, this);
 }

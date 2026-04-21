@@ -78,8 +78,10 @@ internal class GLShader : IShader
 
         string vertexSource = reader.ReadUTF8();
         string fragmentSource = reader.ReadUTF8();
-        var version =
-            GL.GLES ? "#version 300 es\nprecision highp float;\nprecision highp int;\n" : "#version 140\n";
+        var version = GL.GLES
+            ? "#version 300 es\nprecision highp float;\nprecision highp int;\n"
+            : GLExtensions.GL430 ? "#version 430\n#define USE_SSBO 1\n" : "#version 140\n";
+
         //compile shaders
         var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
         var fragmentHandle = GL.CreateShader (GL.GL_FRAGMENT_SHADER);
@@ -184,14 +186,28 @@ internal class GLShader : IShader
         }
 
         // Bind storage
-        foreach (var buf in buffers)
+        if (GLExtensions.GL430)
         {
-            var index = GL.GetUniformBlockIndex(programID, buf.Identifier);
-            if (index != GL.GL_INVALID_INDEX)
+            foreach (var buf in buffers)
             {
-                if(!UsedUniformBuffers.Contains(buf.Location))
-                    UsedUniformBuffers.Add(buf.Location);
-                GL.UniformBlockBinding(programID, (uint)index, (uint)buf.Location);
+                var index = GL.GetProgramResourceIndex(programID, GL.GL_SHADER_STORAGE_BLOCK, buf.Identifier);
+                if (index != GL.GL_INVALID_INDEX)
+                {
+                    GL.ShaderStorageBlockBinding(programID, (uint)index, (uint)buf.Location);
+                }
+            }
+        }
+        else
+        {
+            foreach (var buf in buffers)
+            {
+                var index = GL.GetUniformBlockIndex(programID, buf.Identifier);
+                if (index != GL.GL_INVALID_INDEX)
+                {
+                    if(!UsedUniformBuffers.Contains(buf.Location))
+                        UsedUniformBuffers.Add(buf.Location);
+                    GL.UniformBlockBinding(programID, (uint)index, (uint)buf.Location);
+                }
             }
         }
     }

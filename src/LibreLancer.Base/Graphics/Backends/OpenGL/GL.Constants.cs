@@ -25,6 +25,7 @@ internal static partial class GL
     public const int GL_COMPILE_STATUS = 0x8B81;
     public const int GL_LINK_STATUS = 0x8B82;
     public const int GL_INVALID_INDEX = -1;
+    public const int GL_SHADER_STORAGE_BLOCK = 0x92e6;
 
     public const int GL_TEXTURE_2D = 0x0DE1;
     public const int GL_TEXTURE_2D_MULTISAMPLE = 0x9100;
