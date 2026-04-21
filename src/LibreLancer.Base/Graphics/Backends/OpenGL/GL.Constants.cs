@@ -180,4 +180,6 @@ internal static partial class GL
     public const int GL_SYNC_GPU_COMMANDS_COMPLETE = 0x9117;
     public const int GL_ALREADY_SIGNALED = 0x911A;
     public const int GL_CONDITION_SATISFIED = 0x911C;
+
+    public const int GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS = 0x90d6;
 }
