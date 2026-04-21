@@ -41,7 +41,7 @@ internal interface IRenderContext
 
     IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples);
 
-    IStorageBuffer CreateUniformBuffer(int size, int stride, Type type);
+    IStorageBuffer CreateStorageBuffer(int size, int stride);
 
     void SetCamera(ICamera camera);
     void SetIdentityCamera();

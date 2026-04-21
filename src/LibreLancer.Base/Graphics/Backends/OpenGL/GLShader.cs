@@ -41,7 +41,7 @@ internal class GLShader : IShader
     private UniformBlock[] blocks;
     private ulong[] tags;
 
-    public List<int> UsedUniformBuffers = [];
+    public List<int> UsedStorageBindings = [];
 
 
     public unsafe GLShader(GLRenderContext context, ReadOnlySpan<byte> program)
@@ -78,8 +78,10 @@ internal class GLShader : IShader
 
         string vertexSource = reader.ReadUTF8();
         string fragmentSource = reader.ReadUTF8();
-        var version =
-            GL.GLES ? "#version 300 es\nprecision highp float;\nprecision highp int;\n" : "#version 140\n";
+        var version = GL.GLES
+            ? "#version 300 es\nprecision highp float;\nprecision highp int;\n"
+            : context.SSBO ? "#version 400\n#extension GL_ARB_shader_storage_buffer_object: enable\n#define USE_SSBO 1\n" : "#version 140\n";
+
         //compile shaders
         var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
         var fragmentHandle = GL.CreateShader (GL.GL_FRAGMENT_SHADER);
@@ -184,14 +186,30 @@ internal class GLShader : IShader
         }
 
         // Bind storage
-        foreach (var buf in buffers)
+        if (context.SSBO)
         {
-            var index = GL.GetUniformBlockIndex(programID, buf.Identifier);
-            if (index != GL.GL_INVALID_INDEX)
+            foreach (var buf in buffers)
             {
-                if(!UsedUniformBuffers.Contains(buf.Location))
-                    UsedUniformBuffers.Add(buf.Location);
-                GL.UniformBlockBinding(programID, (uint)index, (uint)buf.Location);
+                var index = GL.GetProgramResourceIndex(programID, GL.GL_SHADER_STORAGE_BLOCK, buf.Identifier);
+                if (index != GL.GL_INVALID_INDEX)
+                {
+                    if(!UsedStorageBindings.Contains(buf.Location))
+                        UsedStorageBindings.Add(buf.Location);
+                    GL.ShaderStorageBlockBinding(programID, (uint)index, (uint)buf.Location);
+                }
+            }
+        }
+        else
+        {
+            foreach (var buf in buffers)
+            {
+                var index = GL.GetUniformBlockIndex(programID, buf.Identifier);
+                if (index != GL.GL_INVALID_INDEX)
+                {
+                    if(!UsedStorageBindings.Contains(buf.Location))
+                        UsedStorageBindings.Add(buf.Location);
+                    GL.UniformBlockBinding(programID, (uint)index, (uint)buf.Location);
+                }
             }
         }
     }

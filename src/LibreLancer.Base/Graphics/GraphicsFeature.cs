@@ -6,4 +6,5 @@ public enum GraphicsFeature
     Anisotropy,
     S3TC,
     DebugInfo,
+    LargeStorageBuffers
 }

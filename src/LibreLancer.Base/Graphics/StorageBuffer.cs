@@ -10,9 +10,13 @@ namespace LibreLancer.Graphics;
 public class StorageBuffer : IDisposable
 {
     private IStorageBuffer impl;
-    public StorageBuffer(RenderContext renderContext, int size, int stride, Type type)
+    public StorageBuffer(RenderContext renderContext, int size, int stride)
     {
-        impl = renderContext.Backend.CreateUniformBuffer(size, stride, type);
+        if (stride % 16 != 0)
+        {
+            throw new Exception("StorageBuffer must be aligned to minimum 16");
+        }
+        impl = renderContext.Backend.CreateStorageBuffer(size, stride);
     }
 
     public int GetAlignedIndex(int input) => impl.GetAlignedIndex(input);
@@ -21,7 +25,7 @@ public class StorageBuffer : IDisposable
     public void BindTo(int binding, int start = 0, int count = 0)
         => impl.BindTo(binding, start, count);
 
-    public unsafe ref T Data<T>(int i) where T : unmanaged
+    public ref T Data<T>(int i) where T : unmanaged
         => ref impl.Data<T>(i);
 
     public IntPtr BeginStreaming() => impl.BeginStreaming();

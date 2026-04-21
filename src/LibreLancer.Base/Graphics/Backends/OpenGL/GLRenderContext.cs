@@ -22,10 +22,15 @@ internal class GLRenderContext : IRenderContext
     private string renderName;
     private GraphicsState applied;
     private IntPtr glContext;
-    internal GLStorageBuffer?[] BoundBuffers = new GLStorageBuffer?[32];
+    internal GLCycledBuffer?[] BoundBuffers = new GLCycledBuffer?[32];
     internal int[] BoundBufferIndex = new int[32];
-
     public uint NullVAO;
+
+    public bool FencedUBO;
+    public bool SSBO;
+
+    Queue<SyncPoint> frameSyncs = new();
+    SyncPoint currentFrame = new();
 
     private GLRenderContext(IntPtr glContext)
     {
@@ -33,6 +38,20 @@ internal class GLRenderContext : IRenderContext
         glVersion = GL.GetString(GL.GL_VERSION);
         glRenderer = GL.GetString(GL.GL_RENDERER);
         renderName = $"OpenGL Renderer - {glVersion} ({glRenderer})";
+
+        FencedUBO = GLExtensions.Sync;
+        if (!Platform.GetHintBoolean("librelancer_fencedubo", true))
+        {
+            FencedUBO = false;
+        }
+        SSBO = GLExtensions.ShaderStorageBufferObjects;
+        if (Platform.GetHintBoolean("librelancer_nossbo", false))
+        {
+            SSBO = false;
+        }
+
+        string storageTarget = SSBO ? "SSBOs" : FencedUBO ? "Fenced UBOs" : "Invalidated UBOs";
+        FLLog.Info("GL", $"Storage target: {storageTarget}");
     }
 
     public static GLRenderContext? Create(IntPtr sdlWindow)
@@ -50,7 +69,7 @@ internal class GLRenderContext : IRenderContext
     {
         IntPtr glcontext = IntPtr.Zero;
 
-        if ("GLES".Equals(Environment.GetEnvironmentVariable("LIBRELANCER_RENDERER"), StringComparison.OrdinalIgnoreCase) ||
+        if (Platform.GetHintString("librelancer_renderer", "").Equals("gles", StringComparison.OrdinalIgnoreCase) ||
             !CreateContextCore(sdlWin, out glcontext))
         {
             if (!CreateContextES(sdlWin, out glcontext))
@@ -97,8 +116,7 @@ internal class GLRenderContext : IRenderContext
 
     private static bool CreateContextCore(IntPtr sdlWin, out IntPtr ctx)
     {
-        var use32 = Environment.GetEnvironmentVariable("LIBRELANCER_GL32");
-        int minorVersion = use32 == "1" ? 2 : 1;
+        int minorVersion = Platform.GetHintBoolean("librelancer_gl32", false) ? 2 : 1;
         ctx = SDLGL_Create(sdlWin, 3, minorVersion, false);
         if (ctx == IntPtr.Zero) return false;
         if (!GL.CheckStringSDL())
@@ -185,9 +203,9 @@ internal class GLRenderContext : IRenderContext
         }
     }
 
-    internal void BindToIndex(int binding, IntPtr startPtr, IntPtr length, GLStorageBuffer storageBuffer)
+    internal void BindToIndex(int target, int binding, IntPtr startPtr, IntPtr length, GLCycledBuffer storageBuffer)
     {
-        GL.BindBufferRange(GL.GL_UNIFORM_BUFFER, (uint) binding,
+        GL.BindBufferRange(target, (uint) binding,
             storageBuffer.IDs[storageBuffer.ActiveIdx], startPtr, length);
         BoundBuffers[binding] = storageBuffer;
         BoundBufferIndex[binding] = storageBuffer.ActiveIdx;
@@ -199,27 +217,21 @@ internal class GLRenderContext : IRenderContext
         var index = BoundBufferIndex[binding];
         if (buf == null)
             return;
-        if (buf.Fences[index] != 0)
-        {
-            GL.DeleteSync(buf.Fences[index]);
-        }
-        buf.Fences[index] = GL.FenceSync(GL.GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        buf.Fences[index] = currentFrame;
     }
 
     internal void ShaderResourcesUsed()
     {
-        if (!GLExtensions.Sync)
+        if (!FencedUBO)
             return;
         var a = applied.Shader as GLShader;
         if (a == null)
             return;
-        for (int i = 0; i < a.UsedUniformBuffers.Count; i++)
+        for (int i = 0; i < a.UsedStorageBindings.Count; i++)
         {
-            SyncBoundBuffer(a.UsedUniformBuffers[i]);
+            SyncBoundBuffer(a.UsedStorageBindings[i]);
         }
     }
-
-
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     private struct CameraMatrices
@@ -515,6 +527,7 @@ internal class GLRenderContext : IRenderContext
     {
         GraphicsFeature.Anisotropy => GLExtensions.Anisotropy,
         GraphicsFeature.DebugInfo => GLExtensions.DebugInfo,
+        GraphicsFeature.LargeStorageBuffers => SSBO,
         GraphicsFeature.S3TC => GLExtensions.S3TC,
         GraphicsFeature.GLES => GL.GLES,
         _ => false
@@ -533,10 +546,20 @@ internal class GLRenderContext : IRenderContext
 
     public void SwapWindow(IntPtr sdlWindow, bool vsync, bool fullscreen)
     {
+        currentFrame.Set();
         lastHeight = GetDrawableSize(sdlWindow).Y;
         GLSwap.SwapWindow(sdlWindow, vsync, fullscreen);
         if (GL.FrameHadErrors()) //If there was a GL error, track it down.
             GL.ErrorChecking = true;
+        while(frameSyncs.TryPeek(out var sp))
+        {
+            if(sp.Passed())
+                frameSyncs.Dequeue();
+            else
+                break;
+        }
+        frameSyncs.Enqueue(currentFrame);
+        currentFrame = new();
     }
 
     public Point GetDrawableSize(IntPtr sdlWindow)
@@ -583,6 +606,8 @@ internal class GLRenderContext : IRenderContext
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples)
         => new GLMultisampleTarget(this, width, height, samples);
 
-    public IStorageBuffer CreateUniformBuffer(int size, int stride, Type type)
-        => new GLStorageBuffer(size, stride, type, this);
+    public IStorageBuffer CreateStorageBuffer(int size, int stride)
+        => SSBO
+            ? new GLStorageBuffer(size, stride, this)
+            : new GLUniformStorageBuffer(size, stride, this);
 }
