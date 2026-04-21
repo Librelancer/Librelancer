@@ -12,6 +12,10 @@ public class StorageBuffer : IDisposable
     private IStorageBuffer impl;
     public StorageBuffer(RenderContext renderContext, int size, int stride)
     {
+        if (stride % 16 != 0)
+        {
+            throw new Exception("StorageBuffer must be aligned to minimum 16");
+        }
         impl = renderContext.Backend.CreateStorageBuffer(size, stride);
     }
 

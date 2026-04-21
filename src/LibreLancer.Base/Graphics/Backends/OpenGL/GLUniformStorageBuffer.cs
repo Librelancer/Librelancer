@@ -16,11 +16,6 @@ internal sealed class GLUniformStorageBuffer : GLCycledBuffer, IStorageBuffer
 
     public GLUniformStorageBuffer(int size, int stride, GLRenderContext ctx) : base(ctx)
     {
-        if (stride % 16 != 0)
-        {
-            throw new Exception("Must be aligned to minimum 16");
-        }
-
         this.stride = stride;
         this.size = size;
         this.ctx = ctx;
