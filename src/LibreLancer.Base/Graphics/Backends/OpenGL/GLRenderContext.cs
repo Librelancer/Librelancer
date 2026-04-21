@@ -43,7 +43,7 @@ internal class GLRenderContext : IRenderContext
             FencedUBO = false;
         }
         SSBO = GLExtensions.ShaderStorageBufferObjects;
-        if (Platform.GetHintBoolean("librelancer_nossbo", true))
+        if (Platform.GetHintBoolean("librelancer_nossbo", false))
         {
             SSBO = false;
         }

@@ -56,7 +56,7 @@ class GLStorageBuffer : IStorageBuffer
         if (mapping != IntPtr.Zero) throw new InvalidOperationException("Already mapped!");
         GL.BindBuffer(GL.GL_SHADER_STORAGE_BUFFER, ID);
         mapping = GL.MapBufferRange(GL.GL_SHADER_STORAGE_BUFFER, 0, size * stride,
-            GL.GL_MAP_WRITE_BIT | GL.GL_MAP_INVALIDATE_BUFFER_BIT);
+            GL.GL_MAP_WRITE_BIT | GL.GL_MAP_INVALIDATE_BUFFER_BIT | GL.GL_MAP_UNSYNCHRONIZED_BIT);
         return mapping;
     }
 
