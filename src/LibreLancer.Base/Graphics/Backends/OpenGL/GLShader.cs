@@ -78,9 +78,10 @@ internal class GLShader : IShader
 
         string vertexSource = reader.ReadUTF8();
         string fragmentSource = reader.ReadUTF8();
+        // defines must exist for #if on GLES
         var version = GL.GLES
-            ? "#version 300 es\nprecision highp float;\nprecision highp int;\n"
-            : context.SSBO ? "#version 400\n#extension GL_ARB_shader_storage_buffer_object: enable\n#define USE_SSBO 1\n" : "#version 140\n";
+            ? "#version 300 es\n#define USE_SSBO 0\nprecision highp float;\nprecision highp int;\n"
+            : context.SSBO ? "#version 400\n#extension GL_ARB_shader_storage_buffer_object: enable\n#define USE_SSBO 1\n" : "#version 140\n#define USE_SSBO 0\n";
 
         //compile shaders
         var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
