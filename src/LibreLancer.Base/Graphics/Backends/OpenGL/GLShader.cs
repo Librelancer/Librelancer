@@ -80,7 +80,7 @@ internal class GLShader : IShader
         string fragmentSource = reader.ReadUTF8();
         var version = GL.GLES
             ? "#version 300 es\nprecision highp float;\nprecision highp int;\n"
-            : GLExtensions.GL430 ? "#version 430\n#define USE_SSBO 1\n" : "#version 140\n";
+            : GLExtensions.ShaderStorageBufferObjects ? "#version 400\n#extension GL_ARB_shader_storage_buffer_object: enable\n#define USE_SSBO 1\n" : "#version 140\n";
 
         //compile shaders
         var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
@@ -186,7 +186,7 @@ internal class GLShader : IShader
         }
 
         // Bind storage
-        if (GLExtensions.GL430)
+        if (GLExtensions.ShaderStorageBufferObjects)
         {
             foreach (var buf in buffers)
             {

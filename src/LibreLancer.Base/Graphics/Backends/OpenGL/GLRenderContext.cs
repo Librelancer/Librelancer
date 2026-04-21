@@ -515,7 +515,7 @@ internal class GLRenderContext : IRenderContext
     {
         GraphicsFeature.Anisotropy => GLExtensions.Anisotropy,
         GraphicsFeature.DebugInfo => GLExtensions.DebugInfo,
-        GraphicsFeature.LargeStorageBuffers => GLExtensions.GL430,
+        GraphicsFeature.LargeStorageBuffers => GLExtensions.ShaderStorageBufferObjects,
         GraphicsFeature.S3TC => GLExtensions.S3TC,
         GraphicsFeature.GLES => GL.GLES,
         _ => false
@@ -585,7 +585,7 @@ internal class GLRenderContext : IRenderContext
         => new GLMultisampleTarget(this, width, height, samples);
 
     public IStorageBuffer CreateStorageBuffer(int size, int stride)
-        => GLExtensions.GL430
+        => GLExtensions.ShaderStorageBufferObjects
             ? new GLStorageBuffer(size, stride, this)
             : new GLUniformStorageBuffer(size, stride, this);
 }

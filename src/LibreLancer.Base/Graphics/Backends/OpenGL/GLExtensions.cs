@@ -88,19 +88,20 @@ internal static class GLExtensions
         }
     }
 
-    public static bool? _arbComputeShader;
+    public static bool? _ssbo;
 
-    public static bool GL430
+    public static bool ShaderStorageBufferObjects
     {
         get
         {
-            if (_arbComputeShader == null)
+            if (_ssbo == null)
             {
                 PopulateExtensions();
-                _arbComputeShader = ExtensionList!.Contains("GL_ARB_compute_shader");
-                if (_arbComputeShader.Value) FLLog.Info("GL", "GL 4.3 available, using SSBOs.");
+                _ssbo = ExtensionList!.Contains("GL_ARB_compute_shader") &&
+                                    ExtensionList.Contains("GL_ARB_shader_storage_buffer_object");
+                if (_ssbo.Value) FLLog.Info("GL", "Using SSBOs");
             }
-            return _arbComputeShader.Value;
+            return _ssbo.Value;
         }
     }
 
