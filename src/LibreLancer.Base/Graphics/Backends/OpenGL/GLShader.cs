@@ -91,16 +91,19 @@ internal class GLShader : IShader
         GL.CompileShader(vertexHandle);
         int status;
         GL.GetShaderiv (vertexHandle, GL.GL_COMPILE_STATUS, out status);
-        if (status == 0) {
-            Console.WriteLine (GL.GetShaderInfoLog (vertexHandle));
-            throw new Exception ("Vertex shader compilation failed");
+        if (status == 0)
+        {
+            var vertexLog = GL.GetShaderInfoLog(vertexHandle).Trim();
+            FLLog.Error("GL", $"Compile log\n{vertexLog}");
+            throw new Exception ($"Vertex shader compilation failed.\n{vertexLog}");
         }
         GL.CompileShader(fragmentHandle);
         GL.GetShaderiv (fragmentHandle, GL.GL_COMPILE_STATUS, out status);
-        if (status == 0) {
-            Console.WriteLine (GL.GetShaderInfoLog (fragmentHandle));
-
-            throw new Exception ("Fragment shader compilation failed");
+        if (status == 0)
+        {
+            var fragmentLog = GL.GetShaderInfoLog(fragmentHandle).Trim();
+            FLLog.Error("GL", $"Compile log\n{fragmentLog}");
+            throw new Exception ($"Fragment shader compilation failed.\n{fragmentLog}");
         }
         programID = GL.CreateProgram();
         GL.AttachShader(programID, vertexHandle);
