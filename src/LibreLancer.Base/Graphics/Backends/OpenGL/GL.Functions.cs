@@ -84,14 +84,6 @@ internal static unsafe partial class GL
         DeleteTextures(1, ref tex);
     }
 
-    public static bool TryGetInteger(int val, out int param)
-    {
-        param = 0;
-        fixed(int* p = &param)
-            _glGetIntegerv(val, p);
-        return GetError() == 0;
-    }
-
 
     [SuppressUnmanagedCodeSecurity]
     public delegate void GlDebugProcKHR(int source, int type, uint id, int severity, int length, IntPtr message,
