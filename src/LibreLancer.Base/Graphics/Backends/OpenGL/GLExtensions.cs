@@ -97,7 +97,7 @@ internal static class GLExtensions
             if (_ssbo == null)
             {
                 PopulateExtensions();
-                var extensionAvail = ExtensionList!.Contains("GL_ARB_compute_shader") &&
+                var extensionAvail = ExtensionList!.Contains("GL_ARB_shader_image_load_store") &&
                                     ExtensionList.Contains("GL_ARB_shader_storage_buffer_object");
                 if (extensionAvail)
                 {

@@ -43,6 +43,17 @@ internal class GLShader : IShader
 
     public List<int> UsedStorageBindings = [];
 
+    // GL_ARB_shader_image_load_store extension requires
+    // GLSL 1.50 to function, so we can safely use this.
+
+    // Note GL_SHADING_LANGUAGE_VERSION will only report what is
+    // requested by the GL context version  (3.1) on Intel's windows
+    // driver, so we can't query for that.
+    private const string SSBO_ENABLED_VERSION = @"#version 150
+#extension GL_ARB_shader_image_load_store: require
+#extension GL_ARB_shader_storage_buffer_object: require
+#define USE_SSBO 1
+";
 
     public unsafe GLShader(GLRenderContext context, ReadOnlySpan<byte> program)
     {
@@ -81,7 +92,7 @@ internal class GLShader : IShader
         // defines must exist for #if on GLES
         var version = GL.GLES
             ? "#version 300 es\n#define USE_SSBO 0\nprecision highp float;\nprecision highp int;\n"
-            : context.SSBO ? "#version 400\n#extension GL_ARB_shader_storage_buffer_object: enable\n#define USE_SSBO 1\n" : "#version 140\n#define USE_SSBO 0\n";
+            : context.SSBO ? SSBO_ENABLED_VERSION : "#version 140\n#define USE_SSBO 0\n";
 
         //compile shaders
         var vertexHandle = GL.CreateShader (GL.GL_VERTEX_SHADER);
