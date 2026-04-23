@@ -45,7 +45,7 @@ abstract class GLCycledBuffer(GLRenderContext ctx) : IDisposable
 
         if (allAllocated)
         {
-            int idx = (ActiveIdx + 1);
+            int idx = (ActiveIdx + 1) % 3;
             Fences[idx]!.Wait();
             Fences[idx] = null;
             return idx;
