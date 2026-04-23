@@ -38,6 +38,11 @@ public partial class CollisionGroup
     [Entry("dmg_obj")]
     public string? DmgObj;
 
+    [Entry("separation_explosion")]
+    public string? SeparationExplosion;
+    [Entry("type")]
+    public string? Type;
+
     public List<ObjectFuse> Fuses = [];
 
     [EntryHandler("fuse", Multiline = true, MinComponents = 3)]
