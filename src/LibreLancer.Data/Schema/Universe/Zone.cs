@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
+using System.Linq;
 using LibreLancer.Data.Ini;
 
 namespace LibreLancer.Data.Schema.Universe;
@@ -46,7 +47,6 @@ public partial class Zone : SystemPart
     [Entry("drag_modifier")]
     public float DragModifier;
 
-    [Entry("comment")]
     public string? Comment;
 
     [Entry("lane_id")]
@@ -120,4 +120,10 @@ public partial class Zone : SystemPart
 
     [EntryHandler("density_restriction", MinComponents = 2, Multiline = true)]
     private void HandleDensityRestriction(Entry e) => DensityRestrictions.Add(new DensityRestriction(e[0].ToInt32(), e[1].ToString()));
+
+    [EntryHandler("comment")]
+    private void HandleComment(Entry e)
+    {
+        Comment = string.Join(", ", e.Select(x => x.ToString()));
+    }
 }

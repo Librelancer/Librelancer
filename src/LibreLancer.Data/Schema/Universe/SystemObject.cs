@@ -78,7 +78,6 @@ public partial class SystemObject : SystemPart
     [Entry("parent")]
     public string? Parent;
 
-    [Entry("comment")]
     public string? Comment;
 
     public string? RingZone;
@@ -96,5 +95,11 @@ public partial class SystemObject : SystemPart
     {
         RingZone = e[0].ToString();
         RingFile = e[1].ToString();
+    }
+
+    [EntryHandler("comment")]
+    private void HandleComment(Entry e)
+    {
+        Comment = string.Join(", ", e.Select(x => x.ToString()));
     }
 }
