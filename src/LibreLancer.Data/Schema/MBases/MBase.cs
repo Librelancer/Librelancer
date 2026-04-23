@@ -15,8 +15,8 @@ public partial class MBase
 {
     [Entry("nickname", Required = true)]
     public string Nickname = null!;
-    [Entry("local_faction", Required = true)]
-    public string LocalFaction = null!;
+    [Entry("local_faction")]
+    public string? LocalFaction;
 
     [Entry("diff")]
     public int Diff;
