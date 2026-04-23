@@ -85,12 +85,12 @@ public partial class Archetype
     private void HandleDockingSphere(Entry e)
     {
         string? scr = e.Count == 4 ? e[3].ToString() : null;
-        if (!Enum.TryParse<DockSphereType>(e[0].ToString(), out var type))
+        if (!Enum.TryParse<DockSphereType>(e[0].ToString(), true, out var type))
         {
             IniDiagnostic.InvalidEnum(e, e.Section);
         }
 
-        DockingSpheres.Add(new DockSphere() { Type = type, Hardpoint = e[1].ToString(), Radius = e[2].ToInt32(), Script = scr });
+        DockingSpheres.Add(new DockSphere(type, e[1].ToString(), e[2].ToInt32(), scr));
     }
 
 }

@@ -11,12 +11,8 @@ public enum DockSphereType
     moor_medium,
     moor_large,
     ring,
-    airlock
+    airlock,
+    jump
 }
-public class DockSphere
-{
-    public required DockSphereType Type;
-    public required string Hardpoint;
-    public required int Radius;
-    public string? Script;
-}
+
+public record DockSphere(DockSphereType Type, string Hardpoint, int Radius, string? Script);
