@@ -2144,11 +2144,7 @@ public class GameItemDb
         {
             var ex = new Explosion() { Nickname = orig.Nickname };
             ex.CRC = CrcTool.FLModelCrc(ex.Nickname);
-
-            if (orig.Effects.Count > 0)
-            {
-                ex.Effect = Effects.Get(orig.Effects[0].Name);
-            }
+            ex.Effect = Effects.Get(orig.Effect);
 
             Explosions.Add(ex);
         }
