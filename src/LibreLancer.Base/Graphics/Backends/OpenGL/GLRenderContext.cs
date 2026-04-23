@@ -29,6 +29,8 @@ internal class GLRenderContext : IRenderContext
     public bool FencedUBO;
     public bool SSBO;
 
+    public string ShaderVersion;
+
     Queue<SyncPoint> frameSyncs = new();
     SyncPoint currentFrame = new();
 
@@ -52,7 +54,51 @@ internal class GLRenderContext : IRenderContext
 
         string storageTarget = SSBO ? "SSBOs" : FencedUBO ? "Fenced UBOs" : "Invalidated UBOs";
         FLLog.Info("GL", $"Storage target: {storageTarget}");
+        SetShaderVersion();
     }
+
+    void SetShaderVersion()
+    {
+        if (GL.GLES)
+        {
+            ShaderVersion = "300 es";
+        }
+        else
+        {
+            ShaderVersion = "140";
+            if (GL.TryGetInteger(GL.GL_NUM_SHADING_LANGUAGE_VERSIONS, out var numLangs))
+            {
+                int current = 140;
+                for (int i = 0; i < numLangs; i++)
+                {
+                    var sl = GL.GetStringi(GL.GL_SHADING_LANGUAGE_VERSION, i);
+                    if (string.IsNullOrWhiteSpace(sl) ||
+                        sl.Contains("es"))
+                        continue;
+                    if (int.TryParse(sl.Split(' ')[0], out var result))
+                    {
+                        if (result > current)
+                        {
+                            current = result;
+                            ShaderVersion = current.ToString();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var sl = GL.GetString(GL.GL_SHADING_LANGUAGE_VERSION);
+                if (!string.IsNullOrWhiteSpace(sl) &&
+                    !sl.Contains("es") && int.TryParse(sl.Split(' ')[0], out var v))
+                {
+                    if (v > 140)
+                        ShaderVersion = v.ToString();
+                }
+            }
+        }
+        FLLog.Info("GL", $"Shader Version: {ShaderVersion}");
+    }
+
 
     public static GLRenderContext? Create(IntPtr sdlWindow)
     {

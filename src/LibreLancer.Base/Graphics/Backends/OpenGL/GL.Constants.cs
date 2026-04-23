@@ -182,4 +182,7 @@ internal static partial class GL
     public const int GL_CONDITION_SATISFIED = 0x911C;
 
     public const int GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS = 0x90d6;
+
+    public const int GL_NUM_SHADING_LANGUAGE_VERSIONS = 0x82e9;
+    public const int GL_SHADING_LANGUAGE_VERSION = 0x8b8c;
 }
