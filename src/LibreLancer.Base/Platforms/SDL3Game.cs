@@ -48,7 +48,7 @@ internal class SDL3Game : IGame
     {
         Width = w;
         height = h;
-        mythread = Thread.CurrentThread.ManagedThreadId;
+        mythread = Environment.CurrentManagedThreadId;
         this.allowScreensaver = allowScreensaver;
         windowsCb = WindowsCallback;
     }
@@ -235,7 +235,7 @@ internal class SDL3Game : IGame
         InterruptWait();
     }
 
-    public bool IsUiThread() => Thread.CurrentThread.ManagedThreadId == mythread;
+    public bool IsUiThread() => Environment.CurrentManagedThreadId == mythread;
 
     private string? _screenShotPath;
     private bool _screenshot;
@@ -314,7 +314,7 @@ internal class SDL3Game : IGame
 
     public void Yield()
     {
-        if (mythread != Thread.CurrentThread.ManagedThreadId)
+        if (mythread != Environment.CurrentManagedThreadId)
         {
             throw new InvalidOperationException();
         }

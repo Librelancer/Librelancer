@@ -56,7 +56,7 @@ internal class NullGame : IGame
     {
         var prevDrivers = Environment.GetEnvironmentVariable("ALSOFT_DRIVERS");
         Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "null");
-        mythread = Thread.CurrentThread.ManagedThreadId;
+        mythread = Environment.CurrentManagedThreadId;
         running = true;
         loop.OnLoad();
         TotalTime = 0;
@@ -83,7 +83,7 @@ internal class NullGame : IGame
 
     public void Yield()
     {
-        if (mythread != Thread.CurrentThread.ManagedThreadId) {
+        if (mythread != Environment.CurrentManagedThreadId) {
             throw new InvalidOperationException();
         }
         while (actions.TryDequeue(out Action? work))
@@ -95,7 +95,7 @@ internal class NullGame : IGame
     }
 
     private int mythread;
-    public bool IsUiThread() => Thread.CurrentThread.ManagedThreadId == mythread;
+    public bool IsUiThread() => Environment.CurrentManagedThreadId == mythread;
 
 
     public double TotalTime { get; set;  }

@@ -10,7 +10,7 @@ namespace LibreLancer;
 public class HeadlessContext : IGLWindow, IUIThread
 {
     internal int UiThreadId;
-    public bool IsUiThread() => UiThreadId == Thread.CurrentThread.ManagedThreadId;
+    public bool IsUiThread() => UiThreadId == Environment.CurrentManagedThreadId;
 
     private ConcurrentQueue<Action?> queue = new();
 
@@ -77,7 +77,7 @@ public class HeadlessContext : IGLWindow, IUIThread
             _ => new HeadlessContext()
             {
                 RenderContext = new RenderContext(ctx),
-                UiThreadId = Thread.CurrentThread.ManagedThreadId
+                UiThreadId = Environment.CurrentManagedThreadId
             }
         };
     }

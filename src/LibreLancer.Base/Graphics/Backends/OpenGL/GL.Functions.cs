@@ -95,7 +95,7 @@ internal static unsafe partial class GL
 
     public static void LoadSDL(Func<string,IntPtr> getProcAddress)
     {
-        tid = Thread.CurrentThread.ManagedThreadId;
+        tid = Environment.CurrentManagedThreadId;
         errors = new Dictionary<int, string>();
         errors.Add(0x0500, "Invalid Enum");
         errors.Add(0x0501, "Invalid Value");
@@ -174,7 +174,7 @@ internal static unsafe partial class GL
             return;
         }
 
-        if (Thread.CurrentThread.ManagedThreadId != tid)
+        if (Environment.CurrentManagedThreadId != tid)
         {
             throw new InvalidOperationException("Called GL off the main thread");
         }
