@@ -12,6 +12,8 @@ public partial class Simple
     public string DaArchetypeName = null!;
     [Entry("material_library", Multiline = true)]
     public List<string> MaterialLibrary = [];
+    [Entry("hit_pts")]
+    public float Hitpoints;
     [Entry("mass")]
     public float Mass;
     [Entry("LODranges")]

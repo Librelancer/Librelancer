@@ -8,4 +8,6 @@ public partial class TextureSection
 {
     [Entry("file", Multiline = true)]
     public List<string> Files = [];
+    [Entry("tex_shape", Multiline = true)]
+    public List<string> Shapes = [];
 }
