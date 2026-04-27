@@ -182,7 +182,6 @@ namespace LibreLancer
             }
 			Audio.Music.Stop (0);
 			Audio.Dispose ();
-			Screenshots.Stop();
 		}
 
 		protected override void Update (double elapsed)
