@@ -34,7 +34,7 @@ if (!(Test-Path $TestSubmodulePath)) {
         "ERROR: Submodules not present and unable to clone"
         exit 1
     }
-} else if (Test-Path $TestGitPath) {
+} elseif (Test-Path $TestGitPath) {
     if (Get-Command git -ErrorAction SilentlyContinue) {
         git submodule update --recursive
     }
