@@ -18,15 +18,6 @@ namespace LibreLancer.Utf
             this.children = children;
         }
 
-        internal static IntermediateNode IntermediateV2(string name, BinaryReader reader,
-            StringBlock stringBlock, byte[] dataBlock)
-        {
-            var childCount = (int) reader.ReadVarUInt64();
-            var children = new List<Node>(childCount);
-            for (var i = 0; i < childCount; i++)
-                children.Add(FromStreamV2(reader, stringBlock, dataBlock));
-            return new IntermediateNode(name, children);
-        }
 
         public IntermediateNode(int peerOffset, string name, BinaryReader reader, StringBlock stringBlock,
             byte[] dataBlock)

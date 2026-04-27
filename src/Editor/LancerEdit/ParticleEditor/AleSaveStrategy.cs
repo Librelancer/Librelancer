@@ -52,7 +52,7 @@ namespace LancerEdit
             var (fxlib, nodelib) = aleTab.ParticleFile.Serialize();
             fxlibNode.Data = AleNodeWriter.WriteALEffectLib(fxlib);
             nodelibNode.Data = AleNodeWriter.WriteAlchemyNodeLibrary(nodelib);
-            return aleTab.Utf.Save(path, 0);
+            return aleTab.Utf.Save(path);
         }
 
 

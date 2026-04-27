@@ -15,27 +15,6 @@ namespace LibreLancer.Utf
         private const int TAG_LEN = 4;
         public const int FILE_VERSION = 257;
 
-        protected static IntermediateNode ParseV2(string path, BinaryReader reader)
-        {
-            byte ver = reader.ReadByte();
-            if (ver != 1)
-                throw new FileVersionException(path, "XUTF", ver, 1);
-            uint stringBlockLength = reader.ReadUInt32();
-            uint nodeBlockLength = reader.ReadUInt32();
-            uint dataBlockLength = reader.ReadUInt32();
-            var stringBlock = reader.ReadBytes((int)stringBlockLength);
-            // Node block
-            var nodeBlock = reader.ReadBytes((int)nodeBlockLength);
-            var dataBlock = reader.ReadBytes((int)dataBlockLength);
-            using (BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock)))
-            {
-                var root =
-                    Node.FromStreamV2(nodeReader, new StringBlock(stringBlock, true), dataBlock) as IntermediateNode;
-                if (root == null)
-                    throw new FileContentException(UtfFile.FILE_TYPE, "The root node doesn't have any child nodes.");
-                return root;
-            }
-        }
 
         [StructLayout(LayoutKind.Sequential)]
         private struct UtfHeader
@@ -62,11 +41,6 @@ namespace LibreLancer.Utf
             Span<byte> buffer = stackalloc byte[TAG_LEN];
             reader.Read(buffer);
             string fileType = Encoding.ASCII.GetString(buffer);
-            if (buffer.SequenceEqual("XUTF"u8))
-            {
-                return ParseV2(path, reader);
-            }
-
             if (!buffer.SequenceEqual("UTF "u8))
                 throw new FileFormatException(path, fileType, FILE_TYPE);
 
@@ -91,15 +65,15 @@ namespace LibreLancer.Utf
 
             nodeBlock = new byte[header.NodeBlockSize];
             reader.BaseStream.Seek(header.NodeBlockOffset, SeekOrigin.Begin);
-            reader.Read(nodeBlock);
+            reader.ReadExactly(nodeBlock);
 
             stringBlock = new byte[header.StringBlockSize];
             reader.BaseStream.Seek(header.StringBlockOffset, SeekOrigin.Begin);
-            reader.Read(stringBlock);
+            reader.ReadExactly(stringBlock);
 
             dataBlock = new byte[(int)(fileLength - header.DataBlockOffset)];
             reader.BaseStream.Seek(header.DataBlockOffset, SeekOrigin.Begin);
-            reader.Read(dataBlock);
+            reader.ReadExactly(dataBlock);
 
             using BinaryReader nodeReader = new BinaryReader(new MemoryStream(nodeBlock));
 
