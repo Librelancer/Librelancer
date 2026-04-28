@@ -930,6 +930,7 @@ namespace LancerEdit
                 {
                     if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0) && h2 < 29 * ImGuiHelper.Scale)
                         h2 = 200 * ImGuiHelper.Scale;
+                    bottomTab = 0;
                     ImGui.EndTabItem();
                 }
                 if (Config.FilesVisible && ImGui.BeginTabItem("Files", ref Config.FilesVisible, ImGuiTabItemFlags.None))
