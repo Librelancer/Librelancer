@@ -48,7 +48,7 @@ namespace LibreLancer.Thorn.Bytecode
 		static byte[] ReadBytes (Stream stream, int length)
 		{
 			byte[] buf = new byte[length];
-			stream.Read (buf, 0, length);
+            stream.ReadExactly(buf);
 			return buf;
 		}
 
@@ -155,7 +155,8 @@ namespace LibreLancer.Thorn.Bytecode
 		static bool LoadSignature (Stream stream)
 		{
 			byte[] buffer = new byte[3];
-			stream.Read (buffer, 0, 3);
+            if (stream.Read(buffer) < 3)
+                return false;
 			if (buffer [0] != (byte)SIGNATURE [0] || buffer [1] != (byte)SIGNATURE [1] || buffer [2] != (byte)SIGNATURE [2])
 				return false;
 			return true;

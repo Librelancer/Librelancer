@@ -370,7 +370,8 @@ internal class Program
     {
         using var stream = File.OpenRead(path);
         Span<byte> mz = stackalloc byte[2];
-        stream.Read(mz);
+        if (stream.Read(mz) < 2)
+            return false;
         return mz[0] == (byte)'M' && mz[1] == (byte)'Z';
     }
 
