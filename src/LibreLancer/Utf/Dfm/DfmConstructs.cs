@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 using System.IO;
-    
+
 namespace LibreLancer.Utf.Dfm
 {
     public class DfmConstructs
@@ -12,7 +12,7 @@ namespace LibreLancer.Utf.Dfm
 
         public void AddNode(IntermediateNode root)
         {
-            foreach (LeafNode conNode in root)
+            foreach (LeafNode conNode in root.Children)
             {
                 using (BinaryReader reader = new BinaryReader(conNode.DataSegment.GetReadStream()))
                 {

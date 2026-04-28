@@ -15,7 +15,7 @@ namespace LibreLancer.Utf.Mat
 		public TexFrame[] Frames = [];
 		public TexFrameAnimation(IntermediateNode node)
 		{
-			foreach (var child in node)
+			foreach (var child in node.Children)
 			{
                 if (child is not LeafNode leaf)
                 {

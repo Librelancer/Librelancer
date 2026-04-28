@@ -30,10 +30,10 @@ namespace LibreLancer.Utf.Vms
 
         private void setMeshes(IntermediateNode vMeshLibrary)
         {
-            foreach (var vmsNode in vMeshLibrary.OfType<IntermediateNode>())
+            foreach (var vmsNode in vMeshLibrary.Children.OfType<IntermediateNode>())
             {
                 var vMeshDataNode =
-                    vmsNode.FirstOrDefault(x => x.Name.Equals("VMeshData", StringComparison.OrdinalIgnoreCase));
+                    vmsNode.Children.FirstOrDefault(x => x.Name.Equals("VMeshData", StringComparison.OrdinalIgnoreCase));
 
                 if (vMeshDataNode == null)
                 {
@@ -41,7 +41,7 @@ namespace LibreLancer.Utf.Vms
                     continue;
                 }
 
-                if (vmsNode[0] is not LeafNode vmsdat)
+                if (vmsNode.Children[0] is not LeafNode vmsdat)
                 {
                     FLLog.Error("VMS", "Invalid VMeshLibrary: VMeshData has no bytes: " + vmsNode.Name);
                 }

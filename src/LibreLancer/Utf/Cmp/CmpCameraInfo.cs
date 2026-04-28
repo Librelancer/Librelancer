@@ -15,12 +15,12 @@ namespace LibreLancer.Utf.Cmp
 
         public CmpCameraInfo(IntermediateNode node)
         {
-            var cameraNode = (node.FirstOrDefault((x) => x.Name.Equals("camera", StringComparison.OrdinalIgnoreCase)) as IntermediateNode);
+            var cameraNode = (node.Children.FirstOrDefault((x) => x.Name.Equals("camera", StringComparison.OrdinalIgnoreCase)) as IntermediateNode);
             if(cameraNode == null) {
                 FLLog.Error("Cmp", "Camera does not contain valid camera node"); // This won't be thrown in normal loading
                 return;
             }
-            foreach(var child in cameraNode)
+            foreach(var child in cameraNode.Children)
             {
                 var leaf = (child as LeafNode);
                 if(leaf == null)

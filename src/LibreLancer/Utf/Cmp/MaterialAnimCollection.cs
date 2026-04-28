@@ -12,7 +12,7 @@ namespace LibreLancer.Utf.Cmp
         private List<MaterialAnim> updateList = [];
 		public MaterialAnimCollection(IntermediateNode node)
 		{
-			foreach (var n in node)
+			foreach (var n in node.Children)
 			{
 				if (n is IntermediateNode intermediateNode)
 				{

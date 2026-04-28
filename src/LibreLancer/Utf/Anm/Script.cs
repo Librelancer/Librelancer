@@ -22,23 +22,25 @@ namespace LibreLancer.Utf.Anm
             JointMaps = [];
         }
 
-        public float CalculateDuration()
-        {
-            float duration = 0;
-            foreach (var j in JointMaps)
-            {
-                duration = Math.Max(duration, j.Channel.Duration);
-            }
-            return duration;
-        }
-
-
         public Script(IntermediateNode root, AnmBuffer buffer, StringDeduplication strings)
         {
             Name = root.Name;
-			var om = new RefList<ObjectMap>();
-			var jm = new RefList<JointMap>();
-            foreach (Node node in root)
+
+            int omCount = 0;
+            int jmCount = 0;
+
+            foreach (Node node in root.Children)
+            {
+                if (node.Name.StartsWith("object map", StringComparison.OrdinalIgnoreCase))
+                    omCount++;
+                else if (node.Name.StartsWith("joint map", StringComparison.OrdinalIgnoreCase))
+                    jmCount++;
+            }
+
+            var om = new RefList<ObjectMap>(omCount);
+            var jm = new RefList<JointMap>(jmCount);
+
+            foreach (Node node in root.Children)
             {
                 if (node.Name.Equals("root height", StringComparison.OrdinalIgnoreCase))
                 {
@@ -54,9 +56,6 @@ namespace LibreLancer.Utf.Anm
                     FLLog.Warning("Anm", $"{root.Name}: invalid node {node.Name}, possible broken animation?");
                 }
             }
-
-            om.Shrink();
-            jm.Shrink();
 
             ObjectMaps = om;
             JointMaps = jm;

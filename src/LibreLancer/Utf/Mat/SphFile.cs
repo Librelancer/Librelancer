@@ -98,7 +98,7 @@ namespace LibreLancer.Utf.Mat
 
             var sphereSet = false;
 
-            foreach (IntermediateNode node in root.OfType<IntermediateNode>())
+            foreach (IntermediateNode node in root.Children.OfType<IntermediateNode>())
             {
                 switch (node.Name.ToLowerInvariant())
                 {
@@ -106,7 +106,7 @@ namespace LibreLancer.Utf.Mat
                         if (sphereSet) throw new Exception("Multiple sphere nodes");
                         sphereSet = true;
 
-                        foreach (var sphereSubNode in node.OfType<LeafNode>())
+                        foreach (var sphereSubNode in node.Children.OfType<LeafNode>())
                         {
                             var name = sphereSubNode.Name.ToLowerInvariant();
 

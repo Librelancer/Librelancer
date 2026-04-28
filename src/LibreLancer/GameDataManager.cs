@@ -80,7 +80,7 @@ public class GameDataManager
             AnmFile.ParseToTable(characterAnimations.Scripts, characterAnimations.Buffer, stringTable, stream, path);
         }
 
-        characterAnimations.Buffer.Shrink();
+        characterAnimations.Buffer.Commit();
 
         return characterAnimations;
     }

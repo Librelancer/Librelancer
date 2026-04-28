@@ -17,7 +17,7 @@ namespace LibreLancer.Utf
 		{
 			var cmpnd = false;
 			var model = false;
-			foreach (var node in root)
+			foreach (var node in root.Children)
 			{
                 switch (node.Name.ToLowerInvariant())
                 {
@@ -71,7 +71,7 @@ namespace LibreLancer.Utf
             vms = null;
             try
             {
-                foreach (var node in root.OfType<IntermediateNode>())
+                foreach (var node in root.Children.OfType<IntermediateNode>())
                 {
                     switch (node.Name.ToLowerInvariant())
                     {

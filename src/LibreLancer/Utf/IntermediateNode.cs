@@ -9,13 +9,13 @@ using System.IO;
 
 namespace LibreLancer.Utf
 {
-    public class IntermediateNode : Node, IList<Node>
+    public class IntermediateNode : Node
     {
-        private readonly List<Node> children;
+        public readonly List<Node> Children = [];
 
         public IntermediateNode(string name, List<Node> children) : base(name)
         {
-            this.children = children;
+            this.Children = children;
         }
 
 
@@ -26,7 +26,7 @@ namespace LibreLancer.Utf
             // int zero = reader.ReadInt32();
             reader.BaseStream.Seek(sizeof(int), SeekOrigin.Current);
 
-            children = [];
+            Children = [];
 
             var childOffset = reader.ReadInt32();
 
@@ -39,9 +39,9 @@ namespace LibreLancer.Utf
 
             do
             {
-                if (children.Count > 500000) throw new Exception("Node overflow. Broken UTF?");
+                if (Children.Count > 500000) throw new Exception("Node overflow. Broken UTF?");
                 Node n = Node.FromStream(reader, next, stringBlock, dataBlock);
-                children.Add(n);
+                Children.Add(n);
                 next = n.PeerOffset;
             } while (next > 0);
             // else
@@ -55,90 +55,11 @@ namespace LibreLancer.Utf
             // int timestamp3 = reader.ReadInt32();
         }
 
-        public int IndexOf(Node item)
-        {
-            return children?.IndexOf(item) ?? -1;
-        }
-
-        public void Insert(int index, Node item)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void RemoveAt(int index)
-        {
-            throw new NotSupportedException();
-        }
-
-        public Node this[int index]
-        {
-            get => children[index];
-            set => throw new NotSupportedException();
-        }
-
-        public Node? this[string name]
-        {
-            get
-            {
-                IEnumerable<Node> candidates = children.Where(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase)).ToArray();
-                var count = candidates.Count();
-                /*if (count == 1)
-                    return candidates.First<Node>();
-                else if (count == 0)
-                    return null;
-                else
-                    throw new FileContentsException(UtfFile.FILE_TYPE, count + " Peer nodes with the name " + name);*/
-                return count == 0 ? null : candidates.First<Node>();
-            }
-        }
-
-        public void Add(Node item)
-        {
-            throw new NotSupportedException();
-        }
-
-        public void Clear()
-        {
-            throw new NotSupportedException();
-        }
-
-        public bool Contains(Node item)
-        {
-            return children?.Contains(item) ?? false;
-        }
-
-        public bool Contains(string name)
-        {
-            return children?.Count(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) == 1;
-        }
-
-        public void CopyTo(Node[] array, int arrayIndex)
-        {
-            children?.CopyTo(array, arrayIndex);
-        }
-
-        public int Count => children?.Count ?? 0;
-        public bool IsReadOnly => true;
-
-        public bool Remove(Node item)
-        {
-            throw new NotSupportedException();
-        }
-
-        public IEnumerator<Node> GetEnumerator()
-        {
-            return children.GetEnumerator();
-        }
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return children.GetEnumerator();
-        }
 
         public override string ToString()
         {
             var result = "{Inter: " + base.ToString() + "{";
-            result = children.Aggregate(result, (current, n) => current + (n + ", "));
+            result = Children.Aggregate(result, (current, n) => current + (n + ", "));
             return result + "}";
         }
     }

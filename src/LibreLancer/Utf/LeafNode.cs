@@ -105,13 +105,8 @@ namespace LibreLancer.Utf
         {
             get
             {
-                int len = dataLength;
-                for (int i = 0; i < dataLength; i++)  {
-                    if (dataArray[dataStart + i] == 0) {
-                        len = i;
-                        break;
-                    }
-                }
+                int idx0 = DataSegment.AsSpan(0, dataLength).IndexOf((byte)0);
+                int len = idx0 >= 0 ? idx0 : dataLength;
                 return Encoding.ASCII.GetString(dataArray, dataStart, len);
             }
         }
@@ -202,12 +197,6 @@ namespace LibreLancer.Utf
 
         private static readonly byte[] empty = [];
 
-        internal static LeafNode LeafV2(string name, BinaryReader reader, byte[] dataBlock)
-        {
-            int start = (int)reader.ReadVarUInt64();
-            int len = (int)reader.ReadVarUInt64();
-            return new LeafNode(name, dataBlock, start, len);
-        }
         public LeafNode(int peerOffset, string name, BinaryReader reader, byte[] dataBlock)
             : base(peerOffset, name)
         {

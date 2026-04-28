@@ -62,7 +62,7 @@ public class EditableAnmBuffer : AnmBuffer
         }
     }
 
-    public override int Take(int size)
+    public override int Append(ArraySegment<byte> segment)
     {
         throw new InvalidOperationException("Should never be called");
     }

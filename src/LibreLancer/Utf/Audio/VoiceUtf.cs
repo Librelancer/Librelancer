@@ -15,7 +15,7 @@ namespace LibreLancer.Utf.Audio
         public Dictionary<uint, byte[]> AudioFiles = new();
         public VoiceUtf(string path, Stream stream)
         {
-            foreach(var child in parseFile(path, stream))
+            foreach(var child in parseFile(path, stream).Children)
             {
                 if(!(child is LeafNode))
                 {

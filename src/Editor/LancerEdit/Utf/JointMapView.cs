@@ -29,7 +29,7 @@ namespace LancerEdit
             scriptName = node.Parent.Name;
             var b = new AnmBuffer();
             map = new JointMap(EditableUtf.NodeToEngine(node), b);
-            b.Shrink();
+            b.Commit();
         }
 
         private bool open = true;

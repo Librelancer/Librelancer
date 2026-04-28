@@ -26,7 +26,7 @@ namespace LibreLancer.Utf.Dfm
             Name = name;
 			Hardpoints = [];
 
-			foreach (Node subNode in node)
+			foreach (Node subNode in node.Children)
 			{
 				switch (subNode.Name.ToLowerInvariant())
 				{
@@ -38,16 +38,16 @@ namespace LibreLancer.Utf.Dfm
 					break;
 				case "hardpoints":
 					IntermediateNode hardpointsNode = (subNode as IntermediateNode)!;
-					foreach (var hardpointTypeNode in hardpointsNode.OfType<IntermediateNode>())
+					foreach (var hardpointTypeNode in hardpointsNode.Children.OfType<IntermediateNode>())
 					{
 						switch (hardpointTypeNode.Name.ToLowerInvariant())
 						{
 						case "fixed":
-							foreach (var fixedNode in hardpointTypeNode.OfType<IntermediateNode>())
+							foreach (var fixedNode in hardpointTypeNode.Children.OfType<IntermediateNode>())
 								Hardpoints.Add(new FixedHardpointDefinition(fixedNode));
 							break;
 						case "revolute":
-							foreach (var revoluteNode in hardpointTypeNode.OfType<IntermediateNode>())
+							foreach (var revoluteNode in hardpointTypeNode.Children.OfType<IntermediateNode>())
 								Hardpoints.Add(new RevoluteHardpointDefinition(revoluteNode));
 							break;
 						default: throw new Exception("Invalid node in " + hardpointsNode.Name + ": " + hardpointTypeNode.Name);

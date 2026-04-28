@@ -17,7 +17,7 @@ namespace LibreLancer.Utf.Cmp
         public RevoluteHardpointDefinition(IntermediateNode root)
             : base(root)
         {
-            foreach (var node in root.OfType<LeafNode>())
+            foreach (var node in root.Children.OfType<LeafNode>())
             {
                 if (!parentNode(node))
                     switch (node.Name.ToLowerInvariant())

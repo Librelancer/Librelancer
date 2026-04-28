@@ -19,13 +19,13 @@ namespace LibreLancer.Utf.Cmp
 
         public VMeshWire(IntermediateNode node)
         {
-            if(node is not [LeafNode] || 
-               !string.Equals(node[0].Name,"vwiredata",StringComparison.OrdinalIgnoreCase))
+            if(node.Children is not [LeafNode] ||
+               !string.Equals(node.Children[0].Name,"vwiredata",StringComparison.OrdinalIgnoreCase))
             {
                 throw new Exception("Invalid VMeshWire node");
             }
 
-            ReadWireData(((LeafNode) node[0]).DataSegment);
+            ReadWireData(((LeafNode) node.Children[0]).DataSegment);
         }
 
 

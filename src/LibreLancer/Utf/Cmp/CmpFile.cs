@@ -51,7 +51,7 @@ namespace LibreLancer.Utf.Cmp
             Parts = [];
             List<string> modelNames = [];
 
-            foreach (Node node in rootnode)
+            foreach (Node node in rootnode.Children)
             {
                 var im = (node as IntermediateNode)!;
 
@@ -80,7 +80,7 @@ namespace LibreLancer.Utf.Cmp
                             : throw new Exception("Multiple texture library nodes in cmp root");
                         break;
                     case "cmpnd":
-                        foreach (Node subNode in im)
+                        foreach (Node subNode in im.Children)
                         {
                             if (subNode is LeafNode)
                             {
@@ -100,7 +100,7 @@ namespace LibreLancer.Utf.Cmp
                             {
                                 string objectName = string.Empty, fileName = string.Empty;
 
-                                foreach (var cmpSubNode in imSubNode)
+                                foreach (var cmpSubNode in imSubNode.Children)
                                 {
                                     var leafSubNode = (LeafNode) cmpSubNode;
 
@@ -145,7 +145,7 @@ namespace LibreLancer.Utf.Cmp
                             break;
                         }
 
-                        if (im.Any(x => x.Name.Equals("camera", StringComparison.OrdinalIgnoreCase)))
+                        if (im.Children.Any(x => x.Name.Equals("camera", StringComparison.OrdinalIgnoreCase)))
                         {
                             var cam = new CmpCameraInfo(im);
                             Cameras.Add(im.Name, cam);

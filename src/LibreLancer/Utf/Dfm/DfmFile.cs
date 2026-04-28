@@ -51,7 +51,7 @@ namespace LibreLancer.Utf.Dfm
 			Parts = new Dictionary<int, DfmPart>();
 			Constructs = new DfmConstructs();
 
-			foreach (Node node in root)
+			foreach (Node node in root.Children)
 			{
 				switch (node.Name.ToLowerInvariant())
 				{
@@ -69,7 +69,7 @@ namespace LibreLancer.Utf.Dfm
 					break;
 				case "multilevel":
 					IntermediateNode multiLevelNode = (node as IntermediateNode)!;
-					foreach (Node multiLevelSubNode in multiLevelNode)
+					foreach (Node multiLevelSubNode in multiLevelNode.Children)
 					{
 						if (multiLevelSubNode.Name.StartsWith("mesh", StringComparison.OrdinalIgnoreCase))
 						{
@@ -89,7 +89,7 @@ namespace LibreLancer.Utf.Dfm
 					break;
 				case "skeleton":
 					IntermediateNode skeletonNode = (node as IntermediateNode)!;
-					foreach (var skeletonSubNode in skeletonNode.OfType<LeafNode>())
+					foreach (var skeletonSubNode in skeletonNode.Children.OfType<LeafNode>())
 					{
 						switch (skeletonSubNode.Name.ToLowerInvariant())
 						{
@@ -103,7 +103,7 @@ namespace LibreLancer.Utf.Dfm
 					break;
 				case "cmpnd":
 					IntermediateNode cmpndNode = (node as IntermediateNode)!;
-					foreach (Node cmpndSubNode in cmpndNode)
+					foreach (Node cmpndSubNode in cmpndNode.Children)
 					{
 						if (cmpndSubNode.Name.Equals("scale", StringComparison.OrdinalIgnoreCase))
 						{
@@ -124,7 +124,7 @@ namespace LibreLancer.Utf.Dfm
 							string objectName = string.Empty, fileName = string.Empty;
 							int index = -1;
 
-							foreach (LeafNode partNode in partsNode)
+							foreach (LeafNode partNode in partsNode.Children)
 							{
 								switch (partNode.Name.ToLowerInvariant())
 								{

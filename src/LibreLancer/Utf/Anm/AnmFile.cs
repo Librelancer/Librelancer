@@ -21,7 +21,7 @@ namespace LibreLancer.Utf.Anm
                 Scripts = table
             };
 
-            foreach (IntermediateNode node in parseFile(path, stream).OfType<IntermediateNode>())
+            foreach (IntermediateNode node in parseFile(path, stream).Children.OfType<IntermediateNode>())
             {
                 switch (node.Name.ToLowerInvariant())
                 {
@@ -37,7 +37,7 @@ namespace LibreLancer.Utf.Anm
         public AnmFile(string path, Stream stream)
         {
             var table = new StringDeduplication();
-            foreach (IntermediateNode node in parseFile(path, stream).OfType<IntermediateNode>())
+            foreach (IntermediateNode node in parseFile(path, stream).Children.OfType<IntermediateNode>())
             {
                 switch (node.Name.ToLowerInvariant())
                 {
@@ -57,19 +57,19 @@ namespace LibreLancer.Utf.Anm
         public AnmFile(IntermediateNode root)
         {
             Load(root, new StringDeduplication());
-            Buffer.Shrink();
+            Buffer.Commit();
         }
 
         private void Load(IntermediateNode root, StringDeduplication strings)
         {
-            foreach (var node in root)
+            foreach (var node in root.Children)
             {
                 if (!node.Name.Equals("script", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                foreach (var scNode in (IntermediateNode)node)
+                foreach (var scNode in ((IntermediateNode)node).Children)
                 {
                     Scripts[scNode.Name] = new Script((IntermediateNode)scNode, Buffer, strings);
                 }

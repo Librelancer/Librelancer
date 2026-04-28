@@ -28,7 +28,7 @@ namespace LibreLancer.Utf.Mat
         private void setMaterials(IntermediateNode materialLibraryNode)
         {
             // TODO: int count = 0;
-            foreach (Node materialNode in materialLibraryNode)
+            foreach (Node materialNode in materialLibraryNode.Children)
             {
                 if (materialNode is not IntermediateNode node)
                 {

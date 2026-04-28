@@ -21,15 +21,15 @@ namespace LibreLancer.Utf.Ale
         public AleFile(IntermediateNode root)
         {
             // TODO: This is ugly
-            foreach (var node in root)
+            foreach (var node in root.Children)
             {
                 switch (node.Name.ToLowerInvariant())
                 {
                     case "aleffectlib":
-                        FxLib = new ALEffectLib(((node as IntermediateNode)![0] as LeafNode)!);
+                        FxLib = new ALEffectLib(((node as IntermediateNode)!.Children[0] as LeafNode)!);
                         break;
                     case "alchemynodelibrary":
-                        NodeLib = new AlchemyNodeLibrary(((node as IntermediateNode)![0] as LeafNode)!);
+                        NodeLib = new AlchemyNodeLibrary(((node as IntermediateNode)!.Children[0] as LeafNode)!);
                         break;
                     default:
                         throw new NotImplementedException(node.Name);

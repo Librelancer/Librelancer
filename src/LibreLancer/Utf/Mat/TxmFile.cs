@@ -28,7 +28,7 @@ namespace LibreLancer.Utf.Mat
 
         private void setTextures(IntermediateNode textureLibraryNode)
         {
-            foreach (var textureNode in textureLibraryNode)
+            foreach (var textureNode in textureLibraryNode.Children)
             {
                 if (textureNode is LeafNode)
                 {
@@ -43,13 +43,13 @@ namespace LibreLancer.Utf.Mat
                 bool isTexture = true;
                 bool isTgaMips = false;
 
-                if (imNode!.Count == 1)
+                if (imNode!.Children.Count == 1)
                 {
-                    child = imNode[0] as LeafNode;
+                    child = imNode.Children[0] as LeafNode;
                 }
                 else
                 {
-                    foreach (var node in imNode)
+                    foreach (var node in imNode.Children)
                     {
                         var n = node.Name.ToLowerInvariant().Trim();
 
@@ -89,7 +89,7 @@ namespace LibreLancer.Utf.Mat
 
                     if (isTgaMips)
                     {
-                        foreach (var node in imNode)
+                        foreach (var node in imNode.Children)
                             data.SetLevel(node);
                     }
 

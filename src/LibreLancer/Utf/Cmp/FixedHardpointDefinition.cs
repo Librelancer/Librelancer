@@ -11,7 +11,7 @@ namespace LibreLancer.Utf.Cmp
         public FixedHardpointDefinition(IntermediateNode root)
             : base(root)
         {
-            foreach (LeafNode node in root)
+            foreach (LeafNode node in root.Children)
             {
                 if (!parentNode(node))
                     throw new Exception("Invalid LeafNode in " + root.Name + ": " + node.Name);

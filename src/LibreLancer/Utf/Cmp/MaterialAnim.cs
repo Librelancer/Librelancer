@@ -13,7 +13,7 @@ namespace LibreLancer.Utf.Cmp
 
 		public MaterialAnim(IntermediateNode node)
 		{
-			foreach (var child in node)
+			foreach (var child in node.Children)
 			{
 				if (child is IntermediateNode)
 					throw new Exception("Invalid node in MaterialAnim " + child.Name);

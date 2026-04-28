@@ -312,7 +312,7 @@ namespace LibreLancer.Utf.Anm
             // Fetch from nodes
             this.buffer = buffer;
             ArraySegment<byte> cdata = new ArraySegment<byte>();
-            foreach (LeafNode node in root)
+            foreach (LeafNode node in root.Children)
             {
                 if (node.Name.Equals("header", StringComparison.OrdinalIgnoreCase))
                 {
@@ -327,8 +327,7 @@ namespace LibreLancer.Utf.Anm
                 }
             }
 
-            startIdx = buffer.Take(cdata.Count);
-            cdata.CopyTo(buffer.Buffer, startIdx);
+            startIdx = buffer.Append(cdata);
 
             if (((header & 0x1) == 0x1) &&
                 (header != 0x1))

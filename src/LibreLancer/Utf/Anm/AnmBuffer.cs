@@ -1,29 +1,33 @@
 using System;
+using System.Collections.Generic;
 
 namespace LibreLancer.Utf.Anm;
 
 public class AnmBuffer
 {
-    public byte[] Buffer = new byte[2048];
+    public byte[] Buffer = [];
+
+    private List<ArraySegment<byte>> buffers = [];
     private int usedCount = 0;
 
-    public virtual int Take(int size)
+    public virtual int Append(ArraySegment<byte> segment)
     {
-        if (Buffer.Length < usedCount + size)
-        {
-            int newSize = Math.Max(Buffer.Length * 2, usedCount + size);
-            Array.Resize(ref Buffer, newSize);
-        }
-
-        var t = usedCount;
-        usedCount += size;
-        return t;
+        var ptr = usedCount;
+        buffers.Add(segment);
+        usedCount += segment.Count;
+        return ptr;
     }
 
-    public void Shrink()
+    public void Commit()
     {
-        if (Buffer.Length > usedCount) {
-            Array.Resize(ref Buffer, usedCount);
+        int offset = 0;
+        Buffer = new byte[usedCount];
+        foreach (var b in buffers)
+        {
+            b.CopyTo(Buffer, offset);
+            offset += b.Count;
         }
+        usedCount = 0;
+        buffers = [];
     }
 }

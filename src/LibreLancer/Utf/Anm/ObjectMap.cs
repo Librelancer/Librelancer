@@ -14,7 +14,7 @@ namespace LibreLancer.Utf.Anm
 
         public ObjectMap(IntermediateNode root, AnmBuffer buffer, StringDeduplication? dedup = null)
         {
-            foreach (Node node in root)
+            foreach (Node node in root.Children)
             {
                 var leaf = (node as LeafNode)!;
                 var intermediate = (node as IntermediateNode)!;

@@ -14,7 +14,7 @@ namespace LibreLancer.Utf
 
         public void AddNode(IntermediateNode root)
         {
-            foreach (LeafNode conNode in root)
+            foreach (LeafNode conNode in root.Children)
             {
                 using (BinaryReader reader = new BinaryReader(conNode.DataSegment.GetReadStream()))
                 {

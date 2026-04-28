@@ -21,7 +21,7 @@ namespace LibreLancer.Utf.Dfm
 
         public FaceGroup(IntermediateNode root)
 		{
-			foreach (var node in root.OfType<LeafNode>())
+			foreach (var node in root.Children.OfType<LeafNode>())
 			{
 				switch (node.Name.ToLowerInvariant())
 				{

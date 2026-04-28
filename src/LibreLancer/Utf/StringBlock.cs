@@ -11,30 +11,18 @@ namespace LibreLancer.Utf
     {
         private Dictionary<int,string> strings = new();
         private byte[] stringBlock;
-        private string asciiSource = null!;
-        private bool lenPrefixed;
 
-        public StringBlock(byte[] block, bool lenPrefixed)
+        public StringBlock(byte[] block)
         {
             stringBlock = block;
-            this.lenPrefixed = lenPrefixed;
-            if (!lenPrefixed) asciiSource = Encoding.ASCII.GetString(block);
         }
         public string GetString(int nameOffset)
         {
             if (!strings.TryGetValue(nameOffset, out var str))
             {
-                if (lenPrefixed)
-                {
-                    var length = BitConverter.ToUInt16(stringBlock, nameOffset);
-                    str = Encoding.UTF8.GetString(stringBlock, nameOffset + 2, length);
-                    strings.Add(nameOffset, str);
-                }
-                else
-                {
-                    str = asciiSource.Substring(nameOffset, asciiSource.IndexOf('\0', nameOffset) - nameOffset);
-                    strings.Add(nameOffset, str);
-                }
+                var len = stringBlock.AsSpan(nameOffset).IndexOf((byte)0);
+                str = Encoding.ASCII.GetString(stringBlock, nameOffset, len);
+                strings.Add(nameOffset, str);
             }
             return str;
         }

@@ -47,7 +47,7 @@ namespace LibreLancer.Utf.Cmp
             Hardpoints = [];
             var lvls = new Dictionary<int, VMeshRef>();
 
-            foreach (Node node in root)
+            foreach (Node node in root.Children)
             {
                 switch (node.Name.ToLowerInvariant())
                 {
@@ -71,7 +71,7 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     case "hardpoints":
                         if(node is not IntermediateNode hardpointsNode) break;
-                        foreach (Node hpn in hardpointsNode)
+                        foreach (Node hpn in hardpointsNode.Children)
                         {
 							if (hpn is LeafNode)
 								continue; // No nodes here
@@ -80,11 +80,11 @@ namespace LibreLancer.Utf.Cmp
                             {
                                 // OfType<> to avoid crashes with bad models
                                 case "fixed":
-                                    foreach (IntermediateNode fixedNode in hardpointTypeNode.OfType<IntermediateNode>())
+                                    foreach (IntermediateNode fixedNode in hardpointTypeNode.Children.OfType<IntermediateNode>())
                                         Hardpoints.Add(new FixedHardpointDefinition(fixedNode));
                                     break;
                                 case "revolute":
-                                    foreach (IntermediateNode revoluteNode in hardpointTypeNode.OfType<IntermediateNode>())
+                                    foreach (IntermediateNode revoluteNode in hardpointTypeNode.Children.OfType<IntermediateNode>())
                                         Hardpoints.Add(new RevoluteHardpointDefinition(revoluteNode));
                                     break;
                                 default:
@@ -96,9 +96,9 @@ namespace LibreLancer.Utf.Cmp
                     case "vmeshpart":
                         {
                             IntermediateNode vMeshPartNode = (node as IntermediateNode)!;
-                            if (vMeshPartNode.Count == 1)
+                            if (vMeshPartNode.Children.Count == 1)
                             {
-                                LeafNode vMeshRefNode = (vMeshPartNode[0] as LeafNode)!;
+                                LeafNode vMeshRefNode = (vMeshPartNode.Children[0] as LeafNode)!;
                                 lvls.Add(0, new VMeshRef(vMeshRefNode.DataSegment));
                             }
                             else throw new Exception("Invalid VMeshPart: More than one child or zero elements");
@@ -106,7 +106,7 @@ namespace LibreLancer.Utf.Cmp
                         break;
                     case "multilevel":
                         IntermediateNode multiLevelNode = (node as IntermediateNode)!;
-                        foreach (Node multiLevelSubNode in multiLevelNode)
+                        foreach (Node multiLevelSubNode in multiLevelNode.Children)
                         {
                             if (multiLevelSubNode.Name.StartsWith("level", StringComparison.OrdinalIgnoreCase))
                             {
@@ -115,7 +115,7 @@ namespace LibreLancer.Utf.Cmp
 
                                 IntermediateNode levelNode = (multiLevelSubNode as IntermediateNode)!;
 
-                                if (levelNode.Count != 1)
+                                if (levelNode.Children.Count != 1)
                                 {
                                     continue;
                                 }
@@ -125,11 +125,11 @@ namespace LibreLancer.Utf.Cmp
                                     throw new Exception("Invalid Level: Missing index");
                                 }
 
-                                IntermediateNode vMeshPartNode = (levelNode[0] as IntermediateNode)!;
+                                IntermediateNode vMeshPartNode = (levelNode.Children[0] as IntermediateNode)!;
 
-                                if (vMeshPartNode.Count == 1)
+                                if (vMeshPartNode.Children.Count == 1)
                                 {
-                                    if (vMeshPartNode[0] is LeafNode vMeshRefNode && vMeshRefNode.Name.Equals("vmeshref",
+                                    if (vMeshPartNode.Children[0] is LeafNode vMeshRefNode && vMeshRefNode.Name.Equals("vmeshref",
                                             StringComparison.OrdinalIgnoreCase))
                                     {
                                         lvls.Add(level, new VMeshRef(vMeshRefNode.DataSegment));

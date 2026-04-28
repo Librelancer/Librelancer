@@ -52,14 +52,14 @@ namespace LibreLancer.Utf.Dfm
             this.parts = parts;
             FaceGroups = [];
 
-            foreach (IntermediateNode node in root)
+            foreach (IntermediateNode node in root.Children)
             {
                 switch (node.Name.ToLowerInvariant())
                 {
                     case "face_groups":
                         IntermediateNode faceGroupsNode = node;
 
-                        foreach (Node faceGroupNode in faceGroupsNode)
+                        foreach (Node faceGroupNode in faceGroupsNode.Children)
                         {
                             if (faceGroupNode.Name.ToLowerInvariant() == "count")
                             {
@@ -76,7 +76,7 @@ namespace LibreLancer.Utf.Dfm
 
                         break;
                     case "geometry":
-                        foreach (LeafNode geometrySubNode in node)
+                        foreach (LeafNode geometrySubNode in node.Children)
                         {
                             switch (geometrySubNode.Name.ToLowerInvariant())
                             {

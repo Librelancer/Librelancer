@@ -51,7 +51,7 @@ public class AleNodeWriterTests
         var newNode = new LUtfNode()
             { Parent = eutf.Root, Data = AleNodeWriter.WriteALEffectLib(effectLib), Name = "x" };
         eutf.Root.Children.Add(newNode);
-        return (LeafNode)eutf.Export()[0];
+        return (LeafNode)eutf.Export().Children[0];
     }
 
     static LeafNode ToUtfNode(AlchemyNodeLibrary nodeLib)
@@ -60,7 +60,7 @@ public class AleNodeWriterTests
         var newNode = new LUtfNode()
             { Parent = eutf.Root, Data = AleNodeWriter.WriteAlchemyNodeLibrary(nodeLib), Name = "x" };
         eutf.Root.Children.Add(newNode);
-        return (LeafNode)eutf.Export()[0];
+        return (LeafNode)eutf.Export().Children[0];
     }
 
     [Fact]

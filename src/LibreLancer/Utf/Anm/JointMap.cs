@@ -18,7 +18,7 @@ namespace LibreLancer.Utf.Anm
 
         public JointMap(IntermediateNode root, AnmBuffer buffer, StringDeduplication? dedup = null)
         {
-            foreach (Node node in root)
+            foreach (Node node in root.Children)
             {
                 if (node.Name.Equals("parent name", StringComparison.OrdinalIgnoreCase))
                     ParentName = dedup == null

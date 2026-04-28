@@ -175,7 +175,7 @@ namespace LibreLancer.Utf.Mat
 
             Name = node.Name;
 
-            foreach (var n in node.OfType<LeafNode>())
+            foreach (var n in node.Children.OfType<LeafNode>())
             {
                 if (!parentNode(n))
                 {
@@ -204,7 +204,8 @@ namespace LibreLancer.Utf.Mat
 
         public static Material FromNode(IntermediateNode node)
         {
-            if (node["Type"] is not LeafNode typeNode)
+            if (node.Children.FirstOrDefault(x => x.Name.Equals("type", StringComparison.OrdinalIgnoreCase))
+                is not LeafNode typeNode)
             {
                 throw new Exception("Invalid or missing type node in " + node.Name);
             }

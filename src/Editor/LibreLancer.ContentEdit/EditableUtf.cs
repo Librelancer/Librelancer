@@ -38,7 +38,7 @@ namespace LibreLancer.ContentEdit
         public EditableUtf(string filename) : this()
         {
             Source = parseFile(filename, File.OpenRead(filename));
-            foreach (var node in Source)
+            foreach (var node in Source.Children)
             {
                 Root.Children.Add(ConvertNode(node, Root));
             }
@@ -75,7 +75,7 @@ namespace LibreLancer.ContentEdit
             {
                 var im = (LL.IntermediateNode)node;
                 n.Children = new List<LUtfNode>();
-                foreach (var child in im)
+                foreach (var child in im.Children)
                     n.Children.Add(ConvertNode(child, n));
             }
             else
