@@ -60,7 +60,7 @@ namespace LibreLancer.ContentEdit
         {
             if (n.Data != null)
                 return new LL.LeafNode(n.Name, n.Data);
-            var children = new List<LL.Node>();
+            var children = new List<LL.Node>(n.Children.Count);
             foreach (var child in n.Children)
                 children.Add(ExportNode(child));
             return new LL.IntermediateNode(n.Name, children);
@@ -74,7 +74,7 @@ namespace LibreLancer.ContentEdit
             if (node is LL.IntermediateNode)
             {
                 var im = (LL.IntermediateNode)node;
-                n.Children = new List<LUtfNode>();
+                n.Children = new List<LUtfNode>(im.Children.Count);
                 foreach (var child in im.Children)
                     n.Children.Add(ConvertNode(child, n));
             }
