@@ -43,15 +43,15 @@ internal class GLShader : IShader
 
     public List<int> UsedStorageBindings = [];
 
-    // GL_ARB_shader_image_load_store extension requires
-    // GLSL 1.50 to function, so we can safely use this.
+    // Not functional on some versions of Intel's windows shader compiler:
+    // #extension GL_ARB_shader_image_load_store: require
+    // #extension GL_ARB_shader_storage_buffer_object: require
 
     // Note GL_SHADING_LANGUAGE_VERSION will only report what is
     // requested by the GL context version  (3.1) on Intel's windows
-    // driver, so we can't query for that.
-    private const string SSBO_ENABLED_VERSION = @"#version 150
-#extension GL_ARB_shader_image_load_store: require
-#extension GL_ARB_shader_storage_buffer_object: require
+    // driver, so we can't query for that. Gate behind GL 4.3 entirely
+    // to escape this.
+    private const string SSBO_ENABLED_VERSION = @"#version 430 core
 #define USE_SSBO 1
 ";
 

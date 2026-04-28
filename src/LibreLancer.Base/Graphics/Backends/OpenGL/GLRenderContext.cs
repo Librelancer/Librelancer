@@ -44,13 +44,20 @@ internal class GLRenderContext : IRenderContext
         {
             FencedUBO = false;
         }
-        SSBO = GLExtensions.ShaderStorageBufferObjects;
+        SSBO = false;
+        if (GL.GL430)
+        {
+            FLLog.Info("GL", "At least GL 4.3 supported.");
+            int maxBlocks;
+            GL.GetIntegerv(GL.GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, out maxBlocks);
+            SSBO = maxBlocks >= 2;
+        }
         if (Platform.GetHintBoolean("librelancer_nossbo", false))
         {
             SSBO = false;
         }
 
-        string storageTarget = SSBO ? "SSBOs" : FencedUBO ? "Fenced UBOs" : "Invalidated UBOs";
+        string storageTarget = SSBO ? "SSBOs" : FencedUBO ? "Fenced UBOs" : "UBOs";
         FLLog.Info("GL", $"Storage target: {storageTarget}");
     }
 
@@ -116,8 +123,15 @@ internal class GLRenderContext : IRenderContext
 
     private static bool CreateContextCore(IntPtr sdlWin, out IntPtr ctx)
     {
-        int minorVersion = Platform.GetHintBoolean("librelancer_gl32", false) ? 2 : 1;
-        ctx = SDLGL_Create(sdlWin, 3, minorVersion, false);
+        ctx = SDLGL_Create(sdlWin, 4, 3, false);
+        if (ctx == IntPtr.Zero)
+        {
+            ctx = SDLGL_Create(sdlWin, 3, 1, false);
+        }
+        else
+        {
+            GL.GL430 = true;
+        }
         if (ctx == IntPtr.Zero) return false;
         if (!GL.CheckStringSDL())
         {

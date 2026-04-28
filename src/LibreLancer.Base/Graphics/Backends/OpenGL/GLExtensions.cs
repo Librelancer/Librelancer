@@ -88,40 +88,6 @@ internal static class GLExtensions
         }
     }
 
-    public static bool? _ssbo;
-
-    public static bool ShaderStorageBufferObjects
-    {
-        get
-        {
-            if (_ssbo == null)
-            {
-                PopulateExtensions();
-                var extensionAvail = ExtensionList!.Contains("GL_ARB_shader_image_load_store") &&
-                                    ExtensionList.Contains("GL_ARB_shader_storage_buffer_object");
-                if (extensionAvail)
-                {
-                    int maxBlocks;
-                    GL.GetIntegerv(GL.GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS, out maxBlocks);
-                    if (maxBlocks >= 2)
-                    {
-                        _ssbo = true;
-                    }
-                    else
-                    {
-                        FLLog.Info("GL", $"GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS reports {maxBlocks}, disabling SSBO (require >=2).");
-                        _ssbo = false;
-                    }
-                }
-                else
-                {
-                    _ssbo = false;
-                }
-            }
-            return _ssbo.Value;
-        }
-    }
-
 
     //Global method for checking extensions. Called upon GraphicsDevice creation
     public static void PopulateExtensions()

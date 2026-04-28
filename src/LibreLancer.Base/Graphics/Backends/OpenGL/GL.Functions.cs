@@ -90,6 +90,7 @@ internal static unsafe partial class GL
         IntPtr userparam);
 
     public static bool GLES = false;
+    public static bool GL430 = false;
     private static Dictionary<int, string> errors = null!;
     public static bool ErrorChecking = false;
 
