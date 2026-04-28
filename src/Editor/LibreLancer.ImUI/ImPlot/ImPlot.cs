@@ -518,7 +518,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(float* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBarGroups_FloatPtr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBarGroups_FloatPtr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, spec_spec);
     }
 
     public static void PlotBarGroups(string[] label_ids, ref double values, int item_count, int group_count, double group_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -526,7 +526,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(double* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBarGroups_doublePtr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBarGroups_doublePtr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, spec_spec);
     }
 
     public static void PlotBarGroups(string[] label_ids, ref short values, int item_count, int group_count, double group_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -534,7 +534,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(short* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBarGroups_S16Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBarGroups_S16Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, spec_spec);
     }
 
     public static void PlotBarGroups(string[] label_ids, ref ushort values, int item_count, int group_count, double group_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -542,7 +542,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(ushort* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBarGroups_U16Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBarGroups_U16Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, spec_spec);
     }
 
     public static void PlotBarGroups(string[] label_ids, ref int values, int item_count, int group_count, double group_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -550,7 +550,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(int* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBarGroups_S32Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBarGroups_S32Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, spec_spec);
     }
 
     public static void PlotBarGroups(string[] label_ids, ref uint values, int item_count, int group_count, double group_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -558,7 +558,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(uint* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBarGroups_U32Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBarGroups_U32Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, spec_spec);
     }
 
     public static void PlotBarGroups(string[] label_ids, ref long values, int item_count, int group_count, double group_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -566,7 +566,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(long* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBarGroups_S64Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBarGroups_S64Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, spec_spec);
     }
 
     public static void PlotBarGroups(string[] label_ids, ref ulong values, int item_count, int group_count, double group_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -574,7 +574,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(ulong* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBarGroups_U64Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBarGroups_U64Ptr(label_ids_u8.Pointer, values_ptr, item_count, group_count, group_size, shift, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref float values, int count, double bar_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -583,7 +583,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBars_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref double values, int count, double bar_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -592,7 +592,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBars_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref short values, int count, double bar_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -601,7 +601,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBars_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref ushort values, int count, double bar_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -610,7 +610,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBars_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref int values, int count, double bar_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -619,7 +619,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBars_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref uint values, int count, double bar_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -628,7 +628,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBars_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref long values, int count, double bar_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -637,7 +637,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBars_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref ulong values, int count, double bar_size = 0.67, double shift = 0, ImPlotSpec? spec = null)
@@ -646,7 +646,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotBars_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, bar_size, shift, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref float xs, ref float ys, int count, double bar_size, ImPlotSpec? spec = null)
@@ -656,7 +656,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* xs_ptr = &xs)
         fixed(float* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotBars_FloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_FloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref double xs, ref double ys, int count, double bar_size, ImPlotSpec? spec = null)
@@ -666,7 +666,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* xs_ptr = &xs)
         fixed(double* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotBars_doublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_doublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref short xs, ref short ys, int count, double bar_size, ImPlotSpec? spec = null)
@@ -676,7 +676,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* xs_ptr = &xs)
         fixed(short* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotBars_S16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_S16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref ushort xs, ref ushort ys, int count, double bar_size, ImPlotSpec? spec = null)
@@ -686,7 +686,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotBars_U16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_U16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref int xs, ref int ys, int count, double bar_size, ImPlotSpec? spec = null)
@@ -696,7 +696,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* xs_ptr = &xs)
         fixed(int* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotBars_S32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_S32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref uint xs, ref uint ys, int count, double bar_size, ImPlotSpec? spec = null)
@@ -706,7 +706,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotBars_U32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_U32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref long xs, ref long ys, int count, double bar_size, ImPlotSpec? spec = null)
@@ -716,7 +716,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* xs_ptr = &xs)
         fixed(long* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotBars_S64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_S64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, spec_spec);
     }
 
     public static void PlotBars(string label_id, ref ulong xs, ref ulong ys, int count, double bar_size, ImPlotSpec? spec = null)
@@ -726,7 +726,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotBars_U64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, &spec_spec);
+            ImPlotNative.ImPlot_PlotBars_U64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, bar_size, spec_spec);
     }
 
     public static void PlotBarsG(string label_id, delegate* unmanaged<int, void*, ImPlotPoint> getter, void* data, int count, double bar_size, ImPlotSpec? spec = null)
@@ -734,7 +734,7 @@ public static unsafe class ImPlot
         using var label_id_u8 = new UTF8ZHelper(stackalloc byte[128], label_id ?? "");
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotBarsG(label_id == null ? null : label_id_ptr, getter, data, count, bar_size, &spec_spec);
+            ImPlotNative.ImPlot_PlotBarsG(label_id == null ? null : label_id_ptr, getter, data, count, bar_size, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref float values, ref float szs, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -744,7 +744,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* values_ptr = &values)
         fixed(float* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_FloatPtrFloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_FloatPtrFloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref double values, ref double szs, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -754,7 +754,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* values_ptr = &values)
         fixed(double* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_doublePtrdoublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_doublePtrdoublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref short values, ref short szs, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -764,7 +764,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* values_ptr = &values)
         fixed(short* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_S16PtrS16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_S16PtrS16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref ushort values, ref ushort szs, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -774,7 +774,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* values_ptr = &values)
         fixed(ushort* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_U16PtrU16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_U16PtrU16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref int values, ref int szs, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -784,7 +784,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* values_ptr = &values)
         fixed(int* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_S32PtrS32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_S32PtrS32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref uint values, ref uint szs, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -794,7 +794,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* values_ptr = &values)
         fixed(uint* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_U32PtrU32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_U32PtrU32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref long values, ref long szs, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -804,7 +804,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* values_ptr = &values)
         fixed(long* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_S64PtrS64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_S64PtrS64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref ulong values, ref ulong szs, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -814,7 +814,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* values_ptr = &values)
         fixed(ulong* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_U64PtrU64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_U64PtrU64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, szs_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref float xs, ref float ys, ref float szs, int count, ImPlotSpec? spec = null)
@@ -825,7 +825,7 @@ public static unsafe class ImPlot
         fixed(float* xs_ptr = &xs)
         fixed(float* ys_ptr = &ys)
         fixed(float* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_FloatPtrFloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_FloatPtrFloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref double xs, ref double ys, ref double szs, int count, ImPlotSpec? spec = null)
@@ -836,7 +836,7 @@ public static unsafe class ImPlot
         fixed(double* xs_ptr = &xs)
         fixed(double* ys_ptr = &ys)
         fixed(double* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_doublePtrdoublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_doublePtrdoublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref short xs, ref short ys, ref short szs, int count, ImPlotSpec? spec = null)
@@ -847,7 +847,7 @@ public static unsafe class ImPlot
         fixed(short* xs_ptr = &xs)
         fixed(short* ys_ptr = &ys)
         fixed(short* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_S16PtrS16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_S16PtrS16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref ushort xs, ref ushort ys, ref ushort szs, int count, ImPlotSpec? spec = null)
@@ -858,7 +858,7 @@ public static unsafe class ImPlot
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys_ptr = &ys)
         fixed(ushort* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_U16PtrU16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_U16PtrU16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref int xs, ref int ys, ref int szs, int count, ImPlotSpec? spec = null)
@@ -869,7 +869,7 @@ public static unsafe class ImPlot
         fixed(int* xs_ptr = &xs)
         fixed(int* ys_ptr = &ys)
         fixed(int* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_S32PtrS32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_S32PtrS32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref uint xs, ref uint ys, ref uint szs, int count, ImPlotSpec? spec = null)
@@ -880,7 +880,7 @@ public static unsafe class ImPlot
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys_ptr = &ys)
         fixed(uint* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_U32PtrU32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_U32PtrU32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref long xs, ref long ys, ref long szs, int count, ImPlotSpec? spec = null)
@@ -891,7 +891,7 @@ public static unsafe class ImPlot
         fixed(long* xs_ptr = &xs)
         fixed(long* ys_ptr = &ys)
         fixed(long* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_S64PtrS64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_S64PtrS64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, spec_spec);
     }
 
     public static void PlotBubbles(string label_id, ref ulong xs, ref ulong ys, ref ulong szs, int count, ImPlotSpec? spec = null)
@@ -902,7 +902,7 @@ public static unsafe class ImPlot
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys_ptr = &ys)
         fixed(ulong* szs_ptr = &szs)
-            ImPlotNative.ImPlot_PlotBubbles_U64PtrU64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotBubbles_U64PtrU64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, szs_ptr, count, spec_spec);
     }
 
     public static void PlotDigital(string label_id, ref float xs, ref float ys, int count, ImPlotSpec? spec = null)
@@ -912,7 +912,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* xs_ptr = &xs)
         fixed(float* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotDigital_FloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotDigital_FloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotDigital(string label_id, ref double xs, ref double ys, int count, ImPlotSpec? spec = null)
@@ -922,7 +922,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* xs_ptr = &xs)
         fixed(double* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotDigital_doublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotDigital_doublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotDigital(string label_id, ref short xs, ref short ys, int count, ImPlotSpec? spec = null)
@@ -932,7 +932,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* xs_ptr = &xs)
         fixed(short* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotDigital_S16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotDigital_S16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotDigital(string label_id, ref ushort xs, ref ushort ys, int count, ImPlotSpec? spec = null)
@@ -942,7 +942,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotDigital_U16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotDigital_U16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotDigital(string label_id, ref int xs, ref int ys, int count, ImPlotSpec? spec = null)
@@ -952,7 +952,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* xs_ptr = &xs)
         fixed(int* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotDigital_S32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotDigital_S32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotDigital(string label_id, ref uint xs, ref uint ys, int count, ImPlotSpec? spec = null)
@@ -962,7 +962,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotDigital_U32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotDigital_U32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotDigital(string label_id, ref long xs, ref long ys, int count, ImPlotSpec? spec = null)
@@ -972,7 +972,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* xs_ptr = &xs)
         fixed(long* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotDigital_S64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotDigital_S64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotDigital(string label_id, ref ulong xs, ref ulong ys, int count, ImPlotSpec? spec = null)
@@ -982,7 +982,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotDigital_U64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotDigital_U64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotDigitalG(string label_id, delegate* unmanaged<int, void*, ImPlotPoint> getter, void* data, int count, ImPlotSpec? spec = null)
@@ -990,7 +990,7 @@ public static unsafe class ImPlot
         using var label_id_u8 = new UTF8ZHelper(stackalloc byte[128], label_id ?? "");
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotDigitalG(label_id == null ? null : label_id_ptr, getter, data, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotDigitalG(label_id == null ? null : label_id_ptr, getter, data, count, spec_spec);
     }
 
     public static void PlotDummy(string label_id, ImPlotSpec? spec = null)
@@ -998,7 +998,7 @@ public static unsafe class ImPlot
         using var label_id_u8 = new UTF8ZHelper(stackalloc byte[128], label_id ?? "");
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotDummy(label_id == null ? null : label_id_ptr, &spec_spec);
+            ImPlotNative.ImPlot_PlotDummy(label_id == null ? null : label_id_ptr, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref float xs, ref float ys, ref float err, int count, ImPlotSpec? spec = null)
@@ -1009,7 +1009,7 @@ public static unsafe class ImPlot
         fixed(float* xs_ptr = &xs)
         fixed(float* ys_ptr = &ys)
         fixed(float* err_ptr = &err)
-            ImPlotNative.ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref double xs, ref double ys, ref double err, int count, ImPlotSpec? spec = null)
@@ -1020,7 +1020,7 @@ public static unsafe class ImPlot
         fixed(double* xs_ptr = &xs)
         fixed(double* ys_ptr = &ys)
         fixed(double* err_ptr = &err)
-            ImPlotNative.ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref short xs, ref short ys, ref short err, int count, ImPlotSpec? spec = null)
@@ -1031,7 +1031,7 @@ public static unsafe class ImPlot
         fixed(short* xs_ptr = &xs)
         fixed(short* ys_ptr = &ys)
         fixed(short* err_ptr = &err)
-            ImPlotNative.ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref ushort xs, ref ushort ys, ref ushort err, int count, ImPlotSpec? spec = null)
@@ -1042,7 +1042,7 @@ public static unsafe class ImPlot
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys_ptr = &ys)
         fixed(ushort* err_ptr = &err)
-            ImPlotNative.ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref int xs, ref int ys, ref int err, int count, ImPlotSpec? spec = null)
@@ -1053,7 +1053,7 @@ public static unsafe class ImPlot
         fixed(int* xs_ptr = &xs)
         fixed(int* ys_ptr = &ys)
         fixed(int* err_ptr = &err)
-            ImPlotNative.ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref uint xs, ref uint ys, ref uint err, int count, ImPlotSpec? spec = null)
@@ -1064,7 +1064,7 @@ public static unsafe class ImPlot
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys_ptr = &ys)
         fixed(uint* err_ptr = &err)
-            ImPlotNative.ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref long xs, ref long ys, ref long err, int count, ImPlotSpec? spec = null)
@@ -1075,7 +1075,7 @@ public static unsafe class ImPlot
         fixed(long* xs_ptr = &xs)
         fixed(long* ys_ptr = &ys)
         fixed(long* err_ptr = &err)
-            ImPlotNative.ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref ulong xs, ref ulong ys, ref ulong err, int count, ImPlotSpec? spec = null)
@@ -1086,7 +1086,7 @@ public static unsafe class ImPlot
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys_ptr = &ys)
         fixed(ulong* err_ptr = &err)
-            ImPlotNative.ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, err_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref float xs, ref float ys, ref float neg, ref float pos, int count, ImPlotSpec? spec = null)
@@ -1098,7 +1098,7 @@ public static unsafe class ImPlot
         fixed(float* ys_ptr = &ys)
         fixed(float* neg_ptr = &neg)
         fixed(float* pos_ptr = &pos)
-            ImPlotNative.ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref double xs, ref double ys, ref double neg, ref double pos, int count, ImPlotSpec? spec = null)
@@ -1110,7 +1110,7 @@ public static unsafe class ImPlot
         fixed(double* ys_ptr = &ys)
         fixed(double* neg_ptr = &neg)
         fixed(double* pos_ptr = &pos)
-            ImPlotNative.ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref short xs, ref short ys, ref short neg, ref short pos, int count, ImPlotSpec? spec = null)
@@ -1122,7 +1122,7 @@ public static unsafe class ImPlot
         fixed(short* ys_ptr = &ys)
         fixed(short* neg_ptr = &neg)
         fixed(short* pos_ptr = &pos)
-            ImPlotNative.ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref ushort xs, ref ushort ys, ref ushort neg, ref ushort pos, int count, ImPlotSpec? spec = null)
@@ -1134,7 +1134,7 @@ public static unsafe class ImPlot
         fixed(ushort* ys_ptr = &ys)
         fixed(ushort* neg_ptr = &neg)
         fixed(ushort* pos_ptr = &pos)
-            ImPlotNative.ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref int xs, ref int ys, ref int neg, ref int pos, int count, ImPlotSpec? spec = null)
@@ -1146,7 +1146,7 @@ public static unsafe class ImPlot
         fixed(int* ys_ptr = &ys)
         fixed(int* neg_ptr = &neg)
         fixed(int* pos_ptr = &pos)
-            ImPlotNative.ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref uint xs, ref uint ys, ref uint neg, ref uint pos, int count, ImPlotSpec? spec = null)
@@ -1158,7 +1158,7 @@ public static unsafe class ImPlot
         fixed(uint* ys_ptr = &ys)
         fixed(uint* neg_ptr = &neg)
         fixed(uint* pos_ptr = &pos)
-            ImPlotNative.ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref long xs, ref long ys, ref long neg, ref long pos, int count, ImPlotSpec? spec = null)
@@ -1170,7 +1170,7 @@ public static unsafe class ImPlot
         fixed(long* ys_ptr = &ys)
         fixed(long* neg_ptr = &neg)
         fixed(long* pos_ptr = &pos)
-            ImPlotNative.ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, spec_spec);
     }
 
     public static void PlotErrorBars(string label_id, ref ulong xs, ref ulong ys, ref ulong neg, ref ulong pos, int count, ImPlotSpec? spec = null)
@@ -1182,7 +1182,7 @@ public static unsafe class ImPlot
         fixed(ulong* ys_ptr = &ys)
         fixed(ulong* neg_ptr = &neg)
         fixed(ulong* pos_ptr = &pos)
-            ImPlotNative.ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, neg_ptr, pos_ptr, count, spec_spec);
     }
 
     public static void PlotHeatmap(string label_id, ref float values, int rows, int cols, double scale_min = 0, double scale_max = 0, string label_fmt = "%.1f", ImPlotPoint bounds_min = default, ImPlotPoint? bounds_max = null, ImPlotSpec? spec = null)
@@ -1193,7 +1193,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotHeatmap_FloatPtr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), &spec_spec);
+            ImPlotNative.ImPlot_PlotHeatmap_FloatPtr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), spec_spec);
     }
 
     public static void PlotHeatmap(string label_id, ref double values, int rows, int cols, double scale_min = 0, double scale_max = 0, string label_fmt = "%.1f", ImPlotPoint bounds_min = default, ImPlotPoint? bounds_max = null, ImPlotSpec? spec = null)
@@ -1204,7 +1204,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotHeatmap_doublePtr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), &spec_spec);
+            ImPlotNative.ImPlot_PlotHeatmap_doublePtr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), spec_spec);
     }
 
     public static void PlotHeatmap(string label_id, ref short values, int rows, int cols, double scale_min = 0, double scale_max = 0, string label_fmt = "%.1f", ImPlotPoint bounds_min = default, ImPlotPoint? bounds_max = null, ImPlotSpec? spec = null)
@@ -1215,7 +1215,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotHeatmap_S16Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), &spec_spec);
+            ImPlotNative.ImPlot_PlotHeatmap_S16Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), spec_spec);
     }
 
     public static void PlotHeatmap(string label_id, ref ushort values, int rows, int cols, double scale_min = 0, double scale_max = 0, string label_fmt = "%.1f", ImPlotPoint bounds_min = default, ImPlotPoint? bounds_max = null, ImPlotSpec? spec = null)
@@ -1226,7 +1226,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotHeatmap_U16Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), &spec_spec);
+            ImPlotNative.ImPlot_PlotHeatmap_U16Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), spec_spec);
     }
 
     public static void PlotHeatmap(string label_id, ref int values, int rows, int cols, double scale_min = 0, double scale_max = 0, string label_fmt = "%.1f", ImPlotPoint bounds_min = default, ImPlotPoint? bounds_max = null, ImPlotSpec? spec = null)
@@ -1237,7 +1237,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotHeatmap_S32Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), &spec_spec);
+            ImPlotNative.ImPlot_PlotHeatmap_S32Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), spec_spec);
     }
 
     public static void PlotHeatmap(string label_id, ref uint values, int rows, int cols, double scale_min = 0, double scale_max = 0, string label_fmt = "%.1f", ImPlotPoint bounds_min = default, ImPlotPoint? bounds_max = null, ImPlotSpec? spec = null)
@@ -1248,7 +1248,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotHeatmap_U32Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), &spec_spec);
+            ImPlotNative.ImPlot_PlotHeatmap_U32Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), spec_spec);
     }
 
     public static void PlotHeatmap(string label_id, ref long values, int rows, int cols, double scale_min = 0, double scale_max = 0, string label_fmt = "%.1f", ImPlotPoint bounds_min = default, ImPlotPoint? bounds_max = null, ImPlotSpec? spec = null)
@@ -1259,7 +1259,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotHeatmap_S64Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), &spec_spec);
+            ImPlotNative.ImPlot_PlotHeatmap_S64Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), spec_spec);
     }
 
     public static void PlotHeatmap(string label_id, ref ulong values, int rows, int cols, double scale_min = 0, double scale_max = 0, string label_fmt = "%.1f", ImPlotPoint bounds_min = default, ImPlotPoint? bounds_max = null, ImPlotSpec? spec = null)
@@ -1270,7 +1270,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotHeatmap_U64Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), &spec_spec);
+            ImPlotNative.ImPlot_PlotHeatmap_U64Ptr(label_id == null ? null : label_id_ptr, values_ptr, rows, cols, scale_min, scale_max, label_fmt == null ? null : label_fmt_ptr, bounds_min, bounds_max ?? new(1,1), spec_spec);
     }
 
     public static double PlotHistogram(string label_id, ref float values, int count, int bins = (int)ImPlotBin.Sturges, double bar_scale = 1.0, ImPlotRange range = default, ImPlotSpec? spec = null)
@@ -1279,7 +1279,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* values_ptr = &values)
-            return ImPlotNative.ImPlot_PlotHistogram_FloatPtr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram_FloatPtr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, spec_spec);
     }
 
     public static double PlotHistogram(string label_id, ref double values, int count, int bins = (int)ImPlotBin.Sturges, double bar_scale = 1.0, ImPlotRange range = default, ImPlotSpec? spec = null)
@@ -1288,7 +1288,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* values_ptr = &values)
-            return ImPlotNative.ImPlot_PlotHistogram_doublePtr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram_doublePtr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, spec_spec);
     }
 
     public static double PlotHistogram(string label_id, ref short values, int count, int bins = (int)ImPlotBin.Sturges, double bar_scale = 1.0, ImPlotRange range = default, ImPlotSpec? spec = null)
@@ -1297,7 +1297,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* values_ptr = &values)
-            return ImPlotNative.ImPlot_PlotHistogram_S16Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram_S16Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, spec_spec);
     }
 
     public static double PlotHistogram(string label_id, ref ushort values, int count, int bins = (int)ImPlotBin.Sturges, double bar_scale = 1.0, ImPlotRange range = default, ImPlotSpec? spec = null)
@@ -1306,7 +1306,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* values_ptr = &values)
-            return ImPlotNative.ImPlot_PlotHistogram_U16Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram_U16Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, spec_spec);
     }
 
     public static double PlotHistogram(string label_id, ref int values, int count, int bins = (int)ImPlotBin.Sturges, double bar_scale = 1.0, ImPlotRange range = default, ImPlotSpec? spec = null)
@@ -1315,7 +1315,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* values_ptr = &values)
-            return ImPlotNative.ImPlot_PlotHistogram_S32Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram_S32Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, spec_spec);
     }
 
     public static double PlotHistogram(string label_id, ref uint values, int count, int bins = (int)ImPlotBin.Sturges, double bar_scale = 1.0, ImPlotRange range = default, ImPlotSpec? spec = null)
@@ -1324,7 +1324,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* values_ptr = &values)
-            return ImPlotNative.ImPlot_PlotHistogram_U32Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram_U32Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, spec_spec);
     }
 
     public static double PlotHistogram(string label_id, ref long values, int count, int bins = (int)ImPlotBin.Sturges, double bar_scale = 1.0, ImPlotRange range = default, ImPlotSpec? spec = null)
@@ -1333,7 +1333,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* values_ptr = &values)
-            return ImPlotNative.ImPlot_PlotHistogram_S64Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram_S64Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, spec_spec);
     }
 
     public static double PlotHistogram(string label_id, ref ulong values, int count, int bins = (int)ImPlotBin.Sturges, double bar_scale = 1.0, ImPlotRange range = default, ImPlotSpec? spec = null)
@@ -1342,7 +1342,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* values_ptr = &values)
-            return ImPlotNative.ImPlot_PlotHistogram_U64Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram_U64Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, bins, bar_scale, range, spec_spec);
     }
 
     public static double PlotHistogram2D(string label_id, ref float xs, ref float ys, int count, int x_bins = (int)ImPlotBin.Sturges, int y_bins = (int)ImPlotBin.Sturges, ImPlotRect range = default, ImPlotSpec? spec = null)
@@ -1352,7 +1352,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* xs_ptr = &xs)
         fixed(float* ys_ptr = &ys)
-            return ImPlotNative.ImPlot_PlotHistogram2D_FloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram2D_FloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, spec_spec);
     }
 
     public static double PlotHistogram2D(string label_id, ref double xs, ref double ys, int count, int x_bins = (int)ImPlotBin.Sturges, int y_bins = (int)ImPlotBin.Sturges, ImPlotRect range = default, ImPlotSpec? spec = null)
@@ -1362,7 +1362,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* xs_ptr = &xs)
         fixed(double* ys_ptr = &ys)
-            return ImPlotNative.ImPlot_PlotHistogram2D_doublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram2D_doublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, spec_spec);
     }
 
     public static double PlotHistogram2D(string label_id, ref short xs, ref short ys, int count, int x_bins = (int)ImPlotBin.Sturges, int y_bins = (int)ImPlotBin.Sturges, ImPlotRect range = default, ImPlotSpec? spec = null)
@@ -1372,7 +1372,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* xs_ptr = &xs)
         fixed(short* ys_ptr = &ys)
-            return ImPlotNative.ImPlot_PlotHistogram2D_S16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram2D_S16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, spec_spec);
     }
 
     public static double PlotHistogram2D(string label_id, ref ushort xs, ref ushort ys, int count, int x_bins = (int)ImPlotBin.Sturges, int y_bins = (int)ImPlotBin.Sturges, ImPlotRect range = default, ImPlotSpec? spec = null)
@@ -1382,7 +1382,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys_ptr = &ys)
-            return ImPlotNative.ImPlot_PlotHistogram2D_U16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram2D_U16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, spec_spec);
     }
 
     public static double PlotHistogram2D(string label_id, ref int xs, ref int ys, int count, int x_bins = (int)ImPlotBin.Sturges, int y_bins = (int)ImPlotBin.Sturges, ImPlotRect range = default, ImPlotSpec? spec = null)
@@ -1392,7 +1392,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* xs_ptr = &xs)
         fixed(int* ys_ptr = &ys)
-            return ImPlotNative.ImPlot_PlotHistogram2D_S32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram2D_S32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, spec_spec);
     }
 
     public static double PlotHistogram2D(string label_id, ref uint xs, ref uint ys, int count, int x_bins = (int)ImPlotBin.Sturges, int y_bins = (int)ImPlotBin.Sturges, ImPlotRect range = default, ImPlotSpec? spec = null)
@@ -1402,7 +1402,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys_ptr = &ys)
-            return ImPlotNative.ImPlot_PlotHistogram2D_U32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram2D_U32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, spec_spec);
     }
 
     public static double PlotHistogram2D(string label_id, ref long xs, ref long ys, int count, int x_bins = (int)ImPlotBin.Sturges, int y_bins = (int)ImPlotBin.Sturges, ImPlotRect range = default, ImPlotSpec? spec = null)
@@ -1412,7 +1412,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* xs_ptr = &xs)
         fixed(long* ys_ptr = &ys)
-            return ImPlotNative.ImPlot_PlotHistogram2D_S64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram2D_S64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, spec_spec);
     }
 
     public static double PlotHistogram2D(string label_id, ref ulong xs, ref ulong ys, int count, int x_bins = (int)ImPlotBin.Sturges, int y_bins = (int)ImPlotBin.Sturges, ImPlotRect range = default, ImPlotSpec? spec = null)
@@ -1422,7 +1422,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys_ptr = &ys)
-            return ImPlotNative.ImPlot_PlotHistogram2D_U64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, &spec_spec);
+            return ImPlotNative.ImPlot_PlotHistogram2D_U64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, x_bins, y_bins, range, spec_spec);
     }
 
     public static void PlotImage(string label_id, ImTextureRef tex_ref, ImPlotPoint bounds_min, ImPlotPoint bounds_max, Vector2 uv0 = default, Vector2? uv1 = null, Vector4? tint_col = null, ImPlotSpec? spec = null)
@@ -1430,7 +1430,7 @@ public static unsafe class ImPlot
         using var label_id_u8 = new UTF8ZHelper(stackalloc byte[128], label_id ?? "");
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotImage(label_id == null ? null : label_id_ptr, tex_ref, bounds_min, bounds_max, uv0, uv1 ?? new(1,1), tint_col ?? new(1,1,1,1), &spec_spec);
+            ImPlotNative.ImPlot_PlotImage(label_id == null ? null : label_id_ptr, tex_ref, bounds_min, bounds_max, uv0, uv1 ?? new(1,1), tint_col ?? new(1,1,1,1), spec_spec);
     }
 
     public static void PlotInfLines(string label_id, ref float values, int count, ImPlotSpec? spec = null)
@@ -1439,7 +1439,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotInfLines_FloatPtr(label_id == null ? null : label_id_ptr, values_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotInfLines_FloatPtr(label_id == null ? null : label_id_ptr, values_ptr, count, spec_spec);
     }
 
     public static void PlotInfLines(string label_id, ref double values, int count, ImPlotSpec? spec = null)
@@ -1448,7 +1448,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotInfLines_doublePtr(label_id == null ? null : label_id_ptr, values_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotInfLines_doublePtr(label_id == null ? null : label_id_ptr, values_ptr, count, spec_spec);
     }
 
     public static void PlotInfLines(string label_id, ref short values, int count, ImPlotSpec? spec = null)
@@ -1457,7 +1457,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotInfLines_S16Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotInfLines_S16Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, spec_spec);
     }
 
     public static void PlotInfLines(string label_id, ref ushort values, int count, ImPlotSpec? spec = null)
@@ -1466,7 +1466,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotInfLines_U16Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotInfLines_U16Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, spec_spec);
     }
 
     public static void PlotInfLines(string label_id, ref int values, int count, ImPlotSpec? spec = null)
@@ -1475,7 +1475,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotInfLines_S32Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotInfLines_S32Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, spec_spec);
     }
 
     public static void PlotInfLines(string label_id, ref uint values, int count, ImPlotSpec? spec = null)
@@ -1484,7 +1484,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotInfLines_U32Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotInfLines_U32Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, spec_spec);
     }
 
     public static void PlotInfLines(string label_id, ref long values, int count, ImPlotSpec? spec = null)
@@ -1493,7 +1493,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotInfLines_S64Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotInfLines_S64Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, spec_spec);
     }
 
     public static void PlotInfLines(string label_id, ref ulong values, int count, ImPlotSpec? spec = null)
@@ -1502,7 +1502,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotInfLines_U64Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotInfLines_U64Ptr(label_id == null ? null : label_id_ptr, values_ptr, count, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref float values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1511,7 +1511,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotLine_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref double values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1520,7 +1520,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotLine_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref short values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1529,7 +1529,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotLine_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref ushort values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1538,7 +1538,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotLine_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref int values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1547,7 +1547,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotLine_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref uint values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1556,7 +1556,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotLine_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref long values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1565,7 +1565,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotLine_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref ulong values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1574,7 +1574,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotLine_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref float xs, ref float ys, int count, ImPlotSpec? spec = null)
@@ -1584,7 +1584,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* xs_ptr = &xs)
         fixed(float* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotLine_FloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_FloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref double xs, ref double ys, int count, ImPlotSpec? spec = null)
@@ -1594,7 +1594,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* xs_ptr = &xs)
         fixed(double* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotLine_doublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_doublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref short xs, ref short ys, int count, ImPlotSpec? spec = null)
@@ -1604,7 +1604,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* xs_ptr = &xs)
         fixed(short* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotLine_S16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_S16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref ushort xs, ref ushort ys, int count, ImPlotSpec? spec = null)
@@ -1614,7 +1614,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotLine_U16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_U16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref int xs, ref int ys, int count, ImPlotSpec? spec = null)
@@ -1624,7 +1624,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* xs_ptr = &xs)
         fixed(int* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotLine_S32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_S32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref uint xs, ref uint ys, int count, ImPlotSpec? spec = null)
@@ -1634,7 +1634,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotLine_U32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_U32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref long xs, ref long ys, int count, ImPlotSpec? spec = null)
@@ -1644,7 +1644,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* xs_ptr = &xs)
         fixed(long* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotLine_S64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_S64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotLine(string label_id, ref ulong xs, ref ulong ys, int count, ImPlotSpec? spec = null)
@@ -1654,7 +1654,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotLine_U64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotLine_U64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotLineG(string label_id, delegate* unmanaged<int, void*, ImPlotPoint> getter, void* data, int count, ImPlotSpec? spec = null)
@@ -1662,7 +1662,7 @@ public static unsafe class ImPlot
         using var label_id_u8 = new UTF8ZHelper(stackalloc byte[128], label_id ?? "");
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotLineG(label_id == null ? null : label_id_ptr, getter, data, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotLineG(label_id == null ? null : label_id_ptr, getter, data, count, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref float values, int count, double x, double y, double radius, delegate* unmanaged<double, IntPtr, int, void*, int> fmt, void* fmt_data = null, double angle0 = 90, ImPlotSpec? spec = null)
@@ -1670,7 +1670,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(float* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotPieChart_FloatPtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_FloatPtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref double values, int count, double x, double y, double radius, delegate* unmanaged<double, IntPtr, int, void*, int> fmt, void* fmt_data = null, double angle0 = 90, ImPlotSpec? spec = null)
@@ -1678,7 +1678,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(double* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotPieChart_doublePtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_doublePtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref short values, int count, double x, double y, double radius, delegate* unmanaged<double, IntPtr, int, void*, int> fmt, void* fmt_data = null, double angle0 = 90, ImPlotSpec? spec = null)
@@ -1686,7 +1686,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(short* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotPieChart_S16PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_S16PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref ushort values, int count, double x, double y, double radius, delegate* unmanaged<double, IntPtr, int, void*, int> fmt, void* fmt_data = null, double angle0 = 90, ImPlotSpec? spec = null)
@@ -1694,7 +1694,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(ushort* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotPieChart_U16PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_U16PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref int values, int count, double x, double y, double radius, delegate* unmanaged<double, IntPtr, int, void*, int> fmt, void* fmt_data = null, double angle0 = 90, ImPlotSpec? spec = null)
@@ -1702,7 +1702,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(int* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotPieChart_S32PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_S32PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref uint values, int count, double x, double y, double radius, delegate* unmanaged<double, IntPtr, int, void*, int> fmt, void* fmt_data = null, double angle0 = 90, ImPlotSpec? spec = null)
@@ -1710,7 +1710,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(uint* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotPieChart_U32PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_U32PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref long values, int count, double x, double y, double radius, delegate* unmanaged<double, IntPtr, int, void*, int> fmt, void* fmt_data = null, double angle0 = 90, ImPlotSpec? spec = null)
@@ -1718,7 +1718,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(long* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotPieChart_S64PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_S64PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref ulong values, int count, double x, double y, double radius, delegate* unmanaged<double, IntPtr, int, void*, int> fmt, void* fmt_data = null, double angle0 = 90, ImPlotSpec? spec = null)
@@ -1726,7 +1726,7 @@ public static unsafe class ImPlot
         using var label_ids_u8 = new NativeStringArray(label_ids);
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(ulong* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotPieChart_U64PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_U64PtrPlotFormatter(label_ids_u8.Pointer, values_ptr, count, x, y, radius, fmt, fmt_data, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref float values, int count, double x, double y, double radius, string label_fmt = "%.1f", double angle0 = 90, ImPlotSpec? spec = null)
@@ -1736,7 +1736,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(float* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotPieChart_FloatPtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_FloatPtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref double values, int count, double x, double y, double radius, string label_fmt = "%.1f", double angle0 = 90, ImPlotSpec? spec = null)
@@ -1746,7 +1746,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(double* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotPieChart_doublePtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_doublePtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref short values, int count, double x, double y, double radius, string label_fmt = "%.1f", double angle0 = 90, ImPlotSpec? spec = null)
@@ -1756,7 +1756,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(short* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotPieChart_S16PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_S16PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref ushort values, int count, double x, double y, double radius, string label_fmt = "%.1f", double angle0 = 90, ImPlotSpec? spec = null)
@@ -1766,7 +1766,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(ushort* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotPieChart_U16PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_U16PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref int values, int count, double x, double y, double radius, string label_fmt = "%.1f", double angle0 = 90, ImPlotSpec? spec = null)
@@ -1776,7 +1776,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(int* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotPieChart_S32PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_S32PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref uint values, int count, double x, double y, double radius, string label_fmt = "%.1f", double angle0 = 90, ImPlotSpec? spec = null)
@@ -1786,7 +1786,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(uint* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotPieChart_U32PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_U32PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref long values, int count, double x, double y, double radius, string label_fmt = "%.1f", double angle0 = 90, ImPlotSpec? spec = null)
@@ -1796,7 +1796,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(long* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotPieChart_S64PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_S64PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, spec_spec);
     }
 
     public static void PlotPieChart(string[] label_ids, ref ulong values, int count, double x, double y, double radius, string label_fmt = "%.1f", double angle0 = 90, ImPlotSpec? spec = null)
@@ -1806,7 +1806,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(ulong* values_ptr = &values)
         fixed(byte* label_fmt_ptr = label_fmt_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotPieChart_U64PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, &spec_spec);
+            ImPlotNative.ImPlot_PlotPieChart_U64PtrStr(label_ids_u8.Pointer, values_ptr, count, x, y, radius, label_fmt == null ? null : label_fmt_ptr, angle0, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref float values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1815,7 +1815,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotScatter_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref double values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1824,7 +1824,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotScatter_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref short values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1833,7 +1833,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotScatter_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref ushort values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1842,7 +1842,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotScatter_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref int values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1851,7 +1851,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotScatter_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref uint values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1860,7 +1860,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotScatter_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref long values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1869,7 +1869,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotScatter_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref ulong values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1878,7 +1878,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotScatter_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref float xs, ref float ys, int count, ImPlotSpec? spec = null)
@@ -1888,7 +1888,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* xs_ptr = &xs)
         fixed(float* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotScatter_FloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_FloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref double xs, ref double ys, int count, ImPlotSpec? spec = null)
@@ -1898,7 +1898,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* xs_ptr = &xs)
         fixed(double* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotScatter_doublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_doublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref short xs, ref short ys, int count, ImPlotSpec? spec = null)
@@ -1908,7 +1908,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* xs_ptr = &xs)
         fixed(short* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotScatter_S16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_S16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref ushort xs, ref ushort ys, int count, ImPlotSpec? spec = null)
@@ -1918,7 +1918,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotScatter_U16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_U16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref int xs, ref int ys, int count, ImPlotSpec? spec = null)
@@ -1928,7 +1928,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* xs_ptr = &xs)
         fixed(int* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotScatter_S32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_S32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref uint xs, ref uint ys, int count, ImPlotSpec? spec = null)
@@ -1938,7 +1938,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotScatter_U32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_U32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref long xs, ref long ys, int count, ImPlotSpec? spec = null)
@@ -1948,7 +1948,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* xs_ptr = &xs)
         fixed(long* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotScatter_S64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_S64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotScatter(string label_id, ref ulong xs, ref ulong ys, int count, ImPlotSpec? spec = null)
@@ -1958,7 +1958,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotScatter_U64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatter_U64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotScatterG(string label_id, delegate* unmanaged<int, void*, ImPlotPoint> getter, void* data, int count, ImPlotSpec? spec = null)
@@ -1966,7 +1966,7 @@ public static unsafe class ImPlot
         using var label_id_u8 = new UTF8ZHelper(stackalloc byte[128], label_id ?? "");
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotScatterG(label_id == null ? null : label_id_ptr, getter, data, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotScatterG(label_id == null ? null : label_id_ptr, getter, data, count, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref float values, int count, double yref = 0, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1975,7 +1975,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotShaded_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref double values, int count, double yref = 0, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1984,7 +1984,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotShaded_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref short values, int count, double yref = 0, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -1993,7 +1993,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotShaded_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref ushort values, int count, double yref = 0, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2002,7 +2002,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotShaded_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref int values, int count, double yref = 0, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2011,7 +2011,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotShaded_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref uint values, int count, double yref = 0, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2020,7 +2020,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotShaded_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref long values, int count, double yref = 0, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2029,7 +2029,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotShaded_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref ulong values, int count, double yref = 0, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2038,7 +2038,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotShaded_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, yref, xscale, xstart, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref float xs, ref float ys, int count, double yref = 0, ImPlotSpec? spec = null)
@@ -2048,7 +2048,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* xs_ptr = &xs)
         fixed(float* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotShaded_FloatPtrFloatPtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_FloatPtrFloatPtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref double xs, ref double ys, int count, double yref = 0, ImPlotSpec? spec = null)
@@ -2058,7 +2058,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* xs_ptr = &xs)
         fixed(double* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotShaded_doublePtrdoublePtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_doublePtrdoublePtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref short xs, ref short ys, int count, double yref = 0, ImPlotSpec? spec = null)
@@ -2068,7 +2068,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* xs_ptr = &xs)
         fixed(short* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotShaded_S16PtrS16PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_S16PtrS16PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref ushort xs, ref ushort ys, int count, double yref = 0, ImPlotSpec? spec = null)
@@ -2078,7 +2078,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotShaded_U16PtrU16PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_U16PtrU16PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref int xs, ref int ys, int count, double yref = 0, ImPlotSpec? spec = null)
@@ -2088,7 +2088,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* xs_ptr = &xs)
         fixed(int* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotShaded_S32PtrS32PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_S32PtrS32PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref uint xs, ref uint ys, int count, double yref = 0, ImPlotSpec? spec = null)
@@ -2098,7 +2098,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotShaded_U32PtrU32PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_U32PtrU32PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref long xs, ref long ys, int count, double yref = 0, ImPlotSpec? spec = null)
@@ -2108,7 +2108,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* xs_ptr = &xs)
         fixed(long* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotShaded_S64PtrS64PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_S64PtrS64PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref ulong xs, ref ulong ys, int count, double yref = 0, ImPlotSpec? spec = null)
@@ -2118,7 +2118,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotShaded_U64PtrU64PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_U64PtrU64PtrInt(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, yref, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref float xs, ref float ys1, ref float ys2, int count, ImPlotSpec? spec = null)
@@ -2129,7 +2129,7 @@ public static unsafe class ImPlot
         fixed(float* xs_ptr = &xs)
         fixed(float* ys1_ptr = &ys1)
         fixed(float* ys2_ptr = &ys2)
-            ImPlotNative.ImPlot_PlotShaded_FloatPtrFloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_FloatPtrFloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref double xs, ref double ys1, ref double ys2, int count, ImPlotSpec? spec = null)
@@ -2140,7 +2140,7 @@ public static unsafe class ImPlot
         fixed(double* xs_ptr = &xs)
         fixed(double* ys1_ptr = &ys1)
         fixed(double* ys2_ptr = &ys2)
-            ImPlotNative.ImPlot_PlotShaded_doublePtrdoublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_doublePtrdoublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref short xs, ref short ys1, ref short ys2, int count, ImPlotSpec? spec = null)
@@ -2151,7 +2151,7 @@ public static unsafe class ImPlot
         fixed(short* xs_ptr = &xs)
         fixed(short* ys1_ptr = &ys1)
         fixed(short* ys2_ptr = &ys2)
-            ImPlotNative.ImPlot_PlotShaded_S16PtrS16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_S16PtrS16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref ushort xs, ref ushort ys1, ref ushort ys2, int count, ImPlotSpec? spec = null)
@@ -2162,7 +2162,7 @@ public static unsafe class ImPlot
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys1_ptr = &ys1)
         fixed(ushort* ys2_ptr = &ys2)
-            ImPlotNative.ImPlot_PlotShaded_U16PtrU16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_U16PtrU16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref int xs, ref int ys1, ref int ys2, int count, ImPlotSpec? spec = null)
@@ -2173,7 +2173,7 @@ public static unsafe class ImPlot
         fixed(int* xs_ptr = &xs)
         fixed(int* ys1_ptr = &ys1)
         fixed(int* ys2_ptr = &ys2)
-            ImPlotNative.ImPlot_PlotShaded_S32PtrS32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_S32PtrS32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref uint xs, ref uint ys1, ref uint ys2, int count, ImPlotSpec? spec = null)
@@ -2184,7 +2184,7 @@ public static unsafe class ImPlot
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys1_ptr = &ys1)
         fixed(uint* ys2_ptr = &ys2)
-            ImPlotNative.ImPlot_PlotShaded_U32PtrU32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_U32PtrU32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref long xs, ref long ys1, ref long ys2, int count, ImPlotSpec? spec = null)
@@ -2195,7 +2195,7 @@ public static unsafe class ImPlot
         fixed(long* xs_ptr = &xs)
         fixed(long* ys1_ptr = &ys1)
         fixed(long* ys2_ptr = &ys2)
-            ImPlotNative.ImPlot_PlotShaded_S64PtrS64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_S64PtrS64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, spec_spec);
     }
 
     public static void PlotShaded(string label_id, ref ulong xs, ref ulong ys1, ref ulong ys2, int count, ImPlotSpec? spec = null)
@@ -2206,7 +2206,7 @@ public static unsafe class ImPlot
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys1_ptr = &ys1)
         fixed(ulong* ys2_ptr = &ys2)
-            ImPlotNative.ImPlot_PlotShaded_U64PtrU64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotShaded_U64PtrU64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys1_ptr, ys2_ptr, count, spec_spec);
     }
 
     public static void PlotShadedG(string label_id, delegate* unmanaged<int, void*, ImPlotPoint> getter1, void* data1, delegate* unmanaged<int, void*, ImPlotPoint> getter2, void* data2, int count, ImPlotSpec? spec = null)
@@ -2214,7 +2214,7 @@ public static unsafe class ImPlot
         using var label_id_u8 = new UTF8ZHelper(stackalloc byte[128], label_id ?? "");
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotShadedG(label_id == null ? null : label_id_ptr, getter1, data1, getter2, data2, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotShadedG(label_id == null ? null : label_id_ptr, getter1, data1, getter2, data2, count, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref float values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2223,7 +2223,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStairs_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref double values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2232,7 +2232,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStairs_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref short values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2241,7 +2241,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStairs_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref ushort values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2250,7 +2250,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStairs_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref int values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2259,7 +2259,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStairs_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref uint values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2268,7 +2268,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStairs_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref long values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2277,7 +2277,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStairs_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref ulong values, int count, double xscale = 1, double xstart = 0, ImPlotSpec? spec = null)
@@ -2286,7 +2286,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStairs_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, xscale, xstart, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref float xs, ref float ys, int count, ImPlotSpec? spec = null)
@@ -2296,7 +2296,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* xs_ptr = &xs)
         fixed(float* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStairs_FloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_FloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref double xs, ref double ys, int count, ImPlotSpec? spec = null)
@@ -2306,7 +2306,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* xs_ptr = &xs)
         fixed(double* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStairs_doublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_doublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref short xs, ref short ys, int count, ImPlotSpec? spec = null)
@@ -2316,7 +2316,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* xs_ptr = &xs)
         fixed(short* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStairs_S16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_S16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref ushort xs, ref ushort ys, int count, ImPlotSpec? spec = null)
@@ -2326,7 +2326,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStairs_U16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_U16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref int xs, ref int ys, int count, ImPlotSpec? spec = null)
@@ -2336,7 +2336,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* xs_ptr = &xs)
         fixed(int* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStairs_S32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_S32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref uint xs, ref uint ys, int count, ImPlotSpec? spec = null)
@@ -2346,7 +2346,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStairs_U32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_U32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref long xs, ref long ys, int count, ImPlotSpec? spec = null)
@@ -2356,7 +2356,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* xs_ptr = &xs)
         fixed(long* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStairs_S64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_S64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotStairs(string label_id, ref ulong xs, ref ulong ys, int count, ImPlotSpec? spec = null)
@@ -2366,7 +2366,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStairs_U64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairs_U64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, spec_spec);
     }
 
     public static void PlotStairsG(string label_id, delegate* unmanaged<int, void*, ImPlotPoint> getter, void* data, int count, ImPlotSpec? spec = null)
@@ -2374,7 +2374,7 @@ public static unsafe class ImPlot
         using var label_id_u8 = new UTF8ZHelper(stackalloc byte[128], label_id ?? "");
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotStairsG(label_id == null ? null : label_id_ptr, getter, data, count, &spec_spec);
+            ImPlotNative.ImPlot_PlotStairsG(label_id == null ? null : label_id_ptr, getter, data, count, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref float values, int count, double reference = 0, double scale = 1, double start = 0, ImPlotSpec? spec = null)
@@ -2383,7 +2383,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStems_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_FloatPtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref double values, int count, double reference = 0, double scale = 1, double start = 0, ImPlotSpec? spec = null)
@@ -2392,7 +2392,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStems_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_doublePtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref short values, int count, double reference = 0, double scale = 1, double start = 0, ImPlotSpec? spec = null)
@@ -2401,7 +2401,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStems_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_S16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref ushort values, int count, double reference = 0, double scale = 1, double start = 0, ImPlotSpec? spec = null)
@@ -2410,7 +2410,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStems_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_U16PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref int values, int count, double reference = 0, double scale = 1, double start = 0, ImPlotSpec? spec = null)
@@ -2419,7 +2419,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStems_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_S32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref uint values, int count, double reference = 0, double scale = 1, double start = 0, ImPlotSpec? spec = null)
@@ -2428,7 +2428,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStems_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_U32PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref long values, int count, double reference = 0, double scale = 1, double start = 0, ImPlotSpec? spec = null)
@@ -2437,7 +2437,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStems_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_S64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref ulong values, int count, double reference = 0, double scale = 1, double start = 0, ImPlotSpec? spec = null)
@@ -2446,7 +2446,7 @@ public static unsafe class ImPlot
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* values_ptr = &values)
-            ImPlotNative.ImPlot_PlotStems_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_U64PtrInt(label_id == null ? null : label_id_ptr, values_ptr, count, reference, scale, start, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref float xs, ref float ys, int count, double reference = 0, ImPlotSpec? spec = null)
@@ -2456,7 +2456,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(float* xs_ptr = &xs)
         fixed(float* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStems_FloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_FloatPtrFloatPtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref double xs, ref double ys, int count, double reference = 0, ImPlotSpec? spec = null)
@@ -2466,7 +2466,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(double* xs_ptr = &xs)
         fixed(double* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStems_doublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_doublePtrdoublePtr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref short xs, ref short ys, int count, double reference = 0, ImPlotSpec? spec = null)
@@ -2476,7 +2476,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(short* xs_ptr = &xs)
         fixed(short* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStems_S16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_S16PtrS16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref ushort xs, ref ushort ys, int count, double reference = 0, ImPlotSpec? spec = null)
@@ -2486,7 +2486,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ushort* xs_ptr = &xs)
         fixed(ushort* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStems_U16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_U16PtrU16Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref int xs, ref int ys, int count, double reference = 0, ImPlotSpec? spec = null)
@@ -2496,7 +2496,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(int* xs_ptr = &xs)
         fixed(int* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStems_S32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_S32PtrS32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref uint xs, ref uint ys, int count, double reference = 0, ImPlotSpec? spec = null)
@@ -2506,7 +2506,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(uint* xs_ptr = &xs)
         fixed(uint* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStems_U32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_U32PtrU32Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref long xs, ref long ys, int count, double reference = 0, ImPlotSpec? spec = null)
@@ -2516,7 +2516,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(long* xs_ptr = &xs)
         fixed(long* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStems_S64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_S64PtrS64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, spec_spec);
     }
 
     public static void PlotStems(string label_id, ref ulong xs, ref ulong ys, int count, double reference = 0, ImPlotSpec? spec = null)
@@ -2526,7 +2526,7 @@ public static unsafe class ImPlot
         fixed(byte* label_id_ptr = label_id_u8.ToUTF8Z())
         fixed(ulong* xs_ptr = &xs)
         fixed(ulong* ys_ptr = &ys)
-            ImPlotNative.ImPlot_PlotStems_U64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, &spec_spec);
+            ImPlotNative.ImPlot_PlotStems_U64PtrU64Ptr(label_id == null ? null : label_id_ptr, xs_ptr, ys_ptr, count, reference, spec_spec);
     }
 
     public static void PlotText(string text, double x, double y, Vector2 pix_offset = default, ImPlotSpec? spec = null)
@@ -2534,7 +2534,7 @@ public static unsafe class ImPlot
         using var text_u8 = new UTF8ZHelper(stackalloc byte[128], text ?? "");
         var spec_spec = spec ?? new ImPlotSpec();
         fixed(byte* text_ptr = text_u8.ToUTF8Z())
-            ImPlotNative.ImPlot_PlotText(text == null ? null : text_ptr, x, y, pix_offset, &spec_spec);
+            ImPlotNative.ImPlot_PlotText(text == null ? null : text_ptr, x, y, pix_offset, spec_spec);
     }
 
     public static Vector2 PlotToPixels(ImPlotPoint plt, ImAxis x_axis = (ImAxis)(-1), ImAxis y_axis = (ImAxis)(-1))

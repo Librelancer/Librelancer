@@ -1,9 +1,12 @@
 #define IMPLOT_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
-#include "cimplot_manual.h"
+namespace cimgui
+{
+    #include "cimplot_manual.h"
+}
 #include "implot.h"
 
-CIMGUI_API void ImPlotSpec_Construct(ImPlotSpec *spec)
+CIMGUI_API void cimgui::ImPlotSpec_Construct(cimgui::ImPlotSpec *spec)
 {
-    *spec = ImPlotSpec();
+    *(reinterpret_cast<::ImPlotSpec*>(spec)) = ::ImPlotSpec();
 }

@@ -196,631 +196,631 @@ static unsafe class ImPlotNative
     public static extern ImPlotPoint ImPlot_PixelsToPlot_Float(float x,float y,ImAxis x_axis,ImAxis y_axis);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBarGroups_FloatPtr(IntPtr label_ids,float* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBarGroups_FloatPtr(IntPtr label_ids,float* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBarGroups_doublePtr(IntPtr label_ids,double* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBarGroups_doublePtr(IntPtr label_ids,double* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBarGroups_S16Ptr(IntPtr label_ids,short* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBarGroups_S16Ptr(IntPtr label_ids,short* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBarGroups_U16Ptr(IntPtr label_ids,ushort* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBarGroups_U16Ptr(IntPtr label_ids,ushort* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBarGroups_S32Ptr(IntPtr label_ids,int* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBarGroups_S32Ptr(IntPtr label_ids,int* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBarGroups_U32Ptr(IntPtr label_ids,uint* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBarGroups_U32Ptr(IntPtr label_ids,uint* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBarGroups_S64Ptr(IntPtr label_ids,long* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBarGroups_S64Ptr(IntPtr label_ids,long* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBarGroups_U64Ptr(IntPtr label_ids,ulong* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBarGroups_U64Ptr(IntPtr label_ids,ulong* values,int item_count,int group_count,double group_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_FloatPtrInt(byte* label_id,float* values,int count,double bar_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_FloatPtrInt(byte* label_id,float* values,int count,double bar_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_doublePtrInt(byte* label_id,double* values,int count,double bar_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_doublePtrInt(byte* label_id,double* values,int count,double bar_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_S16PtrInt(byte* label_id,short* values,int count,double bar_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_S16PtrInt(byte* label_id,short* values,int count,double bar_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_U16PtrInt(byte* label_id,ushort* values,int count,double bar_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_U16PtrInt(byte* label_id,ushort* values,int count,double bar_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_S32PtrInt(byte* label_id,int* values,int count,double bar_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_S32PtrInt(byte* label_id,int* values,int count,double bar_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_U32PtrInt(byte* label_id,uint* values,int count,double bar_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_U32PtrInt(byte* label_id,uint* values,int count,double bar_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_S64PtrInt(byte* label_id,long* values,int count,double bar_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_S64PtrInt(byte* label_id,long* values,int count,double bar_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_U64PtrInt(byte* label_id,ulong* values,int count,double bar_size,double shift,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_U64PtrInt(byte* label_id,ulong* values,int count,double bar_size,double shift,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_FloatPtrFloatPtr(byte* label_id,float* xs,float* ys,int count,double bar_size,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_FloatPtrFloatPtr(byte* label_id,float* xs,float* ys,int count,double bar_size,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_doublePtrdoublePtr(byte* label_id,double* xs,double* ys,int count,double bar_size,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_doublePtrdoublePtr(byte* label_id,double* xs,double* ys,int count,double bar_size,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_S16PtrS16Ptr(byte* label_id,short* xs,short* ys,int count,double bar_size,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_S16PtrS16Ptr(byte* label_id,short* xs,short* ys,int count,double bar_size,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_U16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,double bar_size,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_U16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,double bar_size,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_S32PtrS32Ptr(byte* label_id,int* xs,int* ys,int count,double bar_size,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_S32PtrS32Ptr(byte* label_id,int* xs,int* ys,int count,double bar_size,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_U32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,int count,double bar_size,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_U32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,int count,double bar_size,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_S64PtrS64Ptr(byte* label_id,long* xs,long* ys,int count,double bar_size,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_S64PtrS64Ptr(byte* label_id,long* xs,long* ys,int count,double bar_size,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBars_U64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,double bar_size,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBars_U64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,double bar_size,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBarsG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter,void* data,int count,double bar_size,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBarsG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter,void* data,int count,double bar_size,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_FloatPtrFloatPtrInt(byte* label_id,float* values,float* szs,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_FloatPtrFloatPtrInt(byte* label_id,float* values,float* szs,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_doublePtrdoublePtrInt(byte* label_id,double* values,double* szs,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_doublePtrdoublePtrInt(byte* label_id,double* values,double* szs,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_S16PtrS16PtrInt(byte* label_id,short* values,short* szs,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_S16PtrS16PtrInt(byte* label_id,short* values,short* szs,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_U16PtrU16PtrInt(byte* label_id,ushort* values,ushort* szs,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_U16PtrU16PtrInt(byte* label_id,ushort* values,ushort* szs,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_S32PtrS32PtrInt(byte* label_id,int* values,int* szs,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_S32PtrS32PtrInt(byte* label_id,int* values,int* szs,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_U32PtrU32PtrInt(byte* label_id,uint* values,uint* szs,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_U32PtrU32PtrInt(byte* label_id,uint* values,uint* szs,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_S64PtrS64PtrInt(byte* label_id,long* values,long* szs,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_S64PtrS64PtrInt(byte* label_id,long* values,long* szs,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_U64PtrU64PtrInt(byte* label_id,ulong* values,ulong* szs,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_U64PtrU64PtrInt(byte* label_id,ulong* values,ulong* szs,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_FloatPtrFloatPtrFloatPtr(byte* label_id,float* xs,float* ys,float* szs,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_FloatPtrFloatPtrFloatPtr(byte* label_id,float* xs,float* ys,float* szs,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_doublePtrdoublePtrdoublePtr(byte* label_id,double* xs,double* ys,double* szs,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_doublePtrdoublePtrdoublePtr(byte* label_id,double* xs,double* ys,double* szs,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_S16PtrS16PtrS16Ptr(byte* label_id,short* xs,short* ys,short* szs,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_S16PtrS16PtrS16Ptr(byte* label_id,short* xs,short* ys,short* szs,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_U16PtrU16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,ushort* szs,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_U16PtrU16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,ushort* szs,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_S32PtrS32PtrS32Ptr(byte* label_id,int* xs,int* ys,int* szs,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_S32PtrS32PtrS32Ptr(byte* label_id,int* xs,int* ys,int* szs,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_U32PtrU32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,uint* szs,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_U32PtrU32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,uint* szs,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_S64PtrS64PtrS64Ptr(byte* label_id,long* xs,long* ys,long* szs,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_S64PtrS64PtrS64Ptr(byte* label_id,long* xs,long* ys,long* szs,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotBubbles_U64PtrU64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,ulong* szs,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotBubbles_U64PtrU64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,ulong* szs,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotDigital_FloatPtr(byte* label_id,float* xs,float* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotDigital_FloatPtr(byte* label_id,float* xs,float* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotDigital_doublePtr(byte* label_id,double* xs,double* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotDigital_doublePtr(byte* label_id,double* xs,double* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotDigital_S16Ptr(byte* label_id,short* xs,short* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotDigital_S16Ptr(byte* label_id,short* xs,short* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotDigital_U16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotDigital_U16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotDigital_S32Ptr(byte* label_id,int* xs,int* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotDigital_S32Ptr(byte* label_id,int* xs,int* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotDigital_U32Ptr(byte* label_id,uint* xs,uint* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotDigital_U32Ptr(byte* label_id,uint* xs,uint* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotDigital_S64Ptr(byte* label_id,long* xs,long* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotDigital_S64Ptr(byte* label_id,long* xs,long* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotDigital_U64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotDigital_U64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotDigitalG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter,void* data,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotDigitalG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter,void* data,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotDummy(byte* label_id,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotDummy(byte* label_id,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrInt(byte* label_id,float* xs,float* ys,float* err,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrInt(byte* label_id,float* xs,float* ys,float* err,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrInt(byte* label_id,double* xs,double* ys,double* err,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrInt(byte* label_id,double* xs,double* ys,double* err,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrInt(byte* label_id,short* xs,short* ys,short* err,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrInt(byte* label_id,short* xs,short* ys,short* err,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrInt(byte* label_id,ushort* xs,ushort* ys,ushort* err,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrInt(byte* label_id,ushort* xs,ushort* ys,ushort* err,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrInt(byte* label_id,int* xs,int* ys,int* err,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrInt(byte* label_id,int* xs,int* ys,int* err,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrInt(byte* label_id,uint* xs,uint* ys,uint* err,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrInt(byte* label_id,uint* xs,uint* ys,uint* err,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrInt(byte* label_id,long* xs,long* ys,long* err,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrInt(byte* label_id,long* xs,long* ys,long* err,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrInt(byte* label_id,ulong* xs,ulong* ys,ulong* err,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrInt(byte* label_id,ulong* xs,ulong* ys,ulong* err,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrFloatPtr(byte* label_id,float* xs,float* ys,float* neg,float* pos,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_FloatPtrFloatPtrFloatPtrFloatPtr(byte* label_id,float* xs,float* ys,float* neg,float* pos,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrdoublePtr(byte* label_id,double* xs,double* ys,double* neg,double* pos,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_doublePtrdoublePtrdoublePtrdoublePtr(byte* label_id,double* xs,double* ys,double* neg,double* pos,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrS16Ptr(byte* label_id,short* xs,short* ys,short* neg,short* pos,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_S16PtrS16PtrS16PtrS16Ptr(byte* label_id,short* xs,short* ys,short* neg,short* pos,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,ushort* neg,ushort* pos,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_U16PtrU16PtrU16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,ushort* neg,ushort* pos,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrS32Ptr(byte* label_id,int* xs,int* ys,int* neg,int* pos,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_S32PtrS32PtrS32PtrS32Ptr(byte* label_id,int* xs,int* ys,int* neg,int* pos,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,uint* neg,uint* pos,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_U32PtrU32PtrU32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,uint* neg,uint* pos,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrS64Ptr(byte* label_id,long* xs,long* ys,long* neg,long* pos,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_S64PtrS64PtrS64PtrS64Ptr(byte* label_id,long* xs,long* ys,long* neg,long* pos,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,ulong* neg,ulong* pos,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotErrorBars_U64PtrU64PtrU64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,ulong* neg,ulong* pos,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotHeatmap_FloatPtr(byte* label_id,float* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotHeatmap_FloatPtr(byte* label_id,float* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotHeatmap_doublePtr(byte* label_id,double* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotHeatmap_doublePtr(byte* label_id,double* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotHeatmap_S16Ptr(byte* label_id,short* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotHeatmap_S16Ptr(byte* label_id,short* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotHeatmap_U16Ptr(byte* label_id,ushort* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotHeatmap_U16Ptr(byte* label_id,ushort* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotHeatmap_S32Ptr(byte* label_id,int* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotHeatmap_S32Ptr(byte* label_id,int* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotHeatmap_U32Ptr(byte* label_id,uint* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotHeatmap_U32Ptr(byte* label_id,uint* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotHeatmap_S64Ptr(byte* label_id,long* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotHeatmap_S64Ptr(byte* label_id,long* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotHeatmap_U64Ptr(byte* label_id,ulong* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotHeatmap_U64Ptr(byte* label_id,ulong* values,int rows,int cols,double scale_min,double scale_max,byte* label_fmt,ImPlotPoint bounds_min,ImPlotPoint bounds_max,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram_FloatPtr(byte* label_id,float* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram_FloatPtr(byte* label_id,float* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram_doublePtr(byte* label_id,double* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram_doublePtr(byte* label_id,double* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram_S16Ptr(byte* label_id,short* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram_S16Ptr(byte* label_id,short* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram_U16Ptr(byte* label_id,ushort* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram_U16Ptr(byte* label_id,ushort* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram_S32Ptr(byte* label_id,int* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram_S32Ptr(byte* label_id,int* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram_U32Ptr(byte* label_id,uint* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram_U32Ptr(byte* label_id,uint* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram_S64Ptr(byte* label_id,long* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram_S64Ptr(byte* label_id,long* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram_U64Ptr(byte* label_id,ulong* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram_U64Ptr(byte* label_id,ulong* values,int count,int bins,double bar_scale,ImPlotRange range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram2D_FloatPtr(byte* label_id,float* xs,float* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram2D_FloatPtr(byte* label_id,float* xs,float* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram2D_doublePtr(byte* label_id,double* xs,double* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram2D_doublePtr(byte* label_id,double* xs,double* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram2D_S16Ptr(byte* label_id,short* xs,short* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram2D_S16Ptr(byte* label_id,short* xs,short* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram2D_U16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram2D_U16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram2D_S32Ptr(byte* label_id,int* xs,int* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram2D_S32Ptr(byte* label_id,int* xs,int* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram2D_U32Ptr(byte* label_id,uint* xs,uint* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram2D_U32Ptr(byte* label_id,uint* xs,uint* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram2D_S64Ptr(byte* label_id,long* xs,long* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram2D_S64Ptr(byte* label_id,long* xs,long* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern double ImPlot_PlotHistogram2D_U64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec* spec);
+    public static extern double ImPlot_PlotHistogram2D_U64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,int x_bins,int y_bins,ImPlotRect range,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotImage(byte* label_id,ImTextureRef tex_reference,ImPlotPoint bounds_min,ImPlotPoint bounds_max,Vector2 uv0,Vector2 uv1,Vector4 tint_col,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotImage(byte* label_id,ImTextureRef tex_reference,ImPlotPoint bounds_min,ImPlotPoint bounds_max,Vector2 uv0,Vector2 uv1,Vector4 tint_col,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotInfLines_FloatPtr(byte* label_id,float* values,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotInfLines_FloatPtr(byte* label_id,float* values,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotInfLines_doublePtr(byte* label_id,double* values,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotInfLines_doublePtr(byte* label_id,double* values,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotInfLines_S16Ptr(byte* label_id,short* values,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotInfLines_S16Ptr(byte* label_id,short* values,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotInfLines_U16Ptr(byte* label_id,ushort* values,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotInfLines_U16Ptr(byte* label_id,ushort* values,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotInfLines_S32Ptr(byte* label_id,int* values,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotInfLines_S32Ptr(byte* label_id,int* values,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotInfLines_U32Ptr(byte* label_id,uint* values,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotInfLines_U32Ptr(byte* label_id,uint* values,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotInfLines_S64Ptr(byte* label_id,long* values,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotInfLines_S64Ptr(byte* label_id,long* values,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotInfLines_U64Ptr(byte* label_id,ulong* values,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotInfLines_U64Ptr(byte* label_id,ulong* values,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_FloatPtrInt(byte* label_id,float* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_FloatPtrInt(byte* label_id,float* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_doublePtrInt(byte* label_id,double* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_doublePtrInt(byte* label_id,double* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_S16PtrInt(byte* label_id,short* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_S16PtrInt(byte* label_id,short* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_U16PtrInt(byte* label_id,ushort* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_U16PtrInt(byte* label_id,ushort* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_S32PtrInt(byte* label_id,int* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_S32PtrInt(byte* label_id,int* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_U32PtrInt(byte* label_id,uint* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_U32PtrInt(byte* label_id,uint* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_S64PtrInt(byte* label_id,long* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_S64PtrInt(byte* label_id,long* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_U64PtrInt(byte* label_id,ulong* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_U64PtrInt(byte* label_id,ulong* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_FloatPtrFloatPtr(byte* label_id,float* xs,float* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_FloatPtrFloatPtr(byte* label_id,float* xs,float* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_doublePtrdoublePtr(byte* label_id,double* xs,double* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_doublePtrdoublePtr(byte* label_id,double* xs,double* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_S16PtrS16Ptr(byte* label_id,short* xs,short* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_S16PtrS16Ptr(byte* label_id,short* xs,short* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_U16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_U16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_S32PtrS32Ptr(byte* label_id,int* xs,int* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_S32PtrS32Ptr(byte* label_id,int* xs,int* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_U32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_U32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_S64PtrS64Ptr(byte* label_id,long* xs,long* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_S64PtrS64Ptr(byte* label_id,long* xs,long* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLine_U64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLine_U64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotLineG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter,void* data,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotLineG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter,void* data,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_FloatPtrPlotFormatter(IntPtr label_ids,float* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_FloatPtrPlotFormatter(IntPtr label_ids,float* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_doublePtrPlotFormatter(IntPtr label_ids,double* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_doublePtrPlotFormatter(IntPtr label_ids,double* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_S16PtrPlotFormatter(IntPtr label_ids,short* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_S16PtrPlotFormatter(IntPtr label_ids,short* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_U16PtrPlotFormatter(IntPtr label_ids,ushort* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_U16PtrPlotFormatter(IntPtr label_ids,ushort* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_S32PtrPlotFormatter(IntPtr label_ids,int* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_S32PtrPlotFormatter(IntPtr label_ids,int* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_U32PtrPlotFormatter(IntPtr label_ids,uint* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_U32PtrPlotFormatter(IntPtr label_ids,uint* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_S64PtrPlotFormatter(IntPtr label_ids,long* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_S64PtrPlotFormatter(IntPtr label_ids,long* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_U64PtrPlotFormatter(IntPtr label_ids,ulong* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_U64PtrPlotFormatter(IntPtr label_ids,ulong* values,int count,double x,double y,double radius,delegate* unmanaged<double, IntPtr, int, void*, int> fmt,void* fmt_data,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_FloatPtrStr(IntPtr label_ids,float* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_FloatPtrStr(IntPtr label_ids,float* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_doublePtrStr(IntPtr label_ids,double* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_doublePtrStr(IntPtr label_ids,double* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_S16PtrStr(IntPtr label_ids,short* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_S16PtrStr(IntPtr label_ids,short* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_U16PtrStr(IntPtr label_ids,ushort* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_U16PtrStr(IntPtr label_ids,ushort* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_S32PtrStr(IntPtr label_ids,int* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_S32PtrStr(IntPtr label_ids,int* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_U32PtrStr(IntPtr label_ids,uint* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_U32PtrStr(IntPtr label_ids,uint* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_S64PtrStr(IntPtr label_ids,long* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_S64PtrStr(IntPtr label_ids,long* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotPieChart_U64PtrStr(IntPtr label_ids,ulong* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotPieChart_U64PtrStr(IntPtr label_ids,ulong* values,int count,double x,double y,double radius,byte* label_fmt,double angle0,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_FloatPtrInt(byte* label_id,float* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_FloatPtrInt(byte* label_id,float* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_doublePtrInt(byte* label_id,double* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_doublePtrInt(byte* label_id,double* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_S16PtrInt(byte* label_id,short* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_S16PtrInt(byte* label_id,short* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_U16PtrInt(byte* label_id,ushort* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_U16PtrInt(byte* label_id,ushort* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_S32PtrInt(byte* label_id,int* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_S32PtrInt(byte* label_id,int* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_U32PtrInt(byte* label_id,uint* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_U32PtrInt(byte* label_id,uint* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_S64PtrInt(byte* label_id,long* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_S64PtrInt(byte* label_id,long* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_U64PtrInt(byte* label_id,ulong* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_U64PtrInt(byte* label_id,ulong* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_FloatPtrFloatPtr(byte* label_id,float* xs,float* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_FloatPtrFloatPtr(byte* label_id,float* xs,float* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_doublePtrdoublePtr(byte* label_id,double* xs,double* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_doublePtrdoublePtr(byte* label_id,double* xs,double* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_S16PtrS16Ptr(byte* label_id,short* xs,short* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_S16PtrS16Ptr(byte* label_id,short* xs,short* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_U16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_U16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_S32PtrS32Ptr(byte* label_id,int* xs,int* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_S32PtrS32Ptr(byte* label_id,int* xs,int* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_U32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_U32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_S64PtrS64Ptr(byte* label_id,long* xs,long* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_S64PtrS64Ptr(byte* label_id,long* xs,long* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatter_U64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatter_U64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotScatterG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter,void* data,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotScatterG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter,void* data,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_FloatPtrInt(byte* label_id,float* values,int count,double yreference,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_FloatPtrInt(byte* label_id,float* values,int count,double yreference,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_doublePtrInt(byte* label_id,double* values,int count,double yreference,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_doublePtrInt(byte* label_id,double* values,int count,double yreference,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_S16PtrInt(byte* label_id,short* values,int count,double yreference,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_S16PtrInt(byte* label_id,short* values,int count,double yreference,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_U16PtrInt(byte* label_id,ushort* values,int count,double yreference,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_U16PtrInt(byte* label_id,ushort* values,int count,double yreference,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_S32PtrInt(byte* label_id,int* values,int count,double yreference,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_S32PtrInt(byte* label_id,int* values,int count,double yreference,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_U32PtrInt(byte* label_id,uint* values,int count,double yreference,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_U32PtrInt(byte* label_id,uint* values,int count,double yreference,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_S64PtrInt(byte* label_id,long* values,int count,double yreference,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_S64PtrInt(byte* label_id,long* values,int count,double yreference,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_U64PtrInt(byte* label_id,ulong* values,int count,double yreference,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_U64PtrInt(byte* label_id,ulong* values,int count,double yreference,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_FloatPtrFloatPtrInt(byte* label_id,float* xs,float* ys,int count,double yreference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_FloatPtrFloatPtrInt(byte* label_id,float* xs,float* ys,int count,double yreference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_doublePtrdoublePtrInt(byte* label_id,double* xs,double* ys,int count,double yreference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_doublePtrdoublePtrInt(byte* label_id,double* xs,double* ys,int count,double yreference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_S16PtrS16PtrInt(byte* label_id,short* xs,short* ys,int count,double yreference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_S16PtrS16PtrInt(byte* label_id,short* xs,short* ys,int count,double yreference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_U16PtrU16PtrInt(byte* label_id,ushort* xs,ushort* ys,int count,double yreference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_U16PtrU16PtrInt(byte* label_id,ushort* xs,ushort* ys,int count,double yreference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_S32PtrS32PtrInt(byte* label_id,int* xs,int* ys,int count,double yreference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_S32PtrS32PtrInt(byte* label_id,int* xs,int* ys,int count,double yreference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_U32PtrU32PtrInt(byte* label_id,uint* xs,uint* ys,int count,double yreference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_U32PtrU32PtrInt(byte* label_id,uint* xs,uint* ys,int count,double yreference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_S64PtrS64PtrInt(byte* label_id,long* xs,long* ys,int count,double yreference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_S64PtrS64PtrInt(byte* label_id,long* xs,long* ys,int count,double yreference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_U64PtrU64PtrInt(byte* label_id,ulong* xs,ulong* ys,int count,double yreference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_U64PtrU64PtrInt(byte* label_id,ulong* xs,ulong* ys,int count,double yreference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_FloatPtrFloatPtrFloatPtr(byte* label_id,float* xs,float* ys1,float* ys2,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_FloatPtrFloatPtrFloatPtr(byte* label_id,float* xs,float* ys1,float* ys2,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_doublePtrdoublePtrdoublePtr(byte* label_id,double* xs,double* ys1,double* ys2,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_doublePtrdoublePtrdoublePtr(byte* label_id,double* xs,double* ys1,double* ys2,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_S16PtrS16PtrS16Ptr(byte* label_id,short* xs,short* ys1,short* ys2,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_S16PtrS16PtrS16Ptr(byte* label_id,short* xs,short* ys1,short* ys2,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_U16PtrU16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys1,ushort* ys2,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_U16PtrU16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys1,ushort* ys2,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_S32PtrS32PtrS32Ptr(byte* label_id,int* xs,int* ys1,int* ys2,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_S32PtrS32PtrS32Ptr(byte* label_id,int* xs,int* ys1,int* ys2,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_U32PtrU32PtrU32Ptr(byte* label_id,uint* xs,uint* ys1,uint* ys2,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_U32PtrU32PtrU32Ptr(byte* label_id,uint* xs,uint* ys1,uint* ys2,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_S64PtrS64PtrS64Ptr(byte* label_id,long* xs,long* ys1,long* ys2,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_S64PtrS64PtrS64Ptr(byte* label_id,long* xs,long* ys1,long* ys2,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShaded_U64PtrU64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys1,ulong* ys2,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShaded_U64PtrU64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys1,ulong* ys2,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotShadedG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter1,void* data1,delegate* unmanaged<int, void*, ImPlotPoint> getter2,void* data2,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotShadedG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter1,void* data1,delegate* unmanaged<int, void*, ImPlotPoint> getter2,void* data2,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_FloatPtrInt(byte* label_id,float* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_FloatPtrInt(byte* label_id,float* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_doublePtrInt(byte* label_id,double* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_doublePtrInt(byte* label_id,double* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_S16PtrInt(byte* label_id,short* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_S16PtrInt(byte* label_id,short* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_U16PtrInt(byte* label_id,ushort* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_U16PtrInt(byte* label_id,ushort* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_S32PtrInt(byte* label_id,int* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_S32PtrInt(byte* label_id,int* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_U32PtrInt(byte* label_id,uint* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_U32PtrInt(byte* label_id,uint* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_S64PtrInt(byte* label_id,long* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_S64PtrInt(byte* label_id,long* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_U64PtrInt(byte* label_id,ulong* values,int count,double xscale,double xstart,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_U64PtrInt(byte* label_id,ulong* values,int count,double xscale,double xstart,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_FloatPtrFloatPtr(byte* label_id,float* xs,float* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_FloatPtrFloatPtr(byte* label_id,float* xs,float* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_doublePtrdoublePtr(byte* label_id,double* xs,double* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_doublePtrdoublePtr(byte* label_id,double* xs,double* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_S16PtrS16Ptr(byte* label_id,short* xs,short* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_S16PtrS16Ptr(byte* label_id,short* xs,short* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_U16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_U16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_S32PtrS32Ptr(byte* label_id,int* xs,int* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_S32PtrS32Ptr(byte* label_id,int* xs,int* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_U32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_U32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_S64PtrS64Ptr(byte* label_id,long* xs,long* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_S64PtrS64Ptr(byte* label_id,long* xs,long* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairs_U64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairs_U64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStairsG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter,void* data,int count,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStairsG(byte* label_id,delegate* unmanaged<int, void*, ImPlotPoint> getter,void* data,int count,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_FloatPtrInt(byte* label_id,float* values,int count,double reference,double scale,double start,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_FloatPtrInt(byte* label_id,float* values,int count,double reference,double scale,double start,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_doublePtrInt(byte* label_id,double* values,int count,double reference,double scale,double start,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_doublePtrInt(byte* label_id,double* values,int count,double reference,double scale,double start,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_S16PtrInt(byte* label_id,short* values,int count,double reference,double scale,double start,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_S16PtrInt(byte* label_id,short* values,int count,double reference,double scale,double start,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_U16PtrInt(byte* label_id,ushort* values,int count,double reference,double scale,double start,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_U16PtrInt(byte* label_id,ushort* values,int count,double reference,double scale,double start,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_S32PtrInt(byte* label_id,int* values,int count,double reference,double scale,double start,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_S32PtrInt(byte* label_id,int* values,int count,double reference,double scale,double start,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_U32PtrInt(byte* label_id,uint* values,int count,double reference,double scale,double start,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_U32PtrInt(byte* label_id,uint* values,int count,double reference,double scale,double start,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_S64PtrInt(byte* label_id,long* values,int count,double reference,double scale,double start,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_S64PtrInt(byte* label_id,long* values,int count,double reference,double scale,double start,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_U64PtrInt(byte* label_id,ulong* values,int count,double reference,double scale,double start,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_U64PtrInt(byte* label_id,ulong* values,int count,double reference,double scale,double start,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_FloatPtrFloatPtr(byte* label_id,float* xs,float* ys,int count,double reference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_FloatPtrFloatPtr(byte* label_id,float* xs,float* ys,int count,double reference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_doublePtrdoublePtr(byte* label_id,double* xs,double* ys,int count,double reference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_doublePtrdoublePtr(byte* label_id,double* xs,double* ys,int count,double reference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_S16PtrS16Ptr(byte* label_id,short* xs,short* ys,int count,double reference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_S16PtrS16Ptr(byte* label_id,short* xs,short* ys,int count,double reference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_U16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,double reference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_U16PtrU16Ptr(byte* label_id,ushort* xs,ushort* ys,int count,double reference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_S32PtrS32Ptr(byte* label_id,int* xs,int* ys,int count,double reference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_S32PtrS32Ptr(byte* label_id,int* xs,int* ys,int count,double reference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_U32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,int count,double reference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_U32PtrU32Ptr(byte* label_id,uint* xs,uint* ys,int count,double reference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_S64PtrS64Ptr(byte* label_id,long* xs,long* ys,int count,double reference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_S64PtrS64Ptr(byte* label_id,long* xs,long* ys,int count,double reference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotStems_U64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,double reference,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotStems_U64PtrU64Ptr(byte* label_id,ulong* xs,ulong* ys,int count,double reference,ImPlotSpec spec);
 
     [DllImport("cimgui")]
-    public static extern void ImPlot_PlotText(byte* text,double x,double y,Vector2 pix_offset,ImPlotSpec* spec);
+    public static extern void ImPlot_PlotText(byte* text,double x,double y,Vector2 pix_offset,ImPlotSpec spec);
 
     [DllImport("cimgui")]
     public static extern Vector2 ImPlot_PlotToPixels_PlotPoint(ImPlotPoint plt,ImAxis x_axis,ImAxis y_axis);

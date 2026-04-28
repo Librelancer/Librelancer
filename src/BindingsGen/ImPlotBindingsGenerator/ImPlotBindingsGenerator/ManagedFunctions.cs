@@ -32,7 +32,7 @@ public class ManagedFunctions
         "ImPlotPoint" when def != null && def.StartsWith("ImPlotPoint") => $"{Name(arg)} ?? {def.Replace("ImPlotPoint", "new")}",
         "string" => $"{Name(arg)} == null ? null : {Name(arg)}_ptr",
         "string[]" => $"{Name(arg)}_u8.Pointer",
-        "ImPlotSpec?" => $"&{Name(arg)}_spec",
+        "ImPlotSpec?" => $"{Name(arg)}_spec",
         _ => Name(arg)
     };
 

@@ -18,13 +18,18 @@ public class FuncDefinition
     public string ov_cimguiname { get; set; } = "";
     public string location { get; set; } = "";
     public bool destructor { get; set; }
-    public bool constructor { get; set; } 
+    public bool constructor { get; set; }
+
+    public string CppFileArgs { get; set; }
+    public string CppFileCall { get; set; }
 }
 
 public class FuncArg
 {
     public string name { get; set; }
+    public string type { get; set; }
 }
+
 
 public class EnumMember
 {
@@ -33,8 +38,15 @@ public class EnumMember
     public string name { get; set; } = "";
 }
 
-public class EnumsDefinition
+public class StructMember
 {
+    public string name { get; set; } = "";
+    public string type { get; set; } = "";
+}
+
+public class StructsAndEnums
+{
+    public Dictionary<string, StructMember[]> structs { get; set; } = [];
     public Dictionary<string, EnumMember[]> enums { get; set; } = [];
     public Dictionary<string, string> locations { get; set; } = [];
 }

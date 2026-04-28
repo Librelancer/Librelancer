@@ -5,9 +5,10 @@ public class TypeHandling
     public const string TYPE_FORMATTER = "delegate* unmanaged<double, IntPtr, int, void*, int>";
     public const string TYPE_GETTER = "delegate* unmanaged<int, void*, ImPlotPoint>";
     public const string TYPE_TRANSFORM = "delegate* unmanaged<double, void*, double>";
-    
+
+
     public static string CleanTypes(string typeStr) => typeStr
-        .Replace("ImPlotSpec_c", "ImPlotSpec*")
+        .Replace("ImPlotSpec_c", "ImPlotSpec")
         .Replace("const ImPlotPoint_c", "ImPlotPoint")
         .Replace("ImPlotPoint_c", "ImPlotPoint")
         .Replace("const ImPlotRect_c", "ImPlotRect")
@@ -18,7 +19,7 @@ public class TypeHandling
         .Replace("const ImVec4_c", "ImVec4")
         .Replace("ImVec2_c", "ImVec2")
         .Replace("ImVec4_c", "ImVec4");
-    
+
     public static string ManagedType(string args) => TypeHandling.CleanTypes(args)
         .Replace("ImVec2", "Vector2")
         .Replace("ImVec4", "Vector4")
@@ -40,7 +41,7 @@ public class TypeHandling
         .Replace("ImPlotFormatter", TYPE_FORMATTER)
         .Replace("ImPlotGetter", TYPE_GETTER)
         .Replace("ImPlotTransform", TYPE_TRANSFORM);
-    
+
     public static string CsNativeTypes(string args) => CleanTypes(args)
         .Replace("ImVec2", "Vector2")
         .Replace("ImVec4", "Vector4")

@@ -6,9 +6,50 @@ using ImPlotBindingsGenerator;
 
 Dictionary<string, FuncDefinition[]> defs = JsonSerializer.Deserialize<Dictionary<string, FuncDefinition[]>>(File.ReadAllText("definitions.json"))!;
 Dictionary<string, string> typedefs = JsonSerializer.Deserialize <Dictionary<string, string>>(File.ReadAllText("typedef_dicts.json"))!;
-EnumsDefinition enums = JsonSerializer.Deserialize<EnumsDefinition>(File.ReadAllText("structs_and_enums.json"))!;
+StructsAndEnums structsAndEnums = JsonSerializer.Deserialize<StructsAndEnums>(File.ReadAllText("structs_and_enums.json"))!;
 
 List<FuncDefinition> allFunctions = new();
+
+Dictionary<string, TypeKind> allTypes = new()
+{
+    { "ImVec2", TypeKind.Struct },
+    { "ImVec4", TypeKind.Struct },
+    { "ImU16", TypeKind.Enum },
+    { "ImS16", TypeKind.Enum },
+    { "ImU32", TypeKind.Enum },
+    { "ImS32", TypeKind.Enum },
+    { "ImU64", TypeKind.Enum },
+    { "ImS64", TypeKind.Enum },
+    { "ImPlotFormatter", TypeKind.Pointer },
+    { "ImPlotTransform", TypeKind.Pointer },
+    { "ImPlotGetter", TypeKind.Pointer },
+    { "ImGuiContext", TypeKind.Pointer },
+    { "ImDrawList", TypeKind.Struct }
+};
+
+foreach (var s in structsAndEnums.structs)
+{
+    if (structsAndEnums.locations.TryGetValue(s.Key, out var loc) &&
+        loc.Contains("internal"))
+        continue;
+    allTypes[s.Key] = TypeKind.Struct;
+}
+
+foreach (var e in structsAndEnums.enums)
+{
+    if (structsAndEnums.locations.TryGetValue(e.Key, out var loc) &&
+        loc.Contains("internal"))
+        continue;
+    allTypes[e.Key] = TypeKind.Enum;
+}
+
+foreach (var td in typedefs)
+{
+    if (td.Value == "int")
+        allTypes[td.Key] = TypeKind.Enum;
+}
+
+
 foreach (var d in defs)
 {
     foreach (var f in d.Value)
@@ -29,11 +70,56 @@ foreach (var d in defs)
         if (f.stname != "")
             continue;
 
+        StringBuilder funcArgs = new();
+        var srcSig = f.args.Substring(1, f.args.Length - 2).Split(',', StringSplitOptions.TrimEntries);
+
+        funcArgs.Append("(");
+        for (int i = 0; i < f.argsT.Length; i++)
+        {
+            var t = f.argsT[i];
+            if (i != 0)
+                funcArgs.Append(", ");
+            string type = t.type;
+            bool pointerType = false;
+            foreach (var n in allTypes)
+            {
+                if (type.Contains(n.Key))
+                {
+                    type = type.Replace(n.Key, $"cimgui::{n.Key}");
+                    break;
+                }
+            }
+            bool arrayType = type.EndsWith("[]");
+            if (arrayType)
+                type = type.Substring(0, type.Length - 2);
+            funcArgs.Append(type);
+            funcArgs.Append(" ");
+            funcArgs.Append(t.name);
+            if (arrayType)
+                funcArgs.Append("[]");
+        }
+
+        funcArgs.Append(")");
+        f.CppFileArgs = funcArgs.ToString();
+        var srcArgs = f.call_args.Substring(1, f.call_args.Length - 2).Split(',', StringSplitOptions.TrimEntries);
+
+        StringBuilder funcCall = new();
+        funcCall.Append("(");
+        for (int i = 0; i < f.argsT.Length; i++)
+        {
+            var t = f.argsT[i];
+            if (i != 0)
+                funcCall.Append(", ");
+            var arg = srcArgs[i];
+            funcCall.Append(TypeConversions.CToCppCast(t.type, arg, allTypes));
+        }
+        funcCall.Append(")");
+        f.CppFileCall = funcCall.ToString();
         allFunctions.Add(f);
     }
 }
 
-ShimFunctions.Write(allFunctions, typedefs);
+ShimFunctions.Write(allFunctions, typedefs, structsAndEnums, allTypes);
 
 
 using var cs_enums = new StreamWriter("Enums.cs");
@@ -48,9 +134,9 @@ genEnums.Add("ImGuiMouseButton");
 
 Dictionary<string, string> enumValues = new();
 
-foreach (var e in enums.enums)
+foreach (var e in structsAndEnums.enums)
 {
-    if (enums.locations.TryGetValue(e.Key, out var loc) &&
+    if (structsAndEnums.locations.TryGetValue(e.Key, out var loc) &&
         loc.Contains("internal"))
         continue;
     if(e.Value.Any(x => x.value.Contains("<<")))
