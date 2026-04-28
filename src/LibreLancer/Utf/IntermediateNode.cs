@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace LibreLancer.Utf
 {
@@ -15,44 +15,36 @@ namespace LibreLancer.Utf
 
         public IntermediateNode(string name, List<Node> children) : base(name)
         {
-            this.Children = children;
+            Children = children;
         }
 
 
-        public IntermediateNode(int peerOffset, string name, BinaryReader reader, StringBlock stringBlock,
-            byte[] dataBlock)
-            : base(peerOffset, name)
+        internal IntermediateNode(ref NodeStruct data, string name, byte[] nodeBlock, StringBlock stringBlock,
+            byte[] dataBlock) : base(name)
         {
-            // int zero = reader.ReadInt32();
-            reader.BaseStream.Seek(sizeof(int), SeekOrigin.Current);
-
-            Children = [];
-
-            var childOffset = reader.ReadInt32();
-
-            if (childOffset <= 0)
+            if (data.ChildOffset <= 0)
             {
+                Children = [];
                 return;
             }
 
-            var next = childOffset;
-
+            int childCount = 0;
+            int next = data.ChildOffset;
             do
             {
+                childCount++;
+                next = Unsafe.As<byte, int>(ref nodeBlock[next]);
                 if (Children.Count > 500000) throw new Exception("Node overflow. Broken UTF?");
-                Node n = Node.FromStream(reader, next, stringBlock, dataBlock);
-                Children.Add(n);
-                next = n.PeerOffset;
             } while (next > 0);
-            // else
-            // throw new FileContentsException(UtfFile.FILE_TYPE, "IntermediateNode " + Name + " doesn't have any child nodes.");
 
-            // int allocatedSize = reader.ReadInt32();
-            // int size = reader.ReadInt32();
-            // int size2 = reader.ReadInt32();
-            // int timestamp1 = reader.ReadInt32();
-            // int timestamp2 = reader.ReadInt32();
-            // int timestamp3 = reader.ReadInt32();
+            Children = new(childCount);
+            next = data.ChildOffset;
+            do
+            {
+                Node n = FromBuffer(nodeBlock, next, stringBlock, dataBlock);
+                Children.Add(n);
+                next = Unsafe.As<byte, int>(ref nodeBlock[next]);
+            } while (next > 0);
         }
 
 

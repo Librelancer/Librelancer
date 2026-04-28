@@ -16,8 +16,6 @@ namespace LibreLancer.Utf
         private int dataStart;
         private int dataLength;
 
-        public bool PossibleCompression { get; private set; }
-
         public ArraySegment<byte> DataSegment => new(dataArray, dataStart, dataLength);
         /// <summary>
         /// Returns a COPY of the data. Use LeafNode.DataSegment where possible
@@ -197,30 +195,11 @@ namespace LibreLancer.Utf
 
         private static readonly byte[] empty = [];
 
-        public LeafNode(int peerOffset, string name, BinaryReader reader, byte[] dataBlock)
-            : base(peerOffset, name)
+        internal LeafNode(ref NodeStruct data, string name, byte[] dataBlock) : base(name)
         {
-            if (reader == null) throw new ArgumentNullException("reader");
-            if (dataBlock == null) throw new ArgumentNullException("dataBlock");
-
-            // int zero = reader.ReadInt32();
-            reader.BaseStream.Seek(sizeof(int), SeekOrigin.Current);
-
-            int dataOffset = reader.ReadInt32();
-
-            // int allocatedSize = reader.ReadInt32();
-            reader.BaseStream.Seek(sizeof(int), SeekOrigin.Current);
-
-            this.dataStart = dataOffset;
-
-            int size = reader.ReadInt32();
-            int size2 = reader.ReadInt32();
-            dataArray = dataBlock;
-            PossibleCompression = size != size2;
-            this.dataLength = size;
-            // int timestamp1 = reader.ReadInt32();
-            // int timestamp2 = reader.ReadInt32();
-            // int timestamp3 = reader.ReadInt32();
+            this.dataStart = data.ChildOffset;
+            this.dataLength = data.Size;
+            this.dataArray = dataBlock;
         }
 
         public override string ToString()

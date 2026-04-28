@@ -2,50 +2,44 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace LibreLancer.Utf
 {
     public abstract class Node
     {
-        public int PeerOffset;
         public string Name;
 
-        protected Node(int peerOffset, string name)
-        {
-            if (name == null) throw new ArgumentNullException("name");
-
-            this.PeerOffset = peerOffset;
-            this.Name = name;
-        }
         protected Node(string name)
         {
             this.Name = name;
         }
 
-        public static Node FromStream(BinaryReader reader, int offset, StringBlock stringBlock, byte[] dataBlock)
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct NodeStruct
         {
-            if (reader == null) throw new ArgumentNullException("reader");
-            if (stringBlock == null) throw new ArgumentNullException("stringBlock");
-            if (dataBlock == null) throw new ArgumentNullException("dataBlock");
+            public int PeerOffset;
+            public int NameOffset;
+            public NodeFlags Flags;
+            public int Padding;
+            public int ChildOffset;
+            public int AllocatedSize;
+            public int Size;
+        }
 
-            reader.BaseStream.Seek(offset, SeekOrigin.Begin);
+        public static Node FromBuffer(byte[] nodeBlock, int offset, StringBlock stringBlock, byte[] dataBlock)
+        {
+            ref var d = ref Unsafe.As<byte, NodeStruct>(ref nodeBlock[offset]);
 
-            int peerOffset = reader.ReadInt32();
-            int nameOffset = reader.ReadInt32();
-            string name = stringBlock.GetString(nameOffset);
+            string name = stringBlock.GetString(d.NameOffset);
 
-            NodeFlags flags = (NodeFlags)reader.ReadInt32();
-            if ((flags & NodeFlags.Intermediate) == NodeFlags.Intermediate)
-                return new IntermediateNode(peerOffset, name, reader, stringBlock, dataBlock);
-            else if ((flags & NodeFlags.Leaf) == NodeFlags.Leaf)
-                return new LeafNode(peerOffset, name, reader, dataBlock);
+            if ((d.Flags & NodeFlags.Intermediate) == NodeFlags.Intermediate)
+                return new IntermediateNode(ref d, name, nodeBlock, stringBlock, dataBlock);
+            else if ((d.Flags & NodeFlags.Leaf) == NodeFlags.Leaf)
+                return new LeafNode(ref d, name, dataBlock);
             else
-            {
-                // throw new FileContentException(UtfFile.FILE_TYPE, "Neither required flag set. Flags: " + flags);
-                return new LeafNode(peerOffset, name, reader, dataBlock);
-            }
+                return new LeafNode(ref d, name, dataBlock);
         }
 
         public override string ToString()
