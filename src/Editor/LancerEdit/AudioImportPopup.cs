@@ -268,16 +268,24 @@ public class AudioImportPopup : PopupWindow
         }
 
         ImGui.Separator();
-        if (ImGui.Button($"{Icons.Play} Preview"))
+        bool isPlaying = loopInstance is { Playing: true };
+        if (ImGui.Button(isPlaying ? $"{Icons.Stop} Stop Preview" : $"{Icons.Play} Preview"))
         {
-            var sd = new SoundData();
-            sd.LoadBytes(info.Data, info.Frequency, info.PcmFormat);
-            var instance = win.Audio.CreateInstance(sd, SoundCategory.Sfx);
-            instance.OnStop = () => sd.Dispose();
-            instance.Play();
+            if (isPlaying)
+            {
+                loopInstance?.Stop();
+                loopInstance = null;
+            }
+            else
+            {
+                var sd = new SoundData();
+                sd.LoadBytes(info.Data, info.Frequency, info.PcmFormat);
+                loopInstance = win.Audio.CreateInstance(sd, SoundCategory.Sfx);
+                loopInstance.OnStop = () => sd.Dispose();
+                loopInstance.Play(false); //don't loop
+            }
         }
         ImGui.SameLine();
-        bool isPlaying = loopInstance is { Playing: true };
         if (ImGui.Button(isPlaying ? $"{Icons.Stop} Stop Loop" :  $"{Icons.Play} Play Loop"))
         {
             if (isPlaying)
