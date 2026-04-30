@@ -208,8 +208,18 @@ public class UniverseEditorTab : GameContentTab
     void OpenSystem(string nickname)
     {
         var sys = Data.GameData.Items.Systems.Get(nickname);
+        foreach (var t in win.TabControl.Tabs.OfType<SystemEditorTab>())
+        {
+            if (t.OriginalSystem == sys)
+            {
+                win.TabControl.SetSelected(t);
+                return;
+            }
+        }
         win.AddTab(new SystemEditorTab(Data, win, sys));
     }
+
+
 
     void DrawBases()
     {
