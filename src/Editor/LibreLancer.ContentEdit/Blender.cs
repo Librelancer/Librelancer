@@ -15,6 +15,7 @@ namespace LibreLancer.ContentEdit;
 
 public class Blender
 {
+    private static readonly string ImportScript;
     private static readonly string ExportScript;
 
     class TempFiles : IDisposable
@@ -59,8 +60,10 @@ public class Blender
 
     static Blender()
     {
-        var reader = new StreamReader(typeof(Blender).Assembly.GetManifestResourceStream("LibreLancer.ContentEdit.BlenderExport.py")!);
-        ExportScript = reader.ReadToEnd();
+        var importReader = new StreamReader(typeof(Blender).Assembly.GetManifestResourceStream("LibreLancer.ContentEdit.BlenderImport.py")!);
+        ImportScript = importReader.ReadToEnd();
+        var exportReader = new StreamReader(typeof(Blender).Assembly.GetManifestResourceStream("LibreLancer.ContentEdit.BlenderExport.py")!);
+        ExportScript = exportReader.ReadToEnd();
     }
 
     public static string AutodetectBlender()
@@ -211,9 +214,7 @@ public class Blender
             return EditResult<SimpleMesh.Model>.Error("Could not locate blender executable");
         using var temp = new TempFiles();
         string tmpfile = temp.GetPath(".glb");
-        var exportCode =
-            "import bpy\n"
-            + $"bpy.ops.export_scene.gltf(filepath={EscapeCode(tmpfile)}, export_format='GLB', check_existing=False, filter_glob='', export_extras=True, use_mesh_edges=True, export_image_format='AUTO')";
+        var exportCode = string.Format(ImportScript, EscapeCode(tmpfile));
         var result = await RunBlender(blenderPath, Shell.Quote(file), exportCode, cancellation, log);
         if (result == CANCELLED)
         {

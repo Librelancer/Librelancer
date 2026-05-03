@@ -23,7 +23,7 @@
 
     <ItemGroup>
       <EmbeddedResource Include="defaulttexture.dds" />
-      <None Remove="BlenderExport.py" />
+      <EmbeddedResource Include="BlenderImport.py" />
       <EmbeddedResource Include="BlenderExport.py" />
     </ItemGroup>
 
