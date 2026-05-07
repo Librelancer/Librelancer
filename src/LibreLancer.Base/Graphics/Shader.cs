@@ -5,16 +5,22 @@
 using System;
 using System.IO;
 using System.Numerics;
+using System.Threading;
 using LibreLancer.Graphics.Backends;
 
 namespace LibreLancer.Graphics;
 
 public class Shader
 {
+    private static int _shaderCount = 0;
+
+    public static int TotalShaders => _shaderCount;
+
     internal readonly IShader Backing = null!;
     public Shader(RenderContext context, ReadOnlySpan<byte> program)
     {
         Backing = context.Backend.CreateShader(program);
+        Interlocked.Increment(ref _shaderCount);
     }
 
     private Shader()

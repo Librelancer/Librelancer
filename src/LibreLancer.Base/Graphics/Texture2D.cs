@@ -37,10 +37,6 @@ public class Texture2D : Texture
         SetBacking(Backing);
     }
 
-    public void SetFiltering(TextureFiltering filtering) =>
-        Backing.SetFiltering(filtering);
-
-
     public void GetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : struct
         => Backing.GetData(level, rect, data, start, count);
 
@@ -49,12 +45,6 @@ public class Texture2D : Texture
 
     public unsafe void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : unmanaged =>
         Backing.SetData(level, rect, data, start, count);
-
-    public void SetWrapModeS(WrapMode mode) =>
-        Backing.SetWrapModeS(mode);
-
-    public void SetWrapModeT(WrapMode mode) =>
-        Backing.SetWrapModeT(mode);
 
     public void SetData(int level, Rectangle rect, IntPtr data) =>
         Backing.SetData(level, rect, data);

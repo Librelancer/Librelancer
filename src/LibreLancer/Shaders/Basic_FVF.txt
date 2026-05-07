@@ -7,3 +7,4 @@ feature FADE_ENABLED 4
 feature NORMAL_MAP 5
 feature VERTEX_DIFFUSE 6
 feature VERTEX_TEXTURE2 7
+feature ENVMAP 8

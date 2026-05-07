@@ -9,6 +9,11 @@ SamplerState EtSampler : register(s1, TEXTURE_SPACE);
 Texture2D<float4> NtTexture : register(t2, TEXTURE_SPACE);
 SamplerState NtSampler : register(s2, TEXTURE_SPACE);
 
+#ifdef ENVMAP
+TextureCube<float4> EnvTexture : register(t3, TEXTURE_SPACE);
+SamplerState EnvSampler : register(s3, TEXTURE_SPACE);
+#endif
+
 struct Input
 {
     float2 texCoord1: TEXCOORD0;
@@ -26,6 +31,9 @@ struct Input
     float3 diffuseTermBack: TEXCOORD7;
     float3 ambientTermFront: TEXCOORD8;
     float3 ambientTermBack: TEXCOORD9;
+#endif
+#ifdef ENVMAP
+    float3 viewSpaceReflection: TEXCOORD10;
 #endif
     bool frontFacing: SV_IsFrontFace;
 };
@@ -90,7 +98,14 @@ float4 main(Input input) : SV_Target0
         input.worldPosition, input.viewPosition,
         getNormal(input), input.frontFacing);
 #endif
+
+#ifdef ENVMAP
+    float4 env = EnvTexture.Sample(EnvSampler, input.viewSpaceReflection);
+    float3 envrgb = 2 * env.rgb * color.rgb;
+    color = float4(envrgb, color.a);
+#endif
     float4 acolor = color * float4(1.0, 1.0, 1.0, Oc);
+
 
 #ifdef FADE_ENABLED
     float dist = length(input.viewPosition);

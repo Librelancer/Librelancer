@@ -48,6 +48,7 @@ namespace LibreLancer.Render.Materials
         public SamplerFlags RtFlags;
         public float? Metallic;
         public float? Roughness;
+        public bool Glass;
 
         public BasicMaterial(string type, ResourceManager library) : base(library)
         {
@@ -97,10 +98,11 @@ namespace LibreLancer.Render.Materials
             FADE_ENABLED = (1 << 3),
             NORMALMAP = (1 << 4),
             VERTEX_DIFFUSE = (1 << 5),
-            VERTEX_TEXTURE2 = (1 << 6)
+            VERTEX_TEXTURE2 = (1 << 6),
+            ENVMAP = (1 << 7),
         }
 
-        private Shader GetRegularShader(IVertexType vertexType)
+        private Shader GetRegularShader(IVertexType vertexType, bool useEnvMapping)
         {
             var caps = (ShaderFeatures) 0;
             if (VertexLighting)
@@ -109,6 +111,8 @@ namespace LibreLancer.Render.Materials
                 caps |= ShaderFeatures.ET_ENABLED;
             if (Fade)
                 caps |= ShaderFeatures.FADE_ENABLED;
+            if (useEnvMapping)
+                caps |= ShaderFeatures.ENVMAP;
             // Shitty way of dealing with alpha_mask
             // FL has a lot of DXT1 textures that aren't part of alpha_mask
             // so this brings overall performance down.
@@ -194,7 +198,14 @@ namespace LibreLancer.Render.Materials
                       lights.Enabled;
             var dxt1 = GetDxt1();
 
-            var shader = pbr ? GetPBRShader(vertextype) : GetRegularShader(vertextype);
+            bool envMapping = false;
+            if (Glass && !pbr)
+            {
+                envMapping = (GetTexture(3, "envmapglass") != null);
+            }
+
+
+            var shader = pbr ? GetPBRShader(vertextype) : GetRegularShader(vertextype, envMapping);
             SetWorld(shader);
             // Dt
             BindTexture(rstate, 0, DtSampler, 0, DtFlags, ResourceManager.WhiteTextureName);
@@ -251,6 +262,11 @@ namespace LibreLancer.Render.Materials
                 BindTexture(rstate, 2, NmSampler, 2, NmFlags, ResourceManager.NullTextureName);
             }
 
+            if (envMapping)
+            {
+                BindTexture(rstate, 3, "envmapglass", 3, SamplerFlags.Default);
+            }
+
             if (pbr)
             {
                 var param = new PBRParameters()
@@ -285,7 +301,7 @@ namespace LibreLancer.Render.Materials
         private bool GetDxt1()
         {
             var tex = GetTexture(0, DtSampler);
-            return tex is { Dxt1: true };
+            return tex is Texture2D { Dxt1: true };
         }
 
         public override bool IsTransparent => AlphaEnabled && !GetDxt1();

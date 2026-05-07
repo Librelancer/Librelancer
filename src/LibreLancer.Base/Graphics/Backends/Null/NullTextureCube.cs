@@ -16,8 +16,4 @@ internal class NullTextureCube : NullTexture, ITextureCube
     public void SetData<T>(CubeMapFace face, T[] data) where T : unmanaged
     {
     }
-
-    public void SetFiltering(TextureFiltering filtering)
-    {
-    }
 }

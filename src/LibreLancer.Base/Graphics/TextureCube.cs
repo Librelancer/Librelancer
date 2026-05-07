@@ -2,10 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Runtime.InteropServices;
 using LibreLancer.Graphics.Backends;
-using LibreLancer.Graphics.Backends.OpenGL;
 
 namespace LibreLancer.Graphics;
 
@@ -26,7 +23,4 @@ public sealed class TextureCube : Texture
 
     public void SetData<T>(CubeMapFace face, T[] data) where T : unmanaged
         => impl.SetData(face, data);
-
-    public void SetFiltering(TextureFiltering filtering)
-        => impl.SetFiltering(filtering);
 }

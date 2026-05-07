@@ -11,9 +11,6 @@ internal class NullTexture2D : NullTexture, ITexture2D
 
     public int Width { get; set; }
     public int Height { get; set; }
-    public void SetFiltering(TextureFiltering filtering)
-    {
-    }
 
     public Task<byte[]> GetDataAsync() => Task.FromResult<byte[]>([]);
 
@@ -26,14 +23,6 @@ internal class NullTexture2D : NullTexture, ITexture2D
     }
 
     public void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T : unmanaged
-    {
-    }
-
-    public void SetWrapModeS(WrapMode mode)
-    {
-    }
-
-    public void SetWrapModeT(WrapMode mode)
     {
     }
 

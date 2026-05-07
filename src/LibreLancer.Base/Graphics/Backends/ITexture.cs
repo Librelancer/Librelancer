@@ -8,6 +8,8 @@ public interface ITexture : IDisposable
     int EstimatedTextureMemory { get; }
     int LevelCount { get; }
     bool IsDisposed { get; }
-
+    void SetFiltering(TextureFiltering filtering);
+    void SetWrapModeS(WrapMode mode);
+    void SetWrapModeT(WrapMode mode);
     void BindTo(int unit);
 }

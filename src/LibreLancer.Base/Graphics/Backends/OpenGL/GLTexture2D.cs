@@ -81,7 +81,7 @@ internal class GLTexture2D : GLTexture, ITexture2D
 
 
 
-    public void SetFiltering(TextureFiltering filtering)
+    public override void SetFiltering(TextureFiltering filtering)
     {
         if (CurrentFiltering == filtering) return;
         BindForModify();
@@ -239,7 +239,7 @@ internal class GLTexture2D : GLTexture, ITexture2D
 
     private WrapMode modeS = 0;
     private WrapMode modeT = 0;
-    public void SetWrapModeS(WrapMode mode)
+    public override void SetWrapModeS(WrapMode mode)
     {
         if (mode == modeS)
             return;
@@ -247,7 +247,7 @@ internal class GLTexture2D : GLTexture, ITexture2D
         BindForModify();
         GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, (int)mode);
     }
-    public void SetWrapModeT(WrapMode mode)
+    public override void SetWrapModeT(WrapMode mode)
     {
         if (mode == modeT)
             return;

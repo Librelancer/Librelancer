@@ -20,6 +20,9 @@ struct Output
     float3 ambientTermFront: TEXCOORD8;
     float3 ambientTermBack: TEXCOORD9;
 #endif
+#ifdef ENVMAP
+    float3 viewSpaceReflection: TEXCOORD10;
+#endif
     float4 position : SV_Position;
 };
 
@@ -85,6 +88,10 @@ Output main(VSInput input)
     output.diffuseTermBack = lightTerms.diffuseTermBack;
     output.ambientTermFront = lightTerms.ambientTermFront;
     output.ambientTermBack = lightTerms.ambientTermBack;
+#endif
+#ifdef ENVMAP
+    float3 viewNormal = mul(float4(n, 0.0), View).xyz;
+    output.viewSpaceReflection = reflect(normalize(output.viewPosition.xyz), viewNormal);
 #endif
     return output;
 }

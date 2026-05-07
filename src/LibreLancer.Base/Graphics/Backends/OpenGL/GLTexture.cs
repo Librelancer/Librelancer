@@ -19,6 +19,11 @@ internal abstract class GLTexture : ITexture
     }
 
     public bool IsDisposed { get; private set; }
+    public abstract void SetFiltering(TextureFiltering filtering);
+
+    public abstract void SetWrapModeS(WrapMode mode);
+
+    public abstract void SetWrapModeT(WrapMode mode);
 
     public abstract void BindTo(int unit);
 

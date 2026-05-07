@@ -51,6 +51,8 @@ public static class AllShaders
 
         FLLog.Debug("Shaders", "Compiling Game shaders");
 
+        var before = Shader.TotalShaders;
+
         AsteroidBand ??= Compile(context, "AsteroidBand");
         Atmosphere ??= Compile(context, "Atmosphere");
         Basic_PositionColor ??= Compile(context, "Basic_PositionColor");
@@ -77,6 +79,9 @@ public static class AllShaders
         ZoneVolume ??= Compile(context, "ZoneVolume");
         // ReSharper restore NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
 
+        var compileCount = Shader.TotalShaders - before;
+
+        FLLog.Debug("Shaders", $"Compiled {compileCount} shaders.");
 
         FLLog.Debug("Shaders", "Compile complete");
     }

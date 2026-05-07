@@ -47,7 +47,7 @@ namespace LibreLancer.Render
         }
 
         public bool DoubleSided = false;
-        private Texture2D?[] textures = new Texture2D?[8];
+        private Texture?[] textures = new Texture?[8];
         private bool[] loaded = new bool[8];
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -186,24 +186,24 @@ namespace LibreLancer.Render
             shader.SetUniformBlock<ShaderLighting>(2, ref data, false, szCount);
         }
 
-        protected Texture2D? GetTexture(int cacheIndex, string? tex)
+        protected Texture? GetTexture(int cacheIndex, string? tex)
         {
             if (tex == null || Library is null)
             {
-                return (Texture2D?) Library?.FindTexture(ResourceManager.NullTextureName);
+                return Library?.FindTexture(ResourceManager.NullTextureName);
             }
 
-            textures[cacheIndex] ??= (Texture2D?) Library.FindTexture(tex);
-            var tex2d = textures[cacheIndex];
+            textures[cacheIndex] ??= Library.FindTexture(tex);
+            var texture = textures[cacheIndex];
 
-            if (tex2d == null)
+            if (texture == null)
             {
-                return tex2d;
+                return texture;
             }
 
-            if (tex2d.IsDisposed)
+            if (texture.IsDisposed)
             {
-                tex2d = textures[cacheIndex] = (Texture2D?) Library.FindTexture(tex);
+                textures[cacheIndex] = Library.FindTexture(tex);
             }
 
             return textures[cacheIndex];
@@ -266,12 +266,12 @@ namespace LibreLancer.Render
 
             if (textures[cacheidx] == null || !loaded[cacheidx])
             {
-                textures[cacheidx] = (Texture2D?)Library?.FindTexture(tex);
+                textures[cacheidx] = Library?.FindTexture(tex);
             }
 
             if (textures[cacheidx] == null)
             {
-                textures[cacheidx] = (Texture2D?)Library?.FindTexture(ResourceManager.NullTextureName);
+                textures[cacheidx] = Library?.FindTexture(ResourceManager.NullTextureName);
                 loaded[cacheidx] = false;
             }
             else
@@ -279,39 +279,39 @@ namespace LibreLancer.Render
                 loaded[cacheidx] = true;
             }
 
-            var tex2d = textures[cacheidx];
+            var texture = textures[cacheidx];
 
-            if (tex2d?.IsDisposed ?? true)
+            if (texture?.IsDisposed ?? true)
             {
-                tex2d = textures[cacheidx] = (Texture2D?)Library?.FindTexture(tex);
+                texture = textures[cacheidx] = (Texture2D?)Library?.FindTexture(tex);
             }
 
-            if (tex2d == null)
+            if (texture == null)
             {
-                tex2d = (Texture2D?)Library?.FindTexture(ResourceManager.NullTextureName);
+                texture = Library?.FindTexture(ResourceManager.NullTextureName);
             }
 
-            tex2d?.BindTo(unit);
-            tex2d?.SetFiltering(rstate.PreferredFilterLevel);
+            texture?.BindTo(unit);
+            texture?.SetFiltering(rstate.PreferredFilterLevel);
 
             if ((flags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU)
             {
-                tex2d?.SetWrapModeS(WrapMode.ClampToEdge);
+                texture?.SetWrapModeS(WrapMode.ClampToEdge);
             }
 
             if ((flags & SamplerFlags.ClampToEdgeV) == SamplerFlags.ClampToEdgeV)
             {
-                tex2d?.SetWrapModeT(WrapMode.ClampToEdge);
+                texture?.SetWrapModeT(WrapMode.ClampToEdge);
             }
 
             if ((flags & SamplerFlags.MirrorRepeatU) == SamplerFlags.MirrorRepeatU)
             {
-                tex2d?.SetWrapModeS(WrapMode.MirroredRepeat);
+                texture?.SetWrapModeS(WrapMode.MirroredRepeat);
             }
 
             if ((flags & SamplerFlags.MirrorRepeatV) == SamplerFlags.MirrorRepeatV)
             {
-                tex2d?.SetWrapModeT(WrapMode.MirroredRepeat);
+                texture?.SetWrapModeT(WrapMode.MirroredRepeat);
             }
 
         }

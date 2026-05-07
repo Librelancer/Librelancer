@@ -129,7 +129,27 @@ internal class GLTextureCube : GLTexture, ITextureCube
         SetData<T>(face, 0, null, data, 0, data.Length);
     }
 
-    public void SetFiltering(TextureFiltering filtering)
+    private WrapMode modeS = 0;
+    private WrapMode modeT = 0;
+    public override void SetWrapModeS(WrapMode mode)
+    {
+        if (mode == modeS)
+            return;
+        modeS = mode;
+        BindForModify();
+        GL.TexParameteri (GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_S, (int)mode);
+    }
+
+    public override void SetWrapModeT(WrapMode mode)
+    {
+        if (mode == modeT)
+            return;
+        modeT = mode;
+        BindForModify();
+        GL.TexParameteri (GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_T, (int)mode);
+    }
+
+    public override void SetFiltering(TextureFiltering filtering)
     {
         if (CurrentFiltering == filtering) return;
         BindForModify();

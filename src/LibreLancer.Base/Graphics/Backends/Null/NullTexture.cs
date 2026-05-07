@@ -20,6 +20,17 @@ internal class NullTexture(SurfaceFormat format, int levelCount, int estimatedTe
     } = levelCount;
 
     public bool IsDisposed { get; private set; } = false;
+    public void SetFiltering(TextureFiltering filtering)
+    {
+    }
+
+    public void SetWrapModeS(WrapMode mode)
+    {
+    }
+
+    public void SetWrapModeT(WrapMode mode)
+    {
+    }
 
     public void BindTo(int unit)
     {
