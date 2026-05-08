@@ -1309,42 +1309,18 @@ namespace LancerEdit
         {
             foreach (var tab in TabControl.Tabs.OfType<UtfTab>())
             {
-                var utf = tab.Utf;
-
                 if (usage.Type == ResourceUsageType.Material && usage.MaterialId.HasValue)
                 {
-                    if (UtfContainsMaterial(utf, usage.MaterialId.Value))
+                    if (tab.HasMaterial(usage.MaterialId.Value))
                         usage.ProvidedBy.Add(tab.DocumentName);
                 }
 
                 if (usage.Type == ResourceUsageType.Texture)
                 {
-                    if (UtfContainsTexture(utf, usage.Name))
+                    if (tab.HasTexture(usage.Name))
                         usage.ProvidedBy.Add(tab.DocumentName);
                 }
             }
-        }
-
-        bool UtfContainsTexture(EditableUtf utf, string textureName)
-        {
-            foreach (var node in utf.Root.IterateAll())
-            {
-                if (node.Name.Equals(textureName, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-
-            return false;
-        }
-
-        bool UtfContainsMaterial(EditableUtf utf, uint crc)
-        {
-            foreach (var node in utf.Root.IterateAll())
-            {
-                if (CrcTool.FLModelCrc(node.Name) == crc)
-                    return true;
-            }
-
-            return false;
         }
 
     }

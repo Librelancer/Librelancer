@@ -30,6 +30,7 @@ namespace LancerEdit
             {
                 node.Name = name;
                 node.ResolvedName = null;
+                BuildResourceLookupCache();
             }));
         }
 
@@ -48,6 +49,7 @@ namespace LancerEdit
                     addNode.Children.Add(node);
                 }
                 selectedNode = node;
+                BuildResourceLookupCache();
             }));
         }
 

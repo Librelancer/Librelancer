@@ -35,6 +35,8 @@ namespace LancerEdit
         MainWindow main;
         PopupManager popups = new PopupManager();
         List<JointMapView> jointViews = new List<JointMapView>();
+        private HashSet<uint> materials = new();
+        private HashSet<string> textures = new(StringComparer.OrdinalIgnoreCase);
 
         public GameResourceManager DetachedResources;
         public int DetachedResourceCount;
@@ -43,6 +45,61 @@ namespace LancerEdit
         Dictionary<LUtfNode, bool> nodeOpenState = new();
 
         public override string Tooltip => FilePath;
+
+        private static readonly HashSet<string> skipLookupNodes =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                "vmeshlibrary", "animation", "cmpnd", "texture library",
+                "material library", "materialanim", "vmeshlibrary"
+            };
+
+        void BuildResourceLookupCache()
+        {
+            textures = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            materials = new HashSet<uint>();
+            LookupCheckNode(Utf.Root);
+            List<LUtfNode> potentialChecks = new();
+            bool childCheck = false;
+            foreach (var c in Utf.Root.Children)
+            {
+                if (c.Name.Equals("cmpnd", StringComparison.OrdinalIgnoreCase))
+                    childCheck = true;
+                if (skipLookupNodes.Contains(c.Name))
+                    continue;
+                potentialChecks.Add(c);
+            }
+            if (childCheck)
+            {
+                foreach (var n in potentialChecks)
+                    LookupCheckNode(n);
+            }
+        }
+
+        void LookupCheckNode(LUtfNode node)
+        {
+            if (node.Children == null)
+                return;
+            foreach (var lib in node.Children)
+            {
+                if (lib.Children == null)
+                    continue;
+                if (lib.Name.Equals("texture library", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var tex in lib.Children)
+                        textures.Add(tex.Name);
+                }
+                if (lib.Name.Equals("material library", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (var mat in lib.Children)
+                        materials.Add(CrcTool.FLModelCrc(mat.Name));
+                }
+            }
+        }
+
+        public bool HasMaterial(uint matCrc) => materials.Contains(matCrc);
+        public bool HasTexture(string textureName) => textures.Contains(textureName);
+
+
 
         public void ReferenceDetached()
         {
@@ -71,6 +128,7 @@ namespace LancerEdit
             }
             SaveStrategy = new UtfSaveStrategy(main, this);
             ReferenceDetached();
+            BuildResourceLookupCache();
         }
         public void UpdateTitle()
         {
@@ -718,6 +776,7 @@ namespace LancerEdit
                             selectedNode = null;
                         }
                         deleteParent.Children.Remove(deleteNode);
+                        BuildResourceLookupCache();
                     });
                 }
                 if (Theme.IconMenuItem(Icons.Eraser, "Clear", node.Children != null || node.Data != null))
@@ -730,6 +789,7 @@ namespace LancerEdit
                             clearNode.Children = new List<LUtfNode>();
                         else
                             clearNode.Children = null;
+                        BuildResourceLookupCache();
                     });
                 }
                 ImGui.Separator();
@@ -757,6 +817,7 @@ namespace LancerEdit
                 {
                     parent.Children.Remove(node);
                     main.SetClipboardArray(UtfClipboard.ToBytes(node));
+                    BuildResourceLookupCache();
                 }
                 if (Theme.IconMenuItem(Icons.Copy, "Copy", node != Utf.Root))
                 {
@@ -773,6 +834,7 @@ namespace LancerEdit
                             {
                                 cpy.Parent = parent;
                                 parent.Children.Insert(parent.Children.IndexOf(node), cpy);
+                                BuildResourceLookupCache();
                             }
                         }
                         if (ImGui.MenuItem("After", node != Utf.Root))
@@ -782,6 +844,7 @@ namespace LancerEdit
                             {
                                 cpy.Parent = parent;
                                 parent.Children.Insert(parent.Children.IndexOf(node) + 1, cpy);
+                                BuildResourceLookupCache();
                             }
                         }
                         if (ImGui.MenuItem("Into"))
@@ -795,6 +858,7 @@ namespace LancerEdit
                                 {
                                     cpy.Parent = node;
                                     node.Children.Add(cpy);
+                                    BuildResourceLookupCache();
                                 }
                             });
                         }
@@ -904,6 +968,7 @@ namespace LancerEdit
                                     else
                                         parent.Children.Insert(parent.Children.IndexOf(sibling), sourceNode);
                                     sourceTab.selectedNode = null;
+                                    BuildResourceLookupCache();
                                 };
                             }
                         }
@@ -1071,6 +1136,7 @@ namespace LancerEdit
                         Utf.Root.Children.Insert(0, sourceNode);
 
                         sourceTab.selectedNode = null;
+                        BuildResourceLookupCache();
                     };
                 }
                 ImGui.EndDragDropTarget();
