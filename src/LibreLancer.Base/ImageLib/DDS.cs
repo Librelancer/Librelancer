@@ -300,7 +300,9 @@ public static class DDS
                 }
             }
             //Swap channels if needed
-            if (fmt == SurfaceFormat.Bgra8 && header.ddspf.dwRBitMask == 0xff0000)
+            // Bgra8 format should have dwRBitMask == 0xff0000. Implement other swaps
+            // if found.
+            /*if (fmt == SurfaceFormat.Bgra8 && header.ddspf.dwRBitMask == 0xff0000)
             {
                 for (var px = 0; px < bytes; px += 4)
                 {
@@ -309,7 +311,7 @@ public static class DDS
                     data[px] = b;
                     data[px + 2] = g;
                 }
-            }
+            }*/
             sfc.Add(data);
 
             w /= 2;
