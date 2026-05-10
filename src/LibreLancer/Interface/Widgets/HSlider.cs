@@ -3,8 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Linq;
-using LibreLancer;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -149,7 +148,7 @@ namespace LibreLancer.Interface
         private float timer = 1 / 8f;
         private int nextScrollDir = 0;
 
-        public override void Render(UiContext context, RectangleF parent)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parent)
         {
             if (!Visible) return;
             float delta = 0;
@@ -170,10 +169,10 @@ namespace LibreLancer.Interface
             Layout(context, parent, out var myRectangle, out var track);
 
             // background
-            Style?.Background?.Draw(context, myRectangle);
+            Style?.Background?.Draw(context, drawList, myRectangle);
 
             //draw buttons
-            leftbutton.Render(context, myRectangle);
+            leftbutton.Render(context, drawList, myRectangle);
             float tickmult = Smooth ? delta * 8 : 1;
 
             if (leftbutton.HeldDown && (timer <= 0 || Smooth))
@@ -183,7 +182,7 @@ namespace LibreLancer.Interface
                 timer = 1 / 8f;
             }
 
-            rightbutton.Render(context, myRectangle);
+            rightbutton.Render(context, drawList, myRectangle);
 
             if (rightbutton.HeldDown && (timer <= 0 || Smooth))
             {
@@ -197,7 +196,7 @@ namespace LibreLancer.Interface
             ScrollOffset = MathHelper.Clamp(ScrollOffset, 0, 1);
             nextScrollDir = 0;
             //draw track
-            Style?.TrackArea?.Draw(context, track);
+            Style?.TrackArea?.Draw(context, drawList, track);
             //draw thumb
             thumb.Update(context, track);
             float left = 0, right = 0;
@@ -206,7 +205,7 @@ namespace LibreLancer.Interface
             {
                 left = Style.ThumbLeft.Width;
                 var rect = new RectangleF(track.X + thumb.X, track.Y + thumb.Y, left + 1, track.Height);
-                thumbleft.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
+                thumbleft.Draw(context, drawList, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
 
             if (Style.ThumbRight != null)
@@ -215,11 +214,11 @@ namespace LibreLancer.Interface
                 right = Style.ThumbRight.Width;
                 var rect = new RectangleF(track.X + thumb.X + thumb.Width - right - 1, thumb.Y + track.Y, right + 1,
                     track.Height);
-                thumbright.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
+                thumbright.Draw(context, drawList, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
 
             var thumbRect = new RectangleF(track.X + thumb.X + left, track.Y, thumb.Width - left - right, thumb.Height);
-            thumb.Draw(context, thumbRect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
+            thumb.Draw(context, drawList, thumbRect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
         }
 
         private float dragXStart;

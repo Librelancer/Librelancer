@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LibreLancer.Graphics.Backends.OpenGL;
 
-internal class GLTexture2D : GLTexture, ITexture2D
+internal sealed class GLTexture2D : GLTexture, ITexture2D
 {
     public int Width { get; private set; }
     public int Height { get; private set; }
@@ -20,7 +20,10 @@ internal class GLTexture2D : GLTexture, ITexture2D
     private int glType;
     private GLRenderContext rc = null!;
 
-    public GLTexture2D(GLRenderContext rc, int width, int height, bool hasMipMaps, SurfaceFormat format) : this(true)
+    private WrapMode modeS = (WrapMode)(-1);
+    private WrapMode modeT = (WrapMode)(-1);
+
+    public GLTexture2D(GLRenderContext rc, int width, int height, bool hasMipMaps, SurfaceFormat format) : base(rc)
     {
         this.rc = rc;
         Width = width;
@@ -31,7 +34,8 @@ internal class GLTexture2D : GLTexture, ITexture2D
         currentLevels = hasMipMaps ? (LevelCount - 1) : 0;
         //Bind the new Texture2D
         GLBind.Trash();
-        BindForModify();
+        ID = GL.GenTexture();
+        BindForModify(0);
         //initialise the texture data
         var imageSize = 0;
         Dxt1 = format == SurfaceFormat.Dxt1;
@@ -79,30 +83,30 @@ internal class GLTexture2D : GLTexture, ITexture2D
         GL.TexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
     }
 
-
-
-    public override void SetFiltering(TextureFiltering filtering)
+    public override void SetSamplerState(int unit, SamplerState samplerState)
     {
-        if (CurrentFiltering == filtering) return;
-        BindForModify();
-        SetTargetFiltering(GL.GL_TEXTURE_2D, filtering);
-    }
-
-    protected GLTexture2D(bool genID)
-    {
-        if (genID)
+        if (samplerState.WrapS != modeS)
         {
-            ID = GL.GenTexture();
+            BindForModify(unit);
+            GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, (int)samplerState.WrapS);
+            modeS = samplerState.WrapS;
         }
+        if (samplerState.WrapT != modeT)
+        {
+            BindForModify(unit);
+            GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, (int)samplerState.WrapT);
+            modeT = samplerState.WrapT;
+        }
+        SetTargetFiltering(unit, GL.GL_TEXTURE_2D, samplerState.Filtering);
     }
 
-    private void BindForModify()
-        => GLBind.BindTextureForModify(GL.GL_TEXTURE_2D, ID);
+
+    protected override void BindForModify(int unit)
+        => GLBind.BindTextureForModify(unit, GL.GL_TEXTURE_2D, ID);
 
     public override void BindTo(int unit)
     {
         if(IsDisposed) throw new ObjectDisposedException("Texture2D");
-        if (unit == 4) throw new InvalidOperationException("Unit 4: Use BindForModify (private)");
         GLBind.BindTexture(unit, GL.GL_TEXTURE_2D, ID);
         if(LevelCount > 1 && maxLevel != currentLevels) {
             currentLevels = maxLevel;
@@ -162,7 +166,7 @@ internal class GLTexture2D : GLTexture, ITexture2D
         }
         else {
             var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
-            BindForModify();
+            BindForModify(0);
             if (GL.GLES)
             {
                 var fbo = GL.GenFramebuffer();
@@ -194,7 +198,7 @@ internal class GLTexture2D : GLTexture, ITexture2D
     public unsafe void SetData<T>(int level, Rectangle? rect, T[] data, int start, int count) where T: unmanaged
     {
         maxLevel = Math.Max(level, maxLevel);
-        BindForModify();
+        BindForModify(0);
         if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
         {
             int w, h;
@@ -237,28 +241,12 @@ internal class GLTexture2D : GLTexture, ITexture2D
         }
     }
 
-    private WrapMode modeS = 0;
-    private WrapMode modeT = 0;
-    public override void SetWrapModeS(WrapMode mode)
-    {
-        if (mode == modeS)
-            return;
-        modeS = mode;
-        BindForModify();
-        GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, (int)mode);
-    }
-    public override void SetWrapModeT(WrapMode mode)
-    {
-        if (mode == modeT)
-            return;
-        modeT = mode;
-        BindForModify();
-        GL.TexParameteri (GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, (int)mode);
-    }
+
+
 
     public void SetData(int level, Rectangle rect, IntPtr data)
     {
-        BindForModify();
+        BindForModify(0);
         if(Format == SurfaceFormat.R8)
             GL.PixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
         GL.TexSubImage2D (GL.GL_TEXTURE_2D, 0, rect.X, rect.Y, rect.Width, rect.Height, glFormat, glType, data);

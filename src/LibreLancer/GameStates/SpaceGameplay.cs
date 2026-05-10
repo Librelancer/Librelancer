@@ -15,6 +15,7 @@ using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema;
 using LibreLancer.Data.Schema.Voices;
+using LibreLancer.Graphics;
 using LibreLancer.Infocards;
 using LibreLancer.Input;
 using LibreLancer.Interface;
@@ -549,12 +550,12 @@ World Time: {12:F2}
                 Callback = cb;
             }
 
-            public void Draw(UiContext context, RectangleF parentRectangle, float x, float y, params object[] args)
+            public void Draw(UiContext context, DrawList2D drawList, RectangleF parentRectangle, float x, float y, params object[] args)
             {
                 Callback?.Call(args);
                 Template.X = x;
                 Template.Y = y;
-                Template.Render(context, parentRectangle);
+                Template.Render(context, drawList, parentRectangle);
             }
         }
 
@@ -1799,8 +1800,10 @@ World Time: {12:F2}
                 var sz = CrosshairSize();
                 var r0 = new Rectangle((int) (crosshairScreen.X - sz / 2), (int) crosshairScreen.Y, sz, 1);
                 var r1 = new Rectangle((int) crosshairScreen.X, (int) crosshairScreen.Y - (sz / 2), 1, sz);
-                Game.RenderContext.Renderer2D.FillRectangle(r0, Color4.Red);
-                Game.RenderContext.Renderer2D.FillRectangle(r1, Color4.Red);
+                var dl = Game.RenderContext.Renderer2D.CreateDrawList();
+                dl.FillRectangle(r0, Color4.Red);
+                dl.FillRectangle(r1, Color4.Red);
+                dl.Render();
             }
 
             if (!IsSpecialCamera() && ShowHud)
@@ -1935,7 +1938,9 @@ World Time: {12:F2}
 
             if ((!IsSpecialCamera() && ShowHud) || Game.Debug.Enabled || ui.HasModal)
             {
-                current_cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
+                var dlist = Game.RenderContext.Renderer2D.CreateDrawList();
+                current_cur.Draw(dlist, Game.Mouse, Game.TotalTime);
+                dlist.Render();
             }
 
             DoFade(delta);
@@ -1983,7 +1988,7 @@ World Time: {12:F2}
             return (pos, angle);
         }
 
-        private void DrawSelectedArrow(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
+        private void DrawSelectedArrow(GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var rep = GetRepToPlayer(obj) switch
             {
@@ -1993,12 +1998,12 @@ World Time: {12:F2}
             };
             var (arrowPos, angle) = ArrowPosition(pos);
             uiApi.SelectedArrow?.Draw(
-                context, parentRectangle, arrowPos.X, arrowPos.Y,
+                context, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
                 angle, rep, (obj.Flags & GameObjectFlags.Important) != 0
             );
         }
 
-        private void DrawUnselectedArrow(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
+        private void DrawUnselectedArrow(GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var rep = GetRepToPlayer(obj) switch
             {
@@ -2008,7 +2013,7 @@ World Time: {12:F2}
             };
             var (arrowPos, angle) = ArrowPosition(pos);
             uiApi.UnselectedArrow?.Draw(
-                context, parentRectangle, arrowPos.X, arrowPos.Y,
+                context, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
                 angle, rep, 0.5f, (obj.Flags & GameObjectFlags.Important) != 0
             );
         }
@@ -2019,7 +2024,7 @@ World Time: {12:F2}
 
         }
 
-        private void IndicatorLayerOnRender(UiContext context, RectangleF parentRectangle)
+        private void IndicatorLayerOnRender(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             foreach (var obj in world.Objects)
             {
@@ -2035,7 +2040,7 @@ World Time: {12:F2}
                     {
                         case false when (obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
                                         (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important:
-                            DrawUnselectedArrow(obj, pos, context, parentRectangle);
+                            DrawUnselectedArrow(obj, pos, context, drawList, parentRectangle);
                             break;
                         case true:
                             DrawShipReticle(obj, pos, context, parentRectangle);
@@ -2050,7 +2055,7 @@ World Time: {12:F2}
 
                     if (!visible)
                     {
-                        DrawUnselectedArrow(obj, pos, context, parentRectangle);
+                        DrawUnselectedArrow(obj, pos, context, drawList, parentRectangle);
                     }
                 }
             }
@@ -2065,7 +2070,7 @@ World Time: {12:F2}
 
                 if (!visible)
                 {
-                    DrawSelectedArrow(Selection.Selected, pos, context, parentRectangle);
+                    DrawSelectedArrow(Selection.Selected, pos, context, drawList, parentRectangle);
                 }
             }
         }

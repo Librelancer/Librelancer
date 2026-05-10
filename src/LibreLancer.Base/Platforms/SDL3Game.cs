@@ -449,9 +449,9 @@ internal class SDL3Game : IGame
             var dw = RenderContext.Backend.GetDrawableSize(win2);
             RenderContext.ReplaceViewport(0, 0, dw.X, dw.Y);
             RenderContext.ClearAll();
-            RenderContext.Renderer2D.DrawImageStretched(splashTexture, new Rectangle(0, 0, dw.X, dw.Y),
-                Color4.White, true);
-            RenderContext.EndFrame();
+            var dlist = RenderContext.Renderer2D.CreateDrawList();
+            dlist.DrawImageStretched(splashTexture, new Rectangle(0, 0, dw.X, dw.Y), Color4.White, true);
+            dlist.Render();
             RenderContext.Backend.SwapWindow(win2, false, false);
             loop.OnLoad();
             splashTexture.Dispose();

@@ -1,4 +1,5 @@
 using System;
+using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
@@ -126,7 +127,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (!CanRender())
             {
@@ -134,7 +135,7 @@ namespace LibreLancer.Interface
             }
 
             var rect = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, rect);
+            Background?.Draw(context, drawList, rect);
 
             if (data != null)
             {
@@ -163,7 +164,7 @@ namespace LibreLancer.Interface
 
                 if (scrollCount > 0)
                 {
-                    Scrollbar.Render(context, rect);
+                    Scrollbar.Render(context, drawList, rect);
                     rect.Width -= Scrollbar.Style!.Width;
                 }
 
@@ -207,13 +208,13 @@ namespace LibreLancer.Interface
                     var rowColor = Cascade(textColor ?? InterfaceColor.White, hovered ? HoverColor : null,
                         selected ? SelectedColor : null);
                     var rowRect = GetCell(rect, row);
-                    DrawText(context, ref rowStrings![row], rowRect, TextSize, Font, rowColor, TextShadow,
+                    DrawText(context, drawList, ref rowStrings![row], rowRect, TextSize, Font, rowColor, TextShadow,
                         HorizontalAlignment.Left,
                         VerticalAlignment.Default, true, str);
                 }
             }
 
-            Border?.Draw(context, rect);
+            Border?.Draw(context, drawList, rect);
         }
     }
 }

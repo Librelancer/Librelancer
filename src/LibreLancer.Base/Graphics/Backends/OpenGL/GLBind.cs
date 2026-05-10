@@ -28,15 +28,15 @@ internal static class GLBind
 
     private static int[] textures = [-1, -1, -1, -1, -1, -1, -1, -1];
     private static int active_unit = -1;
+
+
     public static void BindTexture(int unit, int target, uint texture)
     {
         var uval = GL.GL_TEXTURE0 + unit;
-
         if (textures[unit] == (int) texture)
         {
             return;
         }
-
         if (uval != active_unit)
         {
             GL.ActiveTexture(uval);
@@ -46,25 +46,19 @@ internal static class GLBind
         GL.BindTexture(target, texture);
     }
 
-    public static void BindTextureForModify(int target, uint texture)
+    public static void BindTextureForModify(int unit, int target, uint texture)
     {
-        if (active_unit != -1 && textures[active_unit - GL.GL_TEXTURE0] == texture)
-            return;
-
-        var uval = GL.GL_TEXTURE0 + 4;
-        if (uval != active_unit)
+        var uval = GL.GL_TEXTURE0 + unit;
+        if (active_unit != uval)
         {
             GL.ActiveTexture(uval);
             active_unit = uval;
         }
-
-        if (textures[4] == (int) texture)
+        if (textures[unit] != (int)texture)
         {
-            return;
+            textures[unit] = (int)texture;
+            GL.BindTexture(target, texture);
         }
-
-        textures[4] = (int)texture;
-        GL.BindTexture(target, texture);
     }
 
     private static uint bound_vao = 0;

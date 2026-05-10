@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Utf.Cmp;
 using WattleScript.Interpreter;
 
@@ -27,20 +28,20 @@ namespace LibreLancer.Interface
             this.target = target;
         }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (!Visible) return;
-            base.Render(context, parentRectangle);
+            base.Render(context, drawList, parentRectangle);
             var rect = GetMyRectangle(context, parentRectangle);
             if (rect.Width <= 0 || rect.Height <= 0) return;
-            Background?.Draw(context, rect);
+            Background?.Draw(context, drawList, rect);
 
             if (target != null)
             {
-                Draw3DViewport(context, rect);
+                drawList.AddCallback(_ => Draw3DViewport(context, rect));
             }
 
-            Border?.Draw(context, rect);
+            Border?.Draw(context, drawList, rect);
         }
 
         private void DrawWires(UiContext context)

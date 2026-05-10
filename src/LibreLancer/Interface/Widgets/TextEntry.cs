@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
@@ -46,7 +47,7 @@ namespace LibreLancer.Interface
         private double blinkDuration = 0.4;
         private bool cursorVisible = false;
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (context.GlobalTime - lastChange > blinkDuration)
             {
@@ -69,9 +70,9 @@ namespace LibreLancer.Interface
             }
 
             var rect = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, rect);
-            DrawText(context, rect);
-            (hasFocus ? FocusedBorder ?? Border : Border)?.Draw(context, rect);
+            Background?.Draw(context, drawList, rect);
+            DrawText(context, drawList, rect);
+            (hasFocus ? FocusedBorder ?? Border : Border)?.Draw(context, drawList, rect);
         }
 
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
@@ -95,7 +96,7 @@ namespace LibreLancer.Interface
             doSetFocus = true;
         }
 
-        private void DrawText(UiContext context, RectangleF myRect)
+        private void DrawText(UiContext context, DrawList2D drawList, RectangleF myRect)
         {
             // Padding
             myRect.X += 2;
@@ -115,7 +116,7 @@ namespace LibreLancer.Interface
                            (context.RenderContext.Renderer2D.LineHeight(editBase.FontName, editBase.FontSize) / 2f));
             editBase.SetRectangle(px);
             editBase.Focused = hasFocus;
-            editBase.Draw(context.RenderContext, context.GlobalTime);
+            editBase.Draw(context.RenderContext, drawList, context.GlobalTime);
         }
 
         private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)

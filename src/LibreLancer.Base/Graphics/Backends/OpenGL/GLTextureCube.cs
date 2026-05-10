@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace LibreLancer.Graphics.Backends.OpenGL;
 
-internal class GLTextureCube : GLTexture, ITextureCube
+internal sealed class GLTextureCube : GLTexture, ITextureCube
 {
     public int Size { get; private set; }
 
@@ -15,7 +15,10 @@ internal class GLTextureCube : GLTexture, ITextureCube
     private int glFormat;
     private int glType;
 
-    public GLTextureCube (int size, bool mipMap, SurfaceFormat format)
+    private WrapMode modeS = 0;
+    private WrapMode modeT = 0;
+
+    public GLTextureCube (GLRenderContext ctx, int size, bool mipMap, SurfaceFormat format) : base(ctx)
     {
         ID = GL.GenTexture();
         Size = size;
@@ -24,7 +27,7 @@ internal class GLTextureCube : GLTexture, ITextureCube
         LevelCount = mipMap ? CalculateMipLevels(size, size) : 1;
 
         //Bind the new TextureCube
-        BindForModify();
+        BindForModify(0);
         //enable filtering
         GL.TexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
         GL.TexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
@@ -82,7 +85,7 @@ internal class GLTextureCube : GLTexture, ITextureCube
     {
         int target = face.ToGL();
         maxLevel = Math.Max(level, maxLevel);
-        BindForModify();
+        BindForModify(0);
         if (glFormat == GL.GL_NUM_COMPRESSED_TEXTURE_FORMATS)
         {
             int w, h;
@@ -129,42 +132,32 @@ internal class GLTextureCube : GLTexture, ITextureCube
         SetData<T>(face, 0, null, data, 0, data.Length);
     }
 
-    private WrapMode modeS = 0;
-    private WrapMode modeT = 0;
-    public override void SetWrapModeS(WrapMode mode)
-    {
-        if (mode == modeS)
-            return;
-        modeS = mode;
-        BindForModify();
-        GL.TexParameteri (GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_S, (int)mode);
-    }
+    protected override void BindForModify(int unit)
+        => GLBind.BindTextureForModify(unit, GL.GL_TEXTURE_CUBE_MAP, ID);
 
-    public override void SetWrapModeT(WrapMode mode)
+    public override void SetSamplerState(int unit, SamplerState samplerState)
     {
-        if (mode == modeT)
-            return;
-        modeT = mode;
-        BindForModify();
-        GL.TexParameteri (GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_T, (int)mode);
+        if (samplerState.WrapS != modeS)
+        {
+            BindForModify(unit);
+            GL.TexParameteri (GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_S, (int)samplerState.WrapS);
+            modeS = samplerState.WrapS;
+        }
+        if (samplerState.WrapT != modeT)
+        {
+            BindForModify(unit);
+            GL.TexParameteri (GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_WRAP_T, (int)samplerState.WrapT);
+            modeT = samplerState.WrapT;
+        }
+        SetTargetFiltering(unit, GL.GL_TEXTURE_CUBE_MAP, samplerState.Filtering);
     }
-
-    public override void SetFiltering(TextureFiltering filtering)
-    {
-        if (CurrentFiltering == filtering) return;
-        BindForModify();
-        SetTargetFiltering(GL.GL_TEXTURE_CUBE_MAP, filtering);
-    }
-
-    private void BindForModify()
-        => GLBind.BindTextureForModify(GL.GL_TEXTURE_CUBE_MAP, ID);
 
     public override void BindTo(int unit)
     {
         if(IsDisposed) throw new ObjectDisposedException("TextureCube");
-        if (unit == 4) throw new InvalidOperationException("Unit 4: Use BindForModify (private)");
         GLBind.BindTexture(unit, GL.GL_TEXTURE_CUBE_MAP, ID);
         if(LevelCount > 1 && maxLevel != currentLevels) {
+            BindForModify(unit);
             currentLevels = maxLevel;
             GL.TexParameteri(GL.GL_TEXTURE_CUBE_MAP, GL.GL_TEXTURE_MAX_LEVEL, maxLevel);
         }

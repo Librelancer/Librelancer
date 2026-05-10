@@ -57,13 +57,6 @@ public class VertexBuffer : IDisposable
         impl.Draw(primitiveType, primitiveCount);
     }
 
-    internal void DrawNoApply(PrimitiveTypes primitiveType, int primitiveCount)
-    {
-        TotalDrawcalls++;
-        impl.DrawNoApply(primitiveType, primitiveCount);
-    }
-
-
     public void Draw(PrimitiveTypes primitiveType, int start, int primitiveCount)
     {
         TotalDrawcalls++;

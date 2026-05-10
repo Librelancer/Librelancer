@@ -51,11 +51,13 @@ namespace LancerEdit
 
             drawList.AddCallback((_, pcmd) =>
             {
-                if (window.RenderContext.PushScissor(ImGuiHelper.GetClipRect(pcmd)))
+                var draw2d = window.RenderContext.Renderer2D.CreateDrawList();
+                if (draw2d.PushClip(ImGuiHelper.GetClipRect(pcmd)))
                 {
-                    window.RichText.RenderText(icard, (int)mOffset.X, (int)mOffset.Y);
-                    window.RenderContext.PopScissor();
+                    window.RichText.RenderText(draw2d, icard, (int)mOffset.X, (int)mOffset.Y);
+                    draw2d.PopClip();
                 }
+                draw2d.Render();
             }, IntPtr.Zero);
 
             ImGui.InvisibleButton("##infocardbutton", new Vector2(renderWidth, icard.Height));

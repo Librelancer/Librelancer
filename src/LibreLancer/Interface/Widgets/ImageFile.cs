@@ -3,7 +3,6 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using LibreLancer;
 using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
@@ -19,7 +18,7 @@ namespace LibreLancer.Interface
        public bool Fill { get; set; }
        private Texture2D? texture;
        private bool loaded = false;
-       public override void Render(UiContext context, RectangleF parentRectangle)
+       public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
        {
            if (!Visible)
            {
@@ -33,7 +32,7 @@ namespace LibreLancer.Interface
                myRectangle = parentRectangle;
            }
 
-           Background?.Draw(context, myRectangle);
+           Background?.Draw(context, drawList, myRectangle);
 
            if (!loaded)
            {
@@ -44,7 +43,7 @@ namespace LibreLancer.Interface
            if (texture != null)
            {
                var color = (Tint ?? InterfaceColor.White).Color;
-               context.RenderContext.Renderer2D.DrawImageStretched(texture, context.PointsToPixels(myRectangle), color, Flip);
+               drawList.DrawImageStretched(texture, context.PointsToPixels(myRectangle), color, Flip);
            }
        }
     }

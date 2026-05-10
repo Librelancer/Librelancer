@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using LibreLancer;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -11,7 +12,7 @@ namespace LibreLancer.Interface
     public class DisplayColor : DisplayElement
     {
         public InterfaceColor? Color { get; set; }
-        public override void Render(UiContext context, RectangleF clientRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle)
         {
             if(!Enabled)
             {
@@ -24,7 +25,7 @@ namespace LibreLancer.Interface
             }
 
             var rect = context.PointsToPixels(clientRectangle);
-            context.RenderContext.Renderer2D.FillRectangle(rect, Color.GetColor(context.GlobalTime));
+            drawList.FillRectangle(rect, Color.GetColor(context.GlobalTime));
         }
     }
 }

@@ -325,15 +325,15 @@ public class TextEditBase
 
     private const double BLINK_TIME = 0.5;
 
-    public void Draw(RenderContext context, double globalTime)
+    public void Draw(RenderContext context, DrawList2D drawList, double globalTime)
     {
-        if (!context.PushScissor(new Rectangle(x, y, width, height)))
+        if (!drawList.PushClip(new Rectangle(x, y, width, height)))
             return;
-        Update(context.Renderer2D.CreateRichTextEngine());
+        Update(context.Renderer2D.RichText);
         Rectangle pos;
         if (nodes.Length == 1 && ((RichTextTextNode) nodes[0]).Contents == "")
             pos = new Rectangle(0, 0, 1,
-                (int) context.Renderer2D.CreateRichTextEngine().LineHeight(_fontName, _fontSize));
+                (int) context.Renderer2D.RichText.LineHeight(_fontName, _fontSize));
         else
             pos = richText!.GetCaretPosition(nodes.Length - 1, CaretPosition - 1);
         int xOffset = 0;
@@ -343,7 +343,7 @@ public class TextEditBase
             xOffset = 5 + pos.X - width;
         }
 
-        context.Renderer2D.CreateRichTextEngine().RenderText(richText!, x - xOffset, y);
+        context.Renderer2D.RichText.RenderText(drawList, richText!, x - xOffset, y);
         bool caretVisible = (globalTime % (2 * BLINK_TIME)) < BLINK_TIME;
 
         if (Focused && !_allSelected && caretVisible)
@@ -351,13 +351,13 @@ public class TextEditBase
             if (_fontShadow.Enabled)
             {
                 var shadowRect = new Rectangle(x - xOffset + 2 + pos.X, y + 2 + pos.Y, pos.Width, pos.Height);
-                context.Renderer2D.FillRectangle(shadowRect, _fontShadow.Color);
+                drawList.FillRectangle(shadowRect, _fontShadow.Color);
             }
 
             var caretRect = new Rectangle(x - xOffset + pos.X, y + pos.Y, pos.Width, pos.Height);
-            context.Renderer2D.FillRectangle(caretRect, _fontColor);
+            drawList.FillRectangle(caretRect, _fontColor);
         }
 
-        context.PopScissor();
+        drawList.PopClip();
     }
 }

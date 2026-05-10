@@ -20,7 +20,7 @@ public class Cursor
     public Vector2 Hotspot = Vector2.Zero;
     public ResourceManager Resources = null!;
 
-    public void Draw(Renderer2D renderer, Mouse m, double globalTime)
+    public void Draw(DrawList2D dlist, Mouse m, double globalTime)
     {
         // var pos = new Vector2(m.X, m.Y) - (Hotspot * Scale);
         var dst = new Rectangle(
@@ -29,7 +29,7 @@ public class Cursor
         );
         var angle = MathHelper.WrapF((float)globalTime * Spin, -MathF.PI, MathF.PI);
         var hp = new Vector2((int) (Hotspot.X * Scale), (int) (Hotspot.Y * Scale));
-        renderer.DrawRotated(
+        dlist.DrawRotated(
             (Texture2D)Resources.FindTexture(Texture!)!,
             Dimensions,
             dst,

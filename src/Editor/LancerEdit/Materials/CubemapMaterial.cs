@@ -22,7 +22,8 @@ namespace LancerEdit.Materials
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
         {
             var sh = EditorShaders.EnvMapTest.Get(0);
-            Texture.BindTo(0);
+            rstate.Textures[0] = Texture;
+            rstate.Samplers[0] = new SamplerState(rstate.PreferredFilterLevel, WrapMode.ClampToEdge, WrapMode.ClampToEdge);
             rstate.BlendMode = BlendMode.Opaque;
             SetWorld(sh);
             rstate.Shader = sh;

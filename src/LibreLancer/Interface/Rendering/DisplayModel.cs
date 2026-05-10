@@ -7,6 +7,7 @@ using LibreLancer.Render.Materials;
 using LibreLancer.Resources;
 using LibreLancer.Utf.Cmp;
 using WattleScript.Interpreter;
+using LibreLancer.Graphics;
 
 namespace LibreLancer.Interface
 {
@@ -51,6 +52,7 @@ namespace LibreLancer.Interface
                     }
                 }
             }
+
             return mats;
         }
     }
@@ -94,13 +96,13 @@ namespace LibreLancer.Interface
         {
             var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             var mesh = context.Data.ResourceManager.FindMesh(wire.MeshCRC);
-            if(mesh != null)
+            if (mesh != null)
             {
                 context.Lines.DrawVWire(wire, mesh.VertexResource!, mat, color);
             }
         }
 
-        public override void Render(UiContext context, RectangleF clientRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle)
         {
             if (!Enabled || Model == null)
             {
@@ -113,79 +115,85 @@ namespace LibreLancer.Interface
             }
 
             var rect = context.PointsToPixels(clientRectangle);
-            if (Clip && !context.RenderContext.PushScissor(rect)) {
+            if (Clip && !drawList.PushClip(rect))
+            {
                 return;
             }
-            Matrix4x4 rotationMatrix = Matrix4x4.Identity;
-            var rot = Rotate + (RotateAnimation * (float)context.GlobalTime);
-            if (Model.XZPlane)
-            {
-                rot = new Vector3(rot.X, rot.Z, rot.Y);
-            }
 
-            if (rot != Vector3.Zero) {
-                rotationMatrix = Matrix4x4.CreateRotationX(rot.X) *
-                      Matrix4x4.CreateRotationY(rot.Y) *
-                      Matrix4x4.CreateRotationZ(rot.Z);
-            }
-
-            float scaleMult = 1;
-            if (BaseRadius > 0)
+            drawList.AddCallback(rc =>
             {
-                scaleMult = BaseRadius / model!.GetRadius();
-            }
-
-            var scale = Model.XZPlane
-                ? new Vector3(Model.XScale * scaleMult, 1, Model.YScale * scaleMult)
-                : new Vector3(Model.XScale * scaleMult, Model.YScale * scaleMult, 1);
-            var transform = rotationMatrix
-                            * (Matrix4x4.CreateScale(scale) *
-                               (Model.XZPlane ? Matrix4x4.CreateRotationX(MathF.PI / 2f) : Matrix4x4.Identity) *
-                               Matrix4x4.CreateTranslation(Model.X, Model.Y, 0));
-            transform *= CreateTransform((int) context.ViewportWidth, (int) context.ViewportHeight, rect);
-            context.RenderContext.Cull = false;
-            if (DrawModel)
-            {
-                context.RenderContext.SetIdentityCamera();
-                model!.UpdateTransform();
-                model.Update(context.GlobalTime);
-                if (Tint != null)
+                Matrix4x4 rotationMatrix = Matrix4x4.Identity;
+                var rot = Rotate + (RotateAnimation * (float)context.GlobalTime);
+                if (Model.XZPlane)
                 {
-                    var color = Tint.GetColor(context.GlobalTime);
-                    for (int i = 0; i < mats.Count; i++)
-                        mats[i].Mat.Dc = color;
+                    rot = new Vector3(rot.X, rot.Z, rot.Y);
                 }
 
-                model.DrawImmediate(context.RenderContext, context.Data.ResourceManager, transform, ref Lighting.Empty);
-
-                if (Tint != null)
+                if (rot != Vector3.Zero)
                 {
-                    for (int i = 0; i < mats.Count; i++)
+                    rotationMatrix = Matrix4x4.CreateRotationX(rot.X) *
+                                     Matrix4x4.CreateRotationY(rot.Y) *
+                                     Matrix4x4.CreateRotationZ(rot.Z);
+                }
+
+                float scaleMult = 1;
+                if (BaseRadius > 0)
+                {
+                    scaleMult = BaseRadius / model!.GetRadius();
+                }
+
+                var scale = Model.XZPlane
+                    ? new Vector3(Model.XScale * scaleMult, 1, Model.YScale * scaleMult)
+                    : new Vector3(Model.XScale * scaleMult, Model.YScale * scaleMult, 1);
+                var transform = rotationMatrix
+                                * (Matrix4x4.CreateScale(scale) *
+                                   (Model.XZPlane ? Matrix4x4.CreateRotationX(MathF.PI / 2f) : Matrix4x4.Identity) *
+                                   Matrix4x4.CreateTranslation(Model.X, Model.Y, 0));
+                transform *= CreateTransform((int)context.ViewportWidth, (int)context.ViewportHeight, rect);
+                rc.Cull = false;
+                if (DrawModel)
+                {
+                    rc.SetIdentityCamera();
+                    model!.UpdateTransform();
+                    model.Update(context.GlobalTime);
+                    if (Tint != null)
                     {
-                        mats[i].Mat.Dc = mats[i].Dc;
+                        var color = Tint.GetColor(context.GlobalTime);
+                        for (int i = 0; i < mats.Count; i++)
+                            mats[i].Mat.Dc = color;
+                    }
+
+                    model.DrawImmediate(rc, context.Data.ResourceManager, transform,
+                        ref Lighting.Empty);
+
+                    if (Tint != null)
+                    {
+                        for (int i = 0; i < mats.Count; i++)
+                        {
+                            mats[i].Mat.Dc = mats[i].Dc;
+                        }
                     }
                 }
-            }
-            if (VMeshWire)
-            {
-                context.RenderContext.SetIdentityCamera();
-                context.Lines.StartFrame(context.RenderContext);
-                foreach (var part in model!.AllParts)
-                {
-                    if (part.Wireframe != null)
-                    {
-                        DrawVMeshWire(context, part.Wireframe, part.LocalTransform.Matrix() * transform);
-                    }
-                }
-                context.Lines.Render();
-                context.RenderContext.DepthEnabled = false;
-            }
-            if(Clip)
-            {
-                context.RenderContext.PopScissor();
-            }
 
-            context.RenderContext.Cull = true;
+                if (VMeshWire)
+                {
+                    rc.SetIdentityCamera();
+                    context.Lines.StartFrame(rc);
+                    foreach (var part in model!.AllParts)
+                    {
+                        if (part.Wireframe != null)
+                        {
+                            DrawVMeshWire(context, part.Wireframe, part.LocalTransform.Matrix() * transform);
+                        }
+                    }
+                    context.Lines.Render();
+                    rc.DepthEnabled = false;
+                }
+            });
+            if (Clip)
+            {
+                drawList.PopClip();
+            }
         }
 
         private int v = 0;
@@ -198,7 +206,8 @@ namespace LibreLancer.Interface
             }
 
             if (v != context.MeshDisposeVersion)
-            { // HACK: Clear models on vmesh dispose
+            {
+                // HACK: Clear models on vmesh dispose
                 v = context.MeshDisposeVersion;
                 model = null;
             }
@@ -211,14 +220,14 @@ namespace LibreLancer.Interface
                     loadable = false;
                     return false;
                 }
+
                 if (Tint != null)
                 {
                     mats = MaterialModification.Setup(model, context.Data.ResourceManager);
                 }
             }
+
             return true;
         }
-
-
     }
 }

@@ -1,32 +1,340 @@
-// MIT License - Copyright (c) Callum McGing
-// This file is subject to the terms and conditions defined in
-// LICENSE, which is part of this source code package
-
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Text;
+using BlurgText;
 
 namespace LibreLancer.Graphics.Text;
 
-public abstract class RichTextEngine : IDisposable
+public class RichTextEngine
 {
-    public abstract void Dispose();
-    public abstract void RenderText(BuiltRichText txt, int x, int y);
-    public abstract BuiltRichText BuildText(IList<RichTextNode> nodes, int width, float sizeMultiplier = 1f);
-    public abstract void DrawStringBaseline(string fontName, float size, string text, float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default);
-    public abstract Point MeasureString(string fontName, float size, string text);
-    public abstract float LineHeight(string fontName, float size);
-    public abstract void DrawStringCached(ref CachedRenderString? cache, string fontName, float size, string text,
-        float x, float y, Color4 color, bool underline = false, OptionalColor shadow = default, TextAlignment alignment = TextAlignment.Left, float maxWidth = 0);
-    public abstract Point MeasureStringCached(ref CachedRenderString? cache, string fontName, float size, float maxWidth, string text,
-        bool underline, bool shadow, TextAlignment alignment);
+    private class BlurgRenderCache : CachedRenderString
+    {
+        public BlurgResult? Result;
+    }
 
-    public abstract void AddTtfFile(string id, ReadOnlySpan<byte> data);
-}
 
-public abstract class BuiltRichText : IDisposable
-{
-    public abstract void Recalculate(float width);
-    public abstract float Height { get; }
-    public abstract Rectangle GetCaretPosition(int layoutIndex, int textPosition);
-    public abstract void Dispose();
+    private Blurg blurg;
+    private RenderContext context;
+    private HashSet<string> loadedTtfs = new(StringComparer.OrdinalIgnoreCase);
+
+    private Texture2D[] textures;
+    private int nextTex = 0;
+
+    private IntPtr AllocateTexture(int width, int height)
+    {
+        textures[nextTex] = new Texture2D(context!, width, height);
+        nextTex++;
+        return (IntPtr) (nextTex - 1);
+    }
+
+    private void TextureUpdate(IntPtr userdata, IntPtr buffer, int x, int y, int width, int height)
+    {
+        var tex = textures[(int) userdata];
+        tex.SetData(0, new Rectangle(x, y, width, height), buffer);
+    }
+
+    internal RichTextEngine(RenderContext context, Renderer2D renderer)
+    {
+        textures = new Texture2D[32];
+        this.context = context;
+        blurg = new Blurg(AllocateTexture, TextureUpdate);
+        blurg.EnableSystemFonts();
+    }
+
+    public void AddTtfFile(string id, ReadOnlySpan<byte> data)
+    {
+        if (!loadedTtfs.Add(id))
+            return;
+        blurg.AddFontFromMemory(data);
+    }
+
+
+    public void Dispose()
+    {
+        blurg.Dispose();
+
+        for (int i = 0; i < nextTex; i++)
+        {
+            textures[i].Dispose();
+        }
+    }
+
+    private void DrawResult(DrawList2D dlist, BlurgResult r, int x, int y)
+    {
+        for (int i = 0; i < r.Count; i++)
+        {
+            var g = r[i];
+            var tex = textures[(int) g.UserData];
+            dlist.Draw(tex, new TexSource(
+                    new(g.U0, g.V0),
+                    new(g.U1, g.V0),
+                    new(g.U0, g.V1),
+                    new(g.U1, g.V1)),
+                new Rectangle(x + g.X, y + g.Y, g.Width, g.Height),
+                (Color4) (new VertexDiffuse() { Pixel = g.Color.Value }));
+        }
+    }
+
+    public void RenderText(DrawList2D dlist, BuiltRichText txt, int x, int y)
+    {
+        DrawResult(dlist, txt.Result, x, y);
+    }
+
+    private static BlurgColor Col(Color4 a) => new() { Value = (VertexDiffuse) a };
+
+    private static BlurgAlignment Align(TextAlignment ta) => ta switch
+    {
+        TextAlignment.Center => BlurgAlignment.Center,
+        TextAlignment.Right => BlurgAlignment.Right,
+        _ => BlurgAlignment.Left,
+    };
+
+    public BuiltRichText BuildText(IList<RichTextNode> nodes, int width, float sizeMultiplier = 1)
+    {
+        var fmt = ArrayPool<BlurgFormattedText>.Shared.Rent(nodes.Count);
+        int fmtIdx = 0;
+
+        StringBuilder currentBuilder = new StringBuilder();
+        List<BlurgStyleSpan> spans = [];
+
+        BlurgFont? defaultFont = null;
+        var defaultSize = -1f;
+        BlurgColor defaultColor = BlurgColor.Black;
+        BlurgColor defaultBackground = new BlurgColor(0, 0, 0, 0);
+        BlurgUnderline defaultUnderline = default;
+        BlurgShadow defaultShadow = default;
+        BlurgAlignment align = BlurgAlignment.Left;
+
+        void AddFormatted()
+        {
+            if (currentBuilder.Length > 0)
+            {
+                if (defaultFont == null)
+                {
+                    defaultFont = spans.Count > 0
+                        ? spans[0].Font
+                        : blurg.QueryFont("Arial", FontWeight.Regular, false)!;
+                }
+
+                if (defaultSize <= 0)
+                {
+                    defaultSize = spans.Count > 0
+                        ? spans[0].FontSize
+                        : (24 * sizeMultiplier);
+
+                    if (spans.Count > 0)
+                    {
+                        defaultColor = spans[0].Color;
+                        defaultUnderline = spans[0].Underline;
+                        defaultShadow = spans[0].Shadow;
+                        defaultBackground = spans[0].Background;
+                    }
+                }
+
+                var txt = new BlurgFormattedText(currentBuilder.ToString(), defaultFont);
+                txt.DefaultSize = defaultSize;
+                txt.DefaultColor = defaultColor;
+                txt.DefaultUnderline = defaultUnderline;
+                txt.DefaultShadow = defaultShadow;
+                txt.Alignment = align;
+                txt.Spans = spans.ToArray();
+                fmt[fmtIdx++] = txt;
+            }
+
+            if (spans.Count > 0)
+            {
+                defaultFont = spans[^1].Font;
+                defaultColor = spans[^1].Color;
+                defaultBackground = spans[^1].Background;
+                defaultSize = spans[^1].FontSize;
+                defaultUnderline = spans[^1].Underline;
+                defaultShadow = spans[^1].Shadow;
+            }
+
+            currentBuilder = new StringBuilder();
+            spans = new List<BlurgStyleSpan>();
+        }
+
+        int totalLength = 0;
+        int[] offsets = new int[nodes.Count];
+
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            offsets[i] = totalLength;
+
+            if (nodes[i] is RichTextParagraphNode)
+            {
+                if (spans.Count > 0)
+                {
+                    var s = spans[^1];
+                    s.EndIndex++;
+                    spans[^1] = s;
+                }
+
+                currentBuilder.AppendLine();
+                totalLength++;
+            }
+            else if (nodes[i] is RichTextTextNode { Contents.Length: > 0 } text)
+            {
+                var ta = Align(text.Alignment);
+
+                if (currentBuilder.Length > 0 &&
+                    ta != align)
+                {
+                    AddFormatted();
+                }
+
+                align = ta;
+                var font = blurg.QueryFont(text.FontName ?? "", text.Bold ? FontWeight.Bold : FontWeight.Regular,
+                    text.Italic)!;
+                spans.Add(new BlurgStyleSpan()
+                {
+                    Font = font,
+                    FontSize = text.FontSize * sizeMultiplier,
+                    Color = Col(text.Color),
+                    Background = text.Background.Enabled ? Col(text.Background.Color) : new BlurgColor(0, 0, 0, 0),
+                    Shadow = text.Shadow.Enabled
+                        ? new BlurgShadow() { Color = Col(text.Shadow.Color), Pixels = 2 }
+                        : default,
+                    StartIndex = currentBuilder.Length,
+                    EndIndex = currentBuilder.Length + (text.Contents.Length - 1)
+                });
+                currentBuilder.Append(text.Contents);
+                totalLength += text.Contents.Length;
+            }
+        }
+
+        AddFormatted();
+
+        var built = new BlurgFormattedText[fmtIdx];
+
+        for (int i = 0; i < fmtIdx; i++)
+        {
+            built[i] = fmt[i];
+        }
+
+        ArrayPool<BlurgFormattedText>.Shared.Return(fmt);
+
+        var result = blurg.BuildFormattedText(built, true, width < 0 ? 0 : width);
+
+        var bt = new BuiltRichText()
+        {
+            Paragraphs = built, Parent = blurg, NodeOffsets = offsets,
+            Result = result ?? throw new InvalidOperationException("Could not build blurg text")
+        };
+        return bt;
+    }
+
+    public void DrawStringBaseline(DrawList2D dlist, string fontName, float size, string text, float x, float y, Color4 color,
+        bool underline = false, OptionalColor shadow = default)
+    {
+        var f = blurg.QueryFont(fontName, FontWeight.Regular, false)!;
+
+        var bt = new BlurgFormattedText(text, f)
+        {
+            DefaultSize = size,
+            DefaultColor = Col(color)
+        };
+
+        bt.DefaultUnderline = underline switch
+        {
+            true => new BlurgUnderline()
+            {
+                Enabled = true
+            },
+            _ => bt.DefaultUnderline
+        };
+
+        if (shadow.Enabled)
+        {
+            bt.DefaultShadow = new BlurgShadow() { Color = Col(shadow.Color), Pixels = 2 };
+        }
+
+        using var r = blurg.BuildFormattedText(bt);
+
+        if (r is not null)
+        {
+            DrawResult(dlist, r, (int) x, (int) y);
+        }
+
+    }
+
+    public Point MeasureString(string fontName, float size, string text)
+    {
+        var f = blurg.QueryFont(fontName, FontWeight.Regular, false)!;
+        var res = blurg.MeasureString(f, size, text);
+        return new Point((int) res.X, (int) res.Y);
+    }
+
+    public float LineHeight(string fontName, float size)
+    {
+        return blurg.QueryFont(fontName, FontWeight.Regular, false)!.LineHeight(size);
+    }
+
+    private void UpdateCache(ref CachedRenderString? cache, string fontName, float size, string text, bool underline,
+        TextAlignment alignment, bool shadow, float maxWidth)
+    {
+        if (cache == null)
+        {
+            cache = new BlurgRenderCache()
+            {
+                FontName = fontName, FontSize = size, Text = text, Underline = underline,
+                Alignment = alignment, MaxWidth = maxWidth
+            };
+        }
+
+        if (cache is not BlurgRenderCache pc) throw new ArgumentException("cache");
+
+        if (pc.Result == null || pc.Update(fontName, text, size, underline, alignment, shadow, maxWidth))
+        {
+            var pixels = size * (96.0f / 72.0f);
+            var fnt = blurg.QueryFont(fontName, FontWeight.Regular, false)!;
+            pc.Result?.Dispose();
+            var fmt = new BlurgFormattedText(text, fnt);
+            fmt.DefaultSize = pixels;
+            fmt.DefaultColor = new BlurgColor(255, 0, 0, 255);
+            fmt.DefaultUnderline = underline ? new BlurgUnderline() { Enabled = true } : default;
+            fmt.Alignment = Align(alignment);
+            fmt.DefaultShadow =
+                shadow ? new BlurgShadow { Color = new BlurgColor(128, 0, 0, 255), Pixels = 2 } : default;
+            pc.Result = blurg.BuildFormattedText(fmt, false, maxWidth);
+        }
+    }
+
+    public void DrawStringCached(DrawList2D dlist, ref CachedRenderString? cache, string fontName, float size, string text,
+        float x, float y,
+        Color4 color, bool underline = false, OptionalColor shadow = default,
+        TextAlignment alignment = TextAlignment.Left,
+        float maxWidth = 0)
+    {
+        UpdateCache(ref cache, fontName, size, text, underline, alignment, shadow.Enabled, maxWidth);
+
+        if (cache is not BlurgRenderCache pc || pc.Result is null)
+        {
+            throw new InvalidOperationException("Cache was not using the BlurgRenderer");
+        }
+
+        for (int i = 0; i < pc.Result.Count; i++)
+        {
+            var g = pc.Result[i];
+            var tex = textures[(int) g.UserData];
+            dlist.Draw(tex, new TexSource(
+                    new(g.U0, g.V0),
+                    new(g.U1, g.V0),
+                    new(g.U0, g.V1),
+                    new(g.U1, g.V1)),
+                new Rectangle((int) (x + g.X), (int) (y + g.Y), g.Width, g.Height),
+                g.Color.R == 255 ? color : shadow.Color);
+        }
+    }
+
+    public Point MeasureStringCached(ref CachedRenderString? cache, string fontName, float size, float maxWidth,
+        string text,
+        bool underline, bool shadow, TextAlignment alignment)
+    {
+        UpdateCache(ref cache, fontName, size, text, underline, alignment, shadow, maxWidth);
+        var pc = (BlurgRenderCache?)cache;
+        return pc?.Result is null ? new Point(0, 0) : new Point((int) pc!.Result.Width, (int) pc.Result.Height);
+    }
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Graphics.Text;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -68,6 +69,7 @@ namespace LibreLancer.Interface
 
         protected void DrawText(
             UiContext context,
+            DrawList2D drawList,
             ref CachedRenderString? cache,
             RectangleF myRectangle,
             float textSize,
@@ -172,22 +174,22 @@ namespace LibreLancer.Interface
                 shadow.Color.A *= alpha;
             }
 
-            if (clip && !context.RenderContext.PushScissor(drawRect))
+            if (clip && !drawList.PushClip(drawRect))
             {
                 return;
             }
 
-            context.RenderContext.Renderer2D.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false,
+            drawList.DrawStringCached(ref cache, fnt, size, text, drawX, drawY, color, false,
                 shadow, CastAlign(horizontalAlign),
                 wrap ? drawRect.Width : 0);
 
             if (clip)
             {
-                context.RenderContext.PopScissor();
+                drawList.PopClip();
             }
         }
 
-        public abstract void Render(UiContext context, RectangleF parentRectangle);
+        public abstract void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle);
 
         private Stylesheet? _lastSheet;
 

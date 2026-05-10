@@ -4,7 +4,7 @@
 
 using System;
 using System.Linq;
-using LibreLancer;
+using LibreLancer.Graphics;
 
 namespace LibreLancer.Interface
 {
@@ -77,7 +77,7 @@ namespace LibreLancer.Interface
         private double lastTime = 0;
         private float timer = 1 / 8f;
         private int nextScrollDir = 0;
-        public void Render(UiContext context, RectangleF parent)
+        public void Render(UiContext context, DrawList2D drawList, RectangleF parent)
         {
             float delta = 0;
             if (lastTime == 0) {
@@ -92,9 +92,9 @@ namespace LibreLancer.Interface
             timer = MathHelper.Clamp(timer, 0, 100);
             Layout(parent, out var myRectangle, out var track);
             // background
-            Style?.Background?.Draw(context, myRectangle);
+            Style?.Background?.Draw(context, drawList, myRectangle);
             // draw buttons
-            upbutton.Render(context, myRectangle);
+            upbutton.Render(context, drawList, myRectangle);
             float tickmult = Smooth ? delta * 8 : 1;
             if (upbutton.HeldDown && (timer <= 0 || Smooth))
             {
@@ -102,7 +102,7 @@ namespace LibreLancer.Interface
                 if (ScrollOffset < 0) ScrollOffset = 0;
                 timer = 1 / 8f;
             }
-            downbutton.Render(context, myRectangle);
+            downbutton.Render(context, drawList, myRectangle);
             if (downbutton.HeldDown && (timer <= 0 || Smooth))
             {
                 ScrollOffset += Tick * tickmult;
@@ -114,7 +114,7 @@ namespace LibreLancer.Interface
             ScrollOffset = MathHelper.Clamp(ScrollOffset, 0, 1);
             nextScrollDir = 0;
             // draw track
-            Style?.TrackArea?.Draw(context, track);
+            Style?.TrackArea?.Draw(context, drawList, track);
             // draw thumb
             thumb.Update(context, track);
             float top = 0, bottom = 0;
@@ -122,17 +122,17 @@ namespace LibreLancer.Interface
             {
                 top = Style.ThumbTop.Height;
                 var rect = new RectangleF(track.X, track.Y + thumb.Y, track.Width, top + 1);
-                thumbTop.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
+                thumbTop.Draw(context, drawList, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
 
             if (Style?.ThumbBottom != null)
             {
                 bottom = Style.ThumbBottom.Height;
                 var rect = new RectangleF(track.X, track.Y + thumb.Y + thumb.Height - bottom - 1, track.Width, bottom + 1);
-                thumbBottom.Draw(context, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
+                thumbBottom.Draw(context, drawList, rect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
             }
             var thumbRect = new RectangleF(track.X, track.Y + thumb.Y + top, thumb.Width, thumb.Height - top - bottom);
-            thumb.Draw(context, thumbRect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
+            thumb.Draw(context, drawList, thumbRect, thumb.Hovered, thumb.HeldDown, thumb.Selected, true);
         }
 
         private float dragYStart;

@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -12,13 +13,13 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class Scene : Container
     {
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (Visible)
             {
                 Update(context, Vector2.Zero);
-                Background?.Draw(context, parentRectangle);
-                base.Render(context, parentRectangle);
+                Background?.Draw(context, drawList, parentRectangle);
+                base.Render(context, drawList, parentRectangle);
             }
         }
 

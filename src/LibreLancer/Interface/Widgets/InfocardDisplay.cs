@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
+using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Infocards;
 using WattleScript.Interpreter;
@@ -49,7 +50,7 @@ namespace LibreLancer.Interface
             return myRectangle;
         }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             // TODO: fix up
             if (setString != null)
@@ -79,12 +80,12 @@ namespace LibreLancer.Interface
 
             if (!Visible) return;
             var myRectangle = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, myRectangle);
+            Background?.Draw(context, drawList, myRectangle);
             myRectangle.Width -= scrollbar.Style!.Width;
 
             if (Infocard != null)
             {
-                var rte = context.RenderContext.Renderer2D.CreateRichTextEngine();
+                var rte = context.RenderContext.Renderer2D.RichText;
                 var myRect = context.PointsToPixels(myRectangle);
 
                 if (currInfocard != Infocard || mW != myRect.Width)
@@ -111,11 +112,11 @@ namespace LibreLancer.Interface
                 }
 
                 if (scrollbarVisible)
-                    scrollbar.Render(context,
+                    scrollbar.Render(context,drawList,
                         new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width,
                             myRectangle.Height));
 
-                if (context.RenderContext.PushScissor(myRect))
+                if (drawList.PushClip(myRect))
                 {
                     int y = myRect.Y;
 
@@ -124,12 +125,12 @@ namespace LibreLancer.Interface
                         y -= (int) (scrollbar.ScrollOffset * (richText!.Height - myRect.Height));
                     }
 
-                    rte.RenderText(richText!, myRect.X, y);
-                    context.RenderContext.PopScissor();
+                    rte.RenderText(drawList, richText!, myRect.X, y);
+                    drawList.PopClip();
                 }
             }
 
-            Border?.Draw(context, myRectangle);
+            Border?.Draw(context, drawList, myRectangle);
         }
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)

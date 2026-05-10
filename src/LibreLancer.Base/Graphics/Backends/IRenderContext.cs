@@ -7,6 +7,7 @@ internal interface IRenderContext
 {
     int MaxSamples { get; }
     int MaxAnisotropy { get; }
+    int AnisotropyLevel { get; set; }
     bool SupportsWireframe { get; }
     void Init(ref GraphicsState requested);
     void ApplyState(ref GraphicsState requested);
@@ -35,7 +36,6 @@ internal interface IRenderContext
     ITextureCube CreateTextureCube(int size, bool mipMap, SurfaceFormat format);
 
     IDepthBuffer CreateDepthBuffer(int width, int height);
-    IDepthMap CreateDepthMap(int width, int height);
 
     IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer);
 
@@ -56,4 +56,8 @@ internal interface IRenderContext
     Point GetDrawableSize(IntPtr sdlWindow);
 
     void QueryFences();
+
+    void SetTextureSlot(int slot, Texture? texture);
+    void SetSamplerState(int slot, SamplerState state);
+    void DrawNoVertexBuffer(PrimitiveTypes type, int primitiveCount);
 }

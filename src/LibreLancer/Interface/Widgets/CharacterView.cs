@@ -7,6 +7,7 @@ using System.Numerics;
 using LibreLancer.Data.GameData;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 // TODO: Implement
@@ -43,7 +44,7 @@ namespace LibreLancer.Interface
             accessoryModel = comm.AccessoryModel;
         }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (!Visible)
             {
@@ -56,14 +57,14 @@ namespace LibreLancer.Interface
             }
 
             var rect = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, rect);
+            Background?.Draw(context, drawList, rect);
 
             if (Skeleton != null)
             {
-                Draw3DViewport(context, rect);
+                drawList.AddCallback(_ => { Draw3DViewport(context, rect); });
             }
 
-            Border?.Draw(context, rect);
+            Border?.Draw(context, drawList, rect);
         }
 
         private ICamera View(UiContext context, RectangleF rect)

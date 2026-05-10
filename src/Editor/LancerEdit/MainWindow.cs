@@ -194,7 +194,7 @@ namespace LancerEdit
             if (InitOpenFile != null)
                 foreach (var f in InitOpenFile)
                     OpenFile(f);
-            RichText = RenderContext.Renderer2D.CreateRichTextEngine();
+            RichText = RenderContext.Renderer2D.RichText;
             Fonts = new FontManager();
             Fonts.ConstructDefaultFonts();
             Services.Add(Fonts);

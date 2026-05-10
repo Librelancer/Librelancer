@@ -1,4 +1,5 @@
 using LibreLancer;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -15,7 +16,7 @@ namespace LibreLancer.Interface
         public int WidthPx { get; set; }
         public InterfaceColor? Color { get; set; }
 
-        public override void Render(UiContext context, RectangleF clientRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle)
         {
             if(!Enabled) return;
             var color = (Color ?? InterfaceColor.White).GetColor(context.GlobalTime);
@@ -27,7 +28,7 @@ namespace LibreLancer.Interface
             );
             var rect = context.PointsToPixels(withMargins);
             var width = WidthPx > 0 ? WidthPx : context.PointsToPixels(Width);
-            context.RenderContext.Renderer2D.DrawRectangle(rect, color, width);
+            drawList.DrawRectangle(rect, color, width);
         }
     }
 }

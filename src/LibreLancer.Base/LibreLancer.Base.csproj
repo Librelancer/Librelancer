@@ -31,16 +31,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\extern\bepuphysics2\BepuUtilities\BepuUtilities.csproj" />
     <ProjectReference Include="..\..\extern\blurgtext\dotnet\BlurgText\BlurgText.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Shaders\Shader2D.frag.hlsl" />
-    <None Include="Shaders\Shader2D.vert.hlsl" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Shader Include="Shaders\Shader2D.txt" />
+    <Shader Include="Shaders\FSTint.txt"/>
   </ItemGroup>
 
   <ItemGroup>

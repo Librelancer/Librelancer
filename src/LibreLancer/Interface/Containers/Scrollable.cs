@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using LibreLancer;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -13,13 +14,13 @@ namespace LibreLancer.Interface
     {
         public Scrollbar Scrollbar = new();
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             var myRectangle = new RectangleF(myPos.X,myPos.Y, Width, Height);
             foreach(var child in Children)
-                child.Render(context, myRectangle);
-            Scrollbar.Render(context, myRectangle);
+                child.Render(context, drawList, myRectangle);
+            Scrollbar.Render(context, drawList, myRectangle);
         }
 
         public override void ApplyStylesheet(Stylesheet sheet)

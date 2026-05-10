@@ -244,7 +244,6 @@ namespace LibreLancer.Render
         public CommandBuffer Commands;
         private int _twidth = -1, _theight = -1;
         private int _dwidth = -1, _dheight = -1;
-        private DepthMap? depthMap;
 
         public List<ObjectRenderer> objects = new(250);
 
@@ -450,9 +449,7 @@ namespace LibreLancer.Render
 
                 if (nr != null && DrawNebulae)
                 {
-                    // rstate.DepthEnabled = false;
-                    nr.RenderFogTransition();
-                    // rstate.DepthEnabled = true;
+                    nr.RenderFogTransition(rstate);
                 }
 
                 rstate.DepthRange = new Vector2(0, 1);
@@ -506,7 +503,6 @@ namespace LibreLancer.Render
         public void Dispose()
         {
             msaa?.Dispose();
-            depthMap?.Dispose();
 
             Polyline.Dispose();
             FxPool.Dispose();

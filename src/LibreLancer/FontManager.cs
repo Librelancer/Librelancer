@@ -47,7 +47,7 @@ namespace LibreLancer
             {
                 if (fs.FileExists(dataPath + f))
                 {
-                    context.Renderer2D.CreateRichTextEngine().AddTtfFile(f, fs.ReadAllBytes(dataPath + f));
+                    context.Renderer2D.RichText.AddTtfFile(f, fs.ReadAllBytes(dataPath + f));
                 }
                 else
                 {

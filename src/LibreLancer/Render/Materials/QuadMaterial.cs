@@ -28,7 +28,8 @@ public class QuadMaterial : RenderMaterial
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
         var shader = AllShaders.Sprite.Get(0);
-        Parameters[userData].texture.BindTo(0);
+        rstate.Textures[0] = Parameters[userData].texture;
+        rstate.Samplers[0] = new SamplerState(rstate.PreferredFilterLevel, WrapMode.ClampToEdge, WrapMode.ClampToEdge);
         rstate.BlendMode = Parameters[userData].blendMode;
         rstate.Shader = shader;
     }

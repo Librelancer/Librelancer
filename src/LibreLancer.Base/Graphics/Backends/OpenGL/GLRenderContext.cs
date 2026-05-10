@@ -13,10 +13,26 @@ internal class GLRenderContext : IRenderContext
     public int MaxSamples { get; private set; }
     public int MaxAnisotropy { get; private set; }
 
+    private int anisotropy;
 
+    public int AnisotropyLevel
+    {
+        get => anisotropy;
+        set
+        {
+            anisotropy = value;
+            lastTextureApply = 7;
+        }
+    }
+
+
+    class TextureSlot
+    {
+        public GLTexture? Texture;
+        public SamplerState SamplerState = SamplerState.LinearRepeat;
+    }
 
     // Used by the backend
-
     private string glVersion;
     private string glRenderer;
     private string renderName;
@@ -31,6 +47,9 @@ internal class GLRenderContext : IRenderContext
 
     Queue<SyncPoint> frameSyncs = new();
     SyncPoint currentFrame = new();
+    private List<(IntPtr Fence, Action Callback)> Fences = new();
+    private TextureSlot[] slots = new TextureSlot[8];
+    private int lastTextureApply = 0;
 
     private GLRenderContext(IntPtr glContext)
     {
@@ -59,6 +78,9 @@ internal class GLRenderContext : IRenderContext
 
         string storageTarget = SSBO ? "SSBOs" : FencedUBO ? "Fenced UBOs" : "UBOs";
         FLLog.Info("GL", $"Storage target: {storageTarget}");
+
+        for (int i = 0; i < slots.Length; i++)
+            slots[i] = new TextureSlot();
     }
 
     public static GLRenderContext? Create(IntPtr sdlWindow)
@@ -196,7 +218,6 @@ internal class GLRenderContext : IRenderContext
         requested = applied;
     }
 
-    private List<(IntPtr Fence, Action Callback)> Fences = new();
 
     public void AddFence(IntPtr fence, Action callback) => Fences.Add((fence, callback));
 
@@ -215,6 +236,18 @@ internal class GLRenderContext : IRenderContext
                 cb();
             }
         }
+    }
+
+    public void SetTextureSlot(int slot, Texture? texture)
+    {
+        slots[slot].Texture = texture?.Backing as GLTexture;
+        lastTextureApply = slot;
+    }
+
+    public void SetSamplerState(int slot, SamplerState state)
+    {
+        slots[slot].SamplerState = state;
+        lastTextureApply = slot;
     }
 
     internal void BindToIndex(int target, int binding, IntPtr startPtr, IntPtr length, GLCycledBuffer storageBuffer)
@@ -371,13 +404,29 @@ internal class GLRenderContext : IRenderContext
 
         ApplyScissor(ref requested);
 
-        if (requested.PolygonOffset == applied.PolygonOffset)
+        if (requested.PolygonOffset != applied.PolygonOffset)
         {
-            return;
+            applied.PolygonOffset = requested.PolygonOffset;
+            GL.PolygonOffset(requested.PolygonOffset.X, requested.PolygonOffset.Y);
         }
 
-        applied.PolygonOffset = requested.PolygonOffset;
-        GL.PolygonOffset(requested.PolygonOffset.X, requested.PolygonOffset.Y);
+        // Set texture state.
+        // We check unit 0 every time as we use that
+        // unit for modifying texture data.
+        for (int i = 0; i <= lastTextureApply; i++)
+        {
+            var t = slots[i].Texture;
+            if (t != null && !t.IsDisposed)
+            {
+                t.BindTo(i);
+                t.SetSamplerState(i, slots[i].SamplerState);
+            }
+            else
+            {
+                GLBind.BindTexture(i, GL.GL_TEXTURE_2D, 0);
+            }
+        }
+        lastTextureApply = 0;
     }
 
     private int lastHeight = 768;
@@ -547,6 +596,7 @@ internal class GLRenderContext : IRenderContext
         _ => false
     };
 
+
     public string GetRenderer() => renderName;
 
     public void MakeCurrent(IntPtr sdlWindow)
@@ -590,6 +640,12 @@ internal class GLRenderContext : IRenderContext
         }
     }
 
+    public void DrawNoVertexBuffer(PrimitiveTypes type, int primitiveCount)
+    {
+        GLBind.VertexArray(NullVAO);
+        GL.DrawArrays(type.GLType(), 0, type.GetArrayLength(primitiveCount));
+    }
+
     public IShader CreateShader(ReadOnlySpan<byte> program) =>
         new GLShader(this, program);
 
@@ -609,10 +665,7 @@ internal class GLRenderContext : IRenderContext
         new GLTexture2D(this, width, height, hasMipMaps, format);
 
     public ITextureCube CreateTextureCube(int size, bool mipMap, SurfaceFormat format) =>
-        new GLTextureCube(size, mipMap, format);
-
-    public IDepthMap CreateDepthMap(int width, int height) =>
-        new GLDepthMap(this, width, height);
+        new GLTextureCube(this, size, mipMap, format);
 
     public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer) =>
         new GLRenderTarget2D(this, (GLTexture2D)texture, (GLDepthBuffer)buffer);

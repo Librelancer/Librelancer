@@ -36,7 +36,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (!context.MouseLeftDown || !CanRotate)
             {
@@ -64,7 +64,6 @@ namespace LibreLancer.Interface
 
         protected void Draw3DViewport(UiContext context, RectangleF rect)
         {
-            context.RenderContext.Flush();
             var pxRect = context.PointsToPixels(rect);
             if(pxRect.Width <= 0 || pxRect.Height <= 0) return;
             // setup
@@ -82,10 +81,10 @@ namespace LibreLancer.Interface
             context.RenderContext.PopViewport();
             context.RenderContext.DepthEnabled = false;
             context.RenderContext.RenderTarget = prevRt;
-            context.RenderContext.Renderer2D.Draw(rTarget.Texture, new Rectangle(0, 0, pxRect.Width, pxRect.Height),
-                pxRect,
-                Color4.White, BlendMode.Normal, true);
-            context.RenderContext.Flush(); // need to flush before disposing RT
+            var dlist = context.RenderContext.Renderer2D.CreateDrawList();
+            dlist.Draw(rTarget.Texture, new Rectangle(0, 0, pxRect.Width, pxRect.Height),
+                pxRect, Color4.White, BlendMode.Normal, true);
+            dlist.Render();
             rTarget.Dispose();
         }
 

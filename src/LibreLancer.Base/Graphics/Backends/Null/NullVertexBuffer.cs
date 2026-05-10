@@ -86,10 +86,6 @@ internal class NullVertexBuffer : IVertexBuffer
     {
     }
 
-    public void DrawNoApply(PrimitiveTypes primitiveType, int primitiveCount)
-    {
-    }
-
     public void Draw(PrimitiveTypes primitiveType, int start, int primitiveCount)
     {
     }

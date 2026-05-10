@@ -844,14 +844,8 @@ public unsafe partial class ImGuiHelper
                 rstate.Shader = uiShader;
                 var tid = pcmd.TexRef.GetTexID();
 
-                if (textures.TryGetValue(tid, out var tex))
-                {
-                    tex.BindTo(0);
-                }
-                else
-                {
-                    dot.BindTo(0);
-                }
+                rstate.Samplers[0] = SamplerState.LinearRepeat;
+                rstate.Textures[0] = textures.GetValueOrDefault(tid, dot);
 
                 var newScissor = new Rectangle((int) pcmd.ClipRect.X, (int) pcmd.ClipRect.Y,
                     (int) (pcmd.ClipRect.Z - pcmd.ClipRect.X),

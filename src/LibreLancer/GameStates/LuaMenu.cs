@@ -447,7 +447,9 @@ namespace LibreLancer
             scene?.Draw(delta, Game.Width, Game.Height);
             ui.RenderWidget(delta);
             DoFade(delta);
-            cur.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
+            var dlist = Game.RenderContext.Renderer2D.CreateDrawList();
+            cur.Draw(dlist, Game.Mouse, Game.TotalTime);
+            dlist.Render();
         }
 
         private int uframe = 0;

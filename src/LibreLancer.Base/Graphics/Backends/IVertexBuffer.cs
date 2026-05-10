@@ -14,7 +14,6 @@ internal interface IVertexBuffer : IDisposable
     IntPtr BeginStreaming();
     void EndStreaming(int count);
     void Draw(PrimitiveTypes primitiveType, int primitiveCount);
-    void DrawNoApply(PrimitiveTypes primitiveType, int primitiveCount);
     void Draw(PrimitiveTypes primitiveType, int start, int primitiveCount);
     void SetElementBuffer(IElementBuffer elems);
     void UnsetElementBuffer();

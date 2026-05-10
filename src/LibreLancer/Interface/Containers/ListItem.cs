@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -110,13 +111,13 @@ namespace LibreLancer.Interface
             ItemB?.ApplyStylesheet(sheet);
         }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (!Visible) return;
             var myRectangle = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, myRectangle);
-            ItemA?.Render(context, myRectangle);
-            ItemB?.Render(context, myRectangle);
+            Background?.Draw(context, drawList, myRectangle);
+            ItemA?.Render(context, drawList, myRectangle);
+            ItemB?.Render(context, drawList, myRectangle);
             UiRenderable? border = Border;
             if (Enabled)
             {
@@ -125,8 +126,8 @@ namespace LibreLancer.Interface
                     rectangleB.Contains(context.MouseX, context.MouseY))
                     border = HoverBorder ?? border;
             }
-            if(ItemA != null) border?.Draw(context, rectangleA);
-            if(ItemB != null) border?.Draw(context, rectangleB);
+            if(ItemA != null) border?.Draw(context, drawList, rectangleA);
+            if(ItemB != null) border?.Draw(context, drawList, rectangleB);
         }
     }
 }

@@ -431,7 +431,9 @@ public partial class ResourceWindow
         BindViewport(szX, szY);
         //Do drawing
         var rectangle = new Rectangle(5, 5, rtX - 10, rtY - 10);
-        mainWindow.RenderContext.Renderer2D.FillRectangle(rectangle, Color4.CornflowerBlue);
+        var drawList = mainWindow.RenderContext.Renderer2D.CreateDrawList();
+        drawList.FillRectangle(rectangle, Color4.CornflowerBlue);
+        drawList.Render();
 
         var scale = mdl.XZPlane
             ? new Vector3(mdl.XScale, 1, mdl.YScale)

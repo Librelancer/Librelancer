@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
@@ -55,10 +56,10 @@ namespace LibreLancer.Interface
             return false;
         }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var rect = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, rect);
+            Background?.Draw(context, drawList, rect);
             var ids = GetMessageIds();
 
             for (int i = Chat.Messages.Count - 1; i >= 0 && (i >= Chat.Messages.Count - 16); i--)
@@ -84,18 +85,18 @@ namespace LibreLancer.Interface
                         if (i > 0) nodes.Add(new RichTextParagraphNode());
                     }
 
-                    builtText = context.RenderContext.Renderer2D.CreateRichTextEngine().BuildText(nodes,
+                    builtText = context.RenderContext.Renderer2D.RichText.BuildText(nodes,
                         displayRect.Width, textMultiplier);
                     buildMessages = ids;
                     builtMultiplier = textMultiplier;
                 }
 
                 builtText.Recalculate(displayRect.Width);
-                context.RenderContext.Renderer2D.CreateRichTextEngine().RenderText(builtText,
+                context.RenderContext.Renderer2D.RichText.RenderText(drawList, builtText,
                     displayRect.X, (int) (displayRect.Y + displayRect.Height - builtText.Height));
             }
 
-            Border?.Draw(context, rect);
+            Border?.Draw(context, drawList, rect);
         }
     }
 }

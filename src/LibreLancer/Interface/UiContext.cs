@@ -421,18 +421,18 @@ namespace LibreLancer.Interface
             }
 
             textFocusWidget = null;
-            RenderContext.DepthEnabled = false;
+            var dlist = RenderContext.Renderer2D.CreateDrawList();
             var aspect = ViewportWidth / ViewportHeight;
             var desktopRect = new RectangleF(0, 0, 480 * aspect, 480);
 
             if (Visible)
             {
-                baseWidget.Render(this, desktopRect);
+                baseWidget.Render(this, dlist, desktopRect);
             }
 
             foreach (var widget in modals)
-                widget.Widget.Render(this, desktopRect);
-            RenderContext.DepthEnabled = true;
+                widget.Widget.Render(this, dlist, desktopRect);
+            dlist.Render();
         }
     }
 }

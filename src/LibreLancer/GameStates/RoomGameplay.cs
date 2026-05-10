@@ -1051,14 +1051,16 @@ namespace LibreLancer
 
             if (ui.Visible || ui.HasModal || Game.Debug.Enabled)
             {
+                var dlist = Game.RenderContext.Renderer2D.CreateDrawList();
                 if (GetHotspot(Game.Mouse.X, Game.Mouse.Y) != null)
                 {
-                    talk_story.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
+                    talk_story.Draw(dlist, Game.Mouse, Game.TotalTime);
                 }
                 else
                 {
-                    cursor.Draw(Game.RenderContext.Renderer2D, Game.Mouse, Game.TotalTime);
+                    cursor.Draw(dlist, Game.Mouse, Game.TotalTime);
                 }
+                dlist.Render();
             }
         }
 

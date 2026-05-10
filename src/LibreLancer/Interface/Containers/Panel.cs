@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -43,7 +44,7 @@ namespace LibreLancer.Interface
             foreach(var child in Children)
                 child.OnMouseUp(context, myRectangle);
         }
-        
+
         public override void OnMouseDoubleClick(UiContext context, RectangleF parentRectangle)
         {
             if (!Visible) return;
@@ -60,15 +61,15 @@ namespace LibreLancer.Interface
                 child.OnMouseWheel(context, myRectangle, delta);
         }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             ProcessAddChildren(context);
             if (!Visible) return;
             var myRectangle = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, myRectangle);
+            Background?.Draw(context, drawList, myRectangle);
             foreach(var child in Children)
-                child.Render(context, myRectangle);
-            Border?.Draw(context, myRectangle);
+                child.Render(context, drawList, myRectangle);
+            Border?.Draw(context, drawList, myRectangle);
         }
 
         public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)

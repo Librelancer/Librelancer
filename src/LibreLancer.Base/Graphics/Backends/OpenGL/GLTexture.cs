@@ -19,13 +19,18 @@ internal abstract class GLTexture : ITexture
     }
 
     public bool IsDisposed { get; private set; }
-    public abstract void SetFiltering(TextureFiltering filtering);
 
-    public abstract void SetWrapModeS(WrapMode mode);
-
-    public abstract void SetWrapModeT(WrapMode mode);
+    public abstract void SetSamplerState(int unit, SamplerState samplerState);
 
     public abstract void BindTo(int unit);
+    protected abstract void BindForModify(int unit);
+
+    protected GLRenderContext rc;
+
+    protected GLTexture(GLRenderContext ctx)
+    {
+        rc = ctx;
+    }
 
     internal static int CalculateMipLevels(int width, int height = 0)
     {
@@ -90,13 +95,20 @@ internal abstract class GLTexture : ITexture
         }
     }
 
-    protected TextureFiltering CurrentFiltering = TextureFiltering.Linear;
-    protected void SetTargetFiltering(int target, TextureFiltering filtering)
+    private TextureFiltering appliedFiltering = (TextureFiltering) (-1);
+    private int appliedAnisotropy = -1;
+
+    protected void SetTargetFiltering(int unit, int target, TextureFiltering filtering)
     {
-        CurrentFiltering = filtering;
+        if (appliedFiltering == filtering &&
+            appliedAnisotropy == rc.AnisotropyLevel)
+            return;
+        BindForModify(unit);
+        appliedFiltering = filtering;
+        appliedAnisotropy = rc.AnisotropyLevel;
         if (LevelCount > 1)
         {
-            if (GLExtensions.Anisotropy && CurrentFiltering != TextureFiltering.Anisotropic) {
+            if (GLExtensions.Anisotropy && filtering != TextureFiltering.Anisotropic) {
                 GL.TexParameterf(target, GL.GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
             }
             switch (filtering)

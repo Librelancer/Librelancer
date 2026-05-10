@@ -9,6 +9,7 @@ internal class NullRenderContext : IRenderContext
 {
     public int MaxSamples => 0;
     public int MaxAnisotropy => 0;
+    public int AnisotropyLevel { get; set; }
     public bool SupportsWireframe => false;
     public void Init(ref GraphicsState requested)
     {
@@ -100,9 +101,6 @@ internal class NullRenderContext : IRenderContext
     public IDepthBuffer CreateDepthBuffer(int width, int height) =>
         new NullDepthBuffer();
 
-    public IDepthMap CreateDepthMap(int width, int height) =>
-        new NullDepthMap(width, height);
-
     public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer) =>
         new NullRenderTarget2D(texture.Width, texture.Height);
 
@@ -162,6 +160,18 @@ internal class NullRenderContext : IRenderContext
     }
 
     public void QueryFences()
+    {
+    }
+
+    public void SetTextureSlot(int slot, Texture? texture)
+    {
+    }
+
+    public void SetSamplerState(int slot, SamplerState state)
+    {
+    }
+
+    public void DrawNoVertexBuffer(PrimitiveTypes type, int primitiveCount)
     {
     }
 }

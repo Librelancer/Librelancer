@@ -56,7 +56,6 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
         {
             throw new ObjectDisposedException("RenderTarget2D");
         }
-        RenderContext.Instance.Renderer2D.Flush();
         RenderContext.Instance.ApplyViewport();
         RenderContext.Instance.ApplyScissor();
         context.PrepareBlit(true);
@@ -74,7 +73,6 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
         {
             throw new ObjectDisposedException("RenderTarget2D");
         }
-        RenderContext.Instance.Renderer2D.Flush();
         RenderContext.Instance.ApplyViewport();
         RenderContext.Instance.ApplyScissor();
         context.PrepareBlit(true);
@@ -93,7 +91,6 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
         {
             throw new ObjectDisposedException("RenderTarget2D");
         }
-        RenderContext.Instance.Renderer2D.Flush();
         context.PrepareBlit(false);
         GL.BindFramebuffer(GL.GL_READ_FRAMEBUFFER, FBO);
         GL.BindFramebuffer(GL.GL_DRAW_FRAMEBUFFER, 0);

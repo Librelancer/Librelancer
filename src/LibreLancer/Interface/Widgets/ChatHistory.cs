@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
@@ -32,10 +33,10 @@ public class ChatHistory : UiWidget
         return myRectangle;
     }
 
-    public override void Render(UiContext context, RectangleF parentRectangle)
+    public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
     {
         var myRectangle = GetMyRectangle(context, parentRectangle);
-        Background?.Draw(context, myRectangle);
+        Background?.Draw(context, drawList, myRectangle);
         myRectangle.Width -= scrollbar.Style!.Width;
         var textMultiplier = (context.ViewportHeight / 480) * 0.5f;
         var displayRect = context.PointsToPixels(myRectangle);
@@ -50,7 +51,7 @@ public class ChatHistory : UiWidget
                 nodes.AddRange(Chat.Messages[i].Nodes);
                 if(i < (Chat.Messages.Count - 1)) nodes.Add(new RichTextParagraphNode());
             }
-            builtText = context.RenderContext.Renderer2D.CreateRichTextEngine().BuildText(nodes,
+            builtText = context.RenderContext.Renderer2D.RichText.BuildText(nodes,
                 displayRect.Width, textMultiplier);
             builtMultiplier = textMultiplier;
         }
@@ -76,17 +77,17 @@ public class ChatHistory : UiWidget
             }
         }
         if(scrollbarVisible)
-            scrollbar.Render(context, new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width, myRectangle.Height));
-        if (context.RenderContext.PushScissor(displayRect))
+            scrollbar.Render(context, drawList, new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width, myRectangle.Height));
+        if (drawList.PushClip(displayRect))
         {
             int y = displayRect.Y;
             if (scrollbarVisible) {
                 y -= (int) (scrollbar.ScrollOffset * (builtText.Height - displayRect.Height));
             }
-            context.RenderContext.Renderer2D.CreateRichTextEngine().RenderText(builtText, displayRect.X, y);
-            context.RenderContext.PopScissor();
+            context.RenderContext.Renderer2D.RichText.RenderText(drawList, builtText, displayRect.X, y);
+            drawList.PopClip();
         }
-        Border?.Draw(context, myRectangle);
+        Border?.Draw(context, drawList, myRectangle);
     }
 
     public override void OnMouseDown(UiContext context, RectangleF parentRectangle)

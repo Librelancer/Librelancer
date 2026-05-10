@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer;
+using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
@@ -84,7 +85,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (fading)
             {
@@ -118,14 +119,14 @@ namespace LibreLancer.Interface
             if (Background != null)
             {
                 foreach (var elem in Background.Elements)
-                    elem.Render(context, myRectangle);
+                    elem.Render(context, drawList, myRectangle);
             }
 
             myRectangle.X += MarginX;
             myRectangle.Width -= MarginX * 2;
             var txt = txtAccess.GetText(context);
             if (!string.IsNullOrEmpty(txt))
-                DrawText(context, ref renderCache, myRectangle, TextSize, Font, TextColor, TextShadow,
+                DrawText(context, drawList, ref renderCache, myRectangle, TextSize, Font, TextColor, TextShadow,
                     HorizontalAlignment, VerticalAlignment, Clip,
                     txt, TextAlpha, Wrap);
         }

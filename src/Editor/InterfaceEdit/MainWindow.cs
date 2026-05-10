@@ -21,6 +21,7 @@ using LibreLancer.Render;
 using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Dfm;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using WattleScript.Interpreter;
 
 namespace InterfaceEdit;
 
@@ -182,6 +183,7 @@ public class MainWindow : Game
             using (var f = Project.UiData.FileSystem.Open(Project.UiData.DataPath +
                                                           @"characters\animations\facialmale.anm"))
                 AnmFile.ParseToTable(anm.Scripts, anm.Buffer, str, f, @"characters\animations\facialmale.anm");
+            anm.Buffer.Commit();
             CommApp = new CommAppearance()
             {
                 Head = (Project.UiData.ResourceManager.GetDrawable(
@@ -373,7 +375,11 @@ public class MainWindow : Game
             {
                 Player(delta);
             }
+            #if DEBUG
+            catch (ScriptRuntimeException e)
+            #else
             catch (Exception e)
+            #endif
             {
                 var detail = new StringBuilder();
                 BuildExceptionString(e, detail);

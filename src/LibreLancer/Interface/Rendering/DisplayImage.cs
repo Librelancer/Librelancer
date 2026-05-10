@@ -26,7 +26,7 @@ namespace LibreLancer.Interface
 
         private Texture2D? texture;
 
-        public override void Render(UiContext context, RectangleF clientRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle)
         {
             if (!Enabled || Image == null) return;
             if (!CanRender(context)) return;
@@ -46,7 +46,7 @@ namespace LibreLancer.Interface
                 var pa = new Vector2(x + dc.X0 * w, y + dc.Y0 * h);
                 var pb = new Vector2(x + dc.X1 * w, y + dc.Y1 * h);
                 var pc = new Vector2(x + dc.X2 * w, y + dc.Y2 * h);
-                context.RenderContext.Renderer2D.DrawTriangle(texture!, pa, pb, pc,
+                drawList.DrawTriangle(texture!, pa, pb, pc,
                     new Vector2(Image.TexCoords.X0, 1 - Image.TexCoords.Y0),
                     new Vector2(Image.TexCoords.X1, 1 - Image.TexCoords.Y1),
                     new Vector2(Image.TexCoords.X2, 1 - Image.TexCoords.Y2),
@@ -75,7 +75,7 @@ namespace LibreLancer.Interface
                     var py = oX * sin + oY * cos;
                     rect.X += (int)px;
                     rect.Y += (int)py;
-                    context.RenderContext.Renderer2D.DrawRotated(
+                    drawList.DrawRotated(
                         texture!, src, rect, new Vector2(Image.OriginX * rect.Width, Image.OriginY * rect.Height), color, blendMode,
                         a, Image.Flip, Image.Rotation);
                 }
@@ -83,8 +83,7 @@ namespace LibreLancer.Interface
                 {
                     rect.X += context.PointsToPixels(OffsetX);
                     clientRectangle.Y += context.PointsToPixels(OffsetY);
-                    context.RenderContext.Renderer2D.Draw(texture!, src, rect, color, blendMode, Image.Flip,
-                        Image.Rotation);
+                    drawList.Draw(texture!, src, rect, color, blendMode, Image.Flip, Image.Rotation);
                 }
             }
         }

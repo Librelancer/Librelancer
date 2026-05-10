@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
@@ -353,14 +354,14 @@ namespace LibreLancer.Interface
         private CachedRenderString[][]? rowStrings;
         private int _lastScroll = 0;
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (Width <= 0 || Height <= 0) return;
             if (!Visible) return;
             if (dividerPositions == null) GenerateDividerPositions();
             if (dividerPositions == null) return;
             var rect = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, rect);
+            Background?.Draw(context, drawList, rect);
             // Update scrolling
             int scrollCount = ScrollCount();
 
@@ -386,7 +387,7 @@ namespace LibreLancer.Interface
 
             if (scrollCount > 0)
             {
-                Scrollbar.Render(context, rect);
+                Scrollbar.Render(context, drawList, rect);
                 rect.Width -= Scrollbar.Style!.Width;
             }
 
@@ -410,7 +411,7 @@ namespace LibreLancer.Interface
                 for (int i = 0; i < Columns.Count; i++)
                 {
                     var c = GetCell(rect, -1, i);
-                    DrawText(context, ref columnStrings![i], c, HeaderTextSize, HeaderFont,
+                    DrawText(context, drawList, ref columnStrings![i], c, HeaderTextSize, HeaderFont,
                         HeaderColor ?? InterfaceColor.White, TextShadow,
                         HorizontalAlignment.Center, VerticalAlignment.Default,
                         true, Columns[i].GetLabel(context));
@@ -459,7 +460,7 @@ namespace LibreLancer.Interface
                         var str = data.GetContentString(row + childOffset, Columns[column].Data);
                         if (string.IsNullOrWhiteSpace(str)) continue;
                         var c = GetCell(rect, row, column);
-                        DrawText(context, ref rowStrings![row][column], c, BodyTextSize, BodyFont, rowColor, TextShadow,
+                        DrawText(context, drawList ,ref rowStrings![row][column], c, BodyTextSize, BodyFont, rowColor, TextShadow,
                             Columns[column].TextAlignment,
                             VerticalAlignment.Default, Columns[column].Clip, str);
                     }
@@ -480,7 +481,7 @@ namespace LibreLancer.Interface
                     if (dragRect.Contains(context.MouseX, context.MouseY)) overCol = LineHover;
                     var color =
                         (Cascade(LineColor ?? InterfaceColor.White, overCol, dragCol)!).GetColor(context.GlobalTime);
-                    context.RenderContext.Renderer2D.DrawLine(color, context.PointsToPixels(new Vector2(x, y1)),
+                    drawList.DrawLine(color, context.PointsToPixels(new Vector2(x, y1)),
                         context.PointsToPixels(new Vector2(x, y2)));
                 }
             }
@@ -493,7 +494,7 @@ namespace LibreLancer.Interface
                 var x2 = rect.X + rect.Width;
                 var lineColor = (LineColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
                 // Headers
-                context.RenderContext.Renderer2D.DrawLine(lineColor,
+                drawList.DrawLine(lineColor,
                     context.PointsToPixels(new Vector2(x1, rect.Y + lineHeight)),
                     context.PointsToPixels(new Vector2(x2, rect.Y + lineHeight)));
 
@@ -501,12 +502,12 @@ namespace LibreLancer.Interface
                 for (int i = 0; i < DisplayRowCount; i++)
                 {
                     var h = rect.Y + lineHeight * (i + 2);
-                    context.RenderContext.Renderer2D.DrawLine(lineColor, context.PointsToPixels(new Vector2(x1, h)),
+                    drawList.DrawLine(lineColor, context.PointsToPixels(new Vector2(x1, h)),
                         context.PointsToPixels(new Vector2(x2, h)));
                 }
             }
 
-            Border?.Draw(context, rect);
+            Border?.Draw(context, drawList, rect);
         }
 
         private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)

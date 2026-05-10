@@ -6,6 +6,7 @@ using System;
 using System.Numerics;
 using System.Xml.Schema;
 using LibreLancer;
+using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
 
@@ -67,7 +68,7 @@ namespace LibreLancer.Interface
 
         private CachedRenderString? textCache;
 
-        internal void Draw(UiContext context, RectangleF myRectangle, bool hover, bool pressed, bool selected,
+        internal void Draw(UiContext context, DrawList2D drawList, RectangleF myRectangle, bool hover, bool pressed, bool selected,
             bool enabled)
         {
             ButtonAppearance? activeStyle = null;
@@ -76,9 +77,9 @@ namespace LibreLancer.Interface
             if (pressed) activeStyle = style?.Pressed ?? style?.Hover;
             if (!enabled) activeStyle = style?.Disabled;
             var bk = Cascade(style?.Normal?.Background, activeStyle?.Background, Background);
-            bk?.Draw(context, myRectangle);
+            bk?.Draw(context, drawList, myRectangle);
             var border = Cascade(style?.Normal?.Border, activeStyle?.Border, Border);
-            border?.Draw(context, myRectangle);
+            border?.Draw(context, drawList, myRectangle);
         }
 
         internal void Update(UiContext context, RectangleF parentRectangle)
@@ -123,7 +124,7 @@ namespace LibreLancer.Interface
 
         public bool Hovered { get; set; }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (!Visible) return;
             Update(context, parentRectangle);
@@ -146,7 +147,7 @@ namespace LibreLancer.Interface
             if (Selected) activeStyle = style?.Selected;
             if (!Enabled) activeStyle = style?.Disabled;
             var bk = Cascade(style?.Normal?.Background, activeStyle?.Background, Background);
-            bk?.Draw(context, myRectangle);
+            bk?.Draw(context, drawList, myRectangle);
 
             float mLeft = Cascade(style?.Normal?.MarginLeft, activeStyle?.MarginLeft, MarginLeft);
             float mRight = Cascade(style?.Normal?.MarginRight, activeStyle?.MarginRight, MarginRight);
@@ -161,11 +162,12 @@ namespace LibreLancer.Interface
 
                 if (DebugTextFrame)
                 {
-                    context.RenderContext.Renderer2D.DrawRectangle(context.PointsToPixels(textRect), Color4.Aqua, 1);
+                    drawList.DrawRectangle(context.PointsToPixels(textRect), Color4.Aqua, 1);
                 }
 
                 DrawText(
                     context,
+                    drawList,
                     ref textCache,
                     textRect,
                     Cascade(style?.Normal?.TextSize, activeStyle?.TextSize, TextSize),
@@ -180,7 +182,7 @@ namespace LibreLancer.Interface
             }
 
             var border = Cascade(style?.Normal?.Border, activeStyle?.Border, Border);
-            border?.Draw(context, myRectangle);
+            border?.Draw(context, drawList, myRectangle);
         }
 
         private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)

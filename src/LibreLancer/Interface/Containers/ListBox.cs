@@ -4,7 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using LibreLancer;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -65,11 +65,11 @@ namespace LibreLancer.Interface
         }
 
         private int _lastScroll = 0;
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
             var myRectangle = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            Background?.Draw(context, myRectangle);
+            Background?.Draw(context, drawList, myRectangle);
             // Update scrolling
             int scrollCount = ScrollCount();
             if (scrollCount <= 0) {
@@ -94,11 +94,11 @@ namespace LibreLancer.Interface
                 child.Width = Math.Max(Width - ((scrollCount > 0 || AlwaysShowScrollbar) ? Scrollbar.Style!.Width + 2 : 0), 3);
                 child.X = 0;
                 child.Y = ItemHeight * (i - childOffset);
-                child.Render(context, myRectangle);
+                child.Render(context, drawList, myRectangle);
             }
             if(scrollCount > 0 || AlwaysShowScrollbar)
-                Scrollbar.Render(context, myRectangle);
-            Border?.Draw(context,myRectangle);
+                Scrollbar.Render(context, drawList, myRectangle);
+            Border?.Draw(context, drawList, myRectangle);
         }
 
         public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)

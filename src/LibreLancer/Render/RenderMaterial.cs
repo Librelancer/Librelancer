@@ -291,29 +291,26 @@ namespace LibreLancer.Render
                 texture = Library?.FindTexture(ResourceManager.NullTextureName);
             }
 
-            texture?.BindTo(unit);
-            texture?.SetFiltering(rstate.PreferredFilterLevel);
-
+            var wrapS = WrapMode.Repeat;
+            var wrapT = WrapMode.Repeat;
             if ((flags & SamplerFlags.ClampToEdgeU) == SamplerFlags.ClampToEdgeU)
             {
-                texture?.SetWrapModeS(WrapMode.ClampToEdge);
+                wrapS = WrapMode.ClampToEdge;
             }
-
             if ((flags & SamplerFlags.ClampToEdgeV) == SamplerFlags.ClampToEdgeV)
             {
-                texture?.SetWrapModeT(WrapMode.ClampToEdge);
+                wrapT = WrapMode.ClampToEdge;
             }
-
             if ((flags & SamplerFlags.MirrorRepeatU) == SamplerFlags.MirrorRepeatU)
             {
-                texture?.SetWrapModeS(WrapMode.MirroredRepeat);
+                wrapS = WrapMode.MirroredRepeat;
             }
-
             if ((flags & SamplerFlags.MirrorRepeatV) == SamplerFlags.MirrorRepeatV)
             {
-                texture?.SetWrapModeT(WrapMode.MirroredRepeat);
+                wrapT = WrapMode.MirroredRepeat;
             }
-
+            rstate.Textures[unit] = texture;
+            rstate.Samplers[unit] = new(rstate.PreferredFilterLevel, wrapS, wrapT);
         }
     }
 }

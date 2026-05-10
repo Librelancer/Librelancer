@@ -17,30 +17,20 @@ public abstract class Texture : IDisposable
     public uint ID { get; private set; }
     private static uint _unique = 0;
 
-    private ITexture backing = null!;
+    internal ITexture Backing = null!;
 
     protected internal Texture()
     {
         ID = Interlocked.Increment(ref _unique);
     }
 
-    protected void SetBacking(ITexture implementation) => backing = implementation;
+    protected void SetBacking(ITexture implementation) => Backing = implementation;
 
-    public SurfaceFormat Format => backing.Format;
+    public SurfaceFormat Format => Backing.Format;
 
-    public int EstimatedTextureMemory => backing.EstimatedTextureMemory;
-    public int LevelCount => backing.LevelCount;
-    public bool IsDisposed => backing.IsDisposed;
-    public void BindTo(int unit) => backing.BindTo(unit);
+    public int EstimatedTextureMemory => Backing.EstimatedTextureMemory;
+    public int LevelCount => Backing.LevelCount;
+    public bool IsDisposed => Backing.IsDisposed;
 
-    public void SetFiltering(TextureFiltering filtering) =>
-        backing.SetFiltering(filtering);
-
-    public void SetWrapModeS(WrapMode mode) =>
-        backing.SetWrapModeS(mode);
-
-    public void SetWrapModeT(WrapMode mode) =>
-        backing.SetWrapModeT(mode);
-
-    public virtual void Dispose() => backing.Dispose();
+    public virtual void Dispose() => Backing.Dispose();
 }

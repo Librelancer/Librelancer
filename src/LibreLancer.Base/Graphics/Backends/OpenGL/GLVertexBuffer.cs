@@ -179,22 +179,6 @@ internal class GLVertexBuffer : IVertexBuffer
     {
         if (isDisposed) throw new ObjectDisposedException(nameof(VertexBuffer));
         RenderContext.Instance.Apply ();
-        DrawNoApply(primitiveType, primitiveCount);
-    }
-
-
-    private void EnsureBaseVertex(int baseVertex)
-    {
-        if (GLExtensions.BaseVertex)
-            return;
-        if (baseVertex != _activeBaseVertex)
-        {
-            SetPointers(baseVertex);
-        }
-    }
-
-    public void DrawNoApply(PrimitiveTypes primitiveType, int primitiveCount)
-    {
         EnsureBaseVertex(0);
         GLBind.VertexArray (VAO);
         if (glElements != null) {
@@ -214,6 +198,18 @@ internal class GLVertexBuffer : IVertexBuffer
         }
         ctx.ShaderResourcesUsed();
     }
+
+
+    private void EnsureBaseVertex(int baseVertex)
+    {
+        if (GLExtensions.BaseVertex)
+            return;
+        if (baseVertex != _activeBaseVertex)
+        {
+            SetPointers(baseVertex);
+        }
+    }
+
     public void Draw(PrimitiveTypes primitiveType,int start, int primitiveCount)
     {
         if (isDisposed) throw new ObjectDisposedException(nameof(VertexBuffer));
@@ -283,6 +279,14 @@ internal class GLVertexBuffer : IVertexBuffer
         GL.BindBuffer(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
         glElements?.VertexBuffers.Remove(this);
         glElements = null;
+    }
+
+    ~GLVertexBuffer()
+    {
+        if (!isDisposed)
+        {
+            FLLog.Error("GL", "VERTEX BUFFER LEAK");
+        }
     }
 
     public void Dispose()

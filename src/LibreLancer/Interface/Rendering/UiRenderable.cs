@@ -1,5 +1,6 @@
 using LibreLancer;
 using System.Collections.Generic;
+using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -13,18 +14,17 @@ namespace LibreLancer.Interface
 
         public void AddElement(DisplayElement el) => Elements.Add(el);
         public DisplayElement GetElement(int index) => Elements[index];
-        public void Draw(UiContext context, RectangleF rectangle)
+        public void Draw(UiContext context, DrawList2D drawList, RectangleF rectangle)
         {
-            foreach(var e in Elements) e.Render(context, rectangle);
+            foreach(var e in Elements) e.Render(context, drawList, rectangle);
         }
 
-        public void DrawWithClip(UiContext context, RectangleF rectangle, RectangleF clip)
+        public void DrawWithClip(UiContext context, DrawList2D drawList, RectangleF rectangle, RectangleF clip)
         {
-            var clipRectangle = context.PointsToPixels(clip);
-            if (context.RenderContext.PushScissor(clipRectangle))
+            if (drawList.PushClip(context.PointsToPixels(clip)))
             {
-                Draw(context, rectangle);
-                context.RenderContext.PopScissor();
+                Draw(context, drawList, rectangle);
+                drawList.PopClip();
             }
         }
     }
@@ -32,7 +32,7 @@ namespace LibreLancer.Interface
     public class DisplayElement
     {
         public bool Enabled = true;
-        public virtual void Render(UiContext context, RectangleF clientRectangle)
+        public virtual void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle)
         {
         }
     }

@@ -300,7 +300,9 @@ namespace LancerEdit
         {
             if (_window.Config.BackgroundGradient && bkgG)
             {
-                _window.RenderContext.Renderer2D.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), _window.Config.Background, _window.Config.Background2);
+                var dl = _window.RenderContext.Renderer2D.CreateDrawList();
+                dl.DrawVerticalGradient(new Rectangle(0,0,renderWidth,renderHeight), _window.Config.Background, _window.Config.Background2);
+                dl.Render();
             }
             rstate.DepthEnabled = true;
             rstate.Cull = true;

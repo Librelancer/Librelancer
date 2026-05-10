@@ -324,7 +324,8 @@ namespace LibreLancer.Render
                 _frameStart = false;
             }
 
-            rendat[datindex].Texture.BindTo(0);
+            rs.Textures[0] = rendat[datindex].Texture;
+            rs.Samplers[0] = new SamplerState(rs.PreferredFilterLevel, WrapMode.ClampToEdge, WrapMode.ClampToEdge);
             vboBasic.Draw(PrimitiveTypes.TriangleList, 0, start, count / 3);
             rs.Cull = true;
             lastDatHash = -1;

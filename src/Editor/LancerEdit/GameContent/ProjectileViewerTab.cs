@@ -82,7 +82,9 @@ public class ProjectileViewerTab : GameContentTab
             debugText.AppendLine($"ConstEffect: {constEffect}");
             if (bolt != null) debugText.AppendLine($"Bolt: {bolt.Nickname}");
             if (spear != null) debugText.AppendLine($"Beam: {spear.Nickname}");
-            mw.RenderContext.Renderer2D.DrawString("Arial", 10, debugText.ToString(), Vector2.One, Color4.White);
+            var drawList = mw.RenderContext.Renderer2D.CreateDrawList();
+            drawList.DrawStringBaseline("Arial", 10, debugText.ToString(), Vector2.One, Color4.White);
+            drawList.Render();
         }
     }
 

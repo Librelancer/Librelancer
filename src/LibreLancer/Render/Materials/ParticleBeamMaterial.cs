@@ -22,7 +22,8 @@ public class ParticleBeamMaterial(StorageBuffer buffer) : RenderMaterial(null)
     public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
     {
         var shader = AllShaders.ParticleBeam.Get(0);
-        Parameters[userData].texture.BindTo(0);
+        rstate.Textures[0] = Parameters[userData].texture;
+        rstate.Samplers[0] = new SamplerState(rstate.PreferredFilterLevel, WrapMode.ClampToEdge, WrapMode.ClampToEdge);
         int dk = Parameters[userData].rotate ? 1 : 0;
         shader.SetUniformBlock(3, ref dk);
         rstate.BlendMode = Parameters[userData].blendMode;

@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 using System;
+using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Net;
 using WattleScript.Interpreter;
@@ -55,17 +56,17 @@ namespace LibreLancer.Interface
             Visible = false;
         }
 
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             if (!Visible) return;
             context.SetTextFocus(this);
             var rect = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, rect);
-            DrawText(context, rect);
-            Border?.Draw(context, rect);
+            Background?.Draw(context, drawList, rect);
+            DrawText(context, drawList, rect);
+            Border?.Draw(context, drawList, rect);
         }
 
-        private void DrawText(UiContext context, RectangleF myRect)
+        private void DrawText(UiContext context, DrawList2D drawList, RectangleF myRect)
         {
             var sizeF = context.TextSize(FontSize);
             editBase.LeadingNode  = new RichTextTextNode()
@@ -76,7 +77,7 @@ namespace LibreLancer.Interface
             editBase.FontSize = sizeF;
             editBase.FontShadow = new OptionalColor(Color4.Black);
             editBase.SetRectangle(rect.X + 2, rect.Y + 2, rect.Width - 4, rect.Height - 4);
-            editBase.Draw(context.RenderContext, context.GlobalTime);
+            editBase.Draw(context.RenderContext, drawList, context.GlobalTime);
         }
 
         private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)

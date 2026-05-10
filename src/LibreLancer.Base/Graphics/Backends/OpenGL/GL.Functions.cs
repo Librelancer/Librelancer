@@ -187,7 +187,7 @@ internal static unsafe partial class GL
             return;
         }
 
-        var str = errors.GetValueOrDefault(err, "Unknown Error");
+        var str = errors.GetValueOrDefault(err, "Unkntown Error");
         throw new Exception("GL Error: " + str);
     }
 

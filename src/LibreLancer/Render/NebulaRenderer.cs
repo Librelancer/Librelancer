@@ -20,8 +20,6 @@ namespace LibreLancer.Render
 	{
 		public Nebula Nebula;
         private Random rand;
-        private Game game;
-        private Renderer2D render2D;
         private Billboards billboards;
         private List<ExteriorPuff> Exterior = [];
         private SystemRenderer sysr;
@@ -43,8 +41,6 @@ namespace LibreLancer.Render
 		public NebulaRenderer(Nebula n, Game g, SystemRenderer sysr)
 		{
 			Nebula = n;
-			game = g;
-            render2D = g.RenderContext.Renderer2D;
             billboards = g.GetService<Billboards>()!;
             this.sysr = sysr;
             sprites = new TexturePanelCollection();
@@ -88,12 +84,12 @@ namespace LibreLancer.Render
 			return MathHelper.Clamp(sd / zone.EdgeFraction, 0, 1);
 		}
 
-		public void RenderFogTransition()
+		public void RenderFogTransition(RenderContext ren)
 		{
 			var c = GetFogColor();
 			c.A = CalculateTransition(Nebula.Zone!);
-            render2D.FillRectangle(new Rectangle(0, 0, game.Width, game.Height), c);
-		}
+            ren.TintViewport(c);
+        }
 
         private Color4 GetFogColor()
         {

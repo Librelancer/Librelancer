@@ -22,6 +22,7 @@ public class RenderContext
 {
     public long FrameNumber => frameNumber;
     private long frameNumber = 0;
+    private Shader tintShader;
 
     internal static RenderContext Instance = null!;
 
@@ -64,7 +65,12 @@ public class RenderContext
 
     public int MaxAnisotropy => impl.MaxAnisotropy;
     public int MaxSamples => impl.MaxSamples;
-    public int AnisotropyLevel { get; set; } = 0;
+
+    public int AnisotropyLevel
+    {
+        get => impl.AnisotropyLevel;
+        set => impl.AnisotropyLevel = value;
+    }
 
     public int[]? GetAnisotropyLevels()
     {
@@ -120,21 +126,13 @@ public class RenderContext
     public bool ScissorEnabled
     {
         get => requested.ScissorEnabled;
-        private set
-        {
-            Renderer2D.Flush();
-            requested.ScissorEnabled = value;
-        }
+        private set => requested.ScissorEnabled = value;
     }
 
     public Rectangle ScissorRectangle
     {
         get => requested.ScissorRect;
-        private set
-        {
-            Renderer2D.Flush();
-            requested.ScissorRect = value;
-        }
+        private set => requested.ScissorRect = value;
     }
 
     private RenderTarget? requestedRenderTarget;
@@ -143,7 +141,6 @@ public class RenderContext
         get => requestedRenderTarget;
         set
         {
-            Renderer2D.Flush();
             requestedRenderTarget = value;
             requested.RenderTarget = requestedRenderTarget?.Target;
         }
@@ -155,7 +152,6 @@ public class RenderContext
         get => requestedShader;
         set
         {
-            Renderer2D.Flush();
             requestedShader = value;
             requested.Shader = value?.Backing;
         }
@@ -178,6 +174,9 @@ public class RenderContext
 
     public bool HasFeature(GraphicsFeature feature) => impl.HasFeature(feature);
 
+    public TextureSlots Textures { get; private set; }
+    public SamplerSlots Samplers { get; private set; }
+
     internal RenderContext (IRenderContext impl)
     {
         this.impl = impl;
@@ -185,7 +184,10 @@ public class RenderContext
         PreferredFilterLevel = TextureFiltering.Trilinear;
         impl.Init(ref requested);
         Renderer2D = new Renderer2D(this);
+        Textures = new(this);
+        Samplers = new(this);
         SetIdentityCamera();
+        tintShader = ShaderBundle.FromResource<RenderContext>(this, "FSTint.bin").Get(0);
     }
 
     public Rectangle CurrentViewport => requested.Viewport;
@@ -273,11 +275,8 @@ public class RenderContext
 
     private void SetViewport(Rectangle vp)
     {
-        Renderer2D.Flush();
         requested.Viewport = vp;
     }
-
-    public void Flush() => Renderer2D.Flush();
 
     public Vector2 PolygonOffset
     {
@@ -314,7 +313,6 @@ public class RenderContext
 
     internal void EndFrame()
     {
-        Renderer2D.Flush();
         if (viewports.Count != 1)
         {
             if (!viewportErrorTriggered)
@@ -337,11 +335,28 @@ public class RenderContext
     internal void SetBlendMode(ushort mode) => impl.SetBlendMode(mode);
     internal void Set2DState(bool depth, bool cull) => impl.Set2DState(depth, cull);
 
-    public void Apply()
+    internal void Apply()
     {
-        Renderer2D.Flush();
         ApplyRenderTarget();
         ApplyViewport();
         impl.ApplyState(ref requested);
+    }
+
+    public void TintViewport(Color4 color)
+    {
+        tintShader.SetUniformBlock(3, ref color);
+        ApplyRenderTarget();
+        ApplyViewport();
+        ApplyScissor();
+        impl.Set2DState(false, false);
+        impl.SetBlendMode(Graphics.BlendMode.Normal);
+        impl.ApplyShader(tintShader.Backing);
+        impl.DrawNoVertexBuffer(PrimitiveTypes.TriangleList, 1);
+    }
+
+    public void DrawNoVertexBuffer(PrimitiveTypes type, int primitiveCount)
+    {
+        Apply();
+        impl.DrawNoVertexBuffer(type, primitiveCount);
     }
 }

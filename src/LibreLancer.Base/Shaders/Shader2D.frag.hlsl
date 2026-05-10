@@ -1,5 +1,5 @@
-Texture2D<float4> Texture : register(t7, TEXTURE_SPACE);
-SamplerState Sampler : register(s7, TEXTURE_SPACE);
+Texture2D<float4> Texture : register(t0, TEXTURE_SPACE);
+SamplerState Sampler : register(s0, TEXTURE_SPACE);
 
 struct Input
 {

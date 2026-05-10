@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer;
+using LibreLancer.Graphics;
 
 namespace LibreLancer.Interface
 {
@@ -13,12 +14,12 @@ namespace LibreLancer.Interface
     {
         [UiContent]
         public List<UiWidget> Children { get; set; } = [];
-        public override void Render(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             ProcessAddChildren(context);
             if (!Visible) return;
             foreach(var child in Children)
-                child.Render(context, parentRectangle);
+                child.Render(context, drawList, parentRectangle);
         }
 
         protected void ProcessAddChildren(UiContext context)

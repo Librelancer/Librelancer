@@ -57,7 +57,7 @@ internal class GLMultisampleTarget : GLRenderTarget, IMultisampleTarget
             GL.BindFramebuffer(GL.GL_FRAMEBUFFER, resolveFboID);
             resolveTexID = GL.GenTexture();
             GLBind.Trash();
-            GLBind.BindTextureForModify(GL.GL_TEXTURE_2D, resolveTexID);
+            GLBind.BindTextureForModify(0, GL.GL_TEXTURE_2D, resolveTexID);
             GL.TexImage2D(GL.GL_TEXTURE_2D, 0,
                 GL.GL_RGBA,
                 Width, Height, 0,
@@ -71,7 +71,6 @@ internal class GLMultisampleTarget : GLRenderTarget, IMultisampleTarget
 
     public void BlitToScreen(Point offset)
     {
-        RenderContext.Instance.Renderer2D.Flush();
         RenderContext.Instance.ApplyViewport();
         RenderContext.Instance.ApplyScissor();
         if(!GL.GLES) GL.Disable(GL.GL_MULTISAMPLE);
@@ -115,7 +114,6 @@ internal class GLMultisampleTarget : GLRenderTarget, IMultisampleTarget
 
     public void BlitToRenderTarget(IRenderTarget2D rTarget)
     {
-        RenderContext.Instance.Renderer2D.Flush();
         if (!GL.GLES) GL.Disable(GL.GL_MULTISAMPLE);
         context.PrepareBlit(false);
         //Unbind everything
