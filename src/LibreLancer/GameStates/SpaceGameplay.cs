@@ -199,7 +199,7 @@ World Time: {12:F2}
             _turretViewCamera =
                 new TurretViewCamera(Game.RenderContext.CurrentViewport, Game.GameData.Items.Ini.Cameras)
                 {
-                    CameraOffset = new Vector3(0, 0, session.PlayerShip.ChaseOffset.Length())
+                    CameraOffset = new Vector3(0, 0, 2 * player.Model!.RigidModel.GetRadius())
                 };
 
             _chaseCamera.ChasePosition = session.PlayerPosition;
