@@ -3,7 +3,6 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
@@ -12,9 +11,13 @@ namespace LibreLancer.Data.Schema;
 public class DacomIni
 {
     public MaterialMap? MaterialMap { get; private set; }
+    public bool HasMultiUniverse { get; private set; }
+
     public DacomIni (string dacomPath, FileSystem vfs)
     {
         foreach (Section s in IniFile.ParseFile(dacomPath, vfs, true)) {
+            HasMultiUniverse |= SectionReferencesMultiUniverse(s);
+
             switch (s.Name.ToLowerInvariant ()) {
                 case "materialmap":
                     var map = new MaterialMap ();
@@ -25,6 +28,7 @@ public class DacomIni
                             map.AddRegex (e [0].ToKeyValue ());
                         }
                     }
+                    MaterialMap = map;
                     break;
                 default:
                     break;
@@ -32,4 +36,20 @@ public class DacomIni
 
         }
     }
+
+    private static bool SectionReferencesMultiUniverse(Section section)
+    {
+        foreach (Entry e in section) {
+            if (ContainsMultiUniverse(e.Name))
+                return true;
+            for (var i = 0; i < e.Count; i++) {
+                if (ContainsMultiUniverse(e[i].ToString()))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static bool ContainsMultiUniverse(string value) =>
+        value.Contains("multiuniverse.dll", StringComparison.OrdinalIgnoreCase);
 }
