@@ -14,6 +14,9 @@
       <Content Include="$(MSBuildThisFileDirectory)\..\..\bin\builddeps\*.dll">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <Content Include="$(MSBuildThisFileDirectory)\..\..\bin\builddeps\*.dylib">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="ZstdSharp.Port" Version="0.8.6" />

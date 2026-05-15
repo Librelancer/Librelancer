@@ -190,6 +190,40 @@ namespace BuildLL
                 Console.WriteLine("Pre-built dxc extracted");
                 return;
             }
+            if (rid == "osx-arm64")
+            {
+                if (!File.Exists("obj/dxc.zip"))
+                {
+                    DownloadFile(Config["DXC_OSXARM64"], "obj/dxc.zip");
+                }
+                using (var zip = File.OpenRead("obj/dxc.zip"))
+                {
+                    ZipFile.ExtractToDirectory(zip, "obj/dxc-osx", true);
+                }
+                Directory.CreateDirectory("bin/builddeps/bin");
+                Directory.CreateDirectory("bin/builddeps/lib");
+                CopyDirContents("obj/dxc-osx/MacOS/bin", "bin/builddeps/bin", false, "*");
+                CopyDirContents("obj/dxc-osx/MacOS/lib", "bin/builddeps/lib", false, "*");
+                // .NET ZipFile extracts symlinks as tiny text files containing the link target,
+                // not as the binary itself. Replace each with a copy of its versioned target.
+                foreach (var link in Directory.GetFiles("bin/builddeps/bin"))
+                {
+                    if (Path.GetFileName(link).Contains('-')) continue;
+                    if (new FileInfo(link).Length > 1024) continue;
+                    var target = File.ReadAllText(link).Trim();
+                    var resolved = Path.Combine("bin/builddeps/bin", target);
+                    if (File.Exists(resolved)) File.Copy(resolved, link, true);
+                }
+                foreach (var f in Directory.GetFiles("bin/builddeps/bin"))
+                {
+                    File.SetUnixFileMode(f,
+                        UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute |
+                        UnixFileMode.GroupRead | UnixFileMode.GroupExecute |
+                        UnixFileMode.OtherRead | UnixFileMode.OtherExecute);
+                }
+                Console.WriteLine("Pre-built dxc extracted");
+                return;
+            }
             throw new Exception(
                 $"dxc not available, and platform is {rid}. Please install from source: https://github.com/microsoft/DirectXShaderCompiler");
         }
@@ -251,6 +285,7 @@ namespace BuildLL
                 }
                 CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.so");
                 CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.dll");
+                CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.dylib");
                 if(IsWindows)
                 {
                     CopyDirContents("obj/spirvcross/MinSizeRel", "bin/builddeps", false, "*.dll");
