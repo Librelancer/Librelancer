@@ -360,42 +360,75 @@ public unsafe class AudioManager
         return diff;
     }
 
+    static bool CreateContext(out IntPtr dev, out IntPtr ctx)
+    {
+        ctx = IntPtr.Zero;
+        dev = Alc.alcOpenDevice(null);
+        if (dev == IntPtr.Zero)
+        {
+            FLLog.Warning("Audio", "alcOpenDevice failed.");
+            return false;
+        }
+        ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
+        if (ctx == IntPtr.Zero)
+        {
+            FLLog.Warning("Audio", "alcCreateContext failed.");
+            Alc.alcCloseDevice(dev);
+            dev = IntPtr.Zero;
+            return false;
+        }
+        return true;
+    }
+
+    [UnmanagedCallersOnly]
+    static void LogCallback(IntPtr userptr, byte level, IntPtr message, int length)
+    {
+        var msg = Marshal.PtrToStringUTF8(message, length);
+        FLLog.Info("AL", msg);
+    }
+
     private void AudioThread()
     {
         Platform.RegisterDllMap(typeof(AudioManager).Assembly);
-        //Init context
-        var dev = Alc.alcOpenDevice(null);
+        // Set logging
 
-        int retry = 0;
-        while (dev == IntPtr.Zero &&
-               retry < 3)
+        delegate* unmanaged<void*, void*, void> alsoft_set_log_callback =
+            (delegate* unmanaged<void*, void*, void>)Alc.alcGetProcAddress(IntPtr.Zero, "alsoft_set_log_callback");
+        if (alsoft_set_log_callback != null)
         {
-            FLLog.Info("Audio", $"alcOpenDevice failed. Retry #{retry + 1}.");
-            Thread.Sleep(20);
-            dev = Alc.alcOpenDevice(null);
-            retry++;
+            delegate* unmanaged<IntPtr, byte, IntPtr, int, void> log = &LogCallback;
+            alsoft_set_log_callback(log, null);
         }
 
-        if (dev == IntPtr.Zero && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+
+        //Init context
+        IntPtr dev = IntPtr.Zero, ctx = IntPtr.Zero;
+
+        for (int i = 0; i < 3; i++)
+        {
+            FLLog.Info("Audio", $"Opening audio device ({i + 1}/3)");
+            if (CreateContext(out dev, out ctx))
+                break;
+            Thread.Sleep(20);
+        }
+
+        if (ctx == IntPtr.Zero && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             FLLog.Info("Audio", "Default alcOpenDevice failed, trying forced dsound.");
             Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "dsound");
-            dev = Alc.alcOpenDevice(null);
+            CreateContext(out dev, out ctx);
         }
 
-        if (dev == IntPtr.Zero)
+        if (ctx == IntPtr.Zero)
         {
             FLLog.Info("Audio", "Opening device failed. Opening null backend");
             Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "null");
-            dev = Alc.alcOpenDevice(null);
+            if (!CreateContext(out dev, out ctx))
+            {
+                throw new InvalidOperationException("OpenAL initialization failed.");
+            }
         }
 
-        if (dev == IntPtr.Zero)
-        {
-            throw new InvalidOperationException("OpenAL initialization failed.");
-        }
-
-        var ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
         Alc.alcMakeContextCurrent(ctx);
         alBufferDataStatic =
             (delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void>)Al.alGetProcAddress("alBufferDataStatic");
