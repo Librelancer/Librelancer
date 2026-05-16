@@ -366,6 +366,35 @@ public unsafe class AudioManager
         //Init context
         var dev = Alc.alcOpenDevice(null);
 
+        int retry = 0;
+        while (dev == IntPtr.Zero &&
+               retry < 3)
+        {
+            FLLog.Info("Audio", $"alcOpenDevice failed. Retry #{retry + 1}.");
+            Thread.Sleep(20);
+            dev = Alc.alcOpenDevice(null);
+            retry++;
+        }
+
+        if (dev == IntPtr.Zero && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            FLLog.Info("Audio", "Default alcOpenDevice failed, trying forced dsound.");
+            Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "dsound");
+            dev = Alc.alcOpenDevice(null);
+        }
+
+        if (dev == IntPtr.Zero)
+        {
+            FLLog.Info("Audio", "Opening device failed. Opening null backend");
+            Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "null");
+            dev = Alc.alcOpenDevice(null);
+        }
+
+        if (dev == IntPtr.Zero)
+        {
+            throw new InvalidOperationException("OpenAL initialization failed.");
+        }
+
         var ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
         Alc.alcMakeContextCurrent(ctx);
         alBufferDataStatic =
