@@ -8,7 +8,7 @@ using System.Runtime.InteropServices.Marshalling;
 
 namespace LibreLancer;
 
-internal static unsafe partial class SDL3
+public static unsafe partial class SDL3
 {
     // LibreLancer addition
     public static bool Supported { get; private set; }
@@ -872,7 +872,6 @@ internal static unsafe partial class SDL3
 	public static partial SDLBool SDL_WriteS64BE(IntPtr dst, long value);
     */
 	// /usr/local/include/SDL3/SDL_audio.h
-    /* SDL3_FULL
 	public enum SDL_AudioFormat
 	{
 		SDL_AUDIO_UNKNOWN = 0,
@@ -896,7 +895,7 @@ internal static unsafe partial class SDL3
 		public int channels;
 		public int freq;
 	}
-
+    /*
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial int SDL_GetNumAudioDrivers();
@@ -1054,9 +1053,10 @@ internal static unsafe partial class SDL3
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial SDLBool SDL_SetAudioStreamOutputChannelMap(IntPtr stream, Span<int> chmap, int count);
 
-	[LibraryImport(nativeLibName)]
+	*/[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial SDLBool SDL_PutAudioStreamData(IntPtr stream, IntPtr buf, int len);
+    /*
 
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
@@ -1098,9 +1098,9 @@ internal static unsafe partial class SDL3
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial SDLBool SDL_UnlockAudioStream(IntPtr stream);
 
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	*/[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public delegate void SDL_AudioStreamCallback(IntPtr userdata, IntPtr stream, int additional_amount, int total_amount);
-
+    /*
 	[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial SDLBool SDL_SetAudioStreamGetCallback(IntPtr stream, SDL_AudioStreamCallback callback, IntPtr userdata);
@@ -1113,11 +1113,12 @@ internal static unsafe partial class SDL3
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial void SDL_DestroyAudioStream(IntPtr stream);
 
-	[LibraryImport(nativeLibName)]
+	*/[LibraryImport(nativeLibName)]
 	[UnmanagedCallConv(CallConvs = [typeof(CallConvCdecl)])]
 	public static partial IntPtr SDL_OpenAudioDeviceStream(uint devid, ref SDL_AudioSpec spec, SDL_AudioStreamCallback callback, IntPtr userdata);
 
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    public const uint SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK = 0xFFFFFFFFu;
+	/*[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public delegate void SDL_AudioPostmixCallback(IntPtr userdata, SDL_AudioSpec* spec, float* buffer, int buflen);
 
 	[LibraryImport(nativeLibName)]
