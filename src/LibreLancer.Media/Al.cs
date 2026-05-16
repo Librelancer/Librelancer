@@ -4,80 +4,56 @@
 
 using System;
 using System.Runtime.InteropServices;
-// ReSharper disable MemberHidesStaticFromOuterClass
 namespace LibreLancer.Media;
 
-internal static class Al
+internal static unsafe class Al
 {
-    private const string lib = "soft_oal.dll";
-
-    private class Native
+    public static class Native
     {
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGenSources(int n, out uint sources);
+        public static delegate* unmanaged<int, uint*, void> alGenSources;
+        public static delegate* unmanaged<int, uint*, void> alGenBuffers;
+        public static delegate* unmanaged<int, float*, void> alListenerfv;
+        public static delegate* unmanaged<int, float, void> alListenerf;
+        public static delegate* unmanaged<uint, int, float, void> alSourcef;
+        public static delegate* unmanaged<uint, int, float, float, float, void> alSource3f;
+        public static delegate* unmanaged<uint, int, int, void> alSourcei;
+        public static delegate* unmanaged<uint, int, int*, void> alGetSourcei;
+        public static delegate* unmanaged<uint, int, IntPtr, int, int, void> alBufferData;
+        public static delegate* unmanaged<uint, void> alSourcePlay;
+        public static delegate* unmanaged<int, uint*, void> alSourceStopv;
+        public static delegate* unmanaged<int, uint*, void> alSourcePausev;
+        public static delegate* unmanaged<uint, int, uint*, void> alSourceUnqueueBuffers;
+        public static delegate* unmanaged<uint, int, uint*, void> alSourceQueueBuffers;
+        public static delegate* unmanaged<int> alGetError;
+        public static delegate* unmanaged<int, IntPtr> alGetString;
+        public static delegate* unmanaged<int, uint*, void> alDeleteBuffers;
+        public static delegate* unmanaged<float, void> alDopplerFactor;
+        public static delegate* unmanaged<int, void> alDisable;
+        public static delegate* unmanaged<IntPtr, IntPtr> alGetProcAddress;
 
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGenBuffers(int n, out uint buffers);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGenBuffers(int n, uint[] buffers);
-
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alListenerfv(int param, IntPtr values);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alListenerf(int param, float value);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourcef(uint sid, int param, float value);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSource3f(uint sid, int param, float value1, float value2, float value3);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourcei(uint sid, int param, int value);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alGetSourcei(uint sid, int param, out int value);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alBufferData(uint bid, int format, IntPtr buffer, int size, int freq);
-
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourcePlay(uint sid);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourceStopv(int n, ref uint sids);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourcePausev(int n, ref uint sids);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourceUnqueueBuffers(uint sid, int n, ref uint bids);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alSourceQueueBuffers(uint sid, int r, ref uint bids);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern int alGetError();
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr alGetString(int param);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alDeleteBuffers(int i, ref uint buffers);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alDopplerFactor(float factor);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void alDisable(int name);
-
-        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr alGetProcAddress([MarshalAs(UnmanagedType.LPUTF8Str)]string proc);
-
+        public static void LoadFunctions(IntPtr library)
+        {
+            alGenSources = (delegate* unmanaged<int, uint*, void>)NativeLibrary.GetExport(library, "alGenSources");
+            alGenBuffers = (delegate* unmanaged<int, uint*, void>)NativeLibrary.GetExport(library, "alGenBuffers");
+            alListenerfv = (delegate* unmanaged<int, float*, void>)NativeLibrary.GetExport(library, "alListenerfv");
+            alListenerf = (delegate* unmanaged<int, float, void>)NativeLibrary.GetExport(library, "alListenerf");
+            alSourcef = (delegate* unmanaged<uint, int, float, void>)NativeLibrary.GetExport(library, "alSourcef");
+            alSource3f = (delegate* unmanaged<uint, int, float, float, float, void>)NativeLibrary.GetExport(library, "alSource3f");
+            alSourcei = (delegate* unmanaged<uint, int, int, void>)NativeLibrary.GetExport(library, "alSourcei");
+            alGetSourcei = (delegate* unmanaged<uint, int, int*, void>)NativeLibrary.GetExport(library, "alGetSourcei");
+            alBufferData = (delegate* unmanaged<uint, int, IntPtr, int, int, void>)NativeLibrary.GetExport(library, "alBufferData");
+            alSourcePlay = (delegate* unmanaged<uint, void>)NativeLibrary.GetExport(library, "alSourcePlay");
+            alSourceStopv = (delegate* unmanaged<int, uint*, void>)NativeLibrary.GetExport(library, "alSourceStopv");
+            alSourcePausev = (delegate* unmanaged<int, uint*, void>)NativeLibrary.GetExport(library, "alSourcePausev");
+            alSourceUnqueueBuffers = (delegate* unmanaged<uint, int, uint*, void>)NativeLibrary.GetExport(library, "alSourceUnqueueBuffers");
+            alSourceQueueBuffers = (delegate* unmanaged<uint, int, uint*, void>)NativeLibrary.GetExport(library, "alSourceQueueBuffers");
+            alGetError = (delegate* unmanaged<int>)NativeLibrary.GetExport(library, "alGetError");
+            alGetString = (delegate* unmanaged<int, IntPtr>)NativeLibrary.GetExport(library, "alGetString");
+            alDeleteBuffers = (delegate* unmanaged<int, uint*, void>)NativeLibrary.GetExport(library, "alDeleteBuffers");
+            alDopplerFactor = (delegate* unmanaged <float, void>)NativeLibrary.GetExport(library, "alDopplerFactor");
+            alDisable = (delegate* unmanaged<int, void>)NativeLibrary.GetExport(library, "alDisable");
+            alGetProcAddress = (delegate* unmanaged<IntPtr, IntPtr>)NativeLibrary.GetExport(library, "alGetProcAddress");
+        }
     }
 
 
@@ -119,7 +95,8 @@ internal static class Al
 
     public static IntPtr alGetProcAddress(string procName)
     {
-        return Native.alGetProcAddress(procName);
+        using var n = UnsafeHelpers.StringToNativeUTF8(procName);
+        return Native.alGetProcAddress(n.Handle);
     }
 
     public static void alListenerf(int param, float value)
@@ -161,7 +138,7 @@ internal static class Al
     public static uint GenSource()
     {
         uint s;
-        Native.alGenSources(1, out s);
+        Native.alGenSources(1, &s);
         CheckErrors();
         return s;
     }
@@ -170,7 +147,7 @@ internal static class Al
     public static uint GenBuffer()
     {
         uint b;
-        Native.alGenBuffers(1, out b);
+        Native.alGenBuffers(1, &b);
         CheckErrors();
         return b;
     }
@@ -181,13 +158,13 @@ internal static class Al
         floats[0] = value1;
         floats[1] = value2;
         floats[2] = value3;
-        Native.alListenerfv(param, (IntPtr)floats);
+        Native.alListenerfv(param, floats);
         CheckErrors();
     }
 
     public static void alListenerfv(int param, IntPtr value)
     {
-        Native.alListenerfv(param, value);
+        Native.alListenerfv(param, (float*)value);
         CheckErrors();
     }
 
@@ -219,37 +196,44 @@ internal static class Al
 
     public static void alGetSourcei(uint sid, int param, out int value)
     {
-        Native.alGetSourcei(sid, param, out value);
+        int v;
+        Native.alGetSourcei(sid, param, &v);
+        value = v;
         CheckErrors();
     }
 
     public static void alSourceStopv(int n, ref uint sids)
     {
-        Native.alSourceStopv(n, ref sids);
+        fixed(uint* s =  &sids)
+            Native.alSourceStopv(n, s);
         CheckErrors();
     }
 
     public static void alSourcePausev(int n, ref uint sids)
     {
-        Native.alSourceStopv(n, ref sids);
+        fixed(uint* s =  &sids)
+            Native.alSourceStopv(n, s);
         CheckErrors();
     }
 
     public static void alSourceUnqueueBuffers(uint sid, int n, ref uint bids)
     {
-        Native.alSourceUnqueueBuffers(sid, n, ref bids);
+        fixed(uint* b =  &bids)
+            Native.alSourceUnqueueBuffers(sid, n, b);
         CheckErrors();
     }
 
     public static void alSourceQueueBuffers(uint sid, int r, ref uint bids)
     {
-        Native.alSourceQueueBuffers(sid, r, ref bids);
+        fixed(uint* b = &bids)
+            Native.alSourceQueueBuffers(sid, r, b);
         CheckErrors();
     }
 
     public static void alDeleteBuffers(int i, ref uint buffers)
     {
-        Native.alDeleteBuffers(i, ref buffers);
+        fixed(uint* b = &buffers)
+            Native.alDeleteBuffers(i, b);
         CheckErrors();
     }
 

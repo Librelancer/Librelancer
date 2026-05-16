@@ -360,13 +360,42 @@ public unsafe class AudioManager
         return diff;
     }
 
+    private static IntPtr alsoftDll = IntPtr.Zero;
+
+    private static readonly string libraryName =
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? "soft_oal.dll"
+            : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                ? "/opt/homebrew/opt/openal-soft/lib/libopenal.dylib"
+                : "libopenal.so.1";
+
+    static void LoadALSoft()
+    {
+        // We reload soft_oal.dll so that our overrides can be applied,
+        // and other backends opened.
+        NativeLibrary.Free(alsoftDll);
+        if (!NativeLibrary.TryLoad(libraryName, out alsoftDll))
+            throw new Exception("Unable to load openal-soft");
+        Alc.LoadFunctions(alsoftDll);
+        Al.Native.LoadFunctions(alsoftDll);
+        // Set logging
+        delegate* unmanaged<void*, void*, void> alsoft_set_log_callback =
+            (delegate* unmanaged<void*, void*, void>)Alc.GetProcAddress(IntPtr.Zero, "alsoft_set_log_callback");
+        if (alsoft_set_log_callback != null)
+        {
+            delegate* unmanaged<IntPtr, byte, IntPtr, int, void> log = &LogCallback;
+            alsoft_set_log_callback(log, null);
+        }
+    }
+
     static bool CreateContext(out IntPtr dev, out IntPtr ctx)
     {
         ctx = IntPtr.Zero;
-        dev = Alc.alcOpenDevice(null);
+        dev = Alc.alcOpenDevice(IntPtr.Zero);
         if (dev == IntPtr.Zero)
         {
             FLLog.Warning("Audio", "alcOpenDevice failed.");
+
             return false;
         }
         ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
@@ -390,17 +419,7 @@ public unsafe class AudioManager
     private void AudioThread()
     {
         Platform.RegisterDllMap(typeof(AudioManager).Assembly);
-        // Set logging
-
-        delegate* unmanaged<void*, void*, void> alsoft_set_log_callback =
-            (delegate* unmanaged<void*, void*, void>)Alc.alcGetProcAddress(IntPtr.Zero, "alsoft_set_log_callback");
-        if (alsoft_set_log_callback != null)
-        {
-            delegate* unmanaged<IntPtr, byte, IntPtr, int, void> log = &LogCallback;
-            alsoft_set_log_callback(log, null);
-        }
-
-
+        LoadALSoft();
         //Init context
         IntPtr dev = IntPtr.Zero, ctx = IntPtr.Zero;
 
@@ -416,6 +435,7 @@ public unsafe class AudioManager
         {
             FLLog.Info("Audio", "Default alcOpenDevice failed, trying forced dsound.");
             Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "dsound");
+            LoadALSoft();
             CreateContext(out dev, out ctx);
         }
 
@@ -423,6 +443,7 @@ public unsafe class AudioManager
         {
             FLLog.Info("Audio", "Opening device failed. Opening null backend");
             Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "null");
+            LoadALSoft();
             if (!CreateContext(out dev, out ctx))
             {
                 throw new InvalidOperationException("OpenAL initialization failed.");
@@ -434,12 +455,12 @@ public unsafe class AudioManager
             (delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void>)Al.alGetProcAddress("alBufferDataStatic");
         bool tryRecoverAudio = false;
         int defaultDeviceCounter = 0;
-        var alcReopenDeviceSOFT = (delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool>)Alc.alcGetProcAddress(dev, "alcReopenDeviceSOFT");
+        var alcReopenDeviceSOFT = (delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool>)Alc.GetProcAddress(dev, "alcReopenDeviceSOFT");
         try
         {
             Al.alDisable(Al.AL_STOP_SOURCES_ON_DISCONNECT_SOFT);
-            var alcEventControlSOFT = (delegate* unmanaged<IntPtr, IntPtr, int, int>)Alc.alcGetProcAddress(dev, "alcEventControlSOFT");
-            var alcEventCallbackSOFT = (delegate* unmanaged<IntPtr, IntPtr, void>)Alc.alcGetProcAddress(dev, "alcEventCallbackSOFT");
+            var alcEventControlSOFT = (delegate* unmanaged<IntPtr, IntPtr, int, int>)Alc.GetProcAddress(dev, "alcEventControlSOFT");
+            var alcEventCallbackSOFT = (delegate* unmanaged<IntPtr, IntPtr, void>)Alc.GetProcAddress(dev, "alcEventCallbackSOFT");
             tryRecoverAudio = alcReopenDeviceSOFT != null && alcEventCallbackSOFT != null && alcEventControlSOFT != null;
             if (tryRecoverAudio)
             {
@@ -490,7 +511,7 @@ public unsafe class AudioManager
             var startTime = audioClock.Elapsed.TotalSeconds;
             if (tryRecoverAudio) {
                 int connected = 1;
-                Alc.alcGetIntegerv(dev, Alc.ALC_CONNECTED, 1, ref connected);
+                Alc.alcGetIntegerv(dev, Alc.ALC_CONNECTED, 1, &connected);
                 var devCounter = defaultDeviceChanges;
                 if(devCounter > defaultDeviceCounter)
                 {
