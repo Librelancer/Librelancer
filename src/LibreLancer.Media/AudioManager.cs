@@ -7,10 +7,8 @@ using System.IO;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 
 namespace LibreLancer.Media;
@@ -38,7 +36,7 @@ public unsafe class AudioManager
     {
         UIThread = uithread;
         Music = new(this);
-        audioThread = new Thread(AudioThread) { Name="Audio Thread", IsBackground = true };
+        audioThread = new Thread(AudioThread) { Name = "Audio Thread", IsBackground = true };
         audioThread.Start();
     }
 
@@ -48,8 +46,11 @@ public unsafe class AudioManager
         set
         {
             _masterVolume = value;
-            QueueMessage(new AudioEventMessage() { Type = AudioEvent.SetMasterGain, Data = new Vector3(
-                ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)), 0, 0)});
+            QueueMessage(new AudioEventMessage()
+            {
+                Type = AudioEvent.SetMasterGain, Data = new Vector3(
+                    ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)), 0, 0)
+            });
         }
     }
 
@@ -161,7 +162,9 @@ public unsafe class AudioManager
     private List<SoundInstance> allocatedSounds = new();
     private Vector3 listenerPosition;
     private Queue<uint> freeSources = new Queue<uint>();
-    private delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void> alBufferDataStatic; // pointers are context specific
+
+    private delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void>
+        alBufferDataStatic; // pointers are context specific
 
 
     private void SetAttenuation(uint src, float attenuation, SoundCategory category)
@@ -189,8 +192,8 @@ public unsafe class AudioManager
         else
         {
             // 2D sound
-            Al.alSource3f(src, Al.AL_POSITION, 0,0,0);
-            Al.alSource3f(src, Al.AL_VELOCITY, 0,0,0);
+            Al.alSource3f(src, Al.AL_POSITION, 0, 0, 0);
+            Al.alSource3f(src, Al.AL_VELOCITY, 0, 0, 0);
             Al.alSource3f(src, Al.AL_DIRECTION, 0, 0, 0);
             Al.alSourcef(src, Al.AL_REFERENCE_DISTANCE, 0);
             Al.alSourcef(src, Al.AL_MAX_DISTANCE, 1_000_000_000);
@@ -227,6 +230,7 @@ public unsafe class AudioManager
         {
             alBufferDataStatic(id, data.Format, data.Data!.Handle, data.DataLength, data.Frequency);
         }
+
         return id;
     }
 
@@ -262,12 +266,14 @@ public unsafe class AudioManager
                         idx = i;
                         break;
                     }
+
                     if (allocatedSounds[i].Priority < prio)
                     {
                         idx = i;
                         prio = allocatedSounds[i].Priority;
                     }
                 }
+
                 if (idx != -1)
                 {
                     StopSource(allocatedSounds[idx]);
@@ -318,8 +324,10 @@ public unsafe class AudioManager
     }
 
     private static int defaultDeviceChanges = 0;
+
     [UnmanagedCallersOnly]
-    private static void AlcEventCallback(int eventType, int deviceType, IntPtr device, IntPtr length, IntPtr message, IntPtr userParam)
+    private static void AlcEventCallback(int eventType, int deviceType, IntPtr device, IntPtr length, IntPtr message,
+        IntPtr userParam)
     {
         if (eventType == Alc.ALC_EVENT_TYPE_DEFAULT_DEVICE_CHANGED_SOFT)
         {
@@ -343,6 +351,7 @@ public unsafe class AudioManager
             if (sleepTimes[i] > precision)
                 precision = sleepTimes[i];
         }
+
         sleepPrecision = precision;
     }
 
@@ -369,13 +378,10 @@ public unsafe class AudioManager
                 ? "/opt/homebrew/opt/openal-soft/lib/libopenal.dylib"
                 : "libopenal.so.1";
 
-    static void LoadALSoft()
+    static bool LoadALSoft()
     {
-        // We reload soft_oal.dll so that our overrides can be applied,
-        // and other backends opened.
-        NativeLibrary.Free(alsoftDll);
         if (!NativeLibrary.TryLoad(libraryName, out alsoftDll))
-            throw new Exception("Unable to load openal-soft");
+            return false;
         Alc.LoadFunctions(alsoftDll);
         Al.Native.LoadFunctions(alsoftDll);
         // Set logging
@@ -386,18 +392,20 @@ public unsafe class AudioManager
             delegate* unmanaged<IntPtr, byte, IntPtr, int, void> log = &LogCallback;
             alsoft_set_log_callback(log, null);
         }
+
+        return true;
     }
 
-    static bool CreateContext(out IntPtr dev, out IntPtr ctx)
+    static bool CreateContext(IntPtr devName, out IntPtr dev, out IntPtr ctx)
     {
         ctx = IntPtr.Zero;
-        dev = Alc.alcOpenDevice(IntPtr.Zero);
+        dev = Alc.alcOpenDevice(devName);
         if (dev == IntPtr.Zero)
         {
             FLLog.Warning("Audio", "alcOpenDevice failed.");
-
             return false;
         }
+
         ctx = Alc.alcCreateContext(dev, IntPtr.Zero);
         if (ctx == IntPtr.Zero)
         {
@@ -406,6 +414,7 @@ public unsafe class AudioManager
             dev = IntPtr.Zero;
             return false;
         }
+
         return true;
     }
 
@@ -416,71 +425,109 @@ public unsafe class AudioManager
         FLLog.Info("AL", msg);
     }
 
+    static int ByteStrLen(byte* ptr)
+    {
+        int i = 0;
+        while (*ptr++ != 0)
+        {
+            i++;
+        }
+        return i;
+    }
+
+
     private void AudioThread()
     {
         Platform.RegisterDllMap(typeof(AudioManager).Assembly);
-        LoadALSoft();
-        //Init context
-        IntPtr dev = IntPtr.Zero, ctx = IntPtr.Zero;
 
-        for (int i = 0; i < 3; i++)
-        {
-            FLLog.Info("Audio", $"Opening audio device ({i + 1}/3)");
-            if (CreateContext(out dev, out ctx))
-                break;
-            Thread.Sleep(20);
-        }
-
-        if (ctx == IntPtr.Zero && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            FLLog.Info("Audio", "Default alcOpenDevice failed, trying forced dsound.");
-            Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "dsound");
-            LoadALSoft();
-            CreateContext(out dev, out ctx);
-        }
-
-        if (ctx == IntPtr.Zero)
-        {
-            FLLog.Info("Audio", "Opening device failed. Opening null backend");
-            Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "null");
-            LoadALSoft();
-            if (!CreateContext(out dev, out ctx))
-            {
-                throw new InvalidOperationException("OpenAL initialization failed.");
-            }
-        }
-
-        Alc.alcMakeContextCurrent(ctx);
-        alBufferDataStatic =
-            (delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void>)Al.alGetProcAddress("alBufferDataStatic");
+        bool deviceEnabled = false;
+        bool nonDefaultDevice = false;
         bool tryRecoverAudio = false;
         int defaultDeviceCounter = 0;
-        var alcReopenDeviceSOFT = (delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool>)Alc.GetProcAddress(dev, "alcReopenDeviceSOFT");
-        try
+
+        IntPtr dev = IntPtr.Zero, ctx = IntPtr.Zero;
+
+        if (!Platform.GetHintBoolean("librelancer_audioenabled", true))
         {
-            Al.alDisable(Al.AL_STOP_SOURCES_ON_DISCONNECT_SOFT);
-            var alcEventControlSOFT = (delegate* unmanaged<IntPtr, IntPtr, int, int>)Alc.GetProcAddress(dev, "alcEventControlSOFT");
-            var alcEventCallbackSOFT = (delegate* unmanaged<IntPtr, IntPtr, void>)Alc.GetProcAddress(dev, "alcEventCallbackSOFT");
-            tryRecoverAudio = alcReopenDeviceSOFT != null && alcEventCallbackSOFT != null && alcEventControlSOFT != null;
-            if (tryRecoverAudio)
+            FLLog.Info("Audio", "Audio backend disabled");
+        }
+        else if (LoadALSoft())
+        {
+            FLLog.Info("Audio", "Opening default device");
+            if (!CreateContext(IntPtr.Zero, out dev, out ctx))
             {
-                int ev = Alc.ALC_EVENT_TYPE_DEFAULT_DEVICE_CHANGED_SOFT;
-                alcEventControlSOFT(1, (IntPtr)(&ev), 1);
-                alcEventCallbackSOFT((IntPtr)(delegate* unmanaged<int, int, IntPtr, IntPtr, IntPtr, IntPtr, void>)(&AlcEventCallback), IntPtr.Zero);
+                if (!Alc.alcIsExtensionPresent(IntPtr.Zero, "ALC_ENUMERATE_ALL_EXT"))
+                {
+                    FLLog.Error("Audio", "Unable to open audio device and no enumeration available. Sound disabled.");
+                }
+                else
+                {
+                    FLLog.Info("Audio", "Default device failed, attempting to open first available device");
+                    byte* lst = (byte*)Alc.alcGetString(IntPtr.Zero, Alc.ALC_ALL_DEVICES_SPECIFIER);
+                    while (*lst != 0)
+                    {
+                        if (CreateContext((IntPtr)lst, out dev, out ctx))
+                        {
+                            deviceEnabled = true;
+                            break;
+                        }
+                        lst += ByteStrLen(lst) + 1;
+                    }
+                    if (!deviceEnabled)
+                    {
+                        FLLog.Error("Audio", "Unable to open audio device. Sound disabled.");
+                    }
+                }
+            }
+            else
+            {
+                deviceEnabled = true;
             }
         }
-        // ReSharper disable once EmptyGeneralCatchClause
-        catch
+        else
         {
-        }
-        Al.alDopplerFactor(0.1f);
-        for (int i = 0; i < (MAX_SOURCES - 3); i++)
-        {
-            freeSources.Enqueue(Al.GenSource());
+            FLLog.Error("Audio", "Unable to load OpenAL library. Sound disabled.");
         }
 
-        Music.Init(Al.GenSource(), Al.GenSource(), Al.GenSource());
-        Al.alListenerf(Al.AL_GAIN, ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)));
+        delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool> alcReopenDeviceSOFT = null;
+
+        if (deviceEnabled)
+        {
+            Alc.alcMakeContextCurrent(ctx);
+            alBufferDataStatic =
+                (delegate* unmanaged<uint, int, IntPtr, IntPtr, IntPtr, void>)Al.alGetProcAddress("alBufferDataStatic");
+            Al.alDopplerFactor(0.1f);
+            for (int i = 0; i < (MAX_SOURCES - 3); i++)
+            {
+                freeSources.Enqueue(Al.GenSource());
+            }
+            Al.alListenerf(Al.AL_GAIN, ALUtils.ClampVolume(ALUtils.LinearToAlGain(_masterVolume)));
+            Music.Init(Al.GenSource(), Al.GenSource(), Al.GenSource());
+        }
+
+        if (deviceEnabled && !nonDefaultDevice)
+        {
+            alcReopenDeviceSOFT = (delegate* unmanaged<IntPtr, IntPtr, IntPtr, bool>)Alc.GetProcAddress(dev, "alcReopenDeviceSOFT");
+            try
+            {
+                Al.alDisable(Al.AL_STOP_SOURCES_ON_DISCONNECT_SOFT);
+                var alcEventControlSOFT = (delegate* unmanaged<IntPtr, IntPtr, int, int>)Alc.GetProcAddress(dev, "alcEventControlSOFT");
+                var alcEventCallbackSOFT = (delegate* unmanaged<IntPtr, IntPtr, void>)Alc.GetProcAddress(dev, "alcEventCallbackSOFT");
+                tryRecoverAudio = alcReopenDeviceSOFT != null && alcEventCallbackSOFT != null && alcEventControlSOFT != null;
+                if (tryRecoverAudio)
+                {
+                    int ev = Alc.ALC_EVENT_TYPE_DEFAULT_DEVICE_CHANGED_SOFT;
+                    alcEventControlSOFT(1, (IntPtr)(&ev), 1);
+                    alcEventCallbackSOFT((IntPtr)(delegate* unmanaged<int, int, IntPtr, IntPtr, IntPtr, IntPtr, void>)(&AlcEventCallback), IntPtr.Zero);
+                }
+            }
+            // ReSharper disable once EmptyGeneralCatchClause
+            catch
+            {
+            }
+        }
+
+
         audioClock = Stopwatch.StartNew();
         FLLog.Debug("Audio", "Audio initialised");
 
@@ -532,7 +579,7 @@ public unsafe class AudioManager
                     case AudioEvent.Play:
                     {
                         message.Instance.Looping = message.Data.Y > 0;
-                        if (InRange(message.Instance))
+                        if (InRange(message.Instance) && deviceEnabled)
                         {
                             StartSource(message.Instance, message.Data.X, message.Instance.Looping);
                         }
@@ -577,7 +624,7 @@ public unsafe class AudioManager
                         message.Instance.SetProperties.Velocity = message.Data;
                         break;
                     case AudioEvent.SetDirection:
-                        if (message.Instance.Source != -1)
+                        if (message.Instance.Source != -1 && deviceEnabled)
                         {
                             Al.alSource3f((uint)message.Instance.Source,
                                 Al.AL_VELOCITY, message.Data.X, message.Data.Y, message.Data.Z);
@@ -625,14 +672,17 @@ public unsafe class AudioManager
                         message.Instance.SetProperties.MaxDistance = Math.Max(0.001f, message.Data.Y);
                         break;
                     case AudioEvent.SetListenerPosition:
-                        Al.alListener3f(Al.AL_POSITION, message.Data.X,  message.Data.Y,  message.Data.Z);
+                        if(deviceEnabled)
+                            Al.alListener3f(Al.AL_POSITION, message.Data.X,  message.Data.Y,  message.Data.Z);
                         listenerPosition = message.Data;
                         break;
                     case AudioEvent.SetListenerVelocity:
-                        Al.alListener3f(Al.AL_POSITION, message.Data.X,  message.Data.Y,  message.Data.Z);
+                        if(deviceEnabled)
+                            Al.alListener3f(Al.AL_POSITION, message.Data.X,  message.Data.Y,  message.Data.Z);
                         break;
                     case AudioEvent.SetListenerOrientation:
-                        AlSetListenerOrientation(message.Data, message.Data2);
+                        if(deviceEnabled)
+                            AlSetListenerOrientation(message.Data, message.Data2);
                         break;
 
                     case AudioEvent.StopAll:
@@ -645,7 +695,8 @@ public unsafe class AudioManager
                         playingSounds.Clear();
                         break;
                     case AudioEvent.SetMasterGain:
-                        Al.alListenerf(Al.AL_GAIN, message.Data.X);
+                        if(deviceEnabled)
+                            Al.alListenerf(Al.AL_GAIN, message.Data.X);
                         break;
                     case AudioEvent.SetCategoryGain:
                         gains[(int)message.Data.Y] = message.Data.X;
@@ -704,7 +755,7 @@ public unsafe class AudioManager
                         playingSounds.RemoveAt(i);
                         i--;
                     }
-                    else if (InRange(snd))
+                    else if (InRange(snd) && deviceEnabled)
                     {
                         StartSource(snd, (float)(elapsed % snd.Data.Duration), snd.Looping);
                     }
@@ -719,8 +770,12 @@ public unsafe class AudioManager
         FLLog.Debug("Audio", "Quit music");
         Music.StopInternal(0);
         //Delete context
-        Alc.alcMakeContextCurrent(IntPtr.Zero);
-        Alc.alcDestroyContext(ctx);
-        Alc.alcCloseDevice(dev);
+        if (deviceEnabled)
+        {
+            Alc.alcMakeContextCurrent(IntPtr.Zero);
+            Alc.alcDestroyContext(ctx);
+            Alc.alcCloseDevice(dev);
+        }
+
     }
 }

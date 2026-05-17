@@ -45,9 +45,9 @@ public static class Platform
 
     private static readonly Dictionary<string, string> hintValues = new(StringComparer.OrdinalIgnoreCase);
 
-    internal static string GetHintString(string hint, string def) => hintValues.GetValueOrDefault(hint, def);
+    public static string GetHintString(string hint, string def) => hintValues.GetValueOrDefault(hint, def);
 
-    internal static bool GetHintBoolean(string hint, bool def)
+    public static bool GetHintBoolean(string hint, bool def)
     {
         if (hintValues.TryGetValue(hint, out var v))
         {

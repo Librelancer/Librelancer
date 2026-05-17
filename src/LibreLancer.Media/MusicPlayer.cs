@@ -28,6 +28,7 @@ public class MusicPlayer
     private uint[] sources = [];
 
     private int sourceIdx = 0;
+    private bool inited = false;
 
     private uint GetSource()
     {
@@ -47,6 +48,7 @@ public class MusicPlayer
 
     internal void Init(params uint[] sources)
     {
+        inited = true;
         this.sources = sources;
         for (int i = 0; i < 24; i++)
         {
@@ -64,6 +66,8 @@ public class MusicPlayer
 
     internal void Update(double elapsed)
     {
+        if (!inited)
+            return;
         if (oldSound != null)
         {
             if (oldSound.Update())
@@ -102,6 +106,8 @@ public class MusicPlayer
 
     internal void StopInternal(float fadeOut)
     {
+        if (!inited)
+            return;
         oldSound?.Dispose();
         oldSound = null;
         if (sound != null)
@@ -136,6 +142,8 @@ public class MusicPlayer
 
     internal void PlayInternal(Stream stream, float crossFade, float attenuation, bool loop)
     {
+        if (!inited)
+            return;
         if (oldSound != null)
         {
             oldSound.Dispose();
