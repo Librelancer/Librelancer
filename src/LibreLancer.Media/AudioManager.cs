@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
@@ -372,6 +371,9 @@ public unsafe class AudioManager
 
     static void LoadALSoft()
     {
+        // We reload soft_oal.dll so that our overrides can be applied,
+        // and other backends opened.
+        NativeLibrary.Free(alsoftDll);
         if (!NativeLibrary.TryLoad(libraryName, out alsoftDll))
             throw new Exception("Unable to load openal-soft");
         Alc.LoadFunctions(alsoftDll);
@@ -384,57 +386,6 @@ public unsafe class AudioManager
             delegate* unmanaged<IntPtr, byte, IntPtr, int, void> log = &LogCallback;
             alsoft_set_log_callback(log, null);
         }
-    }
-
-    static void NullCallback(IntPtr userdata, IntPtr stream, int additional_amount, int total_amount)
-    {
-        // should never be called as device is started paused
-        var bytes = Marshal.AllocHGlobal(additional_amount);
-        Unsafe.InitBlock((void*)bytes, 0, (uint)additional_amount);
-        SDL3.SDL_PutAudioStreamData(stream, bytes, total_amount);
-        Marshal.FreeHGlobal(bytes);
-    }
-
-    static void CheckWASAPIBroken()
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            try
-            {
-                if (!SDL3.Supported)
-                {
-                    FLLog.Info("Audio", "Unable to run WASAPI check");
-                    return;
-                }
-                SDL3.SDL_SetHint(SDL3.SDL_HINT_AUDIO_DRIVER, "wasapi");
-                SDL3.SDL_InitSubSystem(SDL3.SDL_InitFlags.SDL_INIT_AUDIO);
-                SDL3.SDL_AudioSpec spec = new()
-                {
-                    channels = 1,
-                    format = SDL3.SDL_AudioFormat.SDL_AUDIO_F32,
-                    freq = 48000
-                };
-                var cb = (SDL3.SDL_AudioStreamCallback)NullCallback;
-                var strm = SDL3.SDL_OpenAudioDeviceStream(SDL3.SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
-                    ref spec, cb, IntPtr.Zero);
-                if (strm == IntPtr.Zero)
-                {
-                    FLLog.Info("Audio", "WASAPI broken. Forcing dsound");
-                    Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "dsound");
-                }
-                else
-                {
-                    FLLog.Info("Audio", "WASAPI available");
-                }
-                SDL3.SDL_QuitSubSystem(SDL3.SDL_InitFlags.SDL_INIT_AUDIO);
-                GC.KeepAlive(cb);
-            }
-            catch
-            {
-                FLLog.Info("Audio", "Unable to run WASAPI check");
-            }
-        }
-
     }
 
     static bool CreateContext(out IntPtr dev, out IntPtr ctx)
@@ -468,13 +419,35 @@ public unsafe class AudioManager
     private void AudioThread()
     {
         Platform.RegisterDllMap(typeof(AudioManager).Assembly);
-        CheckWASAPIBroken();
         LoadALSoft();
         //Init context
         IntPtr dev = IntPtr.Zero, ctx = IntPtr.Zero;
-        if (!CreateContext(out dev, out ctx))
+
+        for (int i = 0; i < 3; i++)
         {
-            throw new Exception("OpenAL initialization failed.");
+            FLLog.Info("Audio", $"Opening audio device ({i + 1}/3)");
+            if (CreateContext(out dev, out ctx))
+                break;
+            Thread.Sleep(20);
+        }
+
+        if (ctx == IntPtr.Zero && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            FLLog.Info("Audio", "Default alcOpenDevice failed, trying forced dsound.");
+            Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "dsound");
+            LoadALSoft();
+            CreateContext(out dev, out ctx);
+        }
+
+        if (ctx == IntPtr.Zero)
+        {
+            FLLog.Info("Audio", "Opening device failed. Opening null backend");
+            Environment.SetEnvironmentVariable("ALSOFT_DRIVERS", "null");
+            LoadALSoft();
+            if (!CreateContext(out dev, out ctx))
+            {
+                throw new InvalidOperationException("OpenAL initialization failed.");
+            }
         }
 
         Alc.alcMakeContextCurrent(ctx);
