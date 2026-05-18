@@ -1,0 +1,10 @@
+Platform variables
+- librelancer_no_sdl3 (default = 0). Disables sdl3 when set to 1
+- librelancer_renderer. Forces GL ES 3.1 when set to "gles"
+
+Audio variables:
+- librelancer_audioenabled (default = 1). Enables audio when set to 1
+
+GL debugging variables:
+- librelancer_nossbo (default = 0). Disables Shader Storage Buffer Objects when set to 1
+- librelancer_fencedubo (default = 1). Enables GL_ARB_sync for Uniform Buffer Objects when set to 1
