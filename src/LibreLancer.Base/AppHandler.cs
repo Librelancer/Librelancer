@@ -79,10 +79,6 @@ public static class AppHandler
     public static void Run(Action action, Action? onCrash = null)
     {
         var errorMessage = $"{ProjectName} has crashed. See the log for more information.";
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ALSOFT_LOGLEVEL")))
-        {
-            Environment.SetEnvironmentVariable("ALSOFT_LOGLEVEL", "2");
-        }
 
         if (Platform.RunningOS == OS.Windows)
         {
@@ -119,12 +115,6 @@ public static class AppHandler
 
             spewSuffix = $".{fileCounter++}.txt";
         } while (true);
-
-        var openalPath = Path.Combine(spewFolder, spewBase + ".allog" + spewSuffix);
-        if (string.IsNullOrWhiteSpace("ALSOFT_LOGFILE"))
-        {
-            Environment.SetEnvironmentVariable("ALSOFT_LOGFILE", openalPath);
-        }
 
         if (spewPath != null && FLLog.CreateSpewFile(spewPath))
         {

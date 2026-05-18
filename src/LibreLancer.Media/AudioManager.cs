@@ -469,6 +469,7 @@ public unsafe class AudioManager
                         if (CreateContext((IntPtr)lst, out dev, out ctx))
                         {
                             deviceEnabled = true;
+                            nonDefaultDevice = true;
                             break;
                         }
                         lst += ByteStrLen(lst) + 1;
