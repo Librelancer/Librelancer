@@ -14,7 +14,6 @@ namespace LibreLancer.Data.Schema.Universe;
 [ParsedIni]
 public partial class StarSystem : UniverseElement
 {
-    public bool MultiUniverse { get; private set; }
 
     [Entry("pos")]
     public Vector2? Pos;
@@ -62,12 +61,6 @@ public partial class StarSystem : UniverseElement
     [OnParseDependent]
     private void ParseDependent(IniStringPool stringPool, IniParseProperties properties)
     {
-        if (string.IsNullOrWhiteSpace(File))
-        {
-            FLLog.Warning("Ini", "Unimplemented: Possible MultiUniverse system " + Nickname);
-            MultiUniverse = true;
-            return;
-        }
         if (properties["vfs"] is not FileSystem vfs) return;
         if (properties["universePath"] is not string universePath) return;
         ParseIni(universePath + File, vfs, stringPool, properties);
