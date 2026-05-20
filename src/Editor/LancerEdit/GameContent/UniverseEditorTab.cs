@@ -54,15 +54,7 @@ public class UniverseEditorTab : GameContentTab
             universeBackgroundRegistered = ImGuiHelper.RegisterTexture(universeBackgroundTex);
         else
             universeBackgroundRegistered = null;
-        //if multiuniverse ini is not null, then its a multiuniverse mod.
-        if (gameData.GameData.Items.Ini.MultiUniverse?.TryGetBackgroundUv(
-                "galaxy",
-                out var backgroundUvMin,
-                out var backgroundUvMax) == true)
-        {
-            universeBackgroundUvMin = backgroundUvMin;
-            universeBackgroundUvMax = backgroundUvMax;
-        }
+
         popups = new PopupManager();
         map = new UniverseMap();
         map.OnChange += CalculateDirty;

@@ -52,7 +52,6 @@ public class FreelancerData
     public BodypartsIni Bodyparts = null!;
     public CostumesIni Costumes = null!;
     public UniverseIni? Universe;
-    public MultiUniverseIni? MultiUniverse;
     public ShiparchIni? Ships;
     public AudioIni Audio = null!;
     public GoodsIni? Goods;
@@ -135,13 +134,6 @@ public class FreelancerData
         var stringPool = new IniStringPool();
 
         Infocards = new InfocardManager(Freelancer.Resources);
-
-        if (Dacom?.HasMultiUniverse == true)
-        {
-            var multiUniversePath = Freelancer.DataPath + "UNIVERSE\\multiuniverse.ini";
-            if (VFS.FileExists(multiUniversePath))
-                MultiUniverse = new MultiUniverseIni(multiUniversePath, VFS, stringPool);
-        }
 
         List<Action> tasks = [];
 

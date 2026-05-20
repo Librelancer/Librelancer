@@ -14,6 +14,17 @@ namespace LancerEdit.GameContent
 {
     public class UniverseMap
     {
+        public static readonly VertexDiffuse Background = (VertexDiffuse)(new Color4(0.03f, 0.04f, 0.05f, 1f));
+        public static readonly VertexDiffuse LegalConnection = (VertexDiffuse)(new Color4(0.25f, 0.50f, 0.80f, 1f));
+        public static readonly VertexDiffuse IllegalConnection = (VertexDiffuse)(new Color4(0.42f, 0.45f, 0.50f, 1f));
+        public static readonly VertexDiffuse Label = (VertexDiffuse)(new Color4(0.86f, 0.90f, 0.95f, 0.74f));
+        public static readonly VertexDiffuse LabelHighlighted = (VertexDiffuse)(new Color4(0.86f, 0.90f, 0.95f, 1f));
+        public static readonly VertexDiffuse EditGrid = (VertexDiffuse)Color4.Gray;
+        public static readonly VertexDiffuse EditableNodeHovered = (VertexDiffuse)(new Color4(0.85f, 0.88f, 0.92f, 1f));
+        public static readonly VertexDiffuse EditableNode = (VertexDiffuse)(new Color4(0.72f, 0.75f, 0.80f, 1f));
+        public static readonly VertexDiffuse HighlightedNode = (VertexDiffuse)(new Color4(1f, 0.78f, 0.25f, 1f));
+        public static readonly VertexDiffuse Node = (VertexDiffuse)(new Color4(0.82f, 0.86f, 0.91f, 0.95f));
+
         private EditorSystem dragTarget = null;
         private Vector2 dragOgPos = Vector2.Zero;
         private Vector2 viewPan = Vector2.Zero; //for when a 2d map needs zooming
@@ -101,7 +112,7 @@ namespace LancerEdit.GameContent
             if (options.Background != null)
                 drawList.AddImage(options.Background.Value, topLeft, bottomRight, options.BackgroundUvMin, options.BackgroundUvMax);
             else
-                drawList.AddRectFilled(topLeft, bottomRight, ImGui.GetColorU32(new Vector4(0.03f, 0.04f, 0.05f, 1f)));
+                drawList.AddRectFilled(topLeft, bottomRight, Background);
             drawList.AddRect(topLeft, bottomRight, ImGui.GetColorU32(ImGuiCol.Border));
 
             if (hovered && options.EnablePanZoom)
@@ -139,8 +150,8 @@ namespace LancerEdit.GameContent
                     continue;
 
                 var col = connection.Legal
-                    ? ImGui.GetColorU32(new Vector4(0.25f, 0.50f, 0.80f, 1f))
-                    : ImGui.GetColorU32(new Vector4(0.42f, 0.45f, 0.50f, 1f));
+                    ? LegalConnection
+                    : IllegalConnection;
                 drawList.AddLine(ToScreen(connection.Source), ToScreen(connection.Target), col,
                     options.ConnectionThickness * ImGuiHelper.Scale);
             }
@@ -167,10 +178,11 @@ namespace LancerEdit.GameContent
                 if (options.ShowLabels)
                 {
                     var label = options.Label?.Invoke(system) ?? DefaultSystemLabel(gameData, system);
+                    var labelColor = highlighted?.Contains(system.System.Nickname) == true
+                        ? LabelHighlighted
+                        : Label;
                     drawList.AddText(point + new Vector2(6 * ImGuiHelper.Scale, -11 * ImGuiHelper.Scale),
-                        ImGui.GetColorU32(new Vector4(0.86f, 0.90f, 0.95f,
-                            highlighted?.Contains(system.System.Nickname) == true ? 1f : 0.74f)),
-                        label);
+                        labelColor, label);
                 }
 
                 if (isHoveredSystem)
@@ -222,22 +234,21 @@ namespace LancerEdit.GameContent
 
         private static void DrawEditGrid(ImDrawListPtr drawList, Vector2 topLeft, Vector2 size, float margin)
         {
-            var gridCol = (VertexDiffuse)Color4.Gray;
             var connectMin = topLeft + size * margin;
             var connectMax = topLeft + size - size * margin;
             var gridSize = size - (size * margin * 2);
             var factor = gridSize / 16f;
 
-            drawList.AddRect(connectMin, connectMax, (VertexDiffuse)Color4.Gray);
+            drawList.AddRect(connectMin, connectMax, EditGrid);
             for (int x = 1; x < 16; x++)
             {
                 drawList.AddLine(connectMin + new Vector2(x, 0) * factor,
-                    connectMin + new Vector2(x, 0) * factor + new Vector2(0, gridSize.Y), gridCol);
+                    connectMin + new Vector2(x, 0) * factor + new Vector2(0, gridSize.Y), EditGrid);
             }
             for (int y = 1; y < 16; y++)
             {
                 drawList.AddLine(connectMin + new Vector2(0, y) * factor,
-                    connectMin + new Vector2(0, y) * factor + new Vector2(gridSize.X, 0), gridCol);
+                    connectMin + new Vector2(0, y) * factor + new Vector2(gridSize.X, 0), EditGrid);
             }
         }
 
@@ -255,8 +266,8 @@ namespace LancerEdit.GameContent
                 var min = point - new Vector2(size * 0.5f);
                 var max = point + new Vector2(size * 0.5f);
                 var color = hovered
-                    ? ImGui.GetColorU32(new Vector4(0.85f, 0.88f, 0.92f, 1f))
-                    : ImGui.GetColorU32(new Vector4(0.72f, 0.75f, 0.80f, 1f));
+                    ? EditableNodeHovered
+                    : EditableNode;
                 drawList.AddRectFilled(min, max, color);
                 return;
             }
@@ -264,8 +275,8 @@ namespace LancerEdit.GameContent
             var isHighlighted = highlighted?.Contains(system.System.Nickname) == true;
             var radius = (isHighlighted ? 5.5f : 4.0f) * ImGuiHelper.Scale;
             var nodeColor = isHighlighted
-                ? ImGui.GetColorU32(new Vector4(1f, 0.78f, 0.25f, 1f))
-                : ImGui.GetColorU32(new Vector4(0.82f, 0.86f, 0.91f, 0.95f));
+                ? HighlightedNode
+                : Node;
             drawList.AddCircleFilled(point, radius, nodeColor, 16);
         }
 
