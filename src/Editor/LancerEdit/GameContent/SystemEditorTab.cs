@@ -797,6 +797,11 @@ public class SystemEditorTab : GameContentTab
         var pos = sel.LocalTransform.Position;
         var rot = sel.LocalTransform.GetEulerDegrees();
         var buttonClicks = Controls.EditAndCopyButtonRow("Position", $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}", true);
+        if (buttonClicks.copyButtonClicked)
+        {
+            win.SetClipboardText($"{pos.X.ToStringInvariant()}, {pos.Y.ToStringInvariant()}, {pos.Z.ToStringInvariant()}");
+        }
+
         if (buttonClicks.editButtonClicked)
         {
             var oldTr = sel.LocalTransform;
