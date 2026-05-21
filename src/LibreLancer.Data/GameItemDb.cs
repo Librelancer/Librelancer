@@ -1289,11 +1289,6 @@ public class GameItemDb
 
         foreach (var inisys in flData.Universe.Systems)
         {
-            if (inisys.MultiUniverse)
-            {
-                continue; //Skip multiuniverse for now
-            }
-
             FLLog.Info("System", inisys.Nickname);
             var sys = new StarSystem
             {
