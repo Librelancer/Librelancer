@@ -190,8 +190,32 @@ namespace BuildLL
                 Console.WriteLine("Pre-built dxc extracted");
                 return;
             }
-            throw new Exception(
-                $"dxc not available, and platform is {rid}. Please install from source: https://github.com/microsoft/DirectXShaderCompiler");
+
+            if(!File.Exists("obj/dxc-source/CMakeLists.txt"))
+            {
+                string gitArgs = $"clone {Quote(Config["DXC_SOURCE"])} {Quote(Path.GetFullPath("obj/dxc-source"))}";
+                string checkoutArgs = $"checkout {Config["DXC_COMMIT"]}";
+                RunCommand("git", gitArgs);
+                RunCommand("git", checkoutArgs, "obj/dxc-source");
+                RunCommand("git", "submodule update --init --recursive", "obj/dxc-source");
+                Console.WriteLine("dxc source cloned");
+            }
+
+            var srcDir = Path.GetFullPath("obj/dxc-source");
+            Directory.CreateDirectory("obj/dxc-build");
+            CMake.Run(srcDir, new CMakeSettings()
+            {
+                OutputPath = "obj/dxc-build",
+                Generator = "Unix Makefiles",
+                Options = [ "-DSPIRV_WERROR=OFF" ],
+                Cache = Path.Combine(srcDir, "cmake/caches/PredefinedParams.cmake"),
+                BuildType = "Release"
+            });
+            string pl = "";
+            if (parallel > 0) pl = "-j" + parallel;
+            RunCommand("make", pl, "obj/dxc-build");
+            Directory.CreateDirectory("bin/builddeps/bin");
+            File.CreateSymbolicLink(Path.GetFullPath("bin/builddeps/bin/dxc"), Path.GetFullPath("obj/dxc-build/bin/dxc"));
         }
 
         private static string VersionString;
@@ -242,6 +266,7 @@ namespace BuildLL
                     CMake.Run("extern/SPIRV-Cross", new CMakeSettings()
                     {
                         OutputPath = "obj/spirvcross",
+                        Generator = "Unix Makefiles",
                         BuildType = "MinSizeRel",
                         Options = new[] { "-DSPIRV_CROSS_SHARED=ON", "-DSPIRV_CROSS_STATIC=OFF", "-DSPIRV_CROSS_CLI=OFF", "-DSPIRV_CROSS_ENABLE_TESTS=OFF"}
                     });
@@ -338,6 +363,7 @@ namespace BuildLL
                     CMake.Run(".", new CMakeSettings()
                     {
                         OutputPath = "obj",
+                        Generator = "Unix Makefiles",
                         Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix },
                         BuildType = config
                     });

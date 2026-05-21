@@ -23,6 +23,10 @@ namespace BuildLL
             {
                 argBuilder.Append(" -G ").AppendQuoted(settings.Generator);
             }
+            if(settings?.Cache != null)
+            {
+                argBuilder.Append(" -C ").AppendQuoted(settings.Cache);
+            }
             if (settings?.Options != null)
             {
                 foreach (var o in settings.Options)
@@ -49,6 +53,7 @@ namespace BuildLL
     {
         public string OutputPath { get; set; }
         public string Generator { get; set; }
+        public string Cache { get; set; }
         public string Platform { get; set; }
         public string[] Options { get; set; }
         public string BuildType { get; set; }
