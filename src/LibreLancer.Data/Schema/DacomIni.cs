@@ -3,7 +3,6 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.IO;
 
@@ -12,9 +11,11 @@ namespace LibreLancer.Data.Schema;
 public class DacomIni
 {
     public MaterialMap? MaterialMap { get; private set; }
+
     public DacomIni (string dacomPath, FileSystem vfs)
     {
         foreach (Section s in IniFile.ParseFile(dacomPath, vfs, true)) {
+
             switch (s.Name.ToLowerInvariant ()) {
                 case "materialmap":
                     var map = new MaterialMap ();
@@ -25,6 +26,7 @@ public class DacomIni
                             map.AddRegex (e [0].ToKeyValue ());
                         }
                     }
+                    MaterialMap = map;
                     break;
                 default:
                     break;
@@ -32,4 +34,5 @@ public class DacomIni
 
         }
     }
+
 }
