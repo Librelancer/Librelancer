@@ -15,5 +15,22 @@ public partial class MarketsIni
     [Section("basegood")]
     public List<BaseGood> BaseGoods = [];
 
-    public void AddMarketsIni(string filename, FileSystem vfs, IniStringPool? stringPool = null) => ParseIni(filename, vfs, stringPool);
+    public void AddMarketsIni(string filename, FileSystem vfs, IniStringPool? stringPool = null)
+    {
+        foreach (var section in IniFile.ParseFile(filename, vfs, true, stringPool))
+        {
+            if (section.Name.Equals("BaseGood", StringComparison.OrdinalIgnoreCase))
+            {
+                if (BaseGood.TryParse(section, out var good, stringPool))
+                {
+                    good.SourceFile = filename;
+                    BaseGoods.Add(good);
+                }
+            }
+            else
+            {
+                IniDiagnostic.UnknownSection(section);
+            }
+        }
+    }
 }
