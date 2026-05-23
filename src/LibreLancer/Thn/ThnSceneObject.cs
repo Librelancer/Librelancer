@@ -99,34 +99,50 @@ public class ThnSceneObject
         var self = GetTransform();
         Translate = self.Position;
         Rotate = self.Orientation;
-        UpdateEngineObjects();
+        var appliedRootMotion = ApplySkeletonRootMotion();
+        UpdateEngineObjects(appliedRootMotion);
     }
 
-
-    void UpdateEngineObjects()
+    public void FinishAnimation(string animationName)
     {
-        if (!PosFromObject && Object != null)
+        Object?.AnimationComponent?.FinishAnimation(animationName);
+        if (ApplySkeletonRootMotion())
+        {
+            UpdateEngineObjects(true);
+            ((CharacterRenderer) Object!.RenderComponent!).Skeleton.ClearRootMotion();
+        }
+    }
+
+    bool ApplySkeletonRootMotion()
+    {
+        if (Object?.RenderComponent is not CharacterRenderer charRen ||
+            !charRen.Skeleton.ApplyRootMotion)
+        {
+            return false;
+        }
+
+        var accum = Rotate * charRen.Skeleton.RootRotation;
+        var movement = Quaternion.Inverse(charRen.Skeleton.RootRotationAccumulator) * accum;
+        Translate += Vector3.Transform(charRen.Skeleton.RootTranslation, movement);
+        Rotate = accum;
+        return true;
+    }
+
+    void UpdateEngineObjects(bool updatePosFromObject = false)
+    {
+        if ((!PosFromObject || updatePosFromObject) && Object != null)
         {
             if (Object.RenderComponent is CharacterRenderer charRen)
-            {
-                if (charRen.Skeleton.ApplyRootMotion)
-                {
-                    var accum = Rotate * charRen.Skeleton.RootRotation;
-                    var movement = Quaternion.Inverse(charRen.Skeleton.RootRotationAccumulator) * accum;
-                    Translate += Vector3.Transform(charRen.Skeleton.RootTranslation, movement);
-                    Rotate = accum;
-                }
-
                 Translate.Y = charRen.Skeleton.FloorHeight + charRen.Skeleton.RootHeight;
-            }
 
+            var transform = new Transform3D(Translate, Rotate);
             if (HpMount == null)
             {
-                Object.SetLocalTransform(new Transform3D(Translate, Rotate));
+                Object.SetLocalTransform(ToObjectLocalTransform(transform));
             }
             else
             {
-                Object.SetLocalTransform(HpMount.Transform.Inverse() * new Transform3D(Translate, Rotate));
+                Object.SetLocalTransform(ToObjectLocalTransform(HpMount.Transform.Inverse() * transform));
             }
         }
 
@@ -135,6 +151,13 @@ public class ThnSceneObject
             Light.Light.Position = Translate;
             Light.Light.Direction = Vector3.Transform(LightDir.Normalized(), Rotate);
         }
+    }
+
+    Transform3D ToObjectLocalTransform(Transform3D transform)
+    {
+        if (PosFromObject && Object?.Parent != null)
+            return transform * Object.Parent.WorldTransform.Inverse();
+        return transform;
     }
 }
 

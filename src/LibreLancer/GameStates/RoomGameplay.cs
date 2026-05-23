@@ -588,7 +588,7 @@ namespace LibreLancer
                             break;
                         case ScriptState.Cutscene:
                         case ScriptState.Enter:
-                            SceneOnScriptFinished(waitingForFinish!);
+                            SkipCurrentSceneScript();
                             break;
                     }
                 }
@@ -604,6 +604,18 @@ namespace LibreLancer
         private void Game_TextInput(string text)
         {
             ui.OnTextEntry(text);
+        }
+
+        private void SkipCurrentSceneScript()
+        {
+            if (waitingForFinish == null)
+            {
+                return;
+            }
+            if (scene?.FinishScript(waitingForFinish) != true)
+            {
+                SceneOnScriptFinished(waitingForFinish);
+            }
         }
 
         private void CreatePlayerEquipment()
@@ -702,7 +714,7 @@ namespace LibreLancer
             }
             else if (!string.IsNullOrEmpty(currentRoom.StartScript?.DataPath))
             {
-                RoomDoSceneScript(currentRoom.StartScript.LoadScript(), ScriptState.Enter);
+                RoomDoSceneScript(currentRoom.StartScript.LoadScript(), ScriptState.Enter, true);
             }
             else
             {
@@ -878,14 +890,19 @@ namespace LibreLancer
                 return;
             }
 
+            playerShip.Parent?.Children.Remove(playerShip);
             playerShip.SetLocalTransform(playerShip.HardpointExists("HpMount")
                 ? playerShip.GetHardpoint("HpMount")!.Transform.Inverse()
                 : Transform3D.Identity);
 
-            shipMarker.Object?.Children.Add(playerShip);
+            if (shipMarker.Object != null)
+            {
+                playerShip.Parent = shipMarker.Object;
+                shipMarker.Object.Children.Add(playerShip);
+            }
         }
 
-        private void RoomDoSceneScript(ThnScript? sc, ScriptState state)
+        private void RoomDoSceneScript(ThnScript? sc, ScriptState state, bool placePlayerShipImmediately = false)
         {
             hotspots = [];
             firstFrame = true;
@@ -897,7 +914,7 @@ namespace LibreLancer
             }
 
             waitingForFinish = sc;
-            scene!.BeginScene(Scripts(sceneScripts, [sc]));
+            scene!.BeginScene(Scripts(sceneScripts, [sc]), sceneScripts.Length);
             string[] ships = [];
 
             if (session.Ships != null)
@@ -935,6 +952,10 @@ namespace LibreLancer
             }
             else
             {
+                if (placePlayerShipImmediately)
+                {
+                    SetRoomCameraAndShip();
+                }
                 ui.Visible = false;
                 letterboxAmount = 1;
             }

@@ -88,29 +88,7 @@ namespace LibreLancer.World.Components
 
                 if (a.Finished)
                 {
-                    foreach (var jm in sc.JointMaps)
-                    {
-                        var mdl = Parent == null ? rm : Parent.Model!.RigidModel;
-                        var joint = mdl.Parts[jm.ChildName].Construct;
-                        ChannelFloat angles = 0;
-                        float t = a.Reverse ? 0 : jm.Channel.Duration;
-                        int jointCursor = 0;
-
-                        if (jm.Channel.HasAngle)
-                        {
-                            angles = jm.Channel.FloatAtTime((float) t, ref jointCursor);
-                        }
-
-                        var quat = Quaternion.Identity;
-
-                        if (jm.Channel.HasOrientation)
-                        {
-                            quat = jm.Channel.QuaternionAtTime((float) t, ref jointCursor);
-                        }
-
-                        joint?.Update(angles, quat);
-                    }
-
+                    ApplyAnimationFinalPose(sc, a.Reverse);
                     completeAnimations.Add(new ActiveAnimation(sc, a.Name)
                     {
                         Reverse = a.Reverse,
@@ -216,6 +194,60 @@ namespace LibreLancer.World.Components
                 }
 
                 rm.UpdateTransform();
+            }
+        }
+
+        public void FinishAnimation(string animationName)
+        {
+            if (Parent?.RenderComponent is CharacterRenderer characterRenderer)
+            {
+                characterRenderer.Skeleton.FinishScript(animationName);
+                return;
+            }
+
+            for (int i = animations.Count - 1; i >= 0; i--)
+            {
+                var animation = animations[i];
+                if (animation.Loop ||
+                    !animation.Name.Equals(animationName, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                ApplyAnimationFinalPose(animation.Script, animation.Reverse);
+                active.Remove(animation.Script);
+                completeAnimations.Add(animation);
+                animations.RemoveAt(i);
+            }
+
+            Parent?.Model?.RigidModel.UpdateTransform();
+            Parent?.UpdateCollision();
+            rm?.UpdateTransform();
+        }
+
+        private void ApplyAnimationFinalPose(Script sc, bool reverse)
+        {
+            var mdl = Parent == null ? rm : Parent.Model!.RigidModel;
+            foreach (var jm in sc.JointMaps)
+            {
+                var joint = mdl.Parts[jm.ChildName].Construct;
+                ChannelFloat angles = 0;
+                float t = reverse ? 0 : jm.Channel.Duration;
+                int jointCursor = 0;
+
+                if (jm.Channel.HasAngle)
+                {
+                    angles = jm.Channel.FloatAtTime(t, ref jointCursor);
+                }
+
+                var quat = Quaternion.Identity;
+
+                if (jm.Channel.HasOrientation)
+                {
+                    quat = jm.Channel.QuaternionAtTime(t, ref jointCursor);
+                }
+
+                joint?.Update(angles, quat);
             }
         }
 

@@ -19,15 +19,24 @@ namespace LibreLancer.Thn
     public abstract class ThnEventProcessor
     {
         public abstract bool Run(double delta);
+
+        public virtual void Finish()
+        {
+            Run(double.MaxValue);
+        }
     }
 
     public class ThnScriptInstance
     {
+        private const double LoopOverlapTime = 2.0;
         private Queue<ThnEvent> events = new();
         private List<ThnEventProcessor> processors = [];
 
         public double CurrentTime = 0;
         public double Duration;
+        public bool Loop = false;
+        public bool SuppressFinishEvent = false;
+        public bool RemoveAfterFinish => Loop && CurrentTime > Duration;
 
         public bool Running => CurrentTime < Duration;
 
@@ -37,6 +46,11 @@ namespace LibreLancer.Thn
         public Dictionary<string, ThnSoundInstance> Sounds = new();
 
         private readonly ThnScript thn;
+        private bool queuedLoopReplacement = false;
+        private List<string> ownedSceneObjects = [];
+        private List<(ThnSceneObject Object, string Animation)> skipMotionTargets = [];
+        public ThnScript Script => thn;
+        public event Action<ThnScript>? LoopReplacementRequested;
 
         public ThnScriptInstance(Cutscene cs, ThnScript script)
         {
@@ -55,23 +69,40 @@ namespace LibreLancer.Thn
             processors.Add(ev);
         }
 
+        public void AddSkipMotionTarget(ThnSceneObject obj, string animation)
+        {
+            foreach (var target in skipMotionTargets)
+            {
+                if (ReferenceEquals(target.Object, obj) &&
+                    target.Animation.Equals(animation, StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+            }
+            skipMotionTargets.Add((obj, animation));
+        }
+
         private bool CheckObject(ThnEntity e, object? sub, EntityTypes type, string templateName)
         {
             return sub != null && type == e.Type && e.Template.Equals(templateName, StringComparison.OrdinalIgnoreCase);
         }
 
-        public void ConstructEntities(Dictionary<string, ThnSceneObject> objects, bool spawnObjects)
+        public void ConstructEntities(Dictionary<string, ThnSceneObject> objects, bool spawnObjects, string? sceneNameSuffix = null)
         {
-            this.Objects = objects;
+            this.Objects = sceneNameSuffix == null
+                ? objects
+                : new Dictionary<string, ThnSceneObject>(objects, StringComparer.OrdinalIgnoreCase);
             List<ThnSceneObject> monitors = [];
 
             foreach (var kv in thn.Entities)
             {
-                if (Objects.ContainsKey(kv.Key)) continue;
+                var sceneKey = sceneNameSuffix == null ? kv.Key : kv.Key + sceneNameSuffix;
+                if (sceneNameSuffix == null && Objects.ContainsKey(kv.Key)) continue;
+                if (sceneNameSuffix != null && objects.ContainsKey(sceneKey)) continue;
                 if ((kv.Value.ObjectFlags & ThnObjectFlags.Reference) == ThnObjectFlags.Reference) continue;
                 var obj = new ThnSceneObject
                 {
-                    Name = kv.Key,
+                    Name = sceneKey,
                     Translate = kv.Value.Position ?? Vector3.Zero,
                     Rotate = kv.Value.Rotation
                 };
@@ -91,7 +122,7 @@ namespace LibreLancer.Thn
                     obj.Object.SetLocalTransform(new Transform3D(transform, obj.Rotate));
                     obj.HpMount = Cutscene.PlayerShip!.GetHardpoint("HpMount");
                     Cutscene.World.AddObject(obj.Object);
-                    Objects.Add(kv.Key, obj);
+                    AddObject(objects, kv.Key, sceneKey, obj);
                     continue;
                 }
 
@@ -99,7 +130,7 @@ namespace LibreLancer.Thn
                 {
                     obj.Entity = kv.Value;
                     obj.Engine = Cutscene.PlayerEngine;
-                    Objects.Add(kv.Key, obj);
+                    AddObject(objects, kv.Key, sceneKey, obj);
                     continue;
                 }
 
@@ -303,13 +334,27 @@ namespace LibreLancer.Thn
                 }
 
                 obj.Entity = kv.Value;
-                Objects[kv.Key] = obj;
+                AddObject(objects, kv.Key, sceneKey, obj);
             }
 
             // Verify? This seems to work
             monitors.Sort((x, y) => string.Compare(x.Entity.Priority, y.Entity.Priority, StringComparison.Ordinal));
             for (int i = 0; i < monitors.Count; i++)
                 monitors[i].MonitorIndex = i;
+        }
+
+        private void AddObject(
+            Dictionary<string, ThnSceneObject> sceneObjects,
+            string scriptKey,
+            string sceneKey,
+            ThnSceneObject obj)
+        {
+            Objects[scriptKey] = obj;
+            if (!ReferenceEquals(Objects, sceneObjects))
+            {
+                sceneObjects[sceneKey] = obj;
+            }
+            ownedSceneObjects.Add(sceneKey);
         }
 
         private Queue<ThnEvent> delaySoundEvents = new();
@@ -345,13 +390,68 @@ namespace LibreLancer.Thn
                 }
             }
 
+            if (ShouldQueueLoopReplacement())
+            {
+                queuedLoopReplacement = true;
+                LoopReplacementRequested?.Invoke(thn);
+            }
+
             if (CurrentTime > Duration)
+            {
                 Shutdown();
+            }
         }
 
-        public void Shutdown()
+        public void FinishImmediate(bool raiseFinished = true)
         {
-            Cutscene.OnScriptFinished(thn);
+            if (CurrentTime > Duration) return;
+            CurrentTime = Duration;
+            while (delaySoundEvents.Count > 0)
+            {
+                delaySoundEvents.Dequeue();
+            }
+            while (events.Count > 0)
+            {
+                events.Dequeue().Run(this);
+            }
+            for (int i = 0; i < processors.Count; i++)
+            {
+                processors[i].Finish();
+            }
+            processors.Clear();
+            FinishSkipMotionTargets();
+            CurrentTime = Duration + (1.0 / 60.0);
+            Shutdown(raiseFinished);
+        }
+
+        private void FinishSkipMotionTargets()
+        {
+            foreach (var target in skipMotionTargets)
+            {
+                target.Object.FinishAnimation(target.Animation);
+            }
+        }
+
+        private bool ShouldRestartLoop()
+        {
+            return Loop && Duration > 0 && CurrentTime >= Math.Max(0, Duration - LoopOverlapTime);
+        }
+
+        private bool ShouldQueueLoopReplacement()
+        {
+            return !queuedLoopReplacement && ShouldRestartLoop();
+        }
+
+        public void Shutdown(bool raiseFinished = true)
+        {
+            if (raiseFinished && !SuppressFinishEvent)
+            {
+                Cutscene.OnScriptFinished(thn);
+            }
+            if (Loop)
+            {
+                Cutscene.RemoveObjects(ownedSceneObjects);
+            }
             Cleanup();
         }
 
