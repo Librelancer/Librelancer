@@ -28,10 +28,10 @@ class commodity : commodity_Designer with ChildWindow
 			this.change_category("weapons")
 		}
 
-		e.category_weapons.OnClick(() => { PlaySound("ui_item_select"); this.change_category("weapons"); })
-		e.category_ammo.OnClick(() => { PlaySound("ui_item_select"); this.change_category("ammo"); })
-		e.category_internal.OnClick(() => { PlaySound("ui_item_select"); this.change_category("internal"); })
-		e.category_external.OnClick(() => { PlaySound("ui_item_select"); this.change_category("external"); })
+		e.category_weapons.OnClick(() => this.change_category("weapons"))
+		e.category_ammo.OnClick(() => this.change_category("ammo"))
+		e.category_internal.OnClick(() => this.change_category("internal"))
+		e.category_external.OnClick(() => this.change_category("external"))
 
 		e.inv_list.OnSelectedIndexChanged(() => {
 			this.set_buysell("sell")

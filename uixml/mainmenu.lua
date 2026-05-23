@@ -4,6 +4,8 @@ class mainmenu : mainmenu_Designer
 	{
 		base();
 		local scn = this.Elements;
+		scn.version.Text = string.format(StringFromID(1271), 1, 0)
+		PlaySound('ui_motion_swish')
 		scn.newgame.Animate('flyinleft', 0, 0.6)
 		scn.loadgame.Animate('flyinleft', 0.05, 0.6)
 		scn.multiplayer.Animate('flyinleft', 0.1, 0.6)
@@ -34,6 +36,7 @@ class mainmenu : mainmenu_Designer
 	ExitAnimation(f)
 	{
 		local e = this.Elements;
+		PlaySound('ui_motion_swish')
 		e.exit.Animate('flyoutleft', 0, 0.6)
 		e.options.Animate('flyoutleft', 0.05, 0.6)
 		e.multiplayer.Animate('flyoutleft', 0.1, 0.6)

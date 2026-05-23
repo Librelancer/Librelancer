@@ -237,10 +237,27 @@ public class GameDataManager
 
     public IEnumerable<Data.Schema.Audio.AudioEntry> AllSounds => Items.Ini.Audio.Entries;
 
-    public Data.Schema.Audio.AudioEntry? GetAudioEntry(string id)
+    private Data.Schema.Audio.AudioEntry? FindAudioEntry(string id)
     {
         var audio = Items.Ini.Audio.Entries.FirstOrDefault((arg) =>
             string.Equals(arg.Nickname, id, StringComparison.InvariantCultureIgnoreCase));
+
+        if (audio != null)
+        {
+            return audio;
+        }
+
+        return Items.Ini.Audio.Entries.FirstOrDefault((arg) =>
+        {
+            var fileName = Path.GetFileName(arg.File);
+            return string.Equals(fileName, id, StringComparison.InvariantCultureIgnoreCase) ||
+                   string.Equals(Path.GetFileNameWithoutExtension(fileName), id, StringComparison.InvariantCultureIgnoreCase);
+        });
+    }
+
+    public Data.Schema.Audio.AudioEntry? GetAudioEntry(string id)
+    {
+        var audio = FindAudioEntry(id);
 
         if (audio == null)
         {
@@ -252,8 +269,7 @@ public class GameDataManager
 
     public Stream? GetAudioStream(string id)
     {
-        var audio = Items.Ini.Audio.Entries.FirstOrDefault((arg) =>
-            string.Equals(arg.Nickname, id, StringComparison.InvariantCultureIgnoreCase));
+        var audio = FindAudioEntry(id);
 
         if (audio != null)
         {

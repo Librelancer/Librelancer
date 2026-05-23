@@ -271,9 +271,9 @@ namespace LibreLancer.Interface
             switch (name.ToLowerInvariant())
             {
                 case "flyinleft":
-                    var left = new FlyInLeft(Vector2.Zero, offsetTime, duration)
+                    var left = new FlyInLeft(Vector2.Zero, GetDimensions().X, offsetTime, duration)
                     {
-                        From = -GetDimensions().X - 10
+                        From = -10
                     };
                     CurrentAnimation = left;
                     CurrentAnimation.Begin(aspectRatio);
