@@ -16,10 +16,9 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class Button : UiWidget
     {
-        private const string DefaultClickSound = "map_submenu_popup.wav";
-
         public bool Selected { get; set; }
         public string? Style { get; set; }
+        public string ClickSound { get; set; } = "ui_select_item";
         public float TextSize { get; set; }
         public string? FontFamily { get; set; }
 
@@ -213,7 +212,10 @@ namespace LibreLancer.Interface
             {
                 if (Clicked != null)
                 {
-                    context.PlaySound(DefaultClickSound);
+                    if (!string.IsNullOrWhiteSpace(ClickSound))
+                    {
+                        context.PlaySound(ClickSound);
+                    }
                 }
 
                 var sound = MouseDownSound ?? style?.MouseDownSound;
