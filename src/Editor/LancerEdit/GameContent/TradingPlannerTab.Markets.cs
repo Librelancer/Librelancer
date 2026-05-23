@@ -302,40 +302,18 @@ public partial class TradingPlannerTab
         }
 
         var vfs = data.GameData.Items.VFS;
-        var dirtyBases = dirtyMarketBases
-            .Select(x => allBases.FirstOrDefault(b => b.Nickname.Equals(x, StringComparison.OrdinalIgnoreCase)))
-            .Where(x => x != null)
-            .Cast<Base>()
-            .ToDictionary(x => x.Nickname, StringComparer.OrdinalIgnoreCase);
-
         var savedFiles = 0;
-        foreach (var marketPath in marketPaths)
+        var marketFiles = MarketIniSerializer.GetMarketFiles(data.GameData.Items);
+        foreach (var marketFile in marketFiles)
         {
-            var sections = IniFile.ParseFile(marketPath, vfs).ToList();
-            var changed = false;
-            foreach (var b in dirtyBases.Values)
-            {
-                var soldGoods = b.SoldGoods
-                    .Where(x => string.Equals(x.SourceFile, marketPath, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-                changed |= MarketIniSerializer.ReplaceCommodityMarketGoods(
-                    sections,
-                    b,
-                    soldGoods,
-                    IsCommodityGood);
-            }
-
-            if (!changed)
-                continue;
-
-            var backingFile = vfs.GetBackingFileName(marketPath);
+            var backingFile = vfs.GetBackingFileName(marketFile.Filename);
             if (string.IsNullOrWhiteSpace(backingFile))
             {
-                commoditySaveStatus = $"Cannot save {marketPath}: no writable backing file.";
+                commoditySaveStatus = $"Cannot save {marketFile.Filename}: no writable backing file.";
                 return;
             }
 
-            IniWriter.WriteIniFile(backingFile, sections);
+            IniWriter.WriteIniFile(backingFile, MarketIniSerializer.SerializeMarketFile(marketFile));
             savedFiles++;
         }
 
@@ -348,10 +326,6 @@ public partial class TradingPlannerTab
         };
         window.OnSaved();
     }
-
-    private bool IsCommodityGood(string goodName) =>
-        data.GameData.Items.Goods.TryGetValue(goodName, out var good) &&
-        good.Ini.Category == GoodCategory.Commodity;
 
     private string DefaultCommodityMarketPath(Base b) =>
         b.SoldGoods

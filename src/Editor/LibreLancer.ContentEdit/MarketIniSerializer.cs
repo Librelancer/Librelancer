@@ -5,7 +5,6 @@ using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema.Goods;
-using Base = LibreLancer.Data.GameData.World.Base;
 
 namespace LibreLancer.ContentEdit;
 
@@ -42,52 +41,18 @@ public static class MarketIniSerializer
         return files.Values.ToList();
     }
 
-    public static bool ReplaceCommodityMarketGoods(
-        List<Section> sections,
-        Base b,
-        IReadOnlyList<BaseSoldGood> soldGoods,
-        Func<string, bool> isCommodity)
+    public static IEnumerable<Section> SerializeMarketFile(MarketFile file)
     {
-        var changed = false;
-        var section = sections.FirstOrDefault(x =>
-            x.Name.Equals("basegood", StringComparison.OrdinalIgnoreCase) &&
-            x["base"] is { Count: > 0 } baseEntry &&
-            baseEntry[0].ToString().Equals(b.Nickname, StringComparison.OrdinalIgnoreCase));
-
-        if (section == null)
+        foreach (var baseGoods in file.BaseGoods.OrderBy(x => x.Key))
         {
-            if (soldGoods.Count == 0)
-                return false;
-            section = new Section("basegood");
-            section.Add(CreateEntry(section, "base", b.Nickname));
-            sections.Add(section);
-            changed = true;
+            var section = new Section("BaseGood");
+            section.Add(CreateEntry(section, "base", baseGoods.Key));
+
+            foreach (var sold in baseGoods.Value.OrderBy(x => x.Good.Nickname))
+                section.Add(CreateMarketGoodEntry(section, sold));
+
+            yield return section;
         }
-
-        var preserved = section
-            .Where(entry => !IsCommodityMarketGoodEntry(entry, isCommodity))
-            .ToList();
-        changed |= preserved.Count != section.Count;
-        section.Clear();
-        foreach (var entry in preserved)
-            section.Add(entry);
-
-        foreach (var sold in soldGoods
-                     .Where(x => x.Good.Ini.Category == GoodCategory.Commodity)
-                     .OrderBy(x => x.Good.Nickname))
-        {
-            section.Add(CreateMarketGoodEntry(section, sold));
-            changed = true;
-        }
-
-        return changed;
-    }
-
-    private static bool IsCommodityMarketGoodEntry(Entry entry, Func<string, bool> isCommodity)
-    {
-        if (!entry.Name.Equals("marketgood", StringComparison.OrdinalIgnoreCase) || entry.Count == 0)
-            return false;
-        return isCommodity(entry[0].ToString());
     }
 
     private static Entry CreateMarketGoodEntry(Section section, BaseSoldGood sold)
