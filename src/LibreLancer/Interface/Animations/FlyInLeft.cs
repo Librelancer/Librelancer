@@ -10,10 +10,12 @@ namespace LibreLancer
 	public class FlyInLeft : UiAnimation
 	{
         private Vector2 finalPos;
+        private float width;
         public float From = -2;
-		public FlyInLeft(Vector2 final, double start, double time) : base(start, time)
+		public FlyInLeft(Vector2 final, float controlWidth, double start, double time) : base(start, time)
 		{
 			finalPos = final;
+            width = controlWidth;
 			CurrentPosition.Y = finalPos.Y;
 		}
 
@@ -29,7 +31,7 @@ namespace LibreLancer
                 (float)currentTime,
                 0,
                 (float)Duration,
-                From,
+                finalPos.X + From - width,
                 finalPos.X
             );
         }

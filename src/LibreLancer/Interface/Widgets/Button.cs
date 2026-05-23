@@ -18,6 +18,7 @@ namespace LibreLancer.Interface
     {
         public bool Selected { get; set; }
         public string? Style { get; set; }
+        public string ClickSound { get; set; } = "ui_select_item";
         public float TextSize { get; set; }
         public string? FontFamily { get; set; }
 
@@ -209,6 +210,14 @@ namespace LibreLancer.Interface
 
             if (myRect.Contains(context.MouseX, context.MouseY))
             {
+                if (Clicked != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(ClickSound))
+                    {
+                        context.PlaySound(ClickSound);
+                    }
+                }
+
                 var sound = MouseDownSound ?? style?.MouseDownSound;
 
                 if (!string.IsNullOrWhiteSpace(sound))

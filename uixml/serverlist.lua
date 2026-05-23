@@ -10,6 +10,7 @@ class serverlist : serverlist_Designer
 		e.refreshlist.OnClick(() => Game.RefreshServers());
 		e.connect.OnClick(() => this.TryConnect());
 		e.directip.OnClick(() => OpenModal(new ipentry(this)));
+		PlaySound('ui_motion_swish')
 		e.animgroupA.Animate('flyinleft', 0, 0.8)
 		e.animgroupB.Animate('flyinright', 0, 0.8)
 		this.InitNetwork();
@@ -38,6 +39,7 @@ class serverlist : serverlist_Designer
 	ExitAnimation(f)
 	{
 		local e = this.Elements
+		PlaySound('ui_motion_swish')
 		e.animgroupA.Animate('flyoutleft', 0, 0.8)
 		e.animgroupB.Animate('flyoutright', 0, 0.8)
 		Timer(0.8, f)

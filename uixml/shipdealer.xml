@@ -12,11 +12,11 @@
 	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="33" Width="200" Height="20" Text="CREDITS $1,845" TextSize="11" id="credits_text" /> <!-- CREDITS -->
 	<TextBlock TextColor="text" TextShadow="#000000FF" X="410" Y="33" Width="200" Height="20" Text="SHIP PRICE $1,977" TextSize="11" id="ship_price_text" /> <!-- SHIP PRICE-->
 	<Panel id="inv_categories">
-		<Button X="101" Y="223" id="category_weapons" Style="inv_category_weapons"/>
-		<Button X="118" Y="223" id="category_ammo" Style="inv_category_ammo"/>
-		<Button X="135" Y="223" id="category_external" Style="inv_category_external"/>
-		<Button X="153" Y="223" id="category_internal" Style="inv_category_internal"/>
-		<Button X="171" Y="223" id="category_commodity" Style="inv_category_commodity"/>
+		<Button X="101" Y="223" id="category_weapons" Style="inv_category_weapons" ClickSound="ui_item_select"/>
+		<Button X="118" Y="223" id="category_ammo" Style="inv_category_ammo" ClickSound="ui_item_select"/>
+		<Button X="135" Y="223" id="category_external" Style="inv_category_external" ClickSound="ui_item_select"/>
+		<Button X="153" Y="223" id="category_internal" Style="inv_category_internal" ClickSound="ui_item_select"/>
+		<Button X="171" Y="223" id="category_commodity" Style="inv_category_commodity" ClickSound="ui_item_select"/>
 	</Panel>
 	<Panel id="buysell_controls">
 	<Button id="btn_buysell" style="trader_buy" Strid="3016" X="245" Y="29" />
