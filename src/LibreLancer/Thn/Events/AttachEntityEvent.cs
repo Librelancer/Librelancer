@@ -38,6 +38,12 @@ namespace LibreLancer.Thn.Events
                 }
                 return true;
             }
+
+            public override void Finish()
+            {
+                Child.Update();
+                Child.Attachments.Remove(Attachment);
+            }
         }
 
 

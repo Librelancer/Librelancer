@@ -166,6 +166,12 @@ namespace LibreLancer.Render
         public Quaternion RootRotation => _rootMotionInstance!.RootRotation;
 
         public Quaternion RootRotationAccumulator => _rootMotionInstance!.RootRotationAccumulator;
+
+        public void ClearRootMotion()
+        {
+            _rootMotionInstance = null;
+            _rootMotionWeight = 0f;
+        }
         public Vector3 LastTranslation;
         public Quaternion LastRotation;
 
@@ -365,6 +371,67 @@ namespace LibreLancer.Render
                     return running;
                 }
             }
+
+            public void Finish(Dictionary<BoneInstance, BoneBlendData> blendData)
+            {
+                var ft = GetFinishTime();
+
+                for (var i = 0; i < Joints.Count; i++)
+                {
+                    ref var j = ref Joints[i];
+                    ref var ch = ref Script.JointMaps[j.JointMapIndex].Channel;
+                    var cht = ch.Duration > 0f ? MathF.Min(ft, ch.Duration) : 0f;
+
+                    if (!blendData.TryGetValue(j.Bone, out var data))
+                    {
+                        data = default;
+                    }
+
+                    if (ch.HasOrientation)
+                    {
+                        var rot = ch.QuaternionAtTime(cht, ref j.JointMapCursor);
+                        DfmSkeletonManager.AccumulateRotation(ref data, rot, 1f);
+                    }
+
+                    if (ch.HasPosition)
+                    {
+                        var tr = ch.PositionAtTime(cht, ref j.JointMapCursor);
+                        DfmSkeletonManager.AccumulateTranslation(ref data, tr, 1f);
+                    }
+
+                    blendData[j.Bone] = data;
+                }
+
+                if (EvaluateRoot(lastFt, out var rot0, out var tr0) &&
+                    EvaluateRoot(ft, out var rot1, out var tr1))
+                {
+                    RootTranslation = tr1 - tr0;
+                    RootRotation = Quaternion.Inverse(rot0) * rot1;
+                    RootRotationAccumulator = rot1;
+                    Parent._rootMotionInstance = this;
+                    Parent._rootMotionWeight = 1f;
+                }
+            }
+
+            private float GetFinishTime()
+            {
+                var timeScale = TimeScale <= 0f ? 1f : TimeScale;
+                if (Duration > 0f)
+                {
+                    return StartTime + (Duration * timeScale);
+                }
+
+                var duration = 0f;
+                for (var i = 0; i < Script.JointMaps.Count; i++)
+                {
+                    duration = MathF.Max(duration, Script.JointMaps[i].Channel.Duration);
+                }
+                for (var i = 0; i < Script.ObjectMaps.Count; i++)
+                {
+                    duration = MathF.Max(duration, Script.ObjectMaps[i].Channel.Duration);
+                }
+                return StartTime + duration;
+            }
         }
 
         public Dictionary<string, DfmHardpoint> Hardpoints = new(StringComparer.OrdinalIgnoreCase);
@@ -513,7 +580,62 @@ namespace LibreLancer.Render
             var blendData = new Dictionary<BoneInstance, BoneBlendData>();
             var toRemove = new List<ScriptInstance>();
 
+            CaptureBasePose(RunningScripts, basePose);
+
             foreach (var sc in RunningScripts)
+            {
+                if (!sc.RunScript(delta, blendData))
+                {
+                    toRemove.Add(sc);
+                }
+            }
+
+            ApplyBlendData(basePose, blendData);
+
+            foreach (var sc in toRemove) RunningScripts.Remove(sc);
+            UpdateBounds();
+        }
+
+        public void FinishScript(string scriptName)
+        {
+            _rootMotionInstance = null;
+            _rootMotionWeight = 0f;
+
+            var toFinish = new List<ScriptInstance>();
+            foreach (var sc in RunningScripts)
+            {
+                if (!sc.Loop && sc.Script.Name.Equals(scriptName, StringComparison.OrdinalIgnoreCase))
+                {
+                    toFinish.Add(sc);
+                }
+            }
+
+            if (toFinish.Count == 0)
+            {
+                return;
+            }
+
+            var basePose = new Dictionary<BoneInstance, BonePose>();
+            var blendData = new Dictionary<BoneInstance, BoneBlendData>();
+
+            CaptureBasePose(toFinish, basePose);
+
+            foreach (var sc in toFinish)
+            {
+                sc.Finish(blendData);
+            }
+
+            ApplyBlendData(basePose, blendData);
+
+            foreach (var sc in toFinish) RunningScripts.Remove(sc);
+            UpdateBounds();
+        }
+
+        private static void CaptureBasePose(
+            IEnumerable<ScriptInstance> scripts,
+            Dictionary<BoneInstance, BonePose> basePose)
+        {
+            foreach (var sc in scripts)
             {
                 for (var i = 0; i < sc.Joints.Count; i++)
                 {
@@ -524,15 +646,12 @@ namespace LibreLancer.Render
                     }
                 }
             }
+        }
 
-            foreach (var sc in RunningScripts)
-            {
-                if (!sc.RunScript(delta, blendData))
-                {
-                    toRemove.Add(sc);
-                }
-            }
-
+        private void ApplyBlendData(
+            Dictionary<BoneInstance, BonePose> basePose,
+            Dictionary<BoneInstance, BoneBlendData> blendData)
+        {
             foreach (var kvp in basePose)
             {
                 if (blendData.TryGetValue(kvp.Key, out var data))
@@ -565,9 +684,6 @@ namespace LibreLancer.Render
             HeadConnection?.Update();
             LeftHandConnection?.Update();
             RightHandConnection?.Update();
-
-            foreach (var sc in toRemove) RunningScripts.Remove(sc);
-            UpdateBounds();
         }
 
         public void UploadBoneData(StorageBuffer bonesBuffer, ref int offset, ref int lastSet)
