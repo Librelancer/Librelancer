@@ -750,5 +750,10 @@
 			</ButtonStyle.Hover>
 		</HSliderStyle.Thumb>
 	</HSliderStyle>
+	
+	<RolloverStyle Font="$Rollover" TextColor="rollover_text" TextShadow="black">
+		<RolloverStyle.Background><DisplayColor color="rollover_background"/></RolloverStyle.Background>
+		<RolloverStyle.Border><DisplayRectangle color="rollover_text"/></RolloverStyle.Border>
+	</RolloverStyle>
 </Stylesheet>
 

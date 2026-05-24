@@ -144,6 +144,10 @@ namespace LibreLancer.Interface
             {
                 activeStyle = style?.Pressed ?? style?.Hover;
             }
+            else if (Hovered && Strid != 0)
+            {
+                context.SetRollover(Strid);
+            }
 
             if (Selected) activeStyle = style?.Selected;
             if (!Enabled) activeStyle = style?.Disabled;

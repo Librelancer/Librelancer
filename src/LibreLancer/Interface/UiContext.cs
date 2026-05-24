@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data;
 using LibreLancer.Graphics;
+using LibreLancer.Graphics.Text;
 using LibreLancer.Render;
 
 namespace LibreLancer.Interface
@@ -190,6 +191,8 @@ namespace LibreLancer.Interface
             var ratio = ViewportHeight / 480;
             return points * ratio;
         }
+
+        public Vector2 PixelsToPoints(Point pixels) => PixelsToPoints(new Vector2(pixels.X, pixels.Y));
 
         public Vector2 PixelsToPoints(Vector2 pixels) => pixels * (480f / ViewportHeight);
 
@@ -405,9 +408,23 @@ namespace LibreLancer.Interface
 
         public double DeltaTime;
 
+        private string? requestedRollover = null;
+        private CachedRenderString? tooltipCache;
+
+        public void SetRollover(int itemStrid)
+        {
+            if (Data.RolloverMap.TryGetValue(itemStrid, out var rollStrid) &&
+                Data.Infocards != null &&
+                Data.Infocards.HasStringResource(rollStrid))
+            {
+                requestedRollover = Data.Infocards.GetStringResource(rollStrid);
+            }
+        }
+
         public void RenderWidget(double delta)
         {
             DeltaTime = delta;
+            requestedRollover = null;
 
             if (baseWidget == null)
             {
@@ -432,6 +449,38 @@ namespace LibreLancer.Interface
 
             foreach (var widget in modals)
                 widget.Widget.Render(this, dlist, desktopRect);
+
+            if (!string.IsNullOrWhiteSpace(requestedRollover))
+            {
+                var style = Data.Stylesheet?.Lookup<RolloverStyle>(null);
+
+                var maxWidth = PointsToPixels(150);
+
+                var fnt = Data.GetFont(style?.Font ?? "Arial");
+                var sz = TextSize(Data.GetFontSize(style?.Font ?? "Arial"));
+
+                var col = style?.TextColor?.GetColor(GlobalTime) ??  Color4.White;
+                var shadow = style?.TextShadow?.GetColor(GlobalTime);
+
+                var measuredText = RenderContext.Renderer2D.MeasureStringCached(
+                    ref tooltipCache, fnt, sz, requestedRollover, false,
+                    shadow != null, TextAlignment.Left, maxWidth);
+                var rectSize = PixelsToPoints(measuredText);
+
+                var ttRect = new RectangleF(0, 0, rectSize.X + 4, rectSize.Y + 2);
+                style?.Background?.Draw(this, dlist, ttRect);
+
+                var offsetX = PointsToPixels(2);
+                var offsetY = PointsToPixels(1);
+
+                dlist.DrawStringCached(ref tooltipCache, fnt, sz, requestedRollover,
+                    offsetX,offsetY, col, false,
+                    shadow != null ? new(shadow.Value) : default,
+                    TextAlignment.Left, maxWidth);
+
+                style?.Border?.Draw(this, dlist, ttRect);
+            }
+
             dlist.Render();
         }
     }

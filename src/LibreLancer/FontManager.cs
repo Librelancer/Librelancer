@@ -24,6 +24,8 @@ namespace LibreLancer
         private bool _loaded = false;
         private Dictionary<int, FontDescription> infocardFonts = new();
         private Dictionary<string, string> nicknames = [];
+        private Dictionary<string, float> sizes = new(StringComparer.OrdinalIgnoreCase);
+
         public void ConstructDefaultFonts()
         {
             var v = new FontDescription() { FontName = "Arial", FontSize = 16 };
@@ -41,6 +43,9 @@ namespace LibreLancer
             return nicknames.TryGetValue(identifier, out var o) ? o : nicknames["normal"];
         }
 
+        public float ResolveSize(string identifier) => sizes.GetValueOrDefault(identifier, 0.0435f)
+                                                       * 367.81f; //0.0435 = 16pt for us.
+
         private void LoadFonts(RenderContext context, FontsIni fonts, RichFontsIni rf, FileSystem fs, string dataPath)
         {
             foreach(var f in fonts.FontFiles)
@@ -56,9 +61,11 @@ namespace LibreLancer
             }
 
             nicknames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            sizes = new  Dictionary<string, float>(StringComparer.OrdinalIgnoreCase);
             foreach (var id in fonts.UIFonts)
             {
                 nicknames[id.Nickname] = id.Font;
+                sizes[id.Nickname] = id.FixedHeight;
             }
 
             infocardFonts = new Dictionary<int, FontDescription>();

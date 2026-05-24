@@ -6,6 +6,7 @@ using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
 using LibreLancer.Data.Schema;
+using LibreLancer.Data.Schema.Interface;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
 using LibreLancer.Resources;
@@ -64,6 +65,7 @@ public class Project
         UiData.NavmapIcons = new NavmapIcons();
         UiData.OpenFolder(XmlFolder);
 
+
         try
         {
             var navbarIni = new BaseNavBarIni(dataPath, UiData.FileSystem);
@@ -72,6 +74,21 @@ public class Project
         catch (Exception)
         {
             UiData.NavbarIcons = null;
+        }
+
+        try
+        {
+            var rollover = flIni.DataPath + "interface\\rollover.ini";
+            if (UiData.FileSystem.FileExists(rollover))
+            {
+                var rolloverIni = new RolloverIni();
+                rolloverIni.AddFile(rollover, UiData.FileSystem);
+                UiData.RolloverMap = rolloverIni.Map;
+            }
+        }
+        catch
+        {
+            // ignored
         }
 
         try

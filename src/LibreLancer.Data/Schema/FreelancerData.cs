@@ -80,6 +80,7 @@ public class FreelancerData
     public StateGraphDb StateGraphDb = null!;
     public KeymapIni Keymap = null!;
     public KeyListIni KeyList = null!;
+    public RolloverIni Rollover = null!;
     public VoicesIni Voices = null!;
     public ShipClassesIni ShipClasses = null!;
     public StorylineIni Storyline = null!;
@@ -351,6 +352,8 @@ public class FreelancerData
         {
             Keymap = new KeymapIni(Freelancer.DataPath + "interface\\keymap.ini", VFS, stringPool);
             KeyList = new KeyListIni(Freelancer.DataPath + "interface\\keylist.ini", VFS, stringPool);
+            Rollover = new RolloverIni();
+            Rollover.AddFile(Freelancer.DataPath + "interface\\rollover.ini", VFS);
         });
         Run(() =>
         {
