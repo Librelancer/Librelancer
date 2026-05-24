@@ -499,6 +499,13 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
+    <ButtonStyle Name="nav_selector" Width="14" Height="14">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_selector"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+    </ButtonStyle>
     <NavmapStyle>
 	<NavmapStyle.ZoomInButton Width="17" Height="17" MouseDownSound="ui_item_select">
             <ButtonStyle.Normal>
@@ -792,4 +799,3 @@
 		<RolloverStyle.Border><DisplayRectangle color="rollover_text"/></RolloverStyle.Border>
 	</RolloverStyle>
 </Stylesheet>
-

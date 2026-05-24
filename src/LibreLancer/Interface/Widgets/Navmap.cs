@@ -64,7 +64,6 @@ namespace LibreLancer.Interface
         private const float LabelCollisionPadding = 2f;
         private const float SelectorSize = 14f;
         private const float ZoomButtonOffset = 16f;
-        private const float SelectorModelScale = 64f;
         private const float SelectorMenuClosePadding = 8f;
         private const float ZoomedScale = 4f;
         private const float ZoomAnimationDuration = 1.5f;
@@ -73,7 +72,7 @@ namespace LibreLancer.Interface
         private const string SelectSound = "ui_item_select";
         private string systemName = "";
 
-        private UiRenderable? selectorRenderable;
+        private readonly Button selectorButton = new();
         private readonly Button zoomInButton = new();
         private readonly Button zoomOutButton = new();
         private readonly List<(DrawObject Object, RectangleF Bounds)> labelCandidates = [];
@@ -116,6 +115,7 @@ namespace LibreLancer.Interface
         {
             base.ApplyStylesheet(stylesheet);
             Style = stylesheet.Lookup<NavmapStyle>(null);
+            selectorButton.SetStyle(stylesheet.Lookup<ButtonStyle>("nav_selector"));
             zoomInButton.SetStyle(Style?.ZoomInButton);
             zoomOutButton.SetStyle(Style?.ZoomOutButton);
         }
@@ -646,31 +646,13 @@ namespace LibreLancer.Interface
             if (selectorMapPosition == null)
                 return;
 
-            selectorRenderable ??= ModelRenderable(
-                "nav_selector",
-                "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_selector.3db",
-                SelectorModelScale,
-                SelectorModelScale);
-            selectorRenderable.Draw(context, drawList, SelectorRectangle(mapRect));
+            var selectorRect = SelectorRectangle(mapRect);
+            selectorButton.X = selectorRect.X - mapRect.X;
+            selectorButton.Y = selectorRect.Y - mapRect.Y;
+            selectorButton.Render(context, drawList, mapRect);
 
             ZoomButtonRectangle(mapRect);
             ActiveZoomButton.Render(context, drawList, mapRect);
-        }
-
-        private static UiRenderable ModelRenderable(string name, string path, float xscale, float yscale)
-        {
-            var renderable = new UiRenderable();
-            renderable.AddElement(new DisplayModel()
-            {
-                Model = new InterfaceModel()
-                {
-                    Name = name,
-                    Path = path,
-                    XScale = xscale,
-                    YScale = yscale
-                }
-            });
-            return renderable;
         }
 
         private void SetZoom(RectangleF mapRect, bool enabled)
