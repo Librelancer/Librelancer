@@ -276,6 +276,7 @@ namespace BuildLL
                 }
                 CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.so");
                 CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.dll");
+                CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.dylib");
                 if(IsWindows)
                 {
                     CopyDirContents("obj/spirvcross/MinSizeRel", "bin/builddeps", false, "*.dll");
