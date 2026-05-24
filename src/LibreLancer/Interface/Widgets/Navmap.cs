@@ -5,7 +5,6 @@
 using System;
 using System.Numerics;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData.World;
@@ -28,7 +27,7 @@ namespace LibreLancer.Interface
             public string? Name;
             public Vector2 XZ;
             public float SolarRadius;
-            public bool IconZoomedOut;
+            public int LabelPriority;
             public uint Hash;
         }
 
@@ -61,7 +60,37 @@ namespace LibreLancer.Interface
         private List<Tradelanes> tradelanes = [];
         private float navmapscale;
         private const float GridSizeDefault = 240000;
+        private const float MinimumObjectIconSize = 8f;
+        private const float LabelCollisionPadding = 2f;
+        private const float SelectorSize = 14f;
+        private const float ZoomButtonSize = 44f;
+        private const float ZoomButtonOffset = 16f;
+        private const float SelectorModelScale = 64f;
+        private const float ZoomButtonModelScale = 32f;
+        private const float SelectorMenuClosePadding = 8f;
+        private const float ZoomedScale = 4f;
+        private const float ZoomAnimationRate = 10f;
+        private const float DragStartDelay = 0.5f;
+        private const float DragStartDistance = 3f;
+        private const string SelectSound = "ui_item_select";
+        private static readonly string[] ZoomInSounds = ["ui_map_zoom_in", "ui_zoom_in", SelectSound];
+        private static readonly string[] ZoomOutSounds = ["ui_map_zoom_out", "ui_zoom_out", SelectSound];
         private string systemName = "";
+
+        private UiRenderable? selectorRenderable;
+        private UiRenderable? zoomInRenderable;
+        private UiRenderable? zoomOutRenderable;
+        private readonly List<(DrawObject Object, RectangleF Bounds)> labelCandidates = [];
+        private readonly List<RectangleF> placedLabels = [];
+        private Vector2? selectorMapPosition;
+        private bool zoomed;
+        private float targetZoom = 1f;
+        private Vector2 targetOffset;
+        private bool mouseDownOnMap;
+        private bool draggingMap;
+        private Vector2 mouseDownPosition;
+        private Vector2 lastMousePosition;
+        private double mouseDownTime;
 
         public bool LetterMargin { get; set; } = false;
 
@@ -102,7 +131,15 @@ namespace LibreLancer.Interface
 
                         while (!string.IsNullOrEmpty(end.Dock?.Target))
                         {
-                            var e = sys.Objects.FirstOrDefault(x => x.Nickname.Equals(end.Dock.Target));
+                            SystemObject? e = null;
+                            foreach (var candidate in sys.Objects)
+                            {
+                                if (candidate.Nickname.Equals(end.Dock.Target))
+                                {
+                                    e = candidate;
+                                    break;
+                                }
+                            }
 
                             if (e == null)
                             {
@@ -123,38 +160,26 @@ namespace LibreLancer.Interface
                     }
                 }
 
-                if ((obj.Visit & VisitFlags.Hidden) == VisitFlags.Hidden || (obj.Archetype?.SolarRadius <= 0))
+                if ((obj.Visit & VisitFlags.Hidden) == VisitFlags.Hidden ||
+                    obj.Archetype is not { SolarRadius: > 0 } archetype)
                 {
                     continue;
                 }
 
                 UiRenderable? renderable = null;
-                renderable = ctx.Data.NavmapIcons.GetSystemObject(obj.Archetype?.NavmapIcon);
+                renderable = ctx.Data.NavmapIcons.GetSystemObject(archetype.NavmapIcon);
 
                 var nm = ctx.Data.Infocards?.GetStringResource(obj.IdsName);
-
-                if (obj.Archetype!.Type != ArchetypeType.planet &&
-                    obj.Archetype.Type != ArchetypeType.station &&
-                    obj.Archetype.Type != ArchetypeType.jump_gate &&
-                    obj.Archetype.Type != ArchetypeType.jump_hole &&
-                    obj.Archetype.Type != ArchetypeType.jumphole)
-                {
-                    nm = null;
-                }
-
-                bool iconZoomOut = (
-                    obj.Archetype.Type == ArchetypeType.planet ||
-                    obj.Archetype.Type == ArchetypeType.sun ||
-                    obj.Archetype.Type == ArchetypeType.mission_satellite
-                );
+                if (string.IsNullOrWhiteSpace(nm))
+                    nm = obj.Nickname;
 
                 objects.Add(new DrawObject()
                 {
                     Renderable = renderable,
                     Name = nm,
                     XZ = new Vector2(obj.Position.X, obj.Position.Z),
-                    SolarRadius = obj.Archetype.SolarRadius,
-                    IconZoomedOut = iconZoomOut,
+                    SolarRadius = archetype.SolarRadius,
+                    LabelPriority = LabelPriority(archetype.Type),
                     Hash = FLHash.CreateID(obj.Nickname)
                 });
             }
@@ -205,6 +230,23 @@ namespace LibreLancer.Interface
             systemName = ctx.Data.Infocards!.GetStringResource(sys.IdsName);
         }
 
+        private static int LabelPriority(ArchetypeType type) => type switch
+        {
+            ArchetypeType.planet => 90,
+            ArchetypeType.station => 80,
+            ArchetypeType.jump_gate => 70,
+            ArchetypeType.jump_hole or ArchetypeType.jumphole => 60,
+            ArchetypeType.docking_ring => 50,
+            ArchetypeType.sun => 40,
+            _ => 0
+        };
+
+        private static bool Intersects(RectangleF a, RectangleF b) =>
+            a.X < b.X + b.Width &&
+            a.X + a.Width > b.X &&
+            a.Y < b.Y + b.Height &&
+            a.Y + a.Height > b.Y;
+
         private static readonly string[] GRIDNUMBERS =
         [
             "1", "2", "3", "4", "5", "6", "7", "8"
@@ -238,18 +280,13 @@ namespace LibreLancer.Interface
             var inputRatio = 480 / context.ViewportHeight;
             var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
                 inputRatio + 3;
-            RectangleF rectNoScale = parentRect;
+            RectangleF rectNoScale = GetMapRectangle(parentRect, lH);
 
-            var allClip = context.PointsToPixels(rectNoScale);
+            UpdateZoomAndDrag(context, rectNoScale);
+
+            var allClip = context.PointsToPixels(parentRect);
             if (!drawList.PushClip(allClip))
                 return;
-
-            if (LetterMargin)
-            {
-                rectNoScale = new RectangleF(parentRect.X + lH, parentRect.Y, parentRect.Width - (2 * lH),
-                    parentRect.Height -
-                    (2 * lH));
-            }
 
             // Draw Letters
             var rHoriz = rectNoScale.Width / 8;
@@ -304,47 +341,50 @@ namespace LibreLancer.Interface
             // Draw zones
             if (!drawList.PushClip(zoneclip))
                 return;
-            var zoneMat = Matrix4x4.CreateOrthographicOffCenter(0, context.RenderContext.CurrentViewport.Width,
-                context.RenderContext.CurrentViewport.Height, 0, 0, 1);
-            var zoneShader = AllShaders.Navmap.Get(0);
-            var np = new NavmapParameters()
+            drawList.AddCallback(_ =>
             {
-                Rectangle = new Vector4(zoneclip.X,
-                    context.RenderContext.CurrentViewport.Height - zoneclip.Y - zoneclip.Height,
-                    zoneclip.Width, zoneclip.Height),
-                Tiling = new Vector2(8)
-            };
-            zoneShader.SetUniformBlock(0, ref zoneMat);
-            zoneShader.SetUniformBlock(3, ref np);
+                var zoneMat = Matrix4x4.CreateOrthographicOffCenter(0, context.RenderContext.CurrentViewport.Width,
+                    context.RenderContext.CurrentViewport.Height, 0, 0, 1);
+                var zoneShader = AllShaders.Navmap.Get(0);
+                var np = new NavmapParameters()
+                {
+                    Rectangle = new Vector4(zoneclip.X,
+                        context.RenderContext.CurrentViewport.Height - zoneclip.Y - zoneclip.Height,
+                        zoneclip.Width, zoneclip.Height),
+                    Tiling = new Vector2(8)
+                };
+                zoneShader.SetUniformBlock(0, ref zoneMat);
+                zoneShader.SetUniformBlock(3, ref np);
 
-            foreach (var zone in zones)
-            {
-                Texture2D? texture = null;
-                if (!string.IsNullOrEmpty(zone.Texture))
-                    texture = (Texture2D?) context.Data.ResourceManager.FindTexture(zone.Texture);
-                context.RenderContext.Textures[0] = texture;
-                context.RenderContext.Samplers[0] =
-                    new(context.RenderContext.PreferredFilterLevel, WrapMode.Repeat, WrapMode.Repeat);
-                zoneShader.SetUniformBlock(4, ref zone.Tint);
-                var dim = zone.Zone.Shape == ShapeKind.Sphere
-                    ? new Vector2(zone.Zone.Size.X)
-                    : new Vector2(zone.Zone.Size.X, zone.Zone.Size.Z);
-                var screenSize = context.PointsToPixelsF(dim / scale * new Vector2(rect.Width, rect.Height));
-                var meshScale = new Vector3(screenSize.X / dim.X, screenSize.Y / dim.Y, 1);
-                var screenPos =
-                    context.PointsToPixels(WorldToMap(new Vector2(zone.Zone.Position.X, zone.Zone.Position.Z)));
-                var world = Matrix4x4.CreateScale(meshScale) *
-                            Matrix4x4.CreateTranslation(new Vector3(screenPos.X, screenPos.Y, 0));
-                zoneShader.SetUniformBlock(2, ref world);
-                vbo ??= new VertexBuffer(context.RenderContext, typeof(ZoneVertex), 400, true);
-                void* dst = (void*) vbo.BeginStreaming();
-                var td = zone.Zone.TopDownMesh();
-                fixed (Vector2* src = td)
-                    Buffer.MemoryCopy(src, dst, 400 * sizeof(Vector2), sizeof(Vector2) * td.Length);
-                vbo.EndStreaming(td.Length);
-                context.RenderContext.Shader = zoneShader;
-                vbo.Draw(PrimitiveTypes.TriangleList, td.Length / 3);
-            }
+                foreach (var zone in zones)
+                {
+                    Texture2D? texture = null;
+                    if (!string.IsNullOrEmpty(zone.Texture))
+                        texture = (Texture2D?) context.Data.ResourceManager.FindTexture(zone.Texture);
+                    context.RenderContext.Textures[0] = texture;
+                    context.RenderContext.Samplers[0] =
+                        new(context.RenderContext.PreferredFilterLevel, WrapMode.Repeat, WrapMode.Repeat);
+                    zoneShader.SetUniformBlock(4, ref zone.Tint);
+                    var dim = zone.Zone.Shape == ShapeKind.Sphere
+                        ? new Vector2(zone.Zone.Size.X)
+                        : new Vector2(zone.Zone.Size.X, zone.Zone.Size.Z);
+                    var screenSize = context.PointsToPixelsF(dim / scale * new Vector2(rect.Width, rect.Height));
+                    var meshScale = new Vector3(screenSize.X / dim.X, screenSize.Y / dim.Y, 1);
+                    var screenPos =
+                        context.PointsToPixels(WorldToMap(new Vector2(zone.Zone.Position.X, zone.Zone.Position.Z)));
+                    var world = Matrix4x4.CreateScale(meshScale) *
+                                Matrix4x4.CreateTranslation(new Vector3(screenPos.X, screenPos.Y, 0));
+                    zoneShader.SetUniformBlock(2, ref world);
+                    vbo ??= new VertexBuffer(context.RenderContext, typeof(ZoneVertex), 400, true);
+                    void* dst = (void*) vbo.BeginStreaming();
+                    var td = zone.Zone.TopDownMesh();
+                    fixed (Vector2* src = td)
+                        Buffer.MemoryCopy(src, dst, 400 * sizeof(Vector2), sizeof(Vector2) * td.Length);
+                    vbo.EndStreaming(td.Length);
+                    context.RenderContext.Shader = zoneShader;
+                    vbo.Draw(PrimitiveTypes.TriangleList, td.Length / 3);
+                }
+            });
 
             drawList.PopClip();
 
@@ -367,29 +407,58 @@ namespace LibreLancer.Interface
             if ((CachedRenderString[]?) objectStrings == null || objectStrings.Length < objects.Count)
                 objectStrings = new CachedRenderString[objects.Count];
             jj = 0;
+            labelCandidates.Clear();
 
             foreach (var obj in objects)
             {
                 if (!isVisited(obj.Hash))
                     continue;
                 var posAbs = WorldToMap(obj.XZ);
+                var szIcon = MathF.Max(
+                    (2 * obj.SolarRadius) / scale.Y * rect.Height,
+                    MinimumObjectIconSize);
+                var originIcon = szIcon / 2;
 
-                if (obj.Renderable != null && obj.IconZoomedOut)
+                if (obj.Renderable != null)
                 {
-                    var szIcon = (2 * obj.SolarRadius) / scale.Y * rect.Height;
-                    var originIcon = szIcon / 2;
                     var objRect = new RectangleF(posAbs.X - originIcon, posAbs.Y - originIcon, szIcon, szIcon);
                     obj.Renderable.Draw(context, drawList, objRect);
                 }
 
                 if (!string.IsNullOrWhiteSpace(obj.Name))
                 {
-                    DrawText(context, drawList, ref objectStrings[jj++], new RectangleF(posAbs.X - 100, posAbs.Y, 200, 50),
-                        fontSize, font, InterfaceColor.White,
-                        new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center,
-                        VerticalAlignment.Top, false,
+                    var textSize = context.RenderContext.Renderer2D.MeasureString(
+                        font,
+                        context.TextSize(fontSize),
                         obj.Name);
+                    var width = context.PixelsToPoints(textSize.X) + 2;
+                    var height = context.PixelsToPoints(textSize.Y);
+                    labelCandidates.Add((obj, new RectangleF(
+                        posAbs.X - (width / 2),
+                        posAbs.Y + originIcon,
+                        width,
+                        height)));
                 }
+            }
+
+            placedLabels.Clear();
+            labelCandidates.Sort(CompareLabels);
+            foreach (var label in labelCandidates)
+            {
+                var paddedBounds = new RectangleF(
+                    label.Bounds.X - LabelCollisionPadding,
+                    label.Bounds.Y - LabelCollisionPadding,
+                    label.Bounds.Width + (2 * LabelCollisionPadding),
+                    label.Bounds.Height + (2 * LabelCollisionPadding));
+                if (IntersectsPlacedLabel(paddedBounds))
+                    continue;
+
+                placedLabels.Add(paddedBounds);
+                DrawText(context, drawList, ref objectStrings[jj++], label.Bounds,
+                    fontSize, font, InterfaceColor.White,
+                    new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center,
+                    VerticalAlignment.Top, false,
+                    label.Object.Name!);
             }
 
             foreach (var tl in tradelanes)
@@ -398,6 +467,8 @@ namespace LibreLancer.Interface
                 var posB = context.PointsToPixels(WorldToMap(tl.EndXZ));
                 drawList.DrawLine(Color4.CornflowerBlue, posA, posB);
             }
+
+            DrawSelectorMenu(context, drawList, rectNoScale);
 
             drawList.PopClip();
 
@@ -408,6 +479,292 @@ namespace LibreLancer.Interface
                 drawList.DrawRectangle(pRect, Color4.White, 1);
             }
 
+        }
+
+        private static int CompareLabels(
+            (DrawObject Object, RectangleF Bounds) a,
+            (DrawObject Object, RectangleF Bounds) b)
+        {
+            var priority = b.Object.LabelPriority.CompareTo(a.Object.LabelPriority);
+            return priority != 0 ? priority : b.Object.SolarRadius.CompareTo(a.Object.SolarRadius);
+        }
+
+        private bool IntersectsPlacedLabel(RectangleF bounds)
+        {
+            foreach (var placed in placedLabels)
+            {
+                if (Intersects(placed, bounds))
+                    return true;
+            }
+            return false;
+        }
+
+        private RectangleF GetMapRectangle(RectangleF parentRect, float gridIdentLineHeight)
+        {
+            if (!LetterMargin)
+                return parentRect;
+            return new RectangleF(parentRect.X + gridIdentLineHeight, parentRect.Y,
+                parentRect.Width - (2 * gridIdentLineHeight),
+                parentRect.Height - (2 * gridIdentLineHeight));
+        }
+
+        private void UpdateZoomAndDrag(UiContext context, RectangleF mapRect)
+        {
+            var mousePosition = new Vector2(context.MouseX, context.MouseY);
+            if (mouseDownOnMap && context.MouseLeftDown)
+            {
+                var mouseDelta = mousePosition - mouseDownPosition;
+                if (zoomed && !draggingMap &&
+                    (mouseDelta.Length() >= DragStartDistance ||
+                     context.GlobalTime - mouseDownTime >= DragStartDelay))
+                {
+                    draggingMap = true;
+                }
+
+                if (draggingMap)
+                {
+                    var delta = mousePosition - lastMousePosition;
+                    OffsetX -= delta.X;
+                    OffsetY -= delta.Y;
+                    targetOffset = new Vector2(OffsetX, OffsetY);
+                }
+            }
+            else
+            {
+                mouseDownOnMap = false;
+                draggingMap = false;
+            }
+
+            lastMousePosition = mousePosition;
+            UpdateSelectorMenuHover(context, mapRect);
+
+            var target = new Vector2(targetZoom, targetZoom);
+            var current = new Vector2(Zoom, Zoom);
+            var lerp = 1f - MathF.Exp(-ZoomAnimationRate * (float) context.DeltaTime);
+            current = Vector2.Lerp(current, target, lerp);
+            Zoom = MathF.Abs(current.X - targetZoom) < 0.001f ? targetZoom : current.X;
+
+            var offset = Vector2.Lerp(new Vector2(OffsetX, OffsetY), targetOffset, lerp);
+            OffsetX = offset.X;
+            OffsetY = offset.Y;
+            ClampOffset(mapRect);
+        }
+
+        private Vector2 ScreenToMapPosition(RectangleF mapRect, Vector2 point) =>
+            (point - new Vector2(mapRect.X, mapRect.Y) + new Vector2(OffsetX, OffsetY)) / Zoom;
+
+        private Vector2 MapToScreenPosition(RectangleF mapRect, Vector2 point) =>
+            new Vector2(mapRect.X, mapRect.Y) + (point * Zoom) - new Vector2(OffsetX, OffsetY);
+
+        private void ClampOffset(RectangleF mapRect)
+        {
+            ClampOffset(mapRect, Zoom);
+            ClampTargetOffset(mapRect, targetZoom);
+        }
+
+        private void ClampOffset(RectangleF mapRect, float zoom)
+        {
+            var maxX = MathF.Max(0, mapRect.Width * zoom - mapRect.Width);
+            var maxY = MathF.Max(0, mapRect.Height * zoom - mapRect.Height);
+            OffsetX = Math.Clamp(OffsetX, 0, maxX);
+            OffsetY = Math.Clamp(OffsetY, 0, maxY);
+        }
+
+        private void ClampTargetOffset(RectangleF mapRect, float zoom)
+        {
+            var maxX = MathF.Max(0, mapRect.Width * zoom - mapRect.Width);
+            var maxY = MathF.Max(0, mapRect.Height * zoom - mapRect.Height);
+            targetOffset.X = Math.Clamp(targetOffset.X, 0, maxX);
+            targetOffset.Y = Math.Clamp(targetOffset.Y, 0, maxY);
+        }
+
+        private void UpdateSelectorMenuHover(UiContext context, RectangleF mapRect)
+        {
+            if (selectorMapPosition == null || mouseDownOnMap)
+                return;
+
+            var selectorRect = Padded(SelectorRectangle(mapRect), SelectorMenuClosePadding);
+            var buttonRect = Padded(ZoomButtonRectangle(mapRect), SelectorMenuClosePadding);
+            if (!selectorRect.Contains(context.MouseX, context.MouseY) &&
+                !buttonRect.Contains(context.MouseX, context.MouseY))
+            {
+                selectorMapPosition = null;
+            }
+        }
+
+        private RectangleF SelectorRectangle(RectangleF mapRect)
+        {
+            if (selectorMapPosition is not { } selector)
+                return new RectangleF();
+            var selectorScreen = MapToScreenPosition(mapRect, selector);
+            return new RectangleF(
+                selectorScreen.X - (SelectorSize / 2),
+                selectorScreen.Y - (SelectorSize / 2),
+                SelectorSize,
+                SelectorSize);
+        }
+
+        private static RectangleF Padded(RectangleF rect, float padding) =>
+            new RectangleF(
+                rect.X - padding,
+                rect.Y - padding,
+                rect.Width + (2 * padding),
+                rect.Height + (2 * padding));
+
+        private RectangleF ZoomButtonRectangle(RectangleF mapRect)
+        {
+            if (selectorMapPosition is not { } selector)
+                return new RectangleF();
+            var selectorScreen = MapToScreenPosition(mapRect, selector);
+            return new RectangleF(
+                selectorScreen.X - ZoomButtonOffset - (ZoomButtonSize / 2),
+                selectorScreen.Y - (ZoomButtonSize / 2),
+                ZoomButtonSize,
+                ZoomButtonSize);
+        }
+
+        private void DrawSelectorMenu(UiContext context, DrawList2D drawList, RectangleF mapRect)
+        {
+            if (selectorMapPosition == null)
+                return;
+
+            selectorRenderable ??= ModelRenderable(
+                "nav_selector",
+                "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_selector.3db",
+                SelectorModelScale,
+                SelectorModelScale);
+            selectorRenderable.Draw(context, drawList, SelectorRectangle(mapRect));
+
+            var buttonRect = ZoomButtonRectangle(mapRect);
+            var zoomRenderable = zoomed ? GetZoomOutRenderable() : GetZoomInRenderable();
+            zoomRenderable.Draw(context, drawList, buttonRect);
+        }
+
+        private UiRenderable GetZoomInRenderable() =>
+            zoomInRenderable ??= ModelRenderable(
+                "nav_zoomin",
+                "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_zoomin.cmp",
+                ZoomButtonModelScale,
+                ZoomButtonModelScale);
+
+        private UiRenderable GetZoomOutRenderable() =>
+            zoomOutRenderable ??= ModelRenderable(
+                "nav_zoomout",
+                "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_zoomout.cmp",
+                ZoomButtonModelScale,
+                ZoomButtonModelScale);
+
+        private static UiRenderable ModelRenderable(string name, string path, float xscale, float yscale)
+        {
+            var renderable = new UiRenderable();
+            renderable.AddElement(new DisplayModel()
+            {
+                Model = new InterfaceModel()
+                {
+                    Name = name,
+                    Path = path,
+                    XScale = xscale,
+                    YScale = yscale
+                }
+            });
+            return renderable;
+        }
+
+        private static void PlayFirstAvailable(UiContext context, IReadOnlyList<string> sounds)
+        {
+            foreach (var sound in sounds)
+            {
+                if (context.Data.Sounds?.GetEntry(sound) != null)
+                {
+                    context.PlaySound(sound);
+                    return;
+                }
+            }
+            if (sounds.Count > 0)
+                context.PlaySound(sounds[^1]);
+        }
+
+        private void SetZoom(UiContext context, RectangleF mapRect, bool enabled)
+        {
+            zoomed = enabled;
+            targetZoom = enabled ? ZoomedScale : 1f;
+            if (enabled && selectorMapPosition is { } selector)
+            {
+                targetOffset = new Vector2(
+                    (selector.X * targetZoom) - (mapRect.Width / 2),
+                    (selector.Y * targetZoom) - (mapRect.Height / 2));
+                PlayFirstAvailable(context, ZoomInSounds);
+            }
+            else
+            {
+                targetOffset = Vector2.Zero;
+                PlayFirstAvailable(context, ZoomOutSounds);
+            }
+            ClampTargetOffset(mapRect, targetZoom);
+        }
+
+        public void ResetView()
+        {
+            selectorMapPosition = null;
+            zoomed = false;
+            Zoom = targetZoom = 1f;
+            OffsetX = OffsetY = 0;
+            targetOffset = Vector2.Zero;
+            mouseDownOnMap = false;
+            draggingMap = false;
+        }
+
+        public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
+        {
+            return GetMapRectangle(context, parentRectangle).Contains(x, y);
+        }
+
+        public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
+        {
+            var mapRect = GetMapRectangle(context, parentRectangle);
+            var mousePosition = new Vector2(context.MouseX, context.MouseY);
+            if (!mapRect.Contains(context.MouseX, context.MouseY))
+                return;
+
+            mouseDownOnMap = true;
+            draggingMap = false;
+            mouseDownPosition = mousePosition;
+            lastMousePosition = mousePosition;
+            mouseDownTime = context.GlobalTime;
+        }
+
+        public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
+        {
+            var mapRect = GetMapRectangle(context, parentRectangle);
+            if (!mapRect.Contains(context.MouseX, context.MouseY) || draggingMap)
+                return;
+
+            if (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
+            {
+                SetZoom(context, mapRect, !zoomed);
+                selectorMapPosition = null;
+                return;
+            }
+
+            selectorMapPosition = ScreenToMapPosition(mapRect, new Vector2(context.MouseX, context.MouseY));
+            context.PlaySound(SelectSound);
+        }
+
+        public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
+        {
+            mouseDownOnMap = false;
+            draggingMap = false;
+        }
+
+        private RectangleF GetMapRectangle(UiContext context, RectangleF parentRectangle)
+        {
+            var parentRect = GetMyRectangle(context, parentRectangle);
+            var gridIdentSize = 13 * (parentRect.Height / 480);
+            var gridIdentFont = context.Data.GetFont("$NavMap800");
+            var inputRatio = 480 / context.ViewportHeight;
+            var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
+                inputRatio + 3;
+            return GetMapRectangle(parentRect, lH);
         }
 
         private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
