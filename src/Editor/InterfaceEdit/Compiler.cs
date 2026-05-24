@@ -45,9 +45,9 @@ public static class Compiler
     private const string BOILERPLATE = @"
 local active = {}
 local _classes = {}
-function OpenScene(s)
+function OpenScene(s, ...)
 {
-    local w = _classes[s]['new']()
+    local w = _classes[s]['new'](...)
     SetActive(w)
 }
 

@@ -136,10 +136,17 @@ namespace LibreLancer.Interface
             script.Globals["Game"] = g;
         }
 
-        public void OpenScene(string scene)
+        public void OpenScene(string scene, params object[] args)
         {
             timers = [];
-            script.Call(_openscene, scene);
+            if (args is { Length: > 0 })
+            {
+                script.Call(_openscene, [scene, ..args]);
+            }
+            else
+            {
+                script.Call(_openscene, scene);
+            }
         }
 
         private double lastTime;
@@ -193,6 +200,7 @@ namespace LibreLancer.Interface
             }
             public void Timer(float time, object func) => c.Timer(time, func);
             public void PlaySound(string snd) => c.uiContext.PlaySound(snd);
+            public void LoadSound(string snd) => c.uiContext.LoadSound(snd);
             public void PlayVoiceLine(string voice, string line) => c.uiContext.PlayVoiceLine(voice, line);
             public void SetWidget(UiWidget widget) => c.uiContext.SetWidget(widget);
             public int OpenModalWidget(UiWidget widget) => c.uiContext.OpenModal(widget);

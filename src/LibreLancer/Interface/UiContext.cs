@@ -105,9 +105,9 @@ namespace LibreLancer.Interface
             lua.LoadMain();
         }
 
-        public void OpenScene(string scene)
+        public void OpenScene(string scene, params object[] args)
         {
-            lua.OpenScene(scene);
+            lua.OpenScene(scene, args);
         }
 
 
@@ -346,6 +346,11 @@ namespace LibreLancer.Interface
         public void PlaySound(string sound)
         {
             Data.Sounds?.PlayOneShot(sound);
+        }
+
+        public void LoadSound(string sound)
+        {
+            Data.Sounds?.LoadSound(sound);
         }
 
         public void PlayVoiceLine(string voice, string line)
