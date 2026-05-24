@@ -65,6 +65,14 @@ public class Project
         UiData.NavmapIcons = new NavmapIcons();
         UiData.OpenFolder(XmlFolder);
 
+        try
+        {
+            new DacomIni("exe\\dacom.ini", UiData.FileSystem);
+        }
+        catch
+        {
+
+        }
 
         try
         {

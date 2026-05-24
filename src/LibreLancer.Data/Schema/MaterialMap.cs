@@ -49,7 +49,7 @@ public class MaterialMap
     }
     public void AddRegex(StringKeyValue kv)
     {
-        regexmaps.Add (new MapEntry(new Regex (kv.Key), kv.Value));
+        regexmaps.Add (new MapEntry(new Regex (kv.Key, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant), kv.Value));
     }
 
     public void AddRegex(string k, string v)

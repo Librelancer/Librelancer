@@ -214,9 +214,9 @@ namespace LibreLancer.Utf.Mat
             type = MaterialMap.Instance.Get(type) ?? type;
             type = MaterialMap.Instance.Get(node.Name.ToLowerInvariant()) ?? type;
 
-            if (type is "HUDAnimMaterial" or "HUDIconMaterial" or "PlanetWaterMaterial")
+            if (type is "PlanetWaterMaterial")
             {
-                type = "DcDtOcOt"; // HACK: Should do env mapping
+                type = "DcDtOcOt"; // HACK: Figure out what this material should do
             }
 
             if (type == "ExclusionZoneMaterial")
@@ -244,6 +244,8 @@ namespace LibreLancer.Utf.Mat
                     case "NomadMaterial":
                     case "HighGlassMaterial":
                     case "GlassMaterial":
+                    case "HUDIconMaterial":
+                    case "HUDAnimMaterial":
                         break;
                     default:
                         throw new Exception("Invalid material type: " + type);
@@ -383,7 +385,9 @@ namespace LibreLancer.Utf.Mat
         {
             bool isGlass = type == "HighGlassMaterial" ||
                            type == "GlassMaterial";
-            if (isBasic || isGlass)
+            bool isHudMaterial = type == "HUDIconMaterial" ||
+                                 type == "HUDAnimMaterial";
+            if (isBasic || isGlass || isHudMaterial)
             {
                 var bm = new BasicMaterial(type, res);
                 _rmat = bm;
@@ -407,7 +411,7 @@ namespace LibreLancer.Utf.Mat
                 bm.Metallic = MFactor;
                 bm.Glass = isGlass;
                 bm.Library = res;
-                if (type.Contains("Ot") || bm.Glass)
+                if (type.Contains("Ot") || bm.Glass || isHudMaterial)
                     bm.AlphaEnabled = true;
                 if (type.Contains("Two"))
                     bm.DoubleSided = true;
