@@ -114,4 +114,12 @@ namespace LibreLancer.Interface
         public float TrackMarginY { get; set; }
         public float Height { get; set; }
     }
+
+    [UiLoadable]
+    [WattleScriptUserData]
+    public class NavmapStyle : XmlStyle
+    {
+        public ButtonStyle? ZoomInButton { get; set; }
+        public ButtonStyle? ZoomOutButton { get; set; }
+    }
 }

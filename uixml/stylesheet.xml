@@ -499,6 +499,42 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
+    <NavmapStyle>
+	<NavmapStyle.ZoomInButton Width="17" Height="17" MouseDownSound="ui_item_select">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayModel model="nav_zoomin"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayModel model="nav_zoomin" Tint="text_hover"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+            <ButtonStyle.Pressed>
+                <ButtonAppearance.Background>
+                    <DisplayModel model="nav_zoomin" Tint="yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Pressed>
+        </NavmapStyle.ZoomInButton>
+	<NavmapStyle.ZoomOutButton Width="17" Height="17" MouseDownSound="ui_item_select">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayModel model="nav_zoomout"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayModel model="nav_zoomout" Tint="text_hover"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+            <ButtonStyle.Pressed>
+                <ButtonAppearance.Background>
+                    <DisplayModel model="nav_zoomout" Tint="yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Pressed>
+        </NavmapStyle.ZoomOutButton>
+    </NavmapStyle>
 	<!-- Menu -->
 	<ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
 		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">

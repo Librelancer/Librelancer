@@ -63,29 +63,28 @@ namespace LibreLancer.Interface
         private const float MinimumObjectIconSize = 8f;
         private const float LabelCollisionPadding = 2f;
         private const float SelectorSize = 14f;
-        private const float ZoomButtonSize = 44f;
         private const float ZoomButtonOffset = 16f;
         private const float SelectorModelScale = 64f;
-        private const float ZoomButtonModelScale = 32f;
         private const float SelectorMenuClosePadding = 8f;
         private const float ZoomedScale = 4f;
-        private const float ZoomAnimationRate = 10f;
+        private const float ZoomAnimationDuration = 1.5f;
         private const float DragStartDelay = 0.5f;
         private const float DragStartDistance = 3f;
         private const string SelectSound = "ui_item_select";
-        private static readonly string[] ZoomInSounds = ["ui_map_zoom_in", "ui_zoom_in", SelectSound];
-        private static readonly string[] ZoomOutSounds = ["ui_map_zoom_out", "ui_zoom_out", SelectSound];
         private string systemName = "";
 
         private UiRenderable? selectorRenderable;
-        private UiRenderable? zoomInRenderable;
-        private UiRenderable? zoomOutRenderable;
+        private readonly Button zoomInButton = new();
+        private readonly Button zoomOutButton = new();
         private readonly List<(DrawObject Object, RectangleF Bounds)> labelCandidates = [];
         private readonly List<RectangleF> placedLabels = [];
         private Vector2? selectorMapPosition;
         private bool zoomed;
         private float targetZoom = 1f;
         private Vector2 targetOffset;
+        private float startZoom = 1f;
+        private Vector2 startOffset;
+        private float zoomAnimationTime = ZoomAnimationDuration;
         private bool mouseDownOnMap;
         private bool draggingMap;
         private Vector2 mouseDownPosition;
@@ -95,6 +94,8 @@ namespace LibreLancer.Interface
         public bool LetterMargin { get; set; } = false;
 
         public bool MapBorder { get; set; } = false;
+
+        [WattleScriptHidden] public NavmapStyle? Style;
 
         private VertexBuffer vbo = null!;
 
@@ -109,6 +110,14 @@ namespace LibreLancer.Interface
         public void SetVisitFunction(Func<uint, bool> isVisited)
         {
             this.isVisited = isVisited;
+        }
+
+        public override void ApplyStylesheet(Stylesheet stylesheet)
+        {
+            base.ApplyStylesheet(stylesheet);
+            Style = stylesheet.Lookup<NavmapStyle>(null);
+            zoomInButton.SetStyle(Style?.ZoomInButton);
+            zoomOutButton.SetStyle(Style?.ZoomOutButton);
         }
 
         public void PopulateIcons(UiContext ctx, StarSystem sys)
@@ -240,12 +249,6 @@ namespace LibreLancer.Interface
             ArchetypeType.sun => 40,
             _ => 0
         };
-
-        private static bool Intersects(RectangleF a, RectangleF b) =>
-            a.X < b.X + b.Width &&
-            a.X + a.Width > b.X &&
-            a.Y < b.Y + b.Height &&
-            a.Y + a.Height > b.Y;
 
         private static readonly string[] GRIDNUMBERS =
         [
@@ -493,7 +496,7 @@ namespace LibreLancer.Interface
         {
             foreach (var placed in placedLabels)
             {
-                if (Intersects(placed, bounds))
+                if (placed.Intersects(bounds))
                     return true;
             }
             return false;
@@ -538,15 +541,24 @@ namespace LibreLancer.Interface
             lastMousePosition = mousePosition;
             UpdateSelectorMenuHover(context, mapRect);
 
-            var target = new Vector2(targetZoom, targetZoom);
-            var current = new Vector2(Zoom, Zoom);
-            var lerp = 1f - MathF.Exp(-ZoomAnimationRate * (float) context.DeltaTime);
-            current = Vector2.Lerp(current, target, lerp);
-            Zoom = MathF.Abs(current.X - targetZoom) < 0.001f ? targetZoom : current.X;
-
-            var offset = Vector2.Lerp(new Vector2(OffsetX, OffsetY), targetOffset, lerp);
-            OffsetX = offset.X;
-            OffsetY = offset.Y;
+            if (zoomAnimationTime < ZoomAnimationDuration)
+            {
+                zoomAnimationTime = MathF.Min(
+                    ZoomAnimationDuration,
+                    zoomAnimationTime + (float) context.DeltaTime);
+                var t = zoomAnimationTime / ZoomAnimationDuration;
+                t = t * t * (3 - (2 * t));
+                Zoom = MathHelper.Lerp(startZoom, targetZoom, t);
+                var offset = Vector2.Lerp(startOffset, targetOffset, t);
+                OffsetX = offset.X;
+                OffsetY = offset.Y;
+            }
+            else
+            {
+                Zoom = targetZoom;
+                OffsetX = targetOffset.X;
+                OffsetY = targetOffset.Y;
+            }
             ClampOffset(mapRect);
         }
 
@@ -616,12 +628,18 @@ namespace LibreLancer.Interface
             if (selectorMapPosition is not { } selector)
                 return new RectangleF();
             var selectorScreen = MapToScreenPosition(mapRect, selector);
+            var button = ActiveZoomButton;
+            var dimensions = button.GetDimensions();
+            button.X = selectorScreen.X - mapRect.X - ZoomButtonOffset - (dimensions.X / 2);
+            button.Y = selectorScreen.Y - mapRect.Y - (dimensions.Y / 2);
             return new RectangleF(
-                selectorScreen.X - ZoomButtonOffset - (ZoomButtonSize / 2),
-                selectorScreen.Y - (ZoomButtonSize / 2),
-                ZoomButtonSize,
-                ZoomButtonSize);
+                mapRect.X + button.X,
+                mapRect.Y + button.Y,
+                dimensions.X,
+                dimensions.Y);
         }
+
+        private Button ActiveZoomButton => zoomed ? zoomOutButton : zoomInButton;
 
         private void DrawSelectorMenu(UiContext context, DrawList2D drawList, RectangleF mapRect)
         {
@@ -635,24 +653,9 @@ namespace LibreLancer.Interface
                 SelectorModelScale);
             selectorRenderable.Draw(context, drawList, SelectorRectangle(mapRect));
 
-            var buttonRect = ZoomButtonRectangle(mapRect);
-            var zoomRenderable = zoomed ? GetZoomOutRenderable() : GetZoomInRenderable();
-            zoomRenderable.Draw(context, drawList, buttonRect);
+            ZoomButtonRectangle(mapRect);
+            ActiveZoomButton.Render(context, drawList, mapRect);
         }
-
-        private UiRenderable GetZoomInRenderable() =>
-            zoomInRenderable ??= ModelRenderable(
-                "nav_zoomin",
-                "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_zoomin.cmp",
-                ZoomButtonModelScale,
-                ZoomButtonModelScale);
-
-        private UiRenderable GetZoomOutRenderable() =>
-            zoomOutRenderable ??= ModelRenderable(
-                "nav_zoomout",
-                "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_zoomout.cmp",
-                ZoomButtonModelScale,
-                ZoomButtonModelScale);
 
         private static UiRenderable ModelRenderable(string name, string path, float xscale, float yscale)
         {
@@ -670,35 +673,22 @@ namespace LibreLancer.Interface
             return renderable;
         }
 
-        private static void PlayFirstAvailable(UiContext context, IReadOnlyList<string> sounds)
-        {
-            foreach (var sound in sounds)
-            {
-                if (context.Data.Sounds?.GetEntry(sound) != null)
-                {
-                    context.PlaySound(sound);
-                    return;
-                }
-            }
-            if (sounds.Count > 0)
-                context.PlaySound(sounds[^1]);
-        }
-
-        private void SetZoom(UiContext context, RectangleF mapRect, bool enabled)
+        private void SetZoom(RectangleF mapRect, bool enabled)
         {
             zoomed = enabled;
+            startZoom = Zoom;
+            startOffset = new Vector2(OffsetX, OffsetY);
+            zoomAnimationTime = 0;
             targetZoom = enabled ? ZoomedScale : 1f;
             if (enabled && selectorMapPosition is { } selector)
             {
                 targetOffset = new Vector2(
                     (selector.X * targetZoom) - (mapRect.Width / 2),
                     (selector.Y * targetZoom) - (mapRect.Height / 2));
-                PlayFirstAvailable(context, ZoomInSounds);
             }
             else
             {
                 targetOffset = Vector2.Zero;
-                PlayFirstAvailable(context, ZoomOutSounds);
             }
             ClampTargetOffset(mapRect, targetZoom);
         }
@@ -708,21 +698,33 @@ namespace LibreLancer.Interface
             selectorMapPosition = null;
             zoomed = false;
             Zoom = targetZoom = 1f;
+            startZoom = 1f;
             OffsetX = OffsetY = 0;
-            targetOffset = Vector2.Zero;
+            startOffset = targetOffset = Vector2.Zero;
+            zoomAnimationTime = ZoomAnimationDuration;
             mouseDownOnMap = false;
             draggingMap = false;
+            zoomInButton.HeldDown = zoomInButton.Dragging = false;
+            zoomOutButton.HeldDown = zoomOutButton.Dragging = false;
         }
 
         public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
         {
-            return GetMapRectangle(context, parentRectangle).Contains(x, y);
+            var mapRect = GetMapRectangle(context, parentRectangle);
+            return mapRect.Contains(x, y) ||
+                   (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(x, y));
         }
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
         {
             var mapRect = GetMapRectangle(context, parentRectangle);
             var mousePosition = new Vector2(context.MouseX, context.MouseY);
+            if (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
+            {
+                ActiveZoomButton.OnMouseDown(context, mapRect);
+                return;
+            }
+
             if (!mapRect.Contains(context.MouseX, context.MouseY))
                 return;
 
@@ -736,15 +738,18 @@ namespace LibreLancer.Interface
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
             var mapRect = GetMapRectangle(context, parentRectangle);
-            if (!mapRect.Contains(context.MouseX, context.MouseY) || draggingMap)
+            if (draggingMap)
                 return;
 
             if (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
             {
-                SetZoom(context, mapRect, !zoomed);
+                SetZoom(mapRect, !zoomed);
                 selectorMapPosition = null;
                 return;
             }
+
+            if (!mapRect.Contains(context.MouseX, context.MouseY))
+                return;
 
             selectorMapPosition = ScreenToMapPosition(mapRect, new Vector2(context.MouseX, context.MouseY));
             context.PlaySound(SelectSound);
@@ -752,6 +757,9 @@ namespace LibreLancer.Interface
 
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
+            var mapRect = GetMapRectangle(context, parentRectangle);
+            zoomInButton.OnMouseUp(context, mapRect);
+            zoomOutButton.OnMouseUp(context, mapRect);
             mouseDownOnMap = false;
             draggingMap = false;
         }
