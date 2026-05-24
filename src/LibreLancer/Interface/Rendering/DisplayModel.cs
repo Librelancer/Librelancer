@@ -20,7 +20,7 @@ namespace LibreLancer.Interface
 
     public class MaterialModification
     {
-        public static List<ModifiedMaterial> Setup(RigidModel model, ResourceManager res)
+        public static List<ModifiedMaterial> Setup(RigidModel model, ResourceManager res, bool forceTint)
         {
             var mats = new List<ModifiedMaterial>();
             foreach (var p in model.AllParts)
@@ -42,6 +42,8 @@ namespace LibreLancer.Interface
                         var mat = dc.GetMaterial(res)?.Render;
                         if (mat is BasicMaterial bm)
                         {
+                            if (!forceTint && bm.Type != "HUDIconMaterial")
+                                continue;
                             if (mats.Any(x => x.Mat == bm))
                             {
                                 continue;
@@ -63,6 +65,7 @@ namespace LibreLancer.Interface
     {
         public InterfaceModel? Model { get; set; }
         public InterfaceColor? Tint { get; set; }
+        public bool ForceTint { get; set; } = false;
 
         public Vector3 Rotate { get; set; }
         public Vector3 RotateAnimation { get; set; }
@@ -223,7 +226,7 @@ namespace LibreLancer.Interface
 
                 if (Tint != null)
                 {
-                    mats = MaterialModification.Setup(model, context.Data.ResourceManager);
+                    mats = MaterialModification.Setup(model, context.Data.ResourceManager, ForceTint);
                 }
             }
 
