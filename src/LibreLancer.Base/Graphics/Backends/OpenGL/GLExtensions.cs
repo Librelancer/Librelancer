@@ -63,9 +63,6 @@ internal static class GLExtensions
             if(_baseVertex == null)
             {
                 PopulateExtensions();
-                _baseVertex = GL.GLES || ExtensionList!.Contains("GL_ARB_draw_elements_base_vertex");
-                if (_baseVertex.Value) FLLog.Info("GL", "drawElementsBaseVertex available");
-                else FLLog.Info("GL", "drawElementsBaseVertex unavailable, expect performance degradation.");
             }
             return _baseVertex.Value;
         }
@@ -80,9 +77,6 @@ internal static class GLExtensions
             if (_glFenceSync == null)
             {
                 PopulateExtensions();
-                _glFenceSync = GL.GLES || ExtensionList!.Contains("GL_ARB_sync");
-                if (_glFenceSync.Value) FLLog.Info("GL", "Fences available");
-                else FLLog.Info("OpenGL", "Fences not available, falling back to synchronous texture download.");
             }
             return _glFenceSync.Value;
         }
@@ -103,14 +97,24 @@ internal static class GLExtensions
 
         FLLog.Info("GL", "Extensions: \n" + string.Join(", ", ExtensionList));
         s3tc = ExtensionList.Contains("GL_EXT_texture_compression_s3tc");
-        // RGTC support is core in Desktop GL (at least the extension is not reported on macOS)
-        rgtc = !GL.GLES || ExtensionList.Contains("GL_EXT_texture_compression_rgtc");
+        // RGTC is supported on all GL4 desktop hardware (at least the extension is not reported on macOS)
+        rgtc = (s3tc && GL.DesktopGL4) || ExtensionList.Contains("GL_EXT_texture_compression_rgtc");
         debugInfo = ExtensionList.Contains("GL_KHR_debug");
 
         if (debugInfo)
             FLLog.Info("GL", "KHR_debug supported");
 
         FLLog.Info("GL", s3tc ? "S3TC extension supported" : "S3TC extension not supported");
+
+        // Check Desktop GL 4.0 version as macOS does not report core extensions
+        _glFenceSync = GL.DesktopGL4 || GL.GLES || ExtensionList!.Contains("GL_ARB_sync");
+        if (_glFenceSync.Value) FLLog.Info("GL", "Fences available");
+        else FLLog.Info("OpenGL", "Fences not available, falling back to synchronous texture download.");
+
+        _baseVertex = GL.DesktopGL4 || GL.GLES || ExtensionList!.Contains("GL_ARB_draw_elements_base_vertex");
+        if (_baseVertex.Value) FLLog.Info("GL", "drawElementsBaseVertex available");
+        else FLLog.Info("GL", "drawElementsBaseVertex unavailable, expect performance degradation.");
+
         if (!GL.GLES)
         {
             return;

@@ -90,7 +90,9 @@ internal static unsafe partial class GL
         IntPtr userparam);
 
     public static bool GLES = false;
+    public static bool DesktopGL4 = false;
     public static bool GL430 = false;
+
     private static Dictionary<int, string> errors = null!;
     public static bool ErrorChecking = false;
 
@@ -146,6 +148,7 @@ internal static unsafe partial class GL
         FLLog.Info("GL", "Version String: " + GetString(GL_VERSION));
         if (checkGles) return str.StartsWith("OpenGL ES 3");
         var major = int.Parse(str[0].ToString());
+        DesktopGL4 = major >= 4;
         return major >= 3;
     }
 
