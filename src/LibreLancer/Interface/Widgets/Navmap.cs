@@ -68,10 +68,21 @@ namespace LibreLancer.Interface
         private const float SelectorMenuClosePadding = 8f;
         private const float ZoomedScale = 4f;
         private const float ZoomAnimationDuration = 1.5f;
+        private const float SectorFadeOutDuration = 0.35f;
+        private const float SectorFadeInDuration = 0.35f;
+        private const string SectorMapTexture = "fancymap.tga";
         private const float DragStartDelay = 0.5f;
         private const float DragStartDistance = 3f;
         private const string SelectSound = "ui_item_select";
         private string systemName = "";
+
+        private enum SectorViewState
+        {
+            System,
+            FadingSystemOut,
+            FadingSectorIn,
+            Sector
+        }
 
         private readonly Button selectorButton = new();
         private readonly Button zoomInButton = new();
@@ -92,6 +103,9 @@ namespace LibreLancer.Interface
         private Vector2 mouseDownPosition;
         private Vector2 lastMousePosition;
         private double mouseDownTime;
+        private SectorViewState sectorViewState;
+        private float sectorTransitionTime;
+        private UiRenderable? sectorBackground;
 
         public bool LetterMargin { get; set; } = false;
 
@@ -295,33 +309,48 @@ namespace LibreLancer.Interface
                 inputRatio + 3;
             RectangleF rectNoScale = GetMapRectangle(parentRect, lH);
 
-            UpdateZoomAndDrag(context, rectNoScale);
+            UpdateSectorTransition(context);
+            if (sectorViewState == SectorViewState.System)
+            {
+                UpdateZoomAndDrag(context, rectNoScale);
+            }
+            else
+            {
+                mouseDownOnMap = false;
+                draggingMap = false;
+                UpdateZoomAnimation(context, rectNoScale);
+            }
 
             var allClip = context.PointsToPixels(parentRect);
             if (!drawList.PushClip(allClip))
                 return;
 
-            // Draw Letters
-            var rHoriz = rectNoScale.Width / 8;
-            var rVert = rectNoScale.Height / 8;
+            var systemAlpha = SystemAlpha();
+            var sectorAlpha = SectorAlpha();
             int jj = 0;
-
-            for (int i = 0; i < 8; i++)
+            if (systemAlpha > 0)
             {
-                var renNum = GRIDNUMBERS[i];
-                var renLet = GRIDLETTERS[i];
-                var hOff = (rHoriz * i);
-                RectangleF letterRect = new RectangleF(rectNoScale.X + (hOff * Zoom) - OffsetX,
-                    rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
-                DrawText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
-                    new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
-                    false, renLet);
-                var vOff = (rVert * i);
-                var numRect = new RectangleF(rectNoScale.X - lH, rectNoScale.Y + (vOff * Zoom) - OffsetY, lH,
-                    rVert * Zoom);
-                DrawText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
-                    new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
-                    false, renNum);
+                // Draw Letters
+                var rHoriz = rectNoScale.Width / 8;
+                var rVert = rectNoScale.Height / 8;
+
+                for (int i = 0; i < 8; i++)
+                {
+                    var renNum = GRIDNUMBERS[i];
+                    var renLet = GRIDLETTERS[i];
+                    var hOff = (rHoriz * i);
+                    RectangleF letterRect = new RectangleF(rectNoScale.X + (hOff * Zoom) - OffsetX,
+                        rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
+                    DrawText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                        new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
+                        false, renLet, systemAlpha);
+                    var vOff = (rVert * i);
+                    var numRect = new RectangleF(rectNoScale.X - lH, rectNoScale.Y + (vOff * Zoom) - OffsetY, lH,
+                        rVert * Zoom);
+                    DrawText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                        new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
+                        false, renNum, systemAlpha);
+                }
             }
 
             drawList.PopClip();
@@ -331,9 +360,27 @@ namespace LibreLancer.Interface
             rect.Height *= Zoom;
 
             var scale = new Vector2(GridSizeDefault / (navmapscale == 0 ? 1 : navmapscale));
-            var background = context.Data.NavmapIcons.GetBackground();
-            background.DrawWithClip(context, drawList,
-                new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height), rectNoScale);
+            if (systemAlpha > 0)
+            {
+                var background = context.Data.NavmapIcons.GetBackground();
+                DrawRenderableWithAlpha(background, context, drawList,
+                    new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height), rectNoScale, systemAlpha);
+            }
+
+            if (sectorAlpha > 0)
+            {
+                DrawRenderableWithAlpha(GetSectorBackground(), context, drawList, rectNoScale, rectNoScale, sectorAlpha);
+            }
+
+            if (systemAlpha <= 0)
+            {
+                if (MapBorder)
+                {
+                    var pRect = context.PointsToPixels(rectNoScale);
+                    drawList.DrawRectangle(pRect, new Color4(1, 1, 1, sectorAlpha), 1);
+                }
+                return;
+            }
 
             // Draw Zones
             Vector2 WorldToMap(Vector2 a)
@@ -377,7 +424,9 @@ namespace LibreLancer.Interface
                     context.RenderContext.Textures[0] = texture;
                     context.RenderContext.Samplers[0] =
                         new(context.RenderContext.PreferredFilterLevel, WrapMode.Repeat, WrapMode.Repeat);
-                    zoneShader.SetUniformBlock(4, ref zone.Tint);
+                    var tint = zone.Tint;
+                    tint.A *= systemAlpha;
+                    zoneShader.SetUniformBlock(4, ref tint);
                     var dim = zone.Zone.Shape == ShapeKind.Sphere
                         ? new Vector2(zone.Zone.Size.X)
                         : new Vector2(zone.Zone.Size.X, zone.Zone.Size.Z);
@@ -408,7 +457,7 @@ namespace LibreLancer.Interface
                 var sysNameSize = 16f * (parentRect.Height / 480);
                 DrawText(context, drawList, ref systemNameCache, rectNoScale, sysNameSize, sysNameFont, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center,
-                    VerticalAlignment.Bottom, false, systemName);
+                    VerticalAlignment.Bottom, false, systemName, systemAlpha);
             }
 
             if (!drawList.PushClip(zoneclip))
@@ -435,7 +484,7 @@ namespace LibreLancer.Interface
                 if (obj.Renderable != null)
                 {
                     var objRect = new RectangleF(posAbs.X - originIcon, posAbs.Y - originIcon, szIcon, szIcon);
-                    obj.Renderable.Draw(context, drawList, objRect);
+                    DrawRenderableWithAlpha(obj.Renderable, context, drawList, objRect, systemAlpha);
                 }
 
                 if (!string.IsNullOrWhiteSpace(obj.Name))
@@ -471,17 +520,20 @@ namespace LibreLancer.Interface
                     fontSize, font, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center,
                     VerticalAlignment.Top, false,
-                    label.Object.Name!);
+                    label.Object.Name!, systemAlpha);
             }
 
             foreach (var tl in tradelanes)
             {
                 var posA = context.PointsToPixels(WorldToMap(tl.StartXZ));
                 var posB = context.PointsToPixels(WorldToMap(tl.EndXZ));
-                drawList.DrawLine(Color4.CornflowerBlue, posA, posB);
+                var color = Color4.CornflowerBlue;
+                color.A *= systemAlpha;
+                drawList.DrawLine(color, posA, posB);
             }
 
-            DrawSelectorMenu(context, drawList, rectNoScale);
+            if (sectorViewState == SectorViewState.System)
+                DrawSelectorMenu(context, drawList, rectNoScale);
 
             drawList.PopClip();
 
@@ -489,9 +541,139 @@ namespace LibreLancer.Interface
             if (MapBorder)
             {
                 var pRect = context.PointsToPixels(rectNoScale);
-                drawList.DrawRectangle(pRect, Color4.White, 1);
+                drawList.DrawRectangle(pRect, new Color4(1, 1, 1, systemAlpha), 1);
             }
 
+        }
+
+        private UiRenderable GetSectorBackground()
+        {
+            if (sectorBackground != null)
+                return sectorBackground;
+
+            sectorBackground = new UiRenderable();
+            sectorBackground.AddElement(new DisplayImage()
+            {
+                Image = new InterfaceImage()
+                {
+                    TexName = SectorMapTexture
+                }
+            });
+            return sectorBackground;
+        }
+
+        private static void DrawRenderableWithAlpha(
+            UiRenderable renderable,
+            UiContext context,
+            DrawList2D drawList,
+            RectangleF rectangle,
+            float alpha)
+        {
+            DrawRenderableWithAlpha(renderable, context, drawList, rectangle, null, alpha);
+        }
+
+        private static void DrawRenderableWithAlpha(
+            UiRenderable renderable,
+            UiContext context,
+            DrawList2D drawList,
+            RectangleF rectangle,
+            RectangleF clip,
+            float alpha)
+        {
+            DrawRenderableWithAlpha(renderable, context, drawList, rectangle, (RectangleF?)clip, alpha);
+        }
+
+        private static void DrawRenderableWithAlpha(
+            UiRenderable renderable,
+            UiContext context,
+            DrawList2D drawList,
+            RectangleF rectangle,
+            RectangleF? clip,
+            float alpha)
+        {
+            if (alpha >= 1f)
+            {
+                if (clip.HasValue)
+                    renderable.DrawWithClip(context, drawList, rectangle, clip.Value);
+                else
+                    renderable.Draw(context, drawList, rectangle);
+                return;
+            }
+
+            if (alpha <= 0)
+                return;
+
+            var restore = new List<(DisplayElement Element, InterfaceColor? Tint)>();
+            foreach (var element in renderable.Elements)
+            {
+                switch (element)
+                {
+                    case DisplayImage image:
+                        restore.Add((element, image.Tint));
+                        image.Tint = (image.Tint ?? InterfaceColor.White).SetAlpha(alpha);
+                        break;
+                    case DisplayModel model:
+                        restore.Add((element, model.Tint));
+                        model.Tint = (model.Tint ?? InterfaceColor.White).SetAlpha(alpha);
+                        break;
+                }
+            }
+
+            if (clip.HasValue)
+                renderable.DrawWithClip(context, drawList, rectangle, clip.Value);
+            else
+                renderable.Draw(context, drawList, rectangle);
+
+            foreach (var (element, tint) in restore)
+            {
+                switch (element)
+                {
+                    case DisplayImage image:
+                        image.Tint = tint;
+                        break;
+                    case DisplayModel model:
+                        model.Tint = tint;
+                        break;
+                }
+            }
+        }
+
+        private float SystemAlpha() => sectorViewState switch
+        {
+            SectorViewState.FadingSystemOut => 1f - MathHelper.Clamp(
+                sectorTransitionTime / SectorFadeOutDuration, 0f, 1f),
+            SectorViewState.FadingSectorIn or SectorViewState.Sector => 0f,
+            _ => 1f
+        };
+
+        private float SectorAlpha() => sectorViewState switch
+        {
+            SectorViewState.FadingSectorIn => MathHelper.Clamp(
+                sectorTransitionTime / SectorFadeInDuration, 0f, 1f),
+            SectorViewState.Sector => 1f,
+            _ => 0f
+        };
+
+        private void UpdateSectorTransition(UiContext context)
+        {
+            if (sectorViewState != SectorViewState.FadingSystemOut &&
+                sectorViewState != SectorViewState.FadingSectorIn)
+                return;
+
+            sectorTransitionTime += (float)context.DeltaTime;
+            if (sectorViewState == SectorViewState.FadingSystemOut &&
+                sectorTransitionTime >= SectorFadeOutDuration)
+            {
+                ResetZoomInstant();
+                sectorViewState = SectorViewState.FadingSectorIn;
+                sectorTransitionTime = 0f;
+            }
+            else if (sectorViewState == SectorViewState.FadingSectorIn &&
+                     sectorTransitionTime >= SectorFadeInDuration)
+            {
+                sectorViewState = SectorViewState.Sector;
+                sectorTransitionTime = SectorFadeInDuration;
+            }
         }
 
         private static int CompareLabels(
@@ -550,7 +732,11 @@ namespace LibreLancer.Interface
 
             lastMousePosition = mousePosition;
             UpdateSelectorMenuHover(context, mapRect);
+            UpdateZoomAnimation(context, mapRect);
+        }
 
+        private void UpdateZoomAnimation(UiContext context, RectangleF mapRect)
+        {
             if (zoomAnimationTime < ZoomAnimationDuration)
             {
                 zoomAnimationTime = MathF.Min(
@@ -700,6 +886,9 @@ namespace LibreLancer.Interface
 
         private void SetZoom(RectangleF mapRect, bool enabled)
         {
+            if (sectorViewState != SectorViewState.System)
+                return;
+
             zoomed = enabled;
             startZoom = Zoom;
             startOffset = new Vector2(OffsetX, OffsetY);
@@ -718,7 +907,19 @@ namespace LibreLancer.Interface
             ClampTargetOffset(mapRect, targetZoom);
         }
 
-        public void ResetView()
+        public void ShowSectorView()
+        {
+            if (sectorViewState != SectorViewState.System)
+                return;
+
+            selectorMapPosition = null;
+            mouseDownOnMap = false;
+            draggingMap = false;
+            sectorViewState = SectorViewState.FadingSystemOut;
+            sectorTransitionTime = 0f;
+        }
+
+        private void ResetZoomInstant()
         {
             selectorMapPosition = null;
             zoomed = false;
@@ -734,8 +935,18 @@ namespace LibreLancer.Interface
             addWaypointButton.HeldDown = addWaypointButton.Dragging = false;
         }
 
+        public void ResetView()
+        {
+            sectorViewState = SectorViewState.System;
+            sectorTransitionTime = 0f;
+            ResetZoomInstant();
+        }
+
         public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
         {
+            if (sectorViewState != SectorViewState.System)
+                return false;
+
             var mapRect = GetMapRectangle(context, parentRectangle);
             return mapRect.Contains(x, y) ||
                    (selectorMapPosition.HasValue &&
@@ -745,6 +956,9 @@ namespace LibreLancer.Interface
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
         {
+            if (sectorViewState != SectorViewState.System)
+                return;
+
             var mapRect = GetMapRectangle(context, parentRectangle);
             var mousePosition = new Vector2(context.MouseX, context.MouseY);
             if (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
@@ -771,6 +985,9 @@ namespace LibreLancer.Interface
 
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
+            if (sectorViewState != SectorViewState.System)
+                return;
+
             var mapRect = GetMapRectangle(context, parentRectangle);
             if (draggingMap)
                 return;
@@ -798,6 +1015,9 @@ namespace LibreLancer.Interface
 
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
+            if (sectorViewState != SectorViewState.System)
+                return;
+
             var mapRect = GetMapRectangle(context, parentRectangle);
             zoomInButton.OnMouseUp(context, mapRect);
             zoomOutButton.OnMouseUp(context, mapRect);

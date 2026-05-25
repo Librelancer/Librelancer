@@ -8,6 +8,7 @@ class mapwindow : mapwindow_Designer with ChildWindow
         this.ChildWindowInit();
         this.OnChildOpen = () => this.ResetNavmap();
         this.Elements.exit.OnClick(() => this.Close());
+        this.Elements.universebutton.OnClick(() => this.Elements.navmap.ShowSectorView());
     }
     InitMap()
     {
