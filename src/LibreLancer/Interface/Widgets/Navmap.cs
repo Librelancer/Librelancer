@@ -17,6 +17,18 @@ using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
+    public readonly struct NavmapWaypoint
+    {
+        public readonly Vector3 Position;
+        public readonly int Number;
+
+        public NavmapWaypoint(Vector3 position, int number)
+        {
+            Position = position;
+            Number = number;
+        }
+    }
+
     [UiLoadable]
     [WattleScriptUserData]
     public class Navmap : UiWidget
@@ -70,7 +82,6 @@ namespace LibreLancer.Interface
         private const float ZoomAnimationDuration = 1.5f;
         private const float SectorFadeOutDuration = 0.35f;
         private const float SectorFadeInDuration = 0.35f;
-        private const string SectorMapTexture = "fancymap.tga";
         private const float DragStartDelay = 0.5f;
         private const float DragStartDistance = 3f;
         private const string SelectSound = "ui_item_select";
@@ -90,8 +101,13 @@ namespace LibreLancer.Interface
         private readonly Button addWaypointButton = new();
         private readonly List<(DrawObject Object, RectangleF Bounds)> labelCandidates = [];
         private readonly List<RectangleF> placedLabels = [];
+        private readonly List<NavmapWaypoint> userWaypoints = [];
+        private readonly Dictionary<int, UiRenderable> userWaypointDigits = [];
         private Vector2? selectorMapPosition;
+        private Func<Vector3>? playerPositionProvider;
+        private Action<List<NavmapWaypoint>>? userWaypointProvider;
         private Action<Vector3>? addWaypoint;
+        private UiRenderable? userWaypointDiamond;
         private bool zoomed;
         private float targetZoom = 1f;
         private Vector2 targetOffset;
@@ -134,6 +150,22 @@ namespace LibreLancer.Interface
             this.addWaypoint = addWaypoint;
         }
 
+        [WattleScriptHidden]
+        public void SetPlayerPositionProvider(Func<Vector3>? playerPositionProvider)
+        {
+            this.playerPositionProvider = playerPositionProvider;
+        }
+
+        [WattleScriptHidden]
+        public void SetUserWaypointProvider(Action<List<NavmapWaypoint>>? userWaypointProvider)
+        {
+            this.userWaypointProvider = userWaypointProvider;
+            if (userWaypointProvider == null)
+            {
+                userWaypoints.Clear();
+            }
+        }
+
         public override void ApplyStylesheet(Stylesheet stylesheet)
         {
             base.ApplyStylesheet(stylesheet);
@@ -142,6 +174,8 @@ namespace LibreLancer.Interface
             zoomInButton.SetStyle(Style?.ZoomInButton);
             zoomOutButton.SetStyle(Style?.ZoomOutButton);
             addWaypointButton.SetStyle(Style?.AddWaypointButton);
+            userWaypointDiamond = null;
+            userWaypointDigits.Clear();
         }
 
         public void PopulateIcons(UiContext ctx, StarSystem sys)
@@ -369,7 +403,7 @@ namespace LibreLancer.Interface
 
             if (sectorAlpha > 0)
             {
-                DrawRenderableWithAlpha(GetSectorBackground(), context, drawList, rectNoScale, rectNoScale, sectorAlpha);
+                DrawRenderableWithAlpha(GetSectorBackground(context), context, drawList, rectNoScale, rectNoScale, sectorAlpha);
             }
 
             if (systemAlpha <= 0)
@@ -532,6 +566,8 @@ namespace LibreLancer.Interface
                 drawList.DrawLine(color, posA, posB);
             }
 
+            DrawUserWaypointRoute(context, drawList, WorldToMap, systemAlpha);
+
             if (sectorViewState == SectorViewState.System)
                 DrawSelectorMenu(context, drawList, rectNoScale);
 
@@ -546,18 +582,177 @@ namespace LibreLancer.Interface
 
         }
 
-        private UiRenderable GetSectorBackground()
+        private void DrawUserWaypointRoute(
+            UiContext context,
+            DrawList2D drawList,
+            Func<Vector2, Vector2> worldToMap,
+            float alpha)
+        {
+            if (userWaypointProvider != null)
+            {
+                userWaypoints.Clear();
+                userWaypointProvider(userWaypoints);
+            }
+            if (userWaypoints.Count == 0 || alpha <= 0)
+                return;
+
+            var lineColor = UserWaypointColor(context);
+            lineColor.A *= alpha;
+            Vector3? currentPlayerPosition = playerPositionProvider?.Invoke();
+            var previous = currentPlayerPosition.HasValue
+                ? (Vector2?)worldToMap(new Vector2(currentPlayerPosition.Value.X, currentPlayerPosition.Value.Z))
+                : null;
+
+            for (int i = 0; i < userWaypoints.Count; i++)
+            {
+                var current = worldToMap(new Vector2(userWaypoints[i].Position.X, userWaypoints[i].Position.Z));
+                if (previous.HasValue)
+                {
+                    DrawRouteLine(
+                        drawList,
+                        lineColor,
+                        context.PointsToPixels(previous.Value),
+                        context.PointsToPixels(current),
+                        UserWaypointRouteThickness);
+                }
+                previous = current;
+            }
+
+            for (int i = 0; i < userWaypoints.Count; i++)
+            {
+                var point = worldToMap(new Vector2(userWaypoints[i].Position.X, userWaypoints[i].Position.Z));
+                DrawRenderableWithAlpha(
+                    GetUserWaypointDiamond(context),
+                    context,
+                    drawList,
+                    Centered(point, UserWaypointSize, UserWaypointSize),
+                    alpha);
+
+                if (i == 0 || i == userWaypoints.Count - 1)
+                {
+                    DrawWaypointNumber(context, drawList, point, userWaypoints[i].Number, alpha);
+                }
+            }
+        }
+
+        private static RectangleF Centered(Vector2 center, float width, float height) =>
+            new(center.X - (width / 2), center.Y - (height / 2), width, height);
+
+        private static void DrawRouteLine(
+            DrawList2D drawList,
+            Color4 color,
+            Vector2 start,
+            Vector2 end,
+            int thickness)
+        {
+            if (thickness <= 1)
+            {
+                drawList.DrawLine(color, start, end);
+                return;
+            }
+
+            var edge = end - start;
+            if (edge.LengthSquared() <= float.Epsilon)
+            {
+                drawList.DrawLine(color, start, end);
+                return;
+            }
+
+            var normal = Vector2.Normalize(new Vector2(-edge.Y, edge.X));
+            var half = (thickness - 1) / 2f;
+            for (int i = 0; i < thickness; i++)
+            {
+                var offset = normal * (i - half);
+                drawList.DrawLine(color, start + offset, end + offset);
+            }
+        }
+
+        private void DrawWaypointNumber(
+            UiContext context,
+            DrawList2D drawList,
+            Vector2 center,
+            int number,
+            float alpha)
+        {
+            var digits = Math.Max(0, number).ToString();
+            var totalWidth = digits.Length * UserWaypointDigitWidth;
+            var x = center.X - (totalWidth / 2);
+            var y = center.Y - (UserWaypointDigitHeight / 2);
+            for (int i = 0; i < digits.Length; i++)
+            {
+                var digit = digits[i] - '0';
+                var rect = new RectangleF(
+                    x + (i * UserWaypointDigitWidth),
+                    y,
+                    UserWaypointDigitWidth,
+                    UserWaypointDigitHeight);
+                DrawRenderableWithAlpha(GetUserWaypointDigit(context, digit), context, drawList, rect, alpha);
+            }
+        }
+
+        private UiRenderable GetUserWaypointDiamond(UiContext context)
+        {
+            userWaypointDiamond ??= CreateWaypointRenderable(
+                GetResourceModel(context, "nav_waypointdiamond"),
+                UserWaypointTint);
+            return userWaypointDiamond;
+        }
+
+        private UiRenderable GetUserWaypointDigit(UiContext context, int digit)
+        {
+            if (!userWaypointDigits.TryGetValue(digit, out var renderable))
+            {
+                renderable = CreateWaypointRenderable(
+                    GetResourceModel(context, $"waypoint{digit}"),
+                    UserWaypointDigitTint);
+                userWaypointDigits.Add(digit, renderable);
+            }
+            return renderable;
+        }
+
+        private float UserWaypointSize => Style is { UserWaypointSize: > 0 } style ? style.UserWaypointSize : 28f;
+        private float UserWaypointDigitWidth => Style is { UserWaypointDigitWidth: > 0 } style ? style.UserWaypointDigitWidth : 6f;
+        private float UserWaypointDigitHeight => Style is { UserWaypointDigitHeight: > 0 } style ? style.UserWaypointDigitHeight : 10f;
+        private int UserWaypointRouteThickness => Style is { UserWaypointRouteThickness: > 0 } style ? style.UserWaypointRouteThickness : 2;
+        private InterfaceColor UserWaypointTint =>
+            Style?.UserWaypointColor ?? new InterfaceColor() { Color = new Color4(1f, 0.2f, 1f, 1f) };
+        private InterfaceColor UserWaypointDigitTint =>
+            Style?.UserWaypointDigitColor ?? new InterfaceColor() { Color = Color4.Yellow };
+        private Color4 UserWaypointColor(UiContext context) =>
+            UserWaypointTint.GetColor(context.GlobalTime);
+
+        private static InterfaceModel GetResourceModel(UiContext context, string name)
+        {
+            foreach (var model in context.Data.Resources.Models)
+            {
+                if (string.Equals(model.Name, name, StringComparison.OrdinalIgnoreCase))
+                    return model;
+            }
+            throw new Exception($"Missing interface model resource {name}");
+        }
+
+        private static UiRenderable CreateWaypointRenderable(InterfaceModel model, InterfaceColor tint)
+        {
+            var renderable = new UiRenderable();
+            renderable.AddElement(new DisplayModel()
+            {
+                Model = model,
+                Tint = tint,
+                ForceTint = true
+            });
+            return renderable;
+        }
+
+        private UiRenderable GetSectorBackground(UiContext context)
         {
             if (sectorBackground != null)
                 return sectorBackground;
 
             sectorBackground = new UiRenderable();
-            sectorBackground.AddElement(new DisplayImage()
+            sectorBackground.AddElement(new DisplayModel()
             {
-                Image = new InterfaceImage()
-                {
-                    TexName = SectorMapTexture
-                }
+                Model = GetResourceModel(context, "nav_prettymap"),
+                ForceTint = true
             });
             return sectorBackground;
         }
@@ -648,6 +843,8 @@ namespace LibreLancer.Interface
 
         private float SectorAlpha() => sectorViewState switch
         {
+            SectorViewState.FadingSystemOut => MathHelper.Clamp(
+                sectorTransitionTime / SectorFadeOutDuration, 0f, 1f),
             SectorViewState.FadingSectorIn => MathHelper.Clamp(
                 sectorTransitionTime / SectorFadeInDuration, 0f, 1f),
             SectorViewState.Sector => 1f,
@@ -665,8 +862,8 @@ namespace LibreLancer.Interface
                 sectorTransitionTime >= SectorFadeOutDuration)
             {
                 ResetZoomInstant();
-                sectorViewState = SectorViewState.FadingSectorIn;
-                sectorTransitionTime = 0f;
+                sectorViewState = SectorViewState.Sector;
+                sectorTransitionTime = SectorFadeInDuration;
             }
             else if (sectorViewState == SectorViewState.FadingSectorIn &&
                      sectorTransitionTime >= SectorFadeInDuration)

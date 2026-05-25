@@ -16,6 +16,10 @@ namespace LibreLancer.Interface
         public Scrollbar Scrollbar = new() { Smooth = false };
 
         public float ItemHeight { get; set; } = 30;
+        public float ItemWidth { get; set; }
+        public float ScrollbarWidth { get; set; }
+        public float ScrollbarInsetY { get; set; }
+        public bool OverlayScrollbar { get; set; } = false;
         public bool AlwaysShowScrollbar { get; set; } = false;
 
         [UiContent]
@@ -90,8 +94,11 @@ namespace LibreLancer.Interface
             for(int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
             {
                 var child = Children[i];
+                var scrollVisible = scrollCount > 0 || AlwaysShowScrollbar;
+                var scrollbarWidth = ScrollbarWidth > 0 ? ScrollbarWidth : Scrollbar.Style!.Width;
                 child.Height = ItemHeight;
-                child.Width = Math.Max(Width - ((scrollCount > 0 || AlwaysShowScrollbar) ? Scrollbar.Style!.Width + 2 : 0), 3);
+                child.Width = Math.Max(ItemWidth > 0 ? ItemWidth :
+                    Width - ((scrollVisible && !OverlayScrollbar) ? scrollbarWidth + 2 : 0), 3);
                 child.X = 0;
                 child.Y = ItemHeight * (i - childOffset);
                 child.Render(context, drawList, myRectangle);
@@ -112,6 +119,8 @@ namespace LibreLancer.Interface
         public override void ApplyStylesheet(Stylesheet sheet)
         {
             Scrollbar.ApplyStyle(sheet);
+            Scrollbar.WidthOverride = ScrollbarWidth;
+            Scrollbar.InsetY = ScrollbarInsetY;
             base.ApplyStylesheet(sheet);
             foreach(var item in Children)
                 item.ApplyStylesheet(sheet);

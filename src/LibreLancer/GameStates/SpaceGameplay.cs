@@ -106,6 +106,7 @@ World Time: {12:F2}
 
         private bool crosshairHit = false;
         private const float UserWaypointReachDistance = 100f;
+        private const float NavmapGridSizeDefault = 240000f;
         private GameObject? missionWaypoint;
         private GameObject? userWaypoint;
         private readonly Queue<Vector3> userWaypointRoute = new();
@@ -853,7 +854,15 @@ World Time: {12:F2}
                 nav.PopulateIcons(g.ui, g.sys);
                 nav.SetVisitFunction(g.session.IsVisited);
                 nav.SetAddWaypointFunction(g.CreateUserWaypoint);
+                nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);
+                nav.SetUserWaypointProvider(g.GetUserWaypointsForNavmap);
             }
+
+            public int UserWaypointCount() => g.GetUserWaypointCount();
+
+            public string UserWaypointPanelText(int index) => g.GetUserWaypointPanelText(index);
+
+            public void ClearUserWaypoints() => g.ClearUserWaypoints();
 
             public ChatSource GetChats() => g.session.Chats;
             public double GetCredits() => g.session.Credits;
@@ -1712,6 +1721,12 @@ World Time: {12:F2}
             userWaypoint = null;
         }
 
+        private void ClearUserWaypoints()
+        {
+            userWaypointRoute.Clear();
+            RemoveUserWaypoint();
+        }
+
         private void CreateUserWaypoint(Vector3 pos)
         {
             if (userWaypoint != null)
@@ -1766,6 +1781,70 @@ World Time: {12:F2}
             {
                 ActivateUserWaypoint(nextPosition, continueGoto);
             }
+        }
+
+        private void GetUserWaypointsForNavmap(List<NavmapWaypoint> waypoints)
+        {
+            if (userWaypoint != null)
+            {
+                waypoints.Add(new NavmapWaypoint(userWaypoint.WorldTransform.Position, waypoints.Count + 1));
+            }
+            foreach (var waypoint in userWaypointRoute)
+            {
+                waypoints.Add(new NavmapWaypoint(waypoint, waypoints.Count + 1));
+            }
+        }
+
+        private int GetUserWaypointCount() => userWaypointRoute.Count + (userWaypoint != null ? 1 : 0);
+
+        private string GetUserWaypointPanelText(int index)
+        {
+            if (!TryGetUserWaypointForNavmap(index, out var waypoint))
+                return "";
+
+            var system = ui.Data.Infocards?.GetStringResource(sys.IdsName);
+            if (string.IsNullOrWhiteSpace(system))
+                system = sys.Nickname;
+            return $"Player Waypoint {waypoint.Number}\n{system} System\nSector {WaypointSector(waypoint.Position)}";
+        }
+
+        private bool TryGetUserWaypointForNavmap(int index, out NavmapWaypoint waypoint)
+        {
+            waypoint = default;
+            if (index < 0)
+                return false;
+
+            if (userWaypoint != null)
+            {
+                if (index == 0)
+                {
+                    waypoint = new NavmapWaypoint(userWaypoint.WorldTransform.Position, 1);
+                    return true;
+                }
+                index--;
+            }
+
+            var number = userWaypoint != null ? 2 : 1;
+            foreach (var queuedWaypoint in userWaypointRoute)
+            {
+                if (index == 0)
+                {
+                    waypoint = new NavmapWaypoint(queuedWaypoint, number);
+                    return true;
+                }
+                index--;
+                number++;
+            }
+            return false;
+        }
+
+        private string WaypointSector(Vector3 position)
+        {
+            var scale = NavmapGridSizeDefault / (sys.NavMapScale == 0 ? 1 : sys.NavMapScale);
+            var relative = (new Vector2(position.X, position.Z) + new Vector2(scale / 2)) / scale;
+            var x = Math.Clamp((int)MathF.Floor(relative.X * 8), 0, 7);
+            var y = Math.Clamp((int)MathF.Floor(relative.Y * 8), 0, 7);
+            return $"{(char)('A' + x)}{y + 1}";
         }
 
         private void UpdateObjectiveObjects()
