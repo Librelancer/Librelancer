@@ -75,6 +75,7 @@ namespace LibreLancer.Interface
         private readonly Button selectorButton = new();
         private readonly Button zoomInButton = new();
         private readonly Button zoomOutButton = new();
+        private readonly Button addWaypointButton = new();
         private readonly List<(DrawObject Object, RectangleF Bounds)> labelCandidates = [];
         private readonly List<RectangleF> placedLabels = [];
         private Vector2? selectorMapPosition;
@@ -118,6 +119,7 @@ namespace LibreLancer.Interface
             selectorButton.SetStyle(stylesheet.Lookup<ButtonStyle>("nav_selector"));
             zoomInButton.SetStyle(Style?.ZoomInButton);
             zoomOutButton.SetStyle(Style?.ZoomOutButton);
+            addWaypointButton.SetStyle(Style?.AddWaypointButton);
         }
 
         public void PopulateIcons(UiContext ctx, StarSystem sys)
@@ -363,7 +365,7 @@ namespace LibreLancer.Interface
                 {
                     Texture2D? texture = null;
                     if (!string.IsNullOrEmpty(zone.Texture))
-                        texture = (Texture2D?) context.Data.ResourceManager.FindTexture(zone.Texture);
+                        texture = (Texture2D?)context.Data.ResourceManager.FindTexture(zone.Texture);
                     context.RenderContext.Textures[0] = texture;
                     context.RenderContext.Samplers[0] =
                         new(context.RenderContext.PreferredFilterLevel, WrapMode.Repeat, WrapMode.Repeat);
@@ -379,7 +381,7 @@ namespace LibreLancer.Interface
                                 Matrix4x4.CreateTranslation(new Vector3(screenPos.X, screenPos.Y, 0));
                     zoneShader.SetUniformBlock(2, ref world);
                     vbo ??= new VertexBuffer(context.RenderContext, typeof(ZoneVertex), 400, true);
-                    void* dst = (void*) vbo.BeginStreaming();
+                    void* dst = (void*)vbo.BeginStreaming();
                     var td = zone.Zone.TopDownMesh();
                     fixed (Vector2* src = td)
                         Buffer.MemoryCopy(src, dst, 400 * sizeof(Vector2), sizeof(Vector2) * td.Length);
@@ -407,7 +409,7 @@ namespace LibreLancer.Interface
             var fontSize = 11f * (parentRect.Height / 480);
             var font = context.Data.GetFont("$NavMap800");
             // Draw Objects
-            if ((CachedRenderString[]?) objectStrings == null || objectStrings.Length < objects.Count)
+            if ((CachedRenderString[]?)objectStrings == null || objectStrings.Length < objects.Count)
                 objectStrings = new CachedRenderString[objects.Count];
             jj = 0;
             labelCandidates.Clear();
@@ -545,7 +547,7 @@ namespace LibreLancer.Interface
             {
                 zoomAnimationTime = MathF.Min(
                     ZoomAnimationDuration,
-                    zoomAnimationTime + (float) context.DeltaTime);
+                    zoomAnimationTime + (float)context.DeltaTime);
                 var t = zoomAnimationTime / ZoomAnimationDuration;
                 t = t * t * (3 - (2 * t));
                 Zoom = MathHelper.Lerp(startZoom, targetZoom, t);
