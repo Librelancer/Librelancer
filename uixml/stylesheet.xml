@@ -541,8 +541,7 @@
                 </ButtonAppearance.Background>
             </ButtonStyle.Pressed>
         </NavmapStyle.ZoomOutButton>
-    </NavmapStyle>
-	<NavmapStyle.WaypointButton Width="17" Height="17" MouseDownSound="ui_item_select">
+	<NavmapStyle.AddWaypointButton Width="17" Height="17" MouseDownSound="ui_item_select">
 		<ButtonStyle.Normal>
 			<ButtonAppearance.Background>
 				<DisplayModel model="nav_addwaypoint"/>
@@ -558,7 +557,8 @@
 				<DisplayModel model="nav_addwaypoint" Tint="yellow"/>
 			</ButtonAppearance.Background>
 		</ButtonStyle.Pressed>
-	</ButtonStyle>
+	</NavmapStyle.AddWaypointButton>
+    </NavmapStyle>
 	<!-- Menu -->
 	<ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
 		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">

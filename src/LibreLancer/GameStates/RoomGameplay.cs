@@ -309,6 +309,7 @@ namespace LibreLancer
             {
                 navmap.PopulateIcons(g.ui, g.starSystem);
                 navmap.SetVisitFunction(g.session.IsVisited);
+                navmap.SetAddWaypointFunction(null);
             }
 
             private bool IsVisited(uint hash)

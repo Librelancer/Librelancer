@@ -64,6 +64,7 @@ namespace LibreLancer.Interface
         private const float LabelCollisionPadding = 2f;
         private const float SelectorSize = 14f;
         private const float ZoomButtonOffset = 16f;
+        private const float AddWaypointButtonOffset = 16f;
         private const float SelectorMenuClosePadding = 8f;
         private const float ZoomedScale = 4f;
         private const float ZoomAnimationDuration = 1.5f;
@@ -79,6 +80,7 @@ namespace LibreLancer.Interface
         private readonly List<(DrawObject Object, RectangleF Bounds)> labelCandidates = [];
         private readonly List<RectangleF> placedLabels = [];
         private Vector2? selectorMapPosition;
+        private Action<Vector3>? addWaypoint;
         private bool zoomed;
         private float targetZoom = 1f;
         private Vector2 targetOffset;
@@ -110,6 +112,12 @@ namespace LibreLancer.Interface
         public void SetVisitFunction(Func<uint, bool> isVisited)
         {
             this.isVisited = isVisited;
+        }
+
+        [WattleScriptHidden]
+        public void SetAddWaypointFunction(Action<Vector3>? addWaypoint)
+        {
+            this.addWaypoint = addWaypoint;
         }
 
         public override void ApplyStylesheet(Stylesheet stylesheet)
@@ -599,8 +607,10 @@ namespace LibreLancer.Interface
 
             var selectorRect = Padded(SelectorRectangle(mapRect), SelectorMenuClosePadding);
             var buttonRect = Padded(ZoomButtonRectangle(mapRect), SelectorMenuClosePadding);
+            var waypointRect = Padded(AddWaypointButtonRectangle(mapRect), SelectorMenuClosePadding);
             if (!selectorRect.Contains(context.MouseX, context.MouseY) &&
-                !buttonRect.Contains(context.MouseX, context.MouseY))
+                !buttonRect.Contains(context.MouseX, context.MouseY) &&
+                !waypointRect.Contains(context.MouseX, context.MouseY))
             {
                 selectorMapPosition = null;
             }
@@ -641,6 +651,21 @@ namespace LibreLancer.Interface
                 dimensions.Y);
         }
 
+        private RectangleF AddWaypointButtonRectangle(RectangleF mapRect)
+        {
+            if (selectorMapPosition is not { } selector || addWaypoint == null)
+                return new RectangleF();
+            var selectorScreen = MapToScreenPosition(mapRect, selector);
+            var dimensions = addWaypointButton.GetDimensions();
+            addWaypointButton.X = selectorScreen.X - mapRect.X + AddWaypointButtonOffset - (dimensions.X / 2);
+            addWaypointButton.Y = selectorScreen.Y - mapRect.Y - (dimensions.Y / 2);
+            return new RectangleF(
+                mapRect.X + addWaypointButton.X,
+                mapRect.Y + addWaypointButton.Y,
+                dimensions.X,
+                dimensions.Y);
+        }
+
         private Button ActiveZoomButton => zoomed ? zoomOutButton : zoomInButton;
 
         private void DrawSelectorMenu(UiContext context, DrawList2D drawList, RectangleF mapRect)
@@ -655,6 +680,22 @@ namespace LibreLancer.Interface
 
             ZoomButtonRectangle(mapRect);
             ActiveZoomButton.Render(context, drawList, mapRect);
+
+            if (addWaypoint != null)
+            {
+                AddWaypointButtonRectangle(mapRect);
+                addWaypointButton.Render(context, drawList, mapRect);
+            }
+        }
+
+        private Vector3 MapToWorldPosition(RectangleF mapRect, Vector2 mapPosition)
+        {
+            var scale = GridSizeDefault / (navmapscale == 0 ? 1 : navmapscale);
+            var relative = new Vector2(
+                MathHelper.Clamp(mapPosition.X / mapRect.Width, 0, 1),
+                MathHelper.Clamp(mapPosition.Y / mapRect.Height, 0, 1));
+            var worldXZ = (relative * scale) - new Vector2(scale / 2);
+            return new Vector3(worldXZ.X, 0, worldXZ.Y);
         }
 
         private void SetZoom(RectangleF mapRect, bool enabled)
@@ -690,13 +731,16 @@ namespace LibreLancer.Interface
             draggingMap = false;
             zoomInButton.HeldDown = zoomInButton.Dragging = false;
             zoomOutButton.HeldDown = zoomOutButton.Dragging = false;
+            addWaypointButton.HeldDown = addWaypointButton.Dragging = false;
         }
 
         public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
         {
             var mapRect = GetMapRectangle(context, parentRectangle);
             return mapRect.Contains(x, y) ||
-                   (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(x, y));
+                   (selectorMapPosition.HasValue &&
+                    (ZoomButtonRectangle(mapRect).Contains(x, y) ||
+                     AddWaypointButtonRectangle(mapRect).Contains(x, y)));
         }
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
@@ -706,6 +750,12 @@ namespace LibreLancer.Interface
             if (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
             {
                 ActiveZoomButton.OnMouseDown(context, mapRect);
+                return;
+            }
+
+            if (selectorMapPosition.HasValue && AddWaypointButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
+            {
+                addWaypointButton.OnMouseDown(context, mapRect);
                 return;
             }
 
@@ -732,6 +782,13 @@ namespace LibreLancer.Interface
                 return;
             }
 
+            if (selectorMapPosition.HasValue && AddWaypointButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
+            {
+                addWaypoint?.Invoke(MapToWorldPosition(mapRect, selectorMapPosition.Value));
+                selectorMapPosition = null;
+                return;
+            }
+
             if (!mapRect.Contains(context.MouseX, context.MouseY))
                 return;
 
@@ -744,6 +801,7 @@ namespace LibreLancer.Interface
             var mapRect = GetMapRectangle(context, parentRectangle);
             zoomInButton.OnMouseUp(context, mapRect);
             zoomOutButton.OnMouseUp(context, mapRect);
+            addWaypointButton.OnMouseUp(context, mapRect);
             mouseDownOnMap = false;
             draggingMap = false;
         }
