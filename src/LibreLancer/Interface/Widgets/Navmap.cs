@@ -387,13 +387,13 @@ namespace LibreLancer.Interface
             if (systemAlpha > 0)
             {
                 var background = context.Data.NavmapIcons.GetBackground();
-                DrawRenderableWithAlpha(background, context, drawList,
+                background.DrawWithClip(context, drawList,
                     new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height), rectNoScale, systemAlpha);
             }
 
             if (sectorAlpha > 0)
             {
-                DrawRenderableWithAlpha(GetSectorBackground(context), context, drawList, rectNoScale, rectNoScale, sectorAlpha);
+                GetSectorBackground(context).DrawWithClip(context, drawList, rectNoScale, rectNoScale, sectorAlpha);
             }
 
             if (systemAlpha <= 0)
@@ -508,7 +508,7 @@ namespace LibreLancer.Interface
                 if (obj.Renderable != null)
                 {
                     var objRect = new RectangleF(posAbs.X - originIcon, posAbs.Y - originIcon, szIcon, szIcon);
-                    DrawRenderableWithAlpha(obj.Renderable, context, drawList, objRect, systemAlpha);
+                    obj.Renderable.Draw(context, drawList, objRect, systemAlpha);
                 }
 
                 if (!string.IsNullOrWhiteSpace(obj.Name))
@@ -608,12 +608,8 @@ namespace LibreLancer.Interface
             for (int i = 0; i < userWaypoints.Count; i++)
             {
                 var point = worldToMap(new Vector2(userWaypoints[i].Position.X, userWaypoints[i].Position.Z));
-                DrawRenderableWithAlpha(
-                    GetUserWaypointDiamond(context),
-                    context,
-                    drawList,
-                    Centered(point, UserWaypointSize, UserWaypointSize),
-                    alpha);
+                GetUserWaypointDiamond(context)
+                    .Draw(context, drawList, Centered(point, UserWaypointSize, UserWaypointSize), alpha);
 
                 if (i == 0 || i == userWaypoints.Count - 1)
                 {
@@ -644,7 +640,7 @@ namespace LibreLancer.Interface
                     y,
                     UserWaypointDigitWidth,
                     UserWaypointDigitHeight);
-                DrawRenderableWithAlpha(GetUserWaypointDigit(context, digit), context, drawList, rect, alpha);
+                GetUserWaypointDigit(context, digit).Draw(context, drawList, rect, alpha);
             }
         }
 
@@ -713,82 +709,6 @@ namespace LibreLancer.Interface
                 ForceTint = true
             });
             return sectorBackground;
-        }
-
-        private static void DrawRenderableWithAlpha(
-            UiRenderable renderable,
-            UiContext context,
-            DrawList2D drawList,
-            RectangleF rectangle,
-            float alpha)
-        {
-            DrawRenderableWithAlpha(renderable, context, drawList, rectangle, null, alpha);
-        }
-
-        private static void DrawRenderableWithAlpha(
-            UiRenderable renderable,
-            UiContext context,
-            DrawList2D drawList,
-            RectangleF rectangle,
-            RectangleF clip,
-            float alpha)
-        {
-            DrawRenderableWithAlpha(renderable, context, drawList, rectangle, (RectangleF?)clip, alpha);
-        }
-
-        private static void DrawRenderableWithAlpha(
-            UiRenderable renderable,
-            UiContext context,
-            DrawList2D drawList,
-            RectangleF rectangle,
-            RectangleF? clip,
-            float alpha)
-        {
-            if (alpha >= 1f)
-            {
-                if (clip.HasValue)
-                    renderable.DrawWithClip(context, drawList, rectangle, clip.Value);
-                else
-                    renderable.Draw(context, drawList, rectangle);
-                return;
-            }
-
-            if (alpha <= 0)
-                return;
-
-            var restore = new List<(DisplayElement Element, InterfaceColor? Tint)>();
-            foreach (var element in renderable.Elements)
-            {
-                switch (element)
-                {
-                    case DisplayImage image:
-                        restore.Add((element, image.Tint));
-                        image.Tint = (image.Tint ?? InterfaceColor.White).SetAlpha(alpha);
-                        break;
-                    case DisplayModel model:
-                        restore.Add((element, model.Tint));
-                        model.Tint = (model.Tint ?? InterfaceColor.White).SetAlpha(alpha);
-                        break;
-                }
-            }
-
-            if (clip.HasValue)
-                renderable.DrawWithClip(context, drawList, rectangle, clip.Value);
-            else
-                renderable.Draw(context, drawList, rectangle);
-
-            foreach (var (element, tint) in restore)
-            {
-                switch (element)
-                {
-                    case DisplayImage image:
-                        image.Tint = tint;
-                        break;
-                    case DisplayModel model:
-                        model.Tint = tint;
-                        break;
-                }
-            }
         }
 
         private float SystemAlpha() => sectorViewState switch
