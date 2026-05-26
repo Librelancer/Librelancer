@@ -481,6 +481,8 @@ public class DrawList2D
                 vertices[vertexCount++] = new(tempPoints[i * 2 + 1], noTex, color);
             }
         }
+
+        pool.Return(ref tempBuffer);
     }
 
 
