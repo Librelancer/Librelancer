@@ -337,6 +337,7 @@ public class MainWindow : Game
         {
             playing = false;
             commOn = false;
+            _playContext?.Dispose();
             _playContext = null;
             _playData = null;
         }

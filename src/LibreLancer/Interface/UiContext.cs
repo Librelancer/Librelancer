@@ -56,6 +56,8 @@ namespace LibreLancer.Interface
         private bool mode2d = false;
         private FreelancerGame? game;
 
+        public VertexBuffer? NavmapBuffer;
+
         public UiContext(UiData data)
         {
             Data = data;
@@ -487,6 +489,11 @@ namespace LibreLancer.Interface
             }
 
             dlist.Render();
+        }
+
+        public void Dispose()
+        {
+            NavmapBuffer?.Dispose();
         }
     }
 }

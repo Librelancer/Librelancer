@@ -122,6 +122,7 @@ namespace LancerEdit.GameContent
                 rtarget.Dispose();
                 rtarget = null;
             }
+            ctx.Dispose();
         }
     }
 }

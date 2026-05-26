@@ -119,8 +119,6 @@ namespace LibreLancer.Interface
 
         [WattleScriptHidden] public NavmapStyle? Style;
 
-        private VertexBuffer vbo = null!;
-
         private struct ZoneVertex : IVertexType
         {
             public VertexDeclaration GetVertexDeclaration() => new
@@ -422,6 +420,8 @@ namespace LibreLancer.Interface
             zoneclip.Height -= 1;
             if (zoneclip.Width <= 0) zoneclip.Width = 1;
             if (zoneclip.Height <= 0) zoneclip.Height = 1;
+            // Texture coordinate generation origin
+            var zoneOrigin = context.PointsToPixels(new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height));
             // Draw zones
             if (!drawList.PushClip(zoneclip))
                 return;
@@ -432,9 +432,9 @@ namespace LibreLancer.Interface
                 var zoneShader = AllShaders.Navmap.Get(0);
                 var np = new NavmapParameters()
                 {
-                    Rectangle = new Vector4(zoneclip.X,
-                        context.RenderContext.CurrentViewport.Height - zoneclip.Y - zoneclip.Height,
-                        zoneclip.Width, zoneclip.Height),
+                    Rectangle = new Vector4(zoneOrigin.X,
+                        context.RenderContext.CurrentViewport.Height - zoneOrigin.Y - zoneOrigin.Height,
+                        zoneOrigin.Width, zoneOrigin.Height),
                     Tiling = new Vector2(8)
                 };
                 zoneShader.SetUniformBlock(0, ref zoneMat);
@@ -446,8 +446,7 @@ namespace LibreLancer.Interface
                     if (!string.IsNullOrEmpty(zone.Texture))
                         texture = (Texture2D?)context.Data.ResourceManager.FindTexture(zone.Texture);
                     context.RenderContext.Textures[0] = texture;
-                    context.RenderContext.Samplers[0] =
-                        new(context.RenderContext.PreferredFilterLevel, WrapMode.Repeat, WrapMode.Repeat);
+                    context.RenderContext.Samplers[0] = new(context.RenderContext.PreferredFilterLevel, WrapMode.Repeat, WrapMode.Repeat);
                     var tint = zone.Tint;
                     tint.A *= systemAlpha;
                     zoneShader.SetUniformBlock(4, ref tint);
@@ -461,14 +460,14 @@ namespace LibreLancer.Interface
                     var world = Matrix4x4.CreateScale(meshScale) *
                                 Matrix4x4.CreateTranslation(new Vector3(screenPos.X, screenPos.Y, 0));
                     zoneShader.SetUniformBlock(2, ref world);
-                    vbo ??= new VertexBuffer(context.RenderContext, typeof(ZoneVertex), 400, true);
-                    void* dst = (void*)vbo.BeginStreaming();
+                    context.NavmapBuffer ??= new VertexBuffer(context.RenderContext, typeof(ZoneVertex), 400, true);
+                    void* dst = (void*)context.NavmapBuffer.BeginStreaming();
                     var td = zone.Zone.TopDownMesh();
                     fixed (Vector2* src = td)
                         Buffer.MemoryCopy(src, dst, 400 * sizeof(Vector2), sizeof(Vector2) * td.Length);
-                    vbo.EndStreaming(td.Length);
+                    context.NavmapBuffer.EndStreaming(td.Length);
                     context.RenderContext.Shader = zoneShader;
-                    vbo.Draw(PrimitiveTypes.TriangleList, td.Length / 3);
+                    context.NavmapBuffer.Draw(PrimitiveTypes.TriangleList, td.Length / 3);
                 }
             });
 
@@ -1119,11 +1118,6 @@ namespace LibreLancer.Interface
             myPos = AnimatedPosition(myPos);
             var myRect = new RectangleF(myPos.X, myPos.Y, Width, Height);
             return myRect;
-        }
-
-        public override void Dispose()
-        {
-            vbo?.Dispose();
         }
     }
 }
