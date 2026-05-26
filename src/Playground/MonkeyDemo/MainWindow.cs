@@ -111,7 +111,6 @@ public class MainWindow : Game
     private float mZ = 0;
     protected override void Draw(double elapsed)
     {
-        Console.WriteLine("DRAW FRAME");
         imGui.NewFrame(elapsed);
 
         RenderContext.ReplaceViewport(0, 0, Width, Height);
@@ -125,6 +124,17 @@ public class MainWindow : Game
         mZ = monkey.WorldTransform.Position.Z;
         world.RenderUpdate(elapsed);
         renderer.Draw(Width, Height);
+
+        //
+        var dlist = RenderContext.Renderer2D.CreateDrawList();
+
+        dlist.DrawLine(Color4.CornflowerBlue, new(100, 50), new Vector2(125,75), 1);
+        dlist.DrawLine(Color4.Purple, new(200, 50), new Vector2(225,75), 2);
+        dlist.DrawLine(Color4.Yellow, new(300, 50), new(325, 90), 3);
+        dlist.DrawLine(Color4.Green, new(400, 50), new(450, 120), 6);
+
+        dlist.Render();
+        //
 
         var camera = (ThnCamera)cutscene.CameraHandle;
 
