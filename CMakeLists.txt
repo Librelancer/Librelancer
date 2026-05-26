@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 3.15)
 
 project (librelancernatives)
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 set(LIBOUTPUTDIR ${CMAKE_BINARY_DIR}/binaries)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIBOUTPUTDIR})

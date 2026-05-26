@@ -8,7 +8,8 @@ namespace BuildLL
     public enum VSVersion
     {
         VS2019,
-        VS2022
+        VS2022,
+        VS2026
     }
     public enum MSBuildPlatform
     {
@@ -59,6 +60,11 @@ namespace BuildLL
              if (vs == VSVersion.VS2022) {
                 msbuild = VSPath("2022", _editions, "Current", platform);
                 if (msbuild == null) msbuild = VSPath("2022", _editions, "17.0", platform);
+            }
+
+            if (vs == VSVersion.VS2026) {
+                msbuild = VSPath("18", _editions, "Current", platform);
+                if (msbuild == null) msbuild = VSPath("18", _editions, "18.0", platform);
             }
 
             if (msbuild == null)

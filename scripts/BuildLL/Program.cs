@@ -256,12 +256,12 @@ namespace BuildLL
                 if (IsWindows) {
                     CMake.Run("extern/SPIRV-Cross", new CMakeSettings() {
                         OutputPath = "obj/spirvcross",
-                        Generator = "Visual Studio 17 2022",
+                        Generator = "Visual Studio 18 2026",
                         Platform = "x64",
                         BuildType = "MinSizeRel",
                         Options = new[] { "-DSPIRV_CROSS_SHARED=ON", "-DSPIRV_CROSS_STATIC=OFF", "-DSPIRV_CROSS_CLI=OFF", "-DSPIRV_CROSS_ENABLE_TESTS=OFF"}
                     });
-                    MSBuild.Run("./obj/spirvcross/SPIRV-Cross.sln", "/m /p:Configuration=MinSizeRel", VSVersion.VS2022, MSBuildPlatform.x86);
+                    MSBuild.Run("./obj/spirvcross/SPIRV-Cross.slnx", "/m /p:Configuration=MinSizeRel", VSVersion.VS2026, MSBuildPlatform.x86);
                 } else {
                     CMake.Run("extern/SPIRV-Cross", new CMakeSettings()
                     {
@@ -307,23 +307,23 @@ namespace BuildLL
                         CMake.Run(".", new CMakeSettings()
                         {
                             OutputPath = "obj/x86",
-                            Generator = "Visual Studio 17 2022",
+                            Generator = "Visual Studio 18 2026",
                             Platform = "Win32",
                             BuildType = config
                         });
-                        MSBuild.Run("./obj/x86/librelancernatives.sln", $"/m /p:Configuration={config}",
-                            VSVersion.VS2022, MSBuildPlatform.x86);
+                        MSBuild.Run("./obj/x86/librelancernatives.slnx", $"/m /p:Configuration={config}",
+                            VSVersion.VS2026, MSBuildPlatform.x86);
                         CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.dll");
                         if (buildDebug || buildO0) CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.pdb");
                     }
                     //build 64-bit
                     CMake.Run(".", new CMakeSettings() {
                         OutputPath = "obj/x64",
-                        Generator = "Visual Studio 17 2022",
+                        Generator = "Visual Studio 18 2026",
                         Platform = "x64",
                         BuildType = config
                     });
-                    MSBuild.Run("./obj/x64/librelancernatives.sln", $"/m /p:Configuration={config}", VSVersion.VS2022, MSBuildPlatform.x64);
+                    MSBuild.Run("./obj/x64/librelancernatives.slnx", $"/m /p:Configuration={config}", VSVersion.VS2026, MSBuildPlatform.x64);
                     CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.dll");
                     if (buildDebug || buildO0) CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.pdb");
 
