@@ -281,6 +281,10 @@ namespace LibreLancer.Client
 
         public int GetPurchaseLimit(UIInventoryItem item)
         {
+            if (item.Equipment == null)
+            {
+                return 0;
+            }
             var maxAmount = (int) Math.Floor(session.Credits / item.Price);
             var holdLimit = CargoUtilities.GetItemLimit(session.Items, session.PlayerShip!, item.Equipment!);
             return Math.Min(maxAmount, holdLimit);

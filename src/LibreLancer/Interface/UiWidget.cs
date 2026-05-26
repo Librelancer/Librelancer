@@ -67,7 +67,7 @@ namespace LibreLancer.Interface
             return TextAlignment.Left;
         }
 
-        protected void DrawText(
+        protected void RenderText(
             UiContext context,
             DrawList2D drawList,
             ref CachedRenderString? cache,

@@ -416,6 +416,10 @@ namespace LibreLancer.Interface
         public double DeltaTime;
 
         private string? requestedRollover = null;
+        private CachedRenderString? rolloverCache;
+
+        private string? requestedTooltip = null;
+        private RectangleF tooltipParent;
         private CachedRenderString? tooltipCache;
 
         public void SetRollover(int itemStrid)
@@ -428,10 +432,17 @@ namespace LibreLancer.Interface
             }
         }
 
+        public void SetTooltip(string text, RectangleF controlRectangle)
+        {
+            requestedTooltip = text;
+            tooltipParent = controlRectangle;
+        }
+
         public void RenderWidget(double delta)
         {
             DeltaTime = delta;
             requestedRollover = null;
+            requestedTooltip = null;
 
             if (baseWidget == null)
             {
@@ -461,16 +472,16 @@ namespace LibreLancer.Interface
             {
                 var style = Data.Stylesheet?.Lookup<RolloverStyle>(null);
 
-                var maxWidth = PointsToPixels(150);
+                var maxWidth = PointsToPixels(225);
 
                 var fnt = Data.GetFont(style?.Font ?? "Arial");
                 var sz = TextSize(Data.GetFontSize(style?.Font ?? "Arial"));
 
-                var col = style?.TextColor?.GetColor(GlobalTime) ??  Color4.White;
+                var col = style?.TextColor?.GetColor(GlobalTime) ?? Color4.White;
                 var shadow = style?.TextShadow?.GetColor(GlobalTime);
 
                 var measuredText = RenderContext.Renderer2D.MeasureStringCached(
-                    ref tooltipCache, fnt, sz, requestedRollover, false,
+                    ref rolloverCache, fnt, sz, requestedRollover, false,
                     shadow != null, TextAlignment.Left, maxWidth);
                 var rectSize = PixelsToPoints(measuredText);
 
@@ -480,8 +491,44 @@ namespace LibreLancer.Interface
                 var offsetX = PointsToPixels(2);
                 var offsetY = PointsToPixels(1);
 
-                dlist.DrawStringCached(ref tooltipCache, fnt, sz, requestedRollover,
-                    offsetX,offsetY, col, false,
+                dlist.DrawStringCached(ref rolloverCache, fnt, sz, requestedRollover,
+                    offsetX, offsetY, col, false,
+                    shadow != null ? new(shadow.Value) : default,
+                    TextAlignment.Left, maxWidth);
+
+                style?.Border?.Draw(this, dlist, ttRect);
+            }
+
+            if (!string.IsNullOrWhiteSpace(requestedTooltip))
+            {
+                var style = Data.Stylesheet?.Lookup<TooltipStyle>(null);
+
+                var maxWidth = PointsToPixels(225);
+
+                var fnt = Data.GetFont(style?.Font ?? "Arial");
+                var sz = TextSize(Data.GetFontSize(style?.Font ?? "Arial"));
+
+                var col = style?.TextColor?.GetColor(GlobalTime) ?? Color4.White;
+                var shadow = style?.TextShadow?.GetColor(GlobalTime);
+
+                var measuredText = RenderContext.Renderer2D.MeasureStringCached(
+                    ref tooltipCache, fnt, sz, requestedTooltip, false,
+                    shadow != null, TextAlignment.Left, maxWidth);
+                var rectSize = PixelsToPoints(measuredText);
+
+                var rectOffset = style?.OffsetY ?? 0;
+
+                var ttRect = new RectangleF(tooltipParent.X, tooltipParent.Y + tooltipParent.Height + rectOffset,
+                    rectSize.X + 4, rectSize.Y + 2);
+                style?.Background?.Draw(this, dlist, ttRect);
+
+                var scrTtRect = PointsToPixels(ttRect);
+
+                var posX = scrTtRect.X + PointsToPixels(2);
+                var posY = scrTtRect.Y + PointsToPixels(1);
+
+                dlist.DrawStringCached(ref tooltipCache, fnt, sz, requestedTooltip,
+                    posX, posY, col, false,
                     shadow != null ? new(shadow.Value) : default,
                     TextAlignment.Left, maxWidth);
 

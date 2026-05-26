@@ -411,7 +411,7 @@ namespace LibreLancer.Interface
                 for (int i = 0; i < Columns.Count; i++)
                 {
                     var c = GetCell(rect, -1, i);
-                    DrawText(context, drawList, ref columnStrings![i], c, HeaderTextSize, HeaderFont,
+                    RenderText(context, drawList, ref columnStrings![i], c, HeaderTextSize, HeaderFont,
                         HeaderColor ?? InterfaceColor.White, TextShadow,
                         HorizontalAlignment.Center, VerticalAlignment.Default,
                         true, Columns[i].GetLabel(context));
@@ -460,7 +460,7 @@ namespace LibreLancer.Interface
                         var str = data.GetContentString(row + childOffset, Columns[column].Data);
                         if (string.IsNullOrWhiteSpace(str)) continue;
                         var c = GetCell(rect, row, column);
-                        DrawText(context, drawList ,ref rowStrings![row][column], c, BodyTextSize, BodyFont, rowColor, TextShadow,
+                        RenderText(context, drawList ,ref rowStrings![row][column], c, BodyTextSize, BodyFont, rowColor, TextShadow,
                             Columns[column].TextAlignment,
                             VerticalAlignment.Default, Columns[column].Clip, str);
                     }

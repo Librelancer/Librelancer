@@ -828,4 +828,9 @@
 		<RolloverStyle.Background><DisplayColor color="rollover_background"/></RolloverStyle.Background>
 		<RolloverStyle.Border><DisplayRectangle color="rollover_text"/></RolloverStyle.Border>
 	</RolloverStyle>
+
+  <TooltipStyle Font="$Rollover" TextColor="text" TextShadow="black" OffsetY="20">
+    <TooltipStyle.Background><DisplayColor color="tooltip_background"/></TooltipStyle.Background>
+    <TooltipStyle.Border><DisplayRectangle color="text"/></TooltipStyle.Border>
+  </TooltipStyle>
 </Stylesheet>

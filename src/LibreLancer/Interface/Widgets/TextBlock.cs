@@ -126,7 +126,7 @@ namespace LibreLancer.Interface
             myRectangle.Width -= MarginX * 2;
             var txt = txtAccess.GetText(context);
             if (!string.IsNullOrEmpty(txt))
-                DrawText(context, drawList, ref renderCache, myRectangle, TextSize, Font, TextColor, TextShadow,
+                RenderText(context, drawList, ref renderCache, myRectangle, TextSize, Font, TextColor, TextShadow,
                     HorizontalAlignment, VerticalAlignment, Clip,
                     txt, TextAlpha, Wrap);
         }

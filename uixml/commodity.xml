@@ -12,10 +12,10 @@
 	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="18" Width="200" Height="20" Strid="8511" TextSize="13" /> <!-- INVENTORY-->
 	<TextBlock TextColor="text" TextShadow="#000000FF" X="4" Y="33" Width="200" Height="20" Text="CREDITS $1,845" TextSize="11" id="credits_text" /> <!-- CREDITS -->
 	<Panel id="inv_categories">
-		<Button X="101" Y="223" id="category_weapons" Style="inv_category_weapons" ClickSound="ui_item_select"/>
-		<Button X="118" Y="223" id="category_ammo" Style="inv_category_ammo" ClickSound="ui_item_select"/>
-		<Button X="135" Y="223" id="category_external" Style="inv_category_external" ClickSound="ui_item_select"/>
-		<Button X="153" Y="223" id="category_internal" Style="inv_category_internal" ClickSound="ui_item_select"/>
+		<Button X="101" Y="223" id="category_weapons" Strid="8501" DrawText="false" Style="inv_category_weapons" MouseDownSound="ui_item_select"/>
+		<Button X="118" Y="223" id="category_ammo" Strid="8522" DrawText="false" Style="inv_category_ammo" MouseDownSound="ui_item_select"/>
+		<Button X="135" Y="223" id="category_external" Strid="8514" DrawText="false" Style="inv_category_external" MouseDownSound="ui_item_select"/>
+		<Button X="153" Y="223" id="category_internal" Strid="8513" DrawText="false" Style="inv_category_internal" MouseDownSound="ui_item_select"/>
 	</Panel>
 	<Panel id="buysell_controls">
 	<Button id="btn_buysell" style="trader_buy" Strid="3016" X="245" Y="29" />

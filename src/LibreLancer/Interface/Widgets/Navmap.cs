@@ -366,13 +366,13 @@ namespace LibreLancer.Interface
                     var hOff = (rHoriz * i);
                     RectangleF letterRect = new RectangleF(rectNoScale.X + (hOff * Zoom) - OffsetX,
                         rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
-                    DrawText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                    RenderText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
                         new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
                         false, renLet, systemAlpha);
                     var vOff = (rVert * i);
                     var numRect = new RectangleF(rectNoScale.X - lH, rectNoScale.Y + (vOff * Zoom) - OffsetY, lH,
                         rVert * Zoom);
-                    DrawText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                    RenderText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
                         new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
                         false, renNum, systemAlpha);
                 }
@@ -481,7 +481,7 @@ namespace LibreLancer.Interface
             {
                 var sysNameFont = context.Data.GetFont("$NavMap1600");
                 var sysNameSize = 16f * (parentRect.Height / 480);
-                DrawText(context, drawList, ref systemNameCache, rectNoScale, sysNameSize, sysNameFont, InterfaceColor.White,
+                RenderText(context, drawList, ref systemNameCache, rectNoScale, sysNameSize, sysNameFont, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center,
                     VerticalAlignment.Bottom, false, systemName, systemAlpha);
             }
@@ -542,7 +542,7 @@ namespace LibreLancer.Interface
                     continue;
 
                 placedLabels.Add(paddedBounds);
-                DrawText(context, drawList, ref objectStrings[jj++], label.Bounds,
+                RenderText(context, drawList, ref objectStrings[jj++], label.Bounds,
                     fontSize, font, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center,
                     VerticalAlignment.Top, false,

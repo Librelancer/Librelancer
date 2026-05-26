@@ -98,6 +98,18 @@ namespace LibreLancer.Interface
 
     [UiLoadable]
     [WattleScriptUserData]
+    public class TooltipStyle : XmlStyle
+    {
+        public string? Font { get; set; } = null;
+        public InterfaceColor? TextColor { get; set; } = null;
+        public InterfaceColor? TextShadow { get; set; } = null;
+        public UiRenderable? Background { get; set; } = null;
+        public UiRenderable? Border { get; set; } = null;
+        public float OffsetY { get; set; }
+    }
+
+    [UiLoadable]
+    [WattleScriptUserData]
     public class HSliderStyle : XmlStyle
     {
         public ButtonStyle? LeftButton { get; set; }
