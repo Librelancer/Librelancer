@@ -311,15 +311,16 @@ namespace LibreLancer
                 navmap.SetVisitFunction(g.session.IsVisited);
                 navmap.SetAddWaypointFunction(null);
                 navmap.SetPlayerPositionProvider(null);
-                navmap.SetUserWaypointProvider(null);
+                navmap.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
             }
 
-            public int UserWaypointCount() => 0;
+            public int UserWaypointCount() => g.session.UserWaypointCount;
 
-            public string UserWaypointPanelText(int index) => "";
+            public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index, g.starSystem);
 
             public void ClearUserWaypoints()
             {
+                g.session.ClearUserWaypoints();
             }
 
             private bool IsVisited(uint hash)

@@ -17,17 +17,7 @@ using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
-    public readonly struct NavmapWaypoint
-    {
-        public readonly Vector3 Position;
-        public readonly int Number;
-
-        public NavmapWaypoint(Vector3 position, int number)
-        {
-            Position = position;
-            Number = number;
-        }
-    }
+    public readonly record struct NavmapWaypoint(Vector3 Position, int Number);
 
     [UiLoadable]
     [WattleScriptUserData]
@@ -599,24 +589,21 @@ namespace LibreLancer.Interface
             var lineColor = UserWaypointColor(context);
             lineColor.A *= alpha;
             Vector3? currentPlayerPosition = playerPositionProvider?.Invoke();
-            var previous = currentPlayerPosition.HasValue
-                ? (Vector2?)worldToMap(new Vector2(currentPlayerPosition.Value.X, currentPlayerPosition.Value.Z))
-                : null;
+            var routePoints = new Vector2[userWaypoints.Count + (currentPlayerPosition.HasValue ? 1 : 0)];
+            var pointIndex = 0;
+            if (currentPlayerPosition.HasValue)
+            {
+                routePoints[pointIndex++] = context.PointsToPixels(worldToMap(
+                    new Vector2(currentPlayerPosition.Value.X, currentPlayerPosition.Value.Z)));
+            }
 
             for (int i = 0; i < userWaypoints.Count; i++)
             {
-                var current = worldToMap(new Vector2(userWaypoints[i].Position.X, userWaypoints[i].Position.Z));
-                if (previous.HasValue)
-                {
-                    DrawRouteLine(
-                        drawList,
-                        lineColor,
-                        context.PointsToPixels(previous.Value),
-                        context.PointsToPixels(current),
-                        UserWaypointRouteThickness);
-                }
-                previous = current;
+                routePoints[pointIndex++] = context.PointsToPixels(worldToMap(
+                    new Vector2(userWaypoints[i].Position.X, userWaypoints[i].Position.Z)));
             }
+
+            drawList.DrawPolyline(routePoints, (VertexDiffuse)lineColor, UserWaypointRouteThickness);
 
             for (int i = 0; i < userWaypoints.Count; i++)
             {
@@ -637,35 +624,6 @@ namespace LibreLancer.Interface
 
         private static RectangleF Centered(Vector2 center, float width, float height) =>
             new(center.X - (width / 2), center.Y - (height / 2), width, height);
-
-        private static void DrawRouteLine(
-            DrawList2D drawList,
-            Color4 color,
-            Vector2 start,
-            Vector2 end,
-            int thickness)
-        {
-            if (thickness <= 1)
-            {
-                drawList.DrawLine(color, start, end);
-                return;
-            }
-
-            var edge = end - start;
-            if (edge.LengthSquared() <= float.Epsilon)
-            {
-                drawList.DrawLine(color, start, end);
-                return;
-            }
-
-            var normal = Vector2.Normalize(new Vector2(-edge.Y, edge.X));
-            var half = (thickness - 1) / 2f;
-            for (int i = 0; i < thickness; i++)
-            {
-                var offset = normal * (i - half);
-                drawList.DrawLine(color, start + offset, end + offset);
-            }
-        }
 
         private void DrawWaypointNumber(
             UiContext context,
