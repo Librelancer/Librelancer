@@ -66,7 +66,8 @@ public unsafe class Renderer2D : IDisposable
 
     private VertexBuffer?[] vbos = new VertexBuffer[8];
     private ElementBuffer?[] ebos = new ElementBuffer[8];
-    private int[] counts = new int[8];
+    private int[] vertexCounts = new int[8];
+    private int[] indexCounts = new int[8];
     private bool[] used = new bool[8];
     private int cVpW = 0, cVpH = 0;
 
@@ -111,15 +112,19 @@ public unsafe class Renderer2D : IDisposable
     public DrawList2D CreateDrawList() => new(this, Dot, pool);
 
 
-    internal VertexAllocation UploadVertices(Vertex2D* pointer, int count)
+    internal VertexAllocation UploadGeometry(
+        Vertex2D* pointer,
+        int vertexCount,
+        ushort* indices,
+        int indexCount)
     {
-        if (count == 0)
+        if (vertexCount == 0)
         {
             return default;
         }
 
         int index = -1;
-        for (int i = 0; i < counts.Length; i++)
+        for (int i = 0; i < vertexCounts.Length; i++)
         {
             if(!used[i])
             {
@@ -130,40 +135,25 @@ public unsafe class Renderer2D : IDisposable
 
         used[index] = true;
         // Recreate vertex buffer if needed
-        if (count > counts[index])
+        if (vertexCount > vertexCounts[index] ||
+            indexCount > indexCounts[index])
         {
             vbos[index]?.Dispose();
             ebos[index]?.Dispose();
-            int totalQuads = (count + 4) / 4;
-            vbos[index] = new VertexBuffer(RenderContext, typeof(Vertex2D), totalQuads * 4, true);
-            counts[index] = totalQuads * 4;
-            int elemQuads = Math.Min(totalQuads, MaxQuadsPerDraw);
-
-            ebos[index] = new ElementBuffer(RenderContext, elemQuads * 6);
-            var indices = new ushort[elemQuads * 6];
-            var iptr = 0;
-            for (var i = 0; i < elemQuads * 4; i += 4)
-            {
-                /* Triangle 1 */
-                indices[iptr++] = (ushort)i;
-                indices[iptr++] = (ushort)(i + 1);
-                indices[iptr++] = (ushort)(i + 2);
-                /* Triangle 2 */
-                indices[iptr++] = (ushort)(i + 1);
-                indices[iptr++] = (ushort)(i + 3);
-                indices[iptr++] = (ushort)(i + 2);
-            }
-
-            ebos[index]!.SetData(indices);
+            vbos[index] = new VertexBuffer(RenderContext, typeof(Vertex2D), vertexCount, true);
+            vertexCounts[index] = vertexCount;
+            ebos[index] = new ElementBuffer(RenderContext, indexCount);
+            indexCounts[index] = indexCount;
             vbos[index]!.SetElementBuffer(ebos[index]!);
         }
 
         var tgt = vbos[index]!.BeginStreaming();
         Buffer.MemoryCopy(
             (void*)pointer, (void*)tgt,
-            counts[index] * Vertex2D.Size,
-            count * Vertex2D.Size);
-        vbos[index]!.EndStreaming(count);
+            vertexCounts[index] * Vertex2D.Size,
+            vertexCount * Vertex2D.Size);
+        vbos[index]!.EndStreaming(vertexCount);
+        ebos[index]!.SetData(new ReadOnlySpan<ushort>(indices, indexCount));
         return new(index, vbos[index]);
     }
 
@@ -192,7 +182,7 @@ public unsafe class Renderer2D : IDisposable
         {
             vbos[i]?.Dispose();
             ebos[i]?.Dispose();
-            counts[i] = 0;
+            vertexCounts[i] = 0;
         }
         pool.AssertEmpty();
     }

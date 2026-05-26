@@ -20,6 +20,13 @@ struct Vertex2D : IVertexType
         Color = (VertexDiffuse)color;
     }
 
+    public Vertex2D(Vector2 position, Vector2 texcoord, VertexDiffuse color)
+    {
+        Position = position;
+        TexCoord = texcoord;
+        Color = color;
+    }
+
     public VertexDeclaration GetVertexDeclaration()
     {
         return new VertexDeclaration (
