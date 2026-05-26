@@ -83,6 +83,7 @@ namespace LibreLancer.Interface
         private RigidModel? model;
         private bool loadable = true;
         private List<ModifiedMaterial> mats = [];
+        private bool materialsSetup;
 
         public static Matrix4x4 CreateTransform(int gWidth, int gHeight, Rectangle r)
         {
@@ -124,6 +125,13 @@ namespace LibreLancer.Interface
                 return;
             }
 
+            var tint = Tint;
+            if (tint != null && !materialsSetup)
+            {
+                mats = MaterialModification.Setup(model!, context.Data.ResourceManager, ForceTint);
+                materialsSetup = true;
+            }
+
             drawList.AddCallback(rc =>
             {
                 Matrix4x4 rotationMatrix = Matrix4x4.Identity;
@@ -160,9 +168,9 @@ namespace LibreLancer.Interface
                     rc.SetIdentityCamera();
                     model!.UpdateTransform();
                     model.Update(context.GlobalTime);
-                    if (Tint != null)
+                    if (tint != null)
                     {
-                        var color = Tint.GetColor(context.GlobalTime);
+                        var color = tint.GetColor(context.GlobalTime);
                         for (int i = 0; i < mats.Count; i++)
                             mats[i].Mat.Dc = color;
                     }
@@ -170,7 +178,7 @@ namespace LibreLancer.Interface
                     model.DrawImmediate(rc, context.Data.ResourceManager, transform,
                         ref Lighting.Empty, 0, null, alpha);
 
-                    if (Tint != null)
+                    if (tint != null)
                     {
                         for (int i = 0; i < mats.Count; i++)
                         {
@@ -214,6 +222,8 @@ namespace LibreLancer.Interface
                 // HACK: Clear models on vmesh dispose
                 v = context.MeshDisposeVersion;
                 model = null;
+                mats = [];
+                materialsSetup = false;
             }
 
             if (model == null)
@@ -225,9 +235,10 @@ namespace LibreLancer.Interface
                     return false;
                 }
 
-                if (Tint != null)
+                if (Tint != null && !materialsSetup)
                 {
                     mats = MaterialModification.Setup(model, context.Data.ResourceManager, ForceTint);
+                    materialsSetup = true;
                 }
             }
 

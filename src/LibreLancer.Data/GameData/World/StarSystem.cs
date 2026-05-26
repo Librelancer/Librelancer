@@ -11,6 +11,8 @@ namespace LibreLancer.Data.GameData.World;
 
 public class StarSystem : NamedItem
 {
+    private const float NavmapGridSizeDefault = 240000f;
+
     //Comes from universe.ini
     public Vector2 UniversePosition;
     public string? MsgIdPrefix;
@@ -85,6 +87,15 @@ public class StarSystem : NamedItem
 
     public StarSystem()
     {
+    }
+
+    public string WaypointSector(Vector3 position)
+    {
+        var scale = NavmapGridSizeDefault / (NavMapScale == 0 ? 1 : NavMapScale);
+        var relative = (new Vector2(position.X, position.Z) + new Vector2(scale / 2)) / scale;
+        var x = Math.Clamp((int)MathF.Floor(relative.X * 8), 0, 7);
+        var y = Math.Clamp((int)MathF.Floor(relative.Y * 8), 0, 7);
+        return $"{(char)('A' + x)}{y + 1}";
     }
 
     public void CopyTo(StarSystem other)

@@ -17,6 +17,8 @@ using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
 {
+    public readonly record struct NavmapWaypoint(Vector3 Position, int Number);
+
     [UiLoadable]
     [WattleScriptUserData]
     public class Navmap : UiWidget
@@ -64,20 +66,38 @@ namespace LibreLancer.Interface
         private const float LabelCollisionPadding = 2f;
         private const float SelectorSize = 14f;
         private const float ZoomButtonOffset = 16f;
+        private const float AddWaypointButtonOffset = 16f;
         private const float SelectorMenuClosePadding = 8f;
         private const float ZoomedScale = 4f;
         private const float ZoomAnimationDuration = 1.5f;
+        private const float SectorFadeOutDuration = 0.35f;
+        private const float SectorFadeInDuration = 0.35f;
         private const float DragStartDelay = 0.5f;
         private const float DragStartDistance = 3f;
         private const string SelectSound = "ui_item_select";
         private string systemName = "";
 
+        private enum SectorViewState
+        {
+            System,
+            FadingSystemOut,
+            FadingSectorIn,
+            Sector
+        }
+
         private readonly Button selectorButton = new();
         private readonly Button zoomInButton = new();
         private readonly Button zoomOutButton = new();
+        private readonly Button addWaypointButton = new();
         private readonly List<(DrawObject Object, RectangleF Bounds)> labelCandidates = [];
         private readonly List<RectangleF> placedLabels = [];
+        private readonly List<NavmapWaypoint> userWaypoints = [];
+        private readonly Dictionary<int, UiRenderable> userWaypointDigits = [];
         private Vector2? selectorMapPosition;
+        private Func<Vector3>? playerPositionProvider;
+        private Action<List<NavmapWaypoint>>? userWaypointProvider;
+        private Action<Vector3>? addWaypoint;
+        private UiRenderable? userWaypointDiamond;
         private bool zoomed;
         private float targetZoom = 1f;
         private Vector2 targetOffset;
@@ -89,6 +109,9 @@ namespace LibreLancer.Interface
         private Vector2 mouseDownPosition;
         private Vector2 lastMousePosition;
         private double mouseDownTime;
+        private SectorViewState sectorViewState;
+        private float sectorTransitionTime;
+        private UiRenderable? sectorBackground;
 
         public bool LetterMargin { get; set; } = false;
 
@@ -111,6 +134,28 @@ namespace LibreLancer.Interface
             this.isVisited = isVisited;
         }
 
+        [WattleScriptHidden]
+        public void SetAddWaypointFunction(Action<Vector3>? addWaypoint)
+        {
+            this.addWaypoint = addWaypoint;
+        }
+
+        [WattleScriptHidden]
+        public void SetPlayerPositionProvider(Func<Vector3>? playerPositionProvider)
+        {
+            this.playerPositionProvider = playerPositionProvider;
+        }
+
+        [WattleScriptHidden]
+        public void SetUserWaypointProvider(Action<List<NavmapWaypoint>>? userWaypointProvider)
+        {
+            this.userWaypointProvider = userWaypointProvider;
+            if (userWaypointProvider == null)
+            {
+                userWaypoints.Clear();
+            }
+        }
+
         public override void ApplyStylesheet(Stylesheet stylesheet)
         {
             base.ApplyStylesheet(stylesheet);
@@ -118,6 +163,9 @@ namespace LibreLancer.Interface
             selectorButton.SetStyle(stylesheet.Lookup<ButtonStyle>("nav_selector"));
             zoomInButton.SetStyle(Style?.ZoomInButton);
             zoomOutButton.SetStyle(Style?.ZoomOutButton);
+            addWaypointButton.SetStyle(Style?.AddWaypointButton);
+            userWaypointDiamond = null;
+            userWaypointDigits.Clear();
         }
 
         public void PopulateIcons(UiContext ctx, StarSystem sys)
@@ -285,33 +333,48 @@ namespace LibreLancer.Interface
                 inputRatio + 3;
             RectangleF rectNoScale = GetMapRectangle(parentRect, lH);
 
-            UpdateZoomAndDrag(context, rectNoScale);
+            UpdateSectorTransition(context);
+            if (sectorViewState == SectorViewState.System)
+            {
+                UpdateZoomAndDrag(context, rectNoScale);
+            }
+            else
+            {
+                mouseDownOnMap = false;
+                draggingMap = false;
+                UpdateZoomAnimation(context, rectNoScale);
+            }
 
             var allClip = context.PointsToPixels(parentRect);
             if (!drawList.PushClip(allClip))
                 return;
 
-            // Draw Letters
-            var rHoriz = rectNoScale.Width / 8;
-            var rVert = rectNoScale.Height / 8;
+            var systemAlpha = SystemAlpha();
+            var sectorAlpha = SectorAlpha();
             int jj = 0;
-
-            for (int i = 0; i < 8; i++)
+            if (systemAlpha > 0)
             {
-                var renNum = GRIDNUMBERS[i];
-                var renLet = GRIDLETTERS[i];
-                var hOff = (rHoriz * i);
-                RectangleF letterRect = new RectangleF(rectNoScale.X + (hOff * Zoom) - OffsetX,
-                    rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
-                DrawText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
-                    new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
-                    false, renLet);
-                var vOff = (rVert * i);
-                var numRect = new RectangleF(rectNoScale.X - lH, rectNoScale.Y + (vOff * Zoom) - OffsetY, lH,
-                    rVert * Zoom);
-                DrawText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
-                    new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
-                    false, renNum);
+                // Draw Letters
+                var rHoriz = rectNoScale.Width / 8;
+                var rVert = rectNoScale.Height / 8;
+
+                for (int i = 0; i < 8; i++)
+                {
+                    var renNum = GRIDNUMBERS[i];
+                    var renLet = GRIDLETTERS[i];
+                    var hOff = (rHoriz * i);
+                    RectangleF letterRect = new RectangleF(rectNoScale.X + (hOff * Zoom) - OffsetX,
+                        rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
+                    DrawText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                        new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
+                        false, renLet, systemAlpha);
+                    var vOff = (rVert * i);
+                    var numRect = new RectangleF(rectNoScale.X - lH, rectNoScale.Y + (vOff * Zoom) - OffsetY, lH,
+                        rVert * Zoom);
+                    DrawText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                        new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
+                        false, renNum, systemAlpha);
+                }
             }
 
             drawList.PopClip();
@@ -321,9 +384,27 @@ namespace LibreLancer.Interface
             rect.Height *= Zoom;
 
             var scale = new Vector2(GridSizeDefault / (navmapscale == 0 ? 1 : navmapscale));
-            var background = context.Data.NavmapIcons.GetBackground();
-            background.DrawWithClip(context, drawList,
-                new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height), rectNoScale);
+            if (systemAlpha > 0)
+            {
+                var background = context.Data.NavmapIcons.GetBackground();
+                background.DrawWithClip(context, drawList,
+                    new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height), rectNoScale, systemAlpha);
+            }
+
+            if (sectorAlpha > 0)
+            {
+                GetSectorBackground(context).DrawWithClip(context, drawList, rectNoScale, rectNoScale, sectorAlpha);
+            }
+
+            if (systemAlpha <= 0)
+            {
+                if (MapBorder)
+                {
+                    var pRect = context.PointsToPixels(rectNoScale);
+                    drawList.DrawRectangle(pRect, new Color4(1, 1, 1, sectorAlpha), 1);
+                }
+                return;
+            }
 
             // Draw Zones
             Vector2 WorldToMap(Vector2 a)
@@ -363,11 +444,13 @@ namespace LibreLancer.Interface
                 {
                     Texture2D? texture = null;
                     if (!string.IsNullOrEmpty(zone.Texture))
-                        texture = (Texture2D?) context.Data.ResourceManager.FindTexture(zone.Texture);
+                        texture = (Texture2D?)context.Data.ResourceManager.FindTexture(zone.Texture);
                     context.RenderContext.Textures[0] = texture;
                     context.RenderContext.Samplers[0] =
                         new(context.RenderContext.PreferredFilterLevel, WrapMode.Repeat, WrapMode.Repeat);
-                    zoneShader.SetUniformBlock(4, ref zone.Tint);
+                    var tint = zone.Tint;
+                    tint.A *= systemAlpha;
+                    zoneShader.SetUniformBlock(4, ref tint);
                     var dim = zone.Zone.Shape == ShapeKind.Sphere
                         ? new Vector2(zone.Zone.Size.X)
                         : new Vector2(zone.Zone.Size.X, zone.Zone.Size.Z);
@@ -379,7 +462,7 @@ namespace LibreLancer.Interface
                                 Matrix4x4.CreateTranslation(new Vector3(screenPos.X, screenPos.Y, 0));
                     zoneShader.SetUniformBlock(2, ref world);
                     vbo ??= new VertexBuffer(context.RenderContext, typeof(ZoneVertex), 400, true);
-                    void* dst = (void*) vbo.BeginStreaming();
+                    void* dst = (void*)vbo.BeginStreaming();
                     var td = zone.Zone.TopDownMesh();
                     fixed (Vector2* src = td)
                         Buffer.MemoryCopy(src, dst, 400 * sizeof(Vector2), sizeof(Vector2) * td.Length);
@@ -398,7 +481,7 @@ namespace LibreLancer.Interface
                 var sysNameSize = 16f * (parentRect.Height / 480);
                 DrawText(context, drawList, ref systemNameCache, rectNoScale, sysNameSize, sysNameFont, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center,
-                    VerticalAlignment.Bottom, false, systemName);
+                    VerticalAlignment.Bottom, false, systemName, systemAlpha);
             }
 
             if (!drawList.PushClip(zoneclip))
@@ -407,7 +490,7 @@ namespace LibreLancer.Interface
             var fontSize = 11f * (parentRect.Height / 480);
             var font = context.Data.GetFont("$NavMap800");
             // Draw Objects
-            if ((CachedRenderString[]?) objectStrings == null || objectStrings.Length < objects.Count)
+            if ((CachedRenderString[]?)objectStrings == null || objectStrings.Length < objects.Count)
                 objectStrings = new CachedRenderString[objects.Count];
             jj = 0;
             labelCandidates.Clear();
@@ -425,7 +508,7 @@ namespace LibreLancer.Interface
                 if (obj.Renderable != null)
                 {
                     var objRect = new RectangleF(posAbs.X - originIcon, posAbs.Y - originIcon, szIcon, szIcon);
-                    obj.Renderable.Draw(context, drawList, objRect);
+                    obj.Renderable.Draw(context, drawList, objRect, systemAlpha);
                 }
 
                 if (!string.IsNullOrWhiteSpace(obj.Name))
@@ -461,17 +544,22 @@ namespace LibreLancer.Interface
                     fontSize, font, InterfaceColor.White,
                     new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center,
                     VerticalAlignment.Top, false,
-                    label.Object.Name!);
+                    label.Object.Name!, systemAlpha);
             }
 
             foreach (var tl in tradelanes)
             {
                 var posA = context.PointsToPixels(WorldToMap(tl.StartXZ));
                 var posB = context.PointsToPixels(WorldToMap(tl.EndXZ));
-                drawList.DrawLine(Color4.CornflowerBlue, posA, posB);
+                var color = Color4.CornflowerBlue;
+                color.A *= systemAlpha;
+                drawList.DrawLine(color, posA, posB);
             }
 
-            DrawSelectorMenu(context, drawList, rectNoScale);
+            DrawUserWaypointRoute(context, drawList, WorldToMap, systemAlpha);
+
+            if (sectorViewState == SectorViewState.System)
+                DrawSelectorMenu(context, drawList, rectNoScale);
 
             drawList.PopClip();
 
@@ -479,9 +567,188 @@ namespace LibreLancer.Interface
             if (MapBorder)
             {
                 var pRect = context.PointsToPixels(rectNoScale);
-                drawList.DrawRectangle(pRect, Color4.White, 1);
+                drawList.DrawRectangle(pRect, new Color4(1, 1, 1, systemAlpha), 1);
             }
 
+        }
+
+        private void DrawUserWaypointRoute(
+            UiContext context,
+            DrawList2D drawList,
+            Func<Vector2, Vector2> worldToMap,
+            float alpha)
+        {
+            if (userWaypointProvider != null)
+            {
+                userWaypoints.Clear();
+                userWaypointProvider(userWaypoints);
+            }
+            if (userWaypoints.Count == 0 || alpha <= 0)
+                return;
+
+            var lineColor = UserWaypointColor(context);
+            lineColor.A *= alpha;
+            Vector3? currentPlayerPosition = playerPositionProvider?.Invoke();
+            var routePoints = new Vector2[userWaypoints.Count + (currentPlayerPosition.HasValue ? 1 : 0)];
+            var pointIndex = 0;
+            if (currentPlayerPosition.HasValue)
+            {
+                routePoints[pointIndex++] = context.PointsToPixels(worldToMap(
+                    new Vector2(currentPlayerPosition.Value.X, currentPlayerPosition.Value.Z)));
+            }
+
+            for (int i = 0; i < userWaypoints.Count; i++)
+            {
+                routePoints[pointIndex++] = context.PointsToPixels(worldToMap(
+                    new Vector2(userWaypoints[i].Position.X, userWaypoints[i].Position.Z)));
+            }
+
+            drawList.DrawPolyline(routePoints, (VertexDiffuse)lineColor, UserWaypointRouteThickness);
+
+            for (int i = 0; i < userWaypoints.Count; i++)
+            {
+                var point = worldToMap(new Vector2(userWaypoints[i].Position.X, userWaypoints[i].Position.Z));
+                GetUserWaypointDiamond(context)
+                    .Draw(context, drawList, Centered(point, UserWaypointSize, UserWaypointSize), alpha);
+
+                if (i == 0 || i == userWaypoints.Count - 1)
+                {
+                    DrawWaypointNumber(context, drawList, point, userWaypoints[i].Number, alpha);
+                }
+            }
+        }
+
+        private static RectangleF Centered(Vector2 center, float width, float height) =>
+            new(center.X - (width / 2), center.Y - (height / 2), width, height);
+
+        private void DrawWaypointNumber(
+            UiContext context,
+            DrawList2D drawList,
+            Vector2 center,
+            int number,
+            float alpha)
+        {
+            var digits = Math.Max(0, number).ToString();
+            var totalWidth = digits.Length * UserWaypointDigitWidth;
+            var x = center.X - (totalWidth / 2);
+            var y = center.Y - (UserWaypointDigitHeight / 2);
+            for (int i = 0; i < digits.Length; i++)
+            {
+                var digit = digits[i] - '0';
+                var rect = new RectangleF(
+                    x + (i * UserWaypointDigitWidth),
+                    y,
+                    UserWaypointDigitWidth,
+                    UserWaypointDigitHeight);
+                GetUserWaypointDigit(context, digit).Draw(context, drawList, rect, alpha);
+            }
+        }
+
+        private UiRenderable GetUserWaypointDiamond(UiContext context)
+        {
+            userWaypointDiamond ??= CreateWaypointRenderable(
+                GetResourceModel(context, "nav_waypointdiamond"),
+                UserWaypointTint);
+            return userWaypointDiamond;
+        }
+
+        private UiRenderable GetUserWaypointDigit(UiContext context, int digit)
+        {
+            if (!userWaypointDigits.TryGetValue(digit, out var renderable))
+            {
+                renderable = CreateWaypointRenderable(
+                    GetResourceModel(context, $"waypoint{digit}"),
+                    UserWaypointDigitTint);
+                userWaypointDigits.Add(digit, renderable);
+            }
+            return renderable;
+        }
+
+        private float UserWaypointSize => Style is { UserWaypointSize: > 0 } style ? style.UserWaypointSize : 28f;
+        private float UserWaypointDigitWidth => Style is { UserWaypointDigitWidth: > 0 } style ? style.UserWaypointDigitWidth : 6f;
+        private float UserWaypointDigitHeight => Style is { UserWaypointDigitHeight: > 0 } style ? style.UserWaypointDigitHeight : 10f;
+        private int UserWaypointRouteThickness => Style is { UserWaypointRouteThickness: > 0 } style ? style.UserWaypointRouteThickness : 2;
+        private InterfaceColor UserWaypointTint =>
+            Style?.UserWaypointColor ?? new InterfaceColor() { Color = new Color4(1f, 0.2f, 1f, 1f) };
+        private InterfaceColor UserWaypointDigitTint =>
+            Style?.UserWaypointDigitColor ?? new InterfaceColor() { Color = Color4.Yellow };
+        private Color4 UserWaypointColor(UiContext context) =>
+            UserWaypointTint.GetColor(context.GlobalTime);
+
+        private static InterfaceModel GetResourceModel(UiContext context, string name)
+        {
+            foreach (var model in context.Data.Resources.Models)
+            {
+                if (string.Equals(model.Name, name, StringComparison.OrdinalIgnoreCase))
+                    return model;
+            }
+            throw new Exception($"Missing interface model resource {name}");
+        }
+
+        private static UiRenderable CreateWaypointRenderable(InterfaceModel model, InterfaceColor tint)
+        {
+            var renderable = new UiRenderable();
+            renderable.AddElement(new DisplayModel()
+            {
+                Model = model,
+                Tint = tint,
+                ForceTint = true
+            });
+            return renderable;
+        }
+
+        private UiRenderable GetSectorBackground(UiContext context)
+        {
+            if (sectorBackground != null)
+                return sectorBackground;
+
+            sectorBackground = new UiRenderable();
+            sectorBackground.AddElement(new DisplayModel()
+            {
+                Model = GetResourceModel(context, "nav_prettymap"),
+                ForceTint = true
+            });
+            return sectorBackground;
+        }
+
+        private float SystemAlpha() => sectorViewState switch
+        {
+            SectorViewState.FadingSystemOut => 1f - MathHelper.Clamp(
+                sectorTransitionTime / SectorFadeOutDuration, 0f, 1f),
+            SectorViewState.FadingSectorIn or SectorViewState.Sector => 0f,
+            _ => 1f
+        };
+
+        private float SectorAlpha() => sectorViewState switch
+        {
+            SectorViewState.FadingSystemOut => MathHelper.Clamp(
+                sectorTransitionTime / SectorFadeOutDuration, 0f, 1f),
+            SectorViewState.FadingSectorIn => MathHelper.Clamp(
+                sectorTransitionTime / SectorFadeInDuration, 0f, 1f),
+            SectorViewState.Sector => 1f,
+            _ => 0f
+        };
+
+        private void UpdateSectorTransition(UiContext context)
+        {
+            if (sectorViewState != SectorViewState.FadingSystemOut &&
+                sectorViewState != SectorViewState.FadingSectorIn)
+                return;
+
+            sectorTransitionTime += (float)context.DeltaTime;
+            if (sectorViewState == SectorViewState.FadingSystemOut &&
+                sectorTransitionTime >= SectorFadeOutDuration)
+            {
+                ResetZoomInstant();
+                sectorViewState = SectorViewState.Sector;
+                sectorTransitionTime = SectorFadeInDuration;
+            }
+            else if (sectorViewState == SectorViewState.FadingSectorIn &&
+                     sectorTransitionTime >= SectorFadeInDuration)
+            {
+                sectorViewState = SectorViewState.Sector;
+                sectorTransitionTime = SectorFadeInDuration;
+            }
         }
 
         private static int CompareLabels(
@@ -540,12 +807,16 @@ namespace LibreLancer.Interface
 
             lastMousePosition = mousePosition;
             UpdateSelectorMenuHover(context, mapRect);
+            UpdateZoomAnimation(context, mapRect);
+        }
 
+        private void UpdateZoomAnimation(UiContext context, RectangleF mapRect)
+        {
             if (zoomAnimationTime < ZoomAnimationDuration)
             {
                 zoomAnimationTime = MathF.Min(
                     ZoomAnimationDuration,
-                    zoomAnimationTime + (float) context.DeltaTime);
+                    zoomAnimationTime + (float)context.DeltaTime);
                 var t = zoomAnimationTime / ZoomAnimationDuration;
                 t = t * t * (3 - (2 * t));
                 Zoom = MathHelper.Lerp(startZoom, targetZoom, t);
@@ -597,8 +868,10 @@ namespace LibreLancer.Interface
 
             var selectorRect = Padded(SelectorRectangle(mapRect), SelectorMenuClosePadding);
             var buttonRect = Padded(ZoomButtonRectangle(mapRect), SelectorMenuClosePadding);
+            var waypointRect = Padded(AddWaypointButtonRectangle(mapRect), SelectorMenuClosePadding);
             if (!selectorRect.Contains(context.MouseX, context.MouseY) &&
-                !buttonRect.Contains(context.MouseX, context.MouseY))
+                !buttonRect.Contains(context.MouseX, context.MouseY) &&
+                !waypointRect.Contains(context.MouseX, context.MouseY))
             {
                 selectorMapPosition = null;
             }
@@ -639,6 +912,21 @@ namespace LibreLancer.Interface
                 dimensions.Y);
         }
 
+        private RectangleF AddWaypointButtonRectangle(RectangleF mapRect)
+        {
+            if (selectorMapPosition is not { } selector || addWaypoint == null)
+                return new RectangleF();
+            var selectorScreen = MapToScreenPosition(mapRect, selector);
+            var dimensions = addWaypointButton.GetDimensions();
+            addWaypointButton.X = selectorScreen.X - mapRect.X + AddWaypointButtonOffset - (dimensions.X / 2);
+            addWaypointButton.Y = selectorScreen.Y - mapRect.Y - (dimensions.Y / 2);
+            return new RectangleF(
+                mapRect.X + addWaypointButton.X,
+                mapRect.Y + addWaypointButton.Y,
+                dimensions.X,
+                dimensions.Y);
+        }
+
         private Button ActiveZoomButton => zoomed ? zoomOutButton : zoomInButton;
 
         private void DrawSelectorMenu(UiContext context, DrawList2D drawList, RectangleF mapRect)
@@ -653,10 +941,29 @@ namespace LibreLancer.Interface
 
             ZoomButtonRectangle(mapRect);
             ActiveZoomButton.Render(context, drawList, mapRect);
+
+            if (addWaypoint != null)
+            {
+                AddWaypointButtonRectangle(mapRect);
+                addWaypointButton.Render(context, drawList, mapRect);
+            }
+        }
+
+        private Vector3 MapToWorldPosition(RectangleF mapRect, Vector2 mapPosition)
+        {
+            var scale = GridSizeDefault / (navmapscale == 0 ? 1 : navmapscale);
+            var relative = new Vector2(
+                MathHelper.Clamp(mapPosition.X / mapRect.Width, 0, 1),
+                MathHelper.Clamp(mapPosition.Y / mapRect.Height, 0, 1));
+            var worldXZ = (relative * scale) - new Vector2(scale / 2);
+            return new Vector3(worldXZ.X, 0, worldXZ.Y);
         }
 
         private void SetZoom(RectangleF mapRect, bool enabled)
         {
+            if (sectorViewState != SectorViewState.System)
+                return;
+
             zoomed = enabled;
             startZoom = Zoom;
             startOffset = new Vector2(OffsetX, OffsetY);
@@ -675,7 +982,19 @@ namespace LibreLancer.Interface
             ClampTargetOffset(mapRect, targetZoom);
         }
 
-        public void ResetView()
+        public void ShowSectorView()
+        {
+            if (sectorViewState != SectorViewState.System)
+                return;
+
+            selectorMapPosition = null;
+            mouseDownOnMap = false;
+            draggingMap = false;
+            sectorViewState = SectorViewState.FadingSystemOut;
+            sectorTransitionTime = 0f;
+        }
+
+        private void ResetZoomInstant()
         {
             selectorMapPosition = null;
             zoomed = false;
@@ -688,22 +1007,44 @@ namespace LibreLancer.Interface
             draggingMap = false;
             zoomInButton.HeldDown = zoomInButton.Dragging = false;
             zoomOutButton.HeldDown = zoomOutButton.Dragging = false;
+            addWaypointButton.HeldDown = addWaypointButton.Dragging = false;
+        }
+
+        public void ResetView()
+        {
+            sectorViewState = SectorViewState.System;
+            sectorTransitionTime = 0f;
+            ResetZoomInstant();
         }
 
         public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
         {
+            if (sectorViewState != SectorViewState.System)
+                return false;
+
             var mapRect = GetMapRectangle(context, parentRectangle);
             return mapRect.Contains(x, y) ||
-                   (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(x, y));
+                   (selectorMapPosition.HasValue &&
+                    (ZoomButtonRectangle(mapRect).Contains(x, y) ||
+                     AddWaypointButtonRectangle(mapRect).Contains(x, y)));
         }
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
         {
+            if (sectorViewState != SectorViewState.System)
+                return;
+
             var mapRect = GetMapRectangle(context, parentRectangle);
             var mousePosition = new Vector2(context.MouseX, context.MouseY);
             if (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
             {
                 ActiveZoomButton.OnMouseDown(context, mapRect);
+                return;
+            }
+
+            if (selectorMapPosition.HasValue && AddWaypointButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
+            {
+                addWaypointButton.OnMouseDown(context, mapRect);
                 return;
             }
 
@@ -719,6 +1060,9 @@ namespace LibreLancer.Interface
 
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
+            if (sectorViewState != SectorViewState.System)
+                return;
+
             var mapRect = GetMapRectangle(context, parentRectangle);
             if (draggingMap)
                 return;
@@ -726,6 +1070,13 @@ namespace LibreLancer.Interface
             if (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
             {
                 SetZoom(mapRect, !zoomed);
+                selectorMapPosition = null;
+                return;
+            }
+
+            if (selectorMapPosition.HasValue && AddWaypointButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
+            {
+                addWaypoint?.Invoke(MapToWorldPosition(mapRect, selectorMapPosition.Value));
                 selectorMapPosition = null;
                 return;
             }
@@ -739,9 +1090,13 @@ namespace LibreLancer.Interface
 
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
+            if (sectorViewState != SectorViewState.System)
+                return;
+
             var mapRect = GetMapRectangle(context, parentRectangle);
             zoomInButton.OnMouseUp(context, mapRect);
             zoomOutButton.OnMouseUp(context, mapRect);
+            addWaypointButton.OnMouseUp(context, mapRect);
             mouseDownOnMap = false;
             draggingMap = false;
         }

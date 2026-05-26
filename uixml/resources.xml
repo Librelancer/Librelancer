@@ -189,6 +189,7 @@
   <Model name="news_background" path="INTERFACE/NEURONET/NEWSVENDOR/news_background.cmp" x="0" y="-0.1" xscale="1.57" yscale="2.178" xz-plane="false" />
   <Model name="hlp_window" path="INTERFACE/NEURONET/INVENTORY/hlp_window.cmp" x="0" y="0" xscale="2.62" yscale="4.18" xz-plane="false" />
   <Model name="navmap_background" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/navmap_background.cmp" x="0" y="0.03" xscale="3.23" yscale="2.91" xz-plane="false" />
+  <Model name="nav_prettymap" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db" x="0" y="0" xscale="3.23" yscale="3.5" xz-plane="false" />
   <Model name="nav_navmap_left" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_navmap_left.cmp" x="2.87" y="0.02" xscale="5.31" yscale="3.43" xz-plane="false" />
   <Model name="nav_navmap_right" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_navmap_right.cmp" x="-2.87" y="0.02" xscale="5.27" yscale="3.43" xz-plane="false" />
   <Model name="nav_universebutton" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_universebutton.3db" x="0" y="0" xscale="67" yscale="67" xz-plane="false" />
@@ -202,6 +203,18 @@
   <Model name="nav_selector" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_selector.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
   <Model name="nav_zoomin" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_zoomin.cmp" x="0" y="0" xscale="72" yscale="72" xz-plane="false" />
   <Model name="nav_zoomout" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_zoomout.cmp" x="0" y="0" xscale="72" yscale="72" xz-plane="false" />
+  <Model name="nav_addwaypoint" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_addwaypoint.cmp" x="0" y="0" xscale="72" yscale="72" xz-plane="false" />
+  <Model name="nav_waypointdiamond" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/SPACEOBJECTS/nav_waypointdiamond.3db" x="0" y="0" xscale="35" yscale="35" xz-plane="false" />
+  <Model name="waypoint0" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint0.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
+  <Model name="waypoint1" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint1.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
+  <Model name="waypoint2" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint2.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
+  <Model name="waypoint3" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint3.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
+  <Model name="waypoint4" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint4.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
+  <Model name="waypoint5" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint5.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
+  <Model name="waypoint6" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint6.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
+  <Model name="waypoint7" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint7.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
+  <Model name="waypoint8" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint8.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
+  <Model name="waypoint9" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint9.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
   <Model name="news_textframe" path="INTERFACE/NEURONET/NEWSVENDOR/news_textframe.3db" x="0" y="0" xscale="1.756" yscale="5.6" xz-plane="false" />
   <Model name="news_headlineframe" path="INTERFACE/NEURONET/NEWSVENDOR/news_headlineframe.3db" x="0" y="-0.125" xscale="2.8" yscale="5.2" xz-plane="false" />
   <Model name="news_videowindow" path="INTERFACE/NEURONET/NEWSVENDOR/news_videowindow.3db" x="0" y="0" xscale="5.104" yscale="6.83" xz-plane="false" />

@@ -17,6 +17,8 @@ namespace LibreLancer.Interface
 
         public bool Smooth { get; set; }
         public float ThumbSize { get; set; } = 0.75f;
+        public float WidthOverride { get; set; }
+        public float InsetY { get; set; }
 
         private bool updateThumb = true;
 
@@ -50,7 +52,8 @@ namespace LibreLancer.Interface
 
         private void Layout(RectangleF parent, out RectangleF myRectangle, out RectangleF track)
         {
-            myRectangle = new RectangleF(parent.X + parent.Width - Style!.Width, parent.Y, Style.Width, parent.Height);
+            var width = WidthOverride > 0 ? WidthOverride : Style!.Width;
+            myRectangle = new RectangleF(parent.X + parent.Width - width, parent.Y + InsetY, width, Math.Max(parent.Height - (InsetY * 2), 1));
             var widthAdjust = (Style?.ButtonMarginX ?? 0) * 2;
             upbutton.Width = myRectangle.Width - widthAdjust;
             downbutton.Width = myRectangle.Width - widthAdjust;

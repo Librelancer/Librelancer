@@ -309,6 +309,18 @@ namespace LibreLancer
             {
                 navmap.PopulateIcons(g.ui, g.starSystem);
                 navmap.SetVisitFunction(g.session.IsVisited);
+                navmap.SetAddWaypointFunction(null);
+                navmap.SetPlayerPositionProvider(null);
+                navmap.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
+            }
+
+            public int UserWaypointCount() => g.session.UserWaypointCount;
+
+            public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index, g.starSystem);
+
+            public void ClearUserWaypoints()
+            {
+                g.session.ClearUserWaypoints();
             }
 
             private bool IsVisited(uint hash)

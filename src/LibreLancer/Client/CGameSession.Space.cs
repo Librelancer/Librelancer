@@ -1127,6 +1127,8 @@ public partial class CGameSession
         PlayerBase = null;
         CurrentObjective = objective;
         FLLog.Info("Client", $"Spawning in {system}");
+        if (!string.Equals(PlayerSystem, system, StringComparison.OrdinalIgnoreCase))
+            ClearUserWaypoints();
         PlayerSystem = system;
         PlayerPosition = position;
         PlayerOrientation = orientation;

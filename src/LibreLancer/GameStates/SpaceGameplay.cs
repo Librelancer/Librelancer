@@ -105,7 +105,10 @@ World Time: {12:F2}
         private float maxTractorDistance;
 
         private bool crosshairHit = false;
+        private const float UserWaypointReachDistance = 100f;
         private GameObject? missionWaypoint;
+        private GameObject? userWaypoint;
+        private int userWaypointCounter;
         private TargetShipWireframe targetWireframe = new();
         private double accum = 0;
 
@@ -236,6 +239,8 @@ World Time: {12:F2}
             world.AddObject(player);
             player.Register(world);
             world.Projectiles.Player = player; // For sending projectile spawns over the network
+            if (session.TryGetActiveUserWaypoint(out var userWaypointPosition))
+                ActivateUserWaypoint(userWaypointPosition, false);
             cur_arrow = Game.ResourceManager.GetCursor("arrow")!;
             cur_cross = Game.ResourceManager.GetCursor("cross")!;
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral")!;
@@ -353,15 +358,15 @@ World Time: {12:F2}
                     ui.ChatboxEvent();
                     break;
                 case InputAction.USER_TRACTOR_BEAM:
-                {
-                    TractorSelected();
-                    break;
-                }
+                    {
+                        TractorSelected();
+                        break;
+                    }
                 case InputAction.USER_COLLECT_LOOT:
-                {
-                    TractorAll();
-                    break;
-                }
+                    {
+                        TractorAll();
+                        break;
+                    }
             }
         }
 
@@ -417,7 +422,7 @@ World Time: {12:F2}
             {
                 if (distance < 1000)
                 {
-                    return $"{(int) distance}m";
+                    return $"{(int)distance}m";
                 }
                 else if (distance < 10000)
                 {
@@ -425,7 +430,7 @@ World Time: {12:F2}
                 }
                 else if (distance < 90000)
                 {
-                    return $"{((int) distance) / 1000}k";
+                    return $"{((int)distance) / 1000}k";
                 }
                 else
                 {
@@ -621,8 +626,8 @@ World Time: {12:F2}
             }
 
             public int CurrentRank => g.session.CurrentRank;
-            public double NetWorth => (double) g.session.NetWorth;
-            public double NextLevelWorth => (double) g.session.NextLevelWorth;
+            public double NetWorth => (double)g.session.NetWorth;
+            public double NextLevelWorth => (double)g.session.NextLevelWorth;
             public PlayerStats Statistics => g.session.Statistics;
             public double CharacterPlayTime => g.session.CharacterPlayTime;
 
@@ -695,7 +700,7 @@ World Time: {12:F2}
             }
 
             public int CruiseCharge() => g.control.EngineState == EngineStates.CruiseCharging
-                ? (int) (g.control.ChargePercent * 100)
+                ? (int)(g.control.ChargePercent * 100)
                 : -1;
 
             public bool IsMultiplayer() => g.session.Multiplayer;
@@ -848,7 +853,16 @@ World Time: {12:F2}
             {
                 nav.PopulateIcons(g.ui, g.sys);
                 nav.SetVisitFunction(g.session.IsVisited);
+                nav.SetAddWaypointFunction(g.CreateUserWaypoint);
+                nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);
+                nav.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
             }
+
+            public int UserWaypointCount() => g.session.UserWaypointCount;
+
+            public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index, g.sys);
+
+            public void ClearUserWaypoints() => g.ClearUserWaypoints();
 
             public ChatSource GetChats() => g.session.Chats;
             public double GetCredits() => g.session.Credits;
@@ -901,9 +915,9 @@ World Time: {12:F2}
             }
 
             public int ThrustPercent() =>
-                ((int) (g.powerCore.CurrentThrustCapacity / g.powerCore.Equip.ThrustCapacity * 100));
+                ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.Equip.ThrustCapacity * 100));
 
-            public int Speed() => ((int) g.player.PhysicsComponent!.Body.LinearVelocity.Length());
+            public int Speed() => ((int)g.player.PhysicsComponent!.Body.LinearVelocity.Length());
         }
 
         private void BehaviorChanged(AutopilotBehaviors newBehavior, AutopilotBehaviors oldBehavior)
@@ -1066,7 +1080,7 @@ World Time: {12:F2}
 
             var fraction = accum / updateInterval;
 
-            world.UpdateInterpolation((float) fraction);
+            world.UpdateInterpolation((float)fraction);
             UpdateCamera(delta);
         }
 
@@ -1120,6 +1134,7 @@ World Time: {12:F2}
             ui.Update(Game);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
             TimeDilatedUpdate(delta);
+            UpdateUserWaypointRoute();
             sysrender.Camera = GetCurrentCamera();
 
             if (frameCount < 2)
@@ -1247,7 +1262,7 @@ World Time: {12:F2}
             else
             {
                 Thn.Update(paused ? 0 : delta);
-                ((ThnCamera) Thn.CameraHandle).DefaultZ(); // using Thn Z here is just asking for trouble
+                ((ThnCamera)Thn.CameraHandle).DefaultZ(); // using Thn Z here is just asking for trouble
             }
         }
 
@@ -1442,14 +1457,14 @@ World Time: {12:F2}
             {
                 if (Input.IsActionDown(InputAction.USER_INC_THROTTLE))
                 {
-                    shipInput.Throttle += (float) (delta);
+                    shipInput.Throttle += (float)(delta);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
                     steering.EngineKill = false;
                 }
 
                 else if (Input.IsActionDown(InputAction.USER_DEC_THROTTLE))
                 {
-                    shipInput.Throttle -= (float) (delta);
+                    shipInput.Throttle -= (float)(delta);
                     shipInput.Throttle = MathHelper.Clamp(shipInput.Throttle, 0, 1);
                     steering.EngineKill = false;
                 }
@@ -1495,7 +1510,7 @@ World Time: {12:F2}
                 if (isTurretView)
                 {
                     _turretViewCamera.PanControls = new Vector2(
-                        2f * (mX / (float) Game.Width) - 1f, -(2f * (mY / (float) Game.Height) - 1f)
+                        2f * (mX / (float)Game.Width) - 1f, -(2f * (mY / (float)Game.Height) - 1f)
                     );
                     shipInput.MouseFlight = false;
                     _chaseCamera.MouseFlight = false;
@@ -1690,6 +1705,83 @@ World Time: {12:F2}
             return ScreenPosition(obj.WorldTransform.Position);
         }
 
+        private void RemoveUserWaypoint()
+        {
+            if (userWaypoint == null)
+            {
+                return;
+            }
+
+            if (Selection.Selected == userWaypoint)
+            {
+                Selection.Selected = null;
+            }
+
+            world.RemoveObject(userWaypoint);
+            userWaypoint = null;
+        }
+
+        private void ClearUserWaypoints()
+        {
+            session.ClearUserWaypoints();
+            RemoveUserWaypoint();
+        }
+
+        private void CreateUserWaypoint(Vector3 pos)
+        {
+            session.AddUserWaypoint(pos);
+            if (userWaypoint != null)
+                return;
+
+            ActivateUserWaypoint(pos, false);
+        }
+
+        private void ActivateUserWaypoint(Vector3 pos, bool continueGoto)
+        {
+            var waypointArch = Game.GameData.Items.Archetypes.Get("waypoint")!;
+            userWaypoint = new GameObject(waypointArch, null, Game.ResourceManager)
+            {
+                Nickname = $"user_waypoint_{userWaypointCounter++}",
+                Name = new ObjectName("Waypoint")
+            };
+            userWaypoint.SetLocalTransform(new Transform3D(pos, Quaternion.Identity));
+            world.AddObject(userWaypoint);
+            userWaypoint.Register(world);
+
+            Selection.Selected = userWaypoint;
+            if (continueGoto)
+            {
+                pilotComponent!.GotoObject(userWaypoint, GotoKind.Goto);
+            }
+        }
+
+        private void UpdateUserWaypointRoute()
+        {
+            if (paused || Dead || userWaypoint == null)
+            {
+                return;
+            }
+
+            var playerPosition = player.WorldTransform.Position;
+            var waypointPosition = userWaypoint.WorldTransform.Position;
+            if (Vector3.Distance(playerPosition, waypointPosition) > UserWaypointReachDistance)
+            {
+                return;
+            }
+
+            // found it interesting that it could
+            // follow the next waypoint if the player is on goto mode, which could be convenient
+            // so their ship doesnt stop at the waypoints. False for now since its not vanilla, 
+            // left it here because its interesting for testing.
+            const bool continueGoto = false;
+            RemoveUserWaypoint();
+            session.RemoveActiveUserWaypoint();
+            if (session.TryGetActiveUserWaypoint(out var nextPosition))
+            {
+                ActivateUserWaypoint(nextPosition, continueGoto);
+            }
+        }
+
         private void UpdateObjectiveObjects()
         {
             if (missionWaypoint != null)
@@ -1731,7 +1823,7 @@ World Time: {12:F2}
         {
             float size = 14;
             float ratio = (Game.Height / 480f);
-            return (int) (size * ratio);
+            return (int)(size * ratio);
         }
 
         private bool showObjectList = false;
@@ -1754,14 +1846,14 @@ World Time: {12:F2}
                 // Viewport FOV calculations unaffected by letterboxing
                 Game.RenderContext.ClearColor = Color4.Black;
                 Game.RenderContext.ClearAll();
-                var newRatio = ((double) Game.Width / Game.Height) * 1.39;
+                var newRatio = ((double)Game.Width / Game.Height) * 1.39;
                 var newHeight = Game.Width / newRatio;
                 var diff = (Game.Height - newHeight);
                 var vp = Game.RenderContext.CurrentViewport;
-                vp.Y = (int) (vp.Y + (diff / 2));
-                vp.Height = (int) (vp.Height - (diff));
+                vp.Y = (int)(vp.Y + (diff / 2));
+                vp.Height = (int)(vp.Height - (diff));
                 Game.RenderContext.PushViewport(vp.X, vp.Y, vp.Width, vp.Height);
-                Thn.UpdateViewport(Game.RenderContext.CurrentViewport, (float) Game.Width / Game.Height);
+                Thn.UpdateViewport(Game.RenderContext.CurrentViewport, (float)Game.Width / Game.Height);
             }
 
             if (Selection.Selected != null)
@@ -1798,8 +1890,8 @@ World Time: {12:F2}
             if (GetCrosshair(out var crosshairScreen, out _))
             {
                 var sz = CrosshairSize();
-                var r0 = new Rectangle((int) (crosshairScreen.X - sz / 2), (int) crosshairScreen.Y, sz, 1);
-                var r1 = new Rectangle((int) crosshairScreen.X, (int) crosshairScreen.Y - (sz / 2), 1, sz);
+                var r0 = new Rectangle((int)(crosshairScreen.X - sz / 2), (int)crosshairScreen.Y, sz, 1);
+                var r1 = new Rectangle((int)crosshairScreen.X, (int)crosshairScreen.Y - (sz / 2), 1, sz);
                 var dl = Game.RenderContext.Renderer2D.CreateDrawList();
                 dl.FillRectangle(r0, Color4.Red);
                 dl.FillRectangle(r1, Color4.Red);

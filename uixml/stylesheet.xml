@@ -506,7 +506,7 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Normal>
     </ButtonStyle>
-    <NavmapStyle>
+    <NavmapStyle UserWaypointSize="28" UserWaypointDigitWidth="6" UserWaypointDigitHeight="10" UserWaypointRouteThickness="2" UserWaypointColor="#ff33ff" UserWaypointDigitColor="yellow">
 	<NavmapStyle.ZoomInButton Width="17" Height="17" MouseDownSound="ui_item_select">
             <ButtonStyle.Normal>
                 <ButtonAppearance.Background>
@@ -541,6 +541,23 @@
                 </ButtonAppearance.Background>
             </ButtonStyle.Pressed>
         </NavmapStyle.ZoomOutButton>
+	<NavmapStyle.AddWaypointButton Width="17" Height="17" MouseDownSound="ui_item_select">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nav_addwaypoint"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nav_addwaypoint" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Pressed>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nav_addwaypoint" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Pressed>
+	</NavmapStyle.AddWaypointButton>
     </NavmapStyle>
 	<!-- Menu -->
 	<ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
@@ -582,6 +599,19 @@
 				<DisplayWireBorder Width="2" Color="yellow"/>
 			</ButtonAppearance.Background>
 		</ButtonStyle.Selected>
+        <ButtonStyle.Disabled TextColor="#666"/>
+	</ButtonStyle>
+	<ButtonStyle Width="127" Height="25" Name="wirebutton_navpanel" MouseEnterSound="ui_rollover">
+		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="10" FontFamily="$ButtonText">
+			<ButtonAppearance.Background>
+				<DisplayWireBorder Width="2" Color="text"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover TextColor="text_hover">
+			<ButtonAppearance.Background>
+				<DisplayWireBorder Width="2" Color="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
         <ButtonStyle.Disabled TextColor="#666"/>
 	</ButtonStyle>
 	<ButtonStyle Width="15" Height="15" Name="inv_category_weapons">

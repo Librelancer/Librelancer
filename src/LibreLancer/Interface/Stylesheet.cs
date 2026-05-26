@@ -121,5 +121,12 @@ namespace LibreLancer.Interface
     {
         public ButtonStyle? ZoomInButton { get; set; }
         public ButtonStyle? ZoomOutButton { get; set; }
+        public ButtonStyle? AddWaypointButton { get; set; }
+        public float UserWaypointSize { get; set; }
+        public float UserWaypointDigitWidth { get; set; }
+        public float UserWaypointDigitHeight { get; set; }
+        public int UserWaypointRouteThickness { get; set; }
+        public InterfaceColor? UserWaypointColor { get; set; }
+        public InterfaceColor? UserWaypointDigitColor { get; set; }
     }
 }
