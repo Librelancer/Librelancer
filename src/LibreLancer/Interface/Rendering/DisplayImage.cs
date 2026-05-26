@@ -26,11 +26,12 @@ namespace LibreLancer.Interface
 
         private Texture2D? texture;
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, float alpha)
         {
             if (!Enabled || Image == null) return;
             if (!CanRender(context)) return;
             var color = (Tint ?? InterfaceColor.White).GetColor(context.GlobalTime);
+            color.A *= alpha;
             var blendMode = OneInvSrcColor ? BlendMode.OneInvSrcColor : BlendMode.Normal;
             clientRectangle.Width *= ScaleX;
             clientRectangle.Height *= ScaleY;

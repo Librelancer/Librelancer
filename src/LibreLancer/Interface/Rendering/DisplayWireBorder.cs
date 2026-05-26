@@ -12,10 +12,11 @@ namespace LibreLancer.Interface
         public float Width { get; set; } = 1;
         public InterfaceColor? Color { get; set; }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, float alpha)
         {
             if(!Enabled) return;
             var color = (Color ?? InterfaceColor.White).GetColor(context.GlobalTime);
+            color.A *= alpha;
             if (context.PointsToPixels(Width) <= 1) {
                 drawList.DrawRectangle(context.PointsToPixels(clientRectangle), color, 1);
             }

@@ -96,9 +96,10 @@ namespace LibreLancer.Interface
             return Matrix4x4.CreateScale(sX, sY, 1) * Matrix4x4.CreateTranslation(tX, tY, 0);
         }
 
-        private void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat)
+        private void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat, float alpha)
         {
             var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
+            color.A *= alpha;
             var mesh = context.Data.ResourceManager.FindMesh(wire.MeshCRC);
             if (mesh != null)
             {
@@ -106,7 +107,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, float alpha)
         {
             if (!Enabled || Model == null)
             {
@@ -175,7 +176,7 @@ namespace LibreLancer.Interface
                     }
 
                     model.DrawImmediate(rc, context.Data.ResourceManager, transform,
-                        ref Lighting.Empty);
+                        ref Lighting.Empty, 0, null, alpha);
 
                     if (tint != null)
                     {
@@ -194,7 +195,7 @@ namespace LibreLancer.Interface
                     {
                         if (part.Wireframe != null)
                         {
-                            DrawVMeshWire(context, part.Wireframe, part.LocalTransform.Matrix() * transform);
+                            DrawVMeshWire(context, part.Wireframe, part.LocalTransform.Matrix() * transform, alpha);
                         }
                     }
                     context.Lines.Render();

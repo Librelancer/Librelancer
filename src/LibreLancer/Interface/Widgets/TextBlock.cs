@@ -119,7 +119,7 @@ namespace LibreLancer.Interface
             if (Background != null)
             {
                 foreach (var elem in Background.Elements)
-                    elem.Render(context, drawList, myRectangle);
+                    elem.Render(context, drawList, myRectangle, 1);
             }
 
             myRectangle.X += MarginX;
