@@ -117,6 +117,9 @@ namespace LibreLancer.Interface
 
         public bool MapBorder { get; set; } = false;
 
+        public string ZoomInSound { get; set; } = "hud_zoom_in";
+        public string ZoomOutSound { get; set; } = "hud_zoom_out";
+
         [WattleScriptHidden] public NavmapStyle? Style;
 
         private struct ZoneVertex : IVertexType
@@ -1068,6 +1071,7 @@ namespace LibreLancer.Interface
 
             if (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
             {
+                context.PlaySound(zoomed ? ZoomOutSound : ZoomInSound);
                 SetZoom(mapRect, !zoomed);
                 selectorMapPosition = null;
                 return;
