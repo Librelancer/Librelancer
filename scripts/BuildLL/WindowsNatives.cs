@@ -19,6 +19,7 @@ public class WindowsNatives
 
         string generator = version switch
         {
+            VSVersion.VS2026 => "Visual Studio 18 2026",
             VSVersion.VS2022 => "Visual Studio 17 2022",
             VSVersion.VS2019 => "Visual Studio 16 2019",
             _ => throw new InvalidOperationException() // unreachable
@@ -34,8 +35,8 @@ public class WindowsNatives
             Options = options
         });
 
-        // todo: slnx on vs2026
-        string sln = Path.Combine(outputDir, slnname) + ".sln";
+        var ext = version >= VSVersion.VS2026 ? ".slnx" : ".sln";
+        string sln = Path.Combine(outputDir, slnname) + ext;
         MSBuild.Run(sln, $"/m /p:Configuration={buildType}", version, platform);
     }
 }

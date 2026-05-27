@@ -10,6 +10,7 @@ namespace BuildLL
         Any = 0,
         VS2019 = 1,
         VS2022 = 2,
+        VS2026 = 3
     }
     public enum MSBuildPlatform
     {
@@ -62,6 +63,11 @@ namespace BuildLL
                 msbuild = VSPath("2022", _editions, "Current", platform);
                 if (msbuild == null) msbuild = VSPath("2022", _editions, "17.0", platform);
             }
+            if (vs == VSVersion.VS2026)
+            {
+                msbuild = VSPath("18", _editions, "Current", platform);
+                if (msbuild == null) msbuild = VSPath("18", _editions, "18.0", platform);
+            }
             return msbuild != null;
         }
 
@@ -69,6 +75,11 @@ namespace BuildLL
         {
             if (vs == VSVersion.Any)
             {
+                if (TryFind(VSVersion.VS2026, platform, out _))
+                {
+                    Console.WriteLine("Detected VS2026");
+                    return VSVersion.VS2026;
+                }
                 if (TryFind(VSVersion.VS2022, platform, out _))
                 {
                     Console.WriteLine("Detected VS2022");

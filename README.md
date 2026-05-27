@@ -21,10 +21,10 @@ Note for developers: .\build.ps1 or build.sh _must_ be ran before opening the .s
 **Prerequisites:**
 
 * 64-bit Windows 10 or newer
-* Visual Studio 2022 with:
-* * .NET 10.0 SDK
+* .NET 10.0 SDK
+* Visual Studio 2022 OR Visual Studio 2026 with:
 * *  Desktop C++ Development Workflow
-* [CMake](https://cmake.org/) version 3.15+
+* [CMake](https://cmake.org/) version 3.15+ (4.2+ required for Visual Studio 2026)
 
 **Steps:**
 
@@ -69,7 +69,7 @@ You need to either uninstall the 32-bit dotnet SDK (recommended), or modify your
 
 RedHat has disabled RSA+SHA1 signatures in OpenSSL with a vendor patch, breaking strong name signatures in dotnet.
 
-If you are using `./build.sh`, run the command as `OPENSSL_ENABLE_SHA1_SIGNATURES=1 ./build.sh` to work around this safely. 
+If you are using `./build.sh`, run the command as `OPENSSL_ENABLE_SHA1_SIGNATURES=1 ./build.sh` to work around this safely.
 
 For developers, noting that this is **not recommended** by RedHat, you can follow instructions from RedHat to re-enable SHA1 signatures system-wide: https://docs.redhat.com/fr/documentation/red_hat_enterprise_linux/9/html/security_hardening/proc_re-enabling-sha-1_using-the-system-wide-cryptographic-policies
 
