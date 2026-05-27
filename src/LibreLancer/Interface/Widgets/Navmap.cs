@@ -346,39 +346,49 @@ namespace LibreLancer.Interface
                 UpdateZoomAnimation(context, rectNoScale);
             }
 
-            var allClip = context.PointsToPixels(parentRect);
-            if (!drawList.PushClip(allClip))
-                return;
-
+            int jj = 0;
             var systemAlpha = SystemAlpha();
             var sectorAlpha = SectorAlpha();
-            int jj = 0;
             if (systemAlpha > 0)
             {
                 // Draw Letters
                 var rHoriz = rectNoScale.Width / 8;
                 var rVert = rectNoScale.Height / 8;
 
-                for (int i = 0; i < 8; i++)
+                var letterClip = new RectangleF(rectNoScale.X - lH,
+                    rectNoScale.Y, 3 * lH, rectNoScale.Height);
+                if (drawList.PushClip(context.PointsToPixels(letterClip)))
                 {
-                    var renNum = GRIDNUMBERS[i];
-                    var renLet = GRIDLETTERS[i];
-                    var hOff = (rHoriz * i);
-                    RectangleF letterRect = new RectangleF(rectNoScale.X + (hOff * Zoom) - OffsetX,
-                        rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
-                    RenderText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
-                        new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
-                        false, renLet, systemAlpha);
-                    var vOff = (rVert * i);
-                    var numRect = new RectangleF(rectNoScale.X - lH, rectNoScale.Y + (vOff * Zoom) - OffsetY, lH,
-                        rVert * Zoom);
-                    RenderText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
-                        new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
-                        false, renNum, systemAlpha);
+                    for (int i = 0; i < 8; i++)
+                    {
+                        var renNum = GRIDNUMBERS[i];
+                        var vOff = (rVert * i);
+                        var numRect = new RectangleF(rectNoScale.X - lH, rectNoScale.Y + (vOff * Zoom) - OffsetY, lH,
+                            rVert * Zoom);
+                        RenderText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                            new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
+                            false, renNum, systemAlpha);
+                    }
+                    drawList.PopClip();
+                }
+
+                var numberClip = new RectangleF(rectNoScale.X, rectNoScale.Y + rectNoScale.Height + 1,
+                    rectNoScale.Width, lH * 2);
+                if (drawList.PushClip(context.PointsToPixels(numberClip)))
+                {
+                    for (int i = 0; i < 8; i++)
+                    {
+                        var renLet = GRIDLETTERS[i];
+                        var hOff = (rHoriz * i);
+                        RectangleF letterRect = new RectangleF(rectNoScale.X + (hOff * Zoom) - OffsetX,
+                            rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
+                        RenderText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                            new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
+                            false, renLet, systemAlpha);
+                    }
+                    drawList.PopClip();
                 }
             }
-
-            drawList.PopClip();
 
             var rect = rectNoScale;
             rect.Width *= Zoom;
