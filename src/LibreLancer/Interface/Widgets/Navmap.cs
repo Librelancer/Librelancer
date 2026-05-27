@@ -327,7 +327,7 @@ namespace LibreLancer.Interface
         public override unsafe void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var parentRect = GetMyRectangle(context, parentRectangle);
-            var gridIdentSize = 13 * (parentRect.Height / 480);
+            var gridIdentSize = 16.7f * (parentRect.Height / 480);
             var gridIdentFont = context.Data.GetFont("$NavMap800");
             var inputRatio = 480 / context.ViewportHeight;
             var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
@@ -351,21 +351,21 @@ namespace LibreLancer.Interface
             var sectorAlpha = SectorAlpha();
             if (systemAlpha > 0)
             {
-                // Draw Letters
+                // Draw grid identifiers
                 var rHoriz = rectNoScale.Width / 8;
                 var rVert = rectNoScale.Height / 8;
 
-                var letterClip = new RectangleF(rectNoScale.X - lH,
-                    rectNoScale.Y, 3 * lH, rectNoScale.Height);
+                var letterClip = new RectangleF(rectNoScale.X - lH - (lH * 0.15f),
+                    rectNoScale.Y, 3 * lH + (lH * 0.15f), rectNoScale.Height);
                 if (drawList.PushClip(context.PointsToPixels(letterClip)))
                 {
                     for (int i = 0; i < 8; i++)
                     {
                         var renNum = GRIDNUMBERS[i];
                         var vOff = (rVert * i);
-                        var numRect = new RectangleF(rectNoScale.X - lH, rectNoScale.Y + (vOff * Zoom) - OffsetY, lH,
+                        var numRect = new RectangleF(rectNoScale.X - lH - (lH * 0.15f), rectNoScale.Y + (vOff * Zoom) - OffsetY, lH,
                             rVert * Zoom);
-                        RenderText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                        RenderText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont, context.Data.GetColor("text"),
                             new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Center,
                             false, renNum, systemAlpha);
                     }
@@ -382,7 +382,7 @@ namespace LibreLancer.Interface
                         var hOff = (rHoriz * i);
                         RectangleF letterRect = new RectangleF(rectNoScale.X + (hOff * Zoom) - OffsetX,
                             rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
-                        RenderText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, InterfaceColor.White,
+                        RenderText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont, context.Data.GetColor("text"),
                             new InterfaceColor() { Color = Color4.Black }, HorizontalAlignment.Center, VerticalAlignment.Bottom,
                             false, renLet, systemAlpha);
                     }
@@ -1117,7 +1117,7 @@ namespace LibreLancer.Interface
         private RectangleF GetMapRectangle(UiContext context, RectangleF parentRectangle)
         {
             var parentRect = GetMyRectangle(context, parentRectangle);
-            var gridIdentSize = 13 * (parentRect.Height / 480);
+            var gridIdentSize = 16.7f * (parentRect.Height / 480);
             var gridIdentFont = context.Data.GetFont("$NavMap800");
             var inputRatio = 480 / context.ViewportHeight;
             var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
