@@ -327,7 +327,7 @@ namespace LibreLancer.Interface
         public override unsafe void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var parentRect = GetMyRectangle(context, parentRectangle);
-            var gridIdentSize = 14.3f * (parentRect.Height / 480);
+            var gridIdentSize = 16.7f * (parentRect.Height / 480);
             var gridIdentFont = context.Data.GetFont("$NavMap800");
             var inputRatio = 480 / context.ViewportHeight;
             var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
@@ -1117,7 +1117,7 @@ namespace LibreLancer.Interface
         private RectangleF GetMapRectangle(UiContext context, RectangleF parentRectangle)
         {
             var parentRect = GetMyRectangle(context, parentRectangle);
-            var gridIdentSize = 14.3f * (parentRect.Height / 480);
+            var gridIdentSize = 16.7f * (parentRect.Height / 480);
             var gridIdentFont = context.Data.GetFont("$NavMap800");
             var inputRatio = 480 / context.ViewportHeight;
             var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
