@@ -148,8 +148,12 @@ struct expr {
   } param;
 };
 
+#ifdef __cplusplus
+#define expr_init() {}
+#else
 #define expr_init()                                                            \
   { .type = (enum expr_type)0 }
+#endif
 
 struct expr_string {
   const char *s;
