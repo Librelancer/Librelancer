@@ -7,8 +7,9 @@ namespace BuildLL
 {
     public enum VSVersion
     {
-        VS2019,
-        VS2022
+        Any = 0,
+        VS2019 = 1,
+        VS2022 = 2,
     }
     public enum MSBuildPlatform
     {
@@ -48,25 +49,55 @@ namespace BuildLL
             return null;
         }
 
-        public static void Run(string file, string args, VSVersion vs, MSBuildPlatform platform)
+        static bool TryFind(VSVersion vs, MSBuildPlatform platform, out string msbuild)
         {
-            string msbuild = null;
-            paths.Clear();
-            if (vs == VSVersion.VS2019) {
+            msbuild = null;
+            if (vs == VSVersion.VS2019)
+            {
                 msbuild = VSPath("2019", _editions, "Current", platform);
                 if (msbuild == null) msbuild = VSPath("2019", _editions, "16.0", platform);
             }
-             if (vs == VSVersion.VS2022) {
+            if (vs == VSVersion.VS2022)
+            {
                 msbuild = VSPath("2022", _editions, "Current", platform);
                 if (msbuild == null) msbuild = VSPath("2022", _editions, "17.0", platform);
             }
+            return msbuild != null;
+        }
 
-            if (msbuild == null)
+        public static VSVersion SelectVersion(VSVersion vs, MSBuildPlatform platform)
+        {
+            if (vs == VSVersion.Any)
             {
-                foreach (var p in paths) Console.WriteLine("Tried: {0}", p);
+                if (TryFind(VSVersion.VS2022, platform, out _))
+                {
+                    Console.WriteLine("Detected VS2022");
+                    return VSVersion.VS2022;
+                }
+                if (TryFind(VSVersion.VS2019, platform, out _))
+                {
+                    Console.WriteLine("Detected VS2019");
+                    return VSVersion.VS2019;
+                }
                 throw new Exception($"Could not find installed MSBuild for {vs} {platform}");
             }
+            if (!TryFind(vs, platform, out _))
+            {
+                throw new Exception($"Could not find installed MSBuild for {vs} {platform}");
+            }
+            return vs;
+        }
 
+        public static void Run(string file, string args, VSVersion vs, MSBuildPlatform platform)
+        {
+            if (vs == VSVersion.Any)
+            {
+                throw new InvalidOperationException("Call SelectVersion()");
+            }
+            if (!TryFind(vs, platform, out var msbuild))
+            {
+                throw new Exception($"Could not find installed MSBuild for {vs} {platform}");
+            }
             RunCommand(msbuild, $"{Quote(file)} {args}");
         }
     }

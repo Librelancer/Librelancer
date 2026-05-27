@@ -24,6 +24,7 @@ namespace BuildLL
         private static bool withWin64 = false;
         private static bool withUpdates = true;
         private static string updateChannel = "daily";
+        private static VSVersion vsVersion = VSVersion.Any;
 
         private static DateTime Invoked = DateTime.UtcNow;
         public static void Options()
@@ -38,6 +39,13 @@ namespace BuildLL
             FlagArg("--with-win64", () => withWin64 = true, "(Linux only) Also build for 64-bit windows");
             FlagArg("--no-updates", () => withUpdates = false, "Disables built in updater (SDK only)");
             StringArg("--update-channel", v => updateChannel = v, "Sets update channel for this build (SDK only)");
+            StringArg("--vsversion", v =>
+            {
+                if (!Enum.TryParse(v, true, out vsVersion))
+                {
+                    throw new Exception($"Unrecognised VS version: {v}");
+                }
+            }, $"Sets Visual Studio version ({string.Join(',', Enum.GetNames<VSVersion>())})");
         }
 
         static readonly string[] sdkProjects = {
@@ -253,22 +261,18 @@ namespace BuildLL
             {
                 Directory.CreateDirectory("bin/builddeps");
                 Directory.CreateDirectory("obj/spirvcross");
-                if (IsWindows) {
-                    CMake.Run("extern/SPIRV-Cross", new CMakeSettings() {
-                        OutputPath = "obj/spirvcross",
-                        Generator = "Visual Studio 17 2022",
-                        Platform = "x64",
-                        BuildType = "MinSizeRel",
-                        Options = new[] { "-DSPIRV_CROSS_SHARED=ON", "-DSPIRV_CROSS_STATIC=OFF", "-DSPIRV_CROSS_CLI=OFF", "-DSPIRV_CROSS_ENABLE_TESTS=OFF"}
-                    });
-                    MSBuild.Run("./obj/spirvcross/SPIRV-Cross.sln", "/m /p:Configuration=MinSizeRel", VSVersion.VS2022, MSBuildPlatform.x86);
+                string[] spvOpts = ["-DSPIRV_CROSS_SHARED=ON", "-DSPIRV_CROSS_STATIC=OFF", "-DSPIRV_CROSS_CLI=OFF", "-DSPIRV_CROSS_ENABLE_TESTS=OFF"];
+                if (IsWindows)
+                {
+                    WindowsNatives.Build("extern/SPIRV-Cross", "obj/spirvcross", "SPIRV-Cross", "MinSizeRel",
+                        VSVersion.Any, MSBuildPlatform.x64, spvOpts);
                 } else {
                     CMake.Run("extern/SPIRV-Cross", new CMakeSettings()
                     {
                         OutputPath = "obj/spirvcross",
                         Generator = "Unix Makefiles",
                         BuildType = "MinSizeRel",
-                        Options = new[] { "-DSPIRV_CROSS_SHARED=ON", "-DSPIRV_CROSS_STATIC=OFF", "-DSPIRV_CROSS_CLI=OFF", "-DSPIRV_CROSS_ENABLE_TESTS=OFF"}
+                        Options = spvOpts
                     });
                     string pl = "";
                     if (parallel > 0) pl = "-j" + parallel;
@@ -304,26 +308,14 @@ namespace BuildLL
                     {
                         CopyDirContents("./deps/x86/", "./bin/natives/x86", false, "*.dll");
                         //build 32-bit
-                        CMake.Run(".", new CMakeSettings()
-                        {
-                            OutputPath = "obj/x86",
-                            Generator = "Visual Studio 17 2022",
-                            Platform = "Win32",
-                            BuildType = config
-                        });
-                        MSBuild.Run("./obj/x86/librelancernatives.sln", $"/m /p:Configuration={config}",
-                            VSVersion.VS2022, MSBuildPlatform.x86);
+                        WindowsNatives.Build(".", "obj/x86", "librelancernatives", config,
+                            vsVersion, MSBuildPlatform.x86);
                         CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.dll");
                         if (buildDebug || buildO0) CopyDirContents("./obj/x86/binaries/", "./bin/natives/x86", false, "*.pdb");
                     }
                     //build 64-bit
-                    CMake.Run(".", new CMakeSettings() {
-                        OutputPath = "obj/x64",
-                        Generator = "Visual Studio 17 2022",
-                        Platform = "x64",
-                        BuildType = config
-                    });
-                    MSBuild.Run("./obj/x64/librelancernatives.sln", $"/m /p:Configuration={config}", VSVersion.VS2022, MSBuildPlatform.x64);
+                    WindowsNatives.Build(".", "obj/x64", "librelancernatives", config,
+                        vsVersion, MSBuildPlatform.x64);
                     CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.dll");
                     if (buildDebug || buildO0) CopyDirContents("./obj/x64/binaries/", "./bin/natives/x64", false, "*.pdb");
 
