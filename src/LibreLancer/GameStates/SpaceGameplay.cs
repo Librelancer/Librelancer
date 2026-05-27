@@ -852,6 +852,7 @@ World Time: {12:F2}
             public void PopulateNavmap(Navmap nav)
             {
                 nav.PopulateIcons(g.ui, g.sys);
+                nav.SetSectorSystems(g.Game.GameData.Items.Systems);
                 nav.SetVisitFunction(g.session.IsVisited);
                 nav.SetAddWaypointFunction(g.CreateUserWaypoint);
                 nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);

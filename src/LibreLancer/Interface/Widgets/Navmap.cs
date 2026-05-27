@@ -35,6 +35,17 @@ namespace LibreLancer.Interface
 
         private List<DrawObject> objects = [];
 
+        private class SectorStar
+        {
+            public UiRenderable? Renderable;
+            public InterfaceColor? Tint;
+            public Vector2 Position;
+            public float Phase;
+            public float TintOffset;
+        }
+
+        private List<SectorStar> sectorStars = [];
+
         private class DrawZone
         {
             public Zone Zone;
@@ -74,6 +85,9 @@ namespace LibreLancer.Interface
         private const float SectorFadeInDuration = 0.35f;
         private const float DragStartDelay = 0.5f;
         private const float DragStartDistance = 3f;
+        private const float SectorGridSize = 16f;
+        private const float SectorGridCellCenter = 0.6f;
+        private const float SectorStarBorderMargin = 0.1f;
         private const string SelectSound = "ui_item_select";
         private string systemName = "";
 
@@ -98,6 +112,7 @@ namespace LibreLancer.Interface
         private Action<List<NavmapWaypoint>>? userWaypointProvider;
         private Action<Vector3>? addWaypoint;
         private UiRenderable? userWaypointDiamond;
+        private InterfaceModel? sectorStarModel;
         private bool zoomed;
         private float targetZoom = 1f;
         private Vector2 targetOffset;
@@ -133,6 +148,23 @@ namespace LibreLancer.Interface
         public void SetVisitFunction(Func<uint, bool> isVisited)
         {
             this.isVisited = isVisited;
+        }
+
+        [WattleScriptHidden]
+        public void SetSectorSystems(IEnumerable<StarSystem> systems)
+        {
+            sectorStars.Clear();
+            foreach (var system in systems)
+            {
+                if ((system.Visit & VisitFlags.Hidden) == VisitFlags.Hidden)
+                    continue;
+                sectorStars.Add(new SectorStar()
+                {
+                    Position = system.UniversePosition,
+                    Phase = StarPhase(system.Nickname),
+                    TintOffset = StarTintOffset(system.Nickname)
+                });
+            }
         }
 
         [WattleScriptHidden]
@@ -405,6 +437,7 @@ namespace LibreLancer.Interface
             if (sectorAlpha > 0)
             {
                 GetSectorBackground(context).DrawWithClip(context, drawList, rectNoScale, rectNoScale, sectorAlpha);
+                DrawSectorStars(context, drawList, rectNoScale, sectorAlpha);
             }
 
             if (systemAlpha <= 0)
@@ -632,6 +665,95 @@ namespace LibreLancer.Interface
 
         private static RectangleF Centered(Vector2 center, float width, float height) =>
             new(center.X - (width / 2), center.Y - (height / 2), width, height);
+
+        private void DrawSectorStars(UiContext context, DrawList2D drawList, RectangleF rect, float alpha)
+        {
+            if (sectorStars.Count == 0 || alpha <= 0)
+                return;
+
+            var starSize = MathF.Max(5f, MathF.Min(rect.Width, rect.Height) * 0.025f);
+            foreach (var star in sectorStars)
+            {
+                if (star.Renderable == null)
+                    CreateSectorStarRenderable(context, star);
+                var rel = SectorStarRelativePosition(star.Position);
+                var center = new Vector2(
+                    MathHelper.Lerp(rect.X, rect.X + rect.Width, rel.X),
+                    MathHelper.Lerp(rect.Y, rect.Y + rect.Height, rel.Y));
+                var pulse = 0.5f + (0.5f * MathF.Sin(((float)context.GlobalTime * 1.8f) + star.Phase));
+                var brightness = 0.45f + (0.55f * pulse);
+                star.Tint!.Color = SectorStarTint(star.TintOffset, brightness);
+                star.Renderable!.Draw(context, drawList, Centered(center, starSize, starSize), alpha * brightness);
+            }
+        }
+
+        private static Vector2 SectorStarRelativePosition(Vector2 position)
+        {
+            var x = (position.X + SectorGridCellCenter) / SectorGridSize;
+            var y = (position.Y + SectorGridCellCenter) / SectorGridSize;
+            return new Vector2(
+                MathHelper.Lerp(SectorStarBorderMargin, 1f - SectorStarBorderMargin, MathHelper.Clamp(x, 0f, 1f)),
+                MathHelper.Lerp(SectorStarBorderMargin, 1f - SectorStarBorderMargin, MathHelper.Clamp(y, 0f, 1f)));
+        }
+
+        private void CreateSectorStarRenderable(UiContext context, SectorStar star)
+        {
+            sectorStarModel ??= GetResourceModel(context, "nav_star");
+            var tint = new InterfaceColor()
+            {
+                Color = SectorStarTint(star.TintOffset, 1f)
+            };
+            var renderable = new UiRenderable();
+            renderable.AddElement(new DisplayModel()
+            {
+                Model = sectorStarModel,
+                Tint = tint,
+                ForceTint = true
+            });
+            star.Tint = tint;
+            star.Renderable = renderable;
+        }
+
+        private static Color4 SectorStarTint(float tintOffset, float brightness)
+        {
+            var warmth = MathHelper.Clamp(tintOffset, -1f, 1f);
+            var redAmount = MathF.Max(0f, -warmth);
+            var yellowAmount = MathF.Max(0f, warmth);
+            var neutral = new Color4(1.00f, 0.96f, 0.90f, 1f);
+            var red = new Color4(1.28f, 0.54f, 0.48f, 1f);
+            var yellow = new Color4(1.12f, 1.04f, 0.58f, 1f);
+            var redMix = MathF.Min(0.72f, redAmount * 0.9f);
+            var yellowMix = MathF.Min(0.52f, yellowAmount * 0.7f);
+            var baseColor = redAmount > yellowAmount
+                ? new Color4(
+                    MathHelper.Lerp(neutral.R, red.R, redMix),
+                    MathHelper.Lerp(neutral.G, red.G, redMix),
+                    MathHelper.Lerp(neutral.B, red.B, redMix),
+                    1f)
+                : new Color4(
+                    MathHelper.Lerp(neutral.R, yellow.R, yellowMix),
+                    MathHelper.Lerp(neutral.G, yellow.G, yellowMix),
+                    MathHelper.Lerp(neutral.B, yellow.B, yellowMix),
+                    1f);
+            var pulseColor = 0.82f + (0.25f * brightness);
+            return new Color4(
+                baseColor.R * pulseColor,
+                baseColor.G * pulseColor,
+                baseColor.B * pulseColor,
+                1f);
+        }
+
+        private static float StarPhase(string? nickname)
+        {
+            var hash = FLHash.CreateID(nickname ?? "");
+            return (hash & 0xFFFF) / 65535f * MathF.PI * 2f;
+        }
+
+        private static float StarTintOffset(string? nickname)
+        {
+            var hash = FLHash.CreateID(nickname ?? "");
+            return ((hash & 0x7FFF) / 32767f - 0.5f) * 1.15f;
+        }
 
         private void DrawWaypointNumber(
             UiContext context,

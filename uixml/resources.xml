@@ -204,6 +204,7 @@
   <Model name="nav_zoomin" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_zoomin.cmp" x="0" y="0" xscale="72" yscale="72" xz-plane="false" />
   <Model name="nav_zoomout" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_zoomout.cmp" x="0" y="0" xscale="72" yscale="72" xz-plane="false" />
   <Model name="nav_addwaypoint" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_addwaypoint.cmp" x="0" y="0" xscale="72" yscale="72" xz-plane="false" />
+  <Model name="nav_star" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/SPACEOBJECTS/nav_star.3db" x="0" y="0" xscale="120" yscale="120" xz-plane="false" />
   <Model name="nav_waypointdiamond" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/SPACEOBJECTS/nav_waypointdiamond.3db" x="0" y="0" xscale="35" yscale="35" xz-plane="false" />
   <Model name="waypoint0" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint0.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
   <Model name="waypoint1" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint1.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
