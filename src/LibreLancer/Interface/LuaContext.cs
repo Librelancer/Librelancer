@@ -123,6 +123,7 @@ namespace LibreLancer.Interface
                 _callevent = script.Globals["CallEvent"];
                 _openscene = script.Globals["OpenScene"];
                 uiContext.Data.Stylesheet = script.Call(script.Globals["CreateStylesheet"]).ToObject<Stylesheet>();
+                script.Globals["Stylesheet"] = uiContext.Data.Stylesheet;
             }
             catch (InterpreterException e)
             {

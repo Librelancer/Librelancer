@@ -8,7 +8,7 @@ class mainmenu : mainmenu_Designer
 		delay ??= 0;
 		LoadSound('ui_motion_swish')
 		// hack as we shouldn't run animations in constructors for now
-		Timer(0, () => this.EnterAnimation(delay));
+		this.EnterAnimation(delay);
 
 		scn.newgame.OnClick(() => this.ExitAnimation(() => {
 			Game.NewGame();

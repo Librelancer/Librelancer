@@ -30,7 +30,7 @@ namespace LibreLancer
                 0,
                 (float)Duration,
                 from + finalPos.X,
-                from
+                finalPos.X
             );
         }
     }

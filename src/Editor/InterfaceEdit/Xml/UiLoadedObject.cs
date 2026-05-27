@@ -148,6 +148,7 @@ public class UiLoadedObject
         printer.ElementProperty = "this.Elements";
         PrintSetter(printer, $"this.{fieldName}");
         printer.ElementProperty = null;
+        printer.WriteLine($"this.{fieldName}.ApplyStylesheet(Stylesheet);");
         printer.TabOut();
         printer.WriteLine("}");
         printer.TabOut();
