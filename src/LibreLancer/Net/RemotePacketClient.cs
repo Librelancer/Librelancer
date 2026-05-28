@@ -15,7 +15,9 @@ namespace LibreLancer.Net
         public NetPeer Client;
         public NetHpidWriter Hpids;
 
-        public int MaxSequencedSize => (Client?.Mtu ?? 576) - 76; // Safe size minus UDP and IP headers
+        //LiteNetLib overhead = 4 bytes
+        //NetPeer already includes IPv4/6 header size in reported Mtu
+        public int MaxSequencedSize => (Client?.Mtu ?? 1024) - 4;
 
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
