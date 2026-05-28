@@ -1,6 +1,7 @@
 using System;
-using System.Collections.Generic;
+using System.Buffers;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace LibreLancer.Net.Protocol;
 
@@ -60,7 +61,7 @@ public class PackedUpdatePacket : IPacket
         var reader = new BitReader(Updates, 0);
         var pa = PlayerAuthState.Read(ref reader, origAuth);
         reader.Align();
-        var count = reader.GetVarUInt32();
+        var count = reader.GetByte();
         int[] ids = new int[count];
 
         if (count > 0)
@@ -73,11 +74,14 @@ public class PackedUpdatePacket : IPacket
             ids[i] = ids[i - 1] + reader.GetVarInt32();
         }
 
-        var updates = new ObjectUpdate[count];
+        reader.Align();
 
+        var rle = new NetRleReader(Updates, reader.Position >> 3);
+
+        var updates = new ObjectUpdate[count];
         for (int i = 0; i < count; i++)
         {
-            updates[i] = ObjectUpdate.ReadDelta(ref reader, Tick, ids[i], getSource);
+            updates[i] = ObjectUpdate.ReadDelta(rle, Tick, ids[i], getSource);
             reader.Align();
         }
 
@@ -95,87 +99,25 @@ public class PackedUpdatePacket : IPacket
 
 public struct GunOrient
 {
-    private uint pitch;
-    private uint rot;
+    public ushort Pitch16;
+    public ushort Rot16;
 
     public float AnglePitch
     {
-        get => NetPacking.UnquantizeFloat(pitch, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX, 16);
-        set => pitch = NetPacking.QuantizeAngle(value, 16);
+        get => NetPacking.UnquantizeFloat(Pitch16, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX, 16);
+        set => Pitch16 = (ushort)NetPacking.QuantizeAngle(value, 16);
     }
 
     public float AngleRot
     {
-        get => NetPacking.UnquantizeFloat(rot, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX, 16);
-        set => rot = NetPacking.QuantizeAngle(value, 16);
+        get => NetPacking.UnquantizeFloat(Rot16, NetPacking.ANGLE_MIN, NetPacking.ANGLE_MAX, 16);
+        set => Rot16 = (ushort)NetPacking.QuantizeAngle(value, 16);
     }
 
-    public void ReadDelta(ref BitReader message, GunOrient src)
+    public GunOrient(ushort pitch, ushort rot)
     {
-        if (message.GetBool())
-        {
-            pitch = message.GetBool()
-                ? NetPacking.ApplyDelta(message.GetUInt(8), src.pitch, 8)
-                : message.GetUInt(16);
-        }
-        else
-        {
-            pitch = src.pitch;
-        }
-
-        if (message.GetBool())
-        {
-            rot = message.GetBool()
-                ? NetPacking.ApplyDelta(message.GetUInt(8), src.rot, 8)
-                : message.GetUInt(16);
-        }
-        else
-        {
-            rot = src.rot;
-        }
-    }
-
-    public void WriteDelta(GunOrient src, ref BitWriter message)
-    {
-        if (pitch == src.pitch)
-        {
-            message.PutBool(false);
-        }
-        else
-        {
-            message.PutBool(true);
-
-            if (NetPacking.TryDelta(pitch, src.pitch, 8, out var d))
-            {
-                message.PutBool(true);
-                message.PutUInt(d, 8);
-            }
-            else
-            {
-                message.PutBool(false);
-                message.PutUInt(pitch, 16);
-            }
-        }
-
-        if (rot == src.rot)
-        {
-            message.PutBool(false);
-        }
-        else
-        {
-            message.PutBool(true);
-
-            if (NetPacking.TryDelta(rot, src.rot, 8, out var d))
-            {
-                message.PutBool(true);
-                message.PutUInt(d, 8);
-            }
-            else
-            {
-                message.PutBool(false);
-                message.PutUInt(rot, 16);
-            }
-        }
+        Pitch16 = pitch;
+        Rot16 = rot;
     }
 }
 
@@ -187,7 +129,7 @@ public enum CruiseThrustState
     Thrusting = 3
 }
 
-public struct UpdateQuaternion
+public struct UpdateQuaternion : IEquatable<UpdateQuaternion>
 {
     public uint Largest;
     public uint Component1;
@@ -201,230 +143,215 @@ public struct UpdateQuaternion
         return uq;
     }
 
-    private const int DELTA_BITS = 7;
+    public Quaternion Quaternion => NetPacking.UnpackQuaternion(10, Largest, Component1, Component2, Component3);
 
-    public void WriteDelta(UpdateQuaternion src, ref BitWriter writer)
+    public bool Equals(UpdateQuaternion other)
     {
-        if (Largest == src.Largest &&
-            NetPacking.TryDelta(Component1, src.Component1, DELTA_BITS, out var deltaA) &&
-            NetPacking.TryDelta(Component2, src.Component2, DELTA_BITS, out var deltaB) &&
-            NetPacking.TryDelta(Component3, src.Component3, DELTA_BITS, out var deltaC)
-           )
-        {
-            writer.PutBool(true);
-            writer.PutUInt(deltaA, DELTA_BITS);
-            writer.PutUInt(deltaB, DELTA_BITS);
-            writer.PutUInt(deltaC, DELTA_BITS);
-        }
-        else
-        {
-            writer.PutBool(false);
-            writer.PutUInt(Largest, 2);
-            writer.PutUInt(Component1, 10);
-            writer.PutUInt(Component2, 10);
-            writer.PutUInt(Component3, 10);
-        }
-    }
-
-    public static UpdateQuaternion ReadDelta(UpdateQuaternion src, ref BitReader reader)
-    {
-        if (reader.GetBool())
-        {
-            return new UpdateQuaternion
-            {
-                Largest = src.Largest,
-                Component1 = NetPacking.ApplyDelta(reader.GetUInt(DELTA_BITS), src.Component1, DELTA_BITS),
-                Component2 = NetPacking.ApplyDelta(reader.GetUInt(DELTA_BITS), src.Component2, DELTA_BITS),
-                Component3 = NetPacking.ApplyDelta(reader.GetUInt(DELTA_BITS), src.Component3, DELTA_BITS),
-            };
-        }
-        else
-        {
-            return new UpdateQuaternion
-            {
-                Largest = reader.GetUInt(2),
-                Component1 = reader.GetUInt(10),
-                Component2 = reader.GetUInt(10),
-                Component3 = reader.GetUInt(10)
-            };
-        }
-    }
-
-    public Quaternion Quaternion =>
-        NetPacking.UnpackQuaternion(10, Largest, Component1, Component2, Component3);
-}
-
-public struct UpdateVector : IEquatable<UpdateVector>
-{
-    private readonly int precision;
-    private readonly float min;
-    private readonly float max;
-    private uint x;
-    private uint y;
-    private uint z;
-
-    public Vector3 Vector => precision == 0
-        ? throw new InvalidOperationException()
-        : new Vector3(NetPacking.UnquantizeFloat(x, min, max, precision),
-            NetPacking.UnquantizeFloat(y, min, max, precision),
-            NetPacking.UnquantizeFloat(z, min, max, precision));
-
-    public UpdateVector(Vector3 vector, int precision, float min, float max)
-    {
-        this.precision = precision;
-        this.min = min;
-        this.max = max;
-        x = NetPacking.QuantizeFloat(vector.X, min, max, precision);
-        y = NetPacking.QuantizeFloat(vector.Y, min, max, precision);
-        z = NetPacking.QuantizeFloat(vector.Z, min, max, precision);
-    }
-
-    public void WriteDelta(UpdateVector src, int deltaBits, ref BitWriter writer)
-    {
-        // ReSharper disable CompareOfFloatsByEqualityOperator
-        if (precision != src.precision ||
-            min != src.min ||
-            max != src.max)
-            throw new InvalidOperationException();
-        // ReSharper restore CompareOfFloatsByEqualityOperator
-
-        if (src.x == x && src.y == y && src.z == z)
-        {
-            writer.PutBool(false);
-            return;
-        }
-
-        writer.PutBool(true);
-
-        if (NetPacking.TryDelta(x, src.x, deltaBits, out var deltaA) &&
-            NetPacking.TryDelta(y, src.y, deltaBits, out var deltaB) &&
-            NetPacking.TryDelta(z, src.z, deltaBits, out var deltaC))
-        {
-            writer.PutBool(true);
-            writer.PutUInt(deltaA, deltaBits);
-            writer.PutUInt(deltaB, deltaBits);
-            writer.PutUInt(deltaC, deltaBits);
-        }
-        else
-        {
-            writer.PutBool(false);
-            writer.PutUInt(x, precision);
-            writer.PutUInt(y, precision);
-            writer.PutUInt(z, precision);
-        }
-    }
-
-    public static UpdateVector ReadDelta(UpdateVector src, int deltaBits, ref BitReader reader)
-    {
-        if (!reader.GetBool())
-            return src;
-        uint x, y, z;
-
-        if (reader.GetBool())
-        {
-            x = NetPacking.ApplyDelta(reader.GetUInt(deltaBits), src.x, deltaBits);
-            y = NetPacking.ApplyDelta(reader.GetUInt(deltaBits), src.y, deltaBits);
-            z = NetPacking.ApplyDelta(reader.GetUInt(deltaBits), src.z, deltaBits);
-        }
-        else
-        {
-            x = reader.GetUInt(src.precision);
-            y = reader.GetUInt(src.precision);
-            z = reader.GetUInt(src.precision);
-        }
-
-        return src with { x = x, y = y, z = z };
-    }
-
-    public bool Equals(UpdateVector other)
-    {
-        return precision == other.precision && min.Equals(other.min) && max.Equals(other.max) && x == other.x &&
-               y == other.y && z == other.z;
+        return Largest == other.Largest && Component1 == other.Component1 && Component2 == other.Component2 && Component3 == other.Component3;
     }
 
     public override bool Equals(object? obj)
     {
-        return obj is UpdateVector other && Equals(other);
+        return obj is UpdateQuaternion other && Equals(other);
     }
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(precision, min, max, x, y, z);
+        return HashCode.Combine(Largest, Component1, Component2, Component3);
     }
 
-    public static bool operator ==(UpdateVector? left, UpdateVector? right)
+    public static bool operator ==(UpdateQuaternion left, UpdateQuaternion right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(UpdateVector? left, UpdateVector? right)
+    public static bool operator !=(UpdateQuaternion left, UpdateQuaternion right)
     {
         return !left.Equals(right);
     }
 }
 
+
+[StructLayout(LayoutKind.Sequential)]
+public struct Fix22d10 : IEquatable<Fix22d10>
+{
+    public int Value;
+
+    public Fix22d10(float value)
+    {
+        Value = (int)MathHelper.Clamp((double)value * 1024.0, int.MinValue, int.MaxValue);
+    }
+
+    public float ToFloat()
+    {
+        return (float)((double)Value / 1024.0);
+    }
+
+    public bool Equals(Fix22d10 other)
+    {
+        return Value == other.Value;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Fix22d10 other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return Value;
+    }
+
+    public static bool operator ==(Fix22d10 left, Fix22d10 right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Fix22d10 left, Fix22d10 right)
+    {
+        return !left.Equals(right);
+    }
+}
+
+
+[StructLayout(LayoutKind.Sequential)]
+public struct Vec3Fix22d10 : IEquatable<Vec3Fix22d10>
+{
+    public Fix22d10 X;
+    public Fix22d10 Y;
+    public Fix22d10 Z;
+
+    public Vec3Fix22d10(Vector3 v)
+    {
+        X = new(v.X);
+        Y = new(v.Y);
+        Z = new(v.Z);
+    }
+
+    public Vector3 ToVector3() => new(X.ToFloat(), Y.ToFloat(), Z.ToFloat());
+
+    public static Vec3Fix22d10 operator +(Vec3Fix22d10 v1, Vec3Fix22d10 v2) => new()
+    {
+        X = new Fix22d10() { Value = v1.X.Value + v2.X.Value },
+        Y = new Fix22d10() { Value = v1.Y.Value + v2.Y.Value },
+        Z = new Fix22d10() { Value = v1.Z.Value + v2.Z.Value }
+    };
+
+    public static Vec3Fix22d10 operator -(Vec3Fix22d10 v1, Vec3Fix22d10 v2) => new()
+    {
+        X = new Fix22d10() { Value = v1.X.Value - v2.X.Value },
+        Y = new Fix22d10() { Value = v1.Y.Value - v2.Y.Value },
+        Z = new Fix22d10() { Value = v1.Z.Value - v2.Z.Value }
+    };
+
+    public static bool operator ==(Vec3Fix22d10 left, Vec3Fix22d10 right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(Vec3Fix22d10 left, Vec3Fix22d10 right)
+    {
+        return !left.Equals(right);
+    }
+
+    public bool Equals(Vec3Fix22d10 other)
+    {
+        return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is Vec3Fix22d10 other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(X, Y, Z);
+    }
+}
+
+[StructLayout(LayoutKind.Explicit)]
+unsafe struct ZigZagVecDelta
+{
+    [FieldOffset(0)]
+    public fixed byte Data[12];
+    [FieldOffset(0)]
+    public uint X;
+    [FieldOffset(4)]
+    public uint Y;
+    [FieldOffset(8)]
+    public uint Z;
+
+    public ZigZagVecDelta(Vec3Fix22d10 v)
+    {
+        X = NetPacking.Zig32(v.X.Value);
+        Y = NetPacking.Zig32(v.Y.Value);
+        Z = NetPacking.Zig32(v.Z.Value);
+    }
+
+    public Vec3Fix22d10 Zag() => new()
+    {
+        X = new() { Value = NetPacking.Zag32(X) },
+        Y = new() { Value = NetPacking.Zag32(Y) },
+        Z = new() { Value = NetPacking.Zag32(Z) }
+    };
+}
+
 public class ObjectUpdate
 {
-    public static readonly ObjectUpdate Blank = new() { Guns = [] };
-
-    private const int VELOCITY_DELTA_BITS = 14;
-    public UpdateVector AngularVelocity = new(Vector3.Zero, 24, -16384, 16383);
-
-    // Info
-    public CruiseThrustState CruiseThrust;
-    public bool EngineKill;
-    public GunOrient[]? Guns;
-
-    public long HullValue;
+    public static readonly ObjectUpdate Blank = new();
 
     public ObjNetId ID;
-
-    // Identifier
-    public UpdateVector LinearVelocity = new(Vector3.Zero, 24, -32768, 32767);
+    public Vec3Fix22d10 Position;
+    public Vec3Fix22d10 LinearVelocity;
+    public Vec3Fix22d10 AngularVelocity;
     public UpdateQuaternion Orientation = Quaternion.Identity;
-    public Vector3 Position;
-    public long ShieldValue;
-    public float Throttle;
-    public bool Tradelane;
+    public int Hull;
+    public int Shield;
+    public byte Throttle;
 
-    public void SetVelocity(Vector3 linear, Vector3 angular)
+    public float ThrottleFloat
     {
-        LinearVelocity = new UpdateVector(linear, 24, -32768, 32767);
-        AngularVelocity = new UpdateVector(angular, 24, -16384, 16383);
+        get => ((sbyte)Throttle) * 127f;
+        set => Throttle = (byte)(value / 127.0f);
     }
 
-    private static bool CanQuantize(Vector3 a, Vector3 b, float min, float max)
+    public byte Flags;
+    public GunOrient[] Guns = [];
+
+    public CruiseThrustState CruiseThrust
     {
-        return a.X - b.X >= min && a.X - b.X <= max &&
-               a.Y - b.Y >= min && a.Y - b.Y <= max &&
-               a.Z - b.Z >= min && a.Z - b.Z <= max;
+        get => (CruiseThrustState)(Flags & 0x3);
+        set => Flags = (byte)((Flags & 0xC) | (byte)value);
     }
 
-    private static Vector3 PostQuantize(Vector3 v, float min, float max, int bits)
+    public bool EngineKill
     {
-        var aX = NetPacking.QuantizeFloat(v.X, min, max, bits);
-        var aY = NetPacking.QuantizeFloat(v.Y, min, max, bits);
-        var aZ = NetPacking.QuantizeFloat(v.Z, min, max, bits);
-
-        return new Vector3(
-            NetPacking.UnquantizeFloat(aX, min, max, bits),
-            NetPacking.UnquantizeFloat(aY, min, max, bits),
-            NetPacking.UnquantizeFloat(aZ, min, max, bits)
-        );
+        get => MathHelper.GetFlag(Flags, 2);
+        set => MathHelper.SetFlag(ref Flags, 2, value);
     }
 
-    public void WriteDelta(ObjectUpdate src, uint oldTick, uint newTick, ref BitWriter msg)
+    public bool Tradelane
     {
-#if DEBUG
-        msg.PutByte(0xA1);
-#endif
-        // ID
-        if (src.ID != new ObjNetId(0) && src.ID != ID)
-            throw new InvalidOperationException("Cannot delta from different object");
+        get => MathHelper.GetFlag(Flags, 3);
+        set => MathHelper.SetFlag(ref Flags, 3, value);
+    }
 
+    // Read+write transposed bytes to arrange 0s next to each-other
+    // In order for our compression to work, the compressor
+    // needs to see the 0s grouped together as close as possible.
+
+    // We zigzag encode all the ints so that the sign bit goes
+    // into the low byte. This gives us longer runs of 0 for the
+    // high bytes.
+
+
+    public unsafe void WriteDelta(ObjectUpdate src, uint oldTick, uint newTick, NetRleWriter msg)
+    {
+        var ol = msg.Length;
         if (oldTick == 0)
         {
-            msg.PutByte(255);
+            msg.Write(255);
         }
         else if (oldTick == newTick)
         {
@@ -436,165 +363,249 @@ public class ObjectUpdate
         }
         else
         {
-            msg.PutByte((byte) (newTick - oldTick));
+            msg.Write((byte) (newTick - oldTick));
         }
 
-        // Position
-        if (NetPacking.ApproxEqual(src.Position, Position))
+        msg.Write((byte)(Guns.Length - src.Guns.Length));
+        ZigZagVecDelta posDelta = new(Position - src.Position);
+        ZigZagVecDelta avDelta = new(AngularVelocity - src.AngularVelocity);
+        ZigZagVecDelta lvDelta = new(LinearVelocity - src.LinearVelocity);
+
+
+        msg.Write(posDelta.Data[0]);  //X0
+        msg.Write(avDelta.Data[0]);
+        msg.Write(lvDelta.Data[0]);
+
+        msg.Write(posDelta.Data[4]); //Y0
+        msg.Write(avDelta.Data[4]);
+        msg.Write(lvDelta.Data[4]);
+
+        msg.Write(posDelta.Data[8]); //Z0
+        msg.Write(avDelta.Data[8]);
+        msg.Write(lvDelta.Data[8]);
+
+        msg.Write(posDelta.Data[1]); //X1
+        msg.Write(avDelta.Data[1]);
+        msg.Write(lvDelta.Data[1]);
+
+        msg.Write(posDelta.Data[5]); //Y1
+        msg.Write(avDelta.Data[5]);
+        msg.Write(lvDelta.Data[5]);
+
+        msg.Write(posDelta.Data[9]); //Z1
+        msg.Write(avDelta.Data[9]);
+        msg.Write(lvDelta.Data[9]);
+
+        msg.Write(posDelta.Data[2]); //X2
+        msg.Write(avDelta.Data[2]);
+        msg.Write(lvDelta.Data[2]);
+
+        msg.Write(posDelta.Data[6]); //Y2
+        msg.Write(avDelta.Data[6]);
+        msg.Write(lvDelta.Data[6]);
+
+        msg.Write(posDelta.Data[10]); //Z2
+        msg.Write(avDelta.Data[10]);
+        msg.Write(lvDelta.Data[10]);
+
+        msg.Write(posDelta.Data[3]); //X3
+        msg.Write(avDelta.Data[3]);
+        msg.Write(lvDelta.Data[3]);
+
+        msg.Write(posDelta.Data[7]); //Y3
+        msg.Write(avDelta.Data[7]);
+        msg.Write(lvDelta.Data[7]);
+
+        msg.Write(posDelta.Data[11]); //Z3
+        msg.Write(avDelta.Data[11]);
+        msg.Write(lvDelta.Data[11]);
+
+        msg.Write((byte)(Orientation.Largest - src.Orientation.Largest));
+
+        long dXs = (long)Orientation.Component1 - src.Orientation.Component1;
+        long dYs = (long)Orientation.Component2 - src.Orientation.Component2;
+        long dZs = (long)Orientation.Component3 - src.Orientation.Component3;
+        var dX = NetPacking.Zig64(dXs);
+        var dY = NetPacking.Zig64(dYs);
+        var dZ = NetPacking.Zig64(dZs);
+
+        msg.Write((byte)((dX >> 8) & 0xFF));
+        msg.Write((byte)((dY >> 8) & 0xFF));
+        msg.Write((byte)((dZ >> 8) & 0xFF));
+        msg.Write((byte)(dX & 0xFF));
+        msg.Write((byte)(dY & 0xFF));
+        msg.Write((byte)(dZ & 0xFF));
+
+        msg.Write((byte)(Flags - src.Flags));
+        msg.Write((byte)(Throttle - src.Throttle));
+
+        var dHull = NetPacking.Zig32(Hull - src.Hull);
+        var dShield = NetPacking.Zig32(Shield - src.Shield);
+
+        msg.Write0(dHull);
+        msg.Write0(dShield);
+        msg.Write1(dHull);
+        msg.Write1(dShield);
+        msg.Write2(dHull);
+        msg.Write2(dShield);
+        msg.Write3(dHull);
+        msg.Write3(dShield);
+
+        if (Guns is { Length: > 0 })
         {
-            msg.PutUInt(0, 2);
-        }
-        else
-        {
-            if (CanQuantize(Position, src.Position, -512, 511))
+            Span<ushort> diffP = stackalloc ushort[Guns.Length];
+            Span<ushort> diffR = stackalloc ushort[Guns.Length];
+            for (int i = 0; i < Guns.Length; i++)
             {
-                msg.PutUInt(1, 2);
-                msg.PutRangedVector3(Position - src.Position, -512, 511, 20);
-                Position = src.Position + PostQuantize(Position - src.Position, -512, 511, 20);
+                var o = src.Guns != null && src.Guns.Length > i
+                    ? src.Guns[i]
+                    : new() { AnglePitch = 0, AngleRot = 0 };
+                diffP[i] = (ushort)NetPacking.Zig32(Guns[i].Pitch16 - o.Pitch16);
+                diffR[i] = (ushort)NetPacking.Zig32(Guns[i].Rot16 - o.Rot16);
             }
-            else
+            for (int i = 0; i < diffP.Length; i++)
             {
-                msg.PutUInt(3, 2);
-                msg.PutVector3(Position);
+                msg.Write((byte)((diffP[i] >> 8) & 0xFF));
+                msg.Write((byte)((diffR[i] >> 8) & 0xFF));
             }
-        }
-
-        // Orientation
-        if (Orientation.Largest == src.Orientation.Largest &&
-            Orientation.Component1 == src.Orientation.Component1 &&
-            Orientation.Component2 == src.Orientation.Component2 &&
-            Orientation.Component3 == src.Orientation.Component3)
-        {
-            msg.PutBool(false);
-        }
-        else
-        {
-            msg.PutBool(true);
-            Orientation.WriteDelta(src.Orientation, ref msg);
-        }
-
-        // Linear Velocity
-        LinearVelocity.WriteDelta(src.LinearVelocity, VELOCITY_DELTA_BITS, ref msg);
-        // Angular Velocity
-        AngularVelocity.WriteDelta(src.AngularVelocity, VELOCITY_DELTA_BITS, ref msg);
-
-        // Flags
-        msg.PutBool(Tradelane);
-        msg.PutBool(EngineKill);
-        msg.PutUInt((uint) CruiseThrust, 2);
-
-        // Throttle
-        if (NetPacking.QuantizedEqual(src.Throttle, Throttle, -1, 1, 7))
-        {
-            msg.PutBool(false);
-        }
-        else
-        {
-            msg.PutBool(true);
-            msg.PutRangedFloat(Throttle, -1, 1, 7);
-        }
-
-        // Hull
-        if (HullValue == src.HullValue)
-        {
-            msg.PutBool(false);
-        }
-        else
-        {
-            msg.PutBool(true);
-            msg.PutVarInt64(HullValue - src.HullValue);
-        }
-
-        // Shield
-        if (ShieldValue == src.ShieldValue)
-        {
-            msg.PutBool(false);
-        }
-        else
-        {
-            msg.PutBool(true);
-            msg.PutVarInt64(ShieldValue - src.ShieldValue);
-        }
-
-        // Guns
-        if (Guns == null)
-        {
-            if ((src.Guns?.Length ?? 0) != 0)
+            for (int i = 0; i < diffP.Length; i++)
             {
-                msg.PutBool(true);
-                msg.PutVarUInt32(0);
-            }
-            else
-            {
-                msg.PutBool(false);
+                msg.Write((byte)(diffP[i] & 0xFF));
+                msg.Write((byte)(diffR[i] & 0xFF));
             }
         }
-        else
-        {
-            if (Guns.Length != (src.Guns?.Length ?? 0))
-            {
-                msg.PutBool(true);
-                msg.PutVarUInt32((uint) Guns.Length);
-            }
-            else
-            {
-                msg.PutBool(false);
-            }
-
-            for (var i = 0; i < Guns.Length; i++)
-            {
-                var sg = (src.Guns?.Length ?? 0) > i ? src.Guns![i] : default;
-                Guns[i].WriteDelta(sg, ref msg);
-            }
-        }
-
-#if DEBUG
-        msg.PutByte(0xA1);
-#endif
     }
 
-    public static ObjectUpdate ReadDelta(ref BitReader msg, uint mainTick, int id,
+    public static unsafe ObjectUpdate ReadDelta(NetRleReader msg, uint mainTick, int id,
         Func<uint, int, ObjectUpdate> getSource)
     {
-#if DEBUG
-        if (msg.GetByte() != 0xA1) throw new InvalidOperationException("Invalid delta data");
-#endif
-        var p = new ObjectUpdate() { ID = new(id) };
-        var b = msg.GetByte();
+        var od = new ObjectUpdate() { ID = new(id) };
+        var b = msg.ReadByte();
 
-        ObjectUpdate source = b == 255 ? ObjectUpdate.Blank : getSource(mainTick - b, id);
-        var posKind = msg.GetUInt(2);
+        ObjectUpdate src = b == 255 ? Blank : getSource(mainTick - b, id);
 
-        p.Position = posKind switch
+        var gunCount = (byte)(src.Guns.Length + msg.ReadByte());
+
+        ZigZagVecDelta posDelta = new();
+        ZigZagVecDelta avDelta = new();
+        ZigZagVecDelta lvDelta = new();
+
+        // Transposed bytes to arrange 0s next to each-other
+        posDelta.Data[0] = msg.ReadByte();
+        avDelta.Data[0] = msg.ReadByte();
+        lvDelta.Data[0] = msg.ReadByte();
+
+        posDelta.Data[4] = msg.ReadByte();
+        avDelta.Data[4] = msg.ReadByte();
+        lvDelta.Data[4] = msg.ReadByte();
+
+        posDelta.Data[8] = msg.ReadByte();
+        avDelta.Data[8] = msg.ReadByte();
+        lvDelta.Data[8] = msg.ReadByte();
+
+        posDelta.Data[1] = msg.ReadByte();
+        avDelta.Data[1] = msg.ReadByte();
+        lvDelta.Data[1] = msg.ReadByte();
+
+        posDelta.Data[5] = msg.ReadByte();
+        avDelta.Data[5] = msg.ReadByte();
+        lvDelta.Data[5] = msg.ReadByte();
+
+        posDelta.Data[9] = msg.ReadByte();
+        avDelta.Data[9] = msg.ReadByte();
+        lvDelta.Data[9] = msg.ReadByte();
+
+        posDelta.Data[2] = msg.ReadByte();
+        avDelta.Data[2] = msg.ReadByte();
+        lvDelta.Data[2] = msg.ReadByte();
+
+        posDelta.Data[6] = msg.ReadByte();
+        avDelta.Data[6] = msg.ReadByte();
+        lvDelta.Data[6] = msg.ReadByte();
+
+        posDelta.Data[10] = msg.ReadByte();
+        avDelta.Data[10] = msg.ReadByte();
+        lvDelta.Data[10] = msg.ReadByte();
+
+        posDelta.Data[3] = msg.ReadByte();
+        avDelta.Data[3] = msg.ReadByte();
+        lvDelta.Data[3] = msg.ReadByte();
+
+        posDelta.Data[7] = msg.ReadByte();
+        avDelta.Data[7] = msg.ReadByte();
+        lvDelta.Data[7] = msg.ReadByte();
+
+        posDelta.Data[11] = msg.ReadByte();
+        avDelta.Data[11] = msg.ReadByte();
+        lvDelta.Data[11] = msg.ReadByte();
+
+        var lg = (byte)(src.Orientation.Largest + msg.ReadByte());
+
+        var dXh = msg.ReadByte();
+        var dYh = msg.ReadByte();
+        var dZh = msg.ReadByte();
+        var dXl = msg.ReadByte();
+        var dYl = msg.ReadByte();
+        var dZl = msg.ReadByte();
+
+        var dX = NetPacking.Zag64((ulong)((dXh << 8) | dXl));
+        var dY = NetPacking.Zag64((ulong)((dYh << 8) | dYl));
+        var dZ = NetPacking.Zag64((ulong)((dZh << 8) | dZl));
+
+        od.Position = src.Position + posDelta.Zag();
+        od.AngularVelocity = src.AngularVelocity + avDelta.Zag();
+        od.LinearVelocity = src.LinearVelocity + lvDelta.Zag();
+
+        od.Orientation = new()
         {
-            0 => source.Position,
-            1 => source.Position + msg.GetRangedVector3(-512, 511, 20),
-            3 => msg.GetVector3(),
-            _ => p.Position
+            Largest = lg,
+            Component1 = (uint)(src.Orientation.Component1 + dX),
+            Component2 = (uint)(src.Orientation.Component2 + dY),
+            Component3 = (uint)(src.Orientation.Component3 + dZ)
         };
 
-        p.Orientation = msg.GetBool() ? UpdateQuaternion.ReadDelta(source.Orientation, ref msg) : source.Orientation;
-        p.LinearVelocity = UpdateVector.ReadDelta(source.LinearVelocity, VELOCITY_DELTA_BITS, ref msg);
-        p.AngularVelocity = UpdateVector.ReadDelta(source.AngularVelocity, VELOCITY_DELTA_BITS, ref msg);
-        p.Tradelane = msg.GetBool();
-        p.EngineKill = msg.GetBool();
-        p.CruiseThrust = (CruiseThrustState) msg.GetUInt(2);
-        p.Throttle = msg.GetBool() ? msg.GetRangedFloat(-1, 1, 7) : source.Throttle;
-        p.HullValue = msg.GetBool() ? (source.HullValue + msg.GetVarInt64()) : source.HullValue;
-        p.ShieldValue = msg.GetBool() ? (source.ShieldValue + msg.GetVarInt64()) : source.ShieldValue;
+        od.Flags = (byte)(src.Flags + msg.ReadByte());
+        od.Throttle = (byte)(src.Throttle + msg.ReadByte());
 
-        var len = msg.GetBool() ? (int) msg.GetVarUInt32() : source.Guns!.Length;
-        p.Guns = new GunOrient[len];
+        uint dHull = 0;
+        uint dShield = 0;
+        msg.Read0(ref dHull);
+        msg.Read0(ref dShield);
+        msg.Read1(ref dHull);
+        msg.Read1(ref dShield);
+        msg.Read2(ref dHull);
+        msg.Read2(ref dShield);
+        msg.Read3(ref dHull);
+        msg.Read3(ref dShield);
 
-        for (var i = 0; i < len; i++)
+        od.Hull = src.Hull + NetPacking.Zag32(dHull);
+        od.Shield = src.Shield + NetPacking.Zag32(dShield);
+
+        Span<ushort> dPitch = stackalloc ushort[gunCount];
+        Span<ushort> dRoll = stackalloc ushort[gunCount];
+        od.Guns = new GunOrient[gunCount];
+
+        for (int i = 0; i < gunCount; i++)
         {
-            var sg = (source.Guns?.Length ?? 0) > i ? source.Guns![i] : default;
-            p.Guns[i].ReadDelta(ref msg, sg);
+            dPitch[i] = (ushort)(msg.ReadByte() << 8);
+            dRoll[i] = (ushort)(msg.ReadByte() << 8);
         }
 
-#if DEBUG
-        if (msg.GetByte() != 0xA1) throw new InvalidOperationException("Invalid delta data");
-#endif
-        return p;
+        for (int i = 0; i < gunCount; i++)
+        {
+            dPitch[i] |= msg.ReadByte();
+            dRoll[i] |= msg.ReadByte();
+        }
+
+
+        for (int i = 0; i < od.Guns.Length; i++)
+        {
+            var s = i < src.Guns.Length ? src.Guns[i] : new() { AnglePitch = 0, AngleRot = 0};
+            var p = (ushort)(s.Pitch16 + NetPacking.Zag64(dPitch[i]));
+            var r = (ushort)(s.Rot16 + NetPacking.Zag64(dRoll[i]));
+            od.Guns[i] = new(p, r);
+        }
+
+        return od;
     }
 }

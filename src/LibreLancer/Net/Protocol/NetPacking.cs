@@ -33,6 +33,16 @@ namespace LibreLancer.Net.Protocol
 
         public static int ByteCountInt64(long l) => ByteCountUInt64(Zig64(l));
 
+        public static uint Zig32(int value)
+        {
+            return (uint)((value << 1) ^ (value >> 31));
+        }
+
+        public static int Zag32(uint value)
+        {
+            return (int)((value >> 1) ^ (int)(-(value&1)));
+        }
+
         public static ulong Zig64(long value)
         {
             return (ulong)((value << 1) ^ (value >> 63));
@@ -170,31 +180,10 @@ namespace LibreLancer.Net.Protocol
             return QuantizeFloat(wrapped, ANGLE_MIN, ANGLE_MAX, bits);
         }
 
-        public static bool ApproxEqual(float a, float b, float epsilon = 0.001f) =>
-            Math.Abs(a - b) < epsilon;
-
-        public static bool ApproxEqual(Vector3 a, Vector3 b) =>
-            (a - b).Length() < 0.0001f;
-
         public static bool QuantizedEqual(float a, float b, float min, float max, int bits)
         {
-            return NetPacking.QuantizeFloat(a, min, max, bits) ==
-                   NetPacking.QuantizeFloat(b, min, max, bits);
-        }
-
-        public static bool QuantizedEqual(Vector3 a, Vector3 b, float min, float max, int bits)
-        {
-            var aX = NetPacking.QuantizeFloat(a.X, min, max, bits);
-            var aY = NetPacking.QuantizeFloat(a.Y, min, max, bits);
-            var aZ = NetPacking.QuantizeFloat(a.Z, min, max, bits);
-
-            var bX = NetPacking.QuantizeFloat(b.X, min, max, bits);
-            var bY = NetPacking.QuantizeFloat(b.Y, min, max, bits);
-            var bZ = NetPacking.QuantizeFloat(b.Z, min, max, bits);
-
-            return aX == bX &&
-                   aY == bY &&
-                   aZ == bZ;
+            return QuantizeFloat(a, min, max, bits) ==
+                   QuantizeFloat(b, min, max, bits);
         }
 
         public static readonly string[] DefaultHpidData =

@@ -235,6 +235,16 @@ public static class MathHelper
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void SetFlag(ref byte flags, int idx, bool value)
+    {
+        if (value)
+            flags |= (byte)((1 << idx));
+        else
+            flags &= (byte)(~(1 << idx));
+    }
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint FlagsAsUInt32<T>(T flag) where T : struct, Enum
     {
         var underlying = typeof(T).GetEnumUnderlyingType();

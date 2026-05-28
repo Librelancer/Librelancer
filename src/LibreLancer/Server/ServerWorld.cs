@@ -1009,34 +1009,6 @@ namespace LibreLancer.Server
             }
         }
 
-        private record struct SortedUpdate(
-            FetchedDelta Old,
-            int Size,
-            int Offset,
-            GameObject Object,
-            ObjectUpdate Update)
-            : IComparable<SortedUpdate>
-        {
-            public int CompareTo(SortedUpdate other)
-            {
-                var x = ((ulong) other.Old.Priority) << 32 | (uint) other.Size;
-                var y = ((ulong) Old.Priority) << 32 | (uint) Size;
-                return x.CompareTo(y);
-            }
-        }
-
-        private class IdComparer : IComparer<SortedUpdate>
-        {
-            public static readonly IdComparer Instance = new();
-
-            private IdComparer()
-            {
-            }
-
-            public int Compare(SortedUpdate x, SortedUpdate y) =>
-                x.Update.ID.Value.CompareTo(y.Update.ID.Value);
-        }
-
         // This could do with some work
         private void SendWorldUpdates(uint tick)
         {
@@ -1061,20 +1033,18 @@ namespace LibreLancer.Server
                     ID = new ObjNetId(obj.NetID)
                 };
                 var tr = obj.WorldTransform;
-                update.Position = tr.Position;
+                update.Position = new(tr.Position);
                 update.Orientation = tr.Orientation;
 
                 if (obj.PhysicsComponent != null)
                 {
-                    update.SetVelocity(
-                        obj.PhysicsComponent.Body.LinearVelocity,
-                        obj.PhysicsComponent.Body.AngularVelocity
-                    );
+                    update.LinearVelocity = new(obj.PhysicsComponent.Body.LinearVelocity);
+                    update.AngularVelocity = new(obj.PhysicsComponent.Body.AngularVelocity);
                 }
 
                 if (obj.TryGetComponent<SEngineComponent>(out var eng))
                 {
-                    update.Throttle = eng.Speed;
+                    update.ThrottleFloat = eng.Speed;
                     update.EngineKill = eng.EngineKill;
                 }
 
@@ -1096,18 +1066,18 @@ namespace LibreLancer.Server
 
                 if (obj.TryGetComponent<SHealthComponent>(out var health))
                 {
-                    update.HullValue = (long) health.CurrentHealth;
+                    update.Hull = (int) health.CurrentHealth;
                     var sh = obj.GetFirstChildComponent<SShieldComponent>();
 
                     if (sh != null)
                     {
-                        update.ShieldValue = (long) sh.Health;
+                        update.Shield = (int) sh.Health;
                     }
                 }
 
                 if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
                 {
-                    update.Guns = weapons.GetRotations();
+                    update.Guns = weapons.GetRotations() ?? [];
                 }
 
                 allUpdates[i] = update;

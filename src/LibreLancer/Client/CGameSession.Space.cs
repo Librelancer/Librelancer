@@ -358,10 +358,10 @@ public partial class CGameSession
         }
 
         if (obj.TryGetComponent<CHealthComponent>(out var health))
-            health.CurrentHealth = update.HullValue;
+            health.CurrentHealth = update.Hull;
 
         if (obj.TryGetFirstChildComponent<CShieldComponent>(out var sh))
-            sh.SetShieldHealth(update.ShieldValue);
+            sh.SetShieldHealth(update.Shield);
 
         if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)
         {
@@ -376,10 +376,10 @@ public partial class CGameSession
 
         var oldPos = obj.LocalTransform.Position;
         var oldQuat = obj.LocalTransform.Orientation;
-        obj.PhysicsComponent!.Body.LinearVelocity = update.LinearVelocity.Vector;
-        obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity.Vector;
+        obj.PhysicsComponent!.Body.LinearVelocity = update.LinearVelocity.ToVector3();
+        obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity.ToVector3();
         obj.PhysicsComponent.Body.Activate();
-        obj.PhysicsComponent.Body.SetTransform(new Transform3D(update.Position, update.Orientation.Quaternion));
+        obj.PhysicsComponent.Body.SetTransform(new Transform3D(update.Position.ToVector3(), update.Orientation.Quaternion));
 
         SmoothError(obj, oldPos, oldQuat);
     }
