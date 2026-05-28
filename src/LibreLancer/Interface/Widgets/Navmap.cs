@@ -40,9 +40,10 @@ namespace LibreLancer.Interface
             public UiRenderable? Renderable;
             public InterfaceColor? Tint;
             public Vector2 Position;
-            public float SizeFactor;
+            public float Size;
             public float Phase;
             public float TintOffset;
+            public StarSystem System = null!;
         }
 
         private List<SectorStar> sectorStars = [];
@@ -97,8 +98,11 @@ namespace LibreLancer.Interface
         private const float SectorGridSize = 16f;
         private const float SectorGridCellCenter = 0.6f;
         private const float SectorStarBorderMargin = 0.1f;
-        private const float SectorStarMinimumSize = 80f;
-        private const float SectorConnectionThickness = 2f;
+        private const float SectorStarSmallSize = 5.4f;
+        private const float SectorStarMediumSize = 7.2f;
+        private const float SectorStarLargeSize = 8.0f;
+        private const float SectorStarExtraShrinkMaximum = 0.08f;
+        private const float SectorConnectionThickness = 4f;
         private const string SelectSound = "ui_item_select";
         private string systemName = "";
 
@@ -107,6 +111,8 @@ namespace LibreLancer.Interface
             System,
             FadingSystemOut,
             FadingSectorIn,
+            FadingSectorOut,
+            FadingSystemIn,
             Sector
         }
 
@@ -135,6 +141,8 @@ namespace LibreLancer.Interface
         private Vector2 mouseDownPosition;
         private Vector2 lastMousePosition;
         private double mouseDownTime;
+        private SectorStar? selectedSectorStar;
+        private StarSystem? pendingSectorSystem;
         private SectorViewState sectorViewState;
         private float sectorTransitionTime;
         private UiRenderable? sectorBackground;
@@ -175,9 +183,10 @@ namespace LibreLancer.Interface
                 sectorStars.Add(new SectorStar()
                 {
                     Position = system.UniversePosition,
-                    SizeFactor = StarSizeFactor(system.Nickname),
+                    Size = StarSize(system.Nickname),
                     Phase = StarPhase(system.Nickname),
-                    TintOffset = StarTintOffset(system.Nickname)
+                    TintOffset = StarTintOffset(system.Nickname),
+                    System = system
                 });
             }
 
@@ -476,6 +485,8 @@ namespace LibreLancer.Interface
                 GetSectorBackground(context).DrawWithClip(context, drawList, rectNoScale, rectNoScale, sectorAlpha);
                 DrawSectorConnections(context, drawList, rectNoScale, sectorAlpha);
                 DrawSectorStars(context, drawList, rectNoScale, sectorAlpha);
+                if (sectorViewState == SectorViewState.Sector)
+                    DrawSelectorMenu(context, drawList, rectNoScale, false);
             }
 
             if (systemAlpha <= 0)
@@ -642,7 +653,7 @@ namespace LibreLancer.Interface
             DrawUserWaypointRoute(context, drawList, WorldToMap, systemAlpha);
 
             if (sectorViewState == SectorViewState.System)
-                DrawSelectorMenu(context, drawList, rectNoScale);
+                DrawSelectorMenu(context, drawList, rectNoScale, true);
 
             drawList.PopClip();
 
@@ -717,7 +728,7 @@ namespace LibreLancer.Interface
             if (sectorConnections.Count == 0 || alpha <= 0)
                 return;
 
-            var lineColor = new Color4(0.02f, 0.10f, 0.28f, 0.85f * alpha);
+            var lineColor = new Color4(0.000f, 0.255f, 0.506f, 1f);
             var linePoints = new Vector2[2];
             foreach (var connection in sectorConnections)
             {
@@ -733,7 +744,6 @@ namespace LibreLancer.Interface
                 return;
 
             sectorStarModel ??= GetResourceModel(context, "nav_star");
-            var maxStarSize = MathF.Max(sectorStarModel.XScale, sectorStarModel.YScale);
             foreach (var star in sectorStars)
             {
                 if (star.Renderable == null)
@@ -742,12 +752,29 @@ namespace LibreLancer.Interface
                 var pulse = 0.5f + (0.5f * MathF.Sin(((float)context.GlobalTime * 1.8f) + star.Phase));
                 var brightness = 0.45f + (0.55f * pulse);
                 star.Tint!.Color = SectorStarTint(star.TintOffset, brightness);
-                var starSize = MathHelper.Lerp(
-                    MathF.Min(SectorStarMinimumSize, maxStarSize),
-                    maxStarSize,
-                    star.SizeFactor);
-                star.Renderable!.Draw(context, drawList, Centered(center, starSize, starSize), alpha * brightness);
+                star.Renderable!.Draw(context, drawList, Centered(center, star.Size, star.Size), alpha * brightness);
             }
+        }
+
+        private SectorStar? SectorStarAt(RectangleF rect, Vector2 point)
+        {
+            SectorStar? best = null;
+            var bestDistance = float.MaxValue;
+            foreach (var star in sectorStars)
+            {
+                var center = SectorPositionToMap(rect, star.Position);
+                var hitSize = MathF.Max(star.Size, SelectorSize);
+                if (!Centered(center, hitSize, hitSize).Contains(point.X, point.Y))
+                    continue;
+
+                var distance = Vector2.DistanceSquared(center, point);
+                if (distance < bestDistance)
+                {
+                    best = star;
+                    bestDistance = distance;
+                }
+            }
+            return best;
         }
 
         private static Vector2 SectorStarRelativePosition(Vector2 position)
@@ -818,10 +845,19 @@ namespace LibreLancer.Interface
             return ((hash & 0x7FFF) / 32767f - 0.5f) * 1.15f;
         }
 
-        private static float StarSizeFactor(string? nickname)
+        private static float StarSize(string? nickname)
         {
             var hash = FLHash.CreateID(nickname ?? "");
-            return (hash >> 16) / 65535f;
+            var size = ((hash >> 16) % 3) switch
+            {
+                0 => SectorStarSmallSize,
+                1 => SectorStarMediumSize,
+                _ => SectorStarLargeSize
+            };
+
+            if (((hash >> 8) & 0x3) == 0)
+                size *= 1f - (((hash & 0xFF) / 255f) * SectorStarExtraShrinkMaximum);
+            return size;
         }
 
         private static string PairKey(string a, string b) =>
@@ -923,7 +959,9 @@ namespace LibreLancer.Interface
         {
             SectorViewState.FadingSystemOut => 1f - MathHelper.Clamp(
                 sectorTransitionTime / SectorFadeOutDuration, 0f, 1f),
-            SectorViewState.FadingSectorIn or SectorViewState.Sector => 0f,
+            SectorViewState.FadingSystemIn => MathHelper.Clamp(
+                sectorTransitionTime / SectorFadeInDuration, 0f, 1f),
+            SectorViewState.FadingSectorIn or SectorViewState.FadingSectorOut or SectorViewState.Sector => 0f,
             _ => 1f
         };
 
@@ -933,6 +971,8 @@ namespace LibreLancer.Interface
                 sectorTransitionTime / SectorFadeOutDuration, 0f, 1f),
             SectorViewState.FadingSectorIn => MathHelper.Clamp(
                 sectorTransitionTime / SectorFadeInDuration, 0f, 1f),
+            SectorViewState.FadingSectorOut => 1f - MathHelper.Clamp(
+                sectorTransitionTime / SectorFadeOutDuration, 0f, 1f),
             SectorViewState.Sector => 1f,
             _ => 0f
         };
@@ -940,7 +980,9 @@ namespace LibreLancer.Interface
         private void UpdateSectorTransition(UiContext context)
         {
             if (sectorViewState != SectorViewState.FadingSystemOut &&
-                sectorViewState != SectorViewState.FadingSectorIn)
+                sectorViewState != SectorViewState.FadingSectorIn &&
+                sectorViewState != SectorViewState.FadingSectorOut &&
+                sectorViewState != SectorViewState.FadingSystemIn)
                 return;
 
             sectorTransitionTime += (float)context.DeltaTime;
@@ -949,6 +991,22 @@ namespace LibreLancer.Interface
             {
                 ResetZoomInstant();
                 sectorViewState = SectorViewState.Sector;
+                sectorTransitionTime = SectorFadeInDuration;
+            }
+            else if (sectorViewState == SectorViewState.FadingSectorOut &&
+                     sectorTransitionTime >= SectorFadeOutDuration)
+            {
+                if (pendingSectorSystem != null)
+                    PopulateIcons(context, pendingSectorSystem);
+                pendingSectorSystem = null;
+                ResetZoomInstant();
+                sectorViewState = SectorViewState.FadingSystemIn;
+                sectorTransitionTime = 0f;
+            }
+            else if (sectorViewState == SectorViewState.FadingSystemIn &&
+                     sectorTransitionTime >= SectorFadeInDuration)
+            {
+                sectorViewState = SectorViewState.System;
                 sectorTransitionTime = SectorFadeInDuration;
             }
             else if (sectorViewState == SectorViewState.FadingSectorIn &&
@@ -1137,7 +1195,7 @@ namespace LibreLancer.Interface
 
         private Button ActiveZoomButton => zoomed ? zoomOutButton : zoomInButton;
 
-        private void DrawSelectorMenu(UiContext context, DrawList2D drawList, RectangleF mapRect)
+        private void DrawSelectorMenu(UiContext context, DrawList2D drawList, RectangleF mapRect, bool showAddWaypoint)
         {
             if (selectorMapPosition == null)
                 return;
@@ -1150,7 +1208,7 @@ namespace LibreLancer.Interface
             ZoomButtonRectangle(mapRect);
             ActiveZoomButton.Render(context, drawList, mapRect);
 
-            if (addWaypoint != null)
+            if (showAddWaypoint && addWaypoint != null)
             {
                 AddWaypointButtonRectangle(mapRect);
                 addWaypointButton.Render(context, drawList, mapRect);
@@ -1196,6 +1254,7 @@ namespace LibreLancer.Interface
                 return;
 
             selectorMapPosition = null;
+            selectedSectorStar = null;
             mouseDownOnMap = false;
             draggingMap = false;
             sectorViewState = SectorViewState.FadingSystemOut;
@@ -1222,15 +1281,23 @@ namespace LibreLancer.Interface
         {
             sectorViewState = SectorViewState.System;
             sectorTransitionTime = 0f;
+            selectedSectorStar = null;
+            pendingSectorSystem = null;
             ResetZoomInstant();
         }
 
         public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
         {
+            var mapRect = GetMapRectangle(context, parentRectangle);
+            if (sectorViewState == SectorViewState.Sector)
+            {
+                return (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(x, y)) ||
+                       SectorStarAt(mapRect, new Vector2(x, y)) != null;
+            }
+
             if (sectorViewState != SectorViewState.System)
                 return false;
 
-            var mapRect = GetMapRectangle(context, parentRectangle);
             return mapRect.Contains(x, y) ||
                    (selectorMapPosition.HasValue &&
                     (ZoomButtonRectangle(mapRect).Contains(x, y) ||
@@ -1239,10 +1306,17 @@ namespace LibreLancer.Interface
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
         {
+            var mapRect = GetMapRectangle(context, parentRectangle);
+            if (sectorViewState == SectorViewState.Sector)
+            {
+                if (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
+                    ActiveZoomButton.OnMouseDown(context, mapRect);
+                return;
+            }
+
             if (sectorViewState != SectorViewState.System)
                 return;
 
-            var mapRect = GetMapRectangle(context, parentRectangle);
             var mousePosition = new Vector2(context.MouseX, context.MouseY);
             if (selectorMapPosition.HasValue && ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
             {
@@ -1268,10 +1342,40 @@ namespace LibreLancer.Interface
 
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
+            var mapRect = GetMapRectangle(context, parentRectangle);
+            if (sectorViewState == SectorViewState.Sector)
+            {
+                if (selectorMapPosition.HasValue && selectedSectorStar != null &&
+                    ZoomButtonRectangle(mapRect).Contains(context.MouseX, context.MouseY))
+                {
+                    context.PlaySound(ZoomInSound);
+                    pendingSectorSystem = selectedSectorStar.System;
+                    selectedSectorStar = null;
+                    selectorMapPosition = null;
+                    zoomInButton.HeldDown = zoomInButton.Dragging = false;
+                    sectorViewState = SectorViewState.FadingSectorOut;
+                    sectorTransitionTime = 0f;
+                    return;
+                }
+
+                var clickedStar = SectorStarAt(mapRect, new Vector2(context.MouseX, context.MouseY));
+                if (clickedStar != null)
+                {
+                    selectedSectorStar = clickedStar;
+                    selectorMapPosition = SectorPositionToMap(mapRect, clickedStar.Position) - new Vector2(mapRect.X, mapRect.Y);
+                    context.PlaySound(SelectSound);
+                }
+                else
+                {
+                    selectedSectorStar = null;
+                    selectorMapPosition = null;
+                }
+                return;
+            }
+
             if (sectorViewState != SectorViewState.System)
                 return;
 
-            var mapRect = GetMapRectangle(context, parentRectangle);
             if (draggingMap)
                 return;
 
@@ -1299,10 +1403,17 @@ namespace LibreLancer.Interface
 
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
+            var mapRect = GetMapRectangle(context, parentRectangle);
+            if (sectorViewState == SectorViewState.Sector)
+            {
+                zoomInButton.OnMouseUp(context, mapRect);
+                zoomOutButton.OnMouseUp(context, mapRect);
+                return;
+            }
+
             if (sectorViewState != SectorViewState.System)
                 return;
 
-            var mapRect = GetMapRectangle(context, parentRectangle);
             zoomInButton.OnMouseUp(context, mapRect);
             zoomOutButton.OnMouseUp(context, mapRect);
             addWaypointButton.OnMouseUp(context, mapRect);
