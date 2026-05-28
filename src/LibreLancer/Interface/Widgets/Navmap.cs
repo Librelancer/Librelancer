@@ -40,11 +40,20 @@ namespace LibreLancer.Interface
             public UiRenderable? Renderable;
             public InterfaceColor? Tint;
             public Vector2 Position;
+            public float SizeFactor;
             public float Phase;
             public float TintOffset;
         }
 
         private List<SectorStar> sectorStars = [];
+
+        private readonly struct SectorConnection(Vector2 source, Vector2 target)
+        {
+            public readonly Vector2 Source = source;
+            public readonly Vector2 Target = target;
+        }
+
+        private List<SectorConnection> sectorConnections = [];
 
         private class DrawZone
         {
@@ -88,6 +97,8 @@ namespace LibreLancer.Interface
         private const float SectorGridSize = 16f;
         private const float SectorGridCellCenter = 0.6f;
         private const float SectorStarBorderMargin = 0.1f;
+        private const float SectorStarMinimumSize = 80f;
+        private const float SectorConnectionThickness = 2f;
         private const string SelectSound = "ui_item_select";
         private string systemName = "";
 
@@ -154,16 +165,42 @@ namespace LibreLancer.Interface
         public void SetSectorSystems(IEnumerable<StarSystem> systems)
         {
             sectorStars.Clear();
+            sectorConnections.Clear();
+            var visibleSystems = new Dictionary<string, StarSystem>(StringComparer.OrdinalIgnoreCase);
             foreach (var system in systems)
             {
                 if ((system.Visit & VisitFlags.Hidden) == VisitFlags.Hidden)
                     continue;
+                visibleSystems[system.Nickname] = system;
                 sectorStars.Add(new SectorStar()
                 {
                     Position = system.UniversePosition,
+                    SizeFactor = StarSizeFactor(system.Nickname),
                     Phase = StarPhase(system.Nickname),
                     TintOffset = StarTintOffset(system.Nickname)
                 });
+            }
+
+            var byPair = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var system in visibleSystems.Values)
+            {
+                foreach (var obj in system.Objects)
+                {
+                    if (obj.Dock?.Kind != DockKinds.Jump ||
+                        string.IsNullOrEmpty(obj.Dock.Target) ||
+                        obj.Dock.Target.Equals(system.Nickname, StringComparison.OrdinalIgnoreCase) ||
+                        !visibleSystems.TryGetValue(obj.Dock.Target, out var targetSystem))
+                    {
+                        continue;
+                    }
+
+                    if (byPair.Add(PairKey(system.Nickname, targetSystem.Nickname)))
+                    {
+                        sectorConnections.Add(new SectorConnection(
+                            system.UniversePosition,
+                            targetSystem.UniversePosition));
+                    }
+                }
             }
         }
 
@@ -437,6 +474,7 @@ namespace LibreLancer.Interface
             if (sectorAlpha > 0)
             {
                 GetSectorBackground(context).DrawWithClip(context, drawList, rectNoScale, rectNoScale, sectorAlpha);
+                DrawSectorConnections(context, drawList, rectNoScale, sectorAlpha);
                 DrawSectorStars(context, drawList, rectNoScale, sectorAlpha);
             }
 
@@ -666,23 +704,48 @@ namespace LibreLancer.Interface
         private static RectangleF Centered(Vector2 center, float width, float height) =>
             new(center.X - (width / 2), center.Y - (height / 2), width, height);
 
+        private static Vector2 SectorPositionToMap(RectangleF rect, Vector2 sectorPosition)
+        {
+            var rel = SectorStarRelativePosition(sectorPosition);
+            return new Vector2(
+                MathHelper.Lerp(rect.X, rect.X + rect.Width, rel.X),
+                MathHelper.Lerp(rect.Y, rect.Y + rect.Height, rel.Y));
+        }
+
+        private void DrawSectorConnections(UiContext context, DrawList2D drawList, RectangleF rect, float alpha)
+        {
+            if (sectorConnections.Count == 0 || alpha <= 0)
+                return;
+
+            var lineColor = new Color4(0.02f, 0.10f, 0.28f, 0.85f * alpha);
+            var linePoints = new Vector2[2];
+            foreach (var connection in sectorConnections)
+            {
+                linePoints[0] = context.PointsToPixels(SectorPositionToMap(rect, connection.Source));
+                linePoints[1] = context.PointsToPixels(SectorPositionToMap(rect, connection.Target));
+                drawList.DrawPolyline(linePoints, (VertexDiffuse)lineColor, SectorConnectionThickness);
+            }
+        }
+
         private void DrawSectorStars(UiContext context, DrawList2D drawList, RectangleF rect, float alpha)
         {
             if (sectorStars.Count == 0 || alpha <= 0)
                 return;
 
-            var starSize = MathF.Max(5f, MathF.Min(rect.Width, rect.Height) * 0.025f);
+            sectorStarModel ??= GetResourceModel(context, "nav_star");
+            var maxStarSize = MathF.Max(sectorStarModel.XScale, sectorStarModel.YScale);
             foreach (var star in sectorStars)
             {
                 if (star.Renderable == null)
                     CreateSectorStarRenderable(context, star);
-                var rel = SectorStarRelativePosition(star.Position);
-                var center = new Vector2(
-                    MathHelper.Lerp(rect.X, rect.X + rect.Width, rel.X),
-                    MathHelper.Lerp(rect.Y, rect.Y + rect.Height, rel.Y));
+                var center = SectorPositionToMap(rect, star.Position);
                 var pulse = 0.5f + (0.5f * MathF.Sin(((float)context.GlobalTime * 1.8f) + star.Phase));
                 var brightness = 0.45f + (0.55f * pulse);
                 star.Tint!.Color = SectorStarTint(star.TintOffset, brightness);
+                var starSize = MathHelper.Lerp(
+                    MathF.Min(SectorStarMinimumSize, maxStarSize),
+                    maxStarSize,
+                    star.SizeFactor);
                 star.Renderable!.Draw(context, drawList, Centered(center, starSize, starSize), alpha * brightness);
             }
         }
@@ -754,6 +817,17 @@ namespace LibreLancer.Interface
             var hash = FLHash.CreateID(nickname ?? "");
             return ((hash & 0x7FFF) / 32767f - 0.5f) * 1.15f;
         }
+
+        private static float StarSizeFactor(string? nickname)
+        {
+            var hash = FLHash.CreateID(nickname ?? "");
+            return (hash >> 16) / 65535f;
+        }
+
+        private static string PairKey(string a, string b) =>
+            string.Compare(a, b, StringComparison.OrdinalIgnoreCase) <= 0
+                ? $"{a}\n{b}"
+                : $"{b}\n{a}";
 
         private void DrawWaypointNumber(
             UiContext context,
