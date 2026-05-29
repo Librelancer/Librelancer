@@ -348,21 +348,21 @@ public class ObjectUpdate
 
     public unsafe void WriteDelta(ObjectUpdate src, uint oldTick, uint newTick, NetRleWriter msg)
     {
-        var ol = msg.Length;
         if (oldTick == 0)
         {
-            msg.Write(255);
+            msg.Write(0);
         }
         else if (oldTick == newTick)
         {
             throw new ArgumentException("old tick == new tick");
         }
-        else if ((newTick - oldTick) > 254 || oldTick > newTick)
+        else if ((newTick - oldTick) > 255 || oldTick > newTick)
         {
-            throw new ArgumentException("old tick must be < newTick and up to 254 ticks away");
+            throw new ArgumentException("old tick must be < newTick and up to 255 ticks away");
         }
         else
         {
+            // Will always be >= 1
             msg.Write((byte) (newTick - oldTick));
         }
 
@@ -482,7 +482,7 @@ public class ObjectUpdate
         var od = new ObjectUpdate() { ID = new(id) };
         var b = msg.ReadByte();
 
-        ObjectUpdate src = b == 255 ? Blank : getSource(mainTick - b, id);
+        ObjectUpdate src = b == 0 ? Blank : getSource(mainTick - b, id);
 
         var gunCount = (byte)(src.Guns.Length + msg.ReadByte());
 
