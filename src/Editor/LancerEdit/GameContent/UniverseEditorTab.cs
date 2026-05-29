@@ -38,7 +38,7 @@ public class UniverseEditorTab : GameContentTab
     private PopupManager popups;
 
     private const string NAV_PRETTYMAP = "INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_prettymap.3db";
-    private List<UniverseMap.Connection> connections = new List<UniverseMap.Connection>();
+    private List<UniverseMap.Connection> connections = [];
 
 
     public UniverseEditorTab(GameDataContext gameData, MainWindow win)
@@ -100,41 +100,13 @@ public class UniverseEditorTab : GameContentTab
 
     void BuildConnections()
     {
-        Dictionary<string, UniverseMap.Connection> byPair = new(StringComparer.OrdinalIgnoreCase);
-        foreach (var sys in AllSystems) {
-            foreach (var obj in sys.System.Objects) {
-                if(obj.Dock?.Kind == DockKinds.Jump &&
-                   !obj.Dock.Target.Equals(sys.System.Nickname, StringComparison.OrdinalIgnoreCase))
-                {
-                    var other = AllSystems.FirstOrDefault(x =>
-                        x.System.Nickname.Equals(obj.Dock.Target, StringComparison.OrdinalIgnoreCase));
-                    if (other == null)
-                        continue;
-
-                    var key = PairKey(sys.System.Nickname, other.System.Nickname);
-                    var legal = obj.Archetype?.Type == ArchetypeType.jump_gate;
-                    if (byPair.TryGetValue(key, out var existing))
-                    {
-                        existing.Legal |= legal;
-                    }
-                    else
-                    {
-                        byPair[key] = new UniverseMap.Connection(sys, other, legal);
-                    }
-                }
-            }
-        }
-
-        connections = byPair.Values
-            .OrderBy(x => x.Source.System.Nickname)
-            .ThenBy(x => x.Target.System.Nickname)
+        Dictionary<string, EditorSystem> eds = new(StringComparer.OrdinalIgnoreCase);
+        foreach(var a in AllSystems)
+            eds.Add(a.System.Nickname, a);
+        connections = Data.GameData.Items.BuildConnections()
+            .Select(x => new UniverseMap.Connection(eds[x.From.Nickname], eds[x.To.Nickname], x.Legal))
             .ToList();
     }
-
-    private static string PairKey(string a, string b) =>
-        string.Compare(a, b, StringComparison.OrdinalIgnoreCase) <= 0
-            ? $"{a}\n{b}"
-            : $"{b}\n{a}";
 
     public override void Draw(double elapsed)
     {

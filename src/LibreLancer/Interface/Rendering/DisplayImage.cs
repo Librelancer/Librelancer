@@ -26,6 +26,16 @@ namespace LibreLancer.Interface
 
         private Texture2D? texture;
 
+        public DisplayImage()
+        {
+        }
+
+        public DisplayImage(InterfaceImage? image, InterfaceColor? tint = null)
+        {
+            Image = image;
+            Tint = tint;
+        }
+
         public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, float alpha)
         {
             if (!Enabled || Image == null) return;

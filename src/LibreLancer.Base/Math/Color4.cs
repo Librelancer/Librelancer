@@ -27,6 +27,7 @@
 
 using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace LibreLancer;
 
@@ -1456,13 +1457,21 @@ public struct Color4 : IEquatable<Color4>
         );
     }
 
-    public static implicit operator Vector4(Color4 self)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Color4 Lerp(Color4 a, Color4 b, float amount)
     {
-        return new Vector4(self.R, self.G, self.B, self.A);
+        return Vector4.Lerp(a, b, amount);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static implicit operator Vector4(Color4 self)
+    {
+        return Unsafe.BitCast<Color4, Vector4>(self);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static implicit operator Color4(Vector4 vec)
     {
-        return new Color4(vec.X, vec.Y, vec.Z, vec.W);
+        return Unsafe.BitCast<Vector4, Color4>(vec);
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections;
 using LibreLancer;
 using System.Collections.Generic;
 using LibreLancer.Graphics;
@@ -7,10 +8,13 @@ namespace LibreLancer.Interface
 {
     [UiLoadable]
     [WattleScriptUserData]
-    public class UiRenderable
+    public class UiRenderable : IEnumerable<DisplayElement>
     {
         [UiContent]
         public List<DisplayElement> Elements { get; set; } = [];
+
+        [WattleScriptHidden]
+        public void Add(DisplayElement el) => Elements.Add(el);
 
         public void AddElement(DisplayElement el) => Elements.Add(el);
         public DisplayElement GetElement(int index) => Elements[index];
@@ -30,6 +34,10 @@ namespace LibreLancer.Interface
                 drawList.PopClip();
             }
         }
+
+        IEnumerator<DisplayElement> IEnumerable<DisplayElement>.GetEnumerator() => Elements.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => Elements.GetEnumerator();
     }
 
     public class DisplayElement

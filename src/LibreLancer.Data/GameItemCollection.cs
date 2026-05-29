@@ -14,7 +14,7 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
 
     public int Count => crcCollection.Count;
 
-    public bool TryGetValue(string? nickname, [MaybeNullWhen(false)] out T value)
+    public bool TryGetValue(string? nickname, [NotNullWhen(true)] out T? value)
     {
         if (!string.IsNullOrEmpty(nickname))
         {
@@ -25,7 +25,7 @@ public class GameItemCollection<T> : IEnumerable<T> where T : IdentifiableItem
         return false;
     }
 
-    public bool TryGetValue(uint crc, [MaybeNullWhen(false)] out T value) => crcCollection.TryGetValue(crc, out value);
+    public bool TryGetValue(uint crc, [NotNullWhen(true)] out T? value) => crcCollection.TryGetValue(crc, out value);
 
     public T? Get(string? nickname)
     {

@@ -40,27 +40,10 @@ namespace LibreLancer.Interface
                 {
                     return GetSystemObject("nav_depot");
                 }
-                renderable = new UiRenderable();
-                if (type == NavIconType.Model)
-                {
-                    renderable.AddElement(new DisplayModel()
-                    {
-                        Model = new InterfaceModel()
-                        {
-                            Name = name, Path = model, XScale = 50, YScale = 50
-                        }
-                    });
-                }
-                else if (type == NavIconType.Texture)
-                {
-                    renderable.AddElement(new DisplayImage()
-                    {
-                        Image = new InterfaceImage()
-                        {
-                            Name = model, TexName = model
-                        }
-                    });
-                }
+
+                renderable = type == NavIconType.Model
+                    ? [new DisplayModel(new InterfaceModel() { Name = name, Path = model, XScale = 50, YScale = 50 })]
+                    : [new DisplayImage() { Image = new() { Name = model, TexName = model } }];
 
                 renderables.Add(name, renderable);
             }
@@ -70,20 +53,7 @@ namespace LibreLancer.Interface
         private UiRenderable? background;
         public UiRenderable GetBackground()
         {
-            if (background != null)
-            {
-                return background;
-            }
-
-            background = new UiRenderable();
-            background.AddElement(new DisplayImage()
-            {
-                Image = new InterfaceImage()
-                {
-                    TexName = ini.Background?.Texture ?? "NAV_zoomedliberty.tga"
-                }
-            });
-
+            background ??= [new DisplayImage(new () { TexName = ini.Background?.Texture ?? "NAV_zoomedliberty.tga" })];
             return background;
         }
     }
@@ -106,12 +76,9 @@ namespace LibreLancer.Interface
             if (string.IsNullOrEmpty(name)) return GetSystemObject("nav_depot");
             if (!renderables.TryGetValue(name, out var renderable))
             {
-                renderable = new UiRenderable();
-                renderable.AddElement(new DisplayModel() {
-                    Model = new InterfaceModel() {
-                        Name = name, Path = $"{DIR}{name}.3db", XScale = 50, YScale = 50
-                    }
-                });
+                renderable = [new DisplayModel(new() {
+                    Name = name, Path = $"{DIR}{name}.3db", XScale = 50, YScale = 50
+                })];
                 renderables.Add(name, renderable);
             }
             return renderable;
@@ -120,19 +87,7 @@ namespace LibreLancer.Interface
         private UiRenderable? background;
         public UiRenderable GetBackground()
         {
-            if (background != null)
-            {
-                return background;
-            }
-
-            background = new UiRenderable();
-            background.AddElement(new DisplayImage()
-            {
-                Image = new InterfaceImage()
-                {
-                    TexName = "NAV_zoomedliberty.tga"
-                }
-            });
+            background ??= [new DisplayImage(new() { TexName = "NAV_zoomedliberty.tga" })];
             return background;
         }
     }

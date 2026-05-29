@@ -308,7 +308,7 @@ namespace LibreLancer
             public void PopulateNavmap(Navmap navmap)
             {
                 navmap.PopulateIcons(g.ui, g.starSystem);
-                navmap.SetSectorSystems(g.Game.GameData.Items.Systems);
+                navmap.SetUniverse(g.Game.GameData.Items);
                 navmap.SetVisitFunction(g.session.IsVisited);
                 navmap.SetAddWaypointFunction(null);
                 navmap.SetPlayerPositionProvider(null);

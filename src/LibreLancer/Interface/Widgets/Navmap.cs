@@ -170,46 +170,25 @@ namespace LibreLancer.Interface
         }
 
         [WattleScriptHidden]
-        public void SetSectorSystems(IEnumerable<StarSystem> systems)
+        public void SetUniverse(GameItemDb db)
         {
             sectorStars.Clear();
             sectorConnections.Clear();
             var visibleSystems = new Dictionary<string, StarSystem>(StringComparer.OrdinalIgnoreCase);
-            foreach (var system in systems)
+            foreach (var system in db.Systems)
             {
                 if ((system.Visit & VisitFlags.Hidden) == VisitFlags.Hidden)
                     continue;
                 visibleSystems[system.Nickname] = system;
-                sectorStars.Add(new SectorStar()
-                {
-                    Position = system.UniversePosition,
-                    Size = StarSize(system.Nickname),
-                    Phase = StarPhase(system.Nickname),
-                    TintOffset = StarTintOffset(system.Nickname),
-                    System = system
-                });
+                sectorStars.Add(CreateStar(system));
             }
 
-            var byPair = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var system in visibleSystems.Values)
+            foreach (var c in db.BuildConnections())
             {
-                foreach (var obj in system.Objects)
-                {
-                    if (obj.Dock?.Kind != DockKinds.Jump ||
-                        string.IsNullOrEmpty(obj.Dock.Target) ||
-                        obj.Dock.Target.Equals(system.Nickname, StringComparison.OrdinalIgnoreCase) ||
-                        !visibleSystems.TryGetValue(obj.Dock.Target, out var targetSystem))
-                    {
-                        continue;
-                    }
-
-                    if (byPair.Add(PairKey(system.Nickname, targetSystem.Nickname)))
-                    {
-                        sectorConnections.Add(new SectorConnection(
-                            system.UniversePosition,
-                            targetSystem.UniversePosition));
-                    }
-                }
+                if (!visibleSystems.ContainsKey(c.From.Nickname) ||
+                    !visibleSystems.ContainsKey(c.To.Nickname))
+                    continue;
+                sectorConnections.Add(new(c.From.UniversePosition, c.To.UniversePosition));
             }
         }
 
@@ -482,7 +461,8 @@ namespace LibreLancer.Interface
 
             if (sectorAlpha > 0)
             {
-                GetSectorBackground(context).DrawWithClip(context, drawList, rectNoScale, rectNoScale, sectorAlpha);
+                sectorBackground ??= [new DisplayModel(GetResourceModel(context, "nav_prettymap"))];
+                sectorBackground.DrawWithClip(context, drawList, rectNoScale, rectNoScale, sectorAlpha);
                 DrawSectorConnections(context, drawList, rectNoScale, sectorAlpha);
                 DrawSectorStars(context, drawList, rectNoScale, sectorAlpha);
                 if (sectorViewState == SectorViewState.Sector)
@@ -789,19 +769,8 @@ namespace LibreLancer.Interface
         private void CreateSectorStarRenderable(UiContext context, SectorStar star)
         {
             sectorStarModel ??= GetResourceModel(context, "nav_star");
-            var tint = new InterfaceColor()
-            {
-                Color = SectorStarTint(star.TintOffset, 1f)
-            };
-            var renderable = new UiRenderable();
-            renderable.AddElement(new DisplayModel()
-            {
-                Model = sectorStarModel,
-                Tint = tint,
-                ForceTint = true
-            });
-            star.Tint = tint;
-            star.Renderable = renderable;
+            star.Tint = SectorStarTint(star.TintOffset, 1f);
+            star.Renderable = [new DisplayModel(sectorStarModel, star.Tint, true)];
         }
 
         private static Color4 SectorStarTint(float tintOffset, float brightness)
@@ -815,55 +784,32 @@ namespace LibreLancer.Interface
             var redMix = MathF.Min(0.72f, redAmount * 0.9f);
             var yellowMix = MathF.Min(0.52f, yellowAmount * 0.7f);
             var baseColor = redAmount > yellowAmount
-                ? new Color4(
-                    MathHelper.Lerp(neutral.R, red.R, redMix),
-                    MathHelper.Lerp(neutral.G, red.G, redMix),
-                    MathHelper.Lerp(neutral.B, red.B, redMix),
-                    1f)
-                : new Color4(
-                    MathHelper.Lerp(neutral.R, yellow.R, yellowMix),
-                    MathHelper.Lerp(neutral.G, yellow.G, yellowMix),
-                    MathHelper.Lerp(neutral.B, yellow.B, yellowMix),
-                    1f);
+                ? Color4.Lerp(neutral, red, redMix)
+                : Color4.Lerp(neutral, yellow, yellowMix);
             var pulseColor = 0.82f + (0.25f * brightness);
-            return new Color4(
-                baseColor.R * pulseColor,
-                baseColor.G * pulseColor,
-                baseColor.B * pulseColor,
-                1f);
+            return new Color4(baseColor.Rgb * pulseColor, 1f);
         }
 
-        private static float StarPhase(string? nickname)
+        private SectorStar CreateStar(StarSystem system)
         {
-            var hash = FLHash.CreateID(nickname ?? "");
-            return (hash & 0xFFFF) / 65535f * MathF.PI * 2f;
-        }
-
-        private static float StarTintOffset(string? nickname)
-        {
-            var hash = FLHash.CreateID(nickname ?? "");
-            return ((hash & 0x7FFF) / 32767f - 0.5f) * 1.15f;
-        }
-
-        private static float StarSize(string? nickname)
-        {
-            var hash = FLHash.CreateID(nickname ?? "");
+            var hash = FLHash.CreateID(system.Nickname);
             var size = ((hash >> 16) % 3) switch
             {
                 0 => SectorStarSmallSize,
                 1 => SectorStarMediumSize,
                 _ => SectorStarLargeSize
             };
-
             if (((hash >> 8) & 0x3) == 0)
                 size *= 1f - (((hash & 0xFF) / 255f) * SectorStarExtraShrinkMaximum);
-            return size;
+            return new()
+            {
+                Position = system.UniversePosition,
+                System = system,
+                Phase = (hash & 0xFFFF) / 65535f * MathF.PI * 2f,
+                TintOffset = ((hash & 0x7FFF) / 32767f - 0.5f) * 1.15f,
+                Size = size
+            };
         }
-
-        private static string PairKey(string a, string b) =>
-            string.Compare(a, b, StringComparison.OrdinalIgnoreCase) <= 0
-                ? $"{a}\n{b}"
-                : $"{b}\n{a}";
 
         private void DrawWaypointNumber(
             UiContext context,
@@ -890,9 +836,9 @@ namespace LibreLancer.Interface
 
         private UiRenderable GetUserWaypointDiamond(UiContext context)
         {
-            userWaypointDiamond ??= CreateWaypointRenderable(
+            userWaypointDiamond ??= [new DisplayModel(
                 GetResourceModel(context, "nav_waypointdiamond"),
-                UserWaypointTint);
+                UserWaypointTint, true)];
             return userWaypointDiamond;
         }
 
@@ -900,9 +846,7 @@ namespace LibreLancer.Interface
         {
             if (!userWaypointDigits.TryGetValue(digit, out var renderable))
             {
-                renderable = CreateWaypointRenderable(
-                    GetResourceModel(context, $"waypoint{digit}"),
-                    UserWaypointDigitTint);
+                renderable = [new DisplayModel(GetResourceModel(context, $"waypoint{digit}"), UserWaypointDigitTint)];
                 userWaypointDigits.Add(digit, renderable);
             }
             return renderable;
@@ -927,32 +871,6 @@ namespace LibreLancer.Interface
                     return model;
             }
             throw new Exception($"Missing interface model resource {name}");
-        }
-
-        private static UiRenderable CreateWaypointRenderable(InterfaceModel model, InterfaceColor tint)
-        {
-            var renderable = new UiRenderable();
-            renderable.AddElement(new DisplayModel()
-            {
-                Model = model,
-                Tint = tint,
-                ForceTint = true
-            });
-            return renderable;
-        }
-
-        private UiRenderable GetSectorBackground(UiContext context)
-        {
-            if (sectorBackground != null)
-                return sectorBackground;
-
-            sectorBackground = new UiRenderable();
-            sectorBackground.AddElement(new DisplayModel()
-            {
-                Model = GetResourceModel(context, "nav_prettymap"),
-                ForceTint = true
-            });
-            return sectorBackground;
         }
 
         private float SystemAlpha() => sectorViewState switch

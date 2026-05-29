@@ -94,6 +94,8 @@ namespace LibreLancer.Interface
                 return new Color4(Color.R, Color.G, Color.B, Color.A * alphaFactor);
         }
 
+        public static implicit operator InterfaceColor(Color4 color) => new() { Color = color };
+
         public override string ToString()
         {
             if (!string.IsNullOrEmpty(Name)) return Name;

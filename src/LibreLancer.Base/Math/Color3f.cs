@@ -60,6 +60,15 @@ public struct Color3f : IEquatable<Color3f>
         );
     }
 
+    public static Color3f operator *(Color3f a, float b)
+    {
+        return new Color3f(
+            a.R * b,
+            a.G * b,
+            a.B * b
+        );
+    }
+
     public static Color3f operator +(Color3f a, Color3f b)
     {
         return new Color3f(

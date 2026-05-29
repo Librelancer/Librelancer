@@ -85,6 +85,17 @@ namespace LibreLancer.Interface
         private List<ModifiedMaterial> mats = [];
         private bool materialsSetup;
 
+        public DisplayModel()
+        {
+        }
+
+        public DisplayModel(InterfaceModel? model, InterfaceColor? tint = null, bool forceTint = false)
+        {
+            Model = model;
+            Tint = tint;
+            ForceTint = forceTint;
+        }
+
         public static Matrix4x4 CreateTransform(int gWidth, int gHeight, Rectangle r)
         {
             float gX = (float)gWidth / 2;

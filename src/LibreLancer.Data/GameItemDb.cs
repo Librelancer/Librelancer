@@ -2605,4 +2605,43 @@ public class GameItemDb
 
         public Dictionary<string, VisEffect> VisFx = new(StringComparer.OrdinalIgnoreCase);
     }
+
+    public List<SystemConnection> BuildConnections()
+    {
+        Dictionary<string, SystemConnection> byPair = new(StringComparer.OrdinalIgnoreCase);
+        foreach (var sys in Systems)
+        {
+            foreach (var obj in sys.Objects)
+            {
+                if(obj.Dock?.Kind == DockKinds.Jump &&
+                   !sys.Nickname.Equals(obj.Dock.Target, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!Systems.TryGetValue(obj.Dock.Target, out var other))
+                        continue;
+
+                    var key = PairKey(sys.Nickname, other.Nickname);
+                    var legal = obj.Archetype?.Type == ArchetypeType.jump_gate;
+                    if (byPair.TryGetValue(key, out var existing))
+                    {
+                        if (legal && !existing.Legal)
+                            byPair[key] = existing with { Legal = true };
+                    }
+                    else
+                    {
+                        byPair[key] = new SystemConnection(sys, other, legal);
+                    }
+                }
+            }
+        }
+
+        return byPair.Values
+            .OrderBy(x => x.From.Nickname)
+            .ThenBy(x => x.To.Nickname)
+            .ToList();
+    }
+
+    private static string PairKey(string a, string b) =>
+        string.Compare(a, b, StringComparison.OrdinalIgnoreCase) <= 0
+            ? $"{a}\n{b}"
+            : $"{b}\n{a}";
 }

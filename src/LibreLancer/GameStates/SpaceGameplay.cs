@@ -852,7 +852,7 @@ World Time: {12:F2}
             public void PopulateNavmap(Navmap nav)
             {
                 nav.PopulateIcons(g.ui, g.sys);
-                nav.SetSectorSystems(g.Game.GameData.Items.Systems);
+                nav.SetUniverse(g.Game.GameData.Items);
                 nav.SetVisitFunction(g.session.IsVisited);
                 nav.SetAddWaypointFunction(g.CreateUserWaypoint);
                 nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);
@@ -1772,7 +1772,7 @@ World Time: {12:F2}
 
             // found it interesting that it could
             // follow the next waypoint if the player is on goto mode, which could be convenient
-            // so their ship doesnt stop at the waypoints. False for now since its not vanilla, 
+            // so their ship doesnt stop at the waypoints. False for now since its not vanilla,
             // left it here because its interesting for testing.
             const bool continueGoto = false;
             RemoveUserWaypoint();
