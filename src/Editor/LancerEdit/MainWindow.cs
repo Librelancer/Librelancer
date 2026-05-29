@@ -663,6 +663,14 @@ namespace LancerEdit
                         AddTab(new MissionScriptEditorTab(OpenDataContext, this, x));
                     }, AppFilters.IniFilters, GetDataPath());
                 }
+                if (Theme.IconMenuItem(Icons.Calculator, "Trading Planner", OpenDataContext != null))
+                {
+                    var fd = TabControl.Tabs.FirstOrDefault(x => x is TradingPlannerTab);
+                    if (fd != null)
+                        TabControl.SetSelected(fd);
+                    else
+                        AddTab(new TradingPlannerTab(OpenDataContext, this));
+                }
                 ImGui.Separator();
                 if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", OpenDataContext != null))
                     AddTab(new ProjectileViewerTab(this, OpenDataContext));

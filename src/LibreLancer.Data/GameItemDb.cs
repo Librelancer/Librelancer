@@ -561,27 +561,24 @@ public class GameItemDb
                 continue;
             }
 
-            var @base = b!;
-
             foreach (var gd in m.MarketGoods)
             {
                 if (shipPackages.TryGetValue(gd.Good!, out var sp))
                 {
                     if (gd.Min != 0 || gd.Max != 0) //Vanilla adds disabled ships ??? (why)
                     {
-                        @base.SoldShips.Add(new SoldShip() { Package = sp });
+                        b.SoldShips.Add(new SoldShip() { Package = sp });
                     }
                 }
                 else if (Goods.TryGetValue(gd.Good, out var good))
                 {
-                    @base.SoldGoods.Add(new BaseSoldGood()
-                    {
-                        Rep = gd.Rep,
-                        Rank = gd.Rank,
-                        Good = good!,
-                        Price = (ulong)((double)good!.Ini.Price * gd.Multiplier),
-                        ForSale = gd.Max > 0
-                    });
+                    b.SoldGoods.Add(new BaseSoldGood(
+                        gd.Rank,
+                        good!,
+                        gd.Rep,
+                        (ulong)((double)good!.Ini.Price * gd.Multiplier),
+                        gd.Max > 0,
+                        m.SourceFile));
                 }
             }
         }
