@@ -180,6 +180,35 @@ namespace LibreLancer.Client
             return p;
         }
 
+        private long GetPlayerCargoWorth()
+        {
+            long worth = 0;
+
+            foreach (var item in session.Items)
+            {
+                if (item.Equipment?.Good == null)
+                {
+                    continue;
+                }
+
+                var unitPrice = GetPrice(item.Equipment.Good);
+
+                if (item.Equipment is not CommodityEquipment)
+                {
+                    unitPrice = (ulong) (unitPrice * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+                }
+
+                worth += (long) unitPrice * item.Count;
+            }
+
+            return worth;
+        }
+
+        public bool CanAffordShip(UISoldShip ship)
+        {
+            return session.Credits + (long) session.ShipWorth + GetPlayerCargoWorth() >= (long) ship.Price;
+        }
+
         public UIInventoryItem[] GetPlayerGoods(string filter)
         {
             List<UIInventoryItem> inventory = [];
@@ -539,38 +568,7 @@ namespace LibreLancer.Client
 
         public double GetRequiredCredits()
         {
-            var price = (long) selectedHullPrice;
-
-            foreach (var item in dealerItems)
-            {
-                var eq = item.Cargo?.Equipment ?? item.Include?.Equipment;
-                if (eq?.Good == null)
-                {
-                    continue;
-                }
-
-                var unitPrice = GetPrice(eq.Good);
-
-                if (eq is not CommodityEquipment && item.Cargo != null)
-                {
-                    unitPrice *= TradeConstants.EQUIP_RESALE_MULTIPLIER;
-                }
-
-                price -= (long) unitPrice * item.Amount;
-            }
-
-            foreach (var item in playerItems)
-            {
-                if (item.Include?.Equipment?.Good == null)
-                {
-                    continue;
-                }
-
-                var unitPrice = GetPrice(item.Include.Equipment.Good);
-                price += (long) unitPrice * item.Amount;
-            }
-
-            price -= (long) session.ShipWorth;
+            var price = GetShipTransactionPrice();
 
             if (price > session.Credits)
             {
@@ -581,6 +579,11 @@ namespace LibreLancer.Client
         }
 
         public double GetShipDisplayPrice()
+        {
+            return GetShipTransactionPrice();
+        }
+
+        private long GetShipTransactionPrice()
         {
             var price = (long) selectedHullPrice;
 
@@ -614,7 +617,9 @@ namespace LibreLancer.Client
                 price += (long) unitPrice * item.Amount;
             }
 
-            return price < 0 ? 0 : price;
+            price -= (long) session.ShipWorth;
+
+            return price;
         }
 
         public void ProcessMount(UIInventoryItem item, Closure onsuccess)

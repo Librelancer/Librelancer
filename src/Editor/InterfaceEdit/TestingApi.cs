@@ -816,8 +816,37 @@ public class FakeShipDealer
 
     public void StartPurchase(UISoldShip ship, Closure callback)
     {
-
+        callback.Call();
     }
+
+    public bool CanAffordShip(UISoldShip ship)
+    {
+        return ship.Price <= 120000;
+    }
+
+    public void Purchase(Closure callback)
+    {
+        callback.Call("success");
+    }
+
+    public void TransferToPlayer(UIInventoryItem item, int count, Closure onSuccess)
+    {
+        onSuccess.Call();
+    }
+
+    public void SellToDealer(UIInventoryItem item, int count, Closure onSuccess)
+    {
+        onSuccess.Call();
+    }
+
+    public void ProcessMount(UIInventoryItem item, Closure onsuccess)
+    {
+        onsuccess.Call("mount");
+    }
+
+    public double GetRequiredCredits() => 0;
+
+    public double GetShipDisplayPrice() => 5600;
 
     public int GetHoldSize() => 60;
 

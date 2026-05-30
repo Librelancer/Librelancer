@@ -14,7 +14,9 @@ class shipdealer : shipdealer_Designer with ChildWindow
 			PlaySound('ui_item_select');
 			e.pship_list.SelectedIndex = -1
 			e.start_buy.Visible = true
-			this.PreviewShip(this.Ships[e.tship_list.SelectedIndex + 1])
+			local ship = this.Ships[e.tship_list.SelectedIndex + 1]
+			this.PreviewShip(ship)
+			this.UpdateStartBuy(ship)
 		});
 		e.pship_list.OnSelectedIndexChanged(() => {
 			PlaySound('ui_item_select');
@@ -111,6 +113,10 @@ class shipdealer : shipdealer_Designer with ChildWindow
 			}, "ship", false))
 		}
 		e.item_infocard.Infocard = nil
+		e.shiplist_credits_text.Text = StringFromID(STRID_CREDITS) + NumberToStringCS(Game.GetCredits(), "N0")
+		e.start_buy.Strid = STRID_SHIP_BUY
+		e.start_buy.Enabled = true
+		e.cant_buy_text.Visible = false
 	}
 
 	OnShipPurchaseBegin()
@@ -172,7 +178,12 @@ class shipdealer : shipdealer_Designer with ChildWindow
 		}
 		local str = StringFromID(STRID_CREDITS) + NumberToStringCS(Game.GetCredits(), "N0")
 		e.credits_text.Text = str
-		e.ship_price_text.Text = StringFromID(STRID_SHIP_PRICE) + NumberToStringCS(Game.ShipDealer.GetShipDisplayPrice(), "N0")
+		local displayPrice = Game.ShipDealer.GetShipDisplayPrice()
+		if (displayPrice < 0) {
+			e.ship_price_text.Text = StringFromID(STRID_ADD_CREDITS) + NumberToStringCS(-displayPrice, "N0")
+		} else {
+			e.ship_price_text.Text = StringFromID(STRID_SHIP_PRICE) + NumberToStringCS(displayPrice, "N0")
+		}
 		if (this.BuyState == "sell" && this.PlayerGoods.length == 0)
 			this.set_buysell("hidden");
 		e.inv_list.SelectedIndex = e.inv_list.SelectedIndex // Needs to update after changing list
@@ -234,11 +245,28 @@ class shipdealer : shipdealer_Designer with ChildWindow
 			iprev.Visible = false
 			local cneed = Game.ShipDealer.GetRequiredCredits()
 			if (cneed > 0) {
-				e.credits_needed_text.SetString(string.format(StringFromID(STRID_SHIP_NEEDMONEY), StringFromID(STRID_CREDIT_SIGN) + cneed), "$Normal", 22)
+				e.credits_needed_text.SetString(string.format(StringFromID(STRID_SHIP_NEEDMONEY), StringFromID(STRID_CREDIT_SIGN) + NumberToStringCS(cneed, "N0")), "$Normal", 22)
 				e.credits_needed_text.Visible = true
 			} else {
+				e.buy_ship.Strid = STRID_SHIP_PURCHASE
+				e.buy_ship.Enabled = true
 				e.buy_ship.Visible = true
 			}
+		}
+	}
+
+	UpdateStartBuy(ship)
+	{
+		local e = this.Elements
+		if (Game.ShipDealer.CanAffordShip(ship)) {
+			e.start_buy.Strid = STRID_SHIP_BUY
+			e.start_buy.Enabled = true
+			e.start_buy.Visible = true
+			e.cant_buy_text.Visible = false
+		} else {
+			e.start_buy.Visible = false
+			e.cant_buy_text.Strid = STRID_SHIP_CANNOT_BUY
+			e.cant_buy_text.Visible = true
 		}
 	}
 
