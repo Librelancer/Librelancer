@@ -73,9 +73,11 @@ namespace LibreLancer.Server.Components
             SetState(new AiAttackState(tgt), world);
         }
 
-        public void SetState(AiState state, GameWorld world)
+        public void SetState(AiState? state, GameWorld world)
         {
             this.CurrentDirective = state;
+            lastStateChangeReason = state == null ? "directive cleared" : $"directive set: {state.GetDebugInfo()}";
+            lastBlockReason = state == null ? "none" : "directive active";
             state?.OnStart(Parent, world, this);
         }
 
@@ -507,8 +509,22 @@ namespace LibreLancer.Server.Components
         }
 
         private StateGraphEntry currentState = StateGraphEntry.NULL;
+        private StateGraphEntry previousState = StateGraphEntry.NULL;
 
         private double timeInState = 0;
+        private string lastTransitionTrace = "none";
+        private string lastStateChangeReason = "initial";
+        private string lastBlockReason = "none";
+
+        private static string ObjectDebugName(GameObject? obj)
+        {
+            if (obj == null)
+            {
+                return "none";
+            }
+
+            return string.IsNullOrWhiteSpace(obj.Nickname) ? $"#{obj.NetID}" : $"{obj.Nickname} #{obj.NetID}";
+        }
 
         public string GetDebugInfo()
         {
@@ -560,23 +576,55 @@ namespace LibreLancer.Server.Components
                 beh = ap.CurrentBehavior;
             }
 
+            var directive = CurrentDirective?.GetDebugInfo() ?? "null";
+            var directiveRunnerActive = Parent.TryGetComponent<DirectiveRunnerComponent>(out var directiveRunner) &&
+                                        directiveRunner.Active;
+            var selectedTarget = Parent.GetComponent<SelectedTargetComponent>()?.Selected;
+            var target = selectedTarget ?? lastShootAt;
+            var graphWeights =
+                $"Face={GetStateValue(currentState, StateGraphEntry.Face):0.###}, " +
+                $"Trail={GetStateValue(currentState, StateGraphEntry.Trail):0.###}, " +
+                $"Buzz={GetStateValue(currentState, StateGraphEntry.Buzz):0.###}, " +
+                $"Evade={GetStateValue(currentState, StateGraphEntry.Evade):0.###}";
+
             // Show accuracy info for debugging
             float npcPower = Pilot?.Gun?.FireAccuracyPowerNpc ?? 0;
             float npcAngle = Pilot?.Gun?.FireAccuracyConeAngle ?? 0;
 
             return
-                $"Autopilot: {beh}\nShooting At: {ls}\nDirective: {CurrentDirective?.ToString() ?? "null"}\nState: {currentState}\nMax Range: {maxRange}\nPhys Active: {physActive}\nWeapons: {totalGuns} total ({regularGuns} regular, {autoTurrets} auto-turrets)\nTimer: {fireTimer:F2}, Cycle: {fireCycle}\nNPC Base Power: {npcPower} (higher=more inaccuracy)\nAccuracy: Regular=min 5.0, Auto-Turret=10x base power\nInBurst: {inBurst}\n{formation}";
+                $"Autopilot: {beh}\nShooting At: {ls}\n" +
+                $"NPC AI\n" +
+                $"State: {currentState} (previous {previousState}, {timeInState:F2}s)\n" +
+                $"Directive: {directive}\nDirective Runner Active: {directiveRunnerActive}\n" +
+                $"Target: {ObjectDebugName(target)}\nBlock Reason: {lastBlockReason}\n" +
+                $"State Change: {lastStateChangeReason}\nTransition Weights: {graphWeights}\n" +
+                $"Transition Trace: {lastTransitionTrace}\n" +
+                $"Max Range: {maxRange}\nPhys Active: {physActive}\nWeapons: {totalGuns} total ({regularGuns} regular, {autoTurrets} auto-turrets)\nTimer: {fireTimer:F2}, Cycle: {fireCycle}\nNPC Base Power: {npcPower} (higher=more inaccuracy)\nAccuracy: Regular=min 5.0, Auto-Turret=10x base power\nInBurst: {inBurst}\n{formation}";
         }
 
         private void Transition(params StateGraphEntry[] possible)
         {
+            var from = currentState;
+            var trace = new List<string>();
+
             foreach (var e in possible)
             {
-                if (random.NextSingle() < GetStateValue(currentState, e))
+                var weight = GetStateValue(currentState, e);
+                var roll = random.NextSingle();
+                var selected = roll < weight;
+                trace.Add($"{e}: roll={roll:0.###}, weight={weight:0.###}, {(selected ? "selected" : "rejected")}");
+
+                if (selected)
                 {
-                    EnterState(e);
+                    EnterState(e, $"transition from {from}");
+                    lastTransitionTrace = string.Join("; ", trace);
                     break;
                 }
+            }
+
+            if (from == currentState)
+            {
+                lastTransitionTrace = trace.Count == 0 ? "no candidates" : string.Join("; ", trace);
             }
         }
 
@@ -586,10 +634,12 @@ namespace LibreLancer.Server.Components
         private Vector3 buzzDirection;
         private bool evadeThrust = false;
 
-        private void EnterState(StateGraphEntry e)
+        private void EnterState(StateGraphEntry e, string reason)
         {
+            previousState = currentState;
             currentState = e;
             timeInState = 0;
+            lastStateChangeReason = reason;
 
             if (e == StateGraphEntry.Evade)
             {
@@ -607,6 +657,18 @@ namespace LibreLancer.Server.Components
             }
         }
 
+        private void ResetLegacyState(string reason)
+        {
+            if (currentState != StateGraphEntry.NULL)
+            {
+                previousState = currentState;
+            }
+
+            currentState = StateGraphEntry.NULL;
+            timeInState = 0;
+            lastStateChangeReason = reason;
+        }
+
         private double damageTimer = 3;
         private float damageTaken = 0;
 
@@ -619,7 +681,9 @@ namespace LibreLancer.Server.Components
                 currentState != StateGraphEntry.Evade &&
                 GetStateValue(currentState, StateGraphEntry.Evade) > 0)
             {
-                EnterState(StateGraphEntry.Evade);
+                lastTransitionTrace =
+                    $"damage trigger: damage={damageTaken:0.#}, evadeWeight={GetStateValue(currentState, StateGraphEntry.Evade):0.###}";
+                EnterState(StateGraphEntry.Evade, $"damage trigger: {damageTaken:0.#}");
             }
         }
 
@@ -627,11 +691,13 @@ namespace LibreLancer.Server.Components
         {
             if (!Parent.TryGetComponent<AutopilotComponent>(out var ap))
             {
+                lastBlockReason = "missing autopilot";
                 return;
             }
 
             if (ap.CurrentBehavior == AutopilotBehaviors.Undock)
             {
+                lastBlockReason = "undocking";
                 return; // no npc yet
             }
 
@@ -656,10 +722,28 @@ namespace LibreLancer.Server.Components
                 shootAt == null ||
                 ap.CurrentBehavior == AutopilotBehaviors.Formation)
             {
-                currentState = StateGraphEntry.NULL;
-                timeInState = 0;
+                if (CurrentDirective != null)
+                {
+                    lastBlockReason = "directive active";
+                }
+                else if (runningDirective)
+                {
+                    lastBlockReason = "directive runner active";
+                }
+                else if (shootAt == null)
+                {
+                    lastBlockReason = "no hostile target";
+                }
+                else
+                {
+                    lastBlockReason = "formation";
+                }
+
+                ResetLegacyState(lastBlockReason);
                 return;
             }
+
+            lastBlockReason = "none";
 
             var si = Parent.GetComponent<ShipSteeringComponent>()!;
             timeInState += time;
