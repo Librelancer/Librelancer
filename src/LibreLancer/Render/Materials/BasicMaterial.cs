@@ -35,6 +35,7 @@ namespace LibreLancer.Render.Materials
         public float Oc = 1f;
         public bool OcEnabled = false;
         public bool EtEnabled = false;
+        public bool BtEnabled = false;
         public bool AlphaEnabled = false;
         public bool AlphaTest = false;
         public Color4 Ec = Color4.White;
@@ -46,6 +47,8 @@ namespace LibreLancer.Render.Materials
         public SamplerFlags MtFlags;
         public string RtSampler;
         public SamplerFlags RtFlags;
+        public string BtSampler;
+        public SamplerFlags BtFlags;
         public float? Metallic;
         public float? Roughness;
         public bool Glass;
@@ -94,7 +97,7 @@ namespace LibreLancer.Render.Materials
         {
             VERTEX_LIGHTING = (1 << 0),
             ALPHATEST_ENABLED = (1 << 1),
-            ET_ENABLED = (1 << 2),
+            TEX2_ENABLED = (1 << 2),
             FADE_ENABLED = (1 << 3),
             NORMALMAP = (1 << 4),
             VERTEX_DIFFUSE = (1 << 5),
@@ -107,8 +110,10 @@ namespace LibreLancer.Render.Materials
             var caps = (ShaderFeatures) 0;
             if (VertexLighting)
                 caps |= ShaderFeatures.VERTEX_LIGHTING;
-            if (EtEnabled)
-                caps |= ShaderFeatures.ET_ENABLED;
+            if (EtEnabled || BtEnabled)
+                caps |= ShaderFeatures.TEX2_ENABLED;
+            if (EtEnabled && BtEnabled)
+                throw new NotSupportedException("Bt + Et");
             if (Fade)
                 caps |= ShaderFeatures.FADE_ENABLED;
             if (useEnvMapping)
@@ -179,6 +184,7 @@ namespace LibreLancer.Render.Materials
             public Color4 Ec;
             public Vector2 FadeRange;
             public float Oc;
+            public float Tex2Type;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -190,6 +196,7 @@ namespace LibreLancer.Render.Materials
             public float Roughness;
             public float Metallic;
         }
+
 
         public override void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
         {
@@ -256,6 +263,10 @@ namespace LibreLancer.Render.Materials
             {
                 BindTexture(rstate, 1, EtSampler, 1, EtFlags, ResourceManager.NullTextureName);
             }
+            else if (BtEnabled)
+            {
+                BindTexture(rstate, 4, BtSampler, 4, BtFlags, ResourceManager.NullTextureName);
+            }
 
             if (!string.IsNullOrEmpty(NmSampler))
             {
@@ -288,9 +299,12 @@ namespace LibreLancer.Render.Materials
             else
             {
                 var param = new BasicParameters()
-                    { Dc = dcValue, Ec = Ec, FadeRange = new Vector2(FadeNear, FadeFar), Oc = Oc * OpacityMultiplier };
+                {
+                    Dc = dcValue, Ec = Ec, FadeRange = new Vector2(FadeNear, FadeFar), Oc = Oc * OpacityMultiplier,
+                    Tex2Type = BtEnabled ? 1 : 0
+                };
                 shader.SetUniformBlock(3, ref param);
-                SetTextureCoordinates(shader, DtFlags, EtFlags, NmFlags);
+                SetTextureCoordinates(shader, DtFlags, EtFlags, NmFlags, BtFlags);
             }
 
             // Set lights

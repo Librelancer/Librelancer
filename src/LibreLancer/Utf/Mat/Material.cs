@@ -58,11 +58,11 @@ namespace LibreLancer.Utf.Mat
         public Color4? Ec { get; set; }
 
         /// <summary>
-        /// B? Texture Flags
+        /// Detail Texture Flags
         /// </summary>
         public int BtFlags { get; private set; }
 
-        private string btName = null!;
+        public string BtName = null!;
 
         public int NtFlags { get; private set; }
         public string NtName = null!;
@@ -154,13 +154,13 @@ namespace LibreLancer.Utf.Mat
         public float? MFactor;
         public float? RFactor;
 
+        // All materials pulled from strings
         private static List<string> basicMaterials =
         [
-            "Dc", // DcDt buggy
-            "DcDt", "DcDtTwo", "DcDtEc", "DcDtEt", "DcDtEcEt", "DcDtBtEc", "DcDtBtEcEt",
-            "DcDtOcOt", "DcDtBtOcOt", "DcDtBtOcOtTwo", "DcDtEcOcOt",
-            "DcDtOcOtTwo", "DcDtBt", "DcDtBtTwo", "BtDetailMapMaterial",
-            "DcDtEcOcOtTwo", "DcDtEtTwo", "DcDtEcTwo"
+            "Dc", "DcDt", "DcDtEc", "DcDtOcOt", "DcDtEcOcOt",
+            "DcDtTwo", "DcDtEcTwo", "DcDtOcOtTwo", "DcDtEcOcOtTwo",
+            "DcDtEt", "DcDtEtTwo", "EcEt", "EcEtTwo",
+            "BtDetailMapMaterial", "BtDetailMapTwoMaterial",
         ];
 
         private RenderMaterial? _rmat;
@@ -281,7 +281,7 @@ namespace LibreLancer.Utf.Mat
                     BtFlags = n.Int32ArrayData[0];
                     break;
                 case "bt_name":
-                    btName = n.StringData;
+                    BtName = n.StringData;
                     break;
                 case "et_flags":
                     EtFlags = n.Int32ArrayData[0];
@@ -402,11 +402,13 @@ namespace LibreLancer.Utf.Mat
                 bm.EtSampler = EtName;
                 bm.EtFlags = (SamplerFlags) EtFlags;
                 bm.NmSampler = NmName;
-                bm.NmFlags = (SamplerFlags) NtFlags;
+                bm.NmFlags = (SamplerFlags) NmFlags;
                 bm.MtSampler = MtName;
                 bm.MtFlags = (SamplerFlags) MtFlags;
                 bm.RtSampler = RtName;
                 bm.RtFlags = (SamplerFlags) RtFlags;
+                bm.BtSampler = BtName;
+                bm.BtFlags = (SamplerFlags) BtFlags;
                 bm.Roughness = RFactor;
                 bm.Metallic = MFactor;
                 bm.Glass = isGlass;
@@ -417,6 +419,8 @@ namespace LibreLancer.Utf.Mat
                     bm.DoubleSided = true;
                 if (type.Contains("Et"))
                     bm.EtEnabled = true;
+                if (type.Contains("Bt"))
+                    bm.BtEnabled = true;
                 if (Name.StartsWith("alpha_mask", StringComparison.OrdinalIgnoreCase) ||
                     type.Equals("BtDetailMapMaterial", StringComparison.OrdinalIgnoreCase))
                     bm.AlphaTest = true;
@@ -505,7 +509,7 @@ namespace LibreLancer.Utf.Mat
                         break;
                     case "NomadMaterialNoBendy":
                     case "NomadMaterial":
-                        var nmd = new NomadMaterial(res, DtName!, btName, NtName)
+                        var nmd = new NomadMaterial(res, DtName!, BtName, NtName)
                         {
                             Dc = Dc,
                             BtFlags = (SamplerFlags) BtFlags,

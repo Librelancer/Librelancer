@@ -1,4 +1,5 @@
 #include "includes/Lighting.hlsl"
+#include "includes/Modulate.hlsl"
 
 Texture2D<float4> DtTexture : register(t0, TEXTURE_SPACE);
 SamplerState DtSampler : register(s0, TEXTURE_SPACE);
@@ -8,6 +9,9 @@ SamplerState EtSampler : register(s1, TEXTURE_SPACE);
 
 Texture2D<float4> NtTexture : register(t2, TEXTURE_SPACE);
 SamplerState NtSampler : register(s2, TEXTURE_SPACE);
+
+Texture2D<float4> BtTexture : register(t4, TEXTURE_SPACE);
+SamplerState BtSampler : register(s4, TEXTURE_SPACE);
 
 #ifdef ENVMAP
 TextureCube<float4> EnvTexture : register(t3, TEXTURE_SPACE);
@@ -44,11 +48,12 @@ cbuffer MaterialParameters : register(b3, UNIFORM_SPACE)
     float4 Ec;
     float2 FadeRange;
     float Oc;
+    float Tex2Type; //>0 for BtSampler
 };
 
 cbuffer TexCoordSelectors : register(b5, UNIFORM_SPACE)
 {
-    int TexCoordSelectors[3];
+    int4 TexCoordSelectors;
 };
 
 float2 GetTexCoord(int index, Input input)
@@ -81,8 +86,11 @@ float4 main(Input input) : SV_Target0
     }
 #endif
     float4 ec = Ec;
-#ifdef ET_ENABLED
-    ec += EtTexture.Sample(EtSampler, GetTexCoord(1, input));
+#ifdef TEX2_ENABLED
+    if (Tex2Type < 1)
+    {
+        ec += EtTexture.Sample(EtSampler, GetTexCoord(1, input));
+    }
 #endif
     float4 ac = float4(1.0, 1.0, 1.0, 1.0);
 
@@ -97,6 +105,14 @@ float4 main(Input input) : SV_Target0
         dtSampled,
         input.worldPosition, input.viewPosition,
         getNormal(input), input.frontFacing);
+#endif
+
+#ifdef TEX2_ENABLED
+    if(Tex2Type >= 1)
+    {
+        float4 bt = BtTexture.Sample(BtSampler, GetTexCoord(3, input));
+        color.rgb = Mod2x(color.rgb, bt.rgb);
+    }
 #endif
 
 #ifdef ENVMAP

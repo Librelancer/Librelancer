@@ -44,12 +44,16 @@ cbuffer PBRParameters : register(b3, UNIFORM_SPACE)
 
 cbuffer TexCoordSelectors : register(b5, UNIFORM_SPACE)
 {
-    int TexCoordSelectors[5];
+    int4 TexCoordSelectors1;
+    int4 TexCoordSelectors2;
 };
 
 float2 GetTexCoord(int index, Input input)
 {
-    return TexCoordSelectors[index] > 0 ? input.texCoord2 : input.texCoord1;
+    int selector = index > 3
+        ? TexCoordSelectors2[index - 4]
+        : TexCoordSelectors1[index];
+    return selector > 0 ? input.texCoord2 : input.texCoord1;
 }
 
 #ifdef NORMALMAP
