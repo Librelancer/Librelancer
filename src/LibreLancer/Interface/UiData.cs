@@ -105,11 +105,12 @@ namespace LibreLancer.Interface
 
         public InterfaceColor GetColor(string color)
         {
-            var clr = Resources.Colors.FirstOrDefault(x => x.Name.Equals(color, StringComparison.OrdinalIgnoreCase));
-            return clr ?? new InterfaceColor()
-            {
-                Color = Parser.Color(color)
-            };
+            var clr = Resources?.Colors?.FirstOrDefault(x => x.Name.Equals(color, StringComparison.OrdinalIgnoreCase));
+            if (clr != null)
+                return clr;
+            if (Parser.TryParseColor(color, out var c))
+                return c;
+            return Color4.White;
         }
 
         private Dictionary<string, Texture2D?> loadedFiles = new();

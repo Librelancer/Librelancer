@@ -143,6 +143,8 @@ namespace LibreLancer.Interface
         private StarSystem? pendingSectorSystem;
         private UiRenderable? sectorBackground;
 
+        public bool AcceptInput { get; set; } = true;
+
         public bool LetterMargin { get; set; } = false;
 
         public bool MapBorder { get; set; } = false;
@@ -214,8 +216,8 @@ namespace LibreLancer.Interface
         public override void ApplyStylesheet(Stylesheet stylesheet)
         {
             base.ApplyStylesheet(stylesheet);
-            Style = stylesheet.Lookup<NavmapStyle>(null);
-            selectorButton.SetStyle(stylesheet.Lookup<ButtonStyle>("nav_selector"));
+            Style = stylesheet?.Lookup<NavmapStyle>(null);
+            selectorButton.SetStyle(stylesheet?.Lookup<ButtonStyle>("nav_selector"));
             zoomInButton.SetStyle(Style?.ZoomInButton);
             zoomOutButton.SetStyle(Style?.ZoomOutButton);
             addWaypointButton.SetStyle(Style?.AddWaypointButton);
@@ -389,7 +391,7 @@ namespace LibreLancer.Interface
             RectangleF rectNoScale = GetMapRectangle(parentRect, lH);
 
             UpdateSectorTransition(context);
-            if (viewState.Active(SectorViewState.System))
+            if (AcceptInput && viewState.Active(SectorViewState.System))
             {
                 UpdateZoomAndDrag(context, rectNoScale);
             }
@@ -462,7 +464,7 @@ namespace LibreLancer.Interface
                 sectorBackground.DrawWithClip(context, drawList, rectNoScale, rectNoScale, sectorAlpha);
                 DrawSectorConnections(context, drawList, rectNoScale, sectorAlpha);
                 DrawSectorStars(context, drawList, rectNoScale, sectorAlpha);
-                if (viewState.Active(SectorViewState.Sector))
+                if (AcceptInput && viewState.Active(SectorViewState.Sector))
                     DrawSelectorMenu(context, drawList, rectNoScale, false);
             }
 
@@ -629,7 +631,7 @@ namespace LibreLancer.Interface
 
             DrawUserWaypointRoute(context, drawList, WorldToMap, systemAlpha);
 
-            if (viewState.Active(SectorViewState.System))
+            if (AcceptInput && viewState.Active(SectorViewState.System))
                 DrawSelectorMenu(context, drawList, rectNoScale, true);
 
             drawList.PopClip();
@@ -1153,6 +1155,8 @@ namespace LibreLancer.Interface
 
         public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
         {
+            if (!AcceptInput)
+                return false;
             var mapRect = GetMapRectangle(context, parentRectangle);
             if (viewState.Active(SectorViewState.Sector))
             {
@@ -1171,6 +1175,8 @@ namespace LibreLancer.Interface
 
         public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
         {
+            if (!AcceptInput)
+                return;
             var mapRect = GetMapRectangle(context, parentRectangle);
             if (viewState.Active(SectorViewState.Sector))
             {
@@ -1207,6 +1213,8 @@ namespace LibreLancer.Interface
 
         public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
         {
+            if (!AcceptInput)
+                return;
             var mapRect = GetMapRectangle(context, parentRectangle);
             if (viewState.Active(SectorViewState.Sector))
             {
@@ -1267,6 +1275,8 @@ namespace LibreLancer.Interface
 
         public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
         {
+            if (!AcceptInput)
+                return;
             var mapRect = GetMapRectangle(context, parentRectangle);
             if (viewState.Active(SectorViewState.Sector))
             {
