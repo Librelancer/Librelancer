@@ -1,3 +1,4 @@
+using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
@@ -42,6 +43,8 @@ public class AsteroidBandMaterial : RenderMaterial
         SetWorld(shader!);
         var p = new BandParameters() { ColorShift = ColorShift, TextureAspect = TextureAspect };
         shader!.SetUniformBlock(3, ref p);
+        var ma = new Vector4(0, 0, 1, 1);
+        shader.SetUniformBlock(4, ref ma);
         SetLights(shader, ref lights, rstate.FrameNumber);
         BindTexture(rstate, 0, Texture, 0, SamplerFlags.Default);
         rstate.BlendMode = BlendMode.Normal;
