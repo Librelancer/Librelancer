@@ -3,8 +3,8 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
+using ImGuiNET;
 using LancerEdit.Materials;
-using LibreLancer;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Primitives;
 using LibreLancer.Graphics.Vertices;
@@ -52,7 +52,10 @@ namespace LancerEdit
         }
         public override void Draw(double elapsed)
         {
+            var cpos = ImGui.GetCursorPos();
             viewport.Draw();
+            ImGui.SetCursorPos(cpos);
+            ImGui.Text($"Format: {material.Texture.Format}");
         }
 
         public override void Dispose()
