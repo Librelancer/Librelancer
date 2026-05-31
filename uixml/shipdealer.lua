@@ -99,7 +99,8 @@ class shipdealer : shipdealer_Designer with ChildWindow
 				Icon = item.Icon,
 				IdsName = item.IdsName,
 				IdsHardpoint = ShipClassNames[item.ShipClass + 1],
-				Price = item.Price
+				Price = item.Price,
+				Rank = item.Rank
 			}, "ship", false)
 			e.tship_list.Children.Add(li)
 		}
@@ -258,14 +259,21 @@ class shipdealer : shipdealer_Designer with ChildWindow
 	UpdateStartBuy(ship)
 	{
 		local e = this.Elements
-		if (Game.ShipDealer.CanAffordShip(ship)) {
+		local reason = Game.ShipDealer.GetShipPurchaseBlockReason(ship)
+		e.cant_buy_text.Strid = 0
+		e.cant_buy_text.Text = nil
+		if (reason == "") {
 			e.start_buy.Strid = STRID_SHIP_BUY
 			e.start_buy.Enabled = true
 			e.start_buy.Visible = true
 			e.cant_buy_text.Visible = false
 		} else {
 			e.start_buy.Visible = false
-			e.cant_buy_text.Strid = STRID_SHIP_CANNOT_BUY
+			if (reason == "rank") {
+				e.cant_buy_text.Text = FormatStringID(STRID_SHIP_LEVEL_REQUIRED, ship.Rank)
+			} else {
+				e.cant_buy_text.Strid = STRID_SHIP_CANNOT_BUY
+			}
 			e.cant_buy_text.Visible = true
 		}
 	}

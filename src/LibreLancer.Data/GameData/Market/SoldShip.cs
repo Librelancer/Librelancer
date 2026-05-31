@@ -7,4 +7,5 @@ namespace LibreLancer.Data.GameData.Market;
 public class SoldShip
 {
     public required ShipPackage Package;
+    public int Rank;
 }

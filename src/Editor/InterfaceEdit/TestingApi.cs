@@ -793,6 +793,7 @@ public class FakeShipDealer
             Model = @"DATA\ships\rheinland\rh_elite\rh_elite.cmp",
             Icon = @"DATA\Equipment\models\commodities\nn_icons\rh_elite.3db",
             ShipClass = 1,
+            Rank = 12
         },
         new UISoldShip()
         {
@@ -802,6 +803,7 @@ public class FakeShipDealer
             Model = @"DATA\ships\liberty\li_elite\li_elite.cmp",
             Icon = @"DATA\Equipment\models\commodities\nn_icons\li_elite.3db",
             ShipClass = 4,
+            Rank = 1
         }
     };
 
@@ -822,6 +824,16 @@ public class FakeShipDealer
     public bool CanAffordShip(UISoldShip ship)
     {
         return ship.Price <= 120000;
+    }
+
+    public string GetShipPurchaseBlockReason(UISoldShip ship)
+    {
+        if (ship.Rank > 5)
+        {
+            return "rank";
+        }
+
+        return CanAffordShip(ship) ? "" : "credits";
     }
 
     public void Purchase(Closure callback)

@@ -10,6 +10,7 @@ namespace LibreLancer.Net.Protocol
         public int PackageCRC;
         public ulong HullPrice;
         public ulong PackagePrice;
+        public int Rank;
         
         public void Put(PacketWriter message)
         {
@@ -17,6 +18,7 @@ namespace LibreLancer.Net.Protocol
             message.Put(PackageCRC);
             message.PutVariableUInt64(HullPrice);
             message.PutVariableUInt64(PackagePrice);
+            message.PutVariableUInt32(Rank < 0 ? 0U : (uint) (Rank + 1));
         }
 
         public static NetSoldShip Read(PacketReader message) => new()
@@ -24,7 +26,8 @@ namespace LibreLancer.Net.Protocol
             ShipCRC = message.GetInt(),
             PackageCRC = message.GetInt(),
             HullPrice = message.GetVariableUInt64(),
-            PackagePrice = message.GetVariableUInt64()
+            PackagePrice = message.GetVariableUInt64(),
+            Rank = ((int) message.GetVariableUInt32()) - 1
         };
     }
 }

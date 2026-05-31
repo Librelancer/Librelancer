@@ -184,9 +184,31 @@ public class BasesidePlayer : IBasesidePlayer
             return Task.FromResult(ShipPurchaseStatus.Fail);
         }
 
-        if (BaseData?.SoldShips.All(x => x.Package != resolved) ?? false)
+        if (BaseData == null)
+        {
+            FLLog.Error("Player", $"{Player.Name} tried to purchase ship while not on a base");
+            return Task.FromResult(ShipPurchaseStatus.Fail);
+        }
+
+        var soldShip = BaseData.SoldShips.FirstOrDefault(x => x.Package == resolved);
+
+        if (soldShip == null)
         {
             FLLog.Error("Player", $"{Player.Name} tried to purchase ship package not available on base");
+            return Task.FromResult(ShipPurchaseStatus.Fail);
+        }
+
+        if ((int) Player.Character!.Rank < soldShip.Rank)
+        {
+            FLLog.Error("Player", $"{Player.Name} does not meet the rank requirement for ship package {resolved.Nickname}");
+            return Task.FromResult(ShipPurchaseStatus.Fail);
+        }
+
+        var packagePrice = GetPackagePrice(resolved);
+
+        if (Player.Character.Credits + (long) Player.GetShipWorth() + GetPlayerCargoWorth() < packagePrice)
+        {
+            FLLog.Error("Player", $"{Player.Name} does not have enough total value for ship package {resolved.Nickname}");
             return Task.FromResult(ShipPurchaseStatus.Fail);
         }
 
@@ -197,7 +219,7 @@ public class BasesidePlayer : IBasesidePlayer
             })
             .ToList<PackageAddon?>();
 
-        var shipPrice = resolved.BasePrice;
+        var shipPrice = packagePrice - (long) Player.GetShipWorth();
 
         // Sell included Items
         foreach (var item in sellPackage)
@@ -217,26 +239,6 @@ public class BasesidePlayer : IBasesidePlayer
             {
                 included[item.ID] = null;
             }
-        }
-
-        if (shipPrice < 0)
-        {
-            shipPrice = 0;
-        }
-
-        // Deduct ship worth
-        shipPrice -= (long) Player.GetShipWorth();
-
-        // Add price of rest of items
-        foreach (var a in included)
-        {
-            if (a == null)
-            {
-                continue;
-            }
-
-            var price = BaseData!.GetUnitPrice(a.Equipment);
-            shipPrice += (long) price * a.Amount;
         }
 
         Dictionary<int, int> counts = new Dictionary<int, int>();
@@ -428,6 +430,42 @@ public class BasesidePlayer : IBasesidePlayer
         Player.UpdateCurrentInventory();
         // Success
         return Task.FromResult(shipPrice < 0 ? ShipPurchaseStatus.SuccessGainCredits : ShipPurchaseStatus.Success);
+    }
+
+    private long GetPackagePrice(ShipPackage package)
+    {
+        var price = package.BasePrice;
+
+        foreach (var addon in package.Addons)
+        {
+            price += (long) BaseData!.GetUnitPrice(addon.Equipment) * addon.Amount;
+        }
+
+        return price;
+    }
+
+    private long GetPlayerCargoWorth()
+    {
+        long worth = 0;
+
+        foreach (var item in Player.Character!.Items)
+        {
+            if (item.Equipment?.Good == null)
+            {
+                continue;
+            }
+
+            var unitPrice = BaseData!.GetUnitPrice(item.Equipment);
+
+            if (item.Equipment is not CommodityEquipment)
+            {
+                unitPrice = (ulong) (unitPrice * TradeConstants.EQUIP_RESALE_MULTIPLIER);
+            }
+
+            worth += (long) unitPrice * item.Count;
+        }
+
+        return worth;
     }
 
     public Task<bool> Unmount(string hardpoint)

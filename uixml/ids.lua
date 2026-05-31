@@ -4,6 +4,7 @@ STRID_SELL = 3017
 STRID_SHIP_BUY = 922
 STRID_SHIP_PURCHASE = 1121
 STRID_SHIP_CANNOT_BUY = 1178
+STRID_SHIP_LEVEL_REQUIRED = 1563
 STRID_CREDITS = 1142
 
 STRID_SHIP_PRICE = 969
@@ -76,6 +77,11 @@ function LoadShipClassNames()
 	ShipClassNames[2] = StringFromID(STRID_CLS_HF)
 	ShipClassNames[3] = StringFromID(STRID_CLS_FR)
 	ShipClassNames[4] = StringFromID(STRID_CLS_VHF)
+}
+
+function FormatStringID(strid, ...)
+{
+	return string.format(StringFromID(strid), ...)
 }
 
 

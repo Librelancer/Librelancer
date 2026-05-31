@@ -569,7 +569,7 @@ public class GameItemDb
                 {
                     if (gd.Min != 0 || gd.Max != 0) //Vanilla adds disabled ships ??? (why)
                     {
-                        @base.SoldShips.Add(new SoldShip() { Package = sp });
+                        @base.SoldShips.Add(new SoldShip() { Package = sp, Rank = gd.Rank });
                     }
                 }
                 else if (Goods.TryGetValue(gd.Good, out var good))
