@@ -86,11 +86,8 @@ namespace LibreLancer.Client
                 return false;
             }
 
-            if (!selectedShip!.PossibleHardpoints.TryGetValue(hpType, out var possible))
-            {
-                return false;
-            }
-
+            var possible = CargoUtilities.CompatibleHardpoints(selectedShip!,
+                session.Game.GameData.Items.Ini.HpTypes, hpType);
             if (hardpoint != null)
             {
                 return !playerItems.Any(x => hardpoint.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)) &&
@@ -495,12 +492,9 @@ namespace LibreLancer.Client
             }
 
 
-            if (!selectedShip!.PossibleHardpoints.TryGetValue(hptype, out var candidates))
-            {
-                return null;
-            }
-
-            return candidates.FirstOrDefault(possible =>
+            return CargoUtilities.CompatibleHardpoints(selectedShip!,
+                    session.Game.GameData.Items.Ini.HpTypes, hptype)
+                .FirstOrDefault(possible =>
                 !playerItems.Any(x => possible.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)));
         }
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.Market;
 using LibreLancer.Data.GameData.World;
@@ -24,39 +25,33 @@ public class BasesidePlayer : IBasesidePlayer
 
     private string? FirstAvailableHardpoint(string? hptype)
     {
-        if (string.IsNullOrWhiteSpace(hptype))
+        return CargoUtilities.CompatibleHardpoints(Player.Character!.Ship!, Player.Game.GameData.Items.Ini.HpTypes, hptype)
+            .Where(possible => !Player.Character.Items.Any(x =>
+                possible.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(possible => Player.Character.Ship.HardpointTypes[possible]
+                .OrderBy(x => x.SortIndex).FirstOrDefault().SortIndex)
+            .FirstOrDefault();
+    }
+
+    private bool IsValidMount(Ship ship, Equipment equipment, string? hardpoint, bool allowInternal)
+    {
+        if (string.IsNullOrWhiteSpace(hardpoint))
         {
-            return null;
+            return false;
         }
 
-        if (!Player.Character!.Ship!.PossibleHardpoints.TryGetValue(hptype, out var candidates))
+        if (hardpoint.Equals("internal", StringComparison.OrdinalIgnoreCase))
         {
-            return null;
+            return allowInternal;
         }
 
-        var currIndex = int.MaxValue;
-        string? currValue = null;
-
-        foreach (var possible in candidates)
+        if (CargoUtilities.SupportsHardpoint(ship, Player.Game.GameData.Items.Ini.HpTypes, equipment.HpType, hardpoint))
         {
-            if (Player.Character.Items.Any(x => possible.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
-            {
-                continue;
-            }
-
-            var index = Player.Character.Ship.HardpointTypes[possible].OrderBy(x => x.SortIndex)
-                .FirstOrDefault().SortIndex;
-
-            if (index >= currIndex)
-            {
-                continue;
-            }
-
-            currIndex = index;
-            currValue = possible;
+            return true;
         }
 
-        return currValue;
+        FLLog.Error("Player", $"{Player.Name} tried to mount {equipment.Nickname} to incompatible hardpoint {hardpoint}");
+        return false;
     }
 
     public Task<bool> PurchaseGood(string item, int count)
@@ -205,6 +200,12 @@ public class BasesidePlayer : IBasesidePlayer
         }
 
         var packagePrice = GetPackagePrice(resolved);
+        var newShip = Player.Game.GameData.Items.Ships.Get(resolved.Ship);
+
+        if (newShip == null)
+        {
+            return Task.FromResult(ShipPurchaseStatus.Fail);
+        }
 
         if (Player.Character.Credits + (long) Player.GetShipWorth() + GetPlayerCargoWorth() < packagePrice)
         {
@@ -215,6 +216,7 @@ public class BasesidePlayer : IBasesidePlayer
         var included = resolved.Addons.Select(a => new PackageAddon()
             {
                 Equipment = a.Equipment,
+                Hardpoint = a.Hardpoint,
                 Amount = a.Amount
             })
             .ToList<PackageAddon?>();
@@ -298,6 +300,12 @@ public class BasesidePlayer : IBasesidePlayer
             }
 
             var hp = item.Hardpoint!.ToLowerInvariant();
+            var addon = included[item.ID]!;
+
+            if (!IsValidMount(newShip, addon.Equipment, item.Hardpoint, string.IsNullOrWhiteSpace(addon.Hardpoint)))
+            {
+                return Task.FromResult(ShipPurchaseStatus.Fail);
+            }
 
             if (mountedInc.Contains(item.ID))
             {
@@ -336,6 +344,11 @@ public class BasesidePlayer : IBasesidePlayer
 
             var hp = item.Hardpoint!.ToLowerInvariant();
 
+            if (!IsValidMount(newShip, slot.Equipment!, item.Hardpoint, false))
+            {
+                return Task.FromResult(ShipPurchaseStatus.Fail);
+            }
+
             if (mountedP.Contains(item.ID))
             {
                 FLLog.Error("Player", $"{Player.Name} tried to mount item twice");
@@ -355,7 +368,6 @@ public class BasesidePlayer : IBasesidePlayer
             }
         }
 
-        var newShip = Player.Game.GameData.Items.Ships.Get(resolved.Ship);
         float volume = 0;
 
         foreach (var item in Player.Character.Items)
@@ -366,7 +378,7 @@ public class BasesidePlayer : IBasesidePlayer
 
         volume += included.OfType<PackageAddon>().Sum(item => item.Equipment.Volume * item.Amount);
 
-        if (volume > newShip?.HoldSize)
+        if (volume > newShip.HoldSize)
         {
             FLLog.Error("Player", $"{Player.Name} tried to overfill new ship hold");
             return Task.FromResult(ShipPurchaseStatus.Fail);

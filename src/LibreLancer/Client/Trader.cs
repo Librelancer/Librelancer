@@ -259,12 +259,8 @@ namespace LibreLancer.Client
                 return false;
             }
 
-            if (!session.PlayerShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
-            {
-                return false;
-            }
-
-            foreach (var hp in possible)
+            foreach (var hp in CargoUtilities.CompatibleHardpoints(session.PlayerShip,
+                         session.Game.GameData.Items.Ini.HpTypes, hpType))
             {
                 if (!session.Items.Any(x => hp.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -272,43 +268,6 @@ namespace LibreLancer.Client
                 }
             }
             return false;
-        }
-
-        private bool HasCompatibleHardpoint(string? hpType)
-        {
-            if (string.IsNullOrWhiteSpace(hpType) || session.PlayerShip == null)
-            {
-                return false;
-            }
-
-            if (session.PlayerShip.PossibleHardpoints.ContainsKey(hpType))
-            {
-                return true;
-            }
-
-            if (!session.Game.GameData.Items.Ini.HpTypes.Types.TryGetValue(hpType, out var equipmentType))
-            {
-                return false;
-            }
-
-            var equipmentFamily = HpFamily(equipmentType.Type);
-            return session.PlayerShip.HardpointTypes.SelectMany(x => x.Value).Any(shipType =>
-                shipType.Category == equipmentType.Category &&
-                shipType.Class >= equipmentType.Class &&
-                HpFamily(shipType.Type).Equals(equipmentFamily, StringComparison.OrdinalIgnoreCase));
-        }
-
-        private static string HpFamily(string type)
-        {
-            var index = type.Length - 1;
-            while (index >= 0 && char.IsDigit(type[index]))
-            {
-                index--;
-            }
-
-            return index < type.Length - 1 && index >= 0 && type[index] == '_'
-                ? type[..index]
-                : type;
         }
 
         private bool HasLauncherForAmmo(Equipment equipment)
@@ -332,7 +291,9 @@ namespace LibreLancer.Client
 
             if (!string.IsNullOrWhiteSpace(equipment.HpType))
             {
-                return HasCompatibleHardpoint(equipment.HpType);
+                return session.PlayerShip != null &&
+                       CargoUtilities.HasCompatibleHardpoint(session.PlayerShip,
+                           session.Game.GameData.Items.Ini.HpTypes, equipment.HpType);
             }
 
             return true;
