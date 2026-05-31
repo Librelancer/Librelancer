@@ -516,16 +516,6 @@ namespace LibreLancer.Server.Components
         private string lastStateChangeReason = "initial";
         private string lastBlockReason = "none";
 
-        private static string ObjectDebugName(GameObject? obj)
-        {
-            if (obj == null)
-            {
-                return "none";
-            }
-
-            return string.IsNullOrWhiteSpace(obj.Nickname) ? $"#{obj.NetID}" : $"{obj.Nickname} #{obj.NetID}";
-        }
-
         public string GetDebugInfo()
         {
             string ls = lastShootAt == null ? "none" : lastShootAt.Nickname ?? "no nickname";
@@ -577,10 +567,10 @@ namespace LibreLancer.Server.Components
             }
 
             var directive = CurrentDirective?.GetDebugInfo() ?? "null";
-            var directiveRunnerActive = Parent.TryGetComponent<DirectiveRunnerComponent>(out var directiveRunner) &&
-                                        directiveRunner.Active;
+            var directiveRunnerActive = Parent.TryGetComponent<DirectiveRunnerComponent>(out var directiveRunner) && directiveRunner.Active;
             var selectedTarget = Parent.GetComponent<SelectedTargetComponent>()?.Selected;
             var target = selectedTarget ?? lastShootAt;
+            var targetLabel = target == null ? "none" : string.IsNullOrWhiteSpace(target.Nickname) ? $"#{target.NetID}" : $"{target.Nickname} #{target.NetID}";
             var graphWeights =
                 $"Face={GetStateValue(currentState, StateGraphEntry.Face):0.###}, " +
                 $"Trail={GetStateValue(currentState, StateGraphEntry.Trail):0.###}, " +
@@ -594,7 +584,7 @@ namespace LibreLancer.Server.Components
             return
                 $"Autopilot: {beh}\nShooting At: {ls}\n" +
                 $"NPC AI\n" +
-                $"Target: {ObjectDebugName(target)}\nBlock Reason: {lastBlockReason}\n" +
+                $"Target: {targetLabel}\nBlock Reason: {lastBlockReason}\n" +
                 $"Directive: {directive}\nDirective Runner Active: {directiveRunnerActive}\n" +
                 $"State: {currentState} (previous {previousState}, {timeInState:F2}s)\n" +
                 $"State Change: {lastStateChangeReason}\nTransition Weights: {graphWeights}\n" +
@@ -663,7 +653,7 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        private void ResetLegacyState(string reason)
+        private void ResetStateGraphState(string reason)
         {
             if (currentState != StateGraphEntry.NULL)
             {
@@ -687,8 +677,7 @@ namespace LibreLancer.Server.Components
                 currentState != StateGraphEntry.Evade &&
                 GetStateValue(currentState, StateGraphEntry.Evade) > 0)
             {
-                lastTransitionTrace =
-                    $"damage trigger: damage={damageTaken:0.#}, evadeWeight={GetStateValue(currentState, StateGraphEntry.Evade):0.###}";
+                lastTransitionTrace = $"damage trigger: damage={damageTaken:0.#}, evadeWeight={GetStateValue(currentState, StateGraphEntry.Evade):0.###}";
                 EnterState(StateGraphEntry.Evade, $"damage trigger: {damageTaken:0.#}");
             }
         }
@@ -745,7 +734,7 @@ namespace LibreLancer.Server.Components
                     lastBlockReason = "formation";
                 }
 
-                ResetLegacyState(lastBlockReason);
+                ResetStateGraphState(lastBlockReason);
                 return;
             }
 
