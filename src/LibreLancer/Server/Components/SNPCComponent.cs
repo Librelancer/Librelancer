@@ -594,12 +594,18 @@ namespace LibreLancer.Server.Components
             return
                 $"Autopilot: {beh}\nShooting At: {ls}\n" +
                 $"NPC AI\n" +
-                $"State: {currentState} (previous {previousState}, {timeInState:F2}s)\n" +
-                $"Directive: {directive}\nDirective Runner Active: {directiveRunnerActive}\n" +
                 $"Target: {ObjectDebugName(target)}\nBlock Reason: {lastBlockReason}\n" +
+                $"Directive: {directive}\nDirective Runner Active: {directiveRunnerActive}\n" +
+                $"State: {currentState} (previous {previousState}, {timeInState:F2}s)\n" +
                 $"State Change: {lastStateChangeReason}\nTransition Weights: {graphWeights}\n" +
                 $"Transition Trace: {lastTransitionTrace}\n" +
-                $"Max Range: {maxRange}\nPhys Active: {physActive}\nWeapons: {totalGuns} total ({regularGuns} regular, {autoTurrets} auto-turrets)\nTimer: {fireTimer:F2}, Cycle: {fireCycle}\nNPC Base Power: {npcPower} (higher=more inaccuracy)\nAccuracy: Regular=min 5.0, Auto-Turret=10x base power\nInBurst: {inBurst}\n{formation}";
+                $"Max Range: {maxRange}\nPhys Active: {physActive}\n" +
+                $"Weapons: {totalGuns} total ({regularGuns} regular, {autoTurrets} auto-turrets)\n" +
+                $"Fire Timer: {fireTimer:F2}, Fire Cycle: {fireCycle}\n" +
+                $"NPC Base Power: {npcPower} (higher=more inaccuracy)\n" +
+                $"NPC Base Angle: {npcAngle}\n" +
+                $"Accuracy: Regular=min 5.0, Auto-Turret=10x base power\n" +
+                $"InBurst: {inBurst}\n{formation}";
         }
 
         private void Transition(params StateGraphEntry[] possible)
