@@ -11,5 +11,6 @@ namespace LibreLancer.Server.Ai
     {
         public abstract void OnStart(GameObject obj, GameWorld world, SNPCComponent ai);
         public abstract void Update(GameObject obj, GameWorld world, SNPCComponent ai, double dt);
+        public virtual string GetDebugInfo() => GetType().Name;
     }
 }

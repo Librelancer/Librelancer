@@ -18,6 +18,12 @@ namespace LibreLancer.Server.Ai
             this.GotoKind = gotoKind;
         }
 
+        public override string GetDebugInfo()
+        {
+            var label = string.IsNullOrWhiteSpace(target.Nickname) ? $"#{target.NetID}" : $"{target.Nickname} #{target.NetID}";
+            return $"AiDockState target={label}, goto={GotoKind}";
+        }
+
         public override void OnStart(GameObject obj, GameWorld world, SNPCComponent ai)
         {
             if (obj.TryGetComponent<AutopilotComponent>(out var ap) &&

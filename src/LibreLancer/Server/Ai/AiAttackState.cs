@@ -17,6 +17,12 @@ namespace LibreLancer.Server.Ai
             this.target = target;
         }
 
+        public override string GetDebugInfo()
+        {
+            var label = string.IsNullOrWhiteSpace(target.Nickname) ? $"#{target.NetID}" : $"{target.Nickname} #{target.NetID}";
+            return $"AiAttackState target={label}";
+        }
+
         public override void OnStart(GameObject obj, GameWorld world, SNPCComponent ai)
         {
 
