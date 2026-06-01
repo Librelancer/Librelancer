@@ -793,6 +793,7 @@ public class FakeShipDealer
             Model = @"DATA\ships\rheinland\rh_elite\rh_elite.cmp",
             Icon = @"DATA\Equipment\models\commodities\nn_icons\rh_elite.3db",
             ShipClass = 1,
+            Rank = 12
         },
         new UISoldShip()
         {
@@ -802,6 +803,7 @@ public class FakeShipDealer
             Model = @"DATA\ships\liberty\li_elite\li_elite.cmp",
             Icon = @"DATA\Equipment\models\commodities\nn_icons\li_elite.3db",
             ShipClass = 4,
+            Rank = 1
         }
     };
 
@@ -816,8 +818,47 @@ public class FakeShipDealer
 
     public void StartPurchase(UISoldShip ship, Closure callback)
     {
-
+        callback.Call();
     }
+
+    public bool CanAffordShip(UISoldShip ship)
+    {
+        return ship.Price <= 120000;
+    }
+
+    public string GetShipPurchaseBlockReason(UISoldShip ship)
+    {
+        if (ship.Rank > 5)
+        {
+            return "rank";
+        }
+
+        return CanAffordShip(ship) ? "" : "credits";
+    }
+
+    public void Purchase(Closure callback)
+    {
+        callback.Call("success");
+    }
+
+    public void TransferToPlayer(UIInventoryItem item, int count, Closure onSuccess)
+    {
+        onSuccess.Call();
+    }
+
+    public void SellToDealer(UIInventoryItem item, int count, Closure onSuccess)
+    {
+        onSuccess.Call();
+    }
+
+    public void ProcessMount(UIInventoryItem item, Closure onsuccess)
+    {
+        onsuccess.Call("mount");
+    }
+
+    public double GetRequiredCredits() => 0;
+
+    public double GetShipDisplayPrice() => 5600;
 
     public int GetHoldSize() => 60;
 

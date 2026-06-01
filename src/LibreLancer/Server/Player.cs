@@ -407,7 +407,8 @@ namespace LibreLancer.Server
                     ShipCRC = (int) FLHash.CreateID(s.Package.Ship!),
                     PackageCRC = (int) FLHash.CreateID(s.Package.Nickname),
                     HullPrice = (ulong) s.Package.BasePrice,
-                    PackagePrice = (ulong) s.Package.BasePrice + goodsPrice
+                    PackagePrice = (ulong) s.Package.BasePrice + goodsPrice,
+                    Rank = s.Rank
                 };
             }
         }

@@ -10,7 +10,6 @@ using WattleScript.Interpreter;
 namespace LibreLancer.Interface
 {
     [WattleScriptUserData]
-
     public class UISoldShip
     {
         public int IdsName;
@@ -19,6 +18,7 @@ namespace LibreLancer.Interface
         public string? Icon;
         public string? Model;
         public double Price;
+        public int Rank;
         [WattleScriptHidden]
         public NetSoldShip Server;
         [WattleScriptHidden]

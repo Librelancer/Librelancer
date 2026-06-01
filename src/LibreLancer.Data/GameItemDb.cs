@@ -569,7 +569,7 @@ public class GameItemDb
                 {
                     if (gd.Min != 0 || gd.Max != 0) //Vanilla adds disabled ships ??? (why)
                     {
-                        @base.SoldShips.Add(new SoldShip() { Package = sp });
+                        @base.SoldShips.Add(new SoldShip() { Package = sp, Rank = gd.Rank });
                     }
                 }
                 else if (Goods.TryGetValue(gd.Good, out var good))
@@ -1043,10 +1043,26 @@ public class GameItemDb
 
             if (val is CountermeasureDropper cms)
             {
+                Equipment.TryGetValue(cms.ProjectileArchetype, out Equipment? countermeasureEquip);
                 var eqp = new CountermeasureEquipment
                 {
                     HpType = "hp_countermeasure_dropper",
+                    Def = cms,
+                    Munition = countermeasureEquip as MunitionEquip,
                     ModelFile = ResolveDrawable(cms.MaterialLibrary, cms.DaArchetype)
+                };
+                equip = eqp;
+            }
+
+            if (val is MineDropper md)
+            {
+                Equipment.TryGetValue(md.ProjectileArchetype, out Equipment? mineEquip);
+                var eqp = new MineDropperEquipment
+                {
+                    HpType = "hp_mine_dropper",
+                    Def = md,
+                    Mine = mineEquip as MunitionEquip,
+                    ModelFile = ResolveDrawable(md.MaterialLibrary, md.DaArchetype)
                 };
                 equip = eqp;
             }
@@ -1068,7 +1084,7 @@ public class GameItemDb
                 };
                 equip = eqp;
             }
-            else if (val is Gun gn)
+            else if (val is not CountermeasureDropper && val is Gun gn)
             {
                 Equipment.TryGetValue(gn.ProjectileArchetype, out Equipment? mnEquip);
 

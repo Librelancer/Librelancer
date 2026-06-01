@@ -25,6 +25,7 @@ public static class EquipmentHandlers
         EquipmentObjectManager.RegisterType<EngineEquipment>(Engine);
         EquipmentObjectManager.RegisterType<GunEquipment>(Gun);
         EquipmentObjectManager.RegisterType<LightEquipment>(Light);
+        EquipmentObjectManager.RegisterType<MineDropperEquipment>(MineDropper);
         EquipmentObjectManager.RegisterType<MissileLauncherEquipment>(MissileLauncher);
         EquipmentObjectManager.RegisterType<PowerEquipment>(Power);
         EquipmentObjectManager.RegisterType<ScannerEquipment>(Scanner);
@@ -154,6 +155,14 @@ public static class EquipmentHandlers
             type != EquipmentType.Cutscene)
             child.AddComponent(new MissileLauncherComponent(child, gn));
         snd?.LoadSound(gn.Munition.Def.OneShotSound);
+        return child;
+    }
+
+    private static GameObject MineDropper(GameObject parent, ResourceManager res, SoundManager? snd,
+        EquipmentType type, string? hardpoint, Equipment equip)
+    {
+        var md = (MineDropperEquipment) equip;
+        var child = GameObject.WithModel(md.ModelFile!, type != EquipmentType.Server, res);
         return child;
     }
 

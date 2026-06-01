@@ -1,10 +1,12 @@
+require 'ids.lua'
+
 class mainmenu : mainmenu_Designer
 {
 	mainmenu(delay)
 	{
 		base();
 		local scn = this.Elements;
-		scn.version.Text = string.format(StringFromID(1271), 1, 0)
+		scn.version.Text = FormatStringID(1271, 1, 0)
 		delay ??= 0;
 		LoadSound('ui_motion_swish')
 		// hack as we shouldn't run animations in constructors for now

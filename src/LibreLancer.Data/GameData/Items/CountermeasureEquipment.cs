@@ -6,4 +6,6 @@ namespace LibreLancer.Data.GameData.Items;
 
 public class CountermeasureEquipment : Equipment
 {
+    public required Data.Schema.Equipment.CountermeasureDropper Def;
+    public MunitionEquip? Munition;
 }

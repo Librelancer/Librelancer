@@ -25,7 +25,7 @@ namespace LibreLancer.Client
 
         private static bool WeaponFilter(Equipment equip)
         {
-            return equip is GunEquipment or MissileLauncherEquipment or CountermeasureEquipment;
+            return equip is GunEquipment or MissileLauncherEquipment or MineDropperEquipment or CountermeasureEquipment;
         }
 
         private static bool ExternalFilter(Equipment equip)
@@ -35,7 +35,7 @@ namespace LibreLancer.Client
 
         private static bool AmmoFilter(Equipment equip)
         {
-            return equip is MissileEquip;
+            return equip is MissileEquip or MunitionEquip;
         }
 
         private static bool InternalFilter(Equipment equip)
@@ -96,7 +96,7 @@ namespace LibreLancer.Client
             return func;
         }
 
-        public static void SortGoods(CGameSession session, List<UIInventoryItem> item)
+        public static void SortGoods(CGameSession session, List<UIInventoryItem> item, string? filter = null)
         {
             item.Sort((x, y) =>
             {
@@ -116,10 +116,40 @@ namespace LibreLancer.Client
                     return comp == 0 ? string.CompareOrdinal(x.Hardpoint, y.Hardpoint) : comp;
                 }
 
+                var categoryCompare = GetSortCategory(filter, x).CompareTo(GetSortCategory(filter, y));
+                if (categoryCompare != 0)
+                {
+                    return categoryCompare;
+                }
+
                 var str1 = session.Game.GameData.GetString(x.IdsName) ?? "Z";
                 var str2 = session.Game.GameData.GetString(y.IdsName) ?? "Z";
                 return string.Compare(str1, str2, StringComparison.Ordinal);
             });
+        }
+
+        private static int GetSortCategory(string? filter, UIInventoryItem item)
+        {
+            var incompatibleOffset = item.Compatible ? 0 : 100;
+            if (!string.Equals(filter, "weapons", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(filter, "external", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(filter, "ammo", StringComparison.OrdinalIgnoreCase))
+            {
+                return incompatibleOffset;
+            }
+
+            return incompatibleOffset + item.Equipment switch
+            {
+                GunEquipment gun when gun.HpType?.Contains("turret", StringComparison.OrdinalIgnoreCase) == true => 1,
+                GunEquipment => 0,
+                MissileLauncherEquipment => 2,
+                MineDropperEquipment => 3,
+                CountermeasureEquipment => 4,
+                ShieldEquipment => 0,
+                ThrusterEquipment => 1,
+                MissileEquip or MunitionEquip => 0,
+                _ => 50
+            };
         }
 
         public void ProcessMount(UIInventoryItem item, Closure onsuccess)
@@ -196,11 +226,12 @@ namespace LibreLancer.Client
                     Volume = g.Equipment.Volume,
                     PriceRank = rank,
                     Price = price,
-                    Equipment = g.Equipment
+                    Equipment = g.Equipment,
+                    Compatible = IsCompatible(g.Equipment)
                 });
             }
 
-            SortGoods(session, traderGoods);
+            SortGoods(session, traderGoods, filter);
             return traderGoods.ToArray();
         }
 
@@ -228,12 +259,8 @@ namespace LibreLancer.Client
                 return false;
             }
 
-            if (!session.PlayerShip.PossibleHardpoints.TryGetValue(hpType, out var possible))
-            {
-                return false;
-            }
-
-            foreach (var hp in possible)
+            foreach (var hp in CargoUtilities.CompatibleHardpoints(session.PlayerShip,
+                         session.Game.GameData.Items.Ini.HpTypes, hpType))
             {
                 if (!session.Items.Any(x => hp.Equals(x.Hardpoint, StringComparison.OrdinalIgnoreCase)))
                 {
@@ -241,6 +268,35 @@ namespace LibreLancer.Client
                 }
             }
             return false;
+        }
+
+        private bool HasLauncherForAmmo(Equipment equipment)
+        {
+            return session.Items.Any(x => x.Equipment switch
+            {
+                GunEquipment launcher => ReferenceEquals(launcher.Munition, equipment),
+                MissileLauncherEquipment launcher => ReferenceEquals(launcher.Munition, equipment),
+                MineDropperEquipment launcher => ReferenceEquals(launcher.Mine, equipment),
+                CountermeasureEquipment launcher => ReferenceEquals(launcher.Munition, equipment),
+                _ => false
+            });
+        }
+
+        private bool IsCompatible(Equipment equipment)
+        {
+            if (equipment is MissileEquip or MunitionEquip)
+            {
+                return HasLauncherForAmmo(equipment);
+            }
+
+            if (!string.IsNullOrWhiteSpace(equipment.HpType))
+            {
+                return session.PlayerShip != null &&
+                       CargoUtilities.HasCompatibleHardpoint(session.PlayerShip,
+                           session.Game.GameData.Items.Ini.HpTypes, equipment.HpType);
+            }
+
+            return true;
         }
 
         public static UIInventoryItem FromNetCargo(NetCargo item, double price, bool canMount)
@@ -393,9 +449,11 @@ namespace LibreLancer.Client
                     price = (ulong) (price * TradeConstants.EQUIP_RESALE_MULTIPLIER);
                 }
 
-                inventoryItems.Add(FromNetCargo(item, price, CanMount(item.Equipment.HpType)));
+                var uiItem = FromNetCargo(item, price, CanMount(item.Equipment.HpType));
+                uiItem.Compatible = IsCompatible(item.Equipment);
+                inventoryItems.Add(uiItem);
             }
-            SortGoods(session, inventoryItems);
+            SortGoods(session, inventoryItems, filter);
             return inventoryItems.ToArray();
         }
     }

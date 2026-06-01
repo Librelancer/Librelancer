@@ -38,7 +38,7 @@
 	
 	<ListBox id="tr_list" X = "418" Y = "55" Width = "186" Height="170" ItemHeight="32">
 	</ListBox>
-	<Button style="wirebutton" Text="BUY" X="230" Y="210" ID="buy_ship"/>
+	<Button style="wirebutton" Strid="1121" X="230" Y="210" ID="buy_ship"/>
 	<InfocardDisplay X="228" Y="210" Width="170" Height="40" id="credits_needed_text" /> <!-- CREDITS -->
 	</Panel>
 
@@ -49,14 +49,16 @@
 	</ListBox>
 	<ListBox id="tship_list" X = "418" Y = "85" Width = "186" Height="100" ItemHeight="32">
 	</ListBox>
-	<TextBlock TextSize="13" TextColor="text" TextShadow="black" X="15" Y="35" Width="192" Height="30" Text="PLAYER SHIP" Strid="1582"/>
+	<TextBlock TextSize="13" TextColor="text" TextShadow="black" X="15" Y="32" Width="192" Height="24" Text="PLAYER SHIP" Strid="1582"/>
+	<TextBlock TextSize="9" TextColor="text" TextShadow="black" X="15" Y="58" Width="192" Height="18" Text="CREDITS $1,234" id="shiplist_credits_text"/>
 	<TextBlock TextSize="13" TextColor="text" TextShadow="black" X="419" Y="35" Width="192" Height="30" Text="DEALER SHIPS" Strid="1120"/>
 	<Panel id="ship_preview_panel" Visible="false">
 	<TextBlock TextSize="13" TextColor="text" TextShadow="black" X="219" Y="9" Width="192" Height="30" Text="SHIP_NAME" id="ship_name"/>
 	<TextBlock TextSize="11" TextColor="text" TextShadow="black" X="219" Y="28" Width="192" Height="30" Text="SHIP_CLASS" id="ship_class"/>
 	<ModelView ID="ship_preview" X="230" Y="55" Width="160" Height="142">
 	</ModelView>
-	<Button style="wirebutton" Text="BUY" X="230" Y="210" ID="start_buy"/>
+	<Button style="wirebutton" Strid="922" X="230" Y="210" ID="start_buy"/>
+	<TextBlock TextSize="8" TextColor="text" TextShadow="black" HorizontalAlignment="Left" VerticalAlignment="Center" X="226" Y="178" Width="171" Height="65" Strid="1178" id="cant_buy_text" Visible="false" Wrap="true"/>
 	</Panel>
 	
 

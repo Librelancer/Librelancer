@@ -47,18 +47,20 @@ function good_list_item(good, purpose, preview, onmount)
 	// Border
 	li.Border = NewObject("UiRenderable")
 	local wire = NewObject("DisplayWireBorder")
-	wire.Color = GetColor("text")
+	local borderColor = good.Compatible ? "text" : "#6E6E6E"
+	local itemTextColor = good.Compatible ? "text" : "silver"
+	wire.Color = GetColor(borderColor)
 	li.Border.AddElement(wire)
 	li.HoverBorder = NewObject("UiRenderable")
 	wire = NewObject("DisplayWireBorder")
-	wire.Color = GetColor("slow_blue_yellow")
+	wire.Color = GetColor(good.Compatible ? "slow_blue_yellow" : borderColor)
 	li.HoverBorder.AddElement(wire)
 	li.SelectedBorder = NewObject("UiRenderable")
 	wire = NewObject("DisplayWireBorder")
-	wire.Color = GetColor("yellow")
+	wire.Color = GetColor(good.Compatible ? "yellow" : borderColor)
 	li.SelectedBorder.AddElement(wire)
 	// Item
-	li.ItemMarginX = 8
+	li.ItemMarginX = 3
 	li.ItemA = NewObject("Panel")
 	if (good.Icon != nil) {
 		good_icon_3db(good.Icon, li.ItemA)
@@ -75,7 +77,7 @@ function good_list_item(good, purpose, preview, onmount)
 	local tb = NewObject("TextBlock")	
 	tb.HorizontalAlignment = HorizontalAlignment.Left
 	tb.TextSize = 9
-	tb.TextColor = GetColor("text")
+	tb.TextColor = GetColor(itemTextColor)
 	tb.TextShadow = GetColor("black")
 	tb.X = 0
 	tb.Y = 2
@@ -93,7 +95,7 @@ function good_list_item(good, purpose, preview, onmount)
 		tbh.Anchor = AnchorKind.BottomLeft
 		tbh.HorizontalAlignment = HorizontalAlignment.Left
 		tbh.TextSize = 9
-		tbh.TextColor = GetColor("text")
+		tbh.TextColor = GetColor(itemTextColor)
 		tbh.TextShadow = GetColor("black")
 		tbh.X = 0
 		tbh.MarginX = 3
@@ -110,7 +112,7 @@ function good_list_item(good, purpose, preview, onmount)
 		local tb2 = NewObject("TextBlock")
 		tb2.HorizontalAlignment = HorizontalAlignment.Left
 		tb2.TextSize = 9
-		tb2.TextColor = GetColor("text")
+		tb2.TextColor = GetColor(itemTextColor)
 		tb2.TextShadow = GetColor("black")
 		tb2.X = 0
 		tb2.Y = 2
@@ -126,7 +128,7 @@ function good_list_item(good, purpose, preview, onmount)
 		local tb3 = NewObject("TextBlock")
 		tb3.HorizontalAlignment = HorizontalAlignment.Right
 		tb3.TextSize = 9
-		tb3.TextColor = GetColor("text")
+		tb3.TextColor = GetColor(itemTextColor)
 		tb3.TextShadow = GetColor("black")
 		local offset = 17
 		if (purpose == "ship" || good.PriceRank == nil)

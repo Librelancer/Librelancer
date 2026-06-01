@@ -25,6 +25,7 @@ namespace LibreLancer.Interface
         public int Count;  // how many do we have in this slot? (set to 0 to not show count)
         public bool MountIcon;
         public bool CanMount;
+        public bool Compatible = true;
         internal int HpSortIndex;
 
         [WattleScriptHidden]
