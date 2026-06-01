@@ -5,6 +5,8 @@
 using System;
 using System.Numerics;
 using LibreLancer.Graphics;
+using LibreLancer.Render.Materials;
+using LibreLancer.Utf.Mat;
 
 namespace LibreLancer.Render
 {
@@ -12,6 +14,8 @@ namespace LibreLancer.Render
     {
         public Matrix4x4 World { get; private set; }
         public RigidModel? Model { get; private set; }
+        public Color4? ColorOverride;
+        private Material? colorOverrideMaterial;
 
         public NebulaRenderer? Nebula;
         private int NebulaVersion = -1;
@@ -192,7 +196,7 @@ namespace LibreLancer.Render
                         continue;
                     }
 
-                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform.Matrix() * World);
+                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform.Matrix() * _worldSph);
                     var lvl = GetLevel(part, center, camera.Position);
 
                     if (lvl != -1)
@@ -230,7 +234,7 @@ namespace LibreLancer.Render
                     }
 
                     var part = Model.AllParts[i];
-                    var w = part.LocalTransform.Matrix() * World;
+                    var w = part.LocalTransform.Matrix() * _worldSph;
                     var center = Vector3.Transform(part.Mesh!.Center, w);
                     var lvl = GetLevel(part, center, camera.Position);
 
@@ -246,11 +250,30 @@ namespace LibreLancer.Render
                     if (lighting.FogMode != FogModes.Linear ||
                         Vector3.DistanceSquared(camera.Position, center) <= (r * r))
                     {
+                        var overrideMat = ColorOverride is { } color ? GetColorOverrideMaterial(color) : null;
                         part.Mesh.DrawBuffer(lvl, sysr.ResourceManager, commands, w, ref lighting, Model.MaterialAnims,
-                            0, null, OpacityMultiplier);
+                            0, overrideMat, OpacityMultiplier);
                     }
                 }
             }
+        }
+
+        private Material GetColorOverrideMaterial(Color4 color)
+        {
+            if (colorOverrideMaterial?.Render is BasicMaterial bm)
+            {
+                bm.Dc = color;
+                bm.Ec = new Color4(color.R * 5f, color.G * 5f, color.B * 5f, color.A);
+                return colorOverrideMaterial;
+            }
+
+            bm = new BasicMaterial("DcDtEc", sysr!.ResourceManager)
+            {
+                Dc = color,
+                Ec = new Color4(color.R * 5f, color.G * 5f, color.B * 5f, color.A)
+            };
+            colorOverrideMaterial = new Material(bm);
+            return colorOverrideMaterial;
         }
     }
 }

@@ -193,6 +193,7 @@ namespace LibreLancer.World
         public SystemObject? SystemObject;
         public DestructibleModel? Model;
         public List<ObjectRenderer> ExtraRenderers = [];
+        public float RenderScale = 1f;
 
         //Private Fields
         private Hardpoint? _attachment;
@@ -782,7 +783,13 @@ namespace LibreLancer.World
 
         public void RenderUpdate(double time)
         {
-            RenderComponent?.Update(time, WorldTransform.Position, WorldTransform.Matrix());
+            var world = WorldTransform.Matrix();
+            if (RenderScale != 1f)
+            {
+                world = Matrix4x4.CreateScale(RenderScale) * world;
+            }
+
+            RenderComponent?.Update(time, WorldTransform.Position, world);
 
             for (int i = 0; i < Children.Count; i++)
             {
@@ -791,7 +798,7 @@ namespace LibreLancer.World
 
             foreach (var child in ExtraRenderers)
             {
-                child.Update(time, WorldTransform.Position, WorldTransform.Matrix());
+                child.Update(time, WorldTransform.Position, world);
             }
         }
 

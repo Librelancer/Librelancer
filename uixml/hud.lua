@@ -135,7 +135,7 @@ class hud : hud_Designer
 			this.Elements.nnbox5.Visible = true;
 			this.Elements.nnbox7.Visible = false;
 		}
-		
+
 		e.filter_important.OnClick(() => this.FilterSelected("important"));
 		e.filter_ship.OnClick(() => this.FilterSelected("ship"));
 		e.filter_station.OnClick(() => this.FilterSelected("station"));
@@ -230,6 +230,12 @@ class hud : hud_Designer
 
 		local waypoint = e.waypoint;
 		e.indicatorlayer.Children.Remove(waypoint);
+		Game.SetWaypointTemplate(waypoint, (size, alpha) => {
+			waypoint.Width = size;
+			waypoint.Height = size;
+			local fgcol = GetColor('color_waypoint').SetAlpha(alpha);
+			waypoint.Background.GetElement(0).Tint = fgcol;
+		});
 	}
 
 	FilterSelected(filter)
@@ -295,19 +301,25 @@ class hud : hud_Designer
 	    
 	    if (Game.SelectionVisible()) {
 		    local pos = Game.SelectionPosition()
+		    local waypointSelected = Game.SelectionIsWaypoint()
 		    e.selection.Visible = true
 		    e.selection.X = pos.X - (e.selection.Width / 2.0)
 		    e.selection.Y = pos.Y - (e.selection.Height / 2.0)
+		    e.sel_border.Visible = !waypointSelected
+		    e.sel_waypoint.Visible = false
 		    e.selection_name.Text = Game.SelectionName()
+		    e.selection_distance.Text = Game.SelectionDistance()
+		    e.selection_distance.Visible = true
 		    local health = Game.SelectionHealth()
 		    local shield = Game.SelectionShield()
-		    if (health >= 0) {
+		    e.selection_name.Y = waypointSelected ? -35 : -19
+		    if (health >= 0 && !waypointSelected) {
 			    e.selection_health.Visible = true
 			    e.selection_health.PercentFilled = health
 		    } else {
 			    e.selection_health.Visible = false
 		    }
-		    if (shield >= 0) {
+		    if (shield >= 0 && !waypointSelected) {
 			    e.selection_shield.Visible = true
 			    e.selection_shield.PercentFilled = shield
 		    } else {
@@ -315,7 +327,6 @@ class hud : hud_Designer
 		    }
 			
 			local color = GetColor('color_' + Game.SelectionReputation())
-			
 			e.sel_tl.Background.GetElement(0).Tint = color; 
 			e.sel_tr.Background.GetElement(0).Tint = color; 
 			e.sel_bl.Background.GetElement(0).Tint = color; 

@@ -109,6 +109,11 @@ World Time: {12:F2}
         private GameObject? missionWaypoint;
         private GameObject? userWaypoint;
         private int userWaypointCounter;
+        private const float WaypointSelectionStartSize = 52f;
+        private const float WaypointSelectionEndSize = 150f;
+        private const double WaypointSelectionAnimationDuration = 0.18;
+        private int selectedWaypointAnimationObject;
+        private double selectedWaypointAnimationStart;
         private TargetShipWireframe targetWireframe = new();
         private double accum = 0;
 
@@ -634,6 +639,7 @@ World Time: {12:F2}
             [WattleScriptHidden] public WidgetTemplate? Reticle;
             [WattleScriptHidden] public WidgetTemplate? UnselectedArrow;
             [WattleScriptHidden] public WidgetTemplate? SelectedArrow;
+            [WattleScriptHidden] public WidgetTemplate? Waypoint;
             [WattleScriptHidden] public int ShieldBatteries;
             [WattleScriptHidden] public int RepairKits;
 
@@ -667,6 +673,9 @@ World Time: {12:F2}
 
             public void SetSelectedArrowTemplate(UiWidget template, Closure callback) =>
                 SelectedArrow = new(template, callback);
+
+            public void SetWaypointTemplate(UiWidget template, Closure callback) =>
+                Waypoint = new(template, callback);
 
             public ContactList GetContactList() => g.contactList;
 
@@ -780,6 +789,20 @@ World Time: {12:F2}
             {
                 return g.Selection.Selected?.Name?.GetName(g.Game.GameData, g.player.PhysicsComponent!.Body.Position) ??
                        "NULL";
+            }
+
+            public bool SelectionIsWaypoint() => g.Selection.Selected?.Kind == GameObjectKind.Waypoint;
+
+            public string SelectionDistance()
+            {
+                if (g.Selection.Selected == null)
+                {
+                    return "";
+                }
+
+                var playerPosition = g.player.PhysicsComponent!.Body.Position;
+                var targetPosition = g.Selection.Selected.WorldTransform.Position;
+                return $"{Vector3.Distance(playerPosition, targetPosition) / 1000f:0.0}-K";
             }
 
             public TargetShipWireframe? SelectionWireframe() => g.Selection.Selected != null ? g.targetWireframe : null;
@@ -1302,8 +1325,7 @@ World Time: {12:F2}
 
             if (!(Game.Debug.CaptureMouse) && !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
             {
-                var newSelection = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width,
-                    Game.Height);
+                var newSelection = GetMouseSelection();
 
                 if (newSelection != null)
                 {
@@ -1536,7 +1558,7 @@ World Time: {12:F2}
 
             control.CurrentStrafe = strafe;
 
-            var obj = world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
+            var obj = GetMouseSelection();
 
             if (ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
             {
@@ -1706,6 +1728,43 @@ World Time: {12:F2}
             return ScreenPosition(obj.WorldTransform.Position);
         }
 
+        private GameObject? GetMouseSelection()
+        {
+            return GetWaypointScreenSelection(Game.Mouse.X, Game.Mouse.Y) ??
+                   world.GetSelection(activeCamera, player, Game.Mouse.X, Game.Mouse.Y, Game.Width, Game.Height);
+        }
+
+        private GameObject? GetWaypointScreenSelection(float mouseX, float mouseY)
+        {
+            GameObject? result = null;
+            var bestDistance = float.MaxValue;
+            var playerPosition = player.PhysicsComponent!.Body.Position;
+            foreach (var obj in world.Objects)
+            {
+                if (obj.Kind != GameObjectKind.Waypoint)
+                {
+                    continue;
+                }
+
+                var (pos, visible) = ScreenPosition(obj);
+                if (!visible)
+                {
+                    continue;
+                }
+
+                var distance = Vector3.Distance(playerPosition, obj.WorldTransform.Position);
+                var pickRadius = MathHelper.Clamp(distance / 220f, 18f, 90f);
+                var mouseDistance = Vector2.Distance(new Vector2(mouseX, mouseY), pos);
+                if (mouseDistance <= pickRadius && mouseDistance < bestDistance)
+                {
+                    result = obj;
+                    bestDistance = mouseDistance;
+                }
+            }
+
+            return result;
+        }
+
         private void RemoveUserWaypoint()
         {
             if (userWaypoint == null)
@@ -1780,6 +1839,29 @@ World Time: {12:F2}
             if (session.TryGetActiveUserWaypoint(out var nextPosition))
             {
                 ActivateUserWaypoint(nextPosition, continueGoto);
+            }
+        }
+
+        private void UpdateWaypointRenderStyle()
+        {
+            var playerPosition = player.PhysicsComponent!.Body.Position;
+            foreach (var obj in world.Objects)
+            {
+                if (obj.Kind != GameObjectKind.Waypoint)
+                {
+                    continue;
+                }
+
+                var selected = obj == Selection.Selected;
+                var distance = Vector3.Distance(playerPosition, obj.WorldTransform.Position);
+                var scale = selected ? MathHelper.Clamp(distance / 5000f, 1.5f, 18f) : 1f;
+                obj.RenderScale = scale;
+                if (obj.RenderComponent is ModelRenderer renderer)
+                {
+                    renderer.NoFog = selected;
+                    renderer.ColorOverride = new Color4(0.55f, 0f, 1f, 1f);
+                    renderer.Spin = new Vector3(0f, 5f, 0f);
+                }
             }
         }
 
@@ -1881,6 +1963,7 @@ World Time: {12:F2}
                 waitObjectiveFrames--;
             }
 
+            UpdateWaypointRenderStyle();
             world.RenderUpdate(delta);
             sysrender.DebugRenderer.StartFrame(Game.RenderContext);
 
@@ -2117,6 +2200,33 @@ World Time: {12:F2}
 
         }
 
+        private void DrawWaypoint(GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle, bool selected)
+        {
+            var size = WaypointSelectionStartSize;
+            if (selected)
+            {
+                if (selectedWaypointAnimationObject != obj.Unique)
+                {
+                    selectedWaypointAnimationObject = obj.Unique;
+                    selectedWaypointAnimationStart = Game.TotalTime;
+                }
+
+                var t = MathHelper.Clamp(
+                    (float)((Game.TotalTime - selectedWaypointAnimationStart) / WaypointSelectionAnimationDuration),
+                    0f,
+                    1f
+                );
+                size = MathHelper.Lerp(WaypointSelectionStartSize, WaypointSelectionEndSize, t);
+            }
+            var alpha = selected ? 1f : 0.85f;
+            uiApi.Waypoint?.Draw(
+                context, drawList, parentRectangle,
+                ui.PixelsToPoints(pos.X) - (size / 2f),
+                ui.PixelsToPoints(pos.Y) - (size / 2f),
+                size, alpha
+            );
+        }
+
         private void IndicatorLayerOnRender(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             foreach (var obj in world.Objects)
@@ -2141,6 +2251,19 @@ World Time: {12:F2}
                     }
 
                 }
+                else if (obj.Kind == GameObjectKind.Waypoint)
+                {
+                    var (pos, visible) = ScreenPosition(obj);
+
+                    if (visible)
+                    {
+                        DrawWaypoint(obj, pos, context, drawList, parentRectangle, false);
+                    }
+                    else
+                    {
+                        DrawUnselectedArrow(obj, pos, context, drawList, parentRectangle);
+                    }
+                }
                 else if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
                          (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important)
                 {
@@ -2153,17 +2276,25 @@ World Time: {12:F2}
                 }
             }
 
-            if (Selection.Selected == null)
+            var selected = Selection.Selected;
+            if (selected == null)
             {
+                selectedWaypointAnimationObject = 0;
                 return;
             }
 
+            var (selectedPos, selectedVisible) = ScreenPosition(selected);
+            if (selectedVisible && selected.Kind == GameObjectKind.Waypoint)
             {
-                var (pos, visible) = ScreenPosition(Selection.Selected);
+                DrawWaypoint(selected, selectedPos, context, drawList, parentRectangle, true);
+            }
+            else
+            {
+                selectedWaypointAnimationObject = 0;
 
-                if (!visible)
+                if (!selectedVisible)
                 {
-                    DrawSelectedArrow(Selection.Selected, pos, context, drawList, parentRectangle);
+                    DrawSelectedArrow(selected, selectedPos, context, drawList, parentRectangle);
                 }
             }
         }
