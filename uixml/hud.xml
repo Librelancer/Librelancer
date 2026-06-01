@@ -14,6 +14,7 @@
 			<DisplayImage image="arrowimportant" OffsetY="4"/>
 		</Panel.Background>
 	</Panel>
+	<TextBlock X="500" Y="300" Width="90" Height="18" CaptureMouse="false" id="waypoint_label" Text="Waypoint" TextSize="10" TextColor="text" TextShadow="black" HorizontalAlignment="Center" VerticalAlignment="Top" />
 	<Panel X="500" Y="300" Width="50" Height="50" CaptureMouse="false" id="waypoint">
 		<Panel.Background>
 			<DisplayImage image="waypoint_onscreen"/>

@@ -640,6 +640,7 @@ World Time: {12:F2}
             [WattleScriptHidden] public WidgetTemplate? UnselectedArrow;
             [WattleScriptHidden] public WidgetTemplate? SelectedArrow;
             [WattleScriptHidden] public WidgetTemplate? Waypoint;
+            [WattleScriptHidden] public WidgetTemplate? WaypointLabel;
             [WattleScriptHidden] public int ShieldBatteries;
             [WattleScriptHidden] public int RepairKits;
 
@@ -676,6 +677,9 @@ World Time: {12:F2}
 
             public void SetWaypointTemplate(UiWidget template, Closure callback) =>
                 Waypoint = new(template, callback);
+
+            public void SetWaypointLabelTemplate(UiWidget template, Closure callback) =>
+                WaypointLabel = new(template, callback);
 
             public ContactList GetContactList() => g.contactList;
 
@@ -2258,6 +2262,11 @@ World Time: {12:F2}
                     if (visible)
                     {
                         DrawWaypoint(obj, pos, context, drawList, parentRectangle, false);
+                        uiApi.WaypointLabel?.Draw(
+                            context, drawList, parentRectangle,
+                            ui.PixelsToPoints(pos.X) - 45f,
+                            ui.PixelsToPoints(pos.Y) - (WaypointSelectionStartSize / 2f) - 17f
+                        );
                     }
                     else
                     {

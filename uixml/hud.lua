@@ -236,6 +236,10 @@ class hud : hud_Designer
 			local fgcol = GetColor('color_waypoint').SetAlpha(alpha);
 			waypoint.Background.GetElement(0).Tint = fgcol;
 		});
+
+		local waypointLabel = e.waypoint_label;
+		e.indicatorlayer.Children.Remove(waypointLabel);
+		Game.SetWaypointLabelTemplate(waypointLabel, () => {});
 	}
 
 	FilterSelected(filter)
