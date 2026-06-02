@@ -21,6 +21,7 @@ public static class EquipmentHandlers
 
         EquipmentObjectManager.RegisterType<CloakEquipment>(Cloak);
         EquipmentObjectManager.RegisterType<CountermeasureEquipment>(Countermeasure);
+        EquipmentObjectManager.RegisterType<CargoPodEquipment>(CargoPod);
         EquipmentObjectManager.RegisterType<EffectEquipment>(Effect);
         EquipmentObjectManager.RegisterType<EngineEquipment>(Engine);
         EquipmentObjectManager.RegisterType<GunEquipment>(Gun);
@@ -33,6 +34,13 @@ public static class EquipmentHandlers
         EquipmentObjectManager.RegisterType<ThrusterEquipment>(Thruster);
         EquipmentObjectManager.RegisterType<TractorEquipment>(Tractor);
         EquipmentObjectManager.RegisterType<TradelaneEquipment>(Tradelane);
+    }
+
+    private static GameObject CargoPod(GameObject parent, ResourceManager res, SoundManager? snd,
+        EquipmentType type, string? hardpoint, Equipment equip)
+    {
+        var pod = (CargoPodEquipment) equip;
+        return GameObject.WithModel(pod.ModelFile!, type != EquipmentType.Server, res);
     }
 
     private static GameObject Countermeasure(GameObject parent, ResourceManager res, SoundManager? snd,

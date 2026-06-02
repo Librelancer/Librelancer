@@ -720,6 +720,15 @@ namespace LibreLancer.Server
             gameobj.Nickname = nickname;
             gameobj.AddComponent(new SSolarComponent(gameobj) { Faction = rep });
 
+            ObjectLoadout? solarLoadout = null;
+            if (!string.IsNullOrWhiteSpace(loadout))
+            {
+                Server.GameData.Items.TryGetLoadout(loadout, out solarLoadout);
+            }
+            solarLoadout ??= arch.Loadout;
+            if (solarLoadout != null)
+                gameobj.SetLoadout(solarLoadout, Server.Resources, null);
+
             if (!string.IsNullOrWhiteSpace(dockWith))
             {
                 var act = new DockAction() { Kind = DockKinds.Base, Target = dockWith };
