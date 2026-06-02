@@ -806,7 +806,10 @@ World Time: {12:F2}
 
                 var playerPosition = g.player.PhysicsComponent!.Body.Position;
                 var targetPosition = g.Selection.Selected.WorldTransform.Position;
-                return $"{Vector3.Distance(playerPosition, targetPosition) / 1000f:0.0}-K";
+                var distance = Vector3.Distance(playerPosition, targetPosition);
+                return distance < 2000f
+                    ? $"{(int)distance}-M"
+                    : $"{distance / 1000f:0.0}-K";
             }
 
             public TargetShipWireframe? SelectionWireframe() => g.Selection.Selected != null ? g.targetWireframe : null;
