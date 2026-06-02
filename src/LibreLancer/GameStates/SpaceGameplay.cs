@@ -1806,7 +1806,7 @@ World Time: {12:F2}
             userWaypoint = new GameObject(waypointArch, null, Game.ResourceManager)
             {
                 Nickname = $"user_waypoint_{userWaypointCounter++}",
-                Name = new ObjectName("Waypoint")
+                Name = new ObjectName(1090) // Waypoint
             };
             userWaypoint.SetLocalTransform(new Transform3D(pos, Quaternion.Identity));
             world.AddObject(userWaypoint);
@@ -1859,9 +1859,9 @@ World Time: {12:F2}
                 var selected = obj == Selection.Selected;
                 var distance = Vector3.Distance(playerPosition, obj.WorldTransform.Position);
                 var scale = selected ? MathHelper.Clamp(distance / 5000f, 1.5f, 18f) : 1f;
-                obj.RenderScale = scale;
                 if (obj.RenderComponent is ModelRenderer renderer)
                 {
+                    renderer.RenderScale = scale;
                     renderer.NoFog = selected;
                     renderer.ColorOverride = new Color4(0.55f, 0f, 1f, 1f);
                     renderer.Spin = new Vector3(0f, 5f, 0f);

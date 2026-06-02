@@ -6,7 +6,6 @@ using System;
 using System.Numerics;
 using LibreLancer.Graphics;
 using LibreLancer.Render.Materials;
-using LibreLancer.Utf.Mat;
 
 namespace LibreLancer.Render
 {
@@ -15,7 +14,7 @@ namespace LibreLancer.Render
         public Matrix4x4 World { get; private set; }
         public RigidModel? Model { get; private set; }
         public Color4? ColorOverride;
-        private Material? colorOverrideMaterial;
+        public float RenderScale = 1f;
 
         public NebulaRenderer? Nebula;
         private int NebulaVersion = -1;
@@ -45,6 +44,10 @@ namespace LibreLancer.Render
             }
 
             World = transform;
+            if (RenderScale != 1f)
+            {
+                World = Matrix4x4.CreateScale(RenderScale) * World;
+            }
 
             if (Spin != Vector3.Zero)
             {
@@ -250,30 +253,12 @@ namespace LibreLancer.Render
                     if (lighting.FogMode != FogModes.Linear ||
                         Vector3.DistanceSquared(camera.Position, center) <= (r * r))
                     {
-                        var overrideMat = ColorOverride is { } color ? GetColorOverrideMaterial(color) : null;
+                        var userData = ColorOverride is { } color ? BasicMaterial.SetDc(color) : 0;
                         part.Mesh.DrawBuffer(lvl, sysr.ResourceManager, commands, w, ref lighting, Model.MaterialAnims,
-                            0, overrideMat, OpacityMultiplier);
+                            userData, null, OpacityMultiplier);
                     }
                 }
             }
-        }
-
-        private Material GetColorOverrideMaterial(Color4 color)
-        {
-            if (colorOverrideMaterial?.Render is BasicMaterial bm)
-            {
-                bm.Dc = color;
-                bm.Ec = new Color4(color.R * 5f, color.G * 5f, color.B * 5f, color.A);
-                return colorOverrideMaterial;
-            }
-
-            bm = new BasicMaterial("DcDtEc", sysr!.ResourceManager)
-            {
-                Dc = color,
-                Ec = new Color4(color.R * 5f, color.G * 5f, color.B * 5f, color.A)
-            };
-            colorOverrideMaterial = new Material(bm);
-            return colorOverrideMaterial;
         }
     }
 }
