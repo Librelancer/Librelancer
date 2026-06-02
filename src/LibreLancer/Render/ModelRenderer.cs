@@ -5,6 +5,7 @@
 using System;
 using System.Numerics;
 using LibreLancer.Graphics;
+using LibreLancer.Render.Materials;
 
 namespace LibreLancer.Render
 {
@@ -12,6 +13,8 @@ namespace LibreLancer.Render
     {
         public Matrix4x4 World { get; private set; }
         public RigidModel? Model { get; private set; }
+        public Color4? ColorOverride;
+        public float RenderScale = 1f;
 
         public NebulaRenderer? Nebula;
         private int NebulaVersion = -1;
@@ -41,6 +44,10 @@ namespace LibreLancer.Render
             }
 
             World = transform;
+            if (RenderScale != 1f)
+            {
+                World = Matrix4x4.CreateScale(RenderScale) * World;
+            }
 
             if (Spin != Vector3.Zero)
             {
@@ -192,7 +199,7 @@ namespace LibreLancer.Render
                         continue;
                     }
 
-                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform.Matrix() * World);
+                    var center = Vector3.Transform(part.Mesh.Center, part.LocalTransform.Matrix() * _worldSph);
                     var lvl = GetLevel(part, center, camera.Position);
 
                     if (lvl != -1)
@@ -230,7 +237,7 @@ namespace LibreLancer.Render
                     }
 
                     var part = Model.AllParts[i];
-                    var w = part.LocalTransform.Matrix() * World;
+                    var w = part.LocalTransform.Matrix() * _worldSph;
                     var center = Vector3.Transform(part.Mesh!.Center, w);
                     var lvl = GetLevel(part, center, camera.Position);
 
@@ -246,8 +253,9 @@ namespace LibreLancer.Render
                     if (lighting.FogMode != FogModes.Linear ||
                         Vector3.DistanceSquared(camera.Position, center) <= (r * r))
                     {
+                        var userData = ColorOverride is { } color ? BasicMaterial.SetDc(color) : 0;
                         part.Mesh.DrawBuffer(lvl, sysr.ResourceManager, commands, w, ref lighting, Model.MaterialAnims,
-                            0, null, OpacityMultiplier);
+                            userData, null, OpacityMultiplier);
                     }
                 }
             }

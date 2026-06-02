@@ -14,10 +14,10 @@
 			<DisplayImage image="arrowimportant" OffsetY="4"/>
 		</Panel.Background>
 	</Panel>
+	<TextBlock X="500" Y="300" Width="90" Height="18" CaptureMouse="false" id="waypoint_label" Text="Waypoint" Strid="1090" TextSize="10" TextColor="text" TextShadow="black" HorizontalAlignment="Center" VerticalAlignment="Top" />
 	<Panel X="500" Y="300" Width="50" Height="50" CaptureMouse="false" id="waypoint">
 		<Panel.Background>
-			<DisplayImage image="waypoint_background" tint="targeting_background"/>
-			<DisplayImage image="waypoint_outline"/>
+			<DisplayImage image="waypoint_onscreen"/>
 		</Panel.Background>
 	</Panel>
     </Scene>
@@ -97,11 +97,15 @@
 		<Button ID="tractorall" style="hud_contactloot" Anchor="BottomRight" Y="5" X="-68" Width="20" Height="20"/>
 	</Panel>
 	<Panel X="10" Y="10" Width="150" Height="100" id="selection" Visible="true" CaptureMouse="false">
-		<Panel id="sel_tl" Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl" /></Panel.Background></Panel>
-		<Panel id="sel_tr" Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr" /></Panel.Background></Panel>
-		<Panel id="sel_bl" Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl" /></Panel.Background></Panel>
-		<Panel id="sel_br" Anchor="BottomRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_br" /></Panel.Background></Panel>
-		<TextBlock id="selection_name" Y="-13" Anchor="TopCenter" Width="150" Height="20" Text="Target" VerticalAlignment="Top" TextSize="9"></TextBlock>
+		<Panel id="sel_border" Visible="false" Width="150" Height="100">
+			<Panel id="sel_tl" Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl" /></Panel.Background></Panel>
+			<Panel id="sel_tr" Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr" /></Panel.Background></Panel>
+			<Panel id="sel_bl" Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl" /></Panel.Background></Panel>
+			<Panel id="sel_br" Anchor="BottomRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_br" /></Panel.Background></Panel>
+		</Panel>
+		<Panel id="sel_waypoint" Anchor="Center" Width="150" Height="150"><Panel.Background><DisplayImage image="waypoint_onscreen" /></Panel.Background></Panel>
+		<TextBlock id="selection_name" Y="-35" Anchor="TopCenter" Width="150" Height="20" Text="Target" VerticalAlignment="Top" TextSize="9"></TextBlock>
+		<TextBlock id="selection_distance" Y="15" Anchor="TopCenter" Width="150" Height="20" Text="" VerticalAlignment="Top" TextSize="9"></TextBlock>
 		<Gauge Width="50" Height="5" Y="9" Anchor="BottomCenter" PercentFilled="0.5" id="selection_health">
 			<Gauge.Fill><DisplayColor color="red" /></Gauge.Fill>
 			<Gauge.Background><DisplayColor color="black" /></Gauge.Background>

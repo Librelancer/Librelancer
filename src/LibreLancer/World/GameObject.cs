@@ -782,7 +782,9 @@ namespace LibreLancer.World
 
         public void RenderUpdate(double time)
         {
-            RenderComponent?.Update(time, WorldTransform.Position, WorldTransform.Matrix());
+            var world = WorldTransform.Matrix();
+
+            RenderComponent?.Update(time, WorldTransform.Position, world);
 
             for (int i = 0; i < Children.Count; i++)
             {
@@ -791,7 +793,7 @@ namespace LibreLancer.World
 
             foreach (var child in ExtraRenderers)
             {
-                child.Update(time, WorldTransform.Position, WorldTransform.Matrix());
+                child.Update(time, WorldTransform.Position, world);
             }
         }
 

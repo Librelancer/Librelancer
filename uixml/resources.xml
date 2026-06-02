@@ -117,6 +117,15 @@
     </Color>
   </Color>
   <Color>
+    <Name>color_waypoint</Name>
+    <Color>
+      <R>1</R>
+      <G>0.2</G>
+      <B>1</B>
+      <A>1</A>
+    </Color>
+  </Color>
+  <Color>
     <Name>targeting_background</Name>
     <Color>
       <R>0</R>
