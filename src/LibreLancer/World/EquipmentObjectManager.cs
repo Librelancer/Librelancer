@@ -69,6 +69,7 @@ namespace LibreLancer.World
 
             var hp = parent.GetHardpoint(hardpoint);
             obj.Attachment = hp;
+            HardpointHulls.Activate(component);
 
             if (obj.RenderComponent is not ModelRenderer || parent.RenderComponent == null)
             {
@@ -95,7 +96,6 @@ namespace LibreLancer.World
                                 obj.RenderComponent.InheritCull = true;*/
                 //}
             }
-            HardpointHulls.Activate(component);
         }
     }
 }

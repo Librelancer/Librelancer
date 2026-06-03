@@ -141,7 +141,7 @@ namespace LibreLancer.Server
 
                     if (remaining > 0)
                     {
-                        newLoot.Add(new BasicCargo(c.Item, remaining));
+                        newLoot.Add(new BasicCargo(c.Item, remaining, c.Hardpoint));
                     }
                 }
 
@@ -488,9 +488,33 @@ namespace LibreLancer.Server
             }
         }
 
+        private static GameObject ResolveSubobjectDamageTarget(GameObject obj, object? tag)
+        {
+            if (tag is not Hardpoint hardpoint)
+            {
+                return obj;
+            }
+
+            foreach (var child in obj.Children)
+            {
+                if (child.Attachment != hardpoint ||
+                    !child.TryGetComponent<EquipmentComponent>(out var equipment) ||
+                    equipment.Equipment is not CargoPodEquipment ||
+                    !child.TryGetComponent<SHealthComponent>(out _))
+                {
+                    continue;
+                }
+
+                return child;
+            }
+
+            return obj;
+        }
+
         public void ProjectileHit(GameObject obj, object? tag, GameObject owner, MunitionEquip munition)
         {
-            if (obj.TryGetComponent<SHealthComponent>(out var health))
+            var damageTarget = ResolveSubobjectDamageTarget(obj, tag);
+            if (damageTarget.TryGetComponent<SHealthComponent>(out var health))
             {
                 health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage, owner, tag);
                 health.OnProjectileHit(owner);
@@ -760,7 +784,8 @@ namespace LibreLancer.Server
             Equipment good,
             int count,
             Transform3D transform,
-            string? nickname = null)
+            string? nickname = null,
+            Vector3? initialImpulse = null)
         {
             actions.Enqueue(() =>
             {
@@ -781,6 +806,8 @@ namespace LibreLancer.Server
                 updatingObjects.Add(go);
                 go.Register(GameWorld);
                 go.PhysicsComponent.Body.SetDamping(0.5f, 0.2f);
+                if (initialImpulse.HasValue)
+                    go.PhysicsComponent.Body.Impulse(initialImpulse.Value);
                 spawnedObjects.Add(go);
                 go.AddComponent(new SHealthComponent(go)
                     { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
@@ -900,6 +927,12 @@ namespace LibreLancer.Server
         {
             foreach (Player p in Players.Keys)
                 p.RpcClient.DestroyPart(obj, part);
+        }
+
+        public void EquipmentDestroyed(GameObject obj, string hardpoint)
+        {
+            foreach (Player p in Players.Keys)
+                p.RpcClient.DestroyEquipment(obj, hardpoint);
         }
 
         public void LocalChatMessage(Player player, BinaryChatMessage message)

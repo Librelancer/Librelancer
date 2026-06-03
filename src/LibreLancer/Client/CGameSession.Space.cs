@@ -559,6 +559,24 @@ public partial class CGameSession
         });
     }
 
+    void IClientPlayer.DestroyEquipment(ObjNetId id, string hardpoint)
+    {
+        RunSync(() =>
+        {
+            var obj = spaceGameplay!.world.GetObject(id);
+            if (obj == null)
+            {
+                FLLog.Warning("Client", $"Tried to destroy equipment on unknown object {id}");
+                return;
+            }
+
+            if (!obj.RemoveEquipment(hardpoint, spaceGameplay.world))
+            {
+                FLLog.Warning("Client", $"Tried to destroy missing equipment {hardpoint} on {id}");
+            }
+        });
+    }
+
     void IClientPlayer.RunMissionDialog(NetDlgLine[] lines)
     {
         RunSync(() => { RunDialog(lines); });

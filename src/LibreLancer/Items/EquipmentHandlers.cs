@@ -40,7 +40,20 @@ public static class EquipmentHandlers
         EquipmentType type, string? hardpoint, Equipment equip)
     {
         var pod = (CargoPodEquipment) equip;
-        return GameObject.WithModel(pod.ModelFile!, type != EquipmentType.Server, res);
+        var obj = GameObject.WithModel(pod.ModelFile!, type != EquipmentType.Server, res);
+
+        if (type == EquipmentType.Server)
+        {
+            var hitpoints = pod.Hitpoints > 0 ? pod.Hitpoints : 1;
+            obj.AddComponent(new SHealthComponent(obj)
+            {
+                MaxHealth = hitpoints,
+                CurrentHealth = hitpoints
+            });
+            obj.AddComponent(new CargoPodComponent(obj));
+        }
+
+        return obj;
     }
 
     private static GameObject Countermeasure(GameObject parent, ResourceManager res, SoundManager? snd,
