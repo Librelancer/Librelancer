@@ -1184,6 +1184,16 @@ public class GameItemDb
                 equip = eq;
             }
 
+            if (val is CargoPod cp)
+            {
+                var eq = new CargoPodEquipment
+                {
+                    ModelFile = ResolveDrawable(cp.MaterialLibrary, cp.DaArchetype),
+                    ExplosionArch = cp.ExplosionArch
+                };
+                equip = eq;
+            }
+
             if (val is Engine deng)
             {
                 var engequip = new EngineEquipment() { Def = deng };
