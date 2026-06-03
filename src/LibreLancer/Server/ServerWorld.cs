@@ -214,6 +214,10 @@ namespace LibreLancer.Server
                     health.Damage(missile.Missile.Explosion.HullDamage, missile.Missile.Explosion.EnergyDamage,
                         missile.Owner, null);
                     health.OnProjectileHit(missile.Owner);
+                    DamageCargoPodChildren(g, pos, missile.Missile.Explosion.Radius,
+                        missile.Missile.Explosion.HullDamage, missile.Missile.Explosion.EnergyDamage,
+                        missile.Owner);
+                    RefreshScanForObject(g);
                 }
             }
         }
@@ -488,36 +492,52 @@ namespace LibreLancer.Server
             }
         }
 
-        private static GameObject ResolveSubobjectDamageTarget(GameObject obj, object? tag)
+        private static GameObject ResolveSubobjectDamageTarget(GameObject obj, object? tag, Vector3? hitPoint)
         {
-            if (tag is not Hardpoint hardpoint)
-            {
-                return obj;
-            }
+            return obj.ResolveCargoPodHit(tag, hitPoint) ?? obj;
+        }
 
+        private void RefreshScanForObject(GameObject obj)
+        {
+            foreach (var player in Players.Values)
+            {
+                var playerComponent = player.GetComponent<SPlayerComponent>();
+                if (playerComponent?.Scanning == obj && TryScanCargo(obj, out var loadout))
+                {
+                    playerComponent.Player.UpdateScan(obj, loadout);
+                }
+            }
+        }
+
+        private static void DamageCargoPodChildren(GameObject obj, Vector3 origin, float radius,
+            float hullDamage, float energyDamage, GameObject? attacker)
+        {
+            var radiusSquared = radius * radius;
             foreach (var child in obj.Children)
             {
-                if (child.Attachment != hardpoint ||
-                    !child.TryGetComponent<EquipmentComponent>(out var equipment) ||
-                    equipment.Equipment is not CargoPodEquipment ||
-                    !child.TryGetComponent<SHealthComponent>(out _))
+                if (!child.TryGetComponent<CargoPodComponent>(out _) ||
+                    !child.TryGetComponent<SHealthComponent>(out var health) ||
+                    Vector3.DistanceSquared(child.WorldTransform.Position, origin) > radiusSquared)
                 {
                     continue;
                 }
 
-                return child;
+                health.Damage(hullDamage, energyDamage, attacker, child.Attachment);
+                if (attacker != null)
+                {
+                    health.OnProjectileHit(attacker);
+                }
             }
-
-            return obj;
         }
 
-        public void ProjectileHit(GameObject obj, object? tag, GameObject owner, MunitionEquip munition)
+        public void ProjectileHit(GameObject obj, object? tag, Vector3 hitPoint, GameObject owner, MunitionEquip munition)
         {
-            var damageTarget = ResolveSubobjectDamageTarget(obj, tag);
+            var damageTarget = ResolveSubobjectDamageTarget(obj, tag, hitPoint);
             if (damageTarget.TryGetComponent<SHealthComponent>(out var health))
             {
                 health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage, owner, tag);
                 health.OnProjectileHit(owner);
+                RefreshScanForObject(damageTarget.Parent ?? damageTarget);
             }
         }
 

@@ -1953,6 +1953,33 @@ World Time: {12:F2}
                     Vector3.Transform(Vector3.UnitZ * 4, player.LocalTransform.Matrix()), Vector3.UnitY);
 
                 targetWireframe.Matrix = (lookAt * Selection.Selected.LocalTransform.Matrix()).ClearTranslation();
+                targetWireframe.ChildModels.Clear();
+
+                foreach (var child in Selection.Selected.Children)
+                {
+                    if (child.Model == null ||
+                        !GameObject.IsCargoPodChild(child))
+                    {
+                        continue;
+                    }
+
+                    var childMatrix = child.LocalTransform.Matrix();
+                    if (child.Attachment != null)
+                    {
+                        childMatrix *= child.Attachment.Transform.Matrix();
+                    }
+
+                    var healthPct = 1f;
+                    if (child.TryGetComponent<CHealthComponent>(out var health) && health.MaxHealth > 0)
+                    {
+                        healthPct = MathHelper.Clamp(health.CurrentHealth / health.MaxHealth, 0, 1);
+                    }
+
+                    targetWireframe.ChildModels.Add(new TargetShipWireframe.ChildModel(
+                        child.Model.RigidModel,
+                        childMatrix * targetWireframe.Matrix,
+                        healthPct));
+                }
             }
 
             if (updateStartDelay > 0)

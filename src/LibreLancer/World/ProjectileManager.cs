@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Client.Components;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Fx;
@@ -68,7 +69,9 @@ namespace LibreLancer.World
 
                     if (po?.Tag is GameObject go)
                     {
-                        world.Server?.ProjectileHit(go, tag, Projectiles[i].Owner, Projectiles[i].Data.Munition);
+                        ApplyClientSubobjectDamage(go, tag, contactPoint, Projectiles[i].Data.Munition);
+                        world.Server?.ProjectileHit(go, tag, contactPoint, Projectiles[i].Owner,
+                            Projectiles[i].Data.Munition);
                     }
 
                     Ids.Free(i);
@@ -99,6 +102,18 @@ namespace LibreLancer.World
 
             foreach (var k in toRemove)
                 _instances.Remove(k);
+        }
+
+        private static void ApplyClientSubobjectDamage(GameObject obj, object? tag, Vector3 hitPoint,
+            MunitionEquip munition)
+        {
+            var damageTarget = obj.ResolveCargoPodHit(tag, hitPoint);
+            if (damageTarget?.TryGetComponent<CHealthComponent>(out var health) != true)
+            {
+                return;
+            }
+
+            health.CurrentHealth = Math.Max(0, health.CurrentHealth - munition.Def.HullDamage);
         }
 
         public ProjectileData GetData(GunEquipment gunDef)

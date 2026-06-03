@@ -32,7 +32,7 @@ public static class HardpointHulls
             return;
         }
 
-        p.PhysicsComponent!.ActivateHardpoint(eq.Attachment!);
+        p.PhysicsComponent!.ActivateHardpoint(eq.Attachment!, eq);
     }
 
     public static void Deactivate(GameComponent childComponent)

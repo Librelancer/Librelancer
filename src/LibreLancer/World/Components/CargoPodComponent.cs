@@ -8,6 +8,8 @@ namespace LibreLancer.World.Components;
 
 public class CargoPodComponent : GameComponent
 {
+    private const int UnitsPerDroppedContainer = 30;
+
     public List<BasicCargo> Cargo = [];
 
     private GameWorld? world;
@@ -59,12 +61,19 @@ public class CargoPodComponent : GameComponent
             if (crate == null || cargo.Count <= 0)
                 continue;
 
-            var direction = RandomDirection();
-            var offset = direction * (2 + (random.NextSingle() * 4));
-            var impulse = direction * (40 + (random.NextSingle() * 60));
-            currentWorld.Server.SpawnLoot(crate, cargo.Item, cargo.Count,
-                new Transform3D(center + offset, Quaternion.Identity),
-                initialImpulse: impulse);
+            var remaining = cargo.Count;
+            while (remaining > 0)
+            {
+                var count = Math.Min(remaining, UnitsPerDroppedContainer);
+                remaining -= count;
+
+                var direction = RandomDirection();
+                var offset = direction * (2 + (random.NextSingle() * 4));
+                var impulse = direction * (40 + (random.NextSingle() * 60));
+                currentWorld.Server.SpawnLoot(crate, cargo.Item, count,
+                    new Transform3D(center + offset, Quaternion.Identity),
+                    initialImpulse: impulse);
+            }
         }
 
         var solar = Parent.Parent;

@@ -800,7 +800,7 @@ public class GameItemDb
         var debrisTask = tasks.Begin(InitDebris);
         var shipsTask = tasks.Begin(InitShips, explosionTask, fusesTask, debrisTask);
         var voicesTask = tasks.Begin(InitVoices);
-        var equipmentTask = tasks.Begin(InitEquipment, effectsTask);
+        var equipmentTask = tasks.Begin(InitEquipment, effectsTask, explosionTask);
         var loadoutsTask = tasks.Begin(InitLoadouts, equipmentTask);
         var npcShips = tasks.Begin(InitNpcShips, shipsTask, loadoutsTask);
         var factionsTask = tasks.Begin(InitFactions, voicesTask, npcShips);
@@ -1181,7 +1181,7 @@ public class GameItemDb
                 var eq = new CargoPodEquipment
                 {
                     ModelFile = ResolveDrawable(cp.MaterialLibrary, cp.DaArchetype),
-                    ExplosionArch = cp.ExplosionArch,
+                    Explosion = cp.ExplosionArch is not null ? Explosions.Get(cp.ExplosionArch) : null,
                     Hitpoints = cp.Hitpoints
                 };
                 equip = eq;
