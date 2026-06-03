@@ -724,14 +724,12 @@ internal class ContactEvents : IDisposable
 internal struct ContactEventCallbacks : INarrowPhaseCallbacks
 {
     private readonly ContactEvents events;
-    public readonly float MaximumRecoveryVelocity;
     private readonly PhysicsWorld world;
 
-    public ContactEventCallbacks(ContactEvents events, PhysicsWorld world, float maximumRecoveryVelocity)
+    public ContactEventCallbacks(ContactEvents events, PhysicsWorld world)
     {
         this.events = events;
         this.world = world;
-        MaximumRecoveryVelocity = maximumRecoveryVelocity;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -749,8 +747,8 @@ internal struct ContactEventCallbacks : INarrowPhaseCallbacks
         out PairMaterialProperties pairMaterial) where TManifold : unmanaged, IContactManifold<TManifold>
     {
         pairMaterial.FrictionCoefficient = 0f;
-        pairMaterial.MaximumRecoveryVelocity = MaximumRecoveryVelocity;
-        pairMaterial.SpringSettings = new SpringSettings(5, 0f);
+        pairMaterial.MaximumRecoveryVelocity = float.MaxValue;
+        pairMaterial.SpringSettings = new SpringSettings(24, 0f);
         events.HandleManifold(workerIndex, pair, ref manifold);
         return true;
     }
