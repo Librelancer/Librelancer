@@ -493,6 +493,7 @@ namespace LibreLancer.World
 
                 foreach (var hp in destroyed.Hardpoints)
                 {
+                    PhysicsComponent?.DeactivateHardpoint(hp);
                     for (int i = 0; i < components.Count; i++)
                     {
                         components[i].HardpointDestroyed(hp);

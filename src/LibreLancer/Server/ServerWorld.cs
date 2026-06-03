@@ -212,7 +212,7 @@ namespace LibreLancer.Server
                 if (other?.Tag is GameObject g && g.TryGetComponent<SHealthComponent>(out var health))
                 {
                     health.Damage(missile.Missile.Explosion.HullDamage, missile.Missile.Explosion.EnergyDamage,
-                        missile.Owner);
+                        missile.Owner, null);
                     health.OnProjectileHit(missile.Owner);
                 }
             }
@@ -488,11 +488,11 @@ namespace LibreLancer.Server
             }
         }
 
-        public void ProjectileHit(GameObject obj, GameObject owner, MunitionEquip munition)
+        public void ProjectileHit(GameObject obj, object? tag, GameObject owner, MunitionEquip munition)
         {
             if (obj.TryGetComponent<SHealthComponent>(out var health))
             {
-                health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage, owner);
+                health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage, owner, tag);
                 health.OnProjectileHit(owner);
             }
         }

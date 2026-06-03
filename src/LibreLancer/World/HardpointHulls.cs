@@ -20,16 +20,19 @@ public static class HardpointHulls
             return;
         }
 
+        if (p.PhysicsComponent == null)
+        {
+            // Not in physics mode.
+            return;
+        }
+
         if (childComponent.Parent?.Attachment == null)
         {
             FLLog.Warning("Game", $"Failed to activate hardpoint hull on {p}, no attachment");
             return;
         }
 
-        if (!p.PhysicsComponent!.ActivateHardpoint(eq.Attachment!))
-        {
-            FLLog.Warning("Game", $"Failed to activate hardpoint hull for {eq.Attachment} on {p}, no hull found");
-        }
+        p.PhysicsComponent!.ActivateHardpoint(eq.Attachment!);
     }
 
     public static void Deactivate(GameComponent childComponent)
@@ -52,7 +55,7 @@ public static class HardpointHulls
             return;
         }
 
-        p.PhysicsComponent!.DeactivateHardpoint(eq.Attachment);
+        p.PhysicsComponent?.DeactivateHardpoint(eq.Attachment);
         FLLog.Info("HARDPOINT", $"Deactivate {eq.Attachment} on {p}");
     }
 }

@@ -171,6 +171,19 @@ namespace LibreLancer.Physics
             return true;
         }
 
+        internal object? GetTag(int childIndex)
+        {
+            for (int i = 0; i < children.Count; i++)
+            {
+                int end = children[i].Index + children[i].Count;
+                if (childIndex >= children[i].Index && childIndex < end)
+                {
+                    return children[i].Tag;
+                }
+            }
+            return null;
+        }
+
         public void UpdatePart(object tag, Transform3D localTransform)
         {
             foreach (var part in children.Where(part => part.Tag == tag))

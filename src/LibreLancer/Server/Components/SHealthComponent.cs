@@ -93,7 +93,7 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        private void HandleHullDamage(float hullDamage, GameObject? attacker)
+        private void HandleHullDamage(float hullDamage, GameObject? attacker, object? child)
         {
             if (InfiniteHealth)
             {
@@ -152,7 +152,7 @@ namespace LibreLancer.Server.Components
                 }
         }
 
-        public void Damage(float hullDamage, float energyDamage, GameObject? attacker)
+        public void Damage(float hullDamage, float energyDamage, GameObject? attacker, object? child)
         {
             if (energyDamage <= 0)
             {
@@ -166,7 +166,7 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            HandleHullDamage(hullDamage, attacker);
+            HandleHullDamage(hullDamage, attacker, child);
         }
     }
 }

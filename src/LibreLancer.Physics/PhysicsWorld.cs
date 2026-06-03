@@ -213,6 +213,7 @@ namespace LibreLancer.Physics
         private struct HitHandler(PhysicsWorld world, PhysicsObject? self) : IRayHitHandler
         {
             public PhysicsObject? Result;
+            public object? ResultTag;
             public Vector3 ContactPoint;
             private readonly int selfId = self?.Id ?? -1;
             public bool DidHit;
@@ -233,6 +234,10 @@ namespace LibreLancer.Physics
                 ContactPoint = ray.Origin + ray.Direction * t;
                 Result = world.objectsById[world.bepuToLancer[collidable]];
                 DidHit = true;
+                if (Result?.Collider is ConvexMeshCollider convex)
+                {
+                    ResultTag = convex.GetTag(childIndex);
+                }
             }
         }
 
@@ -243,12 +248,13 @@ namespace LibreLancer.Physics
             new (Vector3 Start, Vector3 End, bool Success)[32];
 
         public bool PointRaycast(PhysicsObject? me, Vector3 origin, Vector3 direction, float maxDist,
-            out Vector3 contactPoint, out PhysicsObject? didHit)
+            out Vector3 contactPoint, out PhysicsObject? didHit, out object? childTag)
         {
             HitHandler handler = new HitHandler(this, me);
             Simulation.RayCast(origin, direction, maxDist, ref handler);
             contactPoint = handler.ContactPoint;
             didHit = handler.Result;
+            childTag = handler.ResultTag;
 
             if (!ShowRaycasts || debugRayIndex >= debugRays.Length)
             {

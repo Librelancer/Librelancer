@@ -59,7 +59,8 @@ namespace LibreLancer.World
                         dir,
                         length,
                         out var contactPoint,
-                        out var po))
+                        out var po,
+                        out var tag))
                 {
                     Projectiles[i].Alive = false;
                     Projectiles[i].Effect = null;
@@ -67,7 +68,7 @@ namespace LibreLancer.World
 
                     if (po?.Tag is GameObject go)
                     {
-                        world.Server?.ProjectileHit(go, Projectiles[i].Owner, Projectiles[i].Data.Munition);
+                        world.Server?.ProjectileHit(go, tag, Projectiles[i].Owner, Projectiles[i].Data.Munition);
                     }
 
                     Ids.Free(i);

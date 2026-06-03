@@ -1453,7 +1453,7 @@ World Time: {12:F2}
             var tgt = start + (dir * 400);
 
             if (world.Physics!.PointRaycast(player.PhysicsComponent!.Body, start, dir, 1000, out var contactPoint,
-                    out var po))
+                    out _, out _))
             {
                 return contactPoint;
             }

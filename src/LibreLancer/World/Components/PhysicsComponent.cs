@@ -43,14 +43,14 @@ namespace LibreLancer.World.Components
 
         private List<Hardpoint> hardpoints = [];
 
-        public bool ActivateHardpoint(Hardpoint hardpoint)
+        public void ActivateHardpoint(Hardpoint hardpoint)
         {
             var hpid = CrcTool.FLModelCrc(hardpoint.Name);
             var meshId = Parent?.Model?.RigidModel.Source == RigidModelSource.SinglePart
                 ? 0
                 : CrcTool.FLModelCrc(hardpoint.Parent!.Name);
             hardpoints.Add(hardpoint);
-            return _convexMesh!.AddPart(SurPath.FileId, new ConvexMeshId(meshId, hpid), hardpoint.Parent!.LocalTransform, hardpoint);
+             _convexMesh?.AddPart(SurPath.FileId, new ConvexMeshId(meshId, hpid), hardpoint.Parent!.LocalTransform, hardpoint);
         }
 
         public void DeactivateHardpoint(Hardpoint hardpoint)
@@ -164,6 +164,15 @@ namespace LibreLancer.World.Components
                         var id = new ConvexMeshId(CrcTool.FLModelCrc(part.Name), 0);
                         _convexMesh.AddPart(meshId, id, part.Construct == null ? Transform3D.Identity : part.LocalTransform, part);
                     }
+                }
+
+                foreach (var hardpoint in hardpoints)
+                {
+                    var hpid = CrcTool.FLModelCrc(hardpoint.Name);
+                    var hpMeshId = Parent?.Model?.RigidModel.Source == RigidModelSource.SinglePart
+                        ? 0
+                        : CrcTool.FLModelCrc(hardpoint.Parent!.Name);
+                    _convexMesh?.AddPart(SurPath.FileId, new ConvexMeshId(hpMeshId, hpid), hardpoint.Parent!.LocalTransform, hardpoint);
                 }
             }
 

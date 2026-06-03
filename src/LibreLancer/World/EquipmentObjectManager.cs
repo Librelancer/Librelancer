@@ -51,7 +51,8 @@ namespace LibreLancer.World
             }
 
             obj.Parent = parent;
-            obj.AddComponent(new EquipmentComponent(equip, obj));
+            var component = new EquipmentComponent(equip, obj);
+            obj.AddComponent(component);
             parent.Children.Add(obj);
             if (equip.LODRanges != null && obj.RenderComponent is ModelRenderer mrender)
                 mrender.LODRanges = equip.LODRanges;
@@ -94,6 +95,7 @@ namespace LibreLancer.World
                                 obj.RenderComponent.InheritCull = true;*/
                 //}
             }
+            HardpointHulls.Activate(component);
         }
     }
 }
