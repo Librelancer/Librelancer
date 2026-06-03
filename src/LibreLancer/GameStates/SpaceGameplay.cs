@@ -73,6 +73,11 @@ World Time: {12:F2}
 
         public float Velocity = 0f;
         private const float MAX_VELOCITY = 80f;
+        private const float CRUISE_CAMERA_LAG_SPEED_BAND = 150f;
+        private const float CRUISE_CAMERA_LAG_PER_BAND = 4f;
+        private const float CRUISE_CAMERA_LAG_MAX = CRUISE_CAMERA_LAG_PER_BAND * 2f;
+        private const float CRUISE_CAMERA_LAG_SMOOTH_SPEED = 6f;
+        private float cruiseCameraLag = 0f;
         private Cursor cur_arrow = null!;
         private Cursor cur_cross = null!;
         private Cursor cur_reticle = null!;
@@ -1139,6 +1144,27 @@ World Time: {12:F2}
 
         private bool IsSpecialCamera() => GetCurrentCamera() != activeCamera;
 
+        private float CalculateCruiseCameraLag(double delta)
+        {
+            var targetLag = 0f;
+            if (!Dead && activeCamera == _chaseCamera && !IsSpecialCamera() &&
+                control.EngineState == EngineStates.Cruise &&
+                player.PhysicsComponent?.Body != null)
+            {
+                var speed = player.PhysicsComponent.Body.LinearVelocity.Length();
+                var speedBand = MathHelper.Clamp(speed / CRUISE_CAMERA_LAG_SPEED_BAND, 0, 2);
+                var completedBands = MathF.Floor(speedBand);
+                var bandFraction = speedBand - completedBands;
+                var easedBandFraction = bandFraction * bandFraction * (3f - 2f * bandFraction);
+                targetLag = Math.Min(CRUISE_CAMERA_LAG_MAX,
+                    (completedBands + easedBandFraction) * CRUISE_CAMERA_LAG_PER_BAND);
+            }
+
+            var t = 1 - (float)Math.Exp(-CRUISE_CAMERA_LAG_SMOOTH_SPEED * delta);
+            cruiseCameraLag += (targetLag - cruiseCameraLag) * t;
+            return cruiseCameraLag;
+        }
+
         public override void Update(double delta)
         {
             if (loading)
@@ -1275,8 +1301,10 @@ World Time: {12:F2}
                 }
 
                 _turretViewCamera.ChasePosition = player.LocalTransform.Position;
-                _chaseCamera.ChasePosition = player.LocalTransform.Position;
                 _chaseCamera.ChaseOrientation = Matrix4x4.CreateFromQuaternion(player.LocalTransform.Orientation);
+                var cruiseLag = CalculateCruiseCameraLag(delta);
+                var playerForward = Vector3.Transform(-Vector3.UnitZ, player.LocalTransform.Orientation);
+                _chaseCamera.ChasePosition = player.LocalTransform.Position - (playerForward * cruiseLag);
             }
 
             _turretViewCamera.Update(delta);
