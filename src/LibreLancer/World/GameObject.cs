@@ -647,6 +647,40 @@ namespace LibreLancer.World
                         type, item.Hardpoint ?? "internal", item.Equipment);
                 }
             }
+
+            foreach (var cargo in loadout.Cargo.Where(x => !string.IsNullOrWhiteSpace(x.Hardpoint)))
+            {
+                foreach (var child in Children)
+                {
+                    if (!cargo.Hardpoint!.Equals(child.Attachment?.Name, StringComparison.OrdinalIgnoreCase) ||
+                        !child.TryGetComponent<CargoPodComponent>(out var pod))
+                    {
+                        continue;
+                    }
+
+                    pod.Cargo.Add(new BasicCargo(cargo.Item, cargo.Count));
+                }
+            }
+        }
+
+        public bool RemoveEquipment(string hardpoint, GameWorld world)
+        {
+            for (int i = Children.Count - 1; i >= 0; i--)
+            {
+                var child = Children[i];
+                if (!hardpoint.Equals(child.Attachment?.Name, StringComparison.OrdinalIgnoreCase) ||
+                    !child.TryGetComponent<EquipmentComponent>(out var equipment))
+                {
+                    continue;
+                }
+
+                HardpointHulls.Deactivate(equipment);
+                child.Unregister(world);
+                Children.RemoveAt(i);
+                return true;
+            }
+
+            return false;
         }
 
         public bool TryGetFirstChildComponent<T>([MaybeNullWhen(false)] out T result) where T : GameComponent

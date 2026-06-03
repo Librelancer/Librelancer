@@ -1189,7 +1189,8 @@ public class GameItemDb
                 var eq = new CargoPodEquipment
                 {
                     ModelFile = ResolveDrawable(cp.MaterialLibrary, cp.DaArchetype),
-                    ExplosionArch = cp.ExplosionArch
+                    ExplosionArch = cp.ExplosionArch,
+                    Hitpoints = cp.Hitpoints
                 };
                 equip = eq;
             }
@@ -1301,7 +1302,7 @@ public class GameItemDb
 
                 if (equip != null)
                 {
-                    ld.Cargo.Add(new BasicCargo(equip, c.Count));
+                    ld.Cargo.Add(new BasicCargo(equip, c.Count, c.Hardpoint));
                 }
             }
 

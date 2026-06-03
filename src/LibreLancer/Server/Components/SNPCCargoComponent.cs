@@ -27,7 +27,7 @@ public class SNPCCargoComponent : AbstractCargoComponent
                 }
                 else
                 {
-                    Cargo[i] = new BasicCargo(Cargo[i].Item, Cargo[i].Count - maxCount);
+                    Cargo[i] = new BasicCargo(Cargo[i].Item, Cargo[i].Count - maxCount, Cargo[i].Hardpoint);
                     return maxCount;
                 }
             }

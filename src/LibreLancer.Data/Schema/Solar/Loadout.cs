@@ -48,9 +48,12 @@ public class LoadoutCargo
 {
     public string? Nickname;
     public int Count;
+    public string? Hardpoint;
     public LoadoutCargo(Entry e)
     {
         Nickname = e[0].ToString();
         Count = e.Count > 1 ? e[1].ToInt32() : 1;
+        if (e.Count > 2)
+            Hardpoint = e[2].ToString();
     }
 }

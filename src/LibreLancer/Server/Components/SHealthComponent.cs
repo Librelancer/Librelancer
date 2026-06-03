@@ -25,6 +25,7 @@ namespace LibreLancer.Server.Components
         private bool isKilled = false;
 
         public Action<GameObject, GameObject>? ProjectileHitHook;
+        public Action<GameObject?>? KilledHook;
 
         public void OnProjectileHit(GameObject attacker)
         {
@@ -137,6 +138,8 @@ namespace LibreLancer.Server.Components
                     var ship = Parent.GetComponent<ShipPhysicsComponent>()!.Ship;
                     attackingPlayer.Player.ShipKilledByPlayer(ship);
                 }
+
+                KilledHook?.Invoke(attacker);
 
                 fuseRunner?.RunAtHealth(0);
 
