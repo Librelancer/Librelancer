@@ -51,15 +51,51 @@ namespace LibreLancer.Interface
                 return;
             }
 
-            if (target.Model!.Source == RigidModelSource.Sphere)
+            DrawModelWires(context, target.Model!, target.Matrix);
+
+            foreach (var child in target.ChildModels)
             {
-                var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
+                DrawModelWires(context, child.Model, child.Matrix, GetHealthColor(child.Health, context.GlobalTime));
+            }
+        }
+
+        private Color4 GetHealthColor(float health, double time)
+        {
+            if (health >= 0.8f)
+            {
+                return Color4.Blue;
+            }
+
+            if (health >= 0.6f)
+            {
+                return Color4.White;
+            }
+
+            if (health >= 0.4f)
+            {
+                return Color4.Yellow;
+            }
+
+            if (health >= 0.2f)
+            {
+                return Color4.Red;
+            }
+
+            var pulse = (float)(time % 1.0);
+            return Color4.Lerp(Color4.Red, Color4.Black, pulse);
+        }
+
+        private void DrawModelWires(UiContext context, RigidModel model, Matrix4x4 matrix, Color4? colorOverride = null)
+        {
+            if (model.Source == RigidModelSource.Sphere)
+            {
+                var color = colorOverride ?? (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
 
                 for (int i = 0; i < sphereWireframe.Length / 2; i++)
                 {
                     context.Lines.DrawLine(
-                        Vector3.Transform(sphereWireframe[i * 2], target.Matrix),
-                        Vector3.Transform(sphereWireframe[i * 2 + 1], target.Matrix),
+                        Vector3.Transform(sphereWireframe[i * 2], matrix),
+                        Vector3.Transform(sphereWireframe[i * 2 + 1], matrix),
                         color
                     );
                 }
@@ -67,18 +103,18 @@ namespace LibreLancer.Interface
                 return;
             }
 
-            foreach (var part in target.Model.AllParts)
+            foreach (var part in model.AllParts)
             {
                 if (part.Wireframe != null)
                 {
-                    DrawVMeshWire(context, part.Wireframe, part.LocalTransform.Matrix() * target.Matrix);
+                    DrawVMeshWire(context, part.Wireframe, part.LocalTransform.Matrix() * matrix, colorOverride);
                 }
             }
         }
 
-        private void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat)
+        private void DrawVMeshWire(UiContext context, VMeshWire wire, Matrix4x4 mat, Color4? colorOverride = null)
         {
-            var color = (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
+            var color = colorOverride ?? (WireframeColor ?? InterfaceColor.White).GetColor(context.GlobalTime);
             var mesh = context.Data.ResourceManager.FindMesh(wire.MeshCRC);
             if (mesh != null)
                 context.Lines.DrawVWire(wire, mesh.VertexResource!, mat, color);

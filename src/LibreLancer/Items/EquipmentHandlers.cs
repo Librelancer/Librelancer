@@ -41,16 +41,28 @@ public static class EquipmentHandlers
     {
         var pod = (CargoPodEquipment) equip;
         var obj = GameObject.WithModel(pod.ModelFile!, type != EquipmentType.Server, res);
+        var hitpoints = pod.Hitpoints > 0 ? pod.Hitpoints : 1;
 
         if (type == EquipmentType.Server)
         {
-            var hitpoints = pod.Hitpoints > 0 ? pod.Hitpoints : 1;
             obj.AddComponent(new SHealthComponent(obj)
             {
                 MaxHealth = hitpoints,
                 CurrentHealth = hitpoints
             });
             obj.AddComponent(new CargoPodComponent(obj));
+        }
+        else
+        {
+            obj.AddComponent(new CHealthComponent(obj)
+            {
+                MaxHealth = hitpoints,
+                CurrentHealth = hitpoints
+            });
+            if (pod.Explosion != null)
+            {
+                obj.AddComponent(new CExplosionComponent(obj, pod.Explosion));
+            }
         }
 
         return obj;

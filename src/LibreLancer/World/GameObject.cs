@@ -927,6 +927,80 @@ namespace LibreLancer.World
             return hardpoint;
         }
 
+        public GameObject? GetHardpointChild(Hardpoint hardpoint, Func<GameObject, bool>? predicate = null)
+        {
+            foreach (var child in Children)
+            {
+                if (!ReferenceEquals(child.Attachment, hardpoint) &&
+                    !hardpoint.Name.Equals(child.Attachment?.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (predicate == null || predicate(child))
+                {
+                    return child;
+                }
+            }
+
+            return null;
+        }
+
+        private GameObject? GetCargoPodChild(Hardpoint hardpoint) =>
+            GetHardpointChild(hardpoint, IsCargoPodChild);
+
+        public GameObject? ResolveCargoPodHit(object? tag, Vector3? hitPoint = null)
+        {
+            if (tag is GameObject child &&
+                child.Parent == this &&
+                IsCargoPodChild(child))
+            {
+                return child;
+            }
+
+            if (tag is Hardpoint hardpoint)
+            {
+                var hardpointChild = GetCargoPodChild(hardpoint);
+                if (hardpointChild != null)
+                {
+                    return hardpointChild;
+                }
+            }
+
+            return hitPoint.HasValue ? ResolveCargoPodByHitPoint(hitPoint.Value) : null;
+        }
+
+        private GameObject? ResolveCargoPodByHitPoint(Vector3 hitPoint)
+        {
+            GameObject? closest = null;
+            var closestDistance = float.MaxValue;
+
+            foreach (var child in Children)
+            {
+                if (child.Model == null || !IsCargoPodChild(child))
+                {
+                    continue;
+                }
+
+                var radius = Math.Max(child.Model.RigidModel.GetRadius(), 5f) * 1.5f;
+                var distance = Vector3.DistanceSquared(hitPoint, child.WorldTransform.Position);
+                if (distance > radius * radius ||
+                    distance >= closestDistance)
+                {
+                    continue;
+                }
+
+                closest = child;
+                closestDistance = distance;
+            }
+
+            return closest;
+        }
+
+        public static bool IsCargoPodChild(GameObject child) =>
+            child.TryGetComponent<EquipmentComponent>(out var equipment) &&
+            equipment.Equipment is CargoPodEquipment;
+
         public Vector3 InverseTransformPoint(Vector3 input) => WorldTransform.InverseTransform(input);
 
         public IEnumerable<Hardpoint> GetHardpoints() => Model!.Hardpoints;

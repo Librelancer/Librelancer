@@ -570,6 +570,15 @@ public partial class CGameSession
                 return;
             }
 
+            var hp = obj.GetHardpoint(hardpoint);
+            var child = hp == null
+                ? null
+                : obj.GetHardpointChild(hp, c => c.TryGetComponent<CExplosionComponent>(out _));
+            if (child != null)
+            {
+                spaceGameplay.Explode(child);
+            }
+
             if (!obj.RemoveEquipment(hardpoint, spaceGameplay.world))
             {
                 FLLog.Warning("Client", $"Tried to destroy missing equipment {hardpoint} on {id}");
@@ -764,7 +773,38 @@ public partial class CGameSession
         scanId = id;
         scanLoadout = diff.Apply(scanLoadout);
         scannedInventory = BuildScanList(scanLoadout);
-        gameplayActions.Enqueue(() => { spaceGameplay?.UpdateScan(); });
+        var loadout = scanLoadout;
+        gameplayActions.Enqueue(() =>
+        {
+            ApplyScannedEquipmentHealth(id, loadout);
+            spaceGameplay?.UpdateScan();
+        });
+    }
+
+    private void ApplyScannedEquipmentHealth(ObjNetId id, NetLoadout loadout)
+    {
+        var obj = spaceGameplay?.world.GetObject(id);
+        if (obj == null)
+        {
+            return;
+        }
+
+        foreach (var eq in loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
+        {
+            ApplyEquipmentHealth(obj, eq);
+        }
+    }
+
+    private static void ApplyEquipmentHealth(GameObject obj, NetShipCargo equipment)
+    {
+        var hp = obj.GetHardpoint(equipment.Hardpoint);
+        var child = hp == null
+            ? null
+            : obj.GetHardpointChild(hp, c => c.TryGetComponent<CHealthComponent>(out _));
+        if (child != null && child.TryGetComponent<CHealthComponent>(out var childHealth))
+        {
+            childHealth.CurrentHealth = childHealth.MaxHealth * (equipment.Health / 255f);
+        }
     }
 
     void IClientPlayer.StoryMissionFailed(int failedIds)
@@ -1030,6 +1070,8 @@ public partial class CGameSession
 
                     EquipmentObjectManager.InstantiateEquipment(newObj, Game.ResourceManager, Game.Sound,
                         EquipmentType.LocalPlayer, eq.Hardpoint, equip);
+
+                    ApplyEquipmentHealth(newObj, eq);
                 }
 
                 if (newObj.Kind == GameObjectKind.Loot)
