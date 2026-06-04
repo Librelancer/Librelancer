@@ -360,30 +360,33 @@ namespace LibreLancer.Server.Components
             float cone = angleDeg * MathF.PI / 180f;
 
             Vector3 dir = Vector3.Normalize(target - myPos);
-
-            Vector3 randomVec;
-
-            do
+            var power = Pilot.Gun.FireAccuracyPowerNpc > 0
+                ? Pilot.Gun.FireAccuracyPowerNpc
+                : Pilot.Gun.FireAccuracyPower;
+            if (power <= 0)
             {
-                randomVec = new Vector3(
-                    random.NextFloat(-1f, 1f),
-                    random.NextFloat(-1f, 1f),
-                    random.NextFloat(-1f, 1f)
-                );
-            } while (randomVec.LengthSquared() < 0.01f);
-
-            randomVec = Vector3.Normalize(randomVec);
-
-            float dot = Vector3.Dot(dir, randomVec);
-            float currentAngle = MathF.Acos(dot);
-
-            if (currentAngle > cone)
-            {
-                float t = cone / currentAngle;
-                randomVec = Vector3.Normalize(Vector3.Lerp(dir, randomVec, t));
+                power = 1;
             }
 
-            return myPos + randomVec * distance;
+            if (isAutoTurret)
+            {
+                power *= 10;
+            }
+
+            var offsetAngle = cone * MathF.Pow(random.NextSingle(), 1f / power);
+            var spin = random.NextSingle() * MathF.Tau;
+
+            var reference = MathF.Abs(Vector3.Dot(dir, Vector3.UnitY)) > 0.95f
+                ? Vector3.UnitX
+                : Vector3.UnitY;
+            var right = Vector3.Normalize(Vector3.Cross(dir, reference));
+            var up = Vector3.Normalize(Vector3.Cross(right, dir));
+
+            var offsetDir =
+                (dir * MathF.Cos(offsetAngle)) +
+                ((right * MathF.Cos(spin) + up * MathF.Sin(spin)) * MathF.Sin(offsetAngle));
+
+            return myPos + Vector3.Normalize(offsetDir) * distance;
         }
 
 
@@ -483,7 +486,6 @@ namespace LibreLancer.Server.Components
                         weapons.FireMissiles(world);
                         missileTimer = ValueWithVariance(Pilot?.Missile?.LaunchIntervalTime,
                             Pilot?.Missile?.LaunchVariancePercent);
-                        missileTimer = Pilot?.Missile?.LaunchIntervalTime ?? 0;
                     }
                 }
 

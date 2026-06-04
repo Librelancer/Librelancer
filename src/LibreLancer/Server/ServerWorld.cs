@@ -545,11 +545,13 @@ namespace LibreLancer.Server
                 go.Kind = GameObjectKind.Missile;
                 go.NetID = IdGenerator.Allocate();
                 go.PhysicsComponent?.Mass = 1;
-                go.AddComponent(new SMissileComponent(go, missile, target, owner,
-                    owner.PhysicsComponent!.Body.LinearVelocity.Length() + muzzleVelocity));
+                var missileComponent = new SMissileComponent(go, missile, target, owner,
+                    owner.PhysicsComponent!.Body.LinearVelocity.Length() + muzzleVelocity);
+                go.AddComponent(missileComponent);
 
                 GameWorld.AddObject(go);
                 go.Register(GameWorld);
+                missileComponent.SuppressLaunchCollision();
                 updatingObjects.Add(go);
 
                 foreach (var p in Players)

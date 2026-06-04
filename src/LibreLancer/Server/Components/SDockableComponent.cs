@@ -247,7 +247,7 @@ namespace LibreLancer.Server.Components
             if (DockPoints.Length > 1 &&
                 DockPoints[0].DockSphere.Type == Data.Schema.Solar.DockSphereType.ring)
             {
-                return 0; // Must undock from 0
+                return 1; // Docking rings launch from the second point; the first is entry-only.
             }
             else
             {
