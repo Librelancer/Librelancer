@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
@@ -212,13 +213,9 @@ namespace LibreLancer.Server
             {
                 if (other?.Tag is GameObject g && g.TryGetComponent<SHealthComponent>(out var health))
                 {
-                    health.Damage(missile.Missile.Explosion.HullDamage, missile.Missile.Explosion.EnergyDamage,
-                        missile.Owner, null);
+                    health.DamageExplosion(missile.Missile.Explosion.HullDamage, missile.Missile.Explosion.EnergyDamage,
+                            missile.Owner, pos, missile.Missile.Explosion.Radius);
                     health.OnProjectileHit(missile.Owner);
-                    DamageCargoPodChildren(g, pos, missile.Missile.Explosion.Radius,
-                        missile.Missile.Explosion.HullDamage, missile.Missile.Explosion.EnergyDamage,
-                        missile.Owner);
-                    RefreshScanForObject(g);
                 }
             }
         }
@@ -501,52 +498,12 @@ namespace LibreLancer.Server
             }
         }
 
-        private static GameObject ResolveSubobjectDamageTarget(GameObject obj, object? tag, Vector3? hitPoint)
+        public void ProjectileHit(GameObject obj, GameObject? child, Vector3 hitPoint, GameObject owner, MunitionEquip munition)
         {
-            return obj.ResolveCargoPodHit(tag, hitPoint) ?? obj;
-        }
-
-        private void RefreshScanForObject(GameObject obj)
-        {
-            foreach (var player in Players.Values)
+            if (obj.TryGetComponent<SHealthComponent>(out var health))
             {
-                var playerComponent = player.GetComponent<SPlayerComponent>();
-                if (playerComponent?.Scanning == obj && TryScanCargo(obj, out var loadout))
-                {
-                    playerComponent.Player.UpdateScan(obj, loadout);
-                }
-            }
-        }
-
-        private static void DamageCargoPodChildren(GameObject obj, Vector3 origin, float radius,
-            float hullDamage, float energyDamage, GameObject? attacker)
-        {
-            var radiusSquared = radius * radius;
-            foreach (var child in obj.Children)
-            {
-                if (!child.TryGetComponent<CargoPodComponent>(out _) ||
-                    !child.TryGetComponent<SHealthComponent>(out var health) ||
-                    Vector3.DistanceSquared(child.WorldTransform.Position, origin) > radiusSquared)
-                {
-                    continue;
-                }
-
-                health.Damage(hullDamage, energyDamage, attacker, child.Attachment);
-                if (attacker != null)
-                {
-                    health.OnProjectileHit(attacker);
-                }
-            }
-        }
-
-        public void ProjectileHit(GameObject obj, object? tag, Vector3 hitPoint, GameObject owner, MunitionEquip munition)
-        {
-            var damageTarget = ResolveSubobjectDamageTarget(obj, tag, hitPoint);
-            if (damageTarget.TryGetComponent<SHealthComponent>(out var health))
-            {
-                health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage, owner, tag);
+                health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage, owner, child);
                 health.OnProjectileHit(owner);
-                RefreshScanForObject(damageTarget.Parent ?? damageTarget);
             }
         }
 
@@ -958,11 +915,11 @@ namespace LibreLancer.Server
                 p.RpcClient.DestroyPart(obj, part);
         }
 
-        public void EquipmentDestroyed(GameObject obj, string hardpoint)
+        public void EquipmentDestroyed(GameObject obj, Hardpoint hardpoint)
         {
             foreach (Player p in Players.Keys)
             {
-                p.RpcClient.DestroyEquipment(obj, true, hardpoint);
+                p.RpcClient.DestroyEquipment(obj, true, hardpoint.Name);
             }
             // Save destroyed cargo pods
             if (obj.SystemObject != null)
@@ -972,8 +929,11 @@ namespace LibreLancer.Server
                     list = [];
                     solarDestroyedHardpoints[obj] = list;
                 }
-                list.Add(hardpoint);
+                list.Add(hardpoint.Name);
             }
+            // Remove from SHealthComponent
+            var health = obj.GetComponent<SHealthComponent>()!;
+            health.EquipmentHealths.Remove(hardpoint);
         }
 
         public void LocalChatMessage(Player player, BinaryChatMessage message)
@@ -1083,11 +1043,12 @@ namespace LibreLancer.Server
                 {
                     continue;
                 }
-
-                if (obj.TryGetComponent<SSolarComponent>(out var docking) &&
-                    docking.SendSolarUpdate)
+                if (obj.TryGetComponent<SSolarComponent>(out var solar))
                 {
-                    yield return obj;
+                    if (solar.SendSolarUpdate || solar.SendPartsUpdate)
+                    {
+                        yield return obj;
+                    }
                 }
             }
         }
@@ -1115,9 +1076,15 @@ namespace LibreLancer.Server
                 {
                     ID = new ObjNetId(obj.NetID)
                 };
-                var tr = obj.WorldTransform;
-                update.Position = new(tr.Position);
-                update.Orientation = tr.Orientation;
+
+                if (obj.SystemObject == null)
+                {
+                    // Don't send pos/orient of system objects, client doesn't read it.
+                    var tr = obj.WorldTransform;
+                    update.Position = new(tr.Position);
+                    update.Orientation = tr.Orientation;
+                }
+
 
                 if (obj.PhysicsComponent != null)
                 {
@@ -1155,6 +1122,12 @@ namespace LibreLancer.Server
                     if (sh != null)
                     {
                         update.Shield = (int) sh.Health;
+                    }
+                    if (health.EquipmentHealths.Count > 0)
+                    {
+                        update.DamagedParts = health.EquipmentHealths
+                            .Select(x => new PartHealth(FLHash.CreateID(x.Key.Name), (byte)(x.Value * 255f)))
+                            .ToArray();
                     }
                 }
 

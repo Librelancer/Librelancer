@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Render;
 using LibreLancer.Utf.Cmp;
 
@@ -12,11 +13,23 @@ namespace LibreLancer.World
     {
         private Matrix4x4 transform;
         public RigidModelPart? Parent;
-        public string Name;
         public RevoluteHardpointDefinition? Revolute;
         public HardpointDefinition Definition;
         public float CurrentRevolution;
         private Quaternion rotation = Quaternion.Identity;
+
+        public uint CRC { get; private set; }
+
+        public string Name
+        {
+            get => field;
+            init
+            {
+                field = value;
+                CRC = FLHash.CreateID(value);
+            }
+        }
+
 
         public void Revolve(float val)
         {

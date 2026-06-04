@@ -297,6 +297,9 @@ unsafe struct ZigZagVecDelta
     };
 }
 
+[StructLayout(LayoutKind.Sequential)]
+public record struct PartHealth(uint Hardpoint, byte Health);
+
 public class ObjectUpdate
 {
     public static readonly ObjectUpdate Blank = new();
@@ -318,6 +321,7 @@ public class ObjectUpdate
 
     public byte Flags;
     public GunOrient[] Guns = [];
+    public PartHealth[] DamagedParts = [];
 
     public CruiseThrustState CruiseThrust
     {
@@ -367,6 +371,7 @@ public class ObjectUpdate
         }
 
         msg.Write((byte)(Guns.Length - src.Guns.Length));
+        msg.Write((byte)(DamagedParts.Length - src.DamagedParts.Length));
         ZigZagVecDelta posDelta = new(Position - src.Position);
         ZigZagVecDelta avDelta = new(AngularVelocity - src.AngularVelocity);
         ZigZagVecDelta lvDelta = new(LinearVelocity - src.LinearVelocity);
@@ -474,6 +479,24 @@ public class ObjectUpdate
                 msg.Write((byte)(diffR[i] & 0xFF));
             }
         }
+        if (DamagedParts is { Length: > 0 })
+        {
+            Span<byte> diffH = stackalloc byte[DamagedParts.Length];
+            for (int i = 0; i < diffH.Length; i++)
+            {
+                var o = src.DamagedParts.Length > i ? src.DamagedParts[i] : default;
+                var diffP = (uint)(DamagedParts[i].Hardpoint - o.Hardpoint);
+                msg.Write0(diffP);
+                msg.Write1(diffP);
+                msg.Write2(diffP);
+                msg.Write3(diffP);
+                diffH[i] = (byte)(DamagedParts[i].Health - o.Health);
+            }
+            for (int i = 0; i < diffH.Length; i++)
+            {
+                msg.Write(diffH[i]);
+            }
+        }
     }
 
     public static unsafe ObjectUpdate ReadDelta(NetRleReader msg, uint mainTick, int id,
@@ -485,7 +508,7 @@ public class ObjectUpdate
         ObjectUpdate src = b == 0 ? Blank : getSource(mainTick - b, id);
 
         var gunCount = (byte)(src.Guns.Length + msg.ReadByte());
-
+        var dmgCount = (byte)(src.DamagedParts.Length + msg.ReadByte());
         ZigZagVecDelta posDelta = new();
         ZigZagVecDelta avDelta = new();
         ZigZagVecDelta lvDelta = new();
@@ -597,7 +620,6 @@ public class ObjectUpdate
             dRoll[i] |= msg.ReadByte();
         }
 
-
         for (int i = 0; i < od.Guns.Length; i++)
         {
             var s = i < src.Guns.Length ? src.Guns[i] : new() { AnglePitch = 0, AngleRot = 0};
@@ -606,6 +628,25 @@ public class ObjectUpdate
             od.Guns[i] = new(p, r);
         }
 
+        Span<uint> dHp = stackalloc uint[dmgCount];
+        for (int i = 0; i < dmgCount; i++)
+        {
+            dHp[i] = 0;
+            msg.Read0(ref dHp[i]);
+            msg.Read1(ref dHp[i]);
+            msg.Read2(ref dHp[i]);
+            msg.Read3(ref dHp[i]);
+        }
+
+        od.DamagedParts = new PartHealth[dmgCount];
+        for (int i = 0; i < od.DamagedParts.Length; i++)
+        {
+            var o = i < src.DamagedParts.Length ? src.DamagedParts[i] : default;
+            od.DamagedParts[i] = new(
+                (dHp[i] + o.Hardpoint),
+                (byte)(msg.ReadByte() + o.Health)
+            );
+        }
         return od;
     }
 }

@@ -12,12 +12,12 @@ public sealed class DestructibleModel
     public readonly RigidModel RigidModel;
 
     public IEnumerable<uint> DestroyedParts => destroyed;
-    public IEnumerable<Hardpoint> Hardpoints => hardpoints.Values;
+    public IEnumerable<Hardpoint> Hardpoints => hardpoints;
     public event Action<Hardpoint>? HardpointDestroyed;
 
     private readonly HashSet<uint> destroyed = [];
     private readonly HashSet<uint> destroyedChildren = [];
-    private readonly Dictionary<string, Hardpoint> hardpoints = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HardpointCollection hardpoints = new();
     private readonly Dictionary<string, RigidModelPart> hpToPart = new(StringComparer.OrdinalIgnoreCase);
 
     public List<SeparablePart> SeparableParts;
@@ -29,7 +29,7 @@ public sealed class DestructibleModel
 
         foreach (var part in RigidModel.AllParts)
         {
-            foreach (var hp in part.Hardpoints.Where(hp => hardpoints.TryAdd(hp.Definition.Name, hp)))
+            foreach (var hp in part.Hardpoints.Where(hp => hardpoints.TryAdd(hp)))
             {
                 hpToPart[hp.Definition.Name] = part;
             }
@@ -62,7 +62,7 @@ public sealed class DestructibleModel
 
             foreach (var hp in c.Hardpoints.Where(hp => hpToPart[hp.Name] == part))
             {
-                hardpoints.Remove(hp.Name);
+                hardpoints.Remove(hp);
                 HardpointDestroyed?.Invoke(hp);
             }
 
@@ -86,7 +86,7 @@ public sealed class DestructibleModel
                 continue;
             }
 
-            hardpoints.Remove(hp.Name);
+            hardpoints.Remove(hp);
             HardpointDestroyed?.Invoke(hp);
         }
 
@@ -106,6 +106,10 @@ public sealed class DestructibleModel
         hardpoint = null;
         return false;
     }
+
+    public bool TryGetHardpoint(uint crc, [MaybeNullWhen(false)] out Hardpoint hardpoint) =>
+        hardpoints.TryGetValue(crc, out hardpoint);
+
 
     public bool HardpointExists(string? hpName)
     {

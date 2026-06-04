@@ -371,6 +371,19 @@ public partial class CGameSession
             weapons.SetRotations(update.Guns!);
         }
 
+        foreach (var ph in update.DamagedParts)
+        {
+            var hp = obj.GetHardpoint(ph.Hardpoint);
+            var child = hp == null
+                ? null
+                : obj.GetHardpointChild(hp, c => c.TryGetComponent<CHealthComponent>(out _));
+            if (child != null && child.TryGetComponent<CHealthComponent>(out var childHealth))
+            {
+                childHealth.CurrentHealth = childHealth.MaxHealth * (ph.Health / 255f);
+            }
+        }
+
+
         if (obj.SystemObject != null)
             return;
 
@@ -777,35 +790,8 @@ public partial class CGameSession
         var loadout = scanLoadout;
         gameplayActions.Enqueue(() =>
         {
-            ApplyScannedEquipmentHealth(id, loadout);
             spaceGameplay?.UpdateScan();
         });
-    }
-
-    private void ApplyScannedEquipmentHealth(ObjNetId id, NetLoadout loadout)
-    {
-        var obj = spaceGameplay?.world.GetObject(id);
-        if (obj == null)
-        {
-            return;
-        }
-
-        foreach (var eq in loadout.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
-        {
-            ApplyEquipmentHealth(obj, eq);
-        }
-    }
-
-    private static void ApplyEquipmentHealth(GameObject obj, NetShipCargo equipment)
-    {
-        var hp = obj.GetHardpoint(equipment.Hardpoint);
-        var child = hp == null
-            ? null
-            : obj.GetHardpointChild(hp, c => c.TryGetComponent<CHealthComponent>(out _));
-        if (child != null && child.TryGetComponent<CHealthComponent>(out var childHealth))
-        {
-            childHealth.CurrentHealth = childHealth.MaxHealth * (equipment.Health / 255f);
-        }
     }
 
     void IClientPlayer.StoryMissionFailed(int failedIds)
@@ -1071,8 +1057,6 @@ public partial class CGameSession
 
                     EquipmentObjectManager.InstantiateEquipment(newObj, Game.ResourceManager, Game.Sound,
                         EquipmentType.LocalPlayer, eq.Hardpoint, equip);
-
-                    ApplyEquipmentHealth(newObj, eq);
                 }
 
                 if (newObj.Kind == GameObjectKind.Loot)

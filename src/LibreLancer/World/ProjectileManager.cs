@@ -69,8 +69,7 @@ namespace LibreLancer.World
 
                     if (po?.Tag is GameObject go)
                     {
-                        ApplyClientSubobjectDamage(go, tag, contactPoint, Projectiles[i].Data.Munition);
-                        world.Server?.ProjectileHit(go, tag, contactPoint, Projectiles[i].Owner,
+                        world.Server?.ProjectileHit(go, tag as GameObject, contactPoint, Projectiles[i].Owner,
                             Projectiles[i].Data.Munition);
                     }
 
@@ -102,18 +101,6 @@ namespace LibreLancer.World
 
             foreach (var k in toRemove)
                 _instances.Remove(k);
-        }
-
-        private static void ApplyClientSubobjectDamage(GameObject obj, object? tag, Vector3 hitPoint,
-            MunitionEquip munition)
-        {
-            var damageTarget = obj.ResolveCargoPodHit(tag, hitPoint);
-            if (damageTarget?.TryGetComponent<CHealthComponent>(out var health) != true)
-            {
-                return;
-            }
-
-            health.CurrentHealth = Math.Max(0, health.CurrentHealth - munition.Def.HullDamage);
         }
 
         public ProjectileData GetData(GunEquipment gunDef)

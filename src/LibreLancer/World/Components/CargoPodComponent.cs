@@ -81,7 +81,7 @@ public class CargoPodComponent : GameComponent
         if (solar != null && hardpoint != null)
         {
             solar.RemoveEquipment(hardpoint, currentWorld);
-            currentWorld.Server.EquipmentDestroyed(solar, hardpoint);
+            currentWorld.Server.EquipmentDestroyed(solar, Parent.Attachment!);
         }
         else
         {
