@@ -559,7 +559,7 @@ public partial class CGameSession
         });
     }
 
-    void IClientPlayer.DestroyEquipment(ObjNetId id, string hardpoint)
+    void IClientPlayer.DestroyEquipment(ObjNetId id, bool explode, string hardpoint)
     {
         RunSync(() =>
         {
@@ -571,12 +571,13 @@ public partial class CGameSession
             }
 
             var hp = obj.GetHardpoint(hardpoint);
-            var child = hp == null
-                ? null
-                : obj.GetHardpointChild(hp, c => c.TryGetComponent<CExplosionComponent>(out _));
-            if (child != null)
+            if (explode && hp != null)
             {
-                spaceGameplay.Explode(child);
+                var child = obj.GetHardpointChild(hp, c => c.TryGetComponent<CExplosionComponent>(out _));
+                if (child != null)
+                {
+                    spaceGameplay.Explode(child);
+                }
             }
 
             if (!obj.RemoveEquipment(hardpoint, spaceGameplay.world))

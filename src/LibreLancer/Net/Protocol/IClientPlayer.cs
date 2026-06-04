@@ -36,7 +36,7 @@ public interface IClientPlayer
     void PlaySound(string sound);
     void PlayMusic(string music, float fade);
     void DestroyPart(ObjNetId id, uint part);
-    void DestroyEquipment(ObjNetId id, string hardpoint);
+    void DestroyEquipment(ObjNetId id, bool explode, string hardpoint);
     void RunMissionDialog(NetDlgLine[] lines);
     void StartJumpTunnel();
     void StartTradelane();

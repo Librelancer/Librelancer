@@ -38,6 +38,7 @@ namespace LibreLancer.Server
         private UpdatePacker packer = new();
         private ConcurrentQueue<(Action, double)> delayedActions = new();
         private bool paused = false;
+        private Dictionary<GameObject, List<string>> solarDestroyedHardpoints = new();
 
         public bool Paused => paused;
 
@@ -470,6 +471,14 @@ namespace LibreLancer.Server
             }
 
             player.RpcClient.SpawnObjects(allComplexSpawns);
+            // Already destroyed cargo pods. TODO: loot
+            foreach (var so in solarDestroyedHardpoints)
+            {
+                foreach (var hp in so.Value)
+                {
+                    player.RpcClient.DestroyEquipment(so.Key, false, hp);
+                }
+            }
             foreach (var o in withAnimations)
                 UpdateAnimations(o, player);
             updatingObjects.Add(obj);
@@ -952,7 +961,19 @@ namespace LibreLancer.Server
         public void EquipmentDestroyed(GameObject obj, string hardpoint)
         {
             foreach (Player p in Players.Keys)
-                p.RpcClient.DestroyEquipment(obj, hardpoint);
+            {
+                p.RpcClient.DestroyEquipment(obj, true, hardpoint);
+            }
+            // Save destroyed cargo pods
+            if (obj.SystemObject != null)
+            {
+                if (!solarDestroyedHardpoints.TryGetValue(obj, out var list))
+                {
+                    list = [];
+                    solarDestroyedHardpoints[obj] = list;
+                }
+                list.Add(hardpoint);
+            }
         }
 
         public void LocalChatMessage(Player player, BinaryChatMessage message)
