@@ -849,7 +849,14 @@ namespace LibreLancer.Server
                 return;
             }
 
-            var needsFlag = (Character!.GetVisitFlags(hash) & VisitFlags.Visited) != VisitFlags.Visited;
+            if (Character == null)
+            {
+                // HACK: Race condition between disconnect and player being
+                // removed from server world.
+                return;
+            }
+
+            var needsFlag = (Character.GetVisitFlags(hash) & VisitFlags.Visited) != VisitFlags.Visited;
             var needsList = obj.Archetype.Type is ArchetypeType.jumphole or ArchetypeType.jump_hole &&
                             !Character.IsJumpholeVisited(hash);
 
