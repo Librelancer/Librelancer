@@ -6,18 +6,18 @@ using System.Collections.Generic;
 
 namespace LibreLancer.Data.GameData.Market;
 
-public class ShipPackage
+public class ShipPackage : IdentifiableItem
 {
-    public required string Nickname;
-    public uint CRC;
+    public Ship Ship;
     public long BasePrice;
-    public required string? Ship;
     public List<PackageAddon> Addons = [];
+
+    public ShipPackage(string nickname, Ship ship)
+    {
+        Nickname = nickname;
+        CRC = FLHash.CreateID(nickname);
+        Ship = ship;
+    }
 }
 
-public class PackageAddon
-{
-    public required Items.Equipment Equipment;
-    public string? Hardpoint;
-    public required int Amount;
-}
+public record PackageAddon(Items.Equipment Equipment, string? Hardpoint, int Amount);

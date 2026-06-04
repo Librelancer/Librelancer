@@ -404,7 +404,7 @@ namespace LibreLancer.Server
 
                 yield return new NetSoldShip()
                 {
-                    ShipCRC = (int) FLHash.CreateID(s.Package.Ship!),
+                    ShipCRC = (int)s.Package.Ship.CRC,
                     PackageCRC = (int) FLHash.CreateID(s.Package.Nickname),
                     HullPrice = (ulong) s.Package.BasePrice,
                     PackagePrice = (ulong) s.Package.BasePrice + goodsPrice,

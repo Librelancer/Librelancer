@@ -520,24 +520,16 @@ public class GameItemDb
         foreach (var g in ships)
         {
             Good hull = hulls[g.Hull!];
-            var sp = new ShipPackage
-            {
-                Ship = hull.Ship,
-                Nickname = g.Nickname
-            };
-            sp.CRC = FLHash.CreateID(sp.Nickname);
+            if (!Ships.TryGetValue(hull.Ship, out var ship))
+                continue;
+            var sp = new ShipPackage(g.Nickname, ship);
             sp.BasePrice = hull.Price;
 
             foreach (var addon in g.Addons)
             {
                 if (Equipment.TryGetValue(addon.Equipment, out var equip))
                 {
-                    sp.Addons.Add(new PackageAddon()
-                    {
-                        Equipment = equip!,
-                        Hardpoint = addon.Hardpoint,
-                        Amount = addon.Amount
-                    });
+                    sp.Addons.Add(new PackageAddon(equip, addon.Hardpoint, addon.Amount));
                 }
             }
 

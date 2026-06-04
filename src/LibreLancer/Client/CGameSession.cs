@@ -211,10 +211,8 @@ public partial class CGameSession : IClientPlayer
         NetWorth = (long)lastInventory.NetWorth;
         SetSelfLoadout(lastInventory.Loadout);
 
-        if (OnUpdateInventory == null)
-            return;
-
-        uiActions.Enqueue(OnUpdateInventory);
+        if (OnUpdateInventory != null)
+            uiActions.Enqueue(OnUpdateInventory);
 
         if (spaceGameplay == null && OnUpdatePlayerShip != null)
             uiActions.Enqueue(OnUpdatePlayerShip);

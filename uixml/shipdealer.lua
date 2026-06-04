@@ -100,7 +100,8 @@ class shipdealer : shipdealer_Designer with ChildWindow
 				IdsName = item.IdsName,
 				IdsHardpoint = ShipClassNames[item.ShipClass + 1],
 				Price = item.Price,
-				Rank = item.Rank
+				Rank = item.Rank,
+				Compatible = true
 			}, "ship", false)
 			e.tship_list.Children.Add(li)
 		}
@@ -110,7 +111,8 @@ class shipdealer : shipdealer_Designer with ChildWindow
 				Icon = pship.Icon,
 				IdsName = pship.IdsName,
 				IdsHardpoint = ShipClassNames[pship.ShipClass + 1],
-				Price = pship.Price
+				Price = pship.Price,
+				Compatible = true
 			}, "ship", false))
 		}
 		e.item_infocard.Infocard = nil

@@ -44,20 +44,21 @@ local icons_sell = {
 function good_list_item(good, purpose, preview, onmount) 
 {
 	local li = NewObject("ListItem")
+	local compatible = purpose == "ship" ? true : good.Compatible
 	// Border
 	li.Border = NewObject("UiRenderable")
 	local wire = NewObject("DisplayWireBorder")
-	local borderColor = good.Compatible ? "text" : "#6E6E6E"
-	local itemTextColor = good.Compatible ? "text" : "silver"
+	local borderColor = compatible ? "text" : "#6E6E6E"
+	local itemTextColor = compatible ? "text" : "silver"
 	wire.Color = GetColor(borderColor)
 	li.Border.AddElement(wire)
 	li.HoverBorder = NewObject("UiRenderable")
 	wire = NewObject("DisplayWireBorder")
-	wire.Color = GetColor(good.Compatible ? "slow_blue_yellow" : borderColor)
+	wire.Color = GetColor(compatible ? "slow_blue_yellow" : borderColor)
 	li.HoverBorder.AddElement(wire)
 	li.SelectedBorder = NewObject("UiRenderable")
 	wire = NewObject("DisplayWireBorder")
-	wire.Color = GetColor(good.Compatible ? "yellow" : borderColor)
+	wire.Color = GetColor(compatible ? "yellow" : borderColor)
 	li.SelectedBorder.AddElement(wire)
 	// Item
 	li.ItemMarginX = 3

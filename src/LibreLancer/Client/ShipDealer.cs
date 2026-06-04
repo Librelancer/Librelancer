@@ -391,6 +391,43 @@ namespace LibreLancer.Client
             return traderGoods.ToArray();
         }
 
+        private static void MoveTradeItem(List<ShipTradeItem> sourceList, List<ShipTradeItem> destinationList,
+            ShipTradeItem source, int count)
+        {
+            var equip = source.Cargo?.Equipment ?? source.Include?.Equipment;
+            if (equip?.Good == null)
+            {
+                return;
+            }
+
+            ShipTradeItem? destination = null;
+            if (equip.Good.Ini.Combinable)
+            {
+                destination = destinationList.FirstOrDefault(x => x.Cargo == source.Cargo && x.Include == source.Include);
+            }
+
+            if (destination == null)
+            {
+                destination = new ShipTradeItem()
+                {
+                    Cargo = source.Cargo,
+                    Include = source.Include,
+                    Hardpoint = null,
+                    Show = true,
+                    Amount = 0
+                };
+                destinationList.Add(destination);
+            }
+
+            destination.Amount += count;
+            source.Amount -= count;
+
+            if (source.Amount <= 0)
+            {
+                sourceList.Remove(source);
+            }
+        }
+
         public void TransferToPlayer(UIInventoryItem item, int count, Closure onSuccess)
         {
             var src = dealerItems[item.ID];
@@ -400,13 +437,7 @@ namespace LibreLancer.Client
                 return;
             }
 
-            src.Amount -= count;
-
-            if (src.Amount <= 0)
-            {
-                dealerItems.Remove(src);
-            }
-
+            MoveTradeItem(dealerItems, playerItems, src, count);
             onSuccess.Call();
         }
 
@@ -419,13 +450,7 @@ namespace LibreLancer.Client
                 return;
             }
 
-            src.Amount -= count;
-
-            if (src.Amount <= 0)
-            {
-                playerItems.Remove(src);
-            }
-
+            MoveTradeItem(playerItems, dealerItems, src, count);
             onSuccess.Call();
         }
 
