@@ -73,6 +73,12 @@ World Time: {12:F2}
 
         public float Velocity = 0f;
         private const float MAX_VELOCITY = 80f;
+        private const float CRUISE_CAMERA_LAG_SPEED_BAND = 150f;
+        private const float CRUISE_CAMERA_LAG_PER_BAND = 6f;
+        private const float CRUISE_CAMERA_LAG_MAX = CRUISE_CAMERA_LAG_PER_BAND * 2f;
+        private const float CRUISE_CAMERA_LAG_HALFLIFE = 0.18f;
+        private float cruiseCameraLag = 0f;
+        private float cruiseCameraLagVelocity = 0f;
         private Cursor cur_arrow = null!;
         private Cursor cur_cross = null!;
         private Cursor cur_reticle = null!;
@@ -1139,6 +1145,45 @@ World Time: {12:F2}
 
         private bool IsSpecialCamera() => GetCurrentCamera() != activeCamera;
 
+        private static float HalfLifeToDamping(float halfLife) =>
+            2.7725887f / (halfLife + 1e-5f);
+
+        private static void CriticalSpringDamper(
+            ref float position,
+            ref float velocity,
+            float goal,
+            float halfLife,
+            float delta)
+        {
+            var y = HalfLifeToDamping(halfLife) * 0.5f;
+            var j0 = position - goal;
+            var j1 = velocity + j0 * y;
+            var eydt = (float)Math.Exp(-y * delta);
+            position = eydt * (j0 + j1 * delta) + goal;
+            velocity = eydt * (velocity - j1 * y * delta);
+        }
+
+        private float CalculateCruiseCameraLag(double delta)
+        {
+            var targetLag = 0f;
+            if (!Dead && activeCamera == _chaseCamera && !IsSpecialCamera() &&
+                control.EngineState == EngineStates.Cruise &&
+                player.PhysicsComponent?.Body != null)
+            {
+                var speed = player.PhysicsComponent.Body.LinearVelocity.Length();
+                var speedBand = MathHelper.Clamp(speed / CRUISE_CAMERA_LAG_SPEED_BAND, 0, 2);
+                targetLag = Math.Min(CRUISE_CAMERA_LAG_MAX, speedBand * CRUISE_CAMERA_LAG_PER_BAND);
+            }
+
+            CriticalSpringDamper(
+                ref cruiseCameraLag,
+                ref cruiseCameraLagVelocity,
+                targetLag,
+                CRUISE_CAMERA_LAG_HALFLIFE,
+                (float)delta);
+            return cruiseCameraLag;
+        }
+
         public override void Update(double delta)
         {
             if (loading)
@@ -1275,8 +1320,10 @@ World Time: {12:F2}
                 }
 
                 _turretViewCamera.ChasePosition = player.LocalTransform.Position;
-                _chaseCamera.ChasePosition = player.LocalTransform.Position;
                 _chaseCamera.ChaseOrientation = Matrix4x4.CreateFromQuaternion(player.LocalTransform.Orientation);
+                var cruiseLag = CalculateCruiseCameraLag(delta);
+                var playerForward = Vector3.Transform(-Vector3.UnitZ, player.LocalTransform.Orientation);
+                _chaseCamera.ChasePosition = player.LocalTransform.Position - (playerForward * cruiseLag);
             }
 
             _turretViewCamera.Update(delta);
