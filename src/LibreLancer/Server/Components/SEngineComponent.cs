@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using LibreLancer.Data.GameData.Items;
+using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 
 namespace LibreLancer.Server.Components
@@ -12,5 +13,6 @@ namespace LibreLancer.Server.Components
         public EngineEquipment Engine = engine;
         public float Speed;
         public bool EngineKill;
+        public CruiseThrustState CruiseThrust;
     }
 }

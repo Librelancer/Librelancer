@@ -30,6 +30,7 @@ public partial class CGameSession
         public Vector3 Steering;
         public Vector3 AimPoint;
         public float Throttle;
+        public float CruiseSpeedOffset;
         public StrafeControls Strafe;
         public bool Thrust;
         public bool EngineKill;
@@ -77,6 +78,7 @@ public partial class CGameSession
             Strafe = moveState[^i].Strafe,
             Throttle = moveState[^i].Throttle,
             Cruise = moveState[^i].CruiseEnabled,
+            CruiseSpeedOffset = moveState[^i].CruiseSpeedOffset,
             Thrust = moveState[^i].Thrust,
             EngineKill = moveState[^1].EngineKill,
             FireCommand = moveState[^i].FireCommand
@@ -113,6 +115,7 @@ public partial class CGameSession
                 AimPoint = wp.AimPoint,
                 Strafe = phys.CurrentStrafe,
                 Throttle = phys.EnginePower,
+                CruiseSpeedOffset = steering.Cruise ? steering.CruiseSpeedOffset : 0,
                 Thrust = steering.Thrust,
                 CruiseEnabled = steering.Cruise,
                 EngineKill = steering.EngineKill,
@@ -327,8 +330,7 @@ public partial class CGameSession
                 gp.player.SetLocalTransform(new Transform3D(state.Position, state.Orientation));
                 gp.player.PhysicsComponent!.Body!.LinearVelocity = state.LinearVelocity;
                 gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
-                phys.ChargePercent = state.CruiseChargePct;
-                phys.CruiseAccelPct = state.CruiseAccelPct;
+                phys.SetCruiseState(state.CruiseChargePct, state.CruiseAccelPct);
 
                 // simulate inputs - only outside a tradelane. we go back in time for a tradelane a bit
                 for (i = i + 1; i < moveState.Count; i++)
@@ -353,6 +355,7 @@ public partial class CGameSession
         {
             eng.Speed = update.Throttle;
             eng.EngineKill = update.EngineKill;
+            eng.CruiseThrust = update.CruiseThrust;
             foreach (var comp in obj.GetChildComponents<CThrusterComponent>())
                 comp.Enabled = update.CruiseThrust == CruiseThrustState.Thrusting;
         }
@@ -403,6 +406,8 @@ public partial class CGameSession
         var player = gameplay.player;
         physComponent!.CurrentStrafe = moveState[i].Strafe;
         physComponent.EnginePower = moveState[i].Throttle;
+        physComponent.CruiseEnabled = moveState[i].CruiseEnabled;
+        physComponent.CruiseSpeedOffset = moveState[i].CruiseEnabled ? moveState[i].CruiseSpeedOffset : 0;
         physComponent.Steering = moveState[i].Steering;
         physComponent.ThrustEnabled = moveState[i].Thrust;
         physComponent.EngineKillEnabled = moveState[i].EngineKill;

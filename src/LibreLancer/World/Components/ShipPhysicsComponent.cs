@@ -35,7 +35,14 @@ namespace LibreLancer.World.Components
                                        // TODO: I forget how this is configured in .ini files. Constants.ini?
                                        // Some mods have a per-ship (engine?) cruise speed. Check how this is implemented, and include as native feature.
         public bool ThrustEnabled = false;
-        public bool CruiseEnabled = false;
+        private bool cruiseEnabled = false;
+        private bool previousCruiseEnabled = false;
+        public bool CruiseEnabled
+        {
+            get => cruiseEnabled;
+            set => cruiseEnabled = value;
+        }
+        public float CruiseSpeedOffset = 0;
         public bool EngineKillEnabled = false;
         public EngineStates EngineState { get; private set; }
         public StrafeControls CurrentStrafe = StrafeControls.None;
@@ -51,24 +58,67 @@ namespace LibreLancer.World.Components
 
         // TODO: Engine Kill
 
+        private void StartCruiseCharge()
+        {
+            EngineState = EngineStates.CruiseCharging;
+            ChargePercent = 0f;
+            CruiseAccelPct = 0f;
+        }
+
+        public void StopCruise()
+        {
+            cruiseEnabled = false;
+            previousCruiseEnabled = false;
+            CruiseSpeedOffset = 0f;
+            EngineState = EngineStates.Standard;
+            ChargePercent = 0f;
+            CruiseAccelPct = 0f;
+        }
+
+        public void SetCruiseState(float chargePercent, float accelPercent)
+        {
+            chargePercent = MathHelper.Clamp(chargePercent, 0f, 1f);
+            accelPercent = MathHelper.Clamp(accelPercent, 0f, 1f);
+
+            if (chargePercent <= 0f && accelPercent <= 0f)
+            {
+                StopCruise();
+                return;
+            }
+
+            cruiseEnabled = true;
+            previousCruiseEnabled = true;
+            ChargePercent = chargePercent;
+            CruiseAccelPct = accelPercent;
+            EngineState = chargePercent >= 1f ? EngineStates.Cruise : EngineStates.CruiseCharging;
+        }
+
         public void ResyncChargePercent(float prev, float time)
         {
-            if (EngineState is EngineStates.Cruise or EngineStates.CruiseCharging)
+            if (prev <= 0f && EngineState is not (EngineStates.Cruise or EngineStates.CruiseCharging))
             {
-                var engine = Parent.GetComponent<SEngineComponent>()!; // Get mounted engine
-                ChargePercent = prev + (1.0f / engine.Engine.Def.CruiseChargeTime) * (float) time;
-                if (ChargePercent >= 1) {
-                    ChargePercent = 1;
-                    EngineState = EngineStates.Cruise;
-                }
-                else {
-                    EngineState = EngineStates.CruiseCharging;
-                }
+                return;
+            }
+
+            SetCruiseState(prev, CruiseAccelPct);
+            var engine = Parent.GetComponent<SEngineComponent>()!; // Get mounted engine
+            ChargePercent = prev + (1.0f / engine.Engine.Def.CruiseChargeTime) * (float) time;
+            if (ChargePercent >= 1) {
+                ChargePercent = 1;
+                EngineState = EngineStates.Cruise;
+            }
+            else {
+                EngineState = EngineStates.CruiseCharging;
             }
         }
 
         public void ResyncCruiseAccel(float prev, float time)
         {
+            if (prev > 0f && EngineState != EngineStates.Cruise)
+            {
+                SetCruiseState(1f, prev);
+            }
+
             if (EngineState == EngineStates.Cruise)
             {
                 var engine = Parent.GetComponent<SEngineComponent>()!; // Get mounted engine
@@ -82,12 +132,12 @@ namespace LibreLancer.World.Components
             if (!Active) return;
             if (CruiseEnabled)
             {
-                if (EngineState != EngineStates.Cruise &&
+                if (!previousCruiseEnabled ||
+                    (EngineState != EngineStates.Cruise &&
                     EngineState != EngineStates.CruiseCharging)
+                   )
                 {
-                    EngineState = EngineStates.CruiseCharging;
-                    ChargePercent = 0f;
-                    CruiseAccelPct = 0f;
+                    StartCruiseCharge();
                 }
             }
             else if (EngineKillEnabled)
@@ -102,6 +152,7 @@ namespace LibreLancer.World.Components
                 ChargePercent = 0;
                 CruiseAccelPct = 0;
             }
+            previousCruiseEnabled = CruiseEnabled;
             // Component checks
             var engine = Parent.GetComponent<SEngineComponent>(); // Get mounted engine
             var power = Parent.GetComponent<PowerCoreComponent>();
@@ -194,7 +245,8 @@ namespace LibreLancer.World.Components
             { // Cruise has entirely different force calculation
                 CruiseAccelPct += (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
                 if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
-                var cruise_force = engine.Engine.CruiseSpeed * engine.Engine.Def.LinearDrag;
+                var cruiseSpeed = MathF.Max(0, engine.Engine.CruiseSpeed + CruiseSpeedOffset);
+                var cruise_force = cruiseSpeed * engine.Engine.Def.LinearDrag;
                 engineForce = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * CruiseAccelPct;
                 // Set fx sparam. TODO: This is poorly named
                 engine.Speed = 1.0f;
@@ -202,7 +254,7 @@ namespace LibreLancer.World.Components
             }
             else
             {
-                engine.Speed = Math.Clamp(requestedEnginePower * 0.9f, 0, 1);
+                engine.Speed = MathHelper.Clamp(requestedEnginePower, 0, 1) * 0.9f;
             }
 
             Vector3 strafe = Vector3.Zero;
