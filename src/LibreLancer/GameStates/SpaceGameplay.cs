@@ -76,19 +76,9 @@ World Time: {12:F2}
         private const float CRUISE_CAMERA_LAG_SPEED_BAND = 150f;
         private const float CRUISE_CAMERA_LAG_PER_BAND = 6f;
         private const float CRUISE_CAMERA_LAG_MAX = CRUISE_CAMERA_LAG_PER_BAND * 2f;
-        private const float CRUISE_CAMERA_LAG_SMOOTH_SPEED = 10f;
-        private const float CRUISE_CAMERA_LAG_SPEED_BAND_SMOOTH_SPEED = 14f;
-        private const float CRUISE_CAMERA_LAG_BAND_LINEARITY = 0.25f;
-        private const float CRUISE_CAMERA_LAG_ACCEL_LINEARITY = 0.35f;
-        private const float CRUISE_CAMERA_LAG_BAND_IMPULSE = 1.1f;
-        private const float CRUISE_CAMERA_LAG_BAND_IMPULSE_WIDTH = 0.18f;
-        private const float CRUISE_CAMERA_LAG_BAND_IMPULSE_RATE = 0.7f;
-        private const float CRUISE_CAMERA_LAG_BAND_IMPULSE_RISE_SPEED = 12f;
-        private const float CRUISE_CAMERA_LAG_START_IMPULSE = 0.17f;
-        private const float CRUISE_CAMERA_LAG_START_IMPULSE_RAMP = 0.18f;
+        private const float CRUISE_CAMERA_LAG_HALFLIFE = 0.18f;
         private float cruiseCameraLag = 0f;
-        private float cruiseCameraVisualSpeedBand = 0f;
-        private float cruiseCameraBandImpulse = 0f;
+        private float cruiseCameraLagVelocity = 0f;
         private Cursor cur_arrow = null!;
         private Cursor cur_cross = null!;
         private Cursor cur_reticle = null!;
@@ -1155,10 +1145,23 @@ World Time: {12:F2}
 
         private bool IsSpecialCamera() => GetCurrentCamera() != activeCamera;
 
-        private static float SmoothStep(float value) => value * value * (3f - 2f * value);
+        private static float HalfLifeToDamping(float halfLife) =>
+            2.7725887f / (halfLife + 1e-5f);
 
-        private static float SmoothPulse(float value, float center, float width) =>
-            1f - SmoothStep(MathHelper.Clamp(MathF.Abs(value - center) / width, 0, 1));
+        private static void CriticalSpringDamper(
+            ref float position,
+            ref float velocity,
+            float goal,
+            float halfLife,
+            float delta)
+        {
+            var y = HalfLifeToDamping(halfLife) * 0.5f;
+            var j0 = position - goal;
+            var j1 = velocity + j0 * y;
+            var eydt = (float)Math.Exp(-y * delta);
+            position = eydt * (j0 + j1 * delta) + goal;
+            velocity = eydt * (velocity - j1 * y * delta);
+        }
 
         private float CalculateCruiseCameraLag(double delta)
         {
@@ -1169,49 +1172,15 @@ World Time: {12:F2}
             {
                 var speed = player.PhysicsComponent.Body.LinearVelocity.Length();
                 var speedBand = MathHelper.Clamp(speed / CRUISE_CAMERA_LAG_SPEED_BAND, 0, 2);
-                var speedBandT = 1 - (float)Math.Exp(-CRUISE_CAMERA_LAG_SPEED_BAND_SMOOTH_SPEED * delta);
-                var previousVisualSpeedBand = cruiseCameraVisualSpeedBand;
-                cruiseCameraVisualSpeedBand += (speedBand - cruiseCameraVisualSpeedBand) * speedBandT;
-                cruiseCameraVisualSpeedBand = MathHelper.Clamp(cruiseCameraVisualSpeedBand, 0, 2);
-
-                var completedBands = (int)MathF.Floor(cruiseCameraVisualSpeedBand);
-                var bandFraction = cruiseCameraVisualSpeedBand - completedBands;
-                var smoothBandFraction = SmoothStep(bandFraction);
-                var easedBandFraction = MathHelper.Lerp(smoothBandFraction, bandFraction, CRUISE_CAMERA_LAG_BAND_LINEARITY);
-                targetLag = Math.Min(CRUISE_CAMERA_LAG_MAX,
-                    (completedBands + easedBandFraction) * CRUISE_CAMERA_LAG_PER_BAND);
-
-                var speedBandRate = delta > 0
-                    ? Math.Max(0, cruiseCameraVisualSpeedBand - previousVisualSpeedBand) / (float)delta
-                    : 0f;
-                var bandMotion = MathHelper.Clamp(speedBandRate / CRUISE_CAMERA_LAG_BAND_IMPULSE_RATE, 0, 1);
-                var bandImpulseTarget = Math.Max(
-                    SmoothPulse(cruiseCameraVisualSpeedBand, 1f, CRUISE_CAMERA_LAG_BAND_IMPULSE_WIDTH),
-                    SmoothPulse(cruiseCameraVisualSpeedBand, 2f, CRUISE_CAMERA_LAG_BAND_IMPULSE_WIDTH)) * bandMotion;
-                var bandImpulseT = 1 - (float)Math.Exp(-CRUISE_CAMERA_LAG_BAND_IMPULSE_RISE_SPEED * delta);
-                cruiseCameraBandImpulse += (bandImpulseTarget - cruiseCameraBandImpulse) * bandImpulseT;
-                targetLag = Math.Min(
-                    CRUISE_CAMERA_LAG_MAX + CRUISE_CAMERA_LAG_BAND_IMPULSE,
-                    targetLag + cruiseCameraBandImpulse * CRUISE_CAMERA_LAG_BAND_IMPULSE);
-
-                var cruiseAccel = MathHelper.Clamp(control.CruiseAccelPct, 0, 1);
-                var smoothCruiseAccel = SmoothStep(cruiseAccel);
-                var easedCruiseAccel = MathHelper.Lerp(smoothCruiseAccel, cruiseAccel, CRUISE_CAMERA_LAG_ACCEL_LINEARITY);
-                var startImpulseRamp = SmoothStep(MathHelper.Clamp(
-                    cruiseAccel / CRUISE_CAMERA_LAG_START_IMPULSE_RAMP,
-                    0,
-                    1));
-                var startImpulse = startImpulseRamp * (1f - smoothCruiseAccel) * CRUISE_CAMERA_LAG_START_IMPULSE;
-                targetLag *= MathHelper.Clamp(easedCruiseAccel + startImpulse, 0, 1);
-            }
-            else
-            {
-                cruiseCameraVisualSpeedBand = 0f;
-                cruiseCameraBandImpulse = 0f;
+                targetLag = Math.Min(CRUISE_CAMERA_LAG_MAX, speedBand * CRUISE_CAMERA_LAG_PER_BAND);
             }
 
-            var t = 1 - (float)Math.Exp(-CRUISE_CAMERA_LAG_SMOOTH_SPEED * delta);
-            cruiseCameraLag += (targetLag - cruiseCameraLag) * t;
+            CriticalSpringDamper(
+                ref cruiseCameraLag,
+                ref cruiseCameraLagVelocity,
+                targetLag,
+                CRUISE_CAMERA_LAG_HALFLIFE,
+                (float)delta);
             return cruiseCameraLag;
         }
 
