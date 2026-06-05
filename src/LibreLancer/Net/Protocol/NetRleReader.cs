@@ -26,6 +26,8 @@ public class NetRleReader
     private int literalCount;
     private int zeroCount;
 
+    byte StreamReadByte() => (byte)(ReadNibble() << 4 | ReadNibble());
+
     public byte ReadByte()
     {
         if (zeroCount > 0)
@@ -36,16 +38,19 @@ public class NetRleReader
         if (literalCount > 0)
         {
             literalCount--;
-            return (byte)(ReadNibble() << 4 | ReadNibble());
+            return StreamReadByte();
         }
 
         var b0 = ReadNibble();
         if ((b0 & 0x8) == 0)
         {
             //zero counter
-            zeroCount = b0 == 7
-                ? 8 + ReadNibble()
-                : (b0 + 1);
+            zeroCount = b0 switch
+            {
+                7 => 7 + 16 + StreamReadByte(),
+                6 => 7 + ReadNibble(),
+                _ => (b0 + 1)
+            };
             // return a zero
             zeroCount--;
             return 0;

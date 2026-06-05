@@ -4,12 +4,18 @@ namespace LibreLancer.Net.Protocol;
 
 /// <summary>
 /// Quick packing for deltas, encodes long runs of 0 in few bits
-/// 1 Zero = 4-bits (2x saving), up to 23 Zeros in 8-bits (23x saving)
+/// 1-6 zeros = 4 bits
+/// 7-22 zeros = 8 bits
+/// 23-278 zeros = 12 bits
 /// 0% overhead for bytes 1-64
 /// Bytes >64 carry 12.5% to 50% overhead
 /// </summary>
 public unsafe class NetRleWriter
 {
+    private const int Zero1Max = 6;
+    private const int Zero2Max = Zero1Max + 16;
+    private const int Zero3Max = Zero2Max + 256;
+
     struct StreamState
     {
         public int Nibble;
@@ -71,14 +77,19 @@ public unsafe class NetRleWriter
             int bc = state.ZeroCount;
             while (bc > 0)
             {
-                if (bc > 8 + 15)
+                if (bc > Zero3Max)
                 {
-                    nCount += 2; //0111 1111
-                    bc -= 8 + 15;
+                    nCount += 3;
+                    bc -= Zero3Max;
                 }
-                else if (bc > 7)
+                else if (bc > Zero2Max)
                 {
-                    nCount += 2; //0111 XXXX
+                    nCount += 3;
+                    break;
+                }
+                else if (bc > Zero1Max)
+                {
+                    nCount += 2;
                     break;
                 }
                 else
@@ -105,17 +116,23 @@ public unsafe class NetRleWriter
             return;
         while (state.ZeroCount > 0)
         {
-            if (state.ZeroCount > 7)
+            if (state.ZeroCount > Zero2Max)
             {
-                int disp = state.ZeroCount > 23 ? 23 : state.ZeroCount;
-                Stat($"W: Zero2 {disp}");
-                //val 8 (8 - 1)
-                Write4Bit(7); //0111
-                state.ZeroCount -= 8;
-                //4 bit extra count
-                var x = state.ZeroCount > 15 ? 15 : state.ZeroCount;
-                Write4Bit((byte)x);
-                state.ZeroCount -= x;
+                int val = state.ZeroCount > Zero3Max ? Zero3Max : state.ZeroCount;
+                Stat($"W: Zero3 ({val})");
+                Write4Bit(7);
+                byte extCount = (byte)(val - (Zero2Max + 1));
+                Write4Bit((byte)((extCount >> 4) & 0xF));
+                Write4Bit((byte)(extCount & 0xF));
+                state.ZeroCount -= val;
+            }
+            else if (state.ZeroCount > Zero1Max)
+            {
+                Write4Bit(6);
+                byte extCount = (byte)(state.ZeroCount - (Zero1Max + 1));
+                Write4Bit(extCount);
+                Stat($"W: Zero2 ({state.ZeroCount})");
+                break;
             }
             else
             {

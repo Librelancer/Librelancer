@@ -28,17 +28,22 @@ public class NetRleTests
     }
 
     [Theory]
-    [InlineData(new byte[] { 0, 0, 0, 6 })]
-    [InlineData(new byte[] { 0, 6 })]
-    [InlineData(new byte[] { 0, 0, 0, 0, 0 ,0, 0, 6 })]
-    [InlineData(new byte[] { 0, 0, 0, 0, 0 ,0, 0, 0, 6 })]
-    [InlineData(new byte[] { 0, 0, 0, 0, 0 ,0, 0, 0, 0, 0, 0, 0, 6 })]
-    [InlineData(new byte[] { 0, 0, 0, 0, 0 ,0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6 })]
-    [InlineData(new byte[] { 0, 0, 0, 0, 0 ,0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6 })]
-    public void ZeroRleRoundtrips(byte[] data)
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(5)]
+    [InlineData(6)]
+    [InlineData(7)]
+    [InlineData(18)]
+    [InlineData(22)]
+    [InlineData(23)]
+    [InlineData(24)]
+    [InlineData(255)]
+    [InlineData(279)]
+    [InlineData(281)]
+    public void ZeroRleRoundtrips(int zeroCount)
     {
+        var data = new byte[zeroCount + 1];
+        data[zeroCount] = 6;
         AssertRoundtrip(data);
     }
 
