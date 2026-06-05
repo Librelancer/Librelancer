@@ -336,7 +336,7 @@ namespace LibreLancer.World.Components
         private const float CruiseDampenDistance = 250;
         private const float ThrottleDampenDistance = 125;
         private const float LeaderCruiseCatchupDistance = 450;
-        private const float FormationSpeedBoost = 0.1f;
+        private const float FormationSpeedBoost = 0.2f;
         private const float MaxFormationCruiseSpeedReduction = 5;
         private const float FormationFacingDistance = 100;
         private const float ThrottleMatchDistance = 100;
