@@ -981,6 +981,7 @@ namespace LibreLancer.Net.Protocol
         public StrafeControls Strafe;
         public float Throttle;
         public bool Cruise;
+        public float CruiseSpeedOffset;
         public bool Thrust;
         public bool EngineKill;
         public ProjectileFireCommand? FireCommand;
@@ -1008,14 +1009,22 @@ namespace LibreLancer.Net.Protocol
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
         private static void WriteDelta(ref BitWriter writer, ref NetInputControls baseline, ref NetInputControls cur)
         {
+            cur.CruiseSpeedOffset = cur.Cruise ? cur.CruiseSpeedOffset : 0;
+            baseline.CruiseSpeedOffset = baseline.Cruise ? baseline.CruiseSpeedOffset : 0;
             writer.PutVarInt32((int)((long)cur.Tick - baseline.Tick));
             writer.PutUInt((uint)cur.Strafe, 4);
             writer.PutBool(cur.Cruise);
             writer.PutBool(cur.Thrust);
             writer.PutBool(cur.EngineKill);
+            writer.PutBool(cur.CruiseSpeedOffset != baseline.CruiseSpeedOffset);
             writer.PutBool(cur.Throttle != baseline.Throttle);
             writer.PutBool(cur.Steering != baseline.Steering);
             writer.PutBool(cur.AimPoint != baseline.AimPoint);
+            if (cur.CruiseSpeedOffset != baseline.CruiseSpeedOffset)
+            {
+                writer.PutFloat(cur.CruiseSpeedOffset);
+            }
+
             if(cur.Throttle != baseline.Throttle)
             {
                 writer.PutFloat(cur.Throttle);
@@ -1098,9 +1107,11 @@ namespace LibreLancer.Net.Protocol
                 Thrust = reader.GetBool(),
                 EngineKill = reader.GetBool(),
             };
+            bool readCruiseSpeedOffset = reader.GetBool();
             bool readThrottle = reader.GetBool();
             bool readSteering = reader.GetBool();
             bool readAimPoint = reader.GetBool();
+            nc.CruiseSpeedOffset = readCruiseSpeedOffset ? reader.GetFloat() : baseline.CruiseSpeedOffset;
             nc.Throttle = readThrottle ? reader.GetFloat() : baseline.Throttle;
             nc.Steering = readSteering ? reader.GetVector3() : baseline.Steering;
             nc.AimPoint = readAimPoint ? reader.GetVector3() : baseline.AimPoint;
@@ -1123,6 +1134,7 @@ namespace LibreLancer.Net.Protocol
             p.Current.Cruise = br.GetBool();
             p.Current.Thrust = br.GetBool();
             p.Current.EngineKill = br.GetBool();
+            p.Current.CruiseSpeedOffset = br.GetBool() ? br.GetFloat() : 0;
             var throttle = br.GetUInt(2);
             if (throttle == 0)
             {
@@ -1145,6 +1157,10 @@ namespace LibreLancer.Net.Protocol
         [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
         public void WriteContents(PacketWriter outPacket)
         {
+            Current.CruiseSpeedOffset = Current.Cruise ? Current.CruiseSpeedOffset : 0;
+            HistoryA.CruiseSpeedOffset = HistoryA.Cruise ? HistoryA.CruiseSpeedOffset : 0;
+            HistoryB.CruiseSpeedOffset = HistoryB.Cruise ? HistoryB.CruiseSpeedOffset : 0;
+            HistoryC.CruiseSpeedOffset = HistoryC.Cruise ? HistoryC.CruiseSpeedOffset : 0;
             var bw = new BitWriter();
             bw.PutVarUInt32(Acks.Tick);
             bw.PutUInt(Acks.History0, 32);
@@ -1157,9 +1173,15 @@ namespace LibreLancer.Net.Protocol
             bw.PutBool(Current.Cruise);
             bw.PutBool(Current.Thrust);
             bw.PutBool(Current.EngineKill);
+            bw.PutBool(Current.CruiseSpeedOffset != 0);
+            if (Current.CruiseSpeedOffset != 0)
+            {
+                bw.PutFloat(Current.CruiseSpeedOffset);
+            }
+
             if (Current.Throttle == 0){
                 bw.PutUInt(0, 2);
-            } else if (Current.Throttle >= 1){
+            } else if (Current.Throttle == 1){
                 bw.PutUInt(1,2);
             }else {
                 bw.PutUInt(2, 2);

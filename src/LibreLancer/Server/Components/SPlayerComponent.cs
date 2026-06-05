@@ -238,6 +238,49 @@ namespace LibreLancer.Server.Components
         }
 
         private ulong formationHash = 0;
+        private const float FormationSlotCruiseCatchupDistance = 800;
+        private const float FormationLeaderCruiseCatchupDistance = 450;
+
+        private static Vector3 ShipPosition(GameObject ship) =>
+            ship.PhysicsComponent?.Body?.Position ?? ship.WorldTransform.Position;
+
+        private static bool LocalCruiseStarted(GameObject ship) =>
+            ship.TryGetComponent<ShipPhysicsComponent>(out var phys) &&
+            phys.CruiseEnabled &&
+            phys.EngineState is EngineStates.CruiseCharging or EngineStates.Cruise;
+
+        private static bool ShipIsCruising(GameObject ship)
+        {
+            if (LocalCruiseStarted(ship))
+            {
+                return true;
+            }
+
+            return ship.TryGetComponent<SEngineComponent>(out var engine) &&
+                   engine.CruiseThrust is CruiseThrustState.CruiseCharging or CruiseThrustState.Cruising;
+        }
+
+        private bool AllowFormationCruise()
+        {
+            if (Parent.Formation == null || Parent.Formation.LeadShip == Parent)
+            {
+                return true;
+            }
+
+            var body = Parent.PhysicsComponent?.Body;
+            if (body == null)
+            {
+                return false;
+            }
+
+            var lead = Parent.Formation.LeadShip;
+            var targetPoint = Parent.Formation.GetShipPosition(Parent, true);
+
+            return Vector3.Distance(targetPoint, body.Position) <= FormationSlotCruiseCatchupDistance ||
+                   Vector3.Distance(ShipPosition(lead), body.Position) > FormationLeaderCruiseCatchupDistance ||
+                   ShipIsCruising(lead) ||
+                   LocalCruiseStarted(Parent);
+        }
 
         public override void Update(double time, GameWorld world)
         {
@@ -254,17 +297,20 @@ namespace LibreLancer.Server.Components
                         phys.Steering = Vector3.Zero;
                         phys.CurrentStrafe = StrafeControls.None;
                         phys.EnginePower = 0;
+                        phys.CruiseSpeedOffset = 0;
                         phys.ThrustEnabled = false;
                         phys.CruiseEnabled = false;
                         phys.EngineKillEnabled = false;
                     }
                     else
                     {
+                        var cruise = input.Cruise && AllowFormationCruise();
                         phys.Steering = input.Steering;
                         phys.CurrentStrafe = input.Strafe;
                         phys.EnginePower = input.Throttle;
+                        phys.CruiseSpeedOffset = cruise ? input.CruiseSpeedOffset : 0;
                         phys.ThrustEnabled = input.Thrust;
-                        phys.CruiseEnabled = input.Cruise;
+                        phys.CruiseEnabled = cruise;
                         phys.EngineKillEnabled = input.EngineKill;
                         if (input.FireCommand != null)
                             world.Server!.FireProjectiles(input.FireCommand.Value, Player);

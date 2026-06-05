@@ -17,6 +17,7 @@ namespace LibreLancer.World.Components
         public float InRoll;
         public float InThrottle;
         public bool Cruise;
+        public float CruiseSpeedOffset;
         public bool Thrust;
         public int Tick;
         public bool EngineKill;
@@ -59,6 +60,7 @@ namespace LibreLancer.World.Components
             physics.EnginePower = InThrottle;
             physics.ThrustEnabled = Thrust;
             physics.CruiseEnabled = Cruise;
+            physics.CruiseSpeedOffset = Cruise ? CruiseSpeedOffset : 0;
             physics.EngineKillEnabled = EngineKill;
         }
 

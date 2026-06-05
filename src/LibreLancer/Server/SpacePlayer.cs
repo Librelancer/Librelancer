@@ -4,6 +4,7 @@ using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.Server;
 

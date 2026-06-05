@@ -21,6 +21,7 @@ public class InputUpdatePacketTests
             Steering = Vector3.UnitY,
             Strafe = StrafeControls.Left,
             Throttle = 1,
+            CruiseSpeedOffset = -1,
             Thrust = false,
             Tick = 98
         };
@@ -36,6 +37,7 @@ public class InputUpdatePacketTests
         Assert.Equal(pkt.Acks, pkt2.Acks);
         Assert.Equal(pkt.SelectedObject, pkt2.SelectedObject);
         Assert.Equal(pkt.Current.Tick, pkt2.Current.Tick);
+        Assert.Equal(pkt.Current.CruiseSpeedOffset, pkt2.Current.CruiseSpeedOffset);
 
     }
 }

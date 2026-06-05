@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Client.Components;
+using LibreLancer.Net.Protocol;
 
 namespace LibreLancer.World.Components
 {
@@ -332,6 +333,100 @@ namespace LibreLancer.World.Components
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Formation;
 
+        private const float CruiseDampenDistance = 250;
+        private const float ThrottleDampenDistance = 125;
+        private const float LeaderCruiseCatchupDistance = 450;
+        private const float FormationSpeedBoost = 0.1f;
+        private const float MaxFormationCruiseSpeedReduction = 5;
+        private const float FormationFacingDistance = 100;
+        private const float ThrottleMatchDistance = 100;
+        private const float MinCatchupThrottle = 0.35f;
+
+        private static bool LeadIsCruising(GameObject lead)
+        {
+            if (lead.TryGetComponent<ShipPhysicsComponent>(out var leadControl) &&
+                (leadControl.CruiseEnabled ||
+                 leadControl.EngineState is EngineStates.Cruise or EngineStates.CruiseCharging))
+            {
+                return true;
+            }
+
+            return lead.TryGetComponent<CEngineComponent>(out var eng) &&
+                   eng.CruiseThrust is CruiseThrustState.Cruising or CruiseThrustState.CruiseCharging;
+        }
+
+        private static float LeadThrottle(GameObject lead)
+        {
+            if (lead.TryGetComponent<ShipPhysicsComponent>(out var leadControl))
+            {
+                return leadControl.EnginePower;
+            }
+
+            if (lead.TryGetComponent<CEngineComponent>(out var eng))
+            {
+                return MathHelper.Clamp(eng.Speed / 0.9f, 0, 1);
+            }
+
+            return 0;
+        }
+
+        private static float ApproachThrottle(float distance, float leadThrottle)
+        {
+            if (distance > ThrottleDampenDistance)
+            {
+                return 1 + FormationSpeedBoost;
+            }
+
+            if (distance > ThrottleMatchDistance)
+            {
+                var throttle = MathHelper.Lerp(MinCatchupThrottle, 1, distance / ThrottleDampenDistance);
+                return MathF.Max(leadThrottle, throttle);
+            }
+
+            return leadThrottle;
+        }
+
+        private static float CruiseSpeedOffset(float distance)
+        {
+            var dampen = 1 - MathHelper.Clamp(distance / CruiseDampenDistance, 0, 1);
+            return -MaxFormationCruiseSpeedReduction * dampen;
+        }
+
+        private static Vector3 ShipPosition(GameObject ship) =>
+            ship.PhysicsComponent?.Body?.Position ?? ship.WorldTransform.Position;
+
+        private static float ShipSpeed(GameObject ship)
+        {
+            return ship.PhysicsComponent?.Body?.LinearVelocity.Length() ?? 0;
+        }
+
+        private bool ShouldCruise(GameObject lead)
+        {
+            var leaderDistance = Vector3.Distance(ShipPosition(lead), Parent.PhysicsComponent!.Body!.Position);
+            return LeadIsCruising(lead) || leaderDistance > LeaderCruiseCatchupDistance;
+        }
+
+        private static Vector3? FormationFacingPoint(GameObject self, GameObject lead, Vector3 targetPoint, float distance)
+        {
+            if (distance > FormationFacingDistance)
+            {
+                return targetPoint;
+            }
+
+            if (ShipSpeed(self) > ShipSpeed(lead) + 20)
+            {
+                return targetPoint;
+            }
+
+            var leadVelocity = lead.PhysicsComponent?.Body?.LinearVelocity ?? Vector3.Zero;
+            if (leadVelocity.LengthSquared() > 400)
+            {
+                return self.WorldTransform.Position + Vector3.Normalize(leadVelocity) * 1000;
+            }
+
+            return null;
+        }
+
         public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time)
         {
             if (Parent.Formation == null ||
@@ -340,36 +435,26 @@ namespace LibreLancer.World.Components
                 return true;
             }
 
+            var body = Parent.PhysicsComponent!.Body!;
             var targetPoint = Parent.Formation.GetShipPosition(Parent, Component.LocalPlayer);
-            var distance = (targetPoint - Parent.PhysicsComponent!.Body!.Position).Length();
+            var distance = (targetPoint - body.Position).Length();
             var lead = Parent.Formation.LeadShip;
+            var leadThrottle = LeadThrottle(lead);
+            var selfPhysics = Parent.GetComponent<ShipPhysicsComponent>();
 
-            if (distance > 2000)
-            {
-                control.Cruise = true;
-            }
-            else if (distance > 100)
-            {
-                SetThrottle(1, control, input);
-            }
+            control.Cruise = ShouldCruise(lead);
+            control.CruiseSpeedOffset =
+                control.Cruise &&
+                selfPhysics?.EngineState == EngineStates.Cruise &&
+                distance < CruiseDampenDistance
+                    ? CruiseSpeedOffset(distance)
+                    : 0;
+            SetThrottle(ApproachThrottle(distance, leadThrottle), control, input);
 
-            var minThrottle = distance > 100 ? 1 : 0;
-
-            if (lead.TryGetComponent<ShipPhysicsComponent>(out var leadControl))
+            var facingPoint = FormationFacingPoint(Parent, lead, targetPoint, distance);
+            if (facingPoint != null)
             {
-                control.Cruise = distance > 2000 || leadControl.CruiseEnabled;
-                SetThrottle(MathF.Max(minThrottle, leadControl.EnginePower), control, input);
-            }
-            else if (lead.TryGetComponent<CEngineComponent>(out var eng))
-            {
-                control.Cruise = distance > 2000 || eng.Speed > 0.9f;
-                var pThrottle = MathHelper.Clamp(eng.Speed / 0.9f, 0, 1);
-                SetThrottle(MathF.Max(minThrottle, pThrottle), control, input);
-            }
-
-            if (distance > 30)
-            {
-                TurnTowards(time, targetPoint);
+                TurnTowards(time, facingPoint.Value);
             }
             else
             {
@@ -449,6 +534,24 @@ namespace LibreLancer.World.Components
 
         public void StartFormation()
         {
+            if (Parent.TryGetComponent<ShipPhysicsComponent>(out var physics))
+            {
+                physics.StopCruise();
+            }
+
+            if (Parent.TryGetComponent<ShipSteeringComponent>(out var steering))
+            {
+                steering.Cruise = false;
+                steering.CruiseSpeedOffset = 0;
+                steering.InThrottle = 1;
+            }
+
+            if (Parent.TryGetComponent<ShipInputComponent>(out var input))
+            {
+                input.AutopilotThrottle = 1;
+                input.InFormation = true;
+            }
+
             SetInstance(new FormationBehavior(this));
             instance?.Start(GotoKind.Goto, Vector3.Zero, 1, 10);
         }
@@ -468,6 +571,8 @@ namespace LibreLancer.World.Components
             {
                 return;
             }
+
+            control.CruiseSpeedOffset = 0;
 
             if (instance == null)
             {
