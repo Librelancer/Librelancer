@@ -33,6 +33,9 @@ public class StoryProgress
         CurrentMission = player.Game.GameData.Items.Ini.Storyline.Missions
             .FirstOrDefault(x => x.Nickname.Equals(next.Mission, StringComparison.OrdinalIgnoreCase));
 
+        // Clear docking restrictions on story progress.
+        player.ResetMissionDockingRestrictions();
+
         if (loadMission)
         {
             player.LoadMission();

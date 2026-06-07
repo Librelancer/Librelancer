@@ -451,6 +451,7 @@ namespace LibreLancer
 
                 if (ct.Encounters[0].Autoplay)
                 {
+                    NotifyAutoplayCharacterSelect(ct);
                     PlayScript(ct, CutsceneState.Regular);
                 }
                 else
@@ -465,6 +466,26 @@ namespace LibreLancer
             }
 
             return false;
+        }
+
+        private void NotifyAutoplayCharacterSelect(StoryCutsceneIni cutscene)
+        {
+            var encounter = cutscene.Encounters[0];
+            var character = cutscene.Chars.FirstOrDefault();
+            var location = encounter.Location;
+
+            if (character == null || location == null || location.Length < 2)
+            {
+                return;
+            }
+
+            var name = character.Actor ?? character.Npc;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return;
+            }
+
+            session.RpcServer.StoryNPCSelect(name, location[1], location[0]);
         }
 
         private enum CutsceneState

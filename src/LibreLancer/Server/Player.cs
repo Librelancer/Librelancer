@@ -187,6 +187,18 @@ namespace LibreLancer.Server
             Story.Advance(this);
         }
 
+        public void ResetMissionDockingRestrictions()
+        {
+            if (MPlayer == null)
+                return;
+
+            MPlayer.CanDock = 1;
+            MPlayer.CanTl = 1;
+            MPlayer.DockExceptions.Clear();
+            MPlayer.TlExceptions.Clear();
+            AllowedDockUpdate();
+        }
+
         public void SPMissionFailure(int ids)
         {
             rpcClient.StoryMissionFailed(ids);
@@ -258,6 +270,11 @@ namespace LibreLancer.Server
         void IServerPlayer.OnLocationEnter(string _base, string room)
         {
             msnRuntime?.EnterLocation(room, _base);
+        }
+
+        void IServerPlayer.OnLocationExit(string _base, string room)
+        {
+            msnRuntime?.ExitLocation(room, _base);
         }
 
         public ulong GetShipWorth()
