@@ -394,6 +394,11 @@ namespace LibreLancer.Missions
             MsnEvent(new LocationEnteredEvent(room, _base));
         }
 
+        public void ExitLocation(string room, string _base)
+        {
+            MsnEvent(new LocationExitedEvent(room, _base));
+        }
+
         public void ClosePopup(string id)
         {
             MsnEvent(new ClosePopupEvent(id));
