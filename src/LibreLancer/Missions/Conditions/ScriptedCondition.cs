@@ -761,7 +761,8 @@ public class Cnd_LootAcquired : SingleEventListenerCondition<LootAcquiredEvent>
     }
 }
 
-public class Cnd_LocExit : ScriptedCondition
+public class Cnd_LocExit :
+    SingleEventListenerCondition<LocationExitedEvent>
 {
     public string Location = string.Empty;
     public string Base = string.Empty;
@@ -775,6 +776,9 @@ public class Cnd_LocExit : ScriptedCondition
         GetString(nameof(Location), 0, out Location, entry);
         GetString(nameof(Base), 1, out Base, entry);
     }
+
+    protected override bool EventCheck(LocationExitedEvent ev, MissionRuntime runtime, ActiveCondition self)
+        => IdEqual(Location, ev.Room) && IdEqual(Base, ev.Base);
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
