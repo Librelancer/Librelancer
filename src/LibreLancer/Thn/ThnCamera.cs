@@ -64,9 +64,9 @@ namespace LibreLancer.Thn
         {
             float viewportRatio = (float) viewport.Width / (float) viewport.Height;
             float fovh = Object!.Camera!.FovH;
-            fovh =  MathHelper.RadiansToDegrees(FOVUtil.CalcFovx(fovh, screenAspect));
-            fovV = FOVUtil.FovVRad(fovh, viewportRatio);
             aspectRatio = viewportRatio;
+            fovh = FOVUtil.CalcFovx(fovh, screenAspect);
+            fovV = FOVUtil.FovVRad(fovh * 2f, viewportRatio);
         }
 
 		public void Update()

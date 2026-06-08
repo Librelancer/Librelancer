@@ -2114,6 +2114,8 @@ World Time: {12:F2}
                     sys.Nickname, systemName, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, selObj,
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGui.Text(text);
+                ImGui.Text($"Player Position: {player.WorldTransform.Position}");
+                ImGui.InputFloat("FOV Value", ref _chaseCamera.FovX);
                 ImGui.Text($"crosshairHit: {crosshairHit}");
                 var dbgT = session.GetSelectedDebugInfo();
 

@@ -25,7 +25,7 @@ namespace LibreLancer.Render.Cameras
             pos = from;
 
             var fov = GameFOV
-                ? FOVUtil.CalcFovx(50, vw / vh)
+                ? FOVUtil.FovVRad(FOVUtil.CalcFovx(35, vw / vh) * 2.0f, vw / vh)
                 : MathHelper.DegreesToRadians(50);
 
             projection = Matrix4x4.CreatePerspectiveFieldOfView(fov, vw / vh, ZRange.X, ZRange.Y);
