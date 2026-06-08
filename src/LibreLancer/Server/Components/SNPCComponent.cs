@@ -116,10 +116,13 @@ namespace LibreLancer.Server.Components
 
         private int GetHostileWeight(GameObject obj)
         {
-            if ("player".Equals(obj.Nickname, StringComparison.OrdinalIgnoreCase) &&
-                manager.AttackingPlayer > 2)
+            if (manager.HostileClamp &&
+                "player".Equals(obj.Nickname, StringComparison.OrdinalIgnoreCase))
             {
-                return -100;
+                if (manager.AttackingPlayer >= manager.PlayerEnemyClampMax)
+                    return -100;
+                if (manager.AttackingPlayer < manager.PlayerEnemyClampMin)
+                    return 100;
             }
 
             if (attackPref.TryGetValue(obj.Kind, out var weight))

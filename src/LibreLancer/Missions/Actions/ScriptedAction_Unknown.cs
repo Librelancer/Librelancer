@@ -8,6 +8,7 @@ using LibreLancer.Data;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Data.Schema.Save;
+using LibreLancer.Net;
 
 namespace LibreLancer.Missions.Actions;
 
@@ -60,6 +61,8 @@ public class Act_NNPath : ScriptedAction
     public int Ids2;
     public string ObjectId = string.Empty;
     public string SystemId = string.Empty;
+    public Vector3 Position;
+    public bool IsPosition;
 
     public Act_NNPath()
     {
@@ -69,13 +72,37 @@ public class Act_NNPath : ScriptedAction
     {
         GetInt(nameof(Ids1), 0,  out Ids1, act.Entry);
         GetInt(nameof(Ids2), 1, out Ids2, act.Entry);
-        GetString(nameof(ObjectId), 2, out ObjectId, act.Entry);
-        GetString(nameof(SystemId), 3, out SystemId, act.Entry);
+        if (act.Entry.Count >= 6)
+        {
+            GetFloat("X", 2, out var x, act.Entry);
+            GetFloat("Y", 3, out var y, act.Entry);
+            GetFloat("Z", 4, out var z, act.Entry);
+            GetString(nameof(SystemId), 5, out SystemId, act.Entry);
+            Position = new Vector3(x, y, z);
+            IsPosition = true;
+        }
+        else
+        {
+            GetString(nameof(ObjectId), 2, out ObjectId, act.Entry);
+            GetString(nameof(SystemId), 3, out SystemId, act.Entry);
+        }
+    }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        runtime.Player.SetObjective(
+            IsPosition
+                ? new NetObjective(Ids1, Ids2, SystemId, Position)
+                : new NetObjective(Ids1, Ids2, SystemId, ObjectId),
+            false);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Act_NNPath", Ids1, Ids2, ObjectId, SystemId);
+        if (IsPosition)
+            section.Entry("Act_NNPath", Ids1, Ids2, Position.X, Position.Y, Position.Z, SystemId);
+        else
+            section.Entry("Act_NNPath", Ids1, Ids2, ObjectId, SystemId);
     }
 }
 
@@ -264,6 +291,11 @@ public class Act_PlayerEnemyClamp : ScriptedAction
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Act_PlayerEnemyClamp", Min, Max);
+    }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        runtime.Player.Space?.World.NPCs.SetPlayerEnemyClamp(Min, Max);
     }
 }
 
@@ -883,6 +915,11 @@ public class Act_HostileClamp : ScriptedAction
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Act_HostileClamp", Enabled ? "true" : "false");
+    }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        runtime.Player.Space?.World.NPCs.SetHostileClamp(Enabled);
     }
 }
 

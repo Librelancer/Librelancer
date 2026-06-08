@@ -38,6 +38,21 @@ namespace LibreLancer.Server
         }
 
         public int AttackingPlayer = 0;
+        public bool HostileClamp = false; // NPCs wont clamp unless explicitly enabled
+        public int PlayerEnemyClampMin = 0;
+        public int PlayerEnemyClampMax = 3; //default values
+
+        public void SetHostileClamp(bool enabled)
+        {
+            HostileClamp = enabled;
+        }
+
+        public void SetPlayerEnemyClamp(int min, int max)
+        {
+            HostileClamp = true;
+            PlayerEnemyClampMin = Math.Max(0, min);
+            PlayerEnemyClampMax = Math.Max(PlayerEnemyClampMin, max);
+        }
 
         public void FrameStart()
         {
