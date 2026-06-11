@@ -125,7 +125,8 @@ namespace LibreLancer.Server
             Quaternion orient,
             string? arrivalObj,
             int arrivalIndex,
-            MissionRuntime? msn = null
+            MissionRuntime? msn = null,
+            bool registerNpc = true
             )
         {
             var ship = World.Server.GameData.Items.Ships.Get(loadout.Archetype);
@@ -188,7 +189,7 @@ namespace LibreLancer.Server
                 sdock.UndockShip(obj, World.GameWorld, arrivalIndex);
                 obj.GetComponent<AutopilotComponent>()!.Undock(spawnPoint!, arrivalIndex);
             }
-            if (nickname != null)
+            if (registerNpc && nickname != null)
             {
                 missionNPCs[nickname] = obj;
             }

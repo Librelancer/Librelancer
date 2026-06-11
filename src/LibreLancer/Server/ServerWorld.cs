@@ -32,6 +32,7 @@ namespace LibreLancer.Server
         public GameServer Server;
         public StarSystem System;
         public NPCManager NPCs;
+        public SpacePopulationManager Population;
         private Random debrisRandom = new();
         private object _idLock = new();
 
@@ -62,6 +63,7 @@ namespace LibreLancer.Server
             GameWorld.LoadSystem(system, server.Resources, null, true);
             GameWorld.Physics!.OnCollision += PhysicsOnCollision;
             NPCs = new NPCManager(this);
+            Population = new SpacePopulationManager(this);
         }
 
         private void PhysicsOnCollision(PhysicsObject? obja, PhysicsObject? objb)
@@ -988,6 +990,7 @@ namespace LibreLancer.Server
 
             // Update
             NPCs.FrameStart();
+            Population.Update(delta);
             GameWorld.Update(delta);
 
             // projectiles
