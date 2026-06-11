@@ -139,9 +139,16 @@ namespace LibreLancer.Server
                     arrivalIndex = sdock.GetUndockIndex();
                 }
 
-                var p = sdock.GetSpawnPoint(arrivalIndex);
-                position = p.Position;
-                orient = p.Orientation;
+                if (sdock.TryGetSpawnPoint(arrivalIndex, out var p))
+                {
+                    position = p.Position;
+                    orient = p.Orientation;
+                }
+                else
+                {
+                    FLLog.Warning("NPC", $"Could not get spawn point {arrivalIndex} for {arrivalObj}");
+                    sdock = null;
+                }
             }
             var obj = new GameObject(ship!, World.Server.Resources, false, true)
             {

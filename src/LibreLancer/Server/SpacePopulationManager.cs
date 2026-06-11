@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using LibreLancer.Data.Schema.Missions;
+using LibreLancer.Server.Components;
 using LibreLancer.World;
 using Zone = LibreLancer.Data.GameData.World.Zone;
 
@@ -88,8 +90,65 @@ public partial class SpacePopulationManager
 
     private GameObject[] GetPlayerObjects() =>
         world.Players.Values
-            .Where(x => (x.Flags & GameObjectFlags.Exists) == GameObjectFlags.Exists)
+            .Where(x =>
+                (x.Flags & GameObjectFlags.Exists) == GameObjectFlags.Exists &&
+                IsFreetimePlayer(x))
             .ToArray();
+
+    private static bool IsFreetimePlayer(GameObject obj) =>
+        obj.TryGetComponent<SPlayerComponent>(out var player) &&
+        player.Player.AllowFreetimePopulation;
+
+    private PopulationContext GetPopulationContext(ZoneState state, GameObject[] players)
+    {
+        var activePlayers = new List<GameObject>();
+        var effectiveDensity = 0;
+        foreach (var player in players)
+        {
+            var position = player.WorldTransform.Position;
+            if (!state.Zone.ContainsPoint(position) ||
+                !AllowsPopulationSpawn(state.Zone, position))
+            {
+                continue;
+            }
+
+            activePlayers.Add(player);
+            effectiveDensity = Math.Max(effectiveDensity, EffectivePopulationDensity(state.Zone, position));
+        }
+
+        return new PopulationContext(activePlayers.ToArray(), effectiveDensity);
+    }
+
+    private bool AllowsPopulationSpawn(Zone zone, Vector3 position)
+    {
+        if (zone.PopulationAdditive != false)
+            return true;
+
+        foreach (var other in world.System.Zones)
+        {
+            if (ReferenceEquals(other, zone))
+                return true;
+            if (other.ContainsPoint(position))
+                return false;
+        }
+
+        return true;
+    }
+
+    private int EffectivePopulationDensity(Zone zone, Vector3 position)
+    {
+        var density = zone.Density;
+        foreach (var other in world.System.Zones)
+        {
+            if (ReferenceEquals(other, zone))
+                return density;
+
+            if (other.PopulationAdditive == false && other.ContainsPoint(position))
+                density = other.Density;
+        }
+
+        return density;
+    }
 
     private static bool Alive(GameObject obj) =>
         (obj.Flags & GameObjectFlags.Exists) == GameObjectFlags.Exists;

@@ -26,11 +26,10 @@ namespace LibreLancer.Server.Ai
 
         public override void OnStart(GameObject obj, GameWorld world, SNPCComponent ai)
         {
-            if (obj.TryGetComponent<AutopilotComponent>(out var ap) &&
+            if (obj.TryGetComponent<AutopilotComponent>(out _) &&
                target.TryGetComponent<SDockableComponent>(out var dock))
             {
-                dock.StartDock(obj, 0);
-                ap.StartDock(target, GotoKind);
+                dock.StartDock(obj, 0, GotoKind);
             }
         }
 

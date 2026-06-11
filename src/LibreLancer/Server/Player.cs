@@ -206,6 +206,12 @@ namespace LibreLancer.Server
 
         public MissionRuntime? MissionRuntime => msnRuntime;
 
+        public bool AllowFreetimePopulation =>
+            Story?.CurrentStory == null ||
+            Story.CurrentMission == null ||
+            Story.CurrentStory.CashUp > 0 ||
+            Story.CurrentStory.Nickname.EndsWith("_loaded", StringComparison.OrdinalIgnoreCase);
+
         public void AddRTC(string rtc)
         {
             lock (thns)
@@ -398,7 +404,8 @@ namespace LibreLancer.Server
                 {
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
                         Orientation, world.CurrentTick);
-                    world.SpawnPlayer(this, Position, Orientation);
+                    var pship = world.SpawnPlayer(this, Position, Orientation);
+                    world.Population.PopulateInitialAroundPlayer(pship);
 
                     // Ensure mission runtime is properly initialized when spawning in space
                     HandleSpaceEntry();
@@ -1202,7 +1209,8 @@ namespace LibreLancer.Server
                 {
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
                         Orientation, world.CurrentTick);
-                    world.SpawnPlayer(this, Position, Orientation);
+                    var pship = world.SpawnPlayer(this, Position, Orientation);
+                    world.Population.PopulateInitialAroundPlayer(pship);
                     HandleSpaceEntry();
                     msnRuntime?.SystemEnter(system, "Player");
                 });
@@ -1256,7 +1264,11 @@ namespace LibreLancer.Server
                     if (undockFrom?.TryGetComponent(out sd) ?? false)
                     {
                         undockIndex = sd!.GetUndockIndex();
-                        var tr = sd.GetSpawnPoint(undockIndex);
+                        if (!sd.TryGetSpawnPoint(undockIndex, out var tr))
+                        {
+                            FLLog.Warning("Server", $"Could not get spawn point {undockIndex} for {undockFrom}");
+                            return;
+                        }
                         Position = tr.Position;
                         Orientation = tr.Orientation;
                     }
@@ -1268,6 +1280,7 @@ namespace LibreLancer.Server
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
                         Orientation, world.CurrentTick);
                     var pship = world.SpawnPlayer(this, Position, Orientation);
+                    world.Population.PopulateInitialAroundPlayer(pship);
 
                     if (undockFrom != null)
                     {

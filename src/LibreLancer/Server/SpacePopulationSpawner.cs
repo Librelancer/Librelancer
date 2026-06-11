@@ -4,6 +4,7 @@ using System.Numerics;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Missions;
+using LibreLancer.Server.Components;
 using LibreLancer.World;
 using UniverseEncounter = LibreLancer.Data.Schema.Universe.Encounter;
 using Zone = LibreLancer.Data.GameData.World.Zone;
@@ -14,15 +15,19 @@ public partial class SpacePopulationManager
 {
     private void TryRepopulate(ZoneState state, GameObject[] players)
     {
+        var context = GetPopulationContext(state, players);
+        if (context.Players.Length == 0 || context.Density <= 0)
+            return;
+
         var alive = CountShips(state);
         if (state.InBattle && state.Zone.MaxBattleSize > 0 && alive >= state.Zone.MaxBattleSize)
             return;
 
-        if (alive >= state.Zone.Density)
+        if (alive >= context.Density)
             return;
 
         var repopTime = Math.Max(1, state.Zone.RepopTime);
-        var chance = Math.Clamp((state.Zone.Density - alive) / (float)repopTime, 0, 1);
+        var chance = Math.Clamp((context.Density - alive) / (float)repopTime, 0, 1);
         if (random.NextSingle() > chance)
             return;
 
@@ -53,9 +58,71 @@ public partial class SpacePopulationManager
         }
         if (!CanCreateFormation(state, info))
             return;
-
         var creationDistance = info.FormationDefinition?.ZoneCreationDistance ?? 0;
-        if (!TryFindSpawnLocation(state, info, players, creationDistance, out var spawn))
+        if (!TryFindSpawnLocation(state, info, context.Players, creationDistance, false, out var spawn))
+            return;
+
+        SpawnGroup(state, info, faction, spawn);
+    }
+
+    public void PopulateInitialAroundPlayer(GameObject player)
+    {
+        if (!Alive(player) || !IsFreetimePlayer(player))
+            return;
+
+        var players = new[] { player };
+        foreach (var state in zones)
+        {
+            var context = GetPopulationContext(state, players);
+            if (context.Players.Length == 0 || context.Density <= 0)
+                continue;
+
+            var attempts = Math.Max(1, context.Density * 2);
+            while (CountShips(state) < context.Density && attempts-- > 0)
+            {
+                TryPopulateInitial(state, context);
+            }
+        }
+    }
+
+    private void TryPopulateInitial(ZoneState state, PopulationContext context)
+    {
+        var alive = CountShips(state);
+        if (state.InBattle && state.Zone.MaxBattleSize > 0 && alive >= state.Zone.MaxBattleSize)
+            return;
+
+        if (alive >= context.Density)
+            return;
+
+        if (!TryChooseEncounter(state.Zone, out var encounterDef))
+            return;
+
+        var faction = ChooseFaction(encounterDef);
+        if (faction == null)
+            return;
+
+        var encounterIni = GetEncounterIni(encounterDef.Archetype);
+        if (encounterIni == null)
+            return;
+
+        var info = EncounterHandler.CreateEncounter(
+            encounterIni,
+            encounterDef.Difficulty,
+            faction,
+            world.Server.GameData.Items,
+            random);
+        if (info.Ships.Count == 0)
+            return;
+        if (state.InBattle &&
+            state.Zone.MaxBattleSize > 0 &&
+            alive + info.Ships.Count > state.Zone.MaxBattleSize)
+        {
+            return;
+        }
+        if (!CanCreateFormation(state, info))
+            return;
+        var creationDistance = info.FormationDefinition?.ZoneCreationDistance ?? 0;
+        if (!TryFindSpawnLocation(state, info, context.Players, creationDistance, true, out var spawn))
             return;
 
         SpawnGroup(state, info, faction, spawn);
@@ -171,9 +238,19 @@ public partial class SpacePopulationManager
         {
             ArrivalObject = spawn.ArrivalObject
         };
+        SDockableComponent? arrivalDockable = null;
+        if (spawn.ArrivalObject != null &&
+            world.GameWorld.GetObject(spawn.ArrivalObject)?.TryGetComponent<SDockableComponent>(out var dockable) == true)
+        {
+            arrivalDockable = dockable;
+        }
 
         for (int i = 0; i < info.Ships.Count; i++)
         {
+            var arrivalIndex = spawn.ArrivalIndex;
+            if (arrivalDockable != null && !arrivalDockable.TryGetUndockIndex(out arrivalIndex))
+                break;
+
             var entry = info.Ships[i];
             if (string.IsNullOrWhiteSpace(entry.Ship.Loadout) ||
                 !items.TryGetLoadout(entry.Ship.Loadout, out var loadout))
@@ -202,7 +279,7 @@ public partial class SpacePopulationManager
                 position + offset,
                 orientation,
                 spawn.ArrivalObject,
-                spawn.ArrivalIndex,
+                arrivalIndex,
                 null,
                 false);
             group.Ships.Add(obj);
@@ -210,6 +287,12 @@ public partial class SpacePopulationManager
 
         if (group.Ships.Count == 0)
             return;
+
+        var factionName = string.IsNullOrWhiteSpace(faction.Nickname) ? "unknown" : faction.Nickname;
+        var arrival = spawn.ArrivalObject == null
+            ? "free space"
+            : $"{spawn.ArrivalObject}:{spawn.ArrivalIndex}";
+        Console.WriteLine($"SpacePop: Spawned {group.Ships.Count} NPC(s) from zone {state.Zone.Nickname} for faction {factionName} via {arrival}");
 
         state.Groups.Add(group);
         RecordFormationCreation(state, info);
@@ -240,7 +323,10 @@ public partial class SpacePopulationManager
         if (!TryGetTimesToCreate(formation, out var limit))
             return true;
 
-        return state.FormationCreateCounts.GetValueOrDefault(formation) < limit;
+        if (!state.FormationCreateCounts.TryGetValue(formation, out var created))
+            return true;
+
+        return created < limit;
     }
 
     private static void RecordFormationCreation(ZoneState state, EncounterInfo info)
@@ -250,7 +336,9 @@ public partial class SpacePopulationManager
             return;
 
         state.FormationCreateCounts[formation] =
-            state.FormationCreateCounts.GetValueOrDefault(formation) + 1;
+            state.FormationCreateCounts.TryGetValue(formation, out var created)
+                ? created + 1
+                : 1;
     }
 
     private static bool TryGetTimesToCreate(EncounterFormation formation, out int limit)

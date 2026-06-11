@@ -27,6 +27,8 @@ public partial class SpacePopulationManager
         public readonly List<GameObject> Ships = [];
         public double AgeSeconds;
         public string? ArrivalObject;
+        public int PathIndex = state.PathIndex;
+        public int PathDirection = 1;
     }
 
     private readonly record struct SpawnLocation(
@@ -34,4 +36,6 @@ public partial class SpacePopulationManager
         Quaternion Orientation,
         string? ArrivalObject,
         int ArrivalIndex);
+
+    private readonly record struct PopulationContext(GameObject[] Players, int Density);
 }

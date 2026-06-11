@@ -18,24 +18,57 @@ public partial class SpacePopulationManager
         EncounterInfo info,
         GameObject[] players,
         float zoneCreationDistance,
+        bool allowCloseSpawn,
         out SpawnLocation spawn)
     {
         spawn = default;
         var arrival = info.FormationDefinition?.Arrival;
-        if (TryFindArrivalObject(state.Zone, arrival, players, zoneCreationDistance, out var arrivalObject))
+        var preferObjectArrival = info.FormationDefinition?.Behavior == EncounterBehavior.trade;
+        if (!preferObjectArrival &&
+            TryFindFreeSpaceSpawnLocation(state.Zone, arrival, players, zoneCreationDistance, allowCloseSpawn, out spawn))
+        {
+            return true;
+        }
+
+        if (TryFindArrivalObject(
+            state.Zone,
+            arrival,
+            players,
+            zoneCreationDistance,
+            allowCloseSpawn,
+            out var arrivalObject,
+            out var arrivalIndex))
         {
             spawn = new SpawnLocation(
                 arrivalObject.WorldTransform.Position,
                 arrivalObject.WorldTransform.Orientation,
                 arrivalObject.Nickname,
-                0);
+                arrivalIndex);
             return true;
         }
 
+        if (preferObjectArrival &&
+            TryFindFreeSpaceSpawnLocation(state.Zone, arrival, players, zoneCreationDistance, allowCloseSpawn, out spawn))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryFindFreeSpaceSpawnLocation(
+        Zone zone,
+        EncounterArrival? arrival,
+        GameObject[] players,
+        float zoneCreationDistance,
+        bool allowCloseSpawn,
+        out SpawnLocation spawn)
+    {
+        spawn = default;
         if (!ArrivalAllowsFreeSpace(arrival))
             return false;
 
-        if (!TryFindSpawnPoint(state.Zone, players, zoneCreationDistance, out var point))
+        if (!TryFindSpawnPoint(zone, players, zoneCreationDistance, allowCloseSpawn, out var point))
             return false;
 
         spawn = new SpawnLocation(point, Quaternion.Identity, null, 0);
@@ -47,13 +80,19 @@ public partial class SpacePopulationManager
         EncounterArrival? arrival,
         GameObject[] players,
         float zoneCreationDistance,
-        out GameObject arrivalObject)
+        bool allowCloseSpawn,
+        out GameObject arrivalObject,
+        out int arrivalIndex)
     {
         arrivalObject = null!;
+        arrivalIndex = 0;
         if (players.Length == 0 || !ArrivalAllowsObjects(arrival))
             return false;
 
-        var maxDistance = zoneCreationDistance > 0 ? zoneCreationDistance : DefaultSpawnMaxDistance;
+        var maxDistance = Math.Max(
+            zoneCreationDistance > 0 ? zoneCreationDistance : DefaultSpawnMaxDistance,
+            DefaultSpawnMaxDistance);
+        var minDistance = allowCloseSpawn ? 0 : DefaultSpawnMaxDistance;
         var searchDistance = Math.Max(maxDistance * 2.5f, DefaultPersistDistance);
         var bestScore = float.MaxValue;
 
@@ -62,23 +101,26 @@ public partial class SpacePopulationManager
             if (string.IsNullOrWhiteSpace(obj.Nickname) ||
                 obj.SystemObject == null ||
                 !Alive(obj) ||
+                !zone.ContainsPoint(obj.WorldTransform.Position) ||
                 !obj.TryGetComponent<SDockableComponent>(out var dockable) ||
                 dockable.DockPoints.Length == 0 ||
+                !dockable.TryGetUndockIndex(out var dockIndex) ||
                 !ObjectMatchesArrival(obj, dockable, arrival))
             {
                 continue;
             }
 
             var distance = DistanceToNearestPlayer(obj.WorldTransform.Position, players);
-            if (distance > searchDistance)
+            if (distance < minDistance || distance > searchDistance)
                 continue;
 
-            var score = distance + (zone.ContainsPoint(obj.WorldTransform.Position) ? 0 : DefaultSpawnMaxDistance);
+            var score = distance;
             score += random.NextSingle() * 250f;
             if (score < bestScore)
             {
                 bestScore = score;
                 arrivalObject = obj;
+                arrivalIndex = dockIndex;
             }
         }
 

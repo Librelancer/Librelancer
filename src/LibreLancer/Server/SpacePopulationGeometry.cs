@@ -8,21 +8,29 @@ namespace LibreLancer.Server;
 
 public partial class SpacePopulationManager
 {
+    private const float SpawnVerticalBand = 200f;
+
     private bool TryFindSpawnPoint(
         Zone zone,
         GameObject[] players,
         float zoneCreationDistance,
+        bool allowCloseSpawn,
         out Vector3 point)
     {
         point = Vector3.Zero;
-        var maxDistance = zoneCreationDistance > 0 ? zoneCreationDistance : DefaultSpawnMaxDistance;
-        var minDistance = Math.Min(DefaultSpawnMinDistance, maxDistance * 0.5f);
+        var maxDistance = Math.Max(
+            zoneCreationDistance > 0 ? zoneCreationDistance : DefaultSpawnMaxDistance,
+            DefaultSpawnMaxDistance);
+        var minDistance = allowCloseSpawn
+            ? Math.Min(DefaultSpawnMinDistance, maxDistance * 0.5f)
+            : DefaultSpawnMaxDistance;
 
         for (int i = 0; i < 64; i++)
         {
             var player = players[random.Next(players.Length)];
             var distance = Lerp(minDistance, maxDistance, random.NextSingle());
             var candidate = player.WorldTransform.Position + RandomUnitVector() * distance;
+            candidate = ClampSpawnHeight(candidate, player.WorldTransform.Position);
             if (zone.ContainsPoint(candidate))
             {
                 point = candidate;
@@ -32,9 +40,13 @@ public partial class SpacePopulationManager
 
         for (int i = 0; i < 32; i++)
         {
-            var candidate = SampleZonePoint(zone);
+            var sampled = SampleZonePoint(zone);
+            var player = GetNearestPlayer(sampled, players);
+            var candidate = ClampSpawnHeight(sampled, player.WorldTransform.Position);
             var distance = DistanceToNearestPlayer(candidate, players);
-            if (distance <= maxDistance * 1.5f)
+            if (distance >= minDistance &&
+                distance <= maxDistance * 1.5f &&
+                zone.ContainsPoint(candidate))
             {
                 point = candidate;
                 return true;
@@ -54,6 +66,28 @@ public partial class SpacePopulationManager
                 nearest = distance;
         }
         return nearest;
+    }
+
+    private GameObject GetNearestPlayer(Vector3 point, GameObject[] players)
+    {
+        var nearest = players[0];
+        var nearestDistance = Vector3.DistanceSquared(point, nearest.WorldTransform.Position);
+        for (int i = 1; i < players.Length; i++)
+        {
+            var distance = Vector3.DistanceSquared(point, players[i].WorldTransform.Position);
+            if (distance < nearestDistance)
+            {
+                nearest = players[i];
+                nearestDistance = distance;
+            }
+        }
+        return nearest;
+    }
+
+    private static Vector3 ClampSpawnHeight(Vector3 candidate, Vector3 playerPosition)
+    {
+        candidate.Y = playerPosition.Y + Math.Clamp(candidate.Y - playerPosition.Y, -SpawnVerticalBand, SpawnVerticalBand);
+        return candidate;
     }
 
     private Vector3 SampleZonePoint(Zone zone)
