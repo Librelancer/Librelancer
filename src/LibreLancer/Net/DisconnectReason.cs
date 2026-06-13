@@ -12,5 +12,8 @@ public enum DisconnectReason : byte
     Banned = 4,
     Kicked = 5,
     InvalidEndpoint = 6,
+    NoProtocolHash = 7,
+    BadProtocolHash = 8,
+    TooManyConnections = 9,
     MaxValue
 }

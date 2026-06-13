@@ -68,18 +68,24 @@ namespace LibreLancer.Net
                 if (!new PacketReader(request.Data).TryGetString(out var key))
                 {
                     FLLog.Debug("Server", $"Connect with no key {request.RemoteEndPoint}");
-                    request.Reject();
+                    var dw = new PacketWriter();
+                    dw.Put(DisconnectReason.NoProtocolHash);
+                    request.Reject(dw);
                     return;
                 }
                 if (key != AppIdentifier + GeneratedProtocol.PROTOCOL_HASH)
                 {
                     FLLog.Debug("Server", $"Connect with bad key {request.RemoteEndPoint}");
-                    request.Reject();
+                    var dw = new PacketWriter();
+                    dw.Put(DisconnectReason.BadProtocolHash);
+                    request.Reject(dw);
                     return;
                 }
                 if (Server.ConnectedPeersCount > MaxConnections)
                 {
-                    request.Reject();
+                    var dw = new PacketWriter();
+                    dw.Put(DisconnectReason.TooManyConnections);
+                    request.Reject(dw);
                     return;
                 }
                 if (!string.IsNullOrEmpty(game.LoginUrl))
