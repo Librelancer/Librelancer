@@ -280,7 +280,7 @@ namespace LibreLancer.World.Components
             // Fill remaining cubes if needed
             foreach (var box in fillBoxes)
             {
-                var boxCubes = (box.Bb.Max - box.Bb.Min) / Field.CubeSize;
+                var boxCubes = (box.Bb.Max - box.Bb.Min) / Field.CubeSize + Vector3.One;
 
                 for (var x = 0; x < boxCubes.X; x++)
                 {
