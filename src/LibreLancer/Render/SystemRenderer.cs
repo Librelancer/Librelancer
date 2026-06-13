@@ -196,11 +196,20 @@ namespace LibreLancer.Render
             }
         }
 
+        public readonly record struct DebugLine(Vector3 Start, Vector3 End, Color4 Color);
+
         private Vector3[] debugPoints = [];
+        private DebugLine[] debugLines = [];
 
         public void UseDebugPoints(List<Vector3> list)
         {
             this.debugPoints = list.ToArray();
+            list.Clear();
+        }
+
+        public void UseDebugLines(List<DebugLine> list)
+        {
+            debugLines = list.ToArray();
             list.Clear();
         }
 
@@ -476,7 +485,13 @@ namespace LibreLancer.Render
                 DebugRenderer.DrawLine(lZ, lmZ, Color4.Red);
             }
 
+            foreach (var line in debugLines)
+            {
+                DebugRenderer.DrawLine(line.Start, line.End, line.Color);
+            }
+
             debugPoints = [];
+            debugLines = [];
             DebugRenderer.Render();
 
             if (Settings.SelectedMSAA > 0)

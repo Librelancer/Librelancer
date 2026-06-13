@@ -223,6 +223,15 @@ namespace LibreLancer.World
                 g.Register(this);
             }
         }
+        public List<SystemRenderer.DebugLine> DebugLines = new List<SystemRenderer.DebugLine>();
+        public bool RenderAutopilotDebug = true;
+
+        public void DrawDebugLine(Vector3 start, Vector3 end, Color4 color)
+        {
+            if (RenderAutopilotDebug)
+                DebugLines.Add(new SystemRenderer.DebugLine(start, end, color));
+        }
+
 #if DEBUG
         public List<Vector3> DebugPoints = new List<Vector3>();
         public bool RenderDebugPoints = false;
@@ -342,6 +351,7 @@ namespace LibreLancer.World
 #if DEBUG
             Renderer?.UseDebugPoints(DebugPoints);
 #endif
+            Renderer?.UseDebugLines(DebugLines);
             Renderer?.Update(t);
 
             foreach (var obj in objects)
