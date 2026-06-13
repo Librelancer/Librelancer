@@ -8,11 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using BepuUtilities.Collections;
-using LibreLancer.Data;
-using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Physics;
-using LibreLancer.Render;
 using LibreLancer.Resources;
 
 namespace LibreLancer.World.Components
@@ -63,66 +60,23 @@ namespace LibreLancer.World.Components
             phys = world.Physics;
             shape = new ConvexMeshCollider(phys);
             var resourceManager = GetResourceManager(world);
-            var collisionParts = new Dictionary<Asteroid, AsteroidCollisionPart[]>();
 
             if (Field.Cube is not null && resourceManager is not null)
             {
                 foreach (var asteroid in Field.Cube)
                 {
-                    if (asteroid.Archetype is null)
-                    {
-                        continue;
-                    }
+                    var sur = asteroid.Archetype?.ModelFile?.LoadFile(resourceManager, MeshLoadMode.CPU)!.Collision;
 
-                    if (!collisionParts.TryGetValue(asteroid.Archetype, out var parts))
+                    if (sur is not null && sur.Value.Valid)
                     {
-                        parts = GetCollisionParts(asteroid.Archetype, resourceManager);
-                        collisionParts.Add(asteroid.Archetype, parts);
-                    }
-
-                    var asteroidTransform = new Transform3D(asteroid.Position * Field.CubeSize, asteroid.Rotation);
-                    foreach (var part in parts)
-                    {
-                        shape.AddPart(part.FileId, part.MeshId, part.Transform * asteroidTransform, null);
+                        shape.AddPart(sur.Value.FileId, new ConvexMeshId(0, 0),
+                            new Transform3D(asteroid.Position * Field.CubeSize, asteroid.Rotation), null);
                     }
                 }
             }
 
             spawnedA = new QuickList<SpawnedCube>(64, phys.BufferPool);
             spawnedB = new QuickList<SpawnedCube>(64, phys.BufferPool);
-        }
-
-        private readonly record struct AsteroidCollisionPart(uint FileId, ConvexMeshId MeshId, Transform3D Transform);
-
-        private static AsteroidCollisionPart[] GetCollisionParts(Asteroid archetype, ResourceManager resourceManager)
-        {
-            var modelResource = archetype.ModelFile?.LoadFile(resourceManager, MeshLoadMode.CPU);
-            if (modelResource?.Collision.Valid != true || modelResource.Drawable is not IRigidModelFile rigidModelFile)
-            {
-                return [];
-            }
-
-            var collision = modelResource.Collision;
-            var rigidModel = rigidModelFile.CreateRigidModel(false, resourceManager);
-            if (rigidModel.Source == RigidModelSource.SinglePart)
-            {
-                return [new AsteroidCollisionPart(collision.FileId, new ConvexMeshId(0, 0), Transform3D.Identity)];
-            }
-
-            var parts = rigidModel.AllParts
-                .Select(part => new AsteroidCollisionPart(
-                    collision.FileId,
-                    new ConvexMeshId(CrcTool.FLModelCrc(part.Name), 0),
-                    part.Construct == null ? Transform3D.Identity : part.LocalTransform
-                ))
-                .ToArray();
-            if (parts.Any(part => collision.Sur.HasShape(part.MeshId.Id)))
-            {
-                return parts;
-            }
-
-            // Some asteroid .sur files only expose a generic mesh 0 even when the drawable is a CMP.
-            return [new AsteroidCollisionPart(collision.FileId, new ConvexMeshId(0, 0), Transform3D.Identity)];
         }
 
         public override void Unregister(GameWorld world)

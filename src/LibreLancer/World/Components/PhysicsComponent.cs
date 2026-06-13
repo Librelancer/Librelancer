@@ -160,11 +160,7 @@ namespace LibreLancer.World.Components
 
                 if(Parent?.Model?.RigidModel.Source == RigidModelSource.SinglePart)
                 {
-                    var added = _convexMesh.AddPart(meshId, new ConvexMeshId(PlainCrc, 0), Transform3D.Identity, null);
-                    if (!added && PlainCrc != 0)
-                    {
-                        _convexMesh.AddPart(meshId, new ConvexMeshId(0, 0), Transform3D.Identity, null);
-                    }
+                    _convexMesh.AddPart(meshId, new ConvexMeshId(PlainCrc, 0), Transform3D.Identity, null);
                 }
                 else
                 {
