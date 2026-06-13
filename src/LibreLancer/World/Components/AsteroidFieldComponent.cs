@@ -8,8 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using BepuUtilities.Collections;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Physics;
+using LibreLancer.Render;
 using LibreLancer.Resources;
 
 namespace LibreLancer.World.Components
@@ -60,23 +63,66 @@ namespace LibreLancer.World.Components
             phys = world.Physics;
             shape = new ConvexMeshCollider(phys);
             var resourceManager = GetResourceManager(world);
+            var collisionParts = new Dictionary<Asteroid, AsteroidCollisionPart[]>();
 
             if (Field.Cube is not null && resourceManager is not null)
             {
                 foreach (var asteroid in Field.Cube)
                 {
-                    var sur = asteroid.Archetype?.ModelFile?.LoadFile(resourceManager, MeshLoadMode.CPU)!.Collision;
-
-                    if (sur is not null && sur.Value.Valid)
+                    if (asteroid.Archetype is null)
                     {
-                        shape.AddPart(sur.Value.FileId, new ConvexMeshId(0, 0),
-                            new Transform3D(asteroid.Position * Field.CubeSize, asteroid.Rotation), null);
+                        continue;
+                    }
+
+                    if (!collisionParts.TryGetValue(asteroid.Archetype, out var parts))
+                    {
+                        parts = GetCollisionParts(asteroid.Archetype, resourceManager);
+                        collisionParts.Add(asteroid.Archetype, parts);
+                    }
+
+                    var asteroidTransform = new Transform3D(asteroid.Position * Field.CubeSize, asteroid.Rotation);
+                    foreach (var part in parts)
+                    {
+                        shape.AddPart(part.FileId, part.MeshId, part.Transform * asteroidTransform, null);
                     }
                 }
             }
 
             spawnedA = new QuickList<SpawnedCube>(64, phys.BufferPool);
             spawnedB = new QuickList<SpawnedCube>(64, phys.BufferPool);
+        }
+
+        private readonly record struct AsteroidCollisionPart(uint FileId, ConvexMeshId MeshId, Transform3D Transform);
+
+        private static AsteroidCollisionPart[] GetCollisionParts(Asteroid archetype, ResourceManager resourceManager)
+        {
+            var modelResource = archetype.ModelFile?.LoadFile(resourceManager, MeshLoadMode.CPU);
+            if (modelResource?.Collision.Valid != true || modelResource.Drawable is not IRigidModelFile rigidModelFile)
+            {
+                return [];
+            }
+
+            var collision = modelResource.Collision;
+            var rigidModel = rigidModelFile.CreateRigidModel(false, resourceManager);
+            if (rigidModel.Source == RigidModelSource.SinglePart)
+            {
+                return [new AsteroidCollisionPart(collision.FileId, new ConvexMeshId(0, 0), Transform3D.Identity)];
+            }
+
+            var parts = rigidModel.AllParts
+                .Select(part => new AsteroidCollisionPart(
+                    collision.FileId,
+                    new ConvexMeshId(CrcTool.FLModelCrc(part.Name), 0),
+                    part.Construct == null ? Transform3D.Identity : part.LocalTransform
+                ))
+                .ToArray();
+            if (parts.Any(part => collision.Sur.HasShape(part.MeshId.Id)))
+            {
+                return parts;
+            }
+
+            // Some asteroid .sur files only expose a generic mesh 0 even when the drawable is a CMP.
+            return [new AsteroidCollisionPart(collision.FileId, new ConvexMeshId(0, 0), Transform3D.Identity)];
         }
 
         public override void Unregister(GameWorld world)
@@ -280,7 +326,7 @@ namespace LibreLancer.World.Components
             // Fill remaining cubes if needed
             foreach (var box in fillBoxes)
             {
-                var boxCubes = (box.Bb.Max - box.Bb.Min) / Field.CubeSize;
+                var boxCubes = (box.Bb.Max - box.Bb.Min) / Field.CubeSize + Vector3.One;
 
                 for (var x = 0; x < boxCubes.X; x++)
                 {
