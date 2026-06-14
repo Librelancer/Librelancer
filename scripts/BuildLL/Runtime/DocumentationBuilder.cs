@@ -45,7 +45,7 @@ namespace BuildLL
 
         static string ResourceText(string rs)
         {
-            using (var reader = new StreamReader(typeof(DocumentationBuilder).Assembly.GetManifestResourceStream(rs)))
+            using (var reader = new StreamReader(typeof(DocumentationBuilder).Assembly.GetManifestResourceStream(rs)!))
             {
                 return reader.ReadToEnd();
             }
@@ -55,8 +55,8 @@ namespace BuildLL
 
         static string FixUrl(LinkInline link)
         {
-            if (link.IsImage || link.IsAutoLink) return link.Url;
-            return markdownRegex.Replace(link.Url, match => $"{match.Groups[1]}.html{match.Groups[3]}");
+            if (link.IsImage || link.IsAutoLink) return link.Url!;
+            return markdownRegex.Replace(link.Url!, match => $"{match.Groups[1]}.html{match.Groups[3]}");
         }
 
         record Document(string title, string href, string content);

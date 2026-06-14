@@ -31,7 +31,7 @@ public static class MingwDeps
             }
         }
     }
-    static string FindFile(string prefix, string file)
+    static string? FindFile(string prefix, string file)
     {
         var f = Directory.GetFiles($"/usr/{prefix}", file, SearchOption.AllDirectories).FirstOrDefault();
         if(f == null && Directory.Exists($"/usr/lib/gcc/{prefix}")) {

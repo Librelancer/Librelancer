@@ -37,7 +37,7 @@ namespace BuildLL
         {
             RunCommand("dotnet", $"clean {M()} {Verbosity} -c Release -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
-        public static void Run(string project, string artifactsDir, string args = null)
+        public static void Run(string project, string artifactsDir, string? args = null)
         {
             string a = "";
             if (!string.IsNullOrWhiteSpace(args)) a = $" -- {args}";
@@ -49,7 +49,7 @@ namespace BuildLL
             RunCommand("dotnet", $"test -c Release -p:UseArtifactsOutput=true -p:ArtifactsPath={P(artifactsDir)} {P(project)}");
         }
 
-        public static void Publish(string project, DotnetPublishSettings settings = null)
+        public static void Publish(string project, DotnetPublishSettings? settings = null)
         {
             var argbuilder = new StringBuilder();
             argbuilder.Append($"publish {M()} --no-restore");
@@ -70,9 +70,9 @@ namespace BuildLL
 
     public class DotnetPublishSettings
     {
-        public string Configuration;
-        public string OutputDirectory;
-        public string Runtime;
+        public string? Configuration;
+        public string? OutputDirectory;
+        public string? Runtime;
         public string? Extra;
         public bool SelfContained;
     }

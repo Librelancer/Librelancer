@@ -17,7 +17,7 @@ namespace BuildLL
         private static string versionSetting = "git";
         private static string prefix = "/usr/local/";
         private static int parallel = -1;
-        private static string serverRid = null;
+        private static string? serverRid = null;
         private static bool buildDebug = false;
         private static bool buildO0 = false;
         private static bool withWin32 = false;
@@ -246,7 +246,7 @@ namespace BuildLL
             File.CreateSymbolicLink(Path.GetFullPath("bin/builddeps/bin/dxc"), Path.GetFullPath("obj/dxc-build/bin/dxc"));
         }
 
-        private static string VersionString;
+        private static string VersionString = "";
         public static void Targets()
         {
             if(parallel > 0) Dotnet.CPUCount = parallel;
