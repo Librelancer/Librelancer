@@ -37,6 +37,8 @@ namespace LibreLancer.Server
 {
     public class Player : IServerPlayer
     {
+        private const float DefaultVisitDistance = 10000f;
+
         // ID
         public int ID = 0;
 
@@ -853,7 +855,26 @@ namespace LibreLancer.Server
             }
         }
 
-        public void VisitObject(SystemObject obj, uint hash)
+        public static float GetVisitDistance(SystemObject obj) =>
+            MathF.Max(DefaultVisitDistance, (obj.Archetype?.SolarRadius ?? 0f) + DefaultVisitDistance);
+
+        public void VisitZone(StarSystem system, Zone zone)
+        {
+            if ((zone.VisitFlags & VisitFlags.Hidden) == VisitFlags.Hidden || Character == null)
+                return;
+
+            var hash = FLHash.CreateID(zone.Nickname);
+            var needsFlag = (Character.GetVisitFlags(hash) & VisitFlags.Visited) != VisitFlags.Visited;
+            if (!needsFlag)
+                return;
+
+            VisitSystem(system);
+            using var ts = Character.BeginTransaction();
+            ts.UpdateVisitFlags(hash, zone.VisitFlags | VisitFlags.Visited);
+            rpcClient.VisitObject(hash, (byte)(zone.VisitFlags | VisitFlags.Visited));
+        }
+
+        public void VisitObject(StarSystem system, SystemObject obj, uint hash)
         {
             if ((obj.Visit & VisitFlags.Hidden) ==
                 VisitFlags.Hidden)
@@ -879,6 +900,7 @@ namespace LibreLancer.Server
 
             if (needsFlag || needsList)
             {
+                VisitSystem(system);
                 using var ts = Character.BeginTransaction();
 
                 if (needsFlag)

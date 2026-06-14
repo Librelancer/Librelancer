@@ -120,6 +120,7 @@ World Time: {12:F2}
         private const double WaypointSelectionAnimationDuration = 0.18;
         private int selectedWaypointAnimationObject;
         private double selectedWaypointAnimationStart;
+        private double bestPathRecheckTimer;
         private TargetShipWireframe targetWireframe = new();
         private double accum = 0;
 
@@ -250,8 +251,7 @@ World Time: {12:F2}
             world.AddObject(player);
             player.Register(world);
             world.Projectiles.Player = player; // For sending projectile spawns over the network
-            if (session.TryGetActiveUserWaypoint(out var userWaypointPosition))
-                ActivateUserWaypoint(userWaypointPosition, false);
+            RefreshActiveUserWaypoint(false);
             cur_arrow = Game.ResourceManager.GetCursor("arrow")!;
             cur_cross = Game.ResourceManager.GetCursor("cross")!;
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral")!;
@@ -897,13 +897,15 @@ World Time: {12:F2}
                 nav.SetUniverse(g.Game.GameData.Items);
                 nav.SetVisitFunction(g.session.IsVisited);
                 nav.SetAddWaypointFunction(g.CreateUserWaypoint);
+                nav.SetBestPathFunction(g.ComputeBestPathToSelection);
                 nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);
+                nav.SetPlayerSystemProvider(() => g.sys.CRC);
                 nav.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
             }
 
             public int UserWaypointCount() => g.session.UserWaypointCount;
 
-            public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index, g.sys);
+            public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index);
 
             public void ClearUserWaypoints() => g.ClearUserWaypoints();
 
@@ -1062,6 +1064,7 @@ World Time: {12:F2}
                     }
 
                     pilotComponent!.StartDock(Selection.Selected, GotoKind.Goto);
+                    session.RegisterRouteDock(Selection.Selected.NicknameCRC, sys.CRC);
                     session.SpaceRpc.RequestDock(Selection.Selected);
                     return true;
 
@@ -1216,6 +1219,7 @@ World Time: {12:F2}
             ui.Update(Game, delta);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
             TimeDilatedUpdate(delta);
+            UpdateBestPathRoute(delta);
             UpdateUserWaypointRoute();
             sysrender.Camera = GetCurrentCamera();
 
@@ -1734,6 +1738,7 @@ World Time: {12:F2}
             player.GetComponent<ShipPhysicsComponent>()!.Active = false;
             player.GetComponent<WeaponControlComponent>()!.Enabled = false;
             pilotComponent?.Cancel();
+            RefreshActiveUserWaypoint(false);
         }
 
         public void TradelaneDisrupted()
@@ -1847,16 +1852,29 @@ World Time: {12:F2}
             RemoveUserWaypoint();
         }
 
-        private void CreateUserWaypoint(Vector3 pos)
+        private void CreateUserWaypoint(StarSystem system, Vector3 pos)
         {
-            session.AddUserWaypoint(pos);
-            if (userWaypoint != null)
-                return;
-
-            ActivateUserWaypoint(pos, false);
+            session.AddUserWaypoint(system, pos);
+            RefreshActiveUserWaypoint(false);
         }
 
-        private void ActivateUserWaypoint(Vector3 pos, bool continueGoto)
+        private bool ComputeBestPathToSelection(StarSystem system, Vector3 pos)
+        {
+            var cruiseSpeed = player.GetFirstChildComponent<CEngineComponent>()?.Engine.CruiseSpeed ?? 300f;
+            if (!session.ComputeBestPathToSelection(sys, player.WorldTransform.Position, system, pos, cruiseSpeed))
+                return false;
+            RefreshActiveUserWaypoint(false, false);
+            return true;
+        }
+
+        private void RefreshActiveUserWaypoint(bool continueGoto, bool selectWaypoint = true)
+        {
+            RemoveUserWaypoint();
+            if (session.TryGetActiveUserWaypoint(sys.CRC, out var waypoint))
+                ActivateUserWaypoint(waypoint.Position, continueGoto, selectWaypoint);
+        }
+
+        private void ActivateUserWaypoint(Vector3 pos, bool continueGoto, bool selectWaypoint)
         {
             var waypointArch = Game.GameData.Items.Archetypes.Get("waypoint")!;
             userWaypoint = new GameObject(waypointArch, null, Game.ResourceManager)
@@ -1868,7 +1886,8 @@ World Time: {12:F2}
             world.AddObject(userWaypoint);
             userWaypoint.Register(world);
 
-            Selection.Selected = userWaypoint;
+            if (selectWaypoint)
+                Selection.Selected = userWaypoint;
             if (continueGoto)
             {
                 pilotComponent!.GotoObject(userWaypoint, GotoKind.Goto);
@@ -1878,6 +1897,13 @@ World Time: {12:F2}
         private void UpdateUserWaypointRoute()
         {
             if (paused || Dead || userWaypoint == null)
+            {
+                return;
+            }
+
+            if (!session.TryGetActiveUserWaypoint(sys.CRC, out var activeWaypoint) ||
+                (activeWaypoint.Kind != UserWaypointKind.ManualDestination &&
+                 activeWaypoint.Kind != UserWaypointKind.TradelaneExit))
             {
                 return;
             }
@@ -1894,12 +1920,23 @@ World Time: {12:F2}
             // so their ship doesnt stop at the waypoints. False for now since its not vanilla,
             // left it here because its interesting for testing.
             const bool continueGoto = false;
-            RemoveUserWaypoint();
             session.RemoveActiveUserWaypoint();
-            if (session.TryGetActiveUserWaypoint(out var nextPosition))
-            {
-                ActivateUserWaypoint(nextPosition, continueGoto);
-            }
+            RefreshActiveUserWaypoint(continueGoto);
+        }
+
+        private void UpdateBestPathRoute(double delta)
+        {
+            if (paused || Dead || session.InTradelane || !session.BestPathActive)
+                return;
+
+            bestPathRecheckTimer += delta;
+            if (bestPathRecheckTimer < 1.0)
+                return;
+            bestPathRecheckTimer = 0;
+
+            var cruiseSpeed = player.GetFirstChildComponent<CEngineComponent>()?.Engine.CruiseSpeed ?? 300f;
+            if (session.RecalculateBestPath(sys, player.WorldTransform.Position, cruiseSpeed))
+                RefreshActiveUserWaypoint(false, false);
         }
 
         private void UpdateWaypointRenderStyle()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Client.Components;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
@@ -1177,9 +1178,11 @@ public partial class CGameSession
         PlayerBase = null;
         CurrentObjective = objective;
         FLLog.Info("Client", $"Spawning in {system}");
-        if (!string.Equals(PlayerSystem, system, StringComparison.OrdinalIgnoreCase))
-            ClearUserWaypoints();
+        var previousSystem = PlayerSystem;
         PlayerSystem = system;
+        if (!string.IsNullOrWhiteSpace(previousSystem) &&
+            !string.Equals(previousSystem, system, StringComparison.OrdinalIgnoreCase))
+            CompleteActiveJumpWaypoint(FLHash.CreateID(previousSystem), FLHash.CreateID(system));
         PlayerPosition = position;
         PlayerOrientation = orientation;
         SceneChangeRequired();

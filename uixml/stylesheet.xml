@@ -381,7 +381,7 @@
 		</ButtonStyle.Selected>
 	</ButtonStyle>
 	<!-- Navmap buttons -->
-    <ButtonStyle Name="nav_universebutton" Width="13" Height="13"> <ButtonStyle.Normal>
+    <ButtonStyle Name="nav_universebutton" Width="13" Height="13" MouseEnterSound="ui_rollover"> <ButtonStyle.Normal>
         <ButtonAppearance.Background>
             <DisplayModel model="nav_universebutton" Tint="text"/>
         </ButtonAppearance.Background>
@@ -396,7 +396,7 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
-    <ButtonStyle Name="nav_knownbases" Width="13" Height="13"> <ButtonStyle.Normal>
+    <ButtonStyle Name="nav_knownbases" Width="13" Height="13" MouseEnterSound="ui_rollover"> <ButtonStyle.Normal>
         <ButtonAppearance.Background>
             <DisplayModel model="nav_knownbases" Tint="text"/>
         </ButtonAppearance.Background>
@@ -411,7 +411,7 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
-    <ButtonStyle Name="nav_minablezonefilter" Width="13" Height="13"> <ButtonStyle.Normal>
+    <ButtonStyle Name="nav_minablezonefilter" Width="13" Height="13" MouseEnterSound="ui_rollover"> <ButtonStyle.Normal>
         <ButtonAppearance.Background>
             <DisplayModel model="nav_minablezonefilter" Tint="text"/>
         </ButtonAppearance.Background>
@@ -426,7 +426,7 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
-    <ButtonStyle Name="nav_legendtoggle" Width="13" Height="13"> <ButtonStyle.Normal>
+    <ButtonStyle Name="nav_legendtoggle" Width="13" Height="13" MouseEnterSound="ui_rollover"> <ButtonStyle.Normal>
         <ButtonAppearance.Background>
             <DisplayModel model="nav_legendtoggle" Tint="text"/>
         </ButtonAppearance.Background>
@@ -441,7 +441,7 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
-    <ButtonStyle Name="nav_patrol" Width="13" Height="13"> <ButtonStyle.Normal>
+    <ButtonStyle Name="nav_patrol" Width="13" Height="13" MouseEnterSound="ui_rollover"> <ButtonStyle.Normal>
         <ButtonAppearance.Background>
             <DisplayModel model="nav_patrol" Tint="text"/>
         </ButtonAppearance.Background>
@@ -456,7 +456,7 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
-    <ButtonStyle Name="nav_labels" Width="13" Height="13"> <ButtonStyle.Normal>
+    <ButtonStyle Name="nav_labels" Width="13" Height="13" MouseEnterSound="ui_rollover"> <ButtonStyle.Normal>
         <ButtonAppearance.Background>
             <DisplayModel model="nav_labels" Tint="text"/>
         </ButtonAppearance.Background>
@@ -471,7 +471,7 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
-    <ButtonStyle Name="nav_filter_political" Width="13" Height="13"> <ButtonStyle.Normal>
+    <ButtonStyle Name="nav_filter_political" Width="13" Height="13" MouseEnterSound="ui_rollover"> <ButtonStyle.Normal>
         <ButtonAppearance.Background>
             <DisplayModel model="nav_filter_political" Tint="text"/>
         </ButtonAppearance.Background>
@@ -486,7 +486,7 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
-    <ButtonStyle Name="nav_filter_physical" Width="13" Height="13"> <ButtonStyle.Normal>
+    <ButtonStyle Name="nav_filter_physical" Width="13" Height="13" MouseEnterSound="ui_rollover"> <ButtonStyle.Normal>
         <ButtonAppearance.Background>
             <DisplayModel model="nav_filter_physical" Tint="text"/>
         </ButtonAppearance.Background>
@@ -498,6 +498,21 @@
         <ButtonStyle.Selected>
             <ButtonAppearance.Background>
                 <DisplayModel model="nav_filter_physical" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nav_gotoship" Width="13" Height="13" MouseEnterSound="ui_rollover"> <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+            <DisplayModel model="nav_gotoship" Tint="text"/>
+        </ButtonAppearance.Background>
+        </ButtonStyle.Normal><ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_gotoship" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_gotoship" Tint="yellow"/>
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
@@ -561,6 +576,23 @@
 			</ButtonAppearance.Background>
 		</ButtonStyle.Pressed>
 	</NavmapStyle.AddWaypointButton>
+	<NavmapStyle.BestPathButton Width="17" Height="17" MouseDownSound="ui_item_select">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nav_shortestpath"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nav_shortestpath" Tint="text_hover"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Pressed>
+			<ButtonAppearance.Background>
+				<DisplayModel model="nav_shortestpath" Tint="yellow"/>
+			</ButtonAppearance.Background>
+		</ButtonStyle.Pressed>
+	</NavmapStyle.BestPathButton>
     </NavmapStyle>
 	<!-- Menu -->
 	<ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">

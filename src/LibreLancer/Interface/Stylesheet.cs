@@ -565,6 +565,7 @@ namespace LibreLancer.Interface
         private StyledProperty<ButtonStyle?> zoomOutButton = new("ZoomOutButton");
         private StyledProperty<ButtonStyle?> selectorButton = new("SelectorButton");
         private StyledProperty<ButtonStyle?> addWaypointButton = new("AddWaypointButton");
+        private StyledProperty<ButtonStyle?> bestPathButton = new("BestPathButton");
         private StyledProperty<float> userWaypointSize = new("UserWaypointSize", 28);
         private StyledProperty<float> userWaypointDigitWidth = new("UserWaypointDigitWidth", 6);
         private StyledProperty<float> userWaypointDigitHeight = new("UserWaypointDigitHeight", 10);
@@ -580,6 +581,7 @@ namespace LibreLancer.Interface
                 .Add(zoomOutButton)
                 .Add(selectorButton)
                 .Add(addWaypointButton)
+                .Add(bestPathButton)
                 .Add(userWaypointSize)
                 .Add(userWaypointDigitWidth)
                 .Add(userWaypointDigitHeight)
@@ -596,6 +598,7 @@ namespace LibreLancer.Interface
                 .Query(zoomOutButton)
                 .Query(selectorButton)
                 .Query(addWaypointButton)
+                .Query(bestPathButton)
                 .Query(userWaypointSize)
                 .Query(userWaypointDigitWidth)
                 .Query(userWaypointDigitHeight)
@@ -626,6 +629,12 @@ namespace LibreLancer.Interface
         {
             get => addWaypointButton.Value;
             set => addWaypointButton.Set(value);
+        }
+
+        public ButtonStyle? BestPathButton
+        {
+            get => bestPathButton.Value;
+            set => bestPathButton.Set(value);
         }
 
         public float UserWaypointSize

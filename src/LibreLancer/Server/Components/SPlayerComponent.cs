@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Missions;
 using LibreLancer.Missions.Directives;
 using LibreLancer.Net;
@@ -330,12 +332,23 @@ namespace LibreLancer.Server.Components
                 Player.RpcClient.UpdateFormation(Parent.Formation.ToNetFormation(Parent));
             }
 
-            foreach (var obj in world.SpatialLookup
-                         .GetNearbyObjects(Parent, Parent.WorldTransform.Position, 10000))
+            var playerPosition = Parent.WorldTransform.Position;
+            var system = world.Server?.System;
+            if (system != null)
             {
-                if (obj.SystemObject != null)
+                foreach (var obj in system.Objects)
                 {
-                    Player.VisitObject(obj.SystemObject, obj.NicknameCRC);
+                    if (obj.Archetype?.CanVisit != true ||
+                        Vector3.Distance(playerPosition, obj.Position) > Player.GetVisitDistance(obj))
+                        continue;
+
+                    Player.VisitObject(system, obj, FLHash.CreateID(obj.Nickname));
+                }
+
+                foreach (var zone in system.Zones)
+                {
+                    if (zone.ContainsPoint(playerPosition))
+                        Player.VisitZone(system, zone);
                 }
             }
 
