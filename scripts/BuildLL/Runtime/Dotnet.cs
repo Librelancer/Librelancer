@@ -61,6 +61,8 @@ namespace BuildLL
                 argbuilder.Append(" -r ").Append(settings.Runtime);
             if (settings != null && settings.SelfContained)
                 argbuilder.Append(" --self-contained true");
+            if (settings?.Extra != null)
+                argbuilder.Append(" ").Append(settings.Extra);
             argbuilder.Append(" ").Append(P(project));
             RunCommand("dotnet", argbuilder.ToString());
         }
@@ -71,6 +73,7 @@ namespace BuildLL
         public string Configuration;
         public string OutputDirectory;
         public string Runtime;
+        public string? Extra;
         public bool SelfContained;
     }
 }

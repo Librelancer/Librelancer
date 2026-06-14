@@ -24,7 +24,7 @@
 
     <!-- Writes the arguments out required for LLShaderCompiler. Use files to avoid cmd limit-->
     <!-- "%0a" gives us a newline in MSBuild so we can interleave input/output-->
-    <Target Name="GatherShaderFiles" Condition="@(Shader)!=''" BeforeTargets="ShaderDependencies">
+    <Target Name="GatherShaderFiles" Condition="@(Shader)!='' And '$(DisableShaders)' != 'True'" BeforeTargets="ShaderDependencies">
         <!-- Files to search for inputs -->
         <WriteLinesToFile File="$(IntermediateOutputPath)LLAllShaders.rsp.txt" Overwrite="true" Lines="@(Shader->'%(Identity)')"/>
         <!-- Compilation -->
@@ -45,7 +45,7 @@
 
     <!-- Invokes LLShaderCompiler to find the file dependency tree for all shaders
          so we don't have to recompile the shaders on every build -->
-    <Target Name="ShaderDependencies" Condition="@(Shader)!=''" BeforeTargets="ShaderCompiler">
+    <Target Name="ShaderDependencies" Condition="@(Shader)!='' And '$(DisableShaders)' != 'True'" BeforeTargets="ShaderCompiler">
         <Exec Command="$(LLShaderCompiler) $(DXC) --list-deps --rsp $(IntermediateOutputPath)LLAllShaders.rsp.txt"
             ConsoleToMsBuild="true" StandardOutputImportance="Low">
             <Output TaskParameter="ConsoleOutput" ItemName="ShaderInputs"/>
@@ -56,10 +56,10 @@
          We pass all shaders at once to LLShaderCompiler as msbuild does not support
          running Exec tasks in parallel
      -->
-    <Target Name="ShaderCompiler" Condition="@(Shader)!=''"
+    <Target Name="ShaderCompiler" Condition="@(Shader)!='' And '$(DisableShaders)' != 'True'"
             Inputs="@(ShaderInputs)"
             BeforeTargets="BeforeBuild;BeforeRebuild"
-            Outputs="@(ShaderOutputs)">
+            Outputs="@(ShaderOutputs)" >
         <MakeDir Directories="$(IntermediateOutputPath)%(Shader.RelativeDir)" Condition="!Exists('$(IntermediateOutputPath)%(Shader.RelativeDir)')" />
         <Exec Command="$(LLShaderCompiler) $(DXC) --rsp $(IntermediateOutputPath)LLCompileShaders.rsp.txt"/>
         <ItemGroup>

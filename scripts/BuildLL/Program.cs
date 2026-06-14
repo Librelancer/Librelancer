@@ -17,7 +17,7 @@ namespace BuildLL
         private static string versionSetting = "git";
         private static string prefix = "/usr/local/";
         private static int parallel = -1;
-        private static string glslangValidatorPath = null;
+        private static string serverRid = null;
         private static bool buildDebug = false;
         private static bool buildO0 = false;
         private static bool withWin32 = false;
@@ -32,7 +32,7 @@ namespace BuildLL
             StringArg("--assemblyversion", x => versionSetting = x, "Set generated version");
             StringArg("--prefix", x => prefix = x, "Set cmake install prefix");
             IntArg("-j|--jobs", x => parallel = x, "Parallelism for native build step");
-            StringArg("--glslangValidator", x => glslangValidatorPath = x);
+            StringArg("-r|--rid", x => serverRid = x, "Set runtime identifier for server-only build");
             FlagArg("--debug", () => buildDebug = true, "Build natives with debug info");
             FlagArg("--O0", () => buildO0 = true, "Build natives with -O0 debug");
             FlagArg("--with-win32", () => withWin32 = true, "Also build for 32-bit windows");
@@ -70,6 +70,26 @@ namespace BuildLL
             Dotnet.Clean("LibreLancer.sln");
             RmDir("./obj/");
             RmDir("./bin/");
+        }
+
+        static async Task HeadlessBuild(string rid)
+        {
+            var objDir = "./obj/artifacts-headless";
+            var binDir = "./bin/librelancer-server-";
+            var outdir = binDir + rid;
+            Dotnet.Restore("LibreLancer.sln", rid, objDir);
+            var settings = new DotnetPublishSettings()
+            {
+                Configuration = "Release",
+                OutputDirectory = objDir,
+                Runtime = rid,
+                SelfContained = true,
+                Extra = "-p:DisableShaders=True"
+            };
+            Dotnet.Publish("src/LLServer/LLServer.csproj", settings);
+            await CustomPublish.MergeAndPatch(objDir, binDir + rid, rid, ["LLServer"]);
+            CopyFile("Credits.txt", outdir);
+            CopyFile("LICENSE", outdir);
         }
 
         private static HashSet<string> published = [];
@@ -368,6 +388,12 @@ namespace BuildLL
             Target("Clean", () =>
             {
                 Clean();
+            });
+
+            Target("HeadlessServer", DependsOn("GenerateVersion"), async () =>
+            {
+                var rid = serverRid ?? (IsWindows ? "win-x64" : GetLinuxRid());
+                await HeadlessBuild(rid);
             });
 
 
