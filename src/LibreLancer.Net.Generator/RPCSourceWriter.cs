@@ -19,8 +19,14 @@ public static class RPCSourceWriter
     private const string IPacketSender = "LibreLancer.Net.IPacketSender";
     private const string NetResponseHandler = "LibreLancer.Net.Protocol.RpcPackets.NetResponseHandler";
 
-    public static void GenerateProtocol(SourceProductionContext context, ImmutableArray<RPCInterface> interfaces)
+    public static void GenerateProtocol(SourceProductionContext context, ImmutableArray<RPCInterface> inputInterfaces)
     {
+        var interfaces = inputInterfaces
+            .Select(x =>
+                    (x with { Methods = new(x.Methods.OrderBy(x => x.Name).ToArray()) }))
+                .OrderBy(x => x.Name)
+                .ToArray();
+
         var sw = new StringBuilder();
         foreach (var ifc in interfaces)
         {
