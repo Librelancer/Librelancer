@@ -15,6 +15,9 @@ CIMGUI_API texteditor_t igExtTextEditorInit()
 {
 	TextEditor *editor = new TextEditor();
     editor->SetShowWhitespacesEnabled(false);
+    editor->SetCompletePairedGlyphs(false);
+    editor->SetTabSize(4);
+    editor->SetInsertSpacesOnTabs(true);
 	return (texteditor_t)editor;
 }
 
