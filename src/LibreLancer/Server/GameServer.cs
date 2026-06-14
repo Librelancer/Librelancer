@@ -239,6 +239,8 @@ namespace LibreLancer.Server
 
         public uint CurrentTick { get; private set; }
 
+        private bool isRunningSlow = false;
+
         private void Process(TimeSpan time, TimeSpan totalTime, uint currentTick)
         {
             CurrentTick = currentTick;
@@ -279,10 +281,16 @@ namespace LibreLancer.Server
             }
             var updateDuration = serverTiming.Elapsed - startTime;
             PerformanceStats?.AddEntry((float)updateDuration.TotalMilliseconds);
-            if (updateDuration > TimeSpan.FromTicks(166667))
+            bool slow = (updateDuration > TimeSpan.FromTicks(166667));
+            if (!isRunningSlow && slow)
             {
                 FLLog.Warning("Server", $"Running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
             }
+            else if (isRunningSlow && !slow)
+            {
+                FLLog.Info("Server", $"Not running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
+            }
+            isRunningSlow = slow;
             if (!running) processingLoop.Stop();
         }
 
