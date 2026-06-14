@@ -82,38 +82,6 @@ namespace LibreLancer.Net.Protocol
             Register<PackedUpdatePacket>(PackedUpdatePacket.Read);
             // Protocol
             GeneratedProtocol.RegisterPackets();
-            // String Updates (low priority)
-            Register<SetStringsPacket>(SetStringsPacket.Read);
-            Register<AddStringPacket>(AddStringPacket.Read);
-        }
-    }
-
-    public class AddStringPacket : IPacket
-    {
-        public string ToAdd = null!;
-
-        public static AddStringPacket Read(PacketReader message) => new()
-        {
-            ToAdd = message.GetString()!
-        };
-
-        public void WriteContents(PacketWriter outPacket)
-        {
-            outPacket.Put(ToAdd);
-        }
-    }
-
-    public class SetStringsPacket : IPacket
-    {
-        public required byte[] Data;
-        public static object Read(PacketReader message)
-        {
-            return new SetStringsPacket() { Data = message.GetRemainingBytes() };
-        }
-
-        public void WriteContents(PacketWriter outPacket)
-        {
-            outPacket.Put(Data, 0, Data.Length);
         }
     }
 
@@ -438,7 +406,7 @@ namespace LibreLancer.Net.Protocol
         public static NetShipCargo Read(PacketReader message) => new(
             message.GetVariableInt32(),
             message.GetUInt(),
-            message.GetHpid(),
+            message.GetString(),
             message.GetByte(),
             (int)message.GetVariableUInt32()
         );
@@ -447,7 +415,7 @@ namespace LibreLancer.Net.Protocol
         {
             message.PutVariableInt32(ID);
             message.Put(EquipCRC);
-            message.PutHpid(Hardpoint);
+            message.Put(Hardpoint);
             message.Put(Health);
             message.PutVariableUInt32((uint)Count);
         }

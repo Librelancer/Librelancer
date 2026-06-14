@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.Market;
@@ -167,7 +168,7 @@ public class BasesidePlayer : IBasesidePlayer
             Included = resolved.Addons.Select(x => new IncludedGood()
             {
                 EquipCRC = x.Equipment.CRC,
-                Hardpoint = string.IsNullOrWhiteSpace(x.Hardpoint) ? "internal" : x.Hardpoint,
+                Hardpoint = x.Hardpoint,
                 Amount = x.Amount
             }).ToArray()
         };

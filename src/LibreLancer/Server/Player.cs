@@ -44,7 +44,6 @@ namespace LibreLancer.Server
 
         // Reference
         public IPacketClient Client;
-        public NetHpidReader HpidReader = new();
         public GameServer Game;
         public SpacePlayer? Space;
         public BasesidePlayer? Baseside;
@@ -657,9 +656,7 @@ namespace LibreLancer.Server
         }
 
         public bool SinglePlayer => Client is LocalPacketClient;
-
-        public NetHpidWriter? HpidWriter => (Client as RemotePacketClient)?.Hpids;
-
+        
         public void SendSPUpdate(SPUpdatePacket update) =>
             Client.SendPacket(update, PacketDeliveryMethod.SequenceA);
 

@@ -617,8 +617,7 @@ namespace LibreLancer.Server
 
                 foreach (var m in missiles)
                 {
-                    var x = go.Children.FirstOrDefault(c =>
-                        m.Hardpoint.Equals(c.Attachment?.Name, StringComparison.OrdinalIgnoreCase));
+                    var x = go.Children.FirstOrDefault(c => m.Hardpoint == c.Attachment?.CRC);
 
                     if (x?.TryGetComponent<MissileLauncherComponent>(out var ml) ?? false)
                     {

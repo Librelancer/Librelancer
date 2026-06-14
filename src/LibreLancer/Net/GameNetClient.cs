@@ -35,7 +35,6 @@ namespace LibreLancer.Net
         public Guid UUID;
         private ConcurrentQueue<IPacket> packets = new();
         private HttpClient http = null!;
-        private NetHpidWriter hpidWrite = null!;
 
         private Stopwatch sw = null!;
         private List<LocalServerInfo> srvinfo = [];
@@ -165,11 +164,6 @@ namespace LibreLancer.Net
 
         private void ConnectInternal(IPEndPoint endPoint, string? token)
         {
-            hpidWrite = new NetHpidWriter();
-            hpidWrite.OnAddString += s =>
-            {
-                SendPacket(new AddStringPacket() { ToAdd = s }, PacketDeliveryMethod.ReliableOrdered);
-            };
             var dw = new PacketWriter();
             dw.Put(AppIdentifier + GeneratedProtocol.PROTOCOL_HASH);
             if (!string.IsNullOrEmpty(token))
@@ -300,16 +294,12 @@ namespace LibreLancer.Net
             });
         }
 
-        private NetHpidReader hpidReader = null!;
-
-        public NetHpidReader HpidReader => hpidReader;
 
         private void NetworkThread()
         {
             sw = Stopwatch.StartNew();
             http = new HttpClient();
             var listener = new EventBasedNetListener();
-            hpidReader = new NetHpidReader();
             client = new NetManager(listener)
             {
                 UnconnectedMessagesEnabled = true,
@@ -401,18 +391,9 @@ namespace LibreLancer.Net
                 try
                 {
 #endif
-                    var reader = new PacketReader(msg, hpidReader);
+                    var reader = new PacketReader(msg);
                     var pkt = Packets.Read(reader);
-
-                    if (pkt is SetStringsPacket strs)
-                    {
-                        hpidReader.SetStrings(strs.Data);
-                    }
-                    else if (pkt is AddStringPacket add)
-                    {
-                        hpidReader.AddString(add.ToAdd);
-                    }
-                    else if (connecting)
+                    if (connecting)
                     {
                         if (pkt is GuidAuthenticationPacket)
                         {
@@ -423,8 +404,6 @@ namespace LibreLancer.Net
                         else if (pkt is LoginSuccessPacket)
                         {
                             FLLog.Info("Client", "Login success");
-                            SendPacket(new SetStringsPacket() { Data = hpidWrite.GetData() },
-                                PacketDeliveryMethod.ReliableOrdered);
                             connecting = false;
                         }
                         else
@@ -530,7 +509,7 @@ namespace LibreLancer.Net
 
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
-            var om = new PacketWriter(new NetDataWriter(), hpidWrite);
+            var om = new PacketWriter(new NetDataWriter());
             Packets.Write(om, packet);
             method.ToLiteNetLib(out DeliveryMethod mt, out byte ch);
             client.FirstPeer?.Send(om, ch, mt);

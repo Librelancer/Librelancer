@@ -185,52 +185,5 @@ namespace LibreLancer.Net.Protocol
             return QuantizeFloat(a, min, max, bits) ==
                    QuantizeFloat(b, min, max, bits);
         }
-
-        public static readonly string[] DefaultHpidData =
-        [
-            "internal",
-            "HpCM01",
-            "HpCargo01",
-            "HpCargo02",
-            "HpContrail01",
-            "HpContrail02",
-            "HpDockLight01",
-            "HpDockLight02",
-            "HpDockLight03",
-            "HpHeadlight",
-            "HpMine01",
-            "HpRunningLight01",
-            "HpRunningLight02",
-            "HpRunningLight03",
-            "HpRunningLight04",
-            "HpRunningLight05",
-            "HpRunningLight06",
-            "HpRunningLight07",
-            "HpRunningLight10",
-            "HpRunningLight11",
-            "HpRunningLight12",
-            "HpRunningLight13",
-            "HpShield01",
-            "HpThruster01",
-            "HpTurret01",
-            "HpTurret02",
-            "HpTurret03",
-            "HpTurret04",
-            "HpTurret05",
-            "HpTurret06",
-            "HpTurret07",
-            "HpTurret08",
-            "HpTurret09",
-            "HpTurret_U1_01",
-            "HpTurret_U1_02",
-            "HpTurret_U1_03",
-            "HpTurret_U1_04",
-            "HpTurret_U1_05",
-            "HpTurret_U3_01",
-            "HpWeapon01",
-            "HpWeapon02",
-            "HpWeapon03",
-            "HpWeapon04"
-        ];
     }
 }

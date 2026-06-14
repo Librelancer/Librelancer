@@ -10,14 +10,10 @@ namespace LibreLancer.Net.Protocol;
 public class PacketWriter
 {
     private NetDataWriter writer;
-    private NetHpidWriter? hpids;
 
-    public NetHpidWriter? HpidWriter => hpids;
-
-    public PacketWriter(NetDataWriter writer, NetHpidWriter? hpids = null)
+    public PacketWriter(NetDataWriter writer)
     {
         this.writer = writer;
-        this.hpids = hpids;
     }
 
     public PacketWriter()
@@ -214,27 +210,6 @@ public class PacketWriter
         writer.Put(vec.X);
         writer.Put(vec.Y);
         writer.Put(vec.Z);
-    }
-
-    public void PutHpid(string? hpid)
-    {
-        if (hpids == null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        switch (hpid)
-        {
-            case null:
-                PutVariableUInt32(0);
-                break;
-            case "":
-                PutVariableUInt32(1);
-                break;
-            default:
-                PutVariableUInt32(hpids.GetIndex(hpid) + 2);
-                break;
-        }
     }
 
     public void Put(DateTime time)

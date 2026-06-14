@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
@@ -559,7 +560,8 @@ namespace LibreLancer.Server
             {
                 sl.Items.Add(new NetShipCargo(
                     c.ID, c.Equipment!.CRC,
-                    c.Hardpoint, (byte) (c.Health * 255f),
+                    c.Hardpoint,
+                    (byte) (c.Health * 255f),
                     c.Count
                 ));
             }

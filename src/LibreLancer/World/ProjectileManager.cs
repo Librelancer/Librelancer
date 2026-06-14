@@ -145,7 +145,7 @@ namespace LibreLancer.World
             return x;
         }
 
-        public void QueueMissile(string hardpoint, GameObject? target)
+        public void QueueMissile(uint hardpoint, GameObject? target)
         {
             if (target == null)
             {

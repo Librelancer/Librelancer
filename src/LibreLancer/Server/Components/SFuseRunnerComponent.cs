@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LibreLancer.Data;
 using LibreLancer.Data.Schema.Fuses;
 using LibreLancer.Data.GameData;
 using LibreLancer.Net.Protocol;
@@ -76,7 +77,7 @@ namespace LibreLancer.Server.Components
                     Effects.Add(new SpawnedEffect()
                     {
                         ID = fxID++, Effect = fxact.Effect,
-                        Hardpoints = fxact.Hardpoints.ToArray(),
+                        Hardpoints = fxact.Hardpoints.Select(FLHash.CreateID).ToArray(),
                     });
                     world.Server!.EffectSpawned(Parent);
                 }

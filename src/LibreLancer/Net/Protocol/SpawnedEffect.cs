@@ -8,14 +8,14 @@ namespace LibreLancer.Net.Protocol
     {
         public uint ID;
         public string Effect;
-        public string[] Hardpoints;
+        public uint[] Hardpoints;
         public void Put(PacketWriter message)
         {
             message.PutVariableUInt32(ID);
             message.Put(Effect);
             message.PutVariableUInt32((uint)Hardpoints.Length);
             foreach(var hp in Hardpoints)
-                message.PutHpid(hp);
+                message.Put(hp);
         }
 
         public static SpawnedEffect Read(PacketReader message)
@@ -24,10 +24,10 @@ namespace LibreLancer.Net.Protocol
             {
                 ID = message.GetVariableUInt32(),
                 Effect = message.GetString()!,
-                Hardpoints = new string[message.GetVariableUInt32()]
+                Hardpoints = new uint[message.GetVariableUInt32()]
             };
             for (int i = 0; i < x.Hardpoints.Length; i++)
-                x.Hardpoints[i] = message.GetHpid();
+                x.Hardpoints[i] = message.GetUInt();
             return x;
         }
     }

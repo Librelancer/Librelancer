@@ -15,8 +15,6 @@ namespace LibreLancer.Net.Protocol
         private bool canResize;
         private int bitOffset;
 
-        public NetHpidWriter? HpidWriter;
-
         public BitWriter(int initialCapacity = 64)
         {
             buffer = new byte [(initialCapacity + 7) >> 3];
@@ -29,27 +27,6 @@ namespace LibreLancer.Net.Protocol
             this.buffer = buffer;
             bitOffset = 0;
             this.canResize = canResize;
-        }
-
-        public void PutHpid(string? hpid)
-        {
-            if (HpidWriter == null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            switch (hpid)
-            {
-                case null:
-                    PutVarUInt32(0);
-                    break;
-                case "":
-                    PutVarUInt32(1);
-                    break;
-                default:
-                    PutVarUInt32(HpidWriter.GetIndex(hpid) + 2);
-                    break;
-            }
         }
 
         public void PutInt(int i) => PutUInt((uint) i, 32);

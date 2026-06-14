@@ -25,7 +25,6 @@ namespace LibreLancer.Net
         }
 
         private GameServer game;
-        private NetHpidWriter hpids = null!;
         private static readonly object TagConnecting = new();
 
         public int Port = LNetConst.DEFAULT_PORT;
@@ -63,10 +62,8 @@ namespace LibreLancer.Net
             EventBasedNetListener broadcastListener = new EventBasedNetListener();
             NetManager broadcastServer = new NetManager(broadcastListener);
             var unique = Guid.NewGuid();
-            hpids = new NetHpidWriter();
             listener.ConnectionRequestEvent += request =>
             {
-
                 if (!new PacketReader(request.Data).TryGetString(out var key))
                 {
                     FLLog.Debug("Server", $"Connect with no key {request.RemoteEndPoint}");
@@ -121,8 +118,7 @@ namespace LibreLancer.Net
                             else
                             {
                                 var peer = request.Accept();
-                                var remote = new RemotePacketClient(peer, hpids);
-                                remote.SendPacket(new SetStringsPacket() { Data = hpids.GetData() }, PacketDeliveryMethod.ReliableOrdered);
+                                var remote = new RemotePacketClient(peer);
                                 var p = new Player(remote,
                                     game, guid);
                                 peer.Tag = p;
@@ -198,9 +194,7 @@ namespace LibreLancer.Net
             {
                 try
                 {
-                    NetHpidReader? hpidReader = null;
-                    if (peer.Tag is Player pl) hpidReader = pl.HpidReader;
-                    var reader = new PacketReader(msg, hpidReader);
+                    var reader = new PacketReader(msg);
                     var pkt = Packets.Read(reader);
                     if (peer.Tag is DateTime)
                     {
@@ -214,9 +208,7 @@ namespace LibreLancer.Net
                             }
                             else
                             {
-                                var remote = new RemotePacketClient(peer, hpids);
-                                remote.SendPacket(new SetStringsPacket() {Data = hpids.GetData()},
-                                    PacketDeliveryMethod.ReliableOrdered);
+                                var remote = new RemotePacketClient(peer);
                                 var p = new Player(remote, game, auth.Guid);
                                 peer.Tag = p;
                                 lock (game.ConnectedPlayers)
@@ -233,14 +225,6 @@ namespace LibreLancer.Net
                             dw.Put(DisconnectReason.ConnectionError);
                             peer.Disconnect(dw);
                         }
-                    }
-                    else if (pkt is SetStringsPacket set)
-                    {
-                        hpidReader?.SetStrings(set.Data);
-                    }
-                    else if (pkt is AddStringPacket add)
-                    {
-                        hpidReader?.AddString(add.ToAdd);
                     }
                     else
                     {
@@ -273,18 +257,6 @@ namespace LibreLancer.Net
             {
                 if (data is Action onAck)
                     onAck();
-            };
-            hpids.OnAddString += s =>
-            {
-                var allPeers = new List<LiteNetPeer>();
-                Server.GetConnectedPeers(allPeers);
-                foreach (var p in allPeers)
-                {
-                    if (p.Tag is Player player)
-                    {
-                        (player.Client as RemotePacketClient)?.SendPacket(new AddStringPacket() { ToAdd = s }, PacketDeliveryMethod.ReliableOrdered);
-                    }
-                }
             };
             broadcastServer.ReuseAddress = true;
             broadcastServer.IPv6Enabled = true;

@@ -16,6 +16,7 @@ using LibreLancer.Missions;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Net.Protocol.RpcPackets;
+using LibreLancer.Resources;
 using LibreLancer.Server;
 using LibreLancer.World;
 

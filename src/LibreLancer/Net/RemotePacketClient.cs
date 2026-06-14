@@ -13,7 +13,6 @@ namespace LibreLancer.Net
     public class RemotePacketClient : IPacketClient
     {
         public NetPeer Client;
-        public NetHpidWriter Hpids;
 
         //LiteNetLib overhead = 4 bytes
         //NetPeer already includes IPv4/6 header size in reported Mtu
@@ -22,7 +21,7 @@ namespace LibreLancer.Net
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             method.ToLiteNetLib(out DeliveryMethod mt, out byte ch);
-            var m = new PacketWriter(new NetDataWriter(), Hpids);
+            var m = new PacketWriter(new NetDataWriter());
             Packets.Write(m, packet);
             Client.Send(m, ch, mt);
         }
@@ -42,10 +41,9 @@ namespace LibreLancer.Net
             Client.SendWithDeliveryEvent(m, channel, mtd, onAck);
         }
 
-        public RemotePacketClient(NetPeer client, NetHpidWriter hpids)
+        public RemotePacketClient(NetPeer client)
         {
             Client = client;
-            this.Hpids = hpids;
         }
     }
 }
