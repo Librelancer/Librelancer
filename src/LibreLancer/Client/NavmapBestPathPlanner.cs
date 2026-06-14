@@ -142,7 +142,7 @@ public static class NavmapBestPathPlanner
             {
                 var startId = GetOrAddTradelaneNode(system, lane.SourceObject);
                 var endId = GetOrAddTradelaneNode(system, lane.TargetObject);
-                var travelTime = TravelTime(lane.SourceObject.Position, lane.TargetObject.Position, TradelaneSpeed);
+                var travelTime = TravelTime(lane.SourceObject.Position, lane.TargetObject.Position, TradelaneSpeed) + TradelanePreferenceMargin;
                 AddEdge(startId, endId, travelTime, EdgeKind.TradelaneTraversal, bidirectional: false);
             }
         }
