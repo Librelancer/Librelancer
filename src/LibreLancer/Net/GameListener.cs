@@ -52,6 +52,7 @@ namespace LibreLancer.Net
 		}
 
         private AutoResetEvent stopHandle = null!;
+        private DateTime lastKeyPrint = DateTime.UnixEpoch;
 
         private void NetThread()
         {
@@ -75,7 +76,12 @@ namespace LibreLancer.Net
                 }
                 if (key != AppIdentifier + GeneratedProtocol.PROTOCOL_HASH)
                 {
-                    FLLog.Debug("Server", $"Connect with bad key {request.RemoteEndPoint}");
+                    var n = DateTime.UtcNow;
+                    if (n - lastKeyPrint > TimeSpan.FromSeconds(10))
+                    {
+                        FLLog.Info("Server", $"{request.RemoteEndPoint} Bad Key: '{key}' != '{AppIdentifier}{GeneratedProtocol.PROTOCOL_HASH}'");
+                        lastKeyPrint = n;
+                    }
                     var dw = new PacketWriter();
                     dw.Put(DisconnectReason.BadProtocolHash);
                     request.Reject(dw);
