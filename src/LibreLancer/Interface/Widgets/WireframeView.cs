@@ -28,20 +28,18 @@ namespace LibreLancer.Interface
             this.target = target;
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
             if (!Visible) return;
-            base.Render(context, drawList, parentRectangle);
-            var rect = GetMyRectangle(context, parentRectangle);
-            if (rect.Width <= 0 || rect.Height <= 0) return;
-            Background?.Draw(context, drawList, rect);
+            if (ClientRectangle.Width <= 0 || ClientRectangle.Height <= 0) return;
+            Background?.Draw(context, drawList, ClientRectangle);
 
             if (target != null)
             {
-                drawList.AddCallback(_ => Draw3DViewport(context, rect));
+                drawList.AddCallback(_ => Draw3DViewport(context, ClientRectangle));
             }
 
-            Border?.Draw(context, drawList, rect);
+            Border?.Draw(context, drawList, ClientRectangle);
         }
 
         private void DrawWires(UiContext context)

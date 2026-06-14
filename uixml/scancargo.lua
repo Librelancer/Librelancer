@@ -60,7 +60,6 @@ class scancargo : scancargo_Designer with ChildWindow
 			e.inv_list.Children.Add(li);
 		}
 		e.inv_list.SelectedIndex = e.inv_list.SelectedIndex; //refresh after list change
-		e.inv_list.ReloadStyle();
 		this.construct_ship_infocard();
 		if(e.inv_list.SelectedIndex != -1)
 		{

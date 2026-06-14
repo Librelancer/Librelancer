@@ -20,13 +20,6 @@ namespace LibreLancer.Interface
         private float builtMultiplier = 0;
         private ChatSource.DisplayMessage[] buildMessages = [];
 
-        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
-        {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
-            return myRectangle;
-        }
-
         private ChatSource.DisplayMessage[] GetMessageIds()
         {
             lock (Chat.Messages)
@@ -56,21 +49,24 @@ namespace LibreLancer.Interface
             return false;
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Update(UiContext context, double delta)
         {
-            var rect = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, drawList, rect);
-            var ids = GetMessageIds();
-
+            base.Update(context, delta);
             for (int i = Chat.Messages.Count - 1; i >= 0 && (i >= Chat.Messages.Count - 16); i--)
             {
-                Chat.Messages[i].TimeAlive -= (float) context.DeltaTime;
+                Chat.Messages[i].TimeAlive -= (float)delta;
             }
+        }
+
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
+        {
+            Background?.Draw(context, drawList, ClientRectangle);
+            var ids = GetMessageIds();
 
             if (ids.Length > 0)
             {
                 var textMultiplier = (context.ViewportHeight / 480) * 0.5f;
-                var displayRect = context.PointsToPixels(rect);
+                var displayRect = context.PointsToPixels(ClientRectangle);
 
                 if (Math.Abs(builtMultiplier - textMultiplier) > 0.01f ||
                     builtText == null ||
@@ -96,7 +92,7 @@ namespace LibreLancer.Interface
                     displayRect.X, (int) (displayRect.Y + displayRect.Height - builtText.Height));
             }
 
-            Border?.Draw(context, drawList, rect);
+            Border?.Draw(context, drawList, ClientRectangle);
         }
     }
 }

@@ -3,7 +3,6 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Graphics;
@@ -13,44 +12,112 @@ namespace LibreLancer.Interface
 {
     public abstract class UiWidget : IDisposable
     {
+        private ElementStyle? style;
+        private ElementStyle resolvedStyle = new();
+        protected StyledProperty<float> WidthProperty = new("Width");
+        protected StyledProperty<float> HeightProperty = new("Height");
+        protected StyledProperty<UiRenderable?> BackgroundProperty = new("Background");
+        protected StyledProperty<UiRenderable?> BorderProperty = new("Border");
+        protected bool StyleDirty = true;
+
         public string? ID { get; set; }
         public string? ClassName { get; set; }
         public AnchorKind Anchor { get; set; }
         public float X { get; set; }
         public float Y { get; set; }
-        public float Width { get; set; }
-        public float Height { get; set; }
-        public UiRenderable? Background { get; set; }
-        public UiRenderable? Border { get; set; }
+
+        public ElementStyle? Style
+        {
+            get => style;
+            set
+            {
+                style = value;
+                OnStyleChanged();
+            }
+        }
+
+
+        public float Width
+        {
+            get => WidthProperty.Value;
+            set
+            {
+                WidthProperty.Set(value);
+                OnStyleChanged();
+            }
+        }
+
+        public float Height
+        {
+            get => HeightProperty.Value;
+            set
+            {
+                HeightProperty.Set(value);
+                OnStyleChanged();
+            }
+        }
+
+        public UiRenderable? Background
+        {
+            get => BackgroundProperty.Value;
+            set
+            {
+                BackgroundProperty.Set(value);
+                OnStyleChanged();
+            }
+        }
+
+        public UiRenderable? Border
+        {
+            get => BorderProperty.Value;
+            set
+            {
+                BorderProperty.Set(value);
+                OnStyleChanged();
+            }
+        }
+
 
         public bool Visible { get; set; } = true;
 
         public bool Enabled { get; set; } = true;
 
-        // Style resolution code
-        protected static T Cascade<T>(T? style, T? style2, T self) where T : struct
+        public RectangleF ClientRectangle { get; protected set; }
+
+
+        public void OnStyleChanged()
         {
-            if (!IsDefault(self))
-            {
-                return self;
-            }
-
-            if (CheckValue(style2))
-            {
-                return style2!.Value;
-            }
-
-            if (CheckValue(style))
-            {
-                return style!.Value;
-            }
-
-            return default;
+            StyleDirty = true;
         }
 
-        private static bool CheckValue<T>(T? value) where T : struct => value is not null && !IsDefault(value.Value);
-        private static bool IsDefault<T>(T value) => EqualityComparer<T>.Default.Equals(value, default(T));
-        protected static T? Cascade<T>(T? style, T? style2, T? self) where T : class => (self ?? style2 ?? style);
+        protected void CheckStyle(UiContext context)
+        {
+            if (StyleDirty)
+            {
+                resolvedStyle = OnRestyle(context);
+                StyleDirty = false;
+            }
+        }
+
+        protected virtual ElementStyle OnRestyle(UiContext context)
+        {
+            return new StyleResolver()
+                .Add(style)
+                .Add(WidthProperty)
+                .Add(HeightProperty)
+                .Add(BackgroundProperty)
+                .Add(BorderProperty)
+                .Create<ElementStyle>();
+        }
+
+
+        public virtual void OnLayout(UiContext context, Layout layout, double delta)
+        {
+            CheckStyle(context);
+            var screen = layout.Place(new(X, Y, resolvedStyle.Width, resolvedStyle.Height), Anchor);
+            ClientRectangle = new(screen.X, screen.Y, screen.Width, screen.Height);
+            UpdateAnimation(delta);
+        }
 
         private static TextAlignment CastAlign(HorizontalAlignment h)
         {
@@ -189,22 +256,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        public abstract void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle);
-
-        private Stylesheet? _lastSheet;
-
-        public virtual void ApplyStylesheet(Stylesheet sheet)
-        {
-            _lastSheet = sheet;
-        }
-
-        public void ReloadStyle()
-        {
-            if (_lastSheet != null)
-            {
-                ApplyStylesheet(_lastSheet);
-            }
-        }
+        public abstract void Render(UiContext context, double delta, DrawList2D drawList);
 
         public virtual void UnFocus()
         {
@@ -212,32 +264,43 @@ namespace LibreLancer.Interface
 
         protected UiAnimation? CurrentAnimation;
         private float aspectRatio = 1;
+        private Vector2? animSetPos;
 
-        protected void Update(UiContext context, Vector2 myPos)
+        protected void UpdateAnimation(double delta)
         {
-            aspectRatio = context.ViewportWidth / context.ViewportHeight;
-            double delta = context.DeltaTime;
-            Callback?.Invoke(delta);
-
             if (CurrentAnimation == null)
             {
+                if (animSetPos != null)
+                {
+                    ClientRectangle = ClientRectangle with { X = animSetPos.Value.X, Y = animSetPos.Value.Y };
+                }
                 return;
             }
 
-            CurrentAnimation.SetWidgetPosition(myPos);
+            CurrentAnimation.SetWidgetRectangle(ClientRectangle);
             CurrentAnimation.Update(delta, aspectRatio);
-
             if (CurrentAnimation.Running)
             {
+                ClientRectangle = ClientRectangle with { X = CurrentAnimation.CurrentPosition.X, Y  = CurrentAnimation.CurrentPosition.Y };
                 return;
             }
 
             if (CurrentAnimation.FinalPositionSet.HasValue)
             {
                 animSetPos = CurrentAnimation.FinalPositionSet.Value;
+                ClientRectangle = ClientRectangle with { X = animSetPos.Value.X, Y  = animSetPos.Value.Y };
             }
-
+            else
+            {
+                animSetPos = null;
+            }
             CurrentAnimation = null;
+        }
+
+        public virtual void Update(UiContext context, double delta)
+        {
+            aspectRatio = context.ViewportWidth / context.ViewportHeight;
+            Callback?.Invoke(delta);
         }
 
         private event Action<double>? Callback;
@@ -254,24 +317,12 @@ namespace LibreLancer.Interface
             EscapePressed += () => handler.Call();
         }
 
-        private Vector2? animSetPos;
-
-        protected Vector2 AnimatedPosition(Vector2 myPos)
-        {
-            if (CurrentAnimation != null && CurrentAnimation.Running)
-            {
-                return CurrentAnimation.CurrentPosition;
-            }
-
-            return animSetPos ?? myPos;
-        }
-
         public void Animate(string name, float offsetTime, float duration)
         {
             switch (name.ToLowerInvariant())
             {
                 case "flyinleft":
-                    var left = new FlyInLeft(Vector2.Zero, GetDimensions().X, offsetTime, duration)
+                    var left = new FlyInLeft(offsetTime, duration)
                     {
                         From = -10
                     };
@@ -279,30 +330,30 @@ namespace LibreLancer.Interface
                     CurrentAnimation.Begin(aspectRatio);
                     break;
                 case "flyinright":
-                    var right = new FlyInRight(Vector2.Zero, offsetTime, duration);
+                    var right = new FlyInRight(offsetTime, duration);
                     CurrentAnimation = right;
                     CurrentAnimation.Begin(aspectRatio);
                     break;
                 case "flyoutleft":
-                    var outleft = new FlyOutLeft(Vector2.Zero, offsetTime, duration)
+                    var outleft = new FlyOutLeft(offsetTime, duration)
                     {
-                        To = -GetDimensions().X - 10
+                        To = -10
                     };
                     CurrentAnimation = outleft;
                     CurrentAnimation.Begin(aspectRatio);
                     break;
                 case "flyoutright":
-                    var outright = new FlyOutRight(Vector2.Zero, aspectRatio, Width, offsetTime, duration);
+                    var outright = new FlyOutRight(offsetTime, duration);
                     CurrentAnimation = outright;
                     CurrentAnimation.Begin(aspectRatio);
                     break;
                 case "flyinbottom":
-                    var inbottom = new FlyInBottom(Vector2.Zero, offsetTime, duration);
+                    var inbottom = new FlyInBottom( offsetTime, duration);
                     CurrentAnimation = inbottom;
                     CurrentAnimation.Begin(aspectRatio);
                     break;
                 case "flyoutbottom":
-                    var outbottom = new FlyOutBottom(Vector2.Zero, offsetTime, duration);
+                    var outbottom = new FlyOutBottom(offsetTime, duration);
                     CurrentAnimation = outbottom;
                     CurrentAnimation.Begin(aspectRatio);
                     break;
@@ -314,7 +365,7 @@ namespace LibreLancer.Interface
             return $"{ID ?? "(no id)"} - {GetType()}";
         }
 
-        public virtual bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
+        public virtual bool MouseWanted(UiContext context, float x, float y)
         {
             return false;
         }
@@ -331,23 +382,23 @@ namespace LibreLancer.Interface
             }
         }
 
-        public virtual void OnMouseDown(UiContext context, RectangleF parentRectangle)
+        public virtual void OnMouseDown(UiContext context)
         {
         }
 
-        public virtual void OnMouseClick(UiContext context, RectangleF parentRectangle)
+        public virtual void OnMouseClick(UiContext context)
         {
         }
 
-        public virtual void OnMouseDoubleClick(UiContext context, RectangleF parentRectangle)
+        public virtual void OnMouseDoubleClick(UiContext context)
         {
         }
 
-        public virtual void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        public virtual void OnMouseWheel(UiContext context, float delta)
         {
         }
 
-        public virtual void OnMouseUp(UiContext context, RectangleF parentRectangle)
+        public virtual void OnMouseUp(UiContext context)
         {
         }
 
@@ -358,8 +409,6 @@ namespace LibreLancer.Interface
         public virtual void OnTextInput(string text)
         {
         }
-
-        public virtual Vector2 GetDimensions() => new(Width, Height);
 
         public virtual UiWidget? GetElement(string elementID)
         {

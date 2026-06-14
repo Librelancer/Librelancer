@@ -9,31 +9,29 @@ namespace LibreLancer
 {
     public class FlyOutBottom : UiAnimation
     {
-        private Vector2 finalPos;
         public float To = 480;
-        public FlyOutBottom(Vector2 final, double start, double time) : base(start, time)
+
+        public FlyOutBottom(double start, double time) : base(start, time)
         {
-            finalPos = final;
-            CurrentPosition.X = finalPos.X;
-            FinalPositionSet = new Vector2(finalPos.X, To);
             Remain = true;
         }
 
-        public override void SetWidgetPosition(Vector2 pos)
+        public override void SetWidgetRectangle(RectangleF rect)
         {
-            finalPos = pos;
-            if (Time <= Start) CurrentPosition.Y = finalPos.Y;
-            CurrentPosition.X = finalPos.X;
-            FinalPositionSet = new Vector2(finalPos.X, To);
+            base.SetWidgetRectangle(rect);
+            if (Time <= Start) CurrentPosition.Y = ClientRectangle.Y;
+            CurrentPosition.X = ClientRectangle.X;
+            FinalPositionSet = new Vector2(ClientRectangle.X, To);
         }
         protected override void Run(double currentTime, float aspectRatio)
         {
+            CurrentPosition.X = ClientRectangle.X;
             CurrentPosition.Y = Easing.Ease(
                 EasingTypes.EaseOut,
                 (float)currentTime,
                 0,
                 (float)Duration,
-                finalPos.Y,
+                ClientRectangle.Y,
                 To
             );
         }

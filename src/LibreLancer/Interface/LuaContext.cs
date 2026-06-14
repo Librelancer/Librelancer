@@ -210,6 +210,7 @@ namespace LibreLancer.Interface
             public InterfaceColor GetColor(string col) => c.uiContext.Data.GetColor(col);
             public InterfaceModel GetModel(string mdl) => c.uiContext.Data.Resources.Models.First(x => x.Name == mdl);
             public InterfaceImage GetImage(string img) => c.uiContext.Data.Resources.Images.First(x => x.Name == img);
+            public XmlStyle? GetStyle(string name) => c.uiContext.Data.Stylesheet?.Styles.Get(name);
             public string GetNavbarIconPath(string ico) => c.uiContext.Data.GetNavbarIconPath(ico);
             public Vector3 Vector3(float x, float y, float z) => new(x, y, z);
 

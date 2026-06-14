@@ -1018,7 +1018,7 @@ namespace LibreLancer
                 }
             }
 
-            ui.Update(Game);
+            ui.Update(Game, delta);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
         }
 

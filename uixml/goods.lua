@@ -22,7 +22,7 @@ local function good_icon_3db(name, control)
 local function mount_icon(mounted, enabled, onclick) 
 {
 	local control = NewObject("Button")
-	control.Style = mounted ? "inv_mount" : "inv_unmount";
+	control.Style = GetStyle(mounted ? "inv_mount" : "inv_unmount");
 	control.Enabled = enabled
 	if (onclick) control.OnClick(onclick);
 	return control

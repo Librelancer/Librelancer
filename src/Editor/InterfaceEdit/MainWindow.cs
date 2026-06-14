@@ -552,30 +552,30 @@ public class MainWindow : Game
                 _playContext.OnMouseWheel(ImGui.GetIO().MouseWheel);
             }
 
-            _playContext.Update(TotalTime, mX, mY, false);
             if (Keyboard.IsKeyDown(Keys.LeftAlt))
                 TestApi.OverridePosition = new Vector2(_playContext.MouseX, _playContext.MouseY);
             else
                 TestApi.OverridePosition = null;
             mouseWanted = _playContext.MouseWanted(mX, mY);
-
             if (ImGui.IsItemClicked(0))
             {
-                _playContext.OnMouseClick();
                 if (ImGui.IsMouseDoubleClicked(0)) _playContext.OnMouseDoubleClick();
             }
-
             var isDown = ImGui.IsMouseDown(0);
-            if (lastDown && !isDown) _playContext.OnMouseUp();
+            if (lastDown && !isDown)
+            {
+                _playContext.OnMouseClick();
+                _playContext.OnMouseUp();
+            }
             if (isDown && !lastDown) _playContext.OnMouseDown();
             _playContext.MouseLeftDown = isDown;
             lastDown = isDown;
+            _playContext.Update(TotalTime, delta, mX, mY, false);
         }
         else
         {
             TestApi.OverridePosition = null;
             mouseWanted = false;
-            _playContext.Update(TotalTime, 0, 0, false);
             _playContext.MouseLeftDown = false;
 
             if (lastDown)
@@ -583,6 +583,7 @@ public class MainWindow : Game
                 lastDown = false;
                 _playContext.OnMouseUp();
             }
+            _playContext.Update(TotalTime, delta, 0, 0, false);
         }
     }
 

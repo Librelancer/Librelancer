@@ -17,7 +17,7 @@ public static class UiXmlReflection
     {
         public Dictionary<string, PropertyInfo> Elements = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
         public Dictionary<string, PropertyInfo> Attributes = new Dictionary<string, PropertyInfo>(StringComparer.OrdinalIgnoreCase);
-        public PropertyInfo Content = null!;
+        public PropertyInfo? Content = null;
     }
 
     private static Dictionary<Type, XmlTypeInfo> typeInfos = new Dictionary<Type, XmlTypeInfo>();
@@ -95,9 +95,12 @@ public static class UiXmlReflection
     )
     {
         XmlTypeInfo? info;
+
         if (!typeInfos.TryGetValue(type, out info))
         {
             info = new XmlTypeInfo();
+            PropertyInfo? style = null;
+
             foreach (var property in type.GetRuntimeProperties())
             {
                 if (!property.IsPropertyInfoPublic()) continue;
@@ -114,6 +117,14 @@ public static class UiXmlReflection
                         continue;
                     info.Attributes.Add(property.Name, property);
                 }
+                else if (typeof(XmlStyle).IsAssignableFrom(ptype))
+                    // We can set a name or write a style
+                {
+                    if (property.SetMethod == null)
+                        continue;
+                    info.Attributes.Add(property.Name, property);
+                    info.Elements.Add(property.Name, property);
+                }
                 else
                 {
                     if (property.GetCustomAttribute<UiContentAttribute>() != null)
@@ -122,6 +133,7 @@ public static class UiXmlReflection
                 }
             }
             typeInfos.Add(type, info);
+
         }
 
         elements = info.Elements;

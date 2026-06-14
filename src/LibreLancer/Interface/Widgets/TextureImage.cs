@@ -29,21 +29,22 @@ namespace LibreLancer.Interface
         public bool Fill { get; set; }
         private Texture2D? texture;
         private bool loaded = false;
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+
+        public override void OnLayout(UiContext context, Layout layout, double delta)
+        {
+            base.OnLayout(context, layout, delta);
+            if (Fill)
+                ClientRectangle = layout.Fill();
+        }
+
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
             if (!Visible)
             {
                 return;
             }
 
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
-            if (Fill)
-            {
-                myRectangle = parentRectangle;
-            }
-
-            Background?.Draw(context, drawList, myRectangle);
+            Background?.Draw(context, drawList, ClientRectangle);
 
             if (!string.IsNullOrEmpty(Name) && (!loaded || texture == null || texture.IsDisposed))
             {
@@ -54,8 +55,10 @@ namespace LibreLancer.Interface
             if (texture != null)
             {
                 var color = (Tint ?? InterfaceColor.White).Color;
-               drawList.DrawImageStretched(texture, context.PointsToPixels(myRectangle), color, Flip);
+               drawList.DrawImageStretched(texture, context.PointsToPixels(ClientRectangle), color, Flip);
             }
+
+            Border?.Draw(context, drawList, ClientRectangle);
         }
     }
 }

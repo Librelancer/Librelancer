@@ -19,13 +19,7 @@ namespace LibreLancer.Interface
         private int mW = -1;
         private Infocard? currInfocard;
 
-        private Scrollbar scrollbar = new() { Smooth = true };
-        private bool scrollbarVisible = false;
-
-        public override void ApplyStylesheet(Stylesheet sheet)
-        {
-            scrollbar.ApplyStyle(sheet);
-        }
+        public Scrollbar Scrollbar { get; set; } = new();
 
         private string? setString = null;
         private string? setFont = null;
@@ -43,14 +37,14 @@ namespace LibreLancer.Interface
             this.setSize = size;
         }
 
-        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
+        public override void OnLayout(UiContext context, Layout layout, double delta)
         {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
-            return myRectangle;
+            base.OnLayout(context, layout, delta);
+            Scrollbar.OnLayout(context, new Layout(ClientRectangle), delta);
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
             // TODO: fix up
             if (setString != null)
@@ -79,9 +73,9 @@ namespace LibreLancer.Interface
             }
 
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, drawList, myRectangle);
-            myRectangle.Width -= scrollbar.Style!.Width;
+            Background?.Draw(context, drawList, ClientRectangle);
+            var myRectangle = ClientRectangle;
+            myRectangle.Width -= Scrollbar.ClientRectangle.Width;
 
             if (Infocard != null)
             {
@@ -98,31 +92,28 @@ namespace LibreLancer.Interface
 
                     if ((int) h > myRect.Height + 2)
                     {
-                        scrollbar.ScrollOffset = 0;
-                        scrollbar.ThumbSize = myRect.Height / h;
+                        Scrollbar.ScrollOffset = 0;
+                        Scrollbar.ThumbSize = myRect.Height / h;
                         const float TICK_MAGIC = 0.2627986f;
-                        scrollbar.Tick = 0.01f * (scrollbar.ThumbSize / TICK_MAGIC);
-                        scrollbarVisible = true;
+                        Scrollbar.Tick = 0.01f * (Scrollbar.ThumbSize / TICK_MAGIC);
+                        Scrollbar.Visible = true;
                     }
                     else
                     {
-                        scrollbarVisible = false;
+                        Scrollbar.Visible = false;
                     }
 
                 }
 
-                if (scrollbarVisible)
-                    scrollbar.Render(context,drawList,
-                        new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width,
-                            myRectangle.Height));
+                Scrollbar.Render(context, delta, drawList);
 
                 if (drawList.PushClip(myRect))
                 {
                     int y = myRect.Y;
 
-                    if (scrollbarVisible)
+                    if (Scrollbar.Visible)
                     {
-                        y -= (int) (scrollbar.ScrollOffset * (richText!.Height - myRect.Height));
+                        y -= (int) (Scrollbar.ScrollOffset * (richText!.Height - myRect.Height));
                     }
 
                     rte.RenderText(drawList, richText!, myRect.X, y);
@@ -130,29 +121,31 @@ namespace LibreLancer.Interface
                 }
             }
 
-            Border?.Draw(context, drawList, myRectangle);
+            Border?.Draw(context, drawList, ClientRectangle);
         }
 
-        public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
+        public override void Update(UiContext context, double delta)
         {
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            if (Infocard != null && scrollbarVisible)
-                scrollbar.OnMouseDown(context, myRectangle);
+            base.Update(context, delta);
+            Scrollbar.Update(context, delta);
         }
 
-        public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseDown(UiContext context)
         {
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            if (Infocard != null && scrollbarVisible)
-                scrollbar.OnMouseUp(context, myRectangle);
+            if (Infocard != null)
+                Scrollbar.OnMouseDown(context);
         }
 
-        public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        public override void OnMouseUp(UiContext context)
         {
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            if (Infocard != null && scrollbarVisible &&
-                myRectangle.Contains(context.MouseX, context.MouseY))
-                scrollbar.OnMouseWheel(delta);
+            if (Infocard != null)
+                Scrollbar.OnMouseUp(context);
+        }
+
+        public override void OnMouseWheel(UiContext context, float delta)
+        {
+            if (Infocard != null && ClientRectangle.Contains(context.MouseX, context.MouseY))
+                Scrollbar.OnMouseWheel(context, delta);
         }
     }
 }

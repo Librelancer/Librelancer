@@ -9,17 +9,8 @@ namespace LibreLancer
 {
     public class FlyInRight : UiAnimation
     {
-        private Vector2 finalPos;
-        public FlyInRight(Vector2 final, double start, double time) : base(start, time)
+        public FlyInRight(double start, double time) : base(start, time)
         {
-            finalPos = final;
-            CurrentPosition.Y = finalPos.Y;
-        }
-
-        public override void SetWidgetPosition(Vector2 pos)
-        {
-            finalPos = pos;
-            CurrentPosition.Y = finalPos.Y;
         }
 
         protected override void Run (double currentTime, float aspectRatio)
@@ -29,9 +20,10 @@ namespace LibreLancer
                 (float)currentTime,
                 0,
                 (float)Duration,
-                from + finalPos.X,
-                finalPos.X
+                from,
+                ClientRectangle.X
             );
+            CurrentPosition.Y = ClientRectangle.Y;
         }
     }
 }

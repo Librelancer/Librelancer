@@ -308,6 +308,8 @@ public class TestingApi
     {
     }
 
+    public int UserWaypointCount() => 0;
+
 
     public Infocard _Infocard = null!;
 
@@ -436,6 +438,7 @@ public class TestingApi
         dict.Set("Formation", false);
         return dict;
     }
+
 
     public bool HasShip() => true;
 
@@ -609,6 +612,8 @@ public class TestingApi
 
         public float GetUsedHoldSpace() => 30;
 
+        public float GetPurchaseLimit(object item) => 5;
+
         public void Buy(string good, int count, Closure onSuccess)
         {
         }
@@ -634,6 +639,9 @@ public class TestingApi
     public FakeShipDealer ShipDealer = new FakeShipDealer();
 
     public string SelectionName() => "Selected Object";
+
+    public string SelectionDistance() => "1.4K";
+
     public bool SelectionVisible() => true;
 
     public float SelectionHealth() => 0.5f;
@@ -668,6 +676,14 @@ public class TestingApi
     {
     }
 
+    public void SetWaypointTemplate(UiWidget widget, Closure closure)
+    {
+    }
+
+    public void SetWaypointLabelTemplate(UiWidget widget, Closure closure)
+    {
+    }
+
     public void SetReticleTemplate(UiWidget template, Closure callback)
     {
     }
@@ -679,6 +695,8 @@ public class TestingApi
     public void SetSelectedArrowTemplate(UiWidget template, Closure callback)
     {
     }
+
+ public bool SelectionIsWaypoint() => false;
 
     public string ActiveNavbarButton()
     {

@@ -85,12 +85,19 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void OnLayout(UiContext context, Layout layout, double delta)
         {
+            base.OnLayout(context, layout, delta);
+            if (Fill)
+                ClientRectangle = layout.Fill();
+        }
+
+        public override void Update(UiContext context, double delta)
+        {
+            base.Update(context, delta);
             if (fading)
             {
-                TextAlpha += (float) (context.DeltaTime * fadeStep);
-
+                TextAlpha += (float) (delta * fadeStep);
                 if (TextAlpha > 1)
                 {
                     TextAlpha = 1;
@@ -106,29 +113,28 @@ namespace LibreLancer.Interface
                     fadeStep = 0;
                 }
             }
+        }
 
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
+        {
             if (!Visible) return;
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
+            var rect = ClientRectangle;
 
-            if (Fill)
-            {
-                myRectangle = parentRectangle;
-            }
-
+            Background?.Draw(context, drawList, ClientRectangle);
             if (Background != null)
             {
                 foreach (var elem in Background.Elements)
-                    elem.Render(context, drawList, myRectangle, 1);
+                    elem.Render(context, drawList, rect, 1);
             }
 
-            myRectangle.X += MarginX;
-            myRectangle.Width -= MarginX * 2;
+            rect.X += MarginX;
+            rect.Width -= MarginX * 2;
             var txt = txtAccess.GetText(context);
             if (!string.IsNullOrEmpty(txt))
-                RenderText(context, drawList, ref renderCache, myRectangle, TextSize, Font, TextColor, TextShadow,
+                RenderText(context, drawList, ref renderCache, rect, TextSize, Font, TextColor, TextShadow,
                     HorizontalAlignment, VerticalAlignment, Clip,
                     txt, TextAlpha, Wrap);
+            Border?.Draw(context, drawList, ClientRectangle);
         }
     }
 }

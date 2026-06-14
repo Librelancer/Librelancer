@@ -44,7 +44,7 @@ local function HudButton(modelPath, disabledPath)
 	disabledAppearance.Background = ModelRenderable(disabledModel)
 	style.Disabled = disabledAppearance
 	// Set Appearance
-	button.SetStyle(style)
+	button.Style = style
 	return button
 }
 

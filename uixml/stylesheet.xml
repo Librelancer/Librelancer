@@ -1,4 +1,6 @@
 <Stylesheet>
+<!-- Default Style -->
+    <ButtonStyle MouseDownSound="ui_select_item"/>
 	<!-- Generic buttons -->
 	<ButtonStyle Width="16" Height="16" Name="xbutton">
 		<ButtonStyle.Normal>
@@ -499,15 +501,16 @@
             </ButtonAppearance.Background>
         </ButtonStyle.Selected>
     </ButtonStyle>
-    <ButtonStyle Name="nav_selector" Width="14" Height="14">
-        <ButtonStyle.Normal>
-            <ButtonAppearance.Background>
-                <DisplayModel model="nav_selector"/>
-            </ButtonAppearance.Background>
-        </ButtonStyle.Normal>
-    </ButtonStyle>
+
     <NavmapStyle UserWaypointSize="28" UserWaypointDigitWidth="6" UserWaypointDigitHeight="10" UserWaypointRouteThickness="2" UserWaypointColor="#ff33ff" UserWaypointDigitColor="yellow">
-	<NavmapStyle.ZoomInButton Width="17" Height="17" MouseDownSound="ui_item_select">
+      <NavmapStyle.SelectorButton Width="14" Height="14">
+        <ButtonStyle.Normal>
+          <ButtonAppearance.Background>
+            <DisplayModel model="nav_selector"/>
+          </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+      </NavmapStyle.SelectorButton>
+      <NavmapStyle.ZoomInButton Width="17" Height="17" MouseDownSound="ui_item_select">
             <ButtonStyle.Normal>
                 <ButtonAppearance.Background>
                     <DisplayModel model="nav_zoomin"/>

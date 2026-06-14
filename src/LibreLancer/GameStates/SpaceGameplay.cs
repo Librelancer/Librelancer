@@ -566,12 +566,18 @@ World Time: {12:F2}
                 Callback = cb;
             }
 
-            public void Draw(UiContext context, DrawList2D drawList, RectangleF parentRectangle, float x, float y, params object[] args)
+            public void Draw(UiContext context,
+                double delta,
+                DrawList2D drawList,
+                RectangleF canvasRectangle,
+                float x, float y, params object[] args)
             {
                 Callback?.Call(args);
                 Template.X = x;
                 Template.Y = y;
-                Template.Render(context, drawList, parentRectangle);
+                Template.OnLayout(context, new Layout(canvasRectangle), delta);
+                Template.Update(context, delta);
+                Template.Render(context, delta, drawList);
             }
         }
 
@@ -1207,7 +1213,7 @@ World Time: {12:F2}
                     session.Items.FirstOrDefault(x => x.Equipment is RepairKitEquipment)?.Count ?? 0;
             }
 
-            ui.Update(Game);
+            ui.Update(Game, delta);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
             TimeDilatedUpdate(delta);
             UpdateUserWaypointRoute();
@@ -2247,7 +2253,7 @@ World Time: {12:F2}
             return (pos, angle);
         }
 
-        private void DrawSelectedArrow(GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        private void DrawSelectedArrow(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var rep = GetRepToPlayer(obj) switch
             {
@@ -2257,12 +2263,12 @@ World Time: {12:F2}
             };
             var (arrowPos, angle) = ArrowPosition(pos);
             uiApi.SelectedArrow?.Draw(
-                context, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
+                context, delta, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
                 angle, rep, (obj.Flags & GameObjectFlags.Important) != 0
             );
         }
 
-        private void DrawUnselectedArrow(GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        private void DrawUnselectedArrow(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var rep = GetRepToPlayer(obj) switch
             {
@@ -2272,18 +2278,18 @@ World Time: {12:F2}
             };
             var (arrowPos, angle) = ArrowPosition(pos);
             uiApi.UnselectedArrow?.Draw(
-                context, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
+                context, delta, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
                 angle, rep, 0.5f, (obj.Flags & GameObjectFlags.Important) != 0
             );
         }
 
-        private void DrawShipReticle(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
+        private void DrawShipReticle(double delta, GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
         {
             // var rep = GetRepToPlayer(obj);
 
         }
 
-        private void DrawWaypoint(GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle, bool selected)
+        private void DrawWaypoint(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle, bool selected)
         {
             var size = WaypointSelectionStartSize;
             if (selected)
@@ -2303,14 +2309,14 @@ World Time: {12:F2}
             }
             var alpha = selected ? 1f : 0.85f;
             uiApi.Waypoint?.Draw(
-                context, drawList, parentRectangle,
+                context, delta, drawList, parentRectangle,
                 ui.PixelsToPoints(pos.X) - (size / 2f),
                 ui.PixelsToPoints(pos.Y) - (size / 2f),
                 size, alpha
             );
         }
 
-        private void IndicatorLayerOnRender(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        private void IndicatorLayerOnRender(UiContext context, double delta, DrawList2D drawList, RectangleF clientRectangle)
         {
             foreach (var obj in world.Objects)
             {
@@ -2326,10 +2332,10 @@ World Time: {12:F2}
                     {
                         case false when (obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
                                         (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important:
-                            DrawUnselectedArrow(obj, pos, context, drawList, parentRectangle);
+                            DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
                             break;
                         case true:
-                            DrawShipReticle(obj, pos, context, parentRectangle);
+                            DrawShipReticle(delta, obj, pos, context, clientRectangle);
                             break;
                     }
 
@@ -2340,16 +2346,16 @@ World Time: {12:F2}
 
                     if (visible)
                     {
-                        DrawWaypoint(obj, pos, context, drawList, parentRectangle, false);
+                        DrawWaypoint(delta, obj, pos, context, drawList, clientRectangle, false);
                         uiApi.WaypointLabel?.Draw(
-                            context, drawList, parentRectangle,
+                            context, delta, drawList, clientRectangle,
                             ui.PixelsToPoints(pos.X) - 45f,
                             ui.PixelsToPoints(pos.Y) - (WaypointSelectionStartSize / 2f) - 17f
                         );
                     }
                     else
                     {
-                        DrawUnselectedArrow(obj, pos, context, drawList, parentRectangle);
+                        DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
                     }
                 }
                 else if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
@@ -2359,7 +2365,7 @@ World Time: {12:F2}
 
                     if (!visible)
                     {
-                        DrawUnselectedArrow(obj, pos, context, drawList, parentRectangle);
+                        DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
                     }
                 }
             }
@@ -2374,7 +2380,7 @@ World Time: {12:F2}
             var (selectedPos, selectedVisible) = ScreenPosition(selected);
             if (selectedVisible && selected.Kind == GameObjectKind.Waypoint)
             {
-                DrawWaypoint(selected, selectedPos, context, drawList, parentRectangle, true);
+                DrawWaypoint(delta, selected, selectedPos, context, drawList, clientRectangle, true);
             }
             else
             {
@@ -2382,7 +2388,7 @@ World Time: {12:F2}
 
                 if (!selectedVisible)
                 {
-                    DrawSelectedArrow(selected, selectedPos, context, drawList, parentRectangle);
+                    DrawSelectedArrow(delta, selected, selectedPos, context, drawList, clientRectangle);
                 }
             }
         }

@@ -34,7 +34,7 @@ local function NavbarButton(hotspot, active)
 	style.Hover = hoverAppearance
 	// Set Appearance
 	button.ID = hotspot
-	button.SetStyle(style)
+	button.Style = style
 	return button
 }
 

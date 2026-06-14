@@ -2,9 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Numerics;
-using LibreLancer.Graphics;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface
@@ -13,26 +10,15 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class Scene : Container
     {
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void OnLayout(UiContext context, Layout layout, double delta)
         {
-            if (Visible)
+            CheckStyle(context);
+            ClientRectangle = layout.Fill();
+            var self = new Layout(ClientRectangle);
+            for (int i = 0; i < Children.Count; i++)
             {
-                Update(context, Vector2.Zero);
-                Background?.Draw(context, drawList, parentRectangle);
-                base.Render(context, drawList, parentRectangle);
+                Children[i].OnLayout(context, self, delta);
             }
-        }
-
-        private Stylesheet? currentSheet;
-        public void ApplyStyles()
-        {
-            if(currentSheet != null) ApplyStylesheet(currentSheet);
-        }
-
-        public override void ApplyStylesheet(Stylesheet sheet)
-        {
-            currentSheet = sheet;
-            base.ApplyStylesheet(sheet);
         }
     }
 }

@@ -56,7 +56,6 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class DataTable : UiWidget
     {
-        public Scrollbar Scrollbar = new() { Smooth = false };
         public List<TableColumn> Columns { get; set; } = [];
         public string BodyFont { get; set; } = "$ListText";
         public int BodyTextSize { get; set; }
@@ -70,6 +69,7 @@ namespace LibreLancer.Interface
         public InterfaceColor? LineHover { get; set; }
         public InterfaceColor? LineDown { get; set; }
         public InterfaceColor? TextShadow { get; set; }
+        public Scrollbar Scrollbar { get; set; } = new();
         public int DisplayRowCount { get; set; } = 5;
 
         public bool ShowHeaders { get; set; } = true;
@@ -79,6 +79,16 @@ namespace LibreLancer.Interface
 
         private ITableData? data;
         private float[]? dividerPositions;
+
+        // Remove in future refactor
+        static T? Cascade<T>(T? style, T? style2, T? self) where T : class => (self ?? style2 ?? style);
+
+
+        public override void OnLayout(UiContext context, Layout layout, double delta)
+        {
+            base.OnLayout(context, layout, delta);
+            Scrollbar.OnLayout(context, new Layout(ClientRectangle), delta);
+        }
 
         private void GenerateDividerPositions()
         {
@@ -180,18 +190,18 @@ namespace LibreLancer.Interface
             return dragRect;
         }
 
-        public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseDown(UiContext context)
         {
             if (Width <= 0 || Height <= 0) return;
             if (!Visible) return;
             if (dividerPositions == null) GenerateDividerPositions();
             if (dividerPositions == null) return;
-            var rect = GetMyRectangle(context, parentRectangle);
+            var rect = ClientRectangle;
 
-            if (_lastScroll > 0)
+            if (Scrollbar.Visible)
             {
-                Scrollbar.OnMouseDown(context, rect);
-                rect.Width -= Scrollbar.Style!.Width;
+                Scrollbar.OnMouseDown(context);
+                rect.Width -= Scrollbar.ClientRectangle.Width;
             }
 
             if (rect.Contains(context.MouseX, context.MouseY))
@@ -237,21 +247,19 @@ namespace LibreLancer.Interface
             return true;
         }
 
-        public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        public override void OnMouseWheel(UiContext context, float delta)
         {
-            var rect = GetMyRectangle(context, parentRectangle);
-            if (rect.Contains(context.MouseX, context.MouseY))
-                Scrollbar.OnMouseWheel(delta);
+            if (ClientRectangle.Contains(context.MouseX, context.MouseY))
+                Scrollbar.OnMouseWheel(context, delta);
         }
 
-        public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseClick(UiContext context)
         {
             if (!CanInteract()) return;
-            var rect = GetMyRectangle(context, parentRectangle);
-
-            if (_lastScroll > 0)
+            var rect = ClientRectangle;
+            if (Scrollbar.Visible)
             {
-                rect.Width -= Scrollbar.Style!.Width;
+                rect.Width -= Scrollbar.ClientRectangle.Width;
             }
 
             var rowCount = Math.Min(DisplayRowCount, (data!.Count - childOffset));
@@ -272,14 +280,14 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void OnMouseDoubleClick(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseDoubleClick(UiContext context)
         {
             if (!CanInteract()) return;
-            var rect = GetMyRectangle(context, parentRectangle);
+            var rect = ClientRectangle;
 
-            if (_lastScroll > 0)
+            if (Scrollbar.Visible)
             {
-                rect.Width -= Scrollbar.Style!.Width;
+                rect.Width -= Scrollbar.ClientRectangle.Width;
             }
 
             var rowCount = Math.Min(DisplayRowCount, (data!.Count - childOffset));
@@ -312,22 +320,10 @@ namespace LibreLancer.Interface
             onDoubleClicked = (row, column) => c.Call(row, column);
         }
 
-        public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseUp(UiContext context)
         {
-            var rect = GetMyRectangle(context, parentRectangle);
-
-            if (_lastScroll > 0)
-            {
-                Scrollbar.OnMouseUp(context, rect);
-            }
-
+            Scrollbar.OnMouseUp(context);
             dragging = -1;
-        }
-
-        public override void ApplyStylesheet(Stylesheet sheet)
-        {
-            base.ApplyStylesheet(sheet);
-            Scrollbar.ApplyStyle(sheet);
         }
 
         private RectangleF GetCell(RectangleF parentRect, int row, int column)
@@ -354,13 +350,19 @@ namespace LibreLancer.Interface
         private CachedRenderString[][]? rowStrings;
         private int _lastScroll = 0;
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Update(UiContext context, double delta)
+        {
+            base.Update(context, delta);
+            Scrollbar.Update(context, delta);
+        }
+
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
             if (Width <= 0 || Height <= 0) return;
             if (!Visible) return;
             if (dividerPositions == null) GenerateDividerPositions();
             if (dividerPositions == null) return;
-            var rect = GetMyRectangle(context, parentRectangle);
+            var rect = ClientRectangle;
             Background?.Draw(context, drawList, rect);
             // Update scrolling
             int scrollCount = ScrollCount();
@@ -385,10 +387,11 @@ namespace LibreLancer.Interface
                 childOffset = (int) (Scrollbar.ScrollOffset * scrollCount);
             }
 
+            Scrollbar.Visible = scrollCount > 0;
             if (scrollCount > 0)
             {
-                Scrollbar.Render(context, drawList, rect);
-                rect.Width -= Scrollbar.Style!.Width;
+                Scrollbar.Render(context, delta, drawList);
+                rect.Width -= Scrollbar.ClientRectangle.Width;
             }
 
             // Handle resizing columns
@@ -508,15 +511,6 @@ namespace LibreLancer.Interface
             }
 
             Border?.Draw(context, drawList, rect);
-        }
-
-        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
-        {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            Update(context, myPos);
-            myPos = AnimatedPosition(myPos);
-            var myRect = new RectangleF(myPos.X, myPos.Y, Width, Height);
-            return myRect;
         }
     }
 }

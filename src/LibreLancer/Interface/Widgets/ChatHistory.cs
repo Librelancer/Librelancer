@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using WattleScript.Interpreter;
@@ -17,27 +18,22 @@ public class ChatHistory : UiWidget
     private float builtMultiplier = 0;
     private int builtVersion;
     private float lastHeight = 0;
+    public Scrollbar Scrollbar { get; set; } = new();
 
-    private Scrollbar scrollbar = new() {Smooth = true};
-    private bool scrollbarVisible = false;
 
-    public override void ApplyStylesheet(Stylesheet sheet)
+    public override void OnLayout(UiContext context, Layout layout, double delta)
     {
-        scrollbar.ApplyStyle(sheet);
+        base.OnLayout(context, layout, delta);
+        Scrollbar.OnLayout(context, new Layout(ClientRectangle), delta);
     }
 
-    private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
-    {
-        var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-        var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
-        return myRectangle;
-    }
 
-    public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+    [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
+    public override void Render(UiContext context, double delta, DrawList2D drawList)
     {
-        var myRectangle = GetMyRectangle(context, parentRectangle);
+        var myRectangle = ClientRectangle;
         Background?.Draw(context, drawList, myRectangle);
-        myRectangle.Width -= scrollbar.Style!.Width;
+        myRectangle.Width -= Scrollbar.ClientRectangle.Width;
         var textMultiplier = (context.ViewportHeight / 480) * 0.5f;
         var displayRect = context.PointsToPixels(myRectangle);
 
@@ -63,26 +59,27 @@ public class ChatHistory : UiWidget
             lastHeight = h;
             if ((int) h > displayRect.Height + 2)
             {
-                if (!scrollbarVisible || scrollbar.ScrollOffset == 1) {
-                    scrollbar.ScrollOffset = 1;
+                if (!Scrollbar.Visible || Scrollbar.ScrollOffset == 1) {
+                    Scrollbar.ScrollOffset = 1;
                 }
-                scrollbar.ThumbSize = displayRect.Height / h;
+                Scrollbar.ThumbSize = displayRect.Height / h;
                 const float TICK_MAGIC = 0.2627986f;
-                scrollbar.Tick = 0.01f * (scrollbar.ThumbSize / TICK_MAGIC);
-                scrollbarVisible = true;
+                Scrollbar.Tick = 0.01f * (Scrollbar.ThumbSize / TICK_MAGIC);
+                Scrollbar.Visible = true;
             }
             else
             {
-                scrollbarVisible = false;
+                Scrollbar.Visible = false;
             }
         }
-        if(scrollbarVisible)
-            scrollbar.Render(context, drawList, new RectangleF(myRectangle.X + myRectangle.Width, myRectangle.Y, scrollbar.Style.Width, myRectangle.Height));
+
+        if (Scrollbar.Visible)
+            Scrollbar.Render(context, delta, drawList);
         if (drawList.PushClip(displayRect))
         {
             int y = displayRect.Y;
-            if (scrollbarVisible) {
-                y -= (int) (scrollbar.ScrollOffset * (builtText.Height - displayRect.Height));
+            if (Scrollbar.Visible) {
+                y -= (int) (Scrollbar.ScrollOffset * (builtText.Height - displayRect.Height));
             }
             context.RenderContext.Renderer2D.RichText.RenderText(drawList, builtText, displayRect.X, y);
             drawList.PopClip();
@@ -90,25 +87,19 @@ public class ChatHistory : UiWidget
         Border?.Draw(context, drawList, myRectangle);
     }
 
-    public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
+    public override void OnMouseDown(UiContext context)
     {
-        var myRectangle = GetMyRectangle(context, parentRectangle);
-        if(scrollbarVisible)
-            scrollbar.OnMouseDown(context, myRectangle);
+        Scrollbar.OnMouseDown(context);
     }
 
-    public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
+    public override void OnMouseUp(UiContext context)
     {
-        var myRectangle = GetMyRectangle(context, parentRectangle);
-        if (scrollbarVisible)
-            scrollbar.OnMouseUp(context, myRectangle);
+        Scrollbar.OnMouseUp(context);
     }
 
-    public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+    public override void OnMouseWheel(UiContext context, float delta)
     {
-        var myRectangle = GetMyRectangle(context, parentRectangle);
-        if (scrollbarVisible &&
-            myRectangle.Contains(context.MouseX, context.MouseY))
-            scrollbar.OnMouseWheel(delta);
+        if (ClientRectangle.Contains(context.MouseX, context.MouseY))
+            Scrollbar.OnMouseWheel(context, delta);
     }
 }

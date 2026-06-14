@@ -14,12 +14,34 @@ namespace LibreLancer.Interface
     {
         [UiContent]
         public List<UiWidget> Children { get; set; } = [];
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
+            CheckStyle(context);
             ProcessAddChildren(context);
             if (!Visible) return;
+            Background?.Draw(context, drawList, ClientRectangle);
             foreach(var child in Children)
-                child.Render(context, drawList, parentRectangle);
+                child.Render(context, delta, drawList);
+            Border?.Draw(context, drawList, ClientRectangle);
+        }
+
+        public override void Update(UiContext context, double delta)
+        {
+            base.Update(context, delta);
+            for (int i = 0; i < Children.Count; i++)
+            {
+                Children[i].Update(context, delta);
+            }
+        }
+
+        public override void OnLayout(UiContext context, Layout layout, double delta)
+        {
+            base.OnLayout(context, layout, delta);
+            var self = new Layout(ClientRectangle);
+            for (int i = 0; i < Children.Count; i++)
+            {
+                Children[i].OnLayout(context, self, delta);
+            }
         }
 
         protected void ProcessAddChildren(UiContext context)
@@ -33,7 +55,6 @@ namespace LibreLancer.Interface
         {
             addRemoves.Enqueue((ctx) =>
             {
-                child.ApplyStylesheet(ctx.Data.Stylesheet);
                 Children.Add(child);
             });
         }
@@ -47,57 +68,52 @@ namespace LibreLancer.Interface
                 child.UnFocus();
         }
 
-        public override void ApplyStylesheet(Stylesheet sheet)
-        {
-            foreach(var child in Children)
-                child.ApplyStylesheet(sheet);
-        }
 
-        public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
+        public override bool MouseWanted(UiContext context, float x, float y)
         {
             if (!Visible)
                 return false;
             foreach (var child in Children)
             {
-                if(child.MouseWanted(context, parentRectangle, x, y))
+                if(child.MouseWanted(context, x, y))
                     return true;
             }
             return false;
         }
 
-        public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseClick(UiContext context)
         {
             if (!Visible) return;
             foreach(var child in Children)
-                child.OnMouseClick(context, parentRectangle);
+                child.OnMouseClick(context);
         }
 
-        public override void OnMouseDoubleClick(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseDoubleClick(UiContext context)
         {
             if (!Visible) return;
             foreach(var child in Children)
-                child.OnMouseDoubleClick(context, parentRectangle);
+                child.OnMouseDoubleClick(context);
         }
 
-        public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseDown(UiContext context)
         {
             if (!Visible) return;
             foreach(var child in Children)
-                child.OnMouseDown(context, parentRectangle);
+                child.OnMouseDown(context);
         }
 
-        public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseUp(UiContext context)
         {
             if (!Visible) return;
             foreach(var child in Children)
-                child.OnMouseUp(context, parentRectangle);
+                child.OnMouseUp(context);
         }
 
-        public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        public override void OnMouseWheel(UiContext context, float delta)
         {
             if (!Visible) return;
             foreach(var child in Children)
-                child.OnMouseWheel(context, parentRectangle, delta);
+                child.OnMouseWheel(context, delta);
         }
 
         public override UiWidget? GetElement(string? elementID)

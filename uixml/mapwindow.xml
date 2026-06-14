@@ -4,7 +4,9 @@
 		<Panel.Background>
 			<DisplayModel model="nav_navmap_left"/>
 		</Panel.Background>
-		<ListBox ID="waypoint_list" X="16" Y="14" Width="143" Height="174" ItemHeight="58" ItemWidth="127" ScrollbarWidth="10" ScrollbarInsetY="6" OverlayScrollbar="true"/>
+    <ListBox ID="waypoint_list" X="16" Y="14" Width="143" Height="174" ItemHeight="58" ItemWidth="127" OverlayScrollbar="true">
+      <ListBox.Scrollbar Width="10" InsetY="6"/>
+    </ListBox>
 		<Button ID="clear_waypoints" Style="wirebutton_navpanel" X="16" Y="205" Width="127" Height="25" Text="Clear All Waypoints" TextSize="10"/>
 	</Panel>
 	<Panel Anchor="Center" Width="160" Height="247" X="216" Y="-26" ID="rightpanel" Visible="false">

@@ -456,7 +456,7 @@ namespace LibreLancer
         private bool newUI = false;
         public override void Update(double delta)
         {
-            ui.Update(Game);
+            ui.Update(Game, delta);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
             scene?.UpdateViewport(Game.RenderContext.CurrentViewport, (float) Game.Width / Game.Height);
             scene?.Update(delta);
