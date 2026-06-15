@@ -292,7 +292,7 @@ public partial class SpacePopulationManager
         var arrival = spawn.ArrivalObject == null
             ? "free space"
             : $"{spawn.ArrivalObject}:{spawn.ArrivalIndex}";
-        Console.WriteLine($"SpacePop: Spawned {group.Ships.Count} NPC(s) from zone {state.Zone.Nickname} for faction {factionName} via {arrival}");
+        FLLog.Debug("SpacePop", $"Spawned {group.Ships.Count} NPC(s) from zone {state.Zone.Nickname} for faction {factionName} via {arrival}");
 
         state.Groups.Add(group);
         RecordFormationCreation(state, info);

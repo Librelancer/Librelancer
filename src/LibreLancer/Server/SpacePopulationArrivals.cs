@@ -11,8 +11,57 @@ using Zone = LibreLancer.Data.GameData.World.Zone;
 
 namespace LibreLancer.Server;
 
+[Flags]
+public enum ArrivalTargets
+{
+    None = 0,
+    Tradelane = 1 << 1,
+    DockingRing = 1 << 2,
+    JumpGate = 1 << 3,
+    Station = 1 << 4,
+    Capital = 1 << 5,
+    Cruise = 1 << 6,
+    Buzz = 1 << 7,
+    Objects = Tradelane | DockingRing | JumpGate | Station | Capital,
+    All = Objects | Cruise | Buzz
+}
+
 public partial class SpacePopulationManager
 {
+    private static ArrivalTargets TranslateArrival(EncounterArrival? arrival)
+    {
+        if (arrival == null)
+            return ArrivalTargets.None;
+
+        ArrivalTargets allow = ArrivalTargets.None;
+        foreach (var a in arrival.Includes)
+        {
+            allow |= ConvertArrival(a);
+        }
+
+        ArrivalTargets disallow = ArrivalTargets.None;
+        foreach (var a in arrival.Excludes)
+        {
+            disallow |= ConvertArrival(a);
+        }
+
+        return allow & ~disallow;
+    }
+
+    private static ArrivalTargets ConvertArrival(Arrivals arrival) => arrival switch
+    {
+        Arrivals.all => ArrivalTargets.All,
+        Arrivals.object_all => ArrivalTargets.Objects,
+        Arrivals.tradelane => ArrivalTargets.Tradelane,
+        Arrivals.object_docking_ring => ArrivalTargets.DockingRing,
+        Arrivals.object_jump_gate => ArrivalTargets.JumpGate,
+        Arrivals.object_station => ArrivalTargets.Station,
+        Arrivals.object_capital => ArrivalTargets.Capital,
+        Arrivals.cruise => ArrivalTargets.Cruise,
+        Arrivals.buzz => ArrivalTargets.Buzz,
+        _ => ArrivalTargets.None
+    };
+
     private bool TryFindSpawnLocation(
         ZoneState state,
         EncounterInfo info,
@@ -22,17 +71,17 @@ public partial class SpacePopulationManager
         out SpawnLocation spawn)
     {
         spawn = default;
-        var arrival = info.FormationDefinition?.Arrival;
+        var arrivalTargets = TranslateArrival(info.FormationDefinition?.Arrival);
         var preferObjectArrival = info.FormationDefinition?.Behavior == EncounterBehavior.trade;
         if (!preferObjectArrival &&
-            TryFindFreeSpaceSpawnLocation(state.Zone, arrival, players, zoneCreationDistance, allowCloseSpawn, out spawn))
+            TryFindFreeSpaceSpawnLocation(state.Zone, arrivalTargets, players, zoneCreationDistance, allowCloseSpawn, out spawn))
         {
             return true;
         }
 
         if (TryFindArrivalObject(
             state.Zone,
-            arrival,
+            arrivalTargets,
             players,
             zoneCreationDistance,
             allowCloseSpawn,
@@ -48,7 +97,7 @@ public partial class SpacePopulationManager
         }
 
         if (preferObjectArrival &&
-            TryFindFreeSpaceSpawnLocation(state.Zone, arrival, players, zoneCreationDistance, allowCloseSpawn, out spawn))
+            TryFindFreeSpaceSpawnLocation(state.Zone, arrivalTargets, players, zoneCreationDistance, allowCloseSpawn, out spawn))
         {
             return true;
         }
@@ -58,14 +107,14 @@ public partial class SpacePopulationManager
 
     private bool TryFindFreeSpaceSpawnLocation(
         Zone zone,
-        EncounterArrival? arrival,
+        ArrivalTargets targets,
         GameObject[] players,
         float zoneCreationDistance,
         bool allowCloseSpawn,
         out SpawnLocation spawn)
     {
         spawn = default;
-        if (!ArrivalAllowsFreeSpace(arrival))
+        if ((targets & (ArrivalTargets.Cruise | ArrivalTargets.Buzz)) == 0)
             return false;
 
         if (!TryFindSpawnPoint(zone, players, zoneCreationDistance, allowCloseSpawn, out var point))
@@ -77,7 +126,7 @@ public partial class SpacePopulationManager
 
     private bool TryFindArrivalObject(
         Zone zone,
-        EncounterArrival? arrival,
+        ArrivalTargets targets,
         GameObject[] players,
         float zoneCreationDistance,
         bool allowCloseSpawn,
@@ -86,7 +135,7 @@ public partial class SpacePopulationManager
     {
         arrivalObject = null!;
         arrivalIndex = 0;
-        if (players.Length == 0 || !ArrivalAllowsObjects(arrival))
+        if (players.Length == 0 || (targets & ArrivalTargets.Objects) == 0)
             return false;
 
         var maxDistance = Math.Max(
@@ -105,7 +154,7 @@ public partial class SpacePopulationManager
                 !obj.TryGetComponent<SDockableComponent>(out var dockable) ||
                 dockable.DockPoints.Length == 0 ||
                 !dockable.TryGetUndockIndex(out var dockIndex) ||
-                !ObjectMatchesArrival(obj, dockable, arrival))
+                !ObjectMatchesArrival(obj, dockable, targets))
             {
                 continue;
             }
@@ -127,82 +176,44 @@ public partial class SpacePopulationManager
         return arrivalObject != null;
     }
 
-    private static bool ArrivalAllowsObjects(EncounterArrival? arrival)
+    private static bool ObjectMatchesArrival(GameObject obj, SDockableComponent dockable, ArrivalTargets targets)
     {
-        if (arrival == null)
-            return false;
-        if (ArrivalExcluded(arrival, Arrivals.all))
-            return false;
-        return ArrivalIncluded(arrival, Arrivals.all) ||
-               ArrivalIncluded(arrival, Arrivals.object_all) ||
-               ArrivalIncluded(arrival, Arrivals.tradelane) ||
-               ArrivalIncluded(arrival, Arrivals.object_docking_ring) ||
-               ArrivalIncluded(arrival, Arrivals.object_jump_gate) ||
-               ArrivalIncluded(arrival, Arrivals.object_station) ||
-               ArrivalIncluded(arrival, Arrivals.object_capital);
-    }
-
-    private static bool ArrivalAllowsFreeSpace(EncounterArrival? arrival)
-    {
-        if (arrival == null || arrival.Includes.Count == 0)
-            return true;
-        if (ArrivalExcluded(arrival, Arrivals.all))
-            return false;
-        if (ArrivalIncluded(arrival, Arrivals.all))
-            return !ArrivalExcluded(arrival, Arrivals.cruise) ||
-                   !ArrivalExcluded(arrival, Arrivals.buzz);
-        return (ArrivalIncluded(arrival, Arrivals.cruise) && !ArrivalExcluded(arrival, Arrivals.cruise)) ||
-               (ArrivalIncluded(arrival, Arrivals.buzz) && !ArrivalExcluded(arrival, Arrivals.buzz));
-    }
-
-    private static bool ObjectMatchesArrival(GameObject obj, SDockableComponent dockable, EncounterArrival? arrival)
-    {
-        if (arrival == null || ArrivalExcluded(arrival, Arrivals.all))
+        if (targets == ArrivalTargets.None)
             return false;
 
         var isTradelane = dockable.Action.Kind == DockKinds.Tradelane;
-        if (!isTradelane && ArrivalExcluded(arrival, Arrivals.object_all))
-            return false;
+        if (isTradelane)
+            return (targets & ArrivalTargets.Tradelane) != 0;
 
-        var kinds = ObjectArrivalKinds(obj, dockable).ToArray();
-        if (kinds.Any(x => ArrivalExcluded(arrival, x)))
-            return false;
-
-        if (ArrivalIncluded(arrival, Arrivals.all))
-            return true;
-        if (!isTradelane && ArrivalIncluded(arrival, Arrivals.object_all))
-            return true;
-
-        return kinds.Any(x => ArrivalIncluded(arrival, x));
+        var kinds = GetObjectArrivalTargets(obj, dockable);
+        return (targets & kinds) != 0;
     }
 
-    private static IEnumerable<Arrivals> ObjectArrivalKinds(GameObject obj, SDockableComponent dockable)
+    private static ArrivalTargets GetObjectArrivalTargets(GameObject obj, SDockableComponent dockable)
     {
-        if (dockable.Action.Kind == DockKinds.Tradelane)
-        {
-            yield return Arrivals.tradelane;
-            yield break;
-        }
+        ArrivalTargets kinds = ArrivalTargets.None;
 
         var type = obj.SystemObject?.Archetype?.Type ?? ArchetypeType.NONE;
         switch (type)
         {
             case ArchetypeType.docking_ring:
-                yield return Arrivals.object_docking_ring;
+                kinds |= ArrivalTargets.DockingRing;
                 break;
             case ArchetypeType.jump_gate:
             case ArchetypeType.jump_hole:
             case ArchetypeType.jumphole:
-                yield return Arrivals.object_jump_gate;
+                kinds |= ArrivalTargets.JumpGate;
                 break;
             case ArchetypeType.station:
             case ArchetypeType.weapons_platform:
-                yield return Arrivals.object_station;
+                kinds |= ArrivalTargets.Station;
                 break;
         }
 
         if (IsCapitalObject(obj))
-            yield return Arrivals.object_capital;
+            kinds |= ArrivalTargets.Capital;
+
+        return kinds;
     }
 
     private static bool IsCapitalObject(GameObject obj)
@@ -213,10 +224,4 @@ public partial class SpacePopulationManager
                nickname.Contains("cruiser", StringComparison.OrdinalIgnoreCase) ||
                nickname.Contains("dreadnought", StringComparison.OrdinalIgnoreCase);
     }
-
-    private static bool ArrivalIncluded(EncounterArrival arrival, Arrivals arrivalKind) =>
-        arrival.Includes.Contains(arrivalKind);
-
-    private static bool ArrivalExcluded(EncounterArrival arrival, Arrivals arrivalKind) =>
-        arrival.Excludes.Contains(arrivalKind);
 }
