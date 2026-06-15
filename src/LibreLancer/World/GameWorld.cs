@@ -222,8 +222,6 @@ namespace LibreLancer.World
                 AddObject(g);
                 g.Register(this);
             }
-
-            GC.Collect();
         }
 #if DEBUG
         public List<Vector3> DebugPoints = new List<Vector3>();

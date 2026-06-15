@@ -265,6 +265,7 @@ World Time: {12:F2}
             contactList = new ContactList(this);
             ui.OpenScene("hud");
             FadeIn(0.5, 0.5);
+            GC.Collect();
             updateStartDelay = 3;
         }
 
