@@ -241,7 +241,7 @@ namespace LibreLancer.Server
 
         private bool isRunningSlow = false;
 
-        private void Process(TimeSpan time, TimeSpan totalTime, uint currentTick)
+        private void Process(TimeSpan time, TimeSpan totalTime, uint currentTick, int step)
         {
             CurrentTick = currentTick;
             var startTime = serverTiming.Elapsed;
@@ -260,7 +260,7 @@ namespace LibreLancer.Server
             int spinDownCount = -1;
             foreach (var w in worlds)
             {
-                if (!w.Value.Update(time.TotalSeconds, totalTime.TotalSeconds, currentTick))
+                if (!w.Value.Update(time.TotalSeconds, totalTime.TotalSeconds, currentTick, step))
                     toSpinDown[Interlocked.Increment(ref spinDownCount)] = w.Key;
             }
 

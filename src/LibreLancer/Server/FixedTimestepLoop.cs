@@ -22,7 +22,7 @@ namespace LibreLancer.Server
         private TimeSpan accumulatedTime;
         private TimeSpan lastTime;
 
-        public delegate void OnStep(TimeSpan delta, TimeSpan totalTime, uint currentTick);
+        public delegate void OnStep(TimeSpan delta, TimeSpan totalTime, uint currentTick, int step);
 
         public FixedTimestepLoop(OnStep onStep)
         {
@@ -82,13 +82,13 @@ namespace LibreLancer.Server
                 {
                     TotalTime += TimeStep;
                     accumulatedTime -= TimeStep;
+                    onStep(TimeStep,TotalTime, currentTick++, stepCount);
                     stepCount++;
-                    onStep(TimeStep,TotalTime, currentTick++);
                 }
                 if (stepCount == MaxSteps && accumulatedTime >= TimeStep)
                 {
                     TotalTime += accumulatedTime;
-                    onStep(accumulatedTime,TotalTime, currentTick++);
+                    onStep(accumulatedTime,TotalTime, currentTick++, stepCount);
                     accumulatedTime = TimeSpan.Zero;
                 }
             }

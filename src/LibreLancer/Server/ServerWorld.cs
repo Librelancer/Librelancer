@@ -960,7 +960,7 @@ namespace LibreLancer.Server
         private double noPlayersTime;
         private double maxNoPlayers = 2.0;
 
-        public bool Update(double delta, double totalTime, uint currentTick)
+        public bool Update(double delta, double totalTime, uint currentTick, int step)
         {
             // Avoid locks during Update
             CurrentTick = currentTick;
@@ -1000,9 +1000,16 @@ namespace LibreLancer.Server
                 }
             }
 
-            // Network update tick
-            SendWorldUpdates(currentTick);
-            UpdateDebugInfo();
+            // We half the packet send rate when catching up to
+            // real time as the network could get overwhelmed
+            // Send packets on step 0, 1, 3, 5, 7, 9 etc.
+            // Also reduces load when running extra slow.
+            if (step < 2 || (step % 2) != 0)
+            {
+                // Network update tick
+                SendWorldUpdates(currentTick);
+                UpdateDebugInfo();
+            }
 
             // Despawn after 2 seconds of nothing
             if (PlayerCount == 0)
