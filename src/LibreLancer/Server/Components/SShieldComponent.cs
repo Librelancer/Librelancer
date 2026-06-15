@@ -70,9 +70,10 @@ namespace LibreLancer.Server.Components
                 {
                     _health = 0;
                 }
-
                 if(Parent.Parent!.TryGetComponent<SNPCComponent>(out var n))
                     n.TakingDamage(incomingDamage);
+                if (Parent.Parent!.TryGetComponent<SSolarComponent>(out var s))
+                    s.SendSolarUpdate = true;
                 return true;
             }
             return false;

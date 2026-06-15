@@ -40,13 +40,11 @@ internal class DynamicObject : PhysicsObject
     {
         Position = transform.Position;
         Orientation = transform.Orientation;
-        BepuObject.UpdateBounds();
     }
 
     public override void SetOrientation(Quaternion orientation)
     {
         BepuObject.Pose.Orientation = orientation;
-        BepuObject.UpdateBounds();
     }
 
     public override Vector3 AngularVelocity
