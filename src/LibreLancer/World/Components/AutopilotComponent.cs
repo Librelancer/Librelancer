@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using ImGuiNET;
 using LibreLancer.Client.Components;
 using LibreLancer.Net.Protocol;
 
@@ -32,6 +33,8 @@ namespace LibreLancer.World.Components
 
         protected readonly AutopilotComponent Component;
         protected GameObject Parent => Component.Parent;
+
+        public abstract void ImGuiDebug();
 
         public abstract bool Update(
             ShipSteeringComponent control,
@@ -213,6 +216,16 @@ namespace LibreLancer.World.Components
 
         private int lastTargetHp = 0;
 
+        public override void ImGuiDebug()
+        {
+            if (Dockable(out var docking))
+            {
+                ImGui.Text($"Docking with: {docking?.Parent}");
+                var hp = GetTargetHardpoint(docking!, false, lastTargetHp);
+                ImGui.Text($"Target hardpoint: {hp?.Name}");
+            }
+        }
+
         public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time)
         {
             if (!TargetValid() || !Dockable(out var docking))
@@ -220,7 +233,7 @@ namespace LibreLancer.World.Components
                 return true; // finished
             }
 
-            var hp = GetTargetHardpoint(docking!, true, lastTargetHp);
+            var hp = GetTargetHardpoint(docking!, false, lastTargetHp);
 
             if (hp == null)
             {
@@ -277,6 +290,11 @@ namespace LibreLancer.World.Components
         private double totalTime = 0.0;
         private double delay = 1.2;
 
+        public override void ImGuiDebug()
+        {
+            ImGui.Text("Undocking");
+        }
+
         public override bool Update(ShipSteeringComponent control,
             ShipInputComponent? input,
             double time)
@@ -326,6 +344,11 @@ namespace LibreLancer.World.Components
 
             return MoveToPoint(time, GetTargetPoint(), GetTargetRadius(), GotoRadius, MaxThrottle, true, control,
                 input);
+        }
+
+        public override void ImGuiDebug()
+        {
+            ImGui.Text($"Goto: {GetTargetPoint()}");
         }
     }
 
@@ -427,6 +450,11 @@ namespace LibreLancer.World.Components
             return null;
         }
 
+        public override void ImGuiDebug()
+        {
+            ImGui.Text("In Formation");
+        }
+
         public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time)
         {
             if (Parent.Formation == null ||
@@ -500,6 +528,12 @@ namespace LibreLancer.World.Components
             {
                 BehaviorChanged?.Invoke(CurrentBehavior, old);
             }
+        }
+
+        public void ImGuiDebug()
+        {
+            ImGui.Text($"Autopilot: {CurrentBehavior}");
+            instance?.ImGuiDebug();
         }
 
         public void GotoVec(Vector3 vec, GotoKind kind, float maxThrottle = 1, float gotoRange = 40)

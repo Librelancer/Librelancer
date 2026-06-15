@@ -2159,8 +2159,10 @@ World Time: {12:F2}
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGui.Text(text);
                 ImGui.Text($"Player Position: {player.WorldTransform.Position}");
-                ImGui.InputFloat("FOV Value", ref _chaseCamera.FovX);
+                ImGui.Separator();
+                pilotComponent?.ImGuiDebug();
                 ImGui.Text($"crosshairHit: {crosshairHit}");
+                ImGui.Separator();
                 var dbgT = session.GetSelectedDebugInfo();
 
                 if (!string.IsNullOrWhiteSpace(dbgT))
