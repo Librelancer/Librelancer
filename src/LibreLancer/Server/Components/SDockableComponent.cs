@@ -185,7 +185,28 @@ namespace LibreLancer.Server.Components
 
         private List<DockingAction> activeDockings = [];
 
-        public void StartDock(GameObject obj, int index)
+        private readonly List<(GameObject Ship, int RequestedIndex, GotoKind Kind)> dockQueue = [];
+
+        public bool IsQueuedForDock(GameObject ship) =>
+            dockQueue.Any(x => x.Ship == ship);
+
+        public void StartDock(GameObject obj, int index, GotoKind kind = GotoKind.Goto)
+        {
+            if (activeDockings.Any(x => x.Ship == obj) || IsQueuedForDock(obj))
+                return;
+
+            var dockIndex = index;
+            if (Action.Kind == DockKinds.Base &&
+                !TryGetAvailableDockIndex(index, out dockIndex))
+            {
+                QueueDock(obj, index, kind);
+                return;
+            }
+
+            StartDockNow(obj, dockIndex, kind);
+        }
+
+        private void StartDockNow(GameObject obj, int index, GotoKind kind)
         {
             var pos = obj.WorldTransform.Position;
 
@@ -202,6 +223,87 @@ namespace LibreLancer.Server.Components
             {
                 activeDockings.Add(new DockingAction() { Dock = index, Ship = obj });
             }
+
+            if (obj.TryGetComponent<AutopilotComponent>(out var ap))
+                ap.StartDock(Parent, kind);
+        }
+
+        private void QueueDock(GameObject ship, int requestedIndex, GotoKind kind)
+        {
+            if (activeDockings.Any(x => x.Ship == ship) || IsQueuedForDock(ship))
+                return;
+
+            var entry = (ship, requestedIndex, kind);
+            if (!ship.TryGetComponent<SPlayerComponent>(out _))
+            {
+                dockQueue.Add(entry);
+                return;
+            }
+
+            var insert = dockQueue.FindIndex(x => !x.Ship.TryGetComponent<SPlayerComponent>(out _));
+            if (insert < 0)
+                dockQueue.Add(entry);
+            else
+                dockQueue.Insert(insert, entry);
+        }
+
+        private bool TryGetAvailableDockIndex(int requestedIndex, out int index)
+        {
+            index = requestedIndex;
+            if (IsDockIndexAvailableForDocking(requestedIndex))
+                return true;
+
+            for (int i = 0; i < DockPoints.Length; i++)
+            {
+                if (IsDockIndexAvailableForDocking(i))
+                {
+                    index = i;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsDockIndexAvailableForDocking(int index) =>
+            index >= 0 &&
+            index < DockPoints.Length &&
+            !IsUndockIndexBusy(index);
+
+        private void ProcessDockQueue()
+        {
+            if (Action.Kind != DockKinds.Base)
+                return;
+
+            var i = 0;
+            while (i < dockQueue.Count)
+            {
+                var queued = dockQueue[i];
+                if (!queued.Ship.Flags.HasFlag(GameObjectFlags.Exists))
+                {
+                    dockQueue.RemoveAt(i);
+                    continue;
+                }
+
+                if (!TryGetAvailableDockIndex(queued.RequestedIndex, out var index))
+                    return;
+
+                dockQueue.RemoveAt(i);
+                StartDockNow(queued.Ship, index, queued.Kind);
+            }
+        }
+
+        private static GameObject[] BreakDockingFormation(GameObject lead)
+        {
+            var formation = lead.Formation;
+            if (formation == null || formation.LeadShip != lead)
+                return [];
+
+            var followers = formation.Followers.ToArray();
+            foreach (var follower in followers)
+                formation.Remove(follower);
+            formation.Remove(lead);
+            return followers;
         }
 
         private void StartTradelane(GameObject ship, string tlHardpoint)
@@ -228,10 +330,26 @@ namespace LibreLancer.Server.Components
 
         public Transform3D GetSpawnPoint(int index)
         {
+            if (!TryGetSpawnPoint(index, out var spawnPoint))
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Dock point has insufficient spawn hardpoints");
+
+            return spawnPoint;
+        }
+
+        public bool TryGetSpawnPoint(int index, out Transform3D spawnPoint)
+        {
+            spawnPoint = default;
+            if (index < 0 || index >= DockPoints.Length)
+                return false;
+
             var hps = hardpoints.GetDockHardpoints(Parent, index, Vector3.Zero, false).ToArray();
+            if (hps.Length < 2)
+                return false;
+
             var tr = (hps[^1].Transform * Parent.WorldTransform);
             var tr2 = (hps[^2].Transform * Parent.WorldTransform);
-            return new Transform3D(tr.Position, QuaternionEx.LookAt(tr.Position, tr2.Position));
+            spawnPoint = new Transform3D(tr.Position, QuaternionEx.LookAt(tr.Position, tr2.Position));
+            return true;
         }
 
         private List<(GameObject Ship, int Index)> undockers = [];
@@ -242,8 +360,52 @@ namespace LibreLancer.Server.Components
             undockers.Add((ship, index));
         }
 
+        private bool IsUndockIndexBusy(int index)
+        {
+            return undockers.Any(x =>
+                       x.Index == index &&
+                       x.Ship.Flags.HasFlag(GameObjectFlags.Exists)) ||
+                   activeDockings.Any(x =>
+                       x.Dock == index &&
+                       x.Ship.Flags.HasFlag(GameObjectFlags.Exists));
+        }
+
+        public bool IsUndockIndexAvailable(int index) =>
+            index >= 0 &&
+            index < DockPoints.Length &&
+            !DockPoints[index].Open &&
+            !IsUndockIndexBusy(index) &&
+            TryGetSpawnPoint(index, out _);
+
+        public bool TryGetUndockIndex(out int index)
+        {
+            index = 0;
+            if (DockPoints.Length == 0)
+                return false;
+
+            if (DockPoints.Length > 1 &&
+                DockPoints[0].DockSphere.Type == Data.Schema.Solar.DockSphereType.ring)
+            {
+                return IsUndockIndexAvailable(index);
+            }
+
+            for (int i = 0; i < DockPoints.Length; i++)
+            {
+                if (IsUndockIndexAvailable(i))
+                {
+                    index = i;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public int GetUndockIndex()
         {
+            if (TryGetUndockIndex(out var index))
+                return index;
+
             if (DockPoints.Length > 1 &&
                 DockPoints[0].DockSphere.Type == Data.Schema.Solar.DockSphereType.ring)
             {
@@ -332,6 +494,9 @@ namespace LibreLancer.Server.Components
 
                 if (Action.Kind == DockKinds.Base)
                 {
+                    foreach (var ship in BreakDockingFormation(dock.Ship))
+                        QueueDock(ship, dock.Dock, GotoKind.Goto);
+
                     if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
                     {
                         player.Player.ForceLand(Action.Target);
@@ -369,6 +534,8 @@ namespace LibreLancer.Server.Components
 
             foreach (var dp in DockPoints)
                 dp.Update(Parent, world, (float) time);
+
+            ProcessDockQueue();
 
             if (inactiveTicksLeft > 0 && !leftThisTick)
             {
