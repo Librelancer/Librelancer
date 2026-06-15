@@ -185,7 +185,7 @@ namespace LibreLancer.World
             if (Renderer != null)
             {
                 AddObject((new GameObject()
-                    { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
+                { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
             }
 
             Func<int>? netId = null;
@@ -224,7 +224,7 @@ namespace LibreLancer.World
             }
         }
         public List<SystemRenderer.DebugLine> DebugLines = new List<SystemRenderer.DebugLine>();
-        public bool RenderAutopilotDebug = true;
+        public bool RenderAutopilotDebug = false;
 
         public void DrawDebugLine(Vector3 start, Vector3 end, Color4 color)
         {
@@ -328,7 +328,7 @@ namespace LibreLancer.World
                 objects[i].Update(t, this);
             }
 
-            Physics?.StepSimulation((float) t);
+            Physics?.StepSimulation((float)t);
 
             for (int i = 0; i < objects.Count; i++)
             {
