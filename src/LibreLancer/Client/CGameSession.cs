@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Missions;
@@ -52,6 +53,7 @@ public partial class CGameSession : IClientPlayer
     private bool hasChanged;
 
     private bool inTradelane;
+    public bool InTradelane => inTradelane;
     public List<NetCargo> Items = [];
 
     private PlayerInventory lastInventory = new();
@@ -149,6 +151,7 @@ public partial class CGameSession : IClientPlayer
     void IClientPlayer.StartTradelane()
     {
         inTradelane = true;
+        CompleteActiveTradelaneWaypoint(FLHash.CreateID(PlayerSystem));
         RunSync(spaceGameplay!.StartTradelane);
     }
 
@@ -173,6 +176,7 @@ public partial class CGameSession : IClientPlayer
 
     void IClientPlayer.StartJumpTunnel()
     {
+        inTradelane = false;
         FLLog.Warning("Client", "Jump tunnel unimplemented");
     }
 

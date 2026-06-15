@@ -12,6 +12,7 @@ using System.Linq;
 using ImGuiNET;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Data.Schema.Missions;
@@ -311,13 +312,23 @@ namespace LibreLancer
                 navmap.SetUniverse(g.Game.GameData.Items);
                 navmap.SetVisitFunction(g.session.IsVisited);
                 navmap.SetAddWaypointFunction(null);
+                navmap.SetBestPathFunction((destinationSystem, destinationPosition) =>
+                {
+                    return g.session.ComputeBestPathToSelection(
+                        g.starSystem,
+                        g.session.PlayerPosition,
+                        destinationSystem,
+                        destinationPosition,
+                        300f);
+                });
                 navmap.SetPlayerPositionProvider(null);
+                navmap.SetPlayerSystemProvider(() => FLHash.CreateID(g.session.PlayerSystem));
                 navmap.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
             }
 
             public int UserWaypointCount() => g.session.UserWaypointCount;
 
-            public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index, g.starSystem);
+            public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index);
 
             public void ClearUserWaypoints()
             {
