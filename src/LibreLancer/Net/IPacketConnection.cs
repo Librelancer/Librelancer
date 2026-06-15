@@ -9,6 +9,7 @@ namespace LibreLancer.Net
 {
     public interface IPacketConnection : IPacketSender
     {
+        bool Connected { get; }
         bool PollPacket([MaybeNullWhen(false)] out IPacket packet);
         uint EstimateTickDelay();
         void Shutdown();

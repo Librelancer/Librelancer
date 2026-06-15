@@ -368,8 +368,7 @@ namespace LibreLancer
                     {
                         state.FadeOut(0.2, () =>
                         {
-                            netClient!.Disconnected += (reason) => netSession.Disconnected();
-                            netClient.Disconnected -= NetClientOnDisconnected;
+                            netClient!.Disconnected -= NetClientOnDisconnected;
                             netClient = null;
                             state.Game.ChangeState(new NetWaitState(netSession, state.Game));
                         });

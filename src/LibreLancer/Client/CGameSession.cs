@@ -402,6 +402,10 @@ public partial class CGameSession : IClientPlayer
 
     public bool Update()
     {
+        if (CheckDisconnected())
+        {
+            return true;
+        }
         hasChanged = false;
         UpdatePackets();
         UIUpdate();
@@ -462,9 +466,20 @@ public partial class CGameSession : IClientPlayer
                (visit & VisitFlags.Visited) == VisitFlags.Visited;
     }
 
+    bool CheckDisconnected()
+    {
+        if (connection.Connected)
+            return false;
+        connection.Shutdown();
+        Game.ChangeState(new LuaMenu(Game));
+        return true;
+    }
     public void WaitStart()
     {
+        if (CheckDisconnected())
+            return;
         if (!started)
+        {
             while (connection.PollPacket(out var packet))
             {
                 HandlePacket(packet);
@@ -472,6 +487,7 @@ public partial class CGameSession : IClientPlayer
                 if (packet is IClientPlayer_BaseEnterPacket || packet is IClientPlayer_SpawnPlayerPacket)
                     started = true;
             }
+        }
     }
 
     private void RunSync(Action gp)
@@ -596,10 +612,6 @@ public partial class CGameSession : IClientPlayer
         }
     }
 
-    public void Disconnected()
-    {
-        Game.ChangeState(new LuaMenu(Game));
-    }
 
     public void QuitToMenu()
     {
