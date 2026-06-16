@@ -338,7 +338,7 @@ public class SystemEditorTab : GameContentTab
 
         //Load system
         renderer = new SystemRenderer(camera, Data.Resources, win);
-        World = new GameWorld(renderer, Data.Resources, null, true);
+        World = new GameWorld(renderer, Data.Sounds, Data.Resources, null, true);
         OriginalSystem = system;
         ResetOriginalObjects();
         CurrentSystem = system.Clone();

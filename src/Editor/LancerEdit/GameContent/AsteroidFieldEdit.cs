@@ -86,7 +86,7 @@ public class AsteroidFieldEdit
 
         this.parent = parent;
 
-        world = new GameWorld(renderer, mw.OpenDataContext.Resources, null);
+        world = new GameWorld(renderer, null, mw.OpenDataContext.Resources, null);
         if (field.Cube.Count > 0) {
             matCrc = GetFirstMaterial(field.Cube[0].Archetype.ModelFile, mw.OpenDataContext.Resources);
         }

@@ -340,7 +340,7 @@ public partial class CGameSession
 
         if (obj.TryGetComponent<CEngineComponent>(out var eng))
         {
-            eng.Speed = update.Throttle;
+            eng.Speed = update.ThrottleFloat;
             eng.EngineKill = update.EngineKill;
             eng.CruiseThrust = update.CruiseThrust;
             foreach (var comp in obj.GetChildComponents<CThrusterComponent>())
@@ -441,9 +441,9 @@ public partial class CGameSession
             {
                 if (explode && despawn.TryGetComponent<CMissileComponent>(out var ms)
                             && ms.Missile?.ExplodeFx != null)
-                    spaceGameplay.world.Renderer!.SpawnTempFx(ms.Missile.ExplodeFx.GetEffect(Game.ResourceManager),
-                        despawn.LocalTransform.Position);
-
+                {
+                    spaceGameplay.world.SpawnTempFx(ms.Missile.ExplodeFx, despawn.LocalTransform.Position);
+                }
                 despawn.Unregister(spaceGameplay.world);
                 spaceGameplay.world.RemoveObject(despawn);
                 FLLog.Debug("Client", $"Destroyed missile {id}");

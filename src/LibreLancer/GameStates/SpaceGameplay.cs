@@ -244,7 +244,7 @@ World Time: {12:F2}
 
             sysrender = new SystemRenderer(_chaseCamera, Game.ResourceManager, Game);
             sysrender.ZOverride = true; // Draw all with regular Z
-            world = new GameWorld(sysrender, Game.ResourceManager, () => session.WorldTime);
+            world = new GameWorld(sysrender, Game.Sound, Game.ResourceManager, () => session.WorldTime);
             // Game.GameData.PreloadObjects(session.Preloads);
             world.LoadSystem(sys, Game.ResourceManager, Game.Sound, false);
             session.WorldReady();
@@ -1440,9 +1440,7 @@ World Time: {12:F2}
             {
                 return;
             }
-
-            var pfx = df.Explosion.Effect.GetEffect(FlGame.ResourceManager);
-            sysrender.SpawnTempFx(pfx, obj.WorldTransform.Position);
+            world.SpawnTempFx(df.Explosion.Effect, obj.WorldTransform.Position);
         }
 
         public void StopShip()
@@ -2173,6 +2171,15 @@ World Time: {12:F2}
                 if (Selection.Selected?.PhysicsComponent?.Body?.Collider is ConvexMeshCollider cvx)
                 {
                     ImGui.Text($"selected compound children: {cvx.BepuChildCount}");
+                }
+
+                if (Selection.Selected != null)
+                {
+                    if (Selection.Selected.TryGetComponent<CEngineComponent>(out var eng))
+                    {
+                        ImGui.Text($"selected throttle: {eng.Speed}");
+                    }
+                    ImGui.Text($"selected linear velocity: {Selection.Selected.PhysicsComponent?.Body?.LinearVelocity}");
                 }
 
                 ImGui.Text($"input queue: {session.UpdateQueueCount}");

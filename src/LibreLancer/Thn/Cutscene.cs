@@ -185,7 +185,7 @@ public class Cutscene : IDisposable
             }
 
             Renderer = new SystemRenderer(camera, resourceManager, game);
-            World = new GameWorld(Renderer, resourceManager, null, false);
+            World = new GameWorld(Renderer, null, resourceManager, null, false);
         }
 
         if (scriptContext.SetScript != null && resetObjects)

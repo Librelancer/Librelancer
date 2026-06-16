@@ -29,6 +29,7 @@ namespace LibreLancer.World
     {
         public readonly PhysicsWorld? Physics;
         public readonly SystemRenderer? Renderer;
+        public readonly SoundManager? Sounds;
         public readonly ProjectileManager Projectiles = null!;
 
         public ServerWorld? Server;
@@ -43,13 +44,14 @@ namespace LibreLancer.World
         public readonly SpatialLookup SpatialLookup = new();
 
         private Func<double>? timeSource;
+        private readonly ResourceManager? resources;
 
         static GameWorld()
         {
             EquipmentHandlers.Register();
         }
 
-        public GameWorld(SystemRenderer? render, ResourceManager resources, Func<double>? timeSource,
+        public GameWorld(SystemRenderer? render, SoundManager? sounds, ResourceManager? resources, Func<double>? timeSource,
             bool initPhys = true)
         {
             if (initPhys)
@@ -58,6 +60,8 @@ namespace LibreLancer.World
             }
 
             this.timeSource = timeSource;
+            this.Sounds = sounds;
+            this.resources = resources;
 
             if (render != null)
             {
@@ -73,6 +77,19 @@ namespace LibreLancer.World
             if (initPhys)
             {
                 Projectiles = new ProjectileManager(this);
+            }
+        }
+
+        public void SpawnTempFx(ResolvedFx? fx, Vector3 position)
+        {
+            if (fx == null || Renderer == null || resources == null)
+                return;
+            var particle = fx.GetEffect(resources);
+            Renderer.SpawnTempFx(particle, position);
+            if (fx.Sound != null && Sounds != null)
+            {
+                var snd = Sounds.GetInstance(fx.Sound.Nickname, 0, -1, -1, position);
+                snd?.Play();
             }
         }
 

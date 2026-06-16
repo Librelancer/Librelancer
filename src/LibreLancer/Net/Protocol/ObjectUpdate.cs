@@ -1,6 +1,6 @@
 using System;
-using System.Buffers;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace LibreLancer.Net.Protocol;
@@ -311,12 +311,12 @@ public class ObjectUpdate
     public UpdateQuaternion Orientation = Quaternion.Identity;
     public int Hull;
     public int Shield;
-    public byte Throttle;
+    private byte throttle;
 
     public float ThrottleFloat
     {
-        get => ((sbyte)Throttle) * 127f;
-        set => Throttle = (byte)(value / 127.0f);
+        get => Unsafe.BitCast<byte,sbyte>(throttle) / 127f;
+        set => throttle = Unsafe.BitCast<sbyte, byte>((sbyte)(value * 127.0f));
     }
 
     public byte Flags;
@@ -442,7 +442,7 @@ public class ObjectUpdate
         msg.Write((byte)(dZ & 0xFF));
 
         msg.Write((byte)(Flags - src.Flags));
-        msg.Write((byte)(Throttle - src.Throttle));
+        msg.Write((byte)(throttle - src.throttle));
 
         var dHull = NetPacking.Zig32(Hull - src.Hull);
         var dShield = NetPacking.Zig32(Shield - src.Shield);
@@ -588,7 +588,7 @@ public class ObjectUpdate
         };
 
         od.Flags = (byte)(src.Flags + msg.ReadByte());
-        od.Throttle = (byte)(src.Throttle + msg.ReadByte());
+        od.throttle = (byte)(src.throttle + msg.ReadByte());
 
         uint dHull = 0;
         uint dShield = 0;
