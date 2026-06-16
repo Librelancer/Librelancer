@@ -492,7 +492,7 @@ World Time: {12:F2}
                 }
                 else if (obj.Kind == GameObjectKind.Ship)
                 {
-                    icon = ContactIcon.Ship;
+                    icon = obj.NetID > 0 ? ContactIcon.OtherPlayer : ContactIcon.Ship;
                 }
 
                 if (obj.Kind != GameObjectKind.Ship || !obj.TryGetComponent<CFactionComponent>(out var fac))
@@ -520,6 +520,7 @@ World Time: {12:F2}
             {
                 return game.Selection.Selected == o ||
                        (o.Flags & GameObjectFlags.Important) == GameObjectFlags.Important ||
+                       o.NetID > 0 || // remote player
                        o.Kind == GameObjectKind.Waypoint ||
                        game.GetRepToPlayer(o) == RepAttitude.Hostile;
             }
