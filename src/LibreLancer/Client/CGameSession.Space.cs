@@ -284,7 +284,7 @@ public partial class CGameSession
     private void ProcessUpdate(SPUpdatePacket p, SpaceGameplay gp, bool resync)
     {
         foreach (var update in p.Updates)
-            UpdateObject(update, gp.world);
+            UpdateObject(update, gp.world, p.Tick, WorldTick);
         var hp = gp.player.GetComponent<CHealthComponent>();
         var state = p.PlayerState;
 
@@ -303,25 +303,12 @@ public partial class CGameSession
             if (moveState[i].Tick != p.Tick)
                 continue;
 
-            var errorPos = state.Position - moveState[i].Position;
-            var errorQuat = MathHelper.QuatError(state.Orientation, moveState[i].Orientation);
             var phys = gp.player.GetComponent<ShipPhysicsComponent>()!;
-
-            if (p.PlayerState.CruiseAccelPct > 0 || p.PlayerState.CruiseChargePct > 0)
-            {
-                phys.ResyncChargePercent(p.PlayerState.CruiseChargePct,
-                    1 / 60.0f * (moveState.Count - i));
-                phys.ResyncCruiseAccel(p.PlayerState.CruiseAccelPct, 1 / 60.0f * (moveState.Count - i));
-            }
-
-            if (errorPos.Length() > 0.1 || errorQuat > 0.1f)
             {
                 // We now do a basic resim without collision
                 // This needs some work to not show the errors in collision on screen
                 // for the client, but it's almost there
                 // This is much faster than stepping the entire simulation again
-                FLLog.Info("Client",
-                    $"Applying correction at tick {p.InputSequence}. Errors ({errorPos.Length()},{errorQuat})");
                 var transform = gp.player.LocalTransform;
                 var predictedPos = transform.Position;
                 var predictedOrient = transform.Orientation;
@@ -333,7 +320,6 @@ public partial class CGameSession
                 gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
                 phys.SetCruiseState(state.CruiseChargePct, state.CruiseAccelPct);
 
-                // simulate inputs - only outside a tradelane. we go back in time for a tradelane a bit
                 for (i = i + 1; i < moveState.Count; i++)
                     Resimulate(i, gp);
 
@@ -345,7 +331,7 @@ public partial class CGameSession
         }
     }
 
-    private void UpdateObject(ObjectUpdate update, GameWorld world)
+    private void UpdateObject(ObjectUpdate update, GameWorld world, uint updTick, uint currTick)
     {
         var obj = world.GetObject(update.ID);
 
@@ -393,11 +379,14 @@ public partial class CGameSession
 
         var oldPos = obj.LocalTransform.Position;
         var oldQuat = obj.LocalTransform.Orientation;
+        obj.PhysicsComponent.Body.SetTransform(new Transform3D(update.Position.ToVector3(), update.Orientation.Quaternion));
         obj.PhysicsComponent!.Body.LinearVelocity = update.LinearVelocity.ToVector3();
         obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity.ToVector3();
         obj.PhysicsComponent.Body.Activate();
-        obj.PhysicsComponent.Body.SetTransform(new Transform3D(update.Position.ToVector3(), update.Orientation.Quaternion));
-
+        for (uint u = updTick; u < currTick; u++)
+        {
+            obj.PhysicsComponent!.Body.PredictionStep(1 / 60.0f);
+        }
         SmoothError(obj, oldPos, oldQuat);
     }
 
@@ -423,8 +412,9 @@ public partial class CGameSession
         var newPos = obj.PhysicsComponent!.Body!.Position;
         var newOrient = obj.PhysicsComponent.Body.Orientation;
 
-        if ((oldPos - newPos).Length() >
-            obj.PhysicsComponent.Body.LinearVelocity.Length() * 0.33f)
+        var minNoSmooth = 20;
+        var noSmoothLength = Math.Max(minNoSmooth, obj.PhysicsComponent.Body.LinearVelocity.Length());
+        if ((oldPos - newPos).Length() > noSmoothLength)
         {
             obj.PhysicsComponent.PredictionErrorPos = Vector3.Zero;
             obj.PhysicsComponent.PredictionErrorQuat = Quaternion.Identity;

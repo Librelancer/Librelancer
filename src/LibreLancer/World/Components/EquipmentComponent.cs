@@ -19,7 +19,7 @@ public class EquipmentComponent : GameComponent
             health = (byte)Math.Clamp(value, 0, 255);
         }
 
-        return new NetShipCargo(id, Equipment.CRC, Parent.Attachment?.Name, health, 1);
+        return new NetShipCargo(id, Equipment.CRC, Parent.Attachment?.Name ?? "internal", health, 1);
     }
 
     public LoadoutItem GetLoadoutItem()
