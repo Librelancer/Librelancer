@@ -425,6 +425,8 @@ World Time: {12:F2}
             private Vector3 playerPos;
             private Func<GameObject, bool> contactFilter;
 
+            private const double UpdateInterval = 1.0; // 1 second
+
             public ContactList()
             {
                 contactFilter = AllFilter;
@@ -434,7 +436,7 @@ World Time: {12:F2}
             {
                 if (distance < 1000)
                 {
-                    return $"{(int)distance}m";
+                    return $"{(int)distance}";
                 }
                 else if (distance < 10000)
                 {
@@ -510,7 +512,23 @@ World Time: {12:F2}
                 }
             }
 
-            public void UpdateList()
+            private double timer = 0;
+            private GameObject? lastSelected = null;
+
+            public void Update(double delta)
+            {
+                timer -= delta;
+                if (timer <= 0 ||
+                    lastSelected != game.Selection.Selected ||
+                    Contacts.Any(x => (x.obj.Flags & GameObjectFlags.Exists) == 0))
+                {
+                    UpdateList();
+                    lastSelected = game.Selection.Selected;
+                    timer = UpdateInterval;
+                }
+            }
+
+            void UpdateList()
             {
                 playerPos = game.player.WorldTransform.Position;
                 Contacts = game.world.Objects.Where(x => x != game.player &&
@@ -804,7 +822,7 @@ World Time: {12:F2}
 
             public string SelectionName()
             {
-                return g.Selection.Selected?.Name?.GetName(g.Game.GameData, g.player.PhysicsComponent!.Body.Position) ??
+                return g.Selection.Selected?.Name?.GetName(g.Game.GameData, g.player.WorldTransform.Position) ??
                        "NULL";
             }
 
@@ -817,7 +835,7 @@ World Time: {12:F2}
                     return "";
                 }
 
-                var playerPosition = g.player.PhysicsComponent!.Body.Position;
+                var playerPosition = g.player.WorldTransform.Position;
                 var targetPosition = g.Selection.Selected.WorldTransform.Position;
                 var distance = Vector3.Distance(playerPosition, targetPosition);
                 return distance < 2000f
@@ -1208,9 +1226,9 @@ World Time: {12:F2}
                 return;
             }
 
+            contactList.Update(delta);
             if (ShowHud && !IsSpecialCamera())
             {
-                contactList.UpdateList();
                 uiApi.ShieldBatteries =
                     session.Items.FirstOrDefault(x => x.Equipment is ShieldBatteryEquipment)?.Count ?? 0;
                 uiApi.RepairKits =
@@ -1473,9 +1491,9 @@ World Time: {12:F2}
                 return false;
             }
 
-            var myPos = player.PhysicsComponent!.Body.Position;
-            var myVel = player.PhysicsComponent.Body.LinearVelocity;
-            var otherPos = Selection.Selected.PhysicsComponent.Body.Position;
+            var myPos = player.WorldTransform.Position;
+            var myVel = player.PhysicsComponent!.Body.LinearVelocity;
+            var otherPos = Selection.Selected.WorldTransform.Position;
             var otherVel = Selection.Selected.PhysicsComponent.Body.LinearVelocity;
             var speed = weapons.GetAverageGunSpeed();
             Aiming.GetTargetLeading(otherPos - myPos, otherVel - myVel, speed, out var t);
@@ -1802,7 +1820,7 @@ World Time: {12:F2}
         {
             GameObject? result = null;
             var bestDistance = float.MaxValue;
-            var playerPosition = player.PhysicsComponent!.Body.Position;
+            var playerPosition = player.WorldTransform.Position;
             foreach (var obj in world.Objects)
             {
                 if (obj.Kind != GameObjectKind.Waypoint)
@@ -1940,7 +1958,7 @@ World Time: {12:F2}
 
         private void UpdateWaypointRenderStyle()
         {
-            var playerPosition = player.PhysicsComponent!.Body.Position;
+            var playerPosition = player.WorldTransform.Position;
             foreach (var obj in world.Objects)
             {
                 if (obj.Kind != GameObjectKind.Waypoint)
@@ -2143,7 +2161,7 @@ World Time: {12:F2}
                     else
                     {
                         selObj =
-                            Selection.Selected.Name?.GetName(Game.GameData, player.PhysicsComponent!.Body.Position) ??
+                            Selection.Selected.Name?.GetName(Game.GameData, player.WorldTransform.Position) ??
                             "unknown object";
                     }
 
