@@ -37,6 +37,7 @@ public partial class CGameSession
         public bool EngineKill;
         public bool CruiseEnabled;
         public ProjectileFireCommand? FireCommand;
+        public float MoveSpeed;
     }
 
     public UpdateAck Acks;
@@ -120,7 +121,8 @@ public partial class CGameSession
                 Thrust = steering.Thrust,
                 CruiseEnabled = steering.Cruise,
                 EngineKill = steering.EngineKill,
-                FireCommand = gp.world.Projectiles!.GetQueuedRequest()
+                FireCommand = gp.world.Projectiles!.GetQueuedRequest(),
+                MoveSpeed = player.PhysicsComponent.Body.LinearVelocity.Length()
             });
 
             // Store multiple updates for redundancy.
@@ -314,7 +316,20 @@ public partial class CGameSession
                 phys.ResyncCruiseAccel(p.PlayerState.CruiseAccelPct, 1 / 60.0f * (moveState.Count - i));
             }
 
-            if (errorPos.Length() > 3 || errorQuat > 0.1f)
+            bool errorAccumulated = errorPos.Length() > 3 || errorQuat > 0.1f;
+            bool slowVelocity = state.LinearVelocity.Length() < 1f;
+            for (int j = i; j >= 0; j--)
+            {
+                if (moveState[i].MoveSpeed >= 1f)
+                {
+                    slowVelocity = false;
+                    break;
+                }
+            }
+
+            // Resim when there's too much error
+            // Or we're not really moving
+            if (errorAccumulated || slowVelocity)
             {
                 // We now do a basic resim without collision
                 // This needs some work to not show the errors in collision on screen
