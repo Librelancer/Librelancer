@@ -37,7 +37,6 @@ public partial class CGameSession
         public bool EngineKill;
         public bool CruiseEnabled;
         public ProjectileFireCommand? FireCommand;
-        public float MoveSpeed;
     }
 
     public UpdateAck Acks;
@@ -122,7 +121,6 @@ public partial class CGameSession
                 CruiseEnabled = steering.Cruise,
                 EngineKill = steering.EngineKill,
                 FireCommand = gp.world.Projectiles!.GetQueuedRequest(),
-                MoveSpeed = player.PhysicsComponent.Body.LinearVelocity.Length()
             });
 
             // Store multiple updates for redundancy.
@@ -316,11 +314,14 @@ public partial class CGameSession
                 phys.ResyncCruiseAccel(p.PlayerState.CruiseAccelPct, 1 / 60.0f * (moveState.Count - i));
             }
 
-            bool errorAccumulated = errorPos.Length() > 3 || errorQuat > 0.1f;
-            bool slowVelocity = state.LinearVelocity.Length() < 1f;
+            bool errorAccumulated = errorPos.Length() > 2f || errorQuat > 0.05f;
+            bool slowVelocity = state.LinearVelocity.Length() < 1f &&
+                                state.CruiseAccelPct < float.Epsilon &&
+                                state.CruiseChargePct < float.Epsilon;
             for (int j = i; j >= 0; j--)
             {
-                if (moveState[i].MoveSpeed >= 1f)
+                if (moveState[i].Throttle > 0.1f ||
+                    moveState[i].CruiseEnabled)
                 {
                     slowVelocity = false;
                     break;

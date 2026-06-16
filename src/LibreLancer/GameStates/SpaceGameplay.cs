@@ -2219,6 +2219,9 @@ World Time: {12:F2}
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGui.Text(text);
                 ImGui.Text($"Player Position: {player.WorldTransform.Position}");
+                ImGui.Text($"PredictionErrorPos: {player.PhysicsComponent!.PredictionErrorPos}");
+                ImGui.Text($"PredictionErrorQuat: {player.PhysicsComponent!.PredictionErrorQuat} ({MathHelper.QuatError(
+                    player.PhysicsComponent!.PredictionErrorQuat, Quaternion.Identity)})");
                 ImGui.Separator();
                 pilotComponent?.ImGuiDebug();
                 ImGui.Text($"crosshairHit: {crosshairHit}");
