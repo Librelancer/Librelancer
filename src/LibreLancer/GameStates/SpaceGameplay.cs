@@ -1624,12 +1624,7 @@ World Time: {12:F2}
                 _turretViewCamera.PanControls = Vector2.Zero;
             }
 
-            if (pilotComponent is { CurrentBehavior: not AutopilotBehaviors.None, AutopilotStrafe: not StrafeControls.None })
-            {
-                strafe = pilotComponent.AutopilotStrafe;
-            }
-
-            control.CurrentStrafe = strafe;
+            steering.CurrentStrafe = strafe;
 
             var obj = GetMouseSelection();
 

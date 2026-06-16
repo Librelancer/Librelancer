@@ -298,8 +298,6 @@ namespace LibreLancer.Server.Components
                     {
                         phys.Steering = Vector3.Zero;
                         phys.CurrentStrafe = StrafeControls.None;
-                        phys.AutopilotStrafeVector = Vector2.Zero;
-                        phys.AutopilotCruiseStrafe = false;
                         phys.EnginePower = 0;
                         phys.CruiseSpeedOffset = 0;
                         phys.ThrustEnabled = false;
@@ -311,10 +309,6 @@ namespace LibreLancer.Server.Components
                         var cruise = input.Cruise && AllowFormationCruise();
                         phys.Steering = input.Steering;
                         phys.CurrentStrafe = input.Strafe;
-                        phys.AutopilotStrafeVector = cruise
-                            ? ShipPhysicsComponent.StrafeControlsToVector(input.Strafe)
-                            : Vector2.Zero;
-                        phys.AutopilotCruiseStrafe = cruise && input.Strafe != StrafeControls.None;
                         phys.EnginePower = input.Throttle;
                         phys.CruiseSpeedOffset = cruise ? input.CruiseSpeedOffset : 0;
                         phys.ThrustEnabled = input.Thrust;

@@ -19,6 +19,7 @@ namespace LibreLancer.World.Components
         public bool Cruise;
         public float CruiseSpeedOffset;
         public bool Thrust;
+        public StrafeControls CurrentStrafe;
         public int Tick;
         public bool EngineKill;
 
@@ -56,7 +57,16 @@ namespace LibreLancer.World.Components
             OutputSteering = Parent.PhysicsComponent.Body.RotateVector(steerControl);
             OutputSteering = MathHelper.ApplyEpsilon(OutputSteering);
 
+            var strafe = CurrentStrafe;
+            if (strafe == StrafeControls.None &&
+                Parent.TryGetComponent<AutopilotComponent>(out autoPilot) &&
+                autoPilot.CurrentBehavior != AutopilotBehaviors.None)
+            {
+                strafe = autoPilot.AutopilotStrafe;
+            }
+
             physics!.Steering = OutputSteering;
+            physics.CurrentStrafe = strafe;
             physics.EnginePower = InThrottle;
             physics.ThrustEnabled = Thrust;
             physics.CruiseEnabled = Cruise;

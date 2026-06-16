@@ -516,7 +516,6 @@ namespace LibreLancer.World.Components
         private AutopilotBehavior? instance;
         public bool LocalPlayer = false;
         internal StrafeControls AutopilotStrafe { get; private set; } = StrafeControls.None;
-        internal Vector2 AutopilotStrafeVector { get; private set; } = Vector2.Zero;
 
         public AutopilotBehaviors CurrentBehavior
             => instance?.Behavior ?? AutopilotBehaviors.None;
@@ -645,16 +644,9 @@ namespace LibreLancer.World.Components
             SetAutopilotStrafe(strafe, Vector2.Zero);
         }
 
-        internal void SetAutopilotStrafe(StrafeControls strafe, Vector2 strafeVector)
+        internal void SetAutopilotStrafe(StrafeControls strafe, Vector2 _)
         {
             AutopilotStrafe = strafe;
-            AutopilotStrafeVector = strafeVector;
-            if (Parent.TryGetComponent<ShipPhysicsComponent>(out var physics))
-            {
-                physics.CurrentStrafe = strafe;
-                physics.AutopilotStrafeVector = strafeVector;
-                physics.AutopilotCruiseStrafe = strafeVector != Vector2.Zero || strafe != StrafeControls.None;
-            }
         }
     }
 }

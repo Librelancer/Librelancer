@@ -46,8 +46,6 @@ namespace LibreLancer.World.Components
         public bool EngineKillEnabled = false;
         public EngineStates EngineState { get; private set; }
         public StrafeControls CurrentStrafe = StrafeControls.None;
-        public bool AutopilotCruiseStrafe = false;
-        public Vector2 AutopilotStrafeVector = Vector2.Zero;
         public float ChargePercent;
         public Vector3 Steering;
         public float CruiseAccelPct = 0;
@@ -260,23 +258,18 @@ namespace LibreLancer.World.Components
             }
 
             Vector3 strafe = Vector3.Zero;
-            if (EngineState != EngineStates.Cruise || AutopilotCruiseStrafe)
+            var strafeControl = StrafeControlsToVector(CurrentStrafe);
+            if (strafeControl.LengthSquared() > 1f)
             {
-                var strafeControl = AutopilotCruiseStrafe && AutopilotStrafeVector != Vector2.Zero
-                    ? AutopilotStrafeVector
-                    : StrafeControlsToVector(CurrentStrafe);
-                if (strafeControl.LengthSquared() > 1f)
-                {
-                    strafeControl = Vector2.Normalize(strafeControl);
-                }
+                strafeControl = Vector2.Normalize(strafeControl);
+            }
 
-                if (strafeControl != Vector2.Zero)
-                {
-                    strafe = new Vector3(strafeControl.X, strafeControl.Y, 0);
-                    strafe = Parent.PhysicsComponent.Body.RotateVector(strafe);
-                    // Apply strafe force
-                    strafe *= Ship.StrafeForce;
-                }
+            if (strafeControl != Vector2.Zero)
+            {
+                strafe = new Vector3(strafeControl.X, strafeControl.Y, 0);
+                strafe = Parent.PhysicsComponent.Body.RotateVector(strafe);
+                // Apply strafe force
+                strafe *= Ship.StrafeForce;
             }
             var totalForce = (
                 drag +

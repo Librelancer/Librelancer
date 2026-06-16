@@ -33,8 +33,6 @@ public partial class CGameSession
         public float Throttle;
         public float CruiseSpeedOffset;
         public StrafeControls Strafe;
-        public Vector2 AutopilotStrafeVector;
-        public bool AutopilotCruiseStrafe;
         public bool Thrust;
         public bool EngineKill;
         public bool CruiseEnabled;
@@ -117,8 +115,6 @@ public partial class CGameSession
                 Steering = steering.OutputSteering,
                 AimPoint = wp.AimPoint,
                 Strafe = phys.CurrentStrafe,
-                AutopilotStrafeVector = phys.AutopilotStrafeVector,
-                AutopilotCruiseStrafe = phys.AutopilotCruiseStrafe,
                 Throttle = phys.EnginePower,
                 CruiseSpeedOffset = steering.Cruise ? steering.CruiseSpeedOffset : 0,
                 Thrust = steering.Thrust,
@@ -410,8 +406,6 @@ public partial class CGameSession
         var physComponent = gameplay.player.GetComponent<ShipPhysicsComponent>();
         var player = gameplay.player;
         physComponent!.CurrentStrafe = moveState[i].Strafe;
-        physComponent.AutopilotStrafeVector = moveState[i].AutopilotStrafeVector;
-        physComponent.AutopilotCruiseStrafe = moveState[i].AutopilotCruiseStrafe;
         physComponent.EnginePower = moveState[i].Throttle;
         physComponent.CruiseEnabled = moveState[i].CruiseEnabled;
         physComponent.CruiseSpeedOffset = moveState[i].CruiseEnabled ? moveState[i].CruiseSpeedOffset : 0;
