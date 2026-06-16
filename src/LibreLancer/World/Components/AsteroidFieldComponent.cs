@@ -236,6 +236,7 @@ namespace LibreLancer.World.Components
 
                 spawnedA.Count = 0;
                 spawnedB.Count = 0;
+                fillBoxes.Dispose(phys.BufferPool);
                 return;
             }
 
