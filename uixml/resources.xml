@@ -255,10 +255,23 @@
   <Model name="hud_radiationalert" path="INTERFACE/HUD/hud_radiationalert.3db" x="0" y="0" xscale="63" yscale="63" xz-plane="false" />
   <Model name="hud_hailship" path="INTERFACE/HUD/hud_communication.3db" x="0" y="0" xscale="65" yscale="65" xz-plane="false" />
   <Model name="hud_contactall" path="INTERFACE/HUD/hud_contactall.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactlist" path="INTERFACE/HUD/hud_contactlist.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+
   <Model name="hud_contactloot" path="INTERFACE/HUD/hud_contactloot.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactotherplayers" path="INTERFACE/HUD/hud_contactotherplayers.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactlootabledepot" path="INTERFACE/HUD/hud_contactlootabledepot.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactweaponplat" path="INTERFACE/HUD/hud_contactweaponplat.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactnomad" path="INTERFACE/HUD/hud_contactnomad.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contacttransport" path="INTERFACE/HUD/hud_contacttransport.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactfreighter" path="INTERFACE/HUD/hud_contactfrieghter.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contacttradelane" path="INTERFACE/HUD/hud_contacttradelane.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactjumpgate" path="INTERFACE/HUD/hud_contactjumpgate.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactbattleship" path="INTERFACE/HUD/hud_contactbattleship.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactwaypoint" path="INTERFACE/HUD/hud_contactwaypoint.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactplanet" path="INTERFACE/HUD/hud_contactplanet.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
   <Model name="hud_contactship" path="INTERFACE/HUD/hud_contactship.3db" x="0" y="0" xscale="86" yscale="96" xz-plane="false" />
   <Model name="hud_contactstation" path="INTERFACE/HUD/hud_contactstation.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
-  <Model name="hud_contactlist" path="INTERFACE/HUD/hud_contactlist.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+
   <Model name="hud_contactimportant" path="INTERFACE/HUD/hud_contactimportant.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
   <Model name="hud_targetedobject" path="INTERFACE/HUD/hud_targetedobject.3db" x="0" y="0" xscale="76" yscale="76" xz-plane="false" />
   <Model name="hud_shieldbatteries" path="INTERFACE/HUD/hud_shieldgaugeicon.3db" x="0" y="0" xscale="75" yscale="75" xz-plane="false" />

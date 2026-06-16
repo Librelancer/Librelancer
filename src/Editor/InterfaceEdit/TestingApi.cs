@@ -167,7 +167,11 @@ public class FakeContactList : IContactListData
 
     public void SelectIndex(int index) => selIndex = index;
 
-    public string Get(int index) => contacts[index];
+    public string GetLabel(int index) => contacts[index];
+
+    public string GetDistanceString(int index) => "100";
+
+    public ContactIcon GetIcon(int index) => ContactIcon.WeaponPlatform;
 
     public RepAttitude GetAttitude(int index) => RepAttitude.Friendly;
 

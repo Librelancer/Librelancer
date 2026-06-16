@@ -43,6 +43,7 @@ namespace LibreLancer.Interface
             {
                 namedStyles[style.Name] = style;
             }
+
             allStyles.Add(style);
         }
 
@@ -335,6 +336,150 @@ namespace LibreLancer.Interface
         }
     }
 
+
+    [UiLoadable]
+    [WattleScriptUserData]
+    public class ContactListStyle : ElementStyle
+    {
+        private StyledProperty<UiRenderable?> weaponPlatform = new("WeaponPlatform");
+        private StyledProperty<UiRenderable?> lootableDepot = new("LootableDepot");
+        private StyledProperty<UiRenderable?> loot = new("Loot");
+        private StyledProperty<UiRenderable?> nomad = new("Nomad");
+        private StyledProperty<UiRenderable?> transport = new("Transport");
+        private StyledProperty<UiRenderable?> freighter = new("Freighter");
+        private StyledProperty<UiRenderable?> tradelane = new("Tradelane");
+        private StyledProperty<UiRenderable?> jumpgate = new("Jumpgate");
+        private StyledProperty<UiRenderable?> battleship = new("Battleship");
+        private StyledProperty<UiRenderable?> waypoint = new("Waypoint");
+        private StyledProperty<UiRenderable?> station = new("Station");
+        private StyledProperty<UiRenderable?> planet = new("Planet");
+        private StyledProperty<UiRenderable?> ship = new("Ship");
+        private StyledProperty<UiRenderable?> otherPlayer = new("OtherPlayer");
+
+        public UiRenderable? WeaponPlatform
+        {
+            get => weaponPlatform.Value;
+            set => weaponPlatform.Set(value);
+        }
+
+        public UiRenderable? LootableDepot
+        {
+            get => lootableDepot.Value;
+            set => lootableDepot.Set(value);
+        }
+
+        public UiRenderable? Loot
+        {
+            get => loot.Value;
+            set => loot.Set(value);
+        }
+
+        public UiRenderable? Nomad
+        {
+            get => nomad.Value;
+            set => nomad.Set(value);
+        }
+
+        public UiRenderable? Transport
+        {
+            get => transport.Value;
+            set => transport.Set(value);
+        }
+
+        public UiRenderable? Freighter
+        {
+            get => freighter.Value;
+            set => freighter.Set(value);
+        }
+
+        public UiRenderable? Tradelane
+        {
+            get => tradelane.Value;
+            set => tradelane.Set(value);
+        }
+
+        public UiRenderable? Jumpgate
+        {
+            get => jumpgate.Value;
+            set => jumpgate.Set(value);
+        }
+
+        public UiRenderable? Battleship
+        {
+            get => battleship.Value;
+            set => battleship.Set(value);
+        }
+
+        public UiRenderable? Waypoint
+        {
+            get => waypoint.Value;
+            set => waypoint.Set(value);
+        }
+
+        public UiRenderable? Station
+        {
+            get => station.Value;
+            set => station.Set(value);
+        }
+
+        public UiRenderable? Planet
+        {
+            get => planet.Value;
+            set => planet.Set(value);
+        }
+
+        public UiRenderable? Ship
+        {
+            get => ship.Value;
+            set => ship.Set(value);
+        }
+
+        public UiRenderable? OtherPlayer
+        {
+            get => otherPlayer.Value;
+            set => otherPlayer.Set(value);
+        }
+
+        public override void Set(StyleResolver resolver)
+        {
+            base.Set(resolver);
+            resolver.Add(weaponPlatform)
+                .Add(lootableDepot)
+                .Add(loot)
+                .Add(nomad)
+                .Add(transport)
+                .Add(freighter)
+                .Add(tradelane)
+                .Add(jumpgate)
+                .Add(battleship)
+                .Add(waypoint)
+                .Add(station)
+                .Add(planet)
+                .Add(ship)
+                .Add(otherPlayer);
+        }
+
+        public override void Create(StyleResolver resolver)
+        {
+            base.Create(resolver);
+            resolver.Query(weaponPlatform)
+                .Query(lootableDepot)
+                .Query(loot)
+                .Query(nomad)
+                .Query(transport)
+                .Query(freighter)
+                .Query(tradelane)
+                .Query(jumpgate)
+                .Query(battleship)
+                .Query(waypoint)
+                .Query(station)
+                .Query(planet)
+                .Query(ship)
+                .Query(otherPlayer);
+        }
+    }
+
+
     [UiLoadable]
     [WattleScriptUserData]
     public class ScrollbarStyle : ElementStyle
@@ -417,7 +562,7 @@ namespace LibreLancer.Interface
         public float ButtonMarginX
         {
             get => buttonMarginX.Value;
-            set =>  buttonMarginX.Set(value);
+            set => buttonMarginX.Set(value);
         }
 
         public float TrackMarginX
@@ -570,7 +715,10 @@ namespace LibreLancer.Interface
         private StyledProperty<float> userWaypointDigitWidth = new("UserWaypointDigitWidth", 6);
         private StyledProperty<float> userWaypointDigitHeight = new("UserWaypointDigitHeight", 10);
         private StyledProperty<int> userWaypointRouteThickness = new("UserWaypointRouteThickness", 2);
-        private StyledProperty<InterfaceColor> userWaypointColor = new("UserWaypointColor", new Color4(1f, 0.2f, 1f, 1f));
+
+        private StyledProperty<InterfaceColor> userWaypointColor =
+            new("UserWaypointColor", new Color4(1f, 0.2f, 1f, 1f));
+
         private StyledProperty<InterfaceColor> userWaypointDigitColor = new("UserWaypointDigitColor", Color4.Yellow);
 
         public override void Set(StyleResolver resolver)

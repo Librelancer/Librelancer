@@ -188,17 +188,13 @@ namespace LibreLancer.Interface
             return new Vector2(resolveX, resolveY);
         }
 
+        // Points->Pixels
+
         public Vector2 PointsToPixels(Vector2 points)
         {
             var ratio = ViewportHeight / 480;
             return points * ratio;
         }
-
-        public Vector2 PixelsToPoints(Point pixels) => PixelsToPoints(new Vector2(pixels.X, pixels.Y));
-
-        public Vector2 PixelsToPoints(Vector2 pixels) => pixels * (480f / ViewportHeight);
-
-        public float PixelsToPoints(float pixels) => pixels * (480 / ViewportHeight);
 
         public int PointsToPixels(float points)
         {
@@ -225,6 +221,15 @@ namespace LibreLancer.Interface
             return new Rectangle((int) (points.X * ratio), (int) (points.Y * ratio), (int) (points.Width * ratio),
                 (int) (points.Height * ratio));
         }
+
+        // Pixels->Points
+
+        public Vector2 PixelsToPoints(Point pixels) => PixelsToPoints(new Vector2(pixels.X, pixels.Y));
+
+        public Vector2 PixelsToPoints(Vector2 pixels) => pixels * (480f / ViewportHeight);
+
+        public float PixelsToPoints(float pixels) => pixels * (480 / ViewportHeight);
+
 
         public float TextSize(float inputPoints)
         {

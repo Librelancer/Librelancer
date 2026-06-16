@@ -14,6 +14,7 @@ using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema;
+using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Data.Schema.Voices;
 using LibreLancer.Graphics;
 using LibreLancer.Infocards;
@@ -415,15 +416,22 @@ World Time: {12:F2}
 
         }
 
-        [WattleScript.Interpreter.WattleScriptUserData]
+        [WattleScriptUserData]
         public class ContactList : IContactListData
         {
-            private readonly record struct Contact(GameObject obj, float distance, string display);
+            private readonly record struct Contact(
+                GameObject Obj,
+                float Distance,
+                string DistanceString,
+                string Label,
+                ContactIcon Icon);
 
             private Contact[] Contacts = [];
             private SpaceGameplay game = null!;
             private Vector3 playerPos;
             private Func<GameObject, bool> contactFilter;
+            private double timer = 0;
+            private GameObject? lastSelected = null;
 
             private const double UpdateInterval = 1.0; // 1 second
 
@@ -432,7 +440,7 @@ World Time: {12:F2}
                 contactFilter = AllFilter;
             }
 
-            private string GetDistanceString(float distance)
+            private string FormatDistance(float distance)
             {
                 if (distance < 1000)
                 {
@@ -457,9 +465,39 @@ World Time: {12:F2}
                 var distance = Vector3.Distance(playerPos, obj.WorldTransform.Position);
                 var name = obj.Name?.GetName(game.Game.GameData, playerPos);
 
+                ContactIcon icon = ContactIcon.WeaponPlatform;
+                if (obj.SystemObject != null)
+                {
+                    icon = obj.SystemObject.Archetype?.Type switch
+                    {
+                        ArchetypeType.airlock_gate => ContactIcon.Jumpgate,
+                        ArchetypeType.jump_gate => ContactIcon.Jumpgate,
+                        ArchetypeType.jump_hole => ContactIcon.Jumpgate,
+                        ArchetypeType.jumphole => ContactIcon.Jumpgate,
+                        ArchetypeType.destroyable_depot => ContactIcon.LootableDepot,
+                        ArchetypeType.planet => ContactIcon.Planet,
+                        ArchetypeType.tradelane_ring => ContactIcon.Tradelane,
+                        ArchetypeType.station => ContactIcon.Station,
+                        ArchetypeType.docking_ring => ContactIcon.Station,
+                        _ => ContactIcon.WeaponPlatform
+                    };
+                }
+                else if (obj.Kind == GameObjectKind.Waypoint)
+                {
+                    icon = ContactIcon.Waypoint;
+                }
+                else if (obj.Kind == GameObjectKind.Loot)
+                {
+                    icon = ContactIcon.Loot;
+                }
+                else if (obj.Kind == GameObjectKind.Ship)
+                {
+                    icon = ContactIcon.Ship;
+                }
+
                 if (obj.Kind != GameObjectKind.Ship || !obj.TryGetComponent<CFactionComponent>(out var fac))
                 {
-                    return new Contact(obj, distance, $"{GetDistanceString(distance)} - {name}");
+                    return new Contact(obj, distance, FormatDistance(distance), name ?? "-", icon);
                 }
 
                 var fn = game.Game.GameData.GetString(fac.Faction.IdsShortName);
@@ -469,7 +507,7 @@ World Time: {12:F2}
                     name = $"{fn} - {name}";
                 }
 
-                return new Contact(obj, distance, $"{GetDistanceString(distance)} - {name}");
+                return new Contact(obj, distance, FormatDistance(distance), name ?? "-", icon);
             }
 
             private bool AllFilter(GameObject o) => true;
@@ -510,21 +548,17 @@ World Time: {12:F2}
                         FLLog.Warning("Ui", $"Unknown contact list filter {filter}, defaulting to all");
                         break;
                 }
+                UpdateList();
             }
-
-            private double timer = 0;
-            private GameObject? lastSelected = null;
 
             public void Update(double delta)
             {
                 timer -= delta;
                 if (timer <= 0 ||
                     lastSelected != game.Selection.Selected ||
-                    Contacts.Any(x => (x.obj.Flags & GameObjectFlags.Exists) == 0))
+                    Contacts.Any(x => (x.Obj.Flags & GameObjectFlags.Exists) == 0))
                 {
                     UpdateList();
-                    lastSelected = game.Selection.Selected;
-                    timer = UpdateInterval;
                 }
             }
 
@@ -538,7 +572,9 @@ World Time: {12:F2}
                                                              Vector3.Zero)))
                     .Where(contactFilter)
                     .Select(GetContact)
-                    .OrderBy(x => x.distance).ToArray();
+                    .OrderBy(x => x.Distance).ToArray();
+                lastSelected = game.Selection.Selected;
+                timer = UpdateInterval;
             }
 
             public ContactList(SpaceGameplay game) : this()
@@ -550,27 +586,34 @@ World Time: {12:F2}
 
             public bool IsSelected(int index)
             {
-                return game.Selection.Selected == Contacts[index].obj;
+                return game.Selection.Selected == Contacts[index].Obj;
             }
 
             public void SelectIndex(int index)
             {
-                game.Selection.Selected = Contacts[index].obj;
+                game.Selection.Selected = Contacts[index].Obj;
             }
 
-            public string Get(int index)
+            public string GetLabel(int index)
             {
-                return Contacts[index].display;
+                return Contacts[index].Label;
+            }
+
+            public string GetDistanceString(int index)
+            {
+                return Contacts[index].DistanceString;
             }
 
             public RepAttitude GetAttitude(int index)
             {
-                return game.GetRepToPlayer(Contacts[index].obj);
+                return game.GetRepToPlayer(Contacts[index].Obj);
             }
+
+            public ContactIcon GetIcon(int index) => Contacts[index].Icon;
 
             public bool IsWaypoint(int index)
             {
-                return Contacts[index].obj.Kind == GameObjectKind.Waypoint;
+                return Contacts[index].Obj.Kind == GameObjectKind.Waypoint;
             }
         }
 

@@ -134,6 +134,55 @@ namespace LibreLancer.Interface
             return TextAlignment.Left;
         }
 
+        protected float LineHeight(UiContext context, string? font, float textSize)
+        {
+            if (string.IsNullOrEmpty(font))
+            {
+                font = "$Normal";
+            }
+            if (textSize <= 0)
+            {
+                textSize = 10;
+            }
+            var fnt = context.Data.GetFont(font);
+            var size = context.TextSize(textSize);
+            var lineHeight = context.RenderContext.Renderer2D.LineHeight(fnt, size);
+            return context.PixelsToPoints(lineHeight);
+        }
+        
+        protected Vector2 MeasureText(
+            UiContext context,
+            ref CachedRenderString? cache,
+            RectangleF myRectangle,
+            float textSize,
+            string? font,
+            bool shadow,
+            string text,
+            float maxWidth)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return Vector2.Zero;
+            }
+            if (myRectangle.Width <= 1 || myRectangle.Height <= 1)
+            {
+                return Vector2.Zero;
+            }
+            if (string.IsNullOrEmpty(font))
+            {
+                font = "$Normal";
+            }
+            if (textSize <= 0)
+            {
+                textSize = 10;
+            }
+            var fnt = context.Data.GetFont(font);
+            var size = context.TextSize(textSize);
+            var measured = context.RenderContext.Renderer2D.MeasureStringCached(ref cache, fnt, size, text, false,
+                shadow, TextAlignment.Left, maxWidth > 0 ? context.PointsToPixels(maxWidth) : 0f);
+            return context.PixelsToPoints(measured);
+        }
+
         protected void RenderText(
             UiContext context,
             DrawList2D drawList,

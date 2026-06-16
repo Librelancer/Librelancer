@@ -2,170 +2,170 @@
     <Scene id="hudcontrols">
     <Scene id="indicatorlayer">
     <Panel X="400" Y="200" Width="50" Height="50" CaptureMouse="false" id="selection_arrow">
-		<Panel.Background>
-			<DisplayImage image="selectionarrow_background" tint="targeting_background"/>
-			<DisplayImage image="selectionarrow_outline"/>
-		</Panel.Background>
-	</Panel>
-	<Panel X="500" Y="200" Width="30" Height="30" CaptureMouse="false" id="noselect_arrow">
-		<Panel.Background>
-			<DisplayImage image="noselectarrow_background" tint="targeting_background"/>
-			<DisplayImage image="noselectarrow_outline"/>
-			<DisplayImage image="arrowimportant" OffsetY="4"/>
-		</Panel.Background>
-	</Panel>
-	<TextBlock X="500" Y="300" Width="90" Height="18" CaptureMouse="false" id="waypoint_label" Text="Waypoint" Strid="1090" TextSize="10" TextColor="text" TextShadow="black" HorizontalAlignment="Center" VerticalAlignment="Top" />
-	<Panel X="500" Y="300" Width="50" Height="50" CaptureMouse="false" id="waypoint">
-		<Panel.Background>
-			<DisplayImage image="waypoint_onscreen"/>
-		</Panel.Background>
-	</Panel>
+        <Panel.Background>
+            <DisplayImage image="selectionarrow_background" tint="targeting_background"/>
+            <DisplayImage image="selectionarrow_outline"/>
+        </Panel.Background>
+    </Panel>
+    <Panel X="500" Y="200" Width="30" Height="30" CaptureMouse="false" id="noselect_arrow">
+        <Panel.Background>
+            <DisplayImage image="noselectarrow_background" tint="targeting_background"/>
+            <DisplayImage image="noselectarrow_outline"/>
+            <DisplayImage image="arrowimportant" OffsetY="4"/>
+        </Panel.Background>
+    </Panel>
+    <TextBlock X="500" Y="300" Width="90" Height="18" CaptureMouse="false" id="waypoint_label" Text="Waypoint" Strid="1090" TextSize="10" TextColor="text" TextShadow="black" HorizontalAlignment="Center" VerticalAlignment="Top" />
+    <Panel X="500" Y="300" Width="50" Height="50" CaptureMouse="false" id="waypoint">
+        <Panel.Background>
+            <DisplayImage image="waypoint_onscreen"/>
+        </Panel.Background>
+    </Panel>
     </Scene>
     <Panel Width="90" Height="100" id="comms" Visible="false">
-    	<CharacterView Anchor="TopCenter" Y="43" Width="58" Height="58" id = "commhead">
-    		<CharacterView.Background>
-    			<DisplayImage image="commbackdrop" tint="text"/>
-    		</CharacterView.Background>
-    		<CharacterView.Border>
-    			<DisplayImage image="commstatic" oneinvsrccolor="true"/>
-    			<DisplayRectangle color="text"/>
-    		</CharacterView.Border>
-    	</CharacterView>
-    	<TextBlock id="commname" text="COMM Character Name" Anchor="TopCenter" Y="102" TextColor="text" TextShadow="black" Height="90" Width="90" TextSize="10" Clip="false" Wrap="true" HorizontalAlignment="Center" Color="text" VerticalAlignment="Top" />
+        <CharacterView Anchor="TopCenter" Y="43" Width="58" Height="58" id = "commhead">
+            <CharacterView.Background>
+                <DisplayImage image="commbackdrop" tint="text"/>
+            </CharacterView.Background>
+            <CharacterView.Border>
+                <DisplayImage image="commstatic" oneinvsrccolor="true"/>
+                <DisplayRectangle color="text"/>
+            </CharacterView.Border>
+        </CharacterView>
+        <TextBlock id="commname" text="COMM Character Name" Anchor="TopCenter" Y="102" TextColor="text" TextShadow="black" Height="90" Width="90" TextSize="10" Clip="false" Wrap="true" HorizontalAlignment="Center" Color="text" VerticalAlignment="Top" />
     </Panel>
-	<Panel Anchor="BottomLeft" Height="145.2" Width="169.88">
-		<Panel.Background>
-			<DisplayModel model="contactlistbox"  Rotate="0,0,0" />
-		</Panel.Background>
-		<Button id="nextenemy" X="22" Y="3" Width="21" height="20">
-			<Button.Background><DisplayModel model="hud_nextenemy" tint="text" /></Button.Background>
-		</Button>
-		<Button id="scanship" X="64" Y="3" Width="20" Height="20" Style="hud_scanship">
-		</Button>
-		<Button id="tractorselected" X="64" Y="3" Width="19" Height="20" Style="hud_tractorbeam" Visible="false">
-		</Button>
-		<Button id="showwireframe" X="106" Y="4" Width="18" Height="18" Style="hud_targetedobject">
-		</Button>
-		<Button id="showcontactlist" X="126.5" Y="2" Style="hud_contactlist" Selected="true">
-		</Button>
-		<Scene id="contactlist">
-			<Button id="filter_important" style="hud_contactimportant" X="34" Y="33" Selected="true"/>
-			<Button id="filter_ship" style="hud_contactship" X="55" Y="33"/>
-			<Button id="filter_station" style="hud_contactstation" X="76" Y="33"/>
-			<Button id="filter_loot" style="hud_contactloot" X="97" Y="33"/>
-			<Button id="filter_all" style="hud_contactall" X="118" Y="32"/>
-			<ContactList id="contactlistview" X="14" Y="48" Width="142" Height="90" FriendlyColor="color_friendly" HostileColor="color_hostile" NeutralColor="color_neutral" TextSize="8" Font="$Normal" DisplayRowCount="8" HoverColor="text_hover" SelectedColor="yellow">
-			</ContactList>
-		</Scene>
-		<Scene id="targetwireframe" Visible="false">
-			<WireframeView id="wireframe" X="14" Y="32" Width="142" Height="111" WireframeColor="wireframe">
-			</WireframeView>
-		</Scene>
-	</Panel>
-	<Panel Anchor="BottomRight" Height="145.2" Width="169.88">
-		<Panel.Background>
-			<DisplayModel model="shipinfobox" />
-		</Panel.Background>
-		<Button id="usenanobots" X="27" Y="4" style="hud_nanobots"/>
-		<TextBlock ID="repairKitCount" Height="22" Width="17" X="45" Y="2" Font="Agency FB" Text="0" TextColor="text" />
-		<TextBlock ID="shieldBatteryCount" Height="22" Width="17" X="82" Y="2" Font="Agency FB" Text="0" TextColor="text" />
-		<Button id="useshieldbats" X="62" Y="3" style="hud_shieldbatteries"/>
-		<ListBox id="weapons_list" X="14" Y="32" Width="142" Height="111" ItemHeight="11">
+    <Panel Anchor="BottomLeft" Height="145.2" Width="169.88">
+        <Panel.Background>
+            <DisplayModel model="contactlistbox"  Rotate="0,0,0" />
+        </Panel.Background>
+        <Button id="nextenemy" X="22" Y="3" Width="21" height="20">
+            <Button.Background><DisplayModel model="hud_nextenemy" tint="text" /></Button.Background>
+        </Button>
+        <Button id="scanship" X="64" Y="3" Width="20" Height="20" Style="hud_scanship">
+        </Button>
+        <Button id="tractorselected" X="64" Y="3" Width="19" Height="20" Style="hud_tractorbeam" Visible="false">
+        </Button>
+        <Button id="showwireframe" X="106" Y="4" Width="18" Height="18" Style="hud_targetedobject">
+        </Button>
+        <Button id="showcontactlist" X="126.5" Y="2" Style="hud_contactlist" Selected="true">
+        </Button>
+        <Scene id="contactlist">
+            <Button id="filter_important" style="hud_contactimportant" X="34" Y="33" Selected="true"/>
+            <Button id="filter_ship" style="hud_contactship" X="55" Y="33"/>
+            <Button id="filter_station" style="hud_contactstation" X="76" Y="33"/>
+            <Button id="filter_loot" style="hud_contactloot" X="97" Y="33"/>
+            <Button id="filter_all" style="hud_contactall" X="118" Y="32"/>
+            <ContactList id="contactlistview" X="14" Y="48" Width="142" Height="90" FriendlyColor="color_friendly" HostileColor="color_hostile" NeutralColor="color_neutral" TextSize="9" Font="$Normal" DisplayRowCount="7" HoverColor="text_hover" SelectedColor="yellow">
+            </ContactList>
+        </Scene>
+        <Scene id="targetwireframe" Visible="false">
+            <WireframeView id="wireframe" X="14" Y="32" Width="142" Height="111" WireframeColor="wireframe">
+            </WireframeView>
+        </Scene>
+    </Panel>
+    <Panel Anchor="BottomRight" Height="145.2" Width="169.88">
+        <Panel.Background>
+            <DisplayModel model="shipinfobox" />
+        </Panel.Background>
+        <Button id="usenanobots" X="27" Y="4" style="hud_nanobots"/>
+        <TextBlock ID="repairKitCount" Height="22" Width="17" X="45" Y="2" Font="Agency FB" Text="0" TextColor="text" />
+        <TextBlock ID="shieldBatteryCount" Height="22" Width="17" X="82" Y="2" Font="Agency FB" Text="0" TextColor="text" />
+        <Button id="useshieldbats" X="62" Y="3" style="hud_shieldbatteries"/>
+        <ListBox id="weapons_list" X="14" Y="32" Width="142" Height="111" ItemHeight="11">
 
-	    </ListBox>
-	</Panel>
-	<TextBlock Anchor="BottomCenter" Height="27" Width="275" Y="60" Text="CRUISE ENGINE CHARGING - WEAPONS OFF-LINE - 25%" TextShadow="black" TextColor="text" TextSize="12" id="cruisecharge" Visible="false" />
-	<Panel Anchor="BottomCenter" Height="27" Width="131" X="4" Y="-5">
-		<Panel.Background>
-			<DisplayModel model="gaugecontainer" />
-		</Panel.Background>
-		<Gauge ID="powergauge" Anchor="TopCenter" Width="100" Height="4.5" Y="3.5" PercentFilled="1">
-			<Gauge.Fill>
-				<DisplayModel model="powergauge" />
-			</Gauge.Fill>
-		</Gauge>
-		<Gauge ID="shieldgauge" Anchor="TopCenter" Width="100" Height="4.5" Y="10" PercentFilled="1">
-			<Gauge.Fill>
-				<DisplayModel model="shieldgauge" />
-			</Gauge.Fill>
-		</Gauge>
-		<Gauge ID="hullgauge" Anchor="TopCenter" Width="100" Height="4.5" Y="15" PercentFilled="1">
-			<Gauge.Fill>
-				<DisplayModel model="hullgauge" />
-			</Gauge.Fill>
-		</Gauge>
-		<Button ID="tractorall" style="hud_contactloot" Anchor="BottomRight" Y="5" X="-68" Width="20" Height="20"/>
-	</Panel>
-	<Panel X="10" Y="10" Width="150" Height="100" id="selection" Visible="true" CaptureMouse="false">
-		<Panel id="sel_border" Visible="false" Width="150" Height="100">
-			<Panel id="sel_tl" Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl" /></Panel.Background></Panel>
-			<Panel id="sel_tr" Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr" /></Panel.Background></Panel>
-			<Panel id="sel_bl" Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl" /></Panel.Background></Panel>
-			<Panel id="sel_br" Anchor="BottomRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_br" /></Panel.Background></Panel>
-		</Panel>
-		<Panel id="sel_waypoint" Anchor="Center" Width="150" Height="150"><Panel.Background><DisplayImage image="waypoint_onscreen" /></Panel.Background></Panel>
-		<TextBlock id="selection_name" Y="-35" Anchor="TopCenter" Width="150" Height="20" Text="Target" VerticalAlignment="Top" TextSize="9"></TextBlock>
-		<TextBlock id="selection_distance" Y="15" Anchor="TopCenter" Width="150" Height="20" Text="" VerticalAlignment="Top" TextSize="9"></TextBlock>
-		<Gauge Width="50" Height="5" Y="9" Anchor="BottomCenter" PercentFilled="0.5" id="selection_health">
-			<Gauge.Fill><DisplayColor color="red" /></Gauge.Fill>
-			<Gauge.Background><DisplayColor color="black" /></Gauge.Background>
-			<Gauge.Border><DisplayRectangle color="red" /></Gauge.Border>
-		</Gauge>
-		<Gauge Width="50" Height="5" Y="2" Anchor="BottomCenter" PercentFilled="0.5" id="selection_shield">
-			<Gauge.Fill><DisplayColor color="blue" /></Gauge.Fill>
-			<Gauge.Background><DisplayColor color="black" /></Gauge.Background>
-			<Gauge.Border><DisplayRectangle color="blue" /></Gauge.Border>
-		</Gauge>
-	</Panel>
-	<Panel Anchor="BottomCenter" Height="25" Width="212" Y="-6" X="4">
-		<Panel.Background>
-			<DisplayModel model="numberboxes" />
-		</Panel.Background>
-		<TextBlock ID="thrustText" Height="18" Width="26" X="8" Y="1" Font="Agency FB" Text="100%" TextColor="text" />
-		<TextBlock ID="speedText" Anchor="TopRight" Height="18" Width="26" X="10" Y="1" Font="Agency FB" Text="80" TextColor="text" />
-	</Panel>
-	<!-- Managed by navbox.lua -->
-	<Panel ID="actionbox1" Y="42" Anchor="TopCenter" Width="33" Height="31" X="-80.4" Visible="false">
-		<Panel.Background>
-			<DisplayModel model="actionbox1" />
-		</Panel.Background>
-	</Panel>
-	<Panel ID="actionbox2" />
-	<Panel ID="actionbox3" />
-	<Panel ID="navbox1" />
-	<Panel ID="navbox2" />
-	<Panel ID="navbox3" />
-	<Panel ID="navbox5" />
-	<Panel ID="navbox4" Anchor="TopCenter" Y="-10" Width="225" Height="52.12" Visible="true">
-		<Panel.Background>
-			<DisplayModel model="navbox4" />
-		</Panel.Background>
-	</Panel>
-	<Panel Anchor="TopRight" ID="nnbox5" Height="34" Width="131" Y="-7" Visible="false">
-		<Panel.Background>
-			<DisplayModel model="hud_nnbox5" />
-		</Panel.Background>
-	</Panel>
-	<Panel Anchor="TopRight" ID="nnbox7" Height="34" Width="174" Y="-7">
-		<Panel.Background>
-			<DisplayModel model="hud_nnbox7"/>
-		</Panel.Background>
-	</Panel>
-	<Button Anchor="TopRight" Style="nn_info" ID="nn_info" X="8" Y="2"/>
-	<Button Anchor="TopRight" Style="nn_playerstatus" ID="nn_playerstatus" X="37" Y="2"/>
-	<Button Anchor="TopRight" Style="nn_inventory" ID="nn_inventory" X="52" Y="6"/>
-	<Button Anchor="TopRight" Style="nn_map" ID="nn_map" X="76" Y="2"/>
-	<Button Anchor="TopRight" Style="nn_storystar" ID="nn_storystar" X="100" Y="1"/>
-	<Button Anchor="TopRight" Style="nn_chat" ID="nn_chat" X="121" Y="2"/>
-	<Button Anchor="TopRight" Style="nn_request" ID="nn_request" X="147" Y="1"/>
-	</Scene>
+        </ListBox>
+    </Panel>
+    <TextBlock Anchor="BottomCenter" Height="27" Width="275" Y="60" Text="CRUISE ENGINE CHARGING - WEAPONS OFF-LINE - 25%" TextShadow="black" TextColor="text" TextSize="12" id="cruisecharge" Visible="false" />
+    <Panel Anchor="BottomCenter" Height="27" Width="131" X="4" Y="-5">
+        <Panel.Background>
+            <DisplayModel model="gaugecontainer" />
+        </Panel.Background>
+        <Gauge ID="powergauge" Anchor="TopCenter" Width="100" Height="4.5" Y="3.5" PercentFilled="1">
+            <Gauge.Fill>
+                <DisplayModel model="powergauge" />
+            </Gauge.Fill>
+        </Gauge>
+        <Gauge ID="shieldgauge" Anchor="TopCenter" Width="100" Height="4.5" Y="10" PercentFilled="1">
+            <Gauge.Fill>
+                <DisplayModel model="shieldgauge" />
+            </Gauge.Fill>
+        </Gauge>
+        <Gauge ID="hullgauge" Anchor="TopCenter" Width="100" Height="4.5" Y="15" PercentFilled="1">
+            <Gauge.Fill>
+                <DisplayModel model="hullgauge" />
+            </Gauge.Fill>
+        </Gauge>
+        <Button ID="tractorall" style="hud_contactloot" Anchor="BottomRight" Y="5" X="-68" Width="20" Height="20"/>
+    </Panel>
+    <Panel X="10" Y="10" Width="150" Height="100" id="selection" Visible="true" CaptureMouse="false">
+        <Panel id="sel_border" Visible="false" Width="150" Height="100">
+            <Panel id="sel_tl" Anchor="TopLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tl" /></Panel.Background></Panel>
+            <Panel id="sel_tr" Anchor="TopRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_tr" /></Panel.Background></Panel>
+            <Panel id="sel_bl" Anchor="BottomLeft" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_bl" /></Panel.Background></Panel>
+            <Panel id="sel_br" Anchor="BottomRight" Width="36" Height="33"><Panel.Background><DisplayImage image="tgtcorner_br" /></Panel.Background></Panel>
+        </Panel>
+        <Panel id="sel_waypoint" Anchor="Center" Width="150" Height="150"><Panel.Background><DisplayImage image="waypoint_onscreen" /></Panel.Background></Panel>
+        <TextBlock id="selection_name" Y="-35" Anchor="TopCenter" Width="150" Height="20" Text="Target" VerticalAlignment="Top" TextSize="9"></TextBlock>
+        <TextBlock id="selection_distance" Y="15" Anchor="TopCenter" Width="150" Height="20" Text="" VerticalAlignment="Top" TextSize="9"></TextBlock>
+        <Gauge Width="50" Height="5" Y="9" Anchor="BottomCenter" PercentFilled="0.5" id="selection_health">
+            <Gauge.Fill><DisplayColor color="red" /></Gauge.Fill>
+            <Gauge.Background><DisplayColor color="black" /></Gauge.Background>
+            <Gauge.Border><DisplayRectangle color="red" /></Gauge.Border>
+        </Gauge>
+        <Gauge Width="50" Height="5" Y="2" Anchor="BottomCenter" PercentFilled="0.5" id="selection_shield">
+            <Gauge.Fill><DisplayColor color="blue" /></Gauge.Fill>
+            <Gauge.Background><DisplayColor color="black" /></Gauge.Background>
+            <Gauge.Border><DisplayRectangle color="blue" /></Gauge.Border>
+        </Gauge>
+    </Panel>
+    <Panel Anchor="BottomCenter" Height="25" Width="212" Y="-6" X="4">
+        <Panel.Background>
+            <DisplayModel model="numberboxes" />
+        </Panel.Background>
+        <TextBlock ID="thrustText" Height="18" Width="26" X="8" Y="1" Font="Agency FB" Text="100%" TextColor="text" />
+        <TextBlock ID="speedText" Anchor="TopRight" Height="18" Width="26" X="10" Y="1" Font="Agency FB" Text="80" TextColor="text" />
+    </Panel>
+    <!-- Managed by navbox.lua -->
+    <Panel ID="actionbox1" Y="42" Anchor="TopCenter" Width="33" Height="31" X="-80.4" Visible="false">
+        <Panel.Background>
+            <DisplayModel model="actionbox1" />
+        </Panel.Background>
+    </Panel>
+    <Panel ID="actionbox2" />
+    <Panel ID="actionbox3" />
+    <Panel ID="navbox1" />
+    <Panel ID="navbox2" />
+    <Panel ID="navbox3" />
+    <Panel ID="navbox5" />
+    <Panel ID="navbox4" Anchor="TopCenter" Y="-10" Width="225" Height="52.12" Visible="true">
+        <Panel.Background>
+            <DisplayModel model="navbox4" />
+        </Panel.Background>
+    </Panel>
+    <Panel Anchor="TopRight" ID="nnbox5" Height="34" Width="131" Y="-7" Visible="false">
+        <Panel.Background>
+            <DisplayModel model="hud_nnbox5" />
+        </Panel.Background>
+    </Panel>
+    <Panel Anchor="TopRight" ID="nnbox7" Height="34" Width="174" Y="-7">
+        <Panel.Background>
+            <DisplayModel model="hud_nnbox7"/>
+        </Panel.Background>
+    </Panel>
+    <Button Anchor="TopRight" Style="nn_info" ID="nn_info" X="8" Y="2"/>
+    <Button Anchor="TopRight" Style="nn_playerstatus" ID="nn_playerstatus" X="37" Y="2"/>
+    <Button Anchor="TopRight" Style="nn_inventory" ID="nn_inventory" X="52" Y="6"/>
+    <Button Anchor="TopRight" Style="nn_map" ID="nn_map" X="76" Y="2"/>
+    <Button Anchor="TopRight" Style="nn_storystar" ID="nn_storystar" X="100" Y="1"/>
+    <Button Anchor="TopRight" Style="nn_chat" ID="nn_chat" X="121" Y="2"/>
+    <Button Anchor="TopRight" Style="nn_request" ID="nn_request" X="147" Y="1"/>
+    </Scene>
     <!-- neuralnet here-->
     <ChatBox Anchor="BottomCenter" Y="50" Width="250" Height="60" ID="chatbox">
         <ChatBox.Background>
             <DisplayColor color="rgba(0,0,255,0.25)"/>
         </ChatBox.Background>
         <ChatBox.Border>
-        	<DisplayRectangle color="green"/>
+            <DisplayRectangle color="green"/>
         </ChatBox.Border>
     </ChatBox>
     <ChatDisplay Anchor="BottomLeft" Y="150" Height="250" Width="510" X="10" id="chat"></ChatDisplay>

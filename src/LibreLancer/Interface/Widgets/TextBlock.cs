@@ -121,12 +121,6 @@ namespace LibreLancer.Interface
             var rect = ClientRectangle;
 
             Background?.Draw(context, drawList, ClientRectangle);
-            if (Background != null)
-            {
-                foreach (var elem in Background.Elements)
-                    elem.Render(context, drawList, rect, 1);
-            }
-
             rect.X += MarginX;
             rect.Width -= MarginX * 2;
             var txt = txtAccess.GetText(context);

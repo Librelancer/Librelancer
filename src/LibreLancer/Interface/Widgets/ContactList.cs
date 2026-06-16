@@ -20,17 +20,55 @@ namespace LibreLancer.Interface
         public InterfaceColor? HoverColor { get; set; }
         public InterfaceColor? SelectedColor { get; set; }
         public InterfaceColor? TextShadow { get; set; }
-        public int DisplayRowCount { get; set; } = 5;
+
+        public int DisplayRowCount { get; set; }
 
         private IContactListData? data;
         private int childOffset = 0;
         private int _lastScroll = 0;
-        private CachedRenderString[]? rowStrings;
+        private CachedRenderString[]? rowLabels;
+        private CachedRenderString[]? rowDistances;
+
+        private CachedRenderString? distanceWidth;
+
+        private ContactListStyle listStyle = new();
+
+        UiRenderable? GetIcon(ContactIcon icon) => icon switch
+        {
+            ContactIcon.WeaponPlatform => listStyle.WeaponPlatform,
+            ContactIcon.LootableDepot => listStyle.LootableDepot,
+            ContactIcon.Loot => listStyle.Loot,
+            ContactIcon.Nomad => listStyle.Nomad,
+            ContactIcon.Transport => listStyle.Transport,
+            ContactIcon.Freighter => listStyle.Freighter,
+            ContactIcon.Tradelane => listStyle.Tradelane,
+            ContactIcon.Jumpgate => listStyle.Jumpgate,
+            ContactIcon.Battleship => listStyle.Battleship,
+            ContactIcon.Waypoint => listStyle.Waypoint,
+            ContactIcon.Station => listStyle.Station,
+            ContactIcon.Planet => listStyle.Planet,
+            ContactIcon.Ship => listStyle.Ship,
+            ContactIcon.OtherPlayer => listStyle.OtherPlayer,
+            _ => listStyle.WeaponPlatform
+        } ?? listStyle.WeaponPlatform;
 
         // Remove in future refactor
         static T? Cascade<T>(T? style, T? style2, T? self) where T : class => (self ?? style2 ?? style);
 
         public Scrollbar Scrollbar { get; set; } = new();
+
+        protected override ElementStyle OnRestyle(UiContext context)
+        {
+            listStyle = new StyleResolver()
+                .Add(context.Data.Stylesheet?.Styles.DefaultStyle<ContactListStyle>())
+                .Add(Style)
+                .Add(WidthProperty)
+                .Add(HeightProperty)
+                .Add(BackgroundProperty)
+                .Add(BorderProperty)
+                .Create<ContactListStyle>();
+            return listStyle;
+        }
 
         public override void OnLayout(UiContext context, Layout layout, double delta)
         {
@@ -143,7 +181,8 @@ namespace LibreLancer.Interface
                 else if (scrollCount != _lastScroll)
                 {
                     _lastScroll = scrollCount;
-                    Scrollbar.ThumbSize = 1.0f - (Math.Min(scrollCount, 9) * 0.1f);
+                    var tickAmount = 0.75f / (DisplayRowCount * 3);
+                    Scrollbar.ThumbSize = 1.0f - (Math.Min(scrollCount, DisplayRowCount * 3) * tickAmount);
                     Scrollbar.Tick = 1.0f / scrollCount;
                     Scrollbar.ScrollOffset = childOffset / (float) scrollCount;
                 }
@@ -160,16 +199,23 @@ namespace LibreLancer.Interface
                 }
 
                 var rowCount = Math.Min(DisplayRowCount, (data.Count - childOffset));
-                if (rowStrings == null || rowStrings.Length < rowCount)
-                    rowStrings = new CachedRenderString[DisplayRowCount];
+                if (rowLabels == null || rowLabels.Length < rowCount || rowDistances == null)
+                {
+                    rowLabels = new CachedRenderString[DisplayRowCount];
+                    rowDistances = new CachedRenderString[DisplayRowCount];
+                }
+
+                var distSize = MeasureText(context, ref distanceWidth, GetCell(rect, 0),
+                    TextSize, Font, TextShadow != null, "9999", 0);
 
                 for (int row = 0; row < rowCount; row++)
                 {
                     // Get row state
                     bool hovered = false;
                     var selected = data.IsSelected(row + childOffset);
-                    var str = data.Get(row + childOffset);
-
+                    var label = data.GetLabel(row + childOffset);
+                    var distance = data.GetDistanceString(row + childOffset);
+                    var icon = data.GetIcon(row + childOffset);
                     if (!selected)
                     {
                         var c = GetCell(rect, row);
@@ -197,11 +243,24 @@ namespace LibreLancer.Interface
 
                     // Render row
                     var rowColor = Cascade(textColor ?? InterfaceColor.White, hovered ? HoverColor : null,
-                        selected ? SelectedColor : null);
+                        selected ? SelectedColor : null) ?? InterfaceColor.White;
                     var rowRect = GetCell(rect, row);
-                    RenderText(context, drawList, ref rowStrings![row], rowRect, TextSize, Font, rowColor, TextShadow,
+
+                    var iconRect = rowRect with { Width = rowRect.Height };
+                    GetIcon(icon)?.Draw(context, drawList, iconRect, rowColor.GetColor(context.GlobalTime));
+                    rowRect.X += iconRect.Width + 4;
+                    rowRect.Width -= iconRect.Width + 4;
+                    rowRect.Height *= 2;
+
+                    RenderText(context, drawList, ref rowDistances![row], rowRect, TextSize, Font, rowColor, TextShadow,
                         HorizontalAlignment.Left,
-                        VerticalAlignment.Default, true, str);
+                        VerticalAlignment.Top, true, distance);
+                    rowRect.X += distSize.X;
+                    rowRect.Width -= distSize.X;
+
+                    RenderText(context, drawList, ref rowLabels![row], rowRect, TextSize, Font, rowColor, TextShadow,
+                        HorizontalAlignment.Left,
+                        VerticalAlignment.Top, true, label);
                 }
             }
 

@@ -868,4 +868,21 @@
     <TooltipStyle.Background><DisplayColor color="tooltip_background"/></TooltipStyle.Background>
     <TooltipStyle.Border><DisplayRectangle color="text"/></TooltipStyle.Border>
   </TooltipStyle>
+
+  <ContactListStyle>
+    <ContactListStyle.WeaponPlatform><DisplayModel model="hud_contactweaponplat"/></ContactListStyle.WeaponPlatform>
+    <ContactListStyle.LootableDepot><DisplayModel model="hud_contactlootabledepot"/></ContactListStyle.LootableDepot>
+    <ContactListStyle.Loot><DisplayModel model="hud_contactloot"/></ContactListStyle.Loot>
+    <ContactListStyle.Nomad><DisplayModel model="hud_contactnomad"/></ContactListStyle.Nomad>
+    <ContactListStyle.Transport><DisplayModel model="hud_contacttransport"/></ContactListStyle.Transport>
+    <ContactListStyle.Freighter><DisplayModel model="hud_contactfreighter"/></ContactListStyle.Freighter>
+    <ContactListStyle.Tradelane><DisplayModel model="hud_contacttradelane"/></ContactListStyle.Tradelane>
+    <ContactListStyle.Jumpgate><DisplayModel model="hud_contactjumpgate"/></ContactListStyle.Jumpgate>
+    <ContactListStyle.Battleship><DisplayModel model="hud_contactbattleship"/></ContactListStyle.Battleship>
+    <ContactListStyle.Waypoint><DisplayModel model="hud_contactwaypoint"/></ContactListStyle.Waypoint>
+    <ContactListStyle.Station><DisplayModel model="hud_contactstation"/></ContactListStyle.Station>
+    <ContactListStyle.Planet><DisplayModel model="hud_contactplanet"/></ContactListStyle.Planet>
+    <ContactListStyle.Ship><DisplayModel model="hud_contactship"/></ContactListStyle.Ship>
+    <ContactListStyle.OtherPlayer><DisplayModel model="hud_contactotherplayers"/></ContactListStyle.OtherPlayer>
+  </ContactListStyle>
 </Stylesheet>
