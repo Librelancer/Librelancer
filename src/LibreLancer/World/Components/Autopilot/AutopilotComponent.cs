@@ -23,6 +23,7 @@ namespace LibreLancer.World.Components
     internal abstract class AutopilotBehavior
     {
         private bool hasTriggeredCruise = false;
+        protected readonly AutopilotObstacleAvoidance avoidance = new();
 
         public abstract AutopilotBehaviors Behavior { get; }
 
@@ -39,7 +40,8 @@ namespace LibreLancer.World.Components
         public abstract bool Update(
             ShipSteeringComponent control,
             ShipInputComponent? input,
-            double time);
+            double time,
+            GameWorld world);
 
         private void Start(GotoKind kind, float maxThrottle, float gotoRadius)
         {
@@ -147,8 +149,8 @@ namespace LibreLancer.World.Components
 
             if (!directionSatisfied)
             {
-                Component.OutYaw = MathHelper.Clamp((float) Component.YawControl.Update(0, vec.X, dt), -1, 1);
-                Component.OutPitch = MathHelper.Clamp((float) Component.PitchControl.Update(0, -vec.Y, dt), -1, 1);
+                Component.OutYaw = MathHelper.Clamp((float)Component.YawControl.Update(0, vec.X, dt), -1, 1);
+                Component.OutPitch = MathHelper.Clamp((float)Component.PitchControl.Update(0, -vec.Y, dt), -1, 1);
                 return false;
             }
 
@@ -165,7 +167,8 @@ namespace LibreLancer.World.Components
             float maxSpeed,
             bool shouldStop,
             ShipSteeringComponent control,
-            ShipInputComponent? input)
+            ShipInputComponent? input,
+            GameWorld world)
         {
             float targetPower = 0;
             // Bring ship to within GotoRange metres of target
@@ -203,11 +206,19 @@ namespace LibreLancer.World.Components
             if (distanceSatisfied)
                 return true;
 
+            if (Behavior != AutopilotBehaviors.Undock)
+            {
+                var avoidancePlan = avoidance.GetPlan(world, Parent, TargetObject, point, targetRadius + radius + range,
+                    time);
+                Component.SetAutopilotStrafe(avoidancePlan.Strafe, avoidancePlan.StrafeVector);
+            }
+
             var directionSatisfied = TurnTowards(time, point);
 
 
             return distanceSatisfied && directionSatisfied;
         }
+
     }
 
     internal sealed class DockBehavior(AutopilotComponent c) : AutopilotBehavior(c)
@@ -226,7 +237,7 @@ namespace LibreLancer.World.Components
             }
         }
 
-        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time)
+        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time, GameWorld world)
         {
             if (!TargetValid() || !Dockable(out var docking))
             {
@@ -263,7 +274,7 @@ namespace LibreLancer.World.Components
                 maxSpeed = 0.3f;
             }
 
-            if (!MoveToPoint(time, targetPoint, radius, GotoRadius, maxSpeed, true, control, input))
+            if (!MoveToPoint(time, targetPoint, radius, GotoRadius, maxSpeed, true, control, input, world))
             {
                 return false; // not finished
             }
@@ -297,7 +308,8 @@ namespace LibreLancer.World.Components
 
         public override bool Update(ShipSteeringComponent control,
             ShipInputComponent? input,
-            double time)
+            double time,
+            GameWorld world)
         {
             if (delay > 0)
             {
@@ -325,7 +337,7 @@ namespace LibreLancer.World.Components
             var info = docking!.GetUndockInfo(index);
             var targetPoint = (info.End!.Transform * TargetObject!.WorldTransform).Position;
             var startPoint = (info.Start!.Transform * TargetObject.WorldTransform).Position;
-            return MoveToPoint(time, targetPoint, 25, 10, 1f, false, control, input) ||
+            return MoveToPoint(time, targetPoint, 25, 10, 1f, false, control, input, world) ||
                    Vector3.Distance(startPoint, targetPoint) - 20 <
                    Vector3.Distance(Parent.LocalTransform.Position, startPoint);
         }
@@ -335,7 +347,7 @@ namespace LibreLancer.World.Components
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Goto;
 
-        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time)
+        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time, GameWorld world)
         {
             if (!TargetValid())
             {
@@ -343,7 +355,7 @@ namespace LibreLancer.World.Components
             }
 
             return MoveToPoint(time, GetTargetPoint(), GetTargetRadius(), GotoRadius, MaxThrottle, true, control,
-                input);
+                input, world);
         }
 
         public override void ImGuiDebug()
@@ -455,7 +467,7 @@ namespace LibreLancer.World.Components
             ImGui.Text("In Formation");
         }
 
-        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time)
+        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time, GameWorld world)
         {
             if (Parent.Formation == null ||
                 Parent.Formation.LeadShip == Parent)
@@ -479,7 +491,11 @@ namespace LibreLancer.World.Components
                     : 0;
             SetThrottle(ApproachThrottle(distance, leadThrottle), control, input);
 
-            var facingPoint = FormationFacingPoint(Parent, lead, targetPoint, distance);
+            var avoidancePlan = avoidance.GetPlan(world, Parent, TargetObject, targetPoint, ThrottleDampenDistance,
+                time);
+            Component.SetAutopilotStrafe(avoidancePlan.Strafe, avoidancePlan.StrafeVector);
+
+            Vector3? facingPoint = FormationFacingPoint(Parent, lead, targetPoint, distance);
             if (facingPoint != null)
             {
                 TurnTowards(time, facingPoint.Value);
@@ -499,6 +515,7 @@ namespace LibreLancer.World.Components
     {
         private AutopilotBehavior? instance;
         public bool LocalPlayer = false;
+        internal StrafeControls AutopilotStrafe { get; private set; } = StrafeControls.None;
 
         public AutopilotBehaviors CurrentBehavior
             => instance?.Behavior ?? AutopilotBehaviors.None;
@@ -551,6 +568,7 @@ namespace LibreLancer.World.Components
         public void Cancel()
         {
             SetInstance(null);
+            SetAutopilotStrafe(StrafeControls.None, Vector2.Zero);
         }
 
         public void StartDock(GameObject target, GotoKind kind)
@@ -594,6 +612,7 @@ namespace LibreLancer.World.Components
         {
             var control = Parent?.GetComponent<ShipSteeringComponent>();
             var input = Parent?.GetComponent<ShipInputComponent>();
+            SetAutopilotStrafe(StrafeControls.None, Vector2.Zero);
 
             if (input != null)
             {
@@ -613,10 +632,21 @@ namespace LibreLancer.World.Components
                 return;
             }
 
-            if (instance.Update(control, input, time))
+            if (instance.Update(control, input, time, world))
             {
                 SetInstance(null);
+                SetAutopilotStrafe(StrafeControls.None, Vector2.Zero);
             }
+        }
+
+        internal void SetAutopilotStrafe(StrafeControls strafe)
+        {
+            SetAutopilotStrafe(strafe, Vector2.Zero);
+        }
+
+        internal void SetAutopilotStrafe(StrafeControls strafe, Vector2 _)
+        {
+            AutopilotStrafe = strafe;
         }
     }
 }
