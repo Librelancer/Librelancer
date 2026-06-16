@@ -303,7 +303,18 @@ public partial class CGameSession
             if (moveState[i].Tick != p.Tick)
                 continue;
 
+            var errorPos = state.Position - moveState[i].Position;
+            var errorQuat = MathHelper.QuatError(state.Orientation, moveState[i].Orientation);
             var phys = gp.player.GetComponent<ShipPhysicsComponent>()!;
+
+            if (p.PlayerState.CruiseAccelPct > 0 || p.PlayerState.CruiseChargePct > 0)
+            {
+                phys.ResyncChargePercent(p.PlayerState.CruiseChargePct,
+                    1 / 60.0f * (moveState.Count - i));
+                phys.ResyncCruiseAccel(p.PlayerState.CruiseAccelPct, 1 / 60.0f * (moveState.Count - i));
+            }
+
+            if (errorPos.Length() > 3 || errorQuat > 0.1f)
             {
                 // We now do a basic resim without collision
                 // This needs some work to not show the errors in collision on screen
