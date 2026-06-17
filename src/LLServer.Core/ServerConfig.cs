@@ -10,6 +10,7 @@ public class ServerConfig
     public string? LoginUrl;
     public string DatabasePath = "";
     public int Port = LNetConst.DEFAULT_PORT;
+    public int ThreadCount = 0;
 
     public void CopyFrom(ServerConfig other)
     {

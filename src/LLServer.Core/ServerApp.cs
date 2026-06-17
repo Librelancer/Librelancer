@@ -51,7 +51,8 @@ public class ServerApp(ServerConfig config)
                 Port = Config.Port > 0 ? Config.Port : LNetConst.DEFAULT_PORT
             }
         };
-
+        if(Config.ThreadCount > 0)
+            Server.ThreadCount = Config.ThreadCount;
         Server.Start();
         return true;
     }
