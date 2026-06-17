@@ -5,6 +5,7 @@ class scancargo : scancargo_Designer with ChildWindow
         base();
         this.ChildWindowInit();
         this.Elements.close.OnClick(() => this.Close());
+		this.Mode = "scan";
                 
         local e = this.Elements;
 		this.categories = {
@@ -23,16 +24,45 @@ class scancargo : scancargo_Designer with ChildWindow
 		e.category_commodity.OnClick(() => this.change_category("commodity"))
 		
 		e.inv_list.OnSelectedIndexChanged(() => {
-			this.set_item_infocard(this.PlayerGoods[e.inv_list.SelectedIndex + 1]);
+			local good = e.inv_list.SelectedIndex == -1 ? nil : this.PlayerGoods[e.inv_list.SelectedIndex + 1];
+			if(good != nil) {
+				this.set_item_infocard(good);
+			} else {
+				this.set_ship_infocard();
+			}
+			this.update_jettison(good);
+		});
+
+		e.btn_jettison.OnClick(() => {
+			local good = e.inv_list.SelectedIndex == -1 ? nil : this.PlayerGoods[e.inv_list.SelectedIndex + 1];
+			if(good != nil && good.CanJettison) {
+				Game.JettisonInventoryItem(good);
+			}
+		});
+
+		Game.OnUpdatePlayerInventory(() => {
+			if(this.Opened && this.Mode == "player") {
+				this.construct_inventory();
+			}
 		});
     }
+
+	OpenForPlayer()
+	{
+		this.Mode = "player";
+	}
+
+	OpenForScan()
+	{
+		this.Mode = "scan";
+	}
     
     OnChildOpen()
     {
     	this.change_category("weapons");
     }
     
-    change_category(category)
+	change_category(category)
 	{
 		local e = this.Elements
 		this.category = category
@@ -47,13 +77,28 @@ class scancargo : scancargo_Designer with ChildWindow
 	construct_ship_infocard()
 	{
 		local e = this.Elements;
-		e.ship_infocard.Infocard = Game.GetScannedShipInfocard();
+		if(this.Mode == "player") {
+			e.title.Strid = 0;
+			e.title.Text = "Cargo";
+			e.ship_infocard_title.Strid = 0;
+			e.ship_infocard_title.Text = "Selected Item";
+			e.ship_infocard.Infocard = nil;
+		} else {
+			e.title.Text = nil;
+			e.title.Strid = 3019;
+			e.ship_infocard_title.Text = nil;
+			e.ship_infocard_title.Strid = 903;
+			e.ship_infocard.Infocard = Game.GetScannedShipInfocard();
+		}
 	}
     
     construct_inventory()
 	{
 		local e = this.Elements;
-		this.PlayerGoods = Game.GetScannedInventory(this.category);
+		if(this.Mode == "player")
+			this.PlayerGoods = Game.GetPlayerInventory(this.category);
+		else
+			this.PlayerGoods = Game.GetScannedInventory(this.category);
 		e.inv_list.Children.Clear();
 		for (item in this.PlayerGoods) {
 			local li = good_list_item(item, "inventory", false, nil);
@@ -63,8 +108,19 @@ class scancargo : scancargo_Designer with ChildWindow
 		this.construct_ship_infocard();
 		if(e.inv_list.SelectedIndex != -1)
 		{
-			this.set_item_infocard(this.PlayerGoods[e.inv_list.SelectedIndex + 1]);
+			local good = this.PlayerGoods[e.inv_list.SelectedIndex + 1];
+			this.set_item_infocard(good);
+			this.update_jettison(good);
 		}
+		else
+		{
+			this.update_jettison(nil);
+		}
+	}
+
+	update_jettison(good)
+	{
+		this.Elements.btn_jettison.Visible = this.Mode == "player" && good != nil && good.CanJettison;
 	}
 	
 	set_item_infocard(good)
@@ -88,6 +144,8 @@ class scancargo : scancargo_Designer with ChildWindow
 	
 	Closing()
 	{
-		Game.StopScan();
+		if(this.Mode == "scan") {
+			Game.StopScan();
+		}
 	}
 }

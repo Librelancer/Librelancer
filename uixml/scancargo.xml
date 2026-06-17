@@ -10,15 +10,16 @@
 			<Button id="close" Anchor="TopRight" X="16" Y="15" Style="xbutton"/>
 			<ListBox id="inv_list" X = "14" Y = "65" Width = "186" Height="170" ItemHeight="32">
 			</ListBox>
+			<Button id="btn_jettison" X="14" Y="239" Width="132" Height="26" Style="trader_sell" Text="Jettison" Visible="false"/>
 			<Panel id="inv_categories">
-        <Button X="101" Y="223" id="category_weapons" Strid="8501" DrawText="false" Style="inv_category_weapons" MouseDownSound="ui_item_select"/>
-        <Button X="118" Y="223" id="category_ammo" Strid="8522" DrawText="false" Style="inv_category_ammo" MouseDownSound="ui_item_select"/>
-        <Button X="135" Y="223" id="category_external" Strid="8514" DrawText="false" Style="inv_category_external" MouseDownSound="ui_item_select"/>
-        <Button X="153" Y="223" id="category_internal" Strid="8513" DrawText="false" Style="inv_category_internal" MouseDownSound="ui_item_select"/>
-				<Button X="171" Y="223" id="category_commodity" Strid="8504" DrawText="false" Style="inv_category_commodity" MouseDownSound="ui_item_select"/>
+        <Button X="151" Y="223" id="category_weapons" Strid="8501" DrawText="false" Style="inv_category_weapons" MouseDownSound="ui_item_select"/>
+        <Button X="168" Y="223" id="category_ammo" Strid="8522" DrawText="false" Style="inv_category_ammo" MouseDownSound="ui_item_select"/>
+        <Button X="185" Y="223" id="category_external" Strid="8514" DrawText="false" Style="inv_category_external" MouseDownSound="ui_item_select"/>
+        <Button X="203" Y="223" id="category_internal" Strid="8513" DrawText="false" Style="inv_category_internal" MouseDownSound="ui_item_select"/>
+				<Button X="221" Y="223" id="category_commodity" Strid="8504" DrawText="false" Style="inv_category_commodity" MouseDownSound="ui_item_select"/>
 			</Panel>
 			<Panel id="ship_infocard_panel" Anchor="TopRight" X="23" Y="36" Width="200" height="210">
-				<TextBlock Anchor="TopCenter" Width="200" Height="24" VerticalAlignment="Top" TextSize="11" Strid="903" TextColor="text" TextShadow="Black"/>
+				<TextBlock id="ship_infocard_title" Anchor="TopCenter" Width="200" Height="24" VerticalAlignment="Top" TextSize="11" Strid="903" TextColor="text" TextShadow="Black"/>
 				<InfocardDisplay Anchor="TopCenter" id="ship_infocard" X="0" Y="20" Width="200" Height="190" >
 				</InfocardDisplay>
 			</Panel>

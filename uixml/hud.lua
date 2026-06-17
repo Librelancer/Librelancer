@@ -169,21 +169,30 @@ class hud : hud_Designer
 		this.PlayerStatus = new playerstatus()
 		this.ChatHistory = new chathistory()
 		this.ScanCargo = new scancargo()
-		this.PlayerCargo = new playercargo()
 	    this.Map.InitMap()
 		
 		var windows = {
 			{ e.nn_map, this.Map },
 		    { this.Elements.nn_info, this.InfoWindow },
 			{ this.Elements.nn_playerstatus, this.PlayerStatus },
-			{ this.Elements.nn_inventory, this.PlayerCargo },
+			{ this.Elements.nn_inventory, this.ScanCargo },
 			{ this.Elements.nn_chat, this.ChatHistory },
 			{ this.Elements.scanship, this.ScanCargo }
 		};
 		this.WindowManager = new childwindowmanager(this.Widget, windows)
 		
+		e.nn_inventory.ClearClick();
+		e.nn_inventory.OnClick(() => {
+			this.ScanCargo.OpenForPlayer();
+			this.ScanCargo.construct_inventory();
+			this.WindowManager.OpenWindow(this.Widget, this.ScanCargo, true);
+		});
+
 		e.scanship.ClearClick(); // We don't want the childwindowmanager click handler for this. We're async
-		e.scanship.OnClick(() => Game.ScanSelected());
+		e.scanship.OnClick(() => {
+			this.ScanCargo.OpenForScan();
+			Game.ScanSelected();
+		});
 
 		Game.OnUpdateScannedInventory((valid) => {
 			if(!valid)
@@ -192,6 +201,7 @@ class hud : hud_Designer
 			}
 			else
 			{
+				this.ScanCargo.OpenForScan();
 				this.ScanCargo.construct_inventory();
 				this.WindowManager.OpenWindow(this.Widget, this.ScanCargo, true);
 			}
