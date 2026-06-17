@@ -300,6 +300,7 @@ namespace LibreLancer.Server
             if (slowCount == 0 && slow)
             {
                 FLLog.Warning("Server", $"Running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
+                slowCount++;
             }
             else if (slow)
             {
