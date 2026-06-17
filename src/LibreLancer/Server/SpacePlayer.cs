@@ -135,4 +135,13 @@ public class SpacePlayer : ISpacePlayer
             }
         });
     }
+
+    public void Jettison(int id)
+    {
+        world.EnqueueAction(() =>
+        {
+            if (World.Players.TryGetValue(player, out var obj))
+                obj.GetComponent<SPlayerComponent>()?.Jettison(id, world);
+        });
+    }
 }

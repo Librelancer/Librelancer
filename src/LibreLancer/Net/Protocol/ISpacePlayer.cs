@@ -15,4 +15,5 @@ public interface ISpacePlayer
 
     void StopScan();
     void Scan(ObjNetId id);
+    void Jettison(int id);
 }

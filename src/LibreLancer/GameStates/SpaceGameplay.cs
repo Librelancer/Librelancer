@@ -668,6 +668,7 @@ World Time: {12:F2}
             }
 
             public UIInventoryItem[] GetScannedInventory(string filter) => g.session.GetScannedInventory(filter);
+            public UIInventoryItem[] GetPlayerInventory(string filter) => g.session.GetPlayerInventory(filter);
 
             public Infocard? GetScannedShipInfocard()
             {
@@ -703,6 +704,20 @@ World Time: {12:F2}
             public void OnUpdateScannedInventory(Closure handler)
             {
                 ScanHandler = handler;
+            }
+
+            public Closure PlayerInventoryHandler;
+
+            public void OnUpdatePlayerInventory(Closure handler)
+            {
+                PlayerInventoryHandler = handler;
+                g.session.OnUpdateInventory = () => PlayerInventoryHandler?.Call();
+            }
+
+            public void JettisonInventoryItem(UIInventoryItem item)
+            {
+                if (item.CanJettison)
+                    g.session.SpaceRpc.Jettison(item.ID);
             }
 
             public int CurrentRank => g.session.CurrentRank;

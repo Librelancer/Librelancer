@@ -239,6 +239,60 @@ namespace LibreLancer.Server.Components
                    world.Server.TryScanCargo(obj, out loadout);
         }
 
+        public void Jettison(int id, ServerWorld world)
+        {
+            var character = Player.Character;
+            if (character == null)
+                return;
+
+            var slot = character.Items.FirstOrDefault(x => x.ID == id);
+            if (slot?.Equipment == null ||
+                !string.IsNullOrEmpty(slot.Hardpoint) ||
+                slot.IsMissionItem ||
+                slot.Equipment.LootAppearance == null)
+            {
+                return;
+            }
+
+            var count = slot.Count;
+            var equipment = slot.Equipment;
+            using (var t = character.BeginTransaction())
+            {
+                t.RemoveCargo(slot, count);
+            }
+            Player.UpdateCurrentInventory();
+
+            Parent.GetFirstChildComponent<SShieldComponent>()?.Suppress(3.0, world.GameWorld);
+            world.DelayAction(() =>
+            {
+                if ((Parent.Flags & GameObjectFlags.Exists) == 0)
+                    return;
+
+                var spawnTransform = Parent.WorldTransform;
+                var launchDirection = Vector3.Transform(-Vector3.UnitZ, spawnTransform.Orientation);
+                if (Parent.TryGetComponent<ShipComponent>(out var ship) &&
+                    !string.IsNullOrWhiteSpace(ship.Ship.TractorSource))
+                {
+                    var hp = Parent.GetHardpoint(ship.Ship.TractorSource);
+                    if (hp != null)
+                    {
+                        spawnTransform = hp.Transform * Parent.WorldTransform;
+                        var offset = spawnTransform.Position - Parent.WorldTransform.Position;
+                        if (offset.LengthSquared() > float.Epsilon)
+                            launchDirection = Vector3.Normalize(offset);
+                    }
+                }
+
+                world.SpawnLoot(
+                    equipment.LootAppearance,
+                    equipment,
+                    count,
+                    spawnTransform,
+                    initialImpulse: launchDirection * 35f
+                );
+            }, 1.0);
+        }
+
         private ulong formationHash = 0;
         private const float FormationSlotCruiseCatchupDistance = 800;
         private const float FormationLeaderCruiseCatchupDistance = 450;
@@ -413,7 +467,7 @@ namespace LibreLancer.Server.Components
         {
             foreach (var i in Player.Character!.Items.Where(x => string.IsNullOrEmpty(x.Hardpoint)))
             {
-                yield return new NetShipCargo(i.ID, i.Equipment!.CRC, null, 255, i.Count);
+                yield return new NetShipCargo(i.ID, i.Equipment!.CRC, null, 255, i.Count, i.IsMissionItem);
             }
         }
     }

@@ -169,12 +169,14 @@ class hud : hud_Designer
 		this.PlayerStatus = new playerstatus()
 		this.ChatHistory = new chathistory()
 		this.ScanCargo = new scancargo()
+		this.PlayerCargo = new playercargo()
 	    this.Map.InitMap()
 		
 		var windows = {
 			{ e.nn_map, this.Map },
 		    { this.Elements.nn_info, this.InfoWindow },
 			{ this.Elements.nn_playerstatus, this.PlayerStatus },
+			{ this.Elements.nn_inventory, this.PlayerCargo },
 			{ this.Elements.nn_chat, this.ChatHistory },
 			{ this.Elements.scanship, this.ScanCargo }
 		};
