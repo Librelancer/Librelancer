@@ -1098,10 +1098,13 @@ World Time: {12:F2}
                     session.Pause();
                     ui.Event("Pause");
                 }
-#if DEBUG
                 if (e.Key == Keys.R && (e.Modifiers & KeyModifiers.Control) != 0)
-                    world.RenderDebugPoints = !world.RenderDebugPoints;
+                {
+                    world.RenderAutopilotDebug = !world.RenderAutopilotDebug;
+#if DEBUG
+                    world.RenderDebugPoints = world.RenderAutopilotDebug;
 #endif
+                }
             }
         }
 
@@ -1705,7 +1708,7 @@ World Time: {12:F2}
                 _turretViewCamera.PanControls = Vector2.Zero;
             }
 
-            control.CurrentStrafe = strafe;
+            steering.CurrentStrafe = strafe;
 
             var obj = GetMouseSelection();
 
@@ -2301,6 +2304,8 @@ World Time: {12:F2}
                 {
                     ImGui.Text($"Server Tick: {session.EmbeddedServer!.Server.CurrentTick}");
                 }
+
+                ImGui.Checkbox("Draw autopilot avoidance", ref world.RenderAutopilotDebug);
 
                 bool hasDebug = world.Physics!.DebugRenderer != null;
                 ImGui.Checkbox("Draw hitboxes", ref hasDebug);

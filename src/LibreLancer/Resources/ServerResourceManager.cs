@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using LibreLancer.Data;
 using LibreLancer.Data.IO;
 using LibreLancer.Fx;
@@ -25,6 +26,8 @@ public class ServerResourceManager : ResourceManager
         throw new InvalidOperationException();
     }
 
+    private Lock resLock = new();
+
     public ServerResourceManager(ConvexMeshCollection? collection, FileSystem vfs) : base(vfs)
     {
         ConvexCollection = collection ?? new ConvexMeshCollection(GetSur);
@@ -44,40 +47,43 @@ public class ServerResourceManager : ResourceManager
 
     public override ModelResource? GetDrawable(string? filename, MeshLoadMode loadMode = MeshLoadMode.GPU)
     {
-        if (filename is null)
+        lock (resLock)
         {
-            return null;
-        }
+            if (filename is null)
+            {
+                return null;
+            }
 
-        if (drawables.TryGetValue(filename, out var item))
-        {
+            if (drawables.TryGetValue(filename, out var item))
+            {
+                return item;
+            }
+
+            using var stream = VFS.Open(filename);
+            var drawable = Utf.UtfLoader.LoadDrawable(stream, filename, this);
+
+            if (drawable is null)
+            {
+                return null;
+            }
+
+            drawable.ClearResources();
+            CollisionMeshHandle handle = default;
+            var surPath = Path.ChangeExtension(filename, "sur");
+
+            if (VFS.FileExists(surPath))
+            {
+                handle = new CollisionMeshHandle
+                {
+                    Sur = GetSur(surPath),
+                    FileId = ConvexCollection.UseFile(surPath)
+                };
+            }
+
+            item = new ModelResource(drawable, handle);
+            drawables.Add(filename, item);
             return item;
         }
-
-        using var stream = VFS.Open(filename);
-        var drawable = Utf.UtfLoader.LoadDrawable(stream, filename, this);
-
-        if (drawable is null)
-        {
-            return null;
-        }
-
-        drawable.ClearResources();
-        CollisionMeshHandle handle = default;
-        var surPath = Path.ChangeExtension(filename, "sur");
-
-        if (VFS.FileExists(surPath))
-        {
-            handle = new CollisionMeshHandle
-            {
-                Sur = GetSur(surPath),
-                FileId = ConvexCollection.UseFile(surPath)
-            };
-        }
-
-        item = new ModelResource(drawable, handle);
-        drawables.Add(filename, item);
-        return item;
     }
 
     public override void LoadResourceFile(string? filename, MeshLoadMode loadMode = MeshLoadMode.GPU) { }

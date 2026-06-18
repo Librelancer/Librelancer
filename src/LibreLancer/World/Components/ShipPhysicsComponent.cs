@@ -258,32 +258,18 @@ namespace LibreLancer.World.Components
             }
 
             Vector3 strafe = Vector3.Zero;
-            // TODO: Trying to strafe during cruise should drop you out
-            if (EngineState != EngineStates.Cruise) // Cannot strafe during cruise
+            var strafeControl = StrafeControlsToVector(CurrentStrafe);
+            if (strafeControl.LengthSquared() > 1f)
             {
-                if ((CurrentStrafe & StrafeControls.Left) == StrafeControls.Left)
-                {
-                    strafe -= Vector3.UnitX;
-                }
-                else if ((CurrentStrafe & StrafeControls.Right) == StrafeControls.Right)
-                {
-                    strafe += Vector3.UnitX;
-                }
-                if ((CurrentStrafe & StrafeControls.Up) == StrafeControls.Up)
-                {
-                    strafe += Vector3.UnitY;
-                }
-                else if ((CurrentStrafe & StrafeControls.Down) == StrafeControls.Down)
-                {
-                    strafe -= Vector3.UnitY;
-                }
-                if (strafe != Vector3.Zero)
-                {
-                    strafe.Normalize();
-                    strafe = Parent.PhysicsComponent.Body.RotateVector(strafe);
-                    // Apply strafe force
-                    strafe *= Ship.StrafeForce;
-                }
+                strafeControl = Vector2.Normalize(strafeControl);
+            }
+
+            if (strafeControl != Vector2.Zero)
+            {
+                strafe = new Vector3(strafeControl.X, strafeControl.Y, 0);
+                strafe = Parent.PhysicsComponent.Body.RotateVector(strafe);
+                // Apply strafe force
+                strafe *= Ship.StrafeForce;
             }
             var totalForce = (
                 drag +
@@ -295,6 +281,28 @@ namespace LibreLancer.World.Components
             // Add forces
             Parent.PhysicsComponent.Body.AddForce(totalForce);
             Parent.PhysicsComponent.Body.AddTorque(angularForce);
+        }
+
+        public static Vector2 StrafeControlsToVector(StrafeControls controls)
+        {
+            var strafe = Vector2.Zero;
+            if ((controls & StrafeControls.Left) == StrafeControls.Left)
+            {
+                strafe.X -= 1;
+            }
+            else if ((controls & StrafeControls.Right) == StrafeControls.Right)
+            {
+                strafe.X += 1;
+            }
+            if ((controls & StrafeControls.Up) == StrafeControls.Up)
+            {
+                strafe.Y += 1;
+            }
+            else if ((controls & StrafeControls.Down) == StrafeControls.Down)
+            {
+                strafe.Y -= 1;
+            }
+            return strafe;
         }
 
     }

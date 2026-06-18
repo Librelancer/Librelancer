@@ -30,7 +30,8 @@ public class ParallelActionRunner : IDisposable
     /// Creates a new thread dispatcher with the given number of threads.
     /// </summary>
     /// <param name="threadCount">Number of threads to dispatch on each invocation.</param>
-    public ParallelActionRunner(int threadCount)
+    /// <param name="threadName">Name for worker threads (debug only)</param>
+    public ParallelActionRunner(int threadCount, string? threadName = null)
     {
         if (threadCount <= 0)
         {
@@ -41,7 +42,10 @@ public class ParallelActionRunner : IDisposable
         workers = new Worker[threadCount - 1];
         for (int i = 0; i < workers.Length; ++i)
         {
-            workers[i] = new Worker { Thread = new Thread(WorkerLoop), Signal = new AutoResetEvent(false) };
+            workers[i] = new Worker {
+                Thread = new Thread(WorkerLoop) { Name = threadName },
+                Signal = new AutoResetEvent(false),
+            };
             workers[i].Thread.IsBackground = true;
             workers[i].Thread.Start((workers[i].Signal, i + 1));
         }
