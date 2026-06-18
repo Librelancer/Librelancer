@@ -805,7 +805,7 @@ public class TestingApi
     {
     }
 
-    public void JettisonInventoryItem(UIInventoryItem item)
+    public void JettisonInventoryItem(UIInventoryItem item, int count)
     {
     }
 }

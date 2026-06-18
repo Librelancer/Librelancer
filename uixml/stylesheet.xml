@@ -58,6 +58,25 @@
 		</ButtonStyle.Hover>
 	</ButtonStyle>
 	
+	<!-- Inventory jettison icon -->
+	<ButtonStyle Width="48" Height="48" Name="inv_dump">
+		<ButtonStyle.Normal>
+			<ButtonAppearance.Background>
+				<DisplayModel model="inv_dump.3db" tint="text" />
+			</ButtonAppearance.Background>
+		</ButtonStyle.Normal>
+		<ButtonStyle.Hover>
+			<ButtonAppearance.Background>
+				<DisplayModel model="inv_dump.3db" tint="text_hover" Rotate="0.05,0,0.05" />
+			</ButtonAppearance.Background>
+		</ButtonStyle.Hover>
+		<ButtonStyle.Selected>
+			<ButtonAppearance.Background>
+				<DisplayModel model="inv_dump.3db" tint="yellow" />
+			</ButtonAppearance.Background>
+		</ButtonStyle.Selected>
+	</ButtonStyle>
+
 	<!-- Buy button -->
 	<ButtonStyle Width="132" Height="26" Name="trader_buy">
 		<ButtonStyle.Normal MarginLeft="17" TextSize="13" TextColor="text" TextShadow="black" FontFamily="$ButtonText">

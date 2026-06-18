@@ -714,10 +714,10 @@ World Time: {12:F2}
                 g.session.OnUpdateInventory = () => PlayerInventoryHandler?.Call();
             }
 
-            public void JettisonInventoryItem(UIInventoryItem item)
+            public void JettisonInventoryItem(UIInventoryItem item, int count)
             {
                 if (item.CanJettison)
-                    g.session.SpaceRpc.Jettison(item.ID);
+                    g.session.SpaceRpc.Jettison(item.ID, count);
             }
 
             public int CurrentRank => g.session.CurrentRank;

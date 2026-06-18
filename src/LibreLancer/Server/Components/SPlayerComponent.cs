@@ -239,7 +239,15 @@ namespace LibreLancer.Server.Components
                    world.Server.TryScanCargo(obj, out loadout);
         }
 
-        public void Jettison(int id, ServerWorld world)
+        private const string JettisonBayDoorStart = "HpBayDoor01";
+        private const string JettisonBayDoorTarget = "HpBayDoor02";
+        private const string JettisonBayDoorAnimation01 = "baydoor01_lod1";
+        private const string JettisonBayDoorAnimation02 = "baydoor02_lod1";
+        private const double JettisonShieldSuppressionTime = 5.0;
+        private const double JettisonPodSpawnDelay = 0.8;
+        private const double JettisonBayCloseDelay = 1.6;
+
+        public void Jettison(int id, int count, ServerWorld world)
         {
             var character = Player.Character;
             if (character == null)
@@ -254,7 +262,7 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            var count = slot.Count;
+            count = Math.Clamp(count, 1, slot.Count);
             var equipment = slot.Equipment;
             using (var t = character.BeginTransaction())
             {
@@ -262,7 +270,8 @@ namespace LibreLancer.Server.Components
             }
             Player.UpdateCurrentInventory();
 
-            Parent.GetFirstChildComponent<SShieldComponent>()?.Suppress(3.0, world.GameWorld);
+            Parent.GetFirstChildComponent<SShieldComponent>()?.Suppress(JettisonShieldSuppressionTime, world.GameWorld);
+            AnimateJettisonBay(world, close: false);
             world.DelayAction(() =>
             {
                 if ((Parent.Flags & GameObjectFlags.Exists) == 0)
@@ -270,17 +279,17 @@ namespace LibreLancer.Server.Components
 
                 var spawnTransform = Parent.WorldTransform;
                 var launchDirection = Vector3.Transform(-Vector3.UnitZ, spawnTransform.Orientation);
-                if (Parent.TryGetComponent<ShipComponent>(out var ship) &&
-                    !string.IsNullOrWhiteSpace(ship.Ship.TractorSource))
+                var bayStart = Parent.GetHardpoint(JettisonBayDoorStart);
+                if (bayStart != null)
+                    spawnTransform = bayStart.Transform * Parent.WorldTransform;
+
+                var bayTarget = Parent.GetHardpoint(JettisonBayDoorTarget);
+                if (bayTarget != null)
                 {
-                    var hp = Parent.GetHardpoint(ship.Ship.TractorSource);
-                    if (hp != null)
-                    {
-                        spawnTransform = hp.Transform * Parent.WorldTransform;
-                        var offset = spawnTransform.Position - Parent.WorldTransform.Position;
-                        if (offset.LengthSquared() > float.Epsilon)
-                            launchDirection = Vector3.Normalize(offset);
-                    }
+                    var targetTransform = bayTarget.Transform * Parent.WorldTransform;
+                    var offset = targetTransform.Position - spawnTransform.Position;
+                    if (offset.LengthSquared() > float.Epsilon)
+                        launchDirection = Vector3.Normalize(offset);
                 }
 
                 world.SpawnLoot(
@@ -290,7 +299,34 @@ namespace LibreLancer.Server.Components
                     spawnTransform,
                     initialImpulse: launchDirection * 35f
                 );
-            }, 1.0);
+            }, JettisonPodSpawnDelay);
+            world.DelayAction(() =>
+            {
+                if ((Parent.Flags & GameObjectFlags.Exists) != 0)
+                    AnimateJettisonBay(world, close: true);
+            }, JettisonBayCloseDelay);
+        }
+
+        private void AnimateJettisonBay(ServerWorld world, bool close)
+        {
+            var component = Parent.AnimationComponent;
+            if (component == null)
+                return;
+
+            var animated = false;
+            animated |= StartJettisonBayAnimation(component, JettisonBayDoorAnimation01, close);
+            animated |= StartJettisonBayAnimation(component, JettisonBayDoorAnimation02, close);
+
+            if (animated)
+                world.StartAnimation(Parent);
+        }
+
+        private static bool StartJettisonBayAnimation(AnimationComponent component, string animationName, bool close)
+        {
+            if (!component.HasAnimation(animationName))
+                return false;
+            component.StartAnimation(animationName, false, 0, 1, 0, close);
+            return true;
         }
 
         private ulong formationHash = 0;
