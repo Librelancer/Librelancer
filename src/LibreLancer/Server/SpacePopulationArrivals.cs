@@ -72,6 +72,14 @@ public partial class SpacePopulationManager
     {
         spawn = default;
         var arrivalTargets = TranslateArrival(info.FormationDefinition?.Arrival);
+        if (IsPatrolEncounter(state, info) &&
+            (info.FormationDefinition?.Arrival == null ||
+             (arrivalTargets & (ArrivalTargets.Cruise | ArrivalTargets.Buzz)) != 0) &&
+            TryFindPatrolPathSpawnLocation(state, players, zoneCreationDistance, out spawn))
+        {
+            return true;
+        }
+
         var preferObjectArrival = info.FormationDefinition?.Behavior == EncounterBehavior.trade;
         if (!preferObjectArrival &&
             TryFindFreeSpaceSpawnLocation(state.Zone, arrivalTargets, players, zoneCreationDistance, allowCloseSpawn, out spawn))
@@ -103,6 +111,12 @@ public partial class SpacePopulationManager
         }
 
         return false;
+    }
+
+    private static bool IsPatrolEncounter(ZoneState state, EncounterInfo info)
+    {
+        var behavior = info.FormationDefinition?.Behavior ?? EncounterBehavior.wander;
+        return behavior == EncounterBehavior.patrol_path || IsPatrol(state.Zone);
     }
 
     private bool TryFindFreeSpaceSpawnLocation(

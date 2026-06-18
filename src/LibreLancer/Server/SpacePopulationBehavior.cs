@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Missions;
 using LibreLancer.Missions.Directives;
@@ -14,6 +15,9 @@ namespace LibreLancer.Server;
 
 public partial class SpacePopulationManager
 {
+    private const float PatrolPathWaypointRange = 250f;
+    private const int MaxPatrolPathTargets = 4;
+
     private void AssignDirectives(PopGroup group)
     {
         var leader = group.Ships.FirstOrDefault(Alive);
@@ -38,48 +42,58 @@ public partial class SpacePopulationManager
 
     private MissionDirective[] BuildDirectives(PopGroup group, Vector3 currentPosition)
     {
-        if (ShouldRetire(group))
-            return BuildRetirementDirectives(group, currentPosition);
+        var retirementDockable = GetRetirementDockable(group, currentPosition);
+        if (retirementDockable != null)
+            return BuildRetirementDirectives(retirementDockable);
 
         var behavior = group.Encounter.FormationDefinition?.Behavior ?? EncounterBehavior.wander;
         return behavior switch
         {
-            EncounterBehavior.patrol_path => BuildPathDirectives(group, currentPosition, GotoKind.GotoCruise, 100),
-            EncounterBehavior.trade when IsPatrol(group.State.Zone) => BuildPathDirectives(group, currentPosition, GotoKind.GotoCruise, 100),
+            EncounterBehavior.patrol_path => BuildPathDirectives(group, GotoKind.GotoCruise, 100, PatrolPathWaypointRange),
+            EncounterBehavior.trade when IsPatrol(group.State.Zone) => BuildPathDirectives(group, GotoKind.GotoCruise, 100, PatrolPathWaypointRange),
             EncounterBehavior.trade => BuildTradeDirectives(group.State, currentPosition, group.ArrivalObject),
             _ => BuildWanderDirectives(group.State.Zone)
         };
     }
 
-    private static bool ShouldRetire(PopGroup group)
+    private GameObject? GetRetirementDockable(PopGroup group, Vector3 currentPosition)
     {
         var reliefTime = group.State.Zone.ReliefTime;
         if (reliefTime <= 0 || group.AgeSeconds < reliefTime)
-            return false;
+            return null;
 
         var behavior = group.Encounter.FormationDefinition?.Behavior ?? EncounterBehavior.wander;
-        return behavior == EncounterBehavior.patrol_path || IsPatrol(group.State.Zone);
+        if (behavior != EncounterBehavior.patrol_path && !IsPatrol(group.State.Zone))
+            return null;
+
+        if (HasNextPatrolPathSegment(group))
+            return null;
+
+        return FindRetirementDockable(group, currentPosition);
     }
 
-    private MissionDirective[] BuildRetirementDirectives(PopGroup group, Vector3 currentPosition)
+    private static bool HasNextPatrolPathSegment(PopGroup group)
     {
-        var dockable = FindDockable(currentPosition);
-        if (!string.IsNullOrWhiteSpace(dockable?.Nickname))
-        {
-            return
-            [
-                new GotoShipDirective
-                {
-                    Target = dockable.Nickname!,
-                    CruiseKind = GotoKind.GotoCruise,
-                    Range = 750,
-                    MaxThrottle = 100
-                },
-                new DockDirective { Target = dockable.Nickname! }
-            ];
-        }
+        var path = group.State.Path;
+        if (path == null || path.Count < 2 || group.PathIndex < 0)
+            return false;
 
-        return BuildPathDirectives(group, currentPosition, GotoKind.GotoCruise, 100);
+        return IsClosedPath(path) || group.PathIndex + 1 < path.Count;
+    }
+
+    private static MissionDirective[] BuildRetirementDirectives(GameObject dockable)
+    {
+        return
+        [
+            new GotoShipDirective
+            {
+                Target = dockable.Nickname!,
+                CruiseKind = GotoKind.GotoCruise,
+                Range = 750,
+                MaxThrottle = 100
+            },
+            new DockDirective { Target = dockable.Nickname! }
+        ];
     }
 
     private MissionDirective[] BuildWanderDirectives(Zone zone)
@@ -117,129 +131,175 @@ public partial class SpacePopulationManager
             ];
         }
 
-        return BuildPathDirectives(state, currentPosition, GotoKind.GotoCruise, 100);
+        return BuildPathDirectives(state, GotoKind.GotoCruise, 100);
     }
 
     private MissionDirective[] BuildPathDirectives(
         ZoneState state,
-        Vector3 currentPosition,
         GotoKind kind,
-        float throttle)
+        float throttle,
+        float range = 750)
     {
-        var targets = GetPathTargets(state, currentPosition);
+        var targets = GetPathTargets(state);
         if (targets.Count == 0)
             targets.Add(SampleZonePoint(state.Zone));
 
-        return targets.Select(x => (MissionDirective)new GotoVecDirective
-        {
-            Target = x,
-            CruiseKind = kind,
-            Range = 750,
-            MaxThrottle = throttle
-        }).ToArray();
+        return BuildGotoDirectives(targets, kind, throttle, range);
     }
 
     private MissionDirective[] BuildPathDirectives(
         PopGroup group,
-        Vector3 currentPosition,
         GotoKind kind,
-        float throttle)
+        float throttle,
+        float range = 750)
     {
-        var targets = GetPathTargets(group, currentPosition);
+        var targets = GetPathTargets(group);
         if (targets.Count == 0)
             targets.Add(SampleZonePoint(group.State.Zone));
 
+        return BuildGotoDirectives(targets, kind, throttle, range);
+    }
+
+    private static MissionDirective[] BuildGotoDirectives(
+        List<Vector3> targets,
+        GotoKind kind,
+        float throttle,
+        float range)
+    {
         return targets.Select(x => (MissionDirective)new GotoVecDirective
         {
             Target = x,
             CruiseKind = kind,
-            Range = 750,
+            Range = range,
             MaxThrottle = throttle
         }).ToArray();
     }
 
-    private List<Vector3> GetPathTargets(ZoneState state, Vector3 currentPosition)
+    private List<Vector3> GetPathTargets(ZoneState state)
     {
         var result = new List<Vector3>();
         if (state.Path == null || state.PathIndex < 0)
             return result;
 
-        var direction = 1;
-        if (state.PathIndex + direction >= state.Path.Count)
-            direction = -1;
-
-        for (int i = state.PathIndex + direction; i >= 0 && i < state.Path.Count && result.Count < 4; i += direction)
-        {
-            result.Add(state.Path[i].Position);
-        }
-
-        if (result.Count == 0)
-        {
-            var zone = state.Path
-                .OrderBy(x => Vector3.DistanceSquared(x.Position, currentPosition))
-                .FirstOrDefault(x => x != state.Zone);
-            if (zone != null)
-                result.Add(zone.Position);
-        }
+        for (int i = state.PathIndex; i < state.Path.Count && result.Count < MaxPatrolPathTargets; i++)
+            AddPatrolSegmentTargets(result, state.Path, i, i != state.PathIndex);
 
         return result;
     }
 
-    private List<Vector3> GetPathTargets(PopGroup group, Vector3 currentPosition)
+    private List<Vector3> GetPathTargets(PopGroup group)
     {
         var result = new List<Vector3>();
         var path = group.State.Path;
         if (path == null || path.Count == 0 || group.PathIndex < 0)
             return result;
 
+        if (group.InitialPathTarget is { } initialTarget)
+        {
+            result.Add(initialTarget);
+            group.InitialPathTarget = null;
+        }
+
         var index = Math.Clamp(group.PathIndex, 0, path.Count - 1);
-        var direction = group.PathDirection == 0 ? 1 : Math.Sign(group.PathDirection);
+        var includeCurrent = result.Count > 0 &&
+                             TryGetPatrolPathLine(path, index, out _, out _);
         var closedLoop = IsClosedPath(path);
 
-        for (int count = 0; count < 4 && path.Count > 1; count++)
+        for (int count = 0; count < MaxPatrolPathTargets && result.Count < MaxPatrolPathTargets && path.Count > 1; count++)
         {
-            var next = index + direction;
-            if (closedLoop)
+            if (!includeCurrent)
             {
-                next = (next + path.Count) % path.Count;
-            }
-            else if (next < 0 || next >= path.Count)
-            {
-                direction *= -1;
-                next = index + direction;
-                if (next < 0 || next >= path.Count)
+                index++;
+                if (closedLoop)
+                    index %= path.Count;
+                else if (index >= path.Count)
                     break;
             }
 
-            index = next;
-            result.Add(path[index].Position);
+            AddPatrolSegmentTargets(result, path, index, index != group.PathIndex);
+            includeCurrent = false;
         }
 
         if (result.Count == 0)
         {
-            var zone = path
-                .OrderBy(x => Vector3.DistanceSquared(x.Position, currentPosition))
-                .FirstOrDefault(x => x != group.State.Zone);
-            if (zone != null)
-            {
-                index = path.IndexOf(zone);
-                result.Add(zone.Position);
-            }
+            result.Add(SampleZonePoint(group.State.Zone));
         }
 
         group.PathIndex = index;
-        group.PathDirection = direction;
         return result;
     }
 
-    private static bool IsClosedPath(List<Zone> path)
+    private static void AddPatrolSegmentTargets(
+        List<Vector3> result,
+        List<PatrolPathSegment> path,
+        int pathIndex,
+        bool includeStart)
+    {
+        if (!TryGetPatrolPathLine(path, pathIndex, out var start, out var end))
+        {
+            AddPatrolTarget(result, path[pathIndex].Zone.Position);
+            return;
+        }
+
+        if (includeStart && result.Count + 1 < MaxPatrolPathTargets)
+            AddPatrolTarget(result, start);
+        AddPatrolTarget(result, end);
+    }
+
+    private static void AddPatrolTarget(List<Vector3> result, Vector3 target)
+    {
+        if (result.Count >= MaxPatrolPathTargets)
+            return;
+        if (result.Count > 0 &&
+            Vector3.DistanceSquared(result[^1], target) < PatrolPathWaypointRange * PatrolPathWaypointRange)
+        {
+            return;
+        }
+        result.Add(target);
+    }
+
+    private static bool IsClosedPath(List<PatrolPathSegment> path)
     {
         if (path.Count < 3)
             return false;
 
-        var first = path[0].Position;
-        var last = path[^1].Position;
+        if (ReferenceEquals(path[0].Zone, path[^1].Zone))
+            return true;
+
+        var first = path[0].Zone.Position;
+        var last = path[^1].Zone.Position;
         return Vector3.DistanceSquared(first, last) < 1;
+    }
+
+    private GameObject? FindRetirementDockable(PopGroup group, Vector3 currentPosition)
+    {
+        var maxDistance = group.PersistDistance > 0
+            ? group.PersistDistance
+            : DefaultPersistDistance;
+        var maxDistanceSquared = maxDistance * maxDistance;
+
+        GameObject? nearest = null;
+        var nearestDistance = float.MaxValue;
+        foreach (var obj in world.GameWorld.Objects)
+        {
+            if (string.IsNullOrWhiteSpace(obj.Nickname) ||
+                obj.SystemObject == null ||
+                !Alive(obj) ||
+                !obj.TryGetComponent<SDockableComponent>(out var dockable) ||
+                dockable.Action.Kind != DockKinds.Base ||
+                dockable.DockPoints.Length == 0)
+            {
+                continue;
+            }
+
+            var distance = Vector3.DistanceSquared(currentPosition, obj.WorldTransform.Position);
+            if (distance > maxDistanceSquared || distance >= nearestDistance)
+                continue;
+
+            nearestDistance = distance;
+            nearest = obj;
+        }
+        return nearest;
     }
 
     private GameObject? FindDockable(Vector3 currentPosition, string? excludeNickname = null)
@@ -270,12 +330,12 @@ public partial class SpacePopulationManager
         return nearest;
     }
 
-    private Vector3 GetFirstDirectiveTarget(ZoneState state, EncounterInfo info, Vector3 position)
+    private Vector3 GetFirstDirectiveTarget(ZoneState state, EncounterInfo info)
     {
         var behavior = info.FormationDefinition?.Behavior ?? EncounterBehavior.wander;
         if (behavior == EncounterBehavior.patrol_path || IsPatrol(state.Zone))
         {
-            var targets = GetPathTargets(state, position);
+            var targets = GetPathTargets(state);
             if (targets.Count > 0)
                 return targets[0];
         }
@@ -286,6 +346,9 @@ public partial class SpacePopulationManager
     {
         foreach (var group in state.Groups)
         {
+            if (group.InCombat)
+                continue;
+
             var leader = group.Ships.FirstOrDefault(Alive);
             if (leader == null)
                 continue;

@@ -98,6 +98,7 @@ World Time: {12:F2}
 
         private int updateStartDelay = -1;
         private DockCameraInfo? dockCameraInfo = null;
+        private bool fadeToRoom;
         public AutopilotComponent? pilotComponent = null;
 
         public bool ShowHud = true;
@@ -1057,6 +1058,13 @@ World Time: {12:F2}
             this.dockCameraInfo = info;
         }
 
+        public void FadeToRoom(Action changeState)
+        {
+            FadeOut(0.5, changeState);
+        }
+
+        public bool ShouldFadeToRoom => fadeToRoom;
+
         protected override void OnUnload()
         {
             Game.Keyboard.TextInput -= Game_TextInput;
@@ -1115,7 +1123,7 @@ World Time: {12:F2}
                         return false;
                     }
 
-                    if (!Selection.Selected.TryGetComponent<DockInfoComponent>(out _))
+                    if (!Selection.Selected.TryGetComponent<DockInfoComponent>(out var dock))
                     {
                         return false;
                     }
@@ -1127,6 +1135,11 @@ World Time: {12:F2}
                     }
 
                     pilotComponent!.StartDock(Selection.Selected, GotoKind.Goto);
+                    var dockCam = dock.GetDockCamera(0);
+                    if (dockCam != null)
+                    {
+                        SetDockCam(dockCam);
+                    }
                     session.RegisterRouteDock(Selection.Selected.NicknameCRC, sys.CRC);
                     session.SpaceRpc.RequestDock(Selection.Selected);
                     return true;
@@ -1205,7 +1218,7 @@ World Time: {12:F2}
             {
                 return Thn.CameraHandle;
             }
-            else if (dockCameraInfo != null && pilotComponent!.CurrentBehavior == AutopilotBehaviors.Undock)
+            else if (UseDockCamera())
             {
                 return undockCamera;
             }
@@ -1213,6 +1226,17 @@ World Time: {12:F2}
             {
                 return activeCamera;
             }
+        }
+
+        private bool UseDockCamera()
+        {
+            var dockCameraActive = pilotComponent?.DockCameraActive == true;
+            if (dockCameraActive && pilotComponent?.CurrentBehavior == AutopilotBehaviors.Dock)
+                fadeToRoom = true;
+
+            return dockCameraInfo != null &&
+                   (pilotComponent?.CurrentBehavior == AutopilotBehaviors.Undock ||
+                    dockCameraActive);
         }
 
         private bool IsSpecialCamera() => GetCurrentCamera() != activeCamera;
@@ -1386,7 +1410,7 @@ World Time: {12:F2}
             // Has to be here or glitches
             if (!Dead)
             {
-                if (dockCameraInfo != null && pilotComponent?.CurrentBehavior == AutopilotBehaviors.Undock)
+                if (UseDockCamera())
                 {
                     var tr = dockCameraInfo.DockHardpoint.Transform * dockCameraInfo.Parent.WorldTransform;
                     undockCamera.Update(Game.Width, Game.Height, tr.Position, player.LocalTransform.Position);

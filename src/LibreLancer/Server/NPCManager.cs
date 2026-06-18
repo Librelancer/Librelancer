@@ -126,7 +126,8 @@ namespace LibreLancer.Server
             string? arrivalObj,
             int arrivalIndex,
             MissionRuntime? msn = null,
-            bool registerNpc = true
+            bool registerNpc = true,
+            bool arrivalIndexReserved = false
             )
         {
             var ship = World.Server.GameData.Items.Ships.Get(loadout.Archetype);
@@ -134,18 +135,32 @@ namespace LibreLancer.Server
             SDockableComponent? sdock = null;
             if (spawnPoint?.TryGetComponent<SDockableComponent>(out sdock) ?? false)
             {
-                if (arrivalIndex == 0)
+                var reservedHere = arrivalIndexReserved;
+                if (!reservedHere)
                 {
-                    arrivalIndex = sdock.GetUndockIndex();
+                    var reserved = arrivalIndex == 0
+                        ? sdock.TryReserveUndockIndex(out arrivalIndex)
+                        : sdock.TryReserveUndockIndex(arrivalIndex);
+                    if (!reserved)
+                    {
+                        FLLog.Warning("NPC", $"Could not reserve spawn point for {arrivalObj}");
+                        sdock = null;
+                    }
+                    else
+                    {
+                        reservedHere = true;
+                    }
                 }
 
-                if (sdock.TryGetSpawnPoint(arrivalIndex, out var p))
+                if (sdock != null && sdock.TryGetSpawnPoint(arrivalIndex, out var p))
                 {
                     position = p.Position;
                     orient = p.Orientation;
                 }
-                else
+                else if (sdock != null)
                 {
+                    if (reservedHere)
+                        sdock.ReleaseUndockIndex(arrivalIndex);
                     FLLog.Warning("NPC", $"Could not get spawn point {arrivalIndex} for {arrivalObj}");
                     sdock = null;
                 }

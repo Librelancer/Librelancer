@@ -3,7 +3,6 @@
 // LICENSE, which is part of this source code package
 
 using System.Collections.Generic;
-using System.Data;
 using System.Numerics;
 using LibreLancer.Data.GameData.World;
 
@@ -32,7 +31,6 @@ namespace LibreLancer.World.Components
 		public required DockAction Action;
         public required DockSphere[] Spheres;
 
-        private string? tlHP;
 		public DockInfoComponent(GameObject parent) : base(parent)
 		{
 		}
@@ -63,9 +61,15 @@ namespace LibreLancer.World.Components
 			if (Action.Kind != DockKinds.Tradelane)
 			{
 				var hpname = Spheres[index].Hardpoint.Replace("DockMount", "DockPoint");
-				yield return Parent.GetHardpoint(hpname + "02")!;
-				yield return Parent.GetHardpoint(hpname + "01")!;
-				yield return Parent.GetHardpoint(Spheres[index].Hardpoint)!;
+				var hp2 = Parent.GetHardpoint(hpname + "02");
+				var hp1 = Parent.GetHardpoint(hpname + "01");
+				var hp0 = Parent.GetHardpoint(Spheres[index].Hardpoint);
+				if (hp2 != null)
+					yield return hp2;
+				if (hp1 != null)
+					yield return hp1;
+				if (hp0 != null)
+					yield return hp0;
 			}
 			else if (Action.Kind == DockKinds.Tradelane)
 			{
@@ -74,12 +78,10 @@ namespace LibreLancer.World.Components
 				var dot = Vector3.Dot(heading, fwd);
 				if (dot > 0)
 				{
-					tlHP = "HpLeftLane";
 					yield return Parent.GetHardpoint("HpLeftLane")!;
 				}
 				else
 				{
-					tlHP = "HpRightLane";
 					yield return Parent.GetHardpoint("HpRightLane")!;
 				}
 			}

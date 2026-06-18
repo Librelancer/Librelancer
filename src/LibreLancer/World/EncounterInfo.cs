@@ -11,4 +11,4 @@ public class EncounterInfo
     public List<EncounterEntry> Ships = [];
 }
 
-public record EncounterEntry(ObjectName Name, Voice? Voice, ShipArch Ship);
+public record EncounterEntry(ObjectName Name, Voice? Voice, ShipArch Ship, string? MakeClass);

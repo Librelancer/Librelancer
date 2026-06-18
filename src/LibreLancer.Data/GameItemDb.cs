@@ -2193,6 +2193,7 @@ public class GameItemDb
                 IdsInfo = orig.IdsInfo,
                 ExtraIdsInfo = [orig.IdsInfo1, orig.IdsInfo2, orig.IdsInfo3],
                 ShipType = orig.Type,
+                MissionProperty = orig.MissionProperty,
                 Explosion = orig.ExplosionArch is not null ? Explosions.Get(orig.ExplosionArch) : null,
             };
             ship.CRC = FLHash.CreateID(ship.Nickname);

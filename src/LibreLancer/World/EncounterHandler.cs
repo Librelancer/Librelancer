@@ -50,7 +50,7 @@ public static class EncounterHandler
                 var arch = possible[random.Next(possible.Count)];
                 var v = faction.NpcVoices.Count > 0 ? faction.NpcVoices[random.Next(faction.NpcVoices.Count)] : null;
                 var name = MakeName(faction, v, random);
-                ei.Ships.Add(new(name, v, arch));
+                ei.Ships.Add(new(name, v, arch, s.MakeClass));
             }
         }
 

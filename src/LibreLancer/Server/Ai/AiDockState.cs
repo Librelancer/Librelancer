@@ -29,7 +29,7 @@ namespace LibreLancer.Server.Ai
             if (obj.TryGetComponent<AutopilotComponent>(out _) &&
                target.TryGetComponent<SDockableComponent>(out var dock))
             {
-                dock.StartDock(obj, 0, GotoKind);
+                dock.StartDock(obj, 0, GotoKind, world);
             }
         }
 

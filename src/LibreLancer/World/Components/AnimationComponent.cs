@@ -240,6 +240,23 @@ namespace LibreLancer.World.Components
             return anm.Scripts.ContainsKey(animationName);
         }
 
+        public float GetAnimationDuration(string? animationName)
+        {
+            if (animationName == null ||
+                !anm.Scripts.TryGetValue(animationName, out var script))
+            {
+                return 0;
+            }
+
+            var duration = 0f;
+            foreach (var jm in script.JointMaps)
+            {
+                duration = Math.Max(duration, jm.Channel.Duration);
+            }
+
+            return duration;
+        }
+
         public override void Update(double time, GameWorld world)
         {
             if ((GameObject?)Parent != null && Parent.RenderComponent is CharacterRenderer characterRenderer)

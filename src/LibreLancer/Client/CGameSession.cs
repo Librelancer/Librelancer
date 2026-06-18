@@ -387,7 +387,28 @@ public partial class CGameSession : IClientPlayer
 
         if (PlayerBase != null)
         {
-            Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
+            if (spaceGameplay != null)
+            {
+                var baseId = PlayerBase;
+                var oldSpace = spaceGameplay;
+                if (oldSpace.ShouldFadeToRoom)
+                {
+                    oldSpace.FadeToRoom(() =>
+                    {
+                        spaceGameplay = null;
+                        Game.ChangeState(new RoomGameplay(Game, this, baseId));
+                    });
+                }
+                else
+                {
+                    spaceGameplay = null;
+                    Game.ChangeState(new RoomGameplay(Game, this, baseId));
+                }
+            }
+            else
+            {
+                Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
+            }
         }
         else
         {
