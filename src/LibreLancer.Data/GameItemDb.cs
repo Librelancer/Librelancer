@@ -2201,6 +2201,11 @@ public class GameItemDb
             ship.ShieldLinkHull = orig.ShieldLink?.HardpointMount;
             ship.ShieldLinkSource = orig.ShieldLink?.HardpointShield;
             ship.TractorSource = orig.HpTractorSource;
+            ship.BayDoorAnim = orig.BayDoorAnim;
+            ship.BayDoorsOpenSound = orig.BayDoorsOpenSound;
+            ship.BayDoorsCloseSound = orig.BayDoorsCloseSound;
+            ship.HpBaySurface = orig.HpBaySurface;
+            ship.HpBayExternal = orig.HpBayExternal;
             ship.SeparableParts = orig.CollisionGroups.Select(FromCollisionGroup).ToList();
 
             foreach (var fuse in orig.Fuses)

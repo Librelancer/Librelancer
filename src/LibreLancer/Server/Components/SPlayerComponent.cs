@@ -239,10 +239,6 @@ namespace LibreLancer.Server.Components
                    world.Server.TryScanCargo(obj, out loadout);
         }
 
-        private const string JettisonBayDoorStart = "HpBayDoor01";
-        private const string JettisonBayDoorTarget = "HpBayDoor02";
-        private const string JettisonBayDoorAnimation01 = "baydoor01_lod1";
-        private const string JettisonBayDoorAnimation02 = "baydoor02_lod1";
         private const double JettisonShieldSuppressionTime = 5.0;
         private const double JettisonPodSpawnDelay = 0.8;
         private const double JettisonBayCloseDelay = 1.6;
@@ -271,7 +267,7 @@ namespace LibreLancer.Server.Components
             Player.UpdateCurrentInventory();
 
             Parent.GetFirstChildComponent<SShieldComponent>()?.Suppress(JettisonShieldSuppressionTime, world.GameWorld);
-            AnimateJettisonBay(world, close: false);
+            AnimateJettisonBay(world, character.Ship, close: false);
             world.DelayAction(() =>
             {
                 if ((Parent.Flags & GameObjectFlags.Exists) == 0)
@@ -279,11 +275,11 @@ namespace LibreLancer.Server.Components
 
                 var spawnTransform = Parent.WorldTransform;
                 var launchDirection = Vector3.Transform(-Vector3.UnitZ, spawnTransform.Orientation);
-                var bayStart = Parent.GetHardpoint(JettisonBayDoorStart);
+                var bayStart = GetJettisonBayHardpoint(character.Ship?.HpBaySurface);
                 if (bayStart != null)
                     spawnTransform = bayStart.Transform * Parent.WorldTransform;
 
-                var bayTarget = Parent.GetHardpoint(JettisonBayDoorTarget);
+                var bayTarget = GetJettisonBayHardpoint(character.Ship?.HpBayExternal);
                 if (bayTarget != null)
                 {
                     var targetTransform = bayTarget.Transform * Parent.WorldTransform;
@@ -303,27 +299,30 @@ namespace LibreLancer.Server.Components
             world.DelayAction(() =>
             {
                 if ((Parent.Flags & GameObjectFlags.Exists) != 0)
-                    AnimateJettisonBay(world, close: true);
+                    AnimateJettisonBay(world, character.Ship, close: true);
             }, JettisonBayCloseDelay);
         }
 
-        private void AnimateJettisonBay(ServerWorld world, bool close)
+        private Hardpoint? GetJettisonBayHardpoint(string? hardpointName)
+        {
+            return string.IsNullOrWhiteSpace(hardpointName) ? null : Parent.GetHardpoint(hardpointName);
+        }
+
+        private void AnimateJettisonBay(ServerWorld world, LibreLancer.Data.GameData.Ship? ship, bool close)
         {
             var component = Parent.AnimationComponent;
             if (component == null)
                 return;
 
-            var animated = false;
-            animated |= StartJettisonBayAnimation(component, JettisonBayDoorAnimation01, close);
-            animated |= StartJettisonBayAnimation(component, JettisonBayDoorAnimation02, close);
+            var animated = StartJettisonBayAnimation(component, ship?.BayDoorAnim, close);
 
             if (animated)
                 world.StartAnimation(Parent);
         }
 
-        private static bool StartJettisonBayAnimation(AnimationComponent component, string animationName, bool close)
+        private static bool StartJettisonBayAnimation(AnimationComponent component, string? animationName, bool close)
         {
-            if (!component.HasAnimation(animationName))
+            if (string.IsNullOrWhiteSpace(animationName) || !component.HasAnimation(animationName))
                 return false;
             component.StartAnimation(animationName, false, 0, 1, 0, close);
             return true;
