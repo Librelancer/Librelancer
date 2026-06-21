@@ -117,6 +117,13 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
 
                 break;
             }
+            case AvoidanceDirective avoidance:
+            {
+                if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
+                    ap.AvoidanceEnabled = avoidance.Avoidance;
+                NextDirective(world);
+                break;
+            }
             case BreakFormationDirective:
             {
                 if (Parent.TryGetComponent<CLocalPlayerComponent>(out var pl))

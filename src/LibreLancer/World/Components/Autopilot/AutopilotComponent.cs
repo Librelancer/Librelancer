@@ -215,7 +215,7 @@ namespace LibreLancer.World.Components
             if (distanceSatisfied)
                 return true;
 
-            if (Behavior != AutopilotBehaviors.Undock)
+            if (Behavior != AutopilotBehaviors.Undock && Component.AvoidanceEnabled)
             {
                 var avoidancePlan = avoidance.GetPlan(world, Parent, TargetObject, point, targetRadius + radius + range,
                     time);
@@ -703,7 +703,9 @@ namespace LibreLancer.World.Components
             var throttle = FormationControl.StandardThrottle(leadThrottle, desiredVelocity, body.LinearVelocity,
                 selfForward);
             throttle = FormationControl.ArrivalThrottle(throttle, distance);
-            var separation = GetSeparation(time, selfForward);
+            var separation = Component.AvoidanceEnabled
+                ? GetSeparation(time, selfForward)
+                : FormationControl.Separation.None;
             throttle *= 1 - separation.Brake;
             if (separation.Brake > 0.35f)
             {
@@ -711,8 +713,10 @@ namespace LibreLancer.World.Components
                 control.CruiseSpeedOffset = 0;
             }
             SetThrottle(throttle, control, input);
-            var avoidancePlan = avoidance.GetPlan(world, Parent, TargetObject, targetPoint,
-                MathF.Max(125, body.Collider.Radius), time);
+            var avoidancePlan = Component.AvoidanceEnabled
+                ? avoidance.GetPlan(world, Parent, TargetObject, targetPoint,
+                    MathF.Max(125, body.Collider.Radius), time)
+                : AutopilotObstacleAvoidance.AvoidancePlan.None;
             Component.SetAutopilotStrafe(avoidancePlan.Active
                 ? avoidancePlan.Strafe
                 : SeparationStrafe(separation));
@@ -754,6 +758,7 @@ namespace LibreLancer.World.Components
     {
         private AutopilotBehavior? instance;
         public bool LocalPlayer = false;
+        internal bool AvoidanceEnabled { get; set; } = true;
         internal StrafeControls AutopilotStrafe { get; private set; } = StrafeControls.None;
 
         public AutopilotBehaviors CurrentBehavior
