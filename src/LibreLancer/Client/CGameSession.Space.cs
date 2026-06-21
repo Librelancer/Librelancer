@@ -916,9 +916,43 @@ public partial class CGameSession
             Volume = item.Equipment.Volume,
             Combinable = item.Equipment.Good.Ini.Combinable,
             CanMount = false,
+            CanJettison = string.IsNullOrEmpty(item.Hardpoint) && !item.IsMissionItem && item.Equipment.LootAppearance != null,
+            MissionCargo = item.IsMissionItem,
             Equipment = item.Equipment,
             Hardpoint = item.Hardpoint
         };
+    }
+
+    public UIInventoryItem[] GetPlayerInventory(string filter)
+    {
+        if (PlayerShip == null)
+            return [];
+
+        var predicate = Trader.GetFilter(filter);
+        List<UIInventoryItem> items = [];
+        foreach (var item in Items)
+        {
+            if (item.Equipment?.Good == null || !predicate(item.Equipment))
+                continue;
+
+            var ui = FromNetCargo(item);
+            if (!string.IsNullOrWhiteSpace(item.Hardpoint))
+            {
+                if (PlayerShip.HardpointTypes.TryGetValue(item.Hardpoint, out var hpTypes))
+                {
+                    var hpType = hpTypes.OrderByDescending(x => x.Class).First();
+                    ui.IdsHardpoint = hpType.IdsName;
+                    ui.IdsHardpointDescription = hpType.IdsHpDescription;
+                    ui.HpSortIndex = hpType.SortIndex;
+                }
+                ui.Count = 1;
+                ui.CanJettison = false;
+            }
+            items.Add(ui);
+        }
+
+        Trader.SortGoods(this, items, filter);
+        return items.ToArray();
     }
 
     private UIInventoryItem[] BuildScanList(NetLoadout loadout)

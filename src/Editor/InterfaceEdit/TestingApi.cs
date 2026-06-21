@@ -478,7 +478,8 @@ public class TestingApi
             IdsInfo = 65908,
             Combinable = true,
             Count = 32,
-            Volume = 1
+            Volume = 1,
+            CanJettison = true
         },
         new UIInventoryItem()
         {
@@ -488,7 +489,8 @@ public class TestingApi
             IdsInfo = 65908,
             Combinable = true,
             Count = 1,
-            Volume = 1
+            Volume = 1,
+            CanJettison = true
         },
         new UIInventoryItem()
         {
@@ -544,7 +546,8 @@ public class TestingApi
                 IdsInfo = 65908,
                 Combinable = true,
                 Count = 32,
-                Volume = 1
+                Volume = 1,
+                CanJettison = true
             },
             new UIInventoryItem()
             {
@@ -555,7 +558,8 @@ public class TestingApi
                 IdsInfo = 65908,
                 Combinable = true,
                 Count = 1,
-                Volume = 1
+                Volume = 1,
+                CanJettison = true
             },
             new UIInventoryItem()
             {
@@ -798,6 +802,10 @@ public class TestingApi
     }
 
     public void OnUpdatePlayerInventory(Closure handler)
+    {
+    }
+
+    public void JettisonInventoryItem(UIInventoryItem item, int count)
     {
     }
 }

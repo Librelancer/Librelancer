@@ -45,6 +45,11 @@ public class Ship : NamedItem
     public string? ShieldLinkHull;
     public string? ShieldLinkSource;
     public string? TractorSource;
+    public string? BayDoorAnim;
+    public string? BayDoorsOpenSound;
+    public string? BayDoorsCloseSound;
+    public string? HpBaySurface;
+    public string? HpBayExternal;
 
     public List<SeparablePart> SeparableParts = [];
 

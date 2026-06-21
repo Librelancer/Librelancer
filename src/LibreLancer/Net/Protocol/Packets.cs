@@ -393,14 +393,16 @@ namespace LibreLancer.Net.Protocol
         public string? Hardpoint;
         public byte Health;
         public int Count;
+        public bool MissionItem;
 
-        public NetShipCargo(int id, uint crc, string? hp, byte health, int count)
+        public NetShipCargo(int id, uint crc, string? hp, byte health, int count, bool missionItem = false)
         {
             ID = id;
             EquipCRC = crc;
             Hardpoint = hp;
             Health = health;
             Count = count;
+            MissionItem = missionItem;
         }
 
         public static NetShipCargo Read(PacketReader message) => new(
@@ -408,7 +410,8 @@ namespace LibreLancer.Net.Protocol
             message.GetUInt(),
             message.GetString(),
             message.GetByte(),
-            (int)message.GetVariableUInt32()
+            (int)message.GetVariableUInt32(),
+            message.GetBool()
         );
 
         public void Put(PacketWriter message)
@@ -418,11 +421,12 @@ namespace LibreLancer.Net.Protocol
             message.Put(Hardpoint);
             message.Put(Health);
             message.PutVariableUInt32((uint)Count);
+            message.Put(MissionItem);
         }
 
         protected bool Equals(NetShipCargo other)
         {
-            return ID == other.ID && EquipCRC == other.EquipCRC && Hardpoint == other.Hardpoint && Health == other.Health && Count == other.Count;
+            return ID == other.ID && EquipCRC == other.EquipCRC && Hardpoint == other.Hardpoint && Health == other.Health && Count == other.Count && MissionItem == other.MissionItem;
         }
 
         public override bool Equals(object? obj)
@@ -450,7 +454,7 @@ namespace LibreLancer.Net.Protocol
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(ID, EquipCRC, Hardpoint, Health, Count);
+            return HashCode.Combine(ID, EquipCRC, Hardpoint, Health, Count, MissionItem);
         }
 
         public static bool operator ==(NetShipCargo? left, NetShipCargo? right)

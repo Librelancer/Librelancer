@@ -462,7 +462,8 @@ public partial class CGameSession : IClientPlayer
             Equipment = equip,
             Hardpoint = cg.Hardpoint,
             Health = cg.Health / 255f,
-            Count = cg.Count
+            Count = cg.Count,
+            IsMissionItem = cg.MissionItem
         };
     }
 
