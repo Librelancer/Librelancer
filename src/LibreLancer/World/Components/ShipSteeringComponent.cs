@@ -4,6 +4,7 @@
 
 using System;
 using System.Numerics;
+using LibreLancer.Server.Components;
 
 namespace LibreLancer.World.Components
 {
@@ -30,6 +31,34 @@ namespace LibreLancer.World.Components
         public ShipSteeringComponent(GameObject parent) : base(parent) { }
 
         public Vector3 OutputSteering;
+
+        internal static float EscortSpeedFactor(bool isPlayer, ReadOnlySpan<float> memberFactors)
+        {
+            if (isPlayer)
+                return 1;
+            var factor = 1f;
+            foreach (var memberFactor in memberFactors)
+                factor = MathF.Min(factor, MathHelper.Clamp(memberFactor, 0, 1));
+            return factor;
+        }
+
+        private static float IncludeEscortSpeedFactor(float current, GameObject ship)
+        {
+            if (ship.TryGetComponent<AutopilotComponent>(out var autopilot))
+                return MathF.Min(current, autopilot.ReferenceSpeedFactor);
+            return current;
+        }
+
+        private float GetEscortSpeedFactor()
+        {
+            if (Parent.Flags.HasFlag(GameObjectFlags.Player) || Parent.Formation == null)
+                return 1;
+            var factor = 1f;
+            factor = IncludeEscortSpeedFactor(factor, Parent.Formation.LeadShip);
+            foreach (var follower in Parent.Formation.Followers)
+                factor = IncludeEscortSpeedFactor(factor, follower);
+            return MathHelper.Clamp(factor, 0, 1);
+        }
 
         public override void Update(double time, GameWorld world)
         {
@@ -67,10 +96,17 @@ namespace LibreLancer.World.Components
 
             physics!.Steering = OutputSteering;
             physics.CurrentStrafe = strafe;
-            physics.EnginePower = InThrottle;
+            var escortSpeedFactor = GetEscortSpeedFactor();
+            physics.EnginePower = InThrottle * escortSpeedFactor;
             physics.ThrustEnabled = Thrust;
             physics.CruiseEnabled = Cruise;
             physics.CruiseSpeedOffset = Cruise ? CruiseSpeedOffset : 0;
+            if (Cruise && escortSpeedFactor < 1)
+            {
+                var cruiseSpeed = Parent.GetComponent<SEngineComponent>()?.Engine.CruiseSpeed ?? 300;
+                physics.CruiseSpeedOffset = MathF.Min(physics.CruiseSpeedOffset,
+                    -cruiseSpeed * (1 - escortSpeedFactor));
+            }
             physics.EngineKillEnabled = EngineKill;
         }
 

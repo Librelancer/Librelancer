@@ -108,6 +108,10 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                         vec.CruiseKind,
                         Throttle(vec.MaxThrottle),
                         vec.Range,
+                        vec.CruiseSpeedReference,
+                        vec.CruiseSpeedFullDistance,
+                        vec.CruiseSpeedZeroDistance,
+                        vec.CruiseSpeedUnknown,
                         shouldStopAtTarget: vec.CruiseKind == GotoKind.GotoNoCruise);
                 }
 

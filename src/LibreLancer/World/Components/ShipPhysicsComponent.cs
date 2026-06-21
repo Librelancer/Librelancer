@@ -50,6 +50,21 @@ namespace LibreLancer.World.Components
             Ship = ship;
         }
 
+        internal static float CruiseChargeEnginePower(float enginePower, bool formationFollower,
+            bool restrictedCruiseSpeed = false) =>
+            formationFollower || restrictedCruiseSpeed ? MathHelper.Clamp(enginePower, 0, 1) : 1f;
+
+        internal static float CruiseEngineForce(float cruiseSpeed, float normalCruiseSpeed, float maxForce,
+            float linearDrag, float accelerationPercent)
+        {
+            var initialForceFactor = cruiseSpeed < normalCruiseSpeed && normalCruiseSpeed > 0
+                ? MathHelper.Clamp(cruiseSpeed / normalCruiseSpeed, 0, 1)
+                : 1;
+            var initialForce = maxForce * initialForceFactor;
+            var targetForce = cruiseSpeed * linearDrag;
+            return initialForce + (targetForce - initialForce) * accelerationPercent;
+        }
+
         public override void SetEngineState(EngineStates es)
         {
             throw new InvalidOperationException("Cannot force EngineState on sim object");
@@ -216,7 +231,9 @@ namespace LibreLancer.World.Components
             var drag = -totalDrag * Parent.PhysicsComponent.Body.LinearVelocity;
             if (EngineState == EngineStates.CruiseCharging)
             {
-                requestedEnginePower = EnginePower = 1f;
+                var formationFollower = Parent.Formation != null && Parent.Formation.LeadShip != Parent;
+                requestedEnginePower = EnginePower = CruiseChargeEnginePower(EnginePower, formationFollower,
+                    CruiseSpeedOffset < 0);
             }
 
             var engineForce = requestedEnginePower * engine.Engine.Def.MaxForce
@@ -224,7 +241,6 @@ namespace LibreLancer.World.Components
 
 
             if (EngineState == EngineStates.CruiseCharging) {
-                EnginePower = 1f;
                 ChargePercent += (1.0f / engine.Engine.Def.CruiseChargeTime) * (float)time;
                 if (ChargePercent >= 1.0f)
                 {
@@ -245,8 +261,8 @@ namespace LibreLancer.World.Components
                 CruiseAccelPct += (float)(time * 1.0f / engine.Engine.CruiseAccelTime);
                 if (CruiseAccelPct > 1.0f) CruiseAccelPct = 1.0f;
                 var cruiseSpeed = MathF.Max(0, engine.Engine.CruiseSpeed + CruiseSpeedOffset);
-                var cruise_force = cruiseSpeed * engine.Engine.Def.LinearDrag;
-                engineForce = engine.Engine.Def.MaxForce + (cruise_force - engine.Engine.Def.MaxForce) * CruiseAccelPct;
+                engineForce = CruiseEngineForce(cruiseSpeed, engine.Engine.CruiseSpeed,
+                    engine.Engine.Def.MaxForce, engine.Engine.Def.LinearDrag, CruiseAccelPct);
                 // Set fx sparam. TODO: This is poorly named
                 engine.Speed = 1.0f;
                 ChargePercent = 1f;

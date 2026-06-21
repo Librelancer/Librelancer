@@ -414,8 +414,7 @@ namespace LibreLancer.World.Components
                 return false;
             }
 
-            var formationLead = parent.Formation?.LeadShip;
-            if (formationLead != null && other == formationLead)
+            if (parent.Formation?.Contains(other) == true)
             {
                 return false;
             }
