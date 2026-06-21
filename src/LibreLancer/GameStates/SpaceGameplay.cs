@@ -2260,6 +2260,7 @@ World Time: {12:F2}
                     sys.Nickname, systemName, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, selObj,
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGui.Text(text);
+                ImGui.Text($"Render Resolution: {Game.RenderContext.CurrentViewport.Width}x{Game.RenderContext.CurrentViewport.Height}");
                 ImGui.Text($"Player Position: {player.WorldTransform.Position}");
                 ImGui.Text($"PredictionErrorPos: {player.PhysicsComponent!.PredictionErrorPos}");
                 ImGui.Text($"PredictionErrorQuat: {player.PhysicsComponent!.PredictionErrorQuat} ({MathHelper.QuatError(
