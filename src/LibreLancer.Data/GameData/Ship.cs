@@ -26,7 +26,7 @@ public class Ship : NamedItem
     public float StrafeForce;
     public float Hitpoints;
     public Explosion? Explosion;
-    public string? MissionProperty;
+    public ShipMissionProperty MissionProperty;
 
     public Vector3 ChaseOffset;
     public float MaxBankAngle;

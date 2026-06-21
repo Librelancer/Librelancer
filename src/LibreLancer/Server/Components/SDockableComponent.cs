@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Ships;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 using DockSphereType = LibreLancer.Data.Schema.Solar.DockSphereType;
@@ -227,10 +228,8 @@ namespace LibreLancer.Server.Components
 
             return shipComponent.Ship.MissionProperty switch
             {
-                string p when p.Equals("can_use_large_moors", StringComparison.OrdinalIgnoreCase) =>
-                    DockSphereType.moor_large,
-                string p when p.Equals("can_use_med_moors", StringComparison.OrdinalIgnoreCase) =>
-                    DockSphereType.moor_medium,
+                ShipMissionProperty.can_use_large_moors => DockSphereType.moor_large,
+                ShipMissionProperty.can_use_med_moors => DockSphereType.moor_medium,
                 _ => DockSphereType.berth
             };
         }
@@ -245,6 +244,8 @@ namespace LibreLancer.Server.Components
             var dockType = DockPoints[index].DockSphere.Type;
             return IsDockingRingIndex(index) ||
                    dockType == DockSphereType.ring ||
+                   dockType == DockSphereType.airlock ||
+                   dockType == DockSphereType.jump ||
                    dockType == GetDockTypeForShip(ship);
         }
 
