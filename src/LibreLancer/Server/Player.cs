@@ -1282,9 +1282,15 @@ namespace LibreLancer.Server
 
                     if (undockFrom?.TryGetComponent(out sd) ?? false)
                     {
-                        undockIndex = sd!.GetUndockIndex();
+                        if (!sd!.TryReserveUndockIndex(out undockIndex))
+                        {
+                            FLLog.Warning("Server", $"Could not reserve spawn point for {undockFrom}");
+                            return;
+                        }
+
                         if (!sd.TryGetSpawnPoint(undockIndex, out var tr))
                         {
+                            sd.ReleaseUndockIndex(undockIndex);
                             FLLog.Warning("Server", $"Could not get spawn point {undockIndex} for {undockFrom}");
                             return;
                         }
@@ -1303,8 +1309,8 @@ namespace LibreLancer.Server
 
                     if (undockFrom != null)
                     {
-                        rpcClient.UndockFrom(undockFrom, undockIndex);
                         sd!.UndockShip(pship, world.GameWorld, undockIndex);
+                        rpcClient.UndockFrom(undockFrom, undockIndex);
 
                     }
 

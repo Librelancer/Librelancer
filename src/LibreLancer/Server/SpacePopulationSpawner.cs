@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.GameData;
@@ -56,13 +57,16 @@ public partial class SpacePopulationManager
         {
             return;
         }
+        var populationClasses = BuildPopulationClasses(state.Zone, info, faction);
+        if (!CanSpawnRestrictedPopulation(state, populationClasses))
+            return;
         if (!CanCreateFormation(state, info))
             return;
         var creationDistance = info.FormationDefinition?.ZoneCreationDistance ?? 0;
         if (!TryFindSpawnLocation(state, info, context.Players, creationDistance, false, out var spawn))
             return;
 
-        SpawnGroup(state, info, faction, spawn);
+        SpawnGroup(state, info, faction, spawn, populationClasses);
     }
 
     public void PopulateInitialAroundPlayer(GameObject player)
@@ -119,13 +123,16 @@ public partial class SpacePopulationManager
         {
             return;
         }
+        var populationClasses = BuildPopulationClasses(state.Zone, info, faction);
+        if (!CanSpawnRestrictedPopulation(state, populationClasses))
+            return;
         if (!CanCreateFormation(state, info))
             return;
         var creationDistance = info.FormationDefinition?.ZoneCreationDistance ?? 0;
         if (!TryFindSpawnLocation(state, info, context.Players, creationDistance, true, out var spawn))
             return;
 
-        SpawnGroup(state, info, faction, spawn);
+        SpawnGroup(state, info, faction, spawn, populationClasses);
     }
 
     private int CountShips(ZoneState state) =>
@@ -226,18 +233,30 @@ public partial class SpacePopulationManager
         }
     }
 
-    private void SpawnGroup(ZoneState state, EncounterInfo info, Faction faction, SpawnLocation spawn)
+    private void SpawnGroup(
+        ZoneState state,
+        EncounterInfo info,
+        Faction faction,
+        SpawnLocation spawn,
+        HashSet<string> populationClasses)
     {
         var items = world.Server.GameData.Items;
         var position = spawn.Position;
-        var firstTarget = GetFirstDirectiveTarget(state, info, position);
+        var firstTarget = spawn.InitialPathTarget ?? GetFirstDirectiveTarget(state, info);
         var orientation = spawn.ArrivalObject != null
             ? spawn.Orientation
             : LookRotation(firstTarget - position);
         var group = new PopGroup(state, info)
         {
-            ArrivalObject = spawn.ArrivalObject
+            ArrivalObject = spawn.ArrivalObject,
+            PersistDistance = spawn.PersistDistance
         };
+        foreach (var populationClass in populationClasses)
+            group.PopulationClasses.Add(populationClass);
+        if (spawn.PathIndex >= 0)
+            group.PathIndex = spawn.PathIndex;
+        group.InitialPathTarget = spawn.InitialPathTarget;
+
         SDockableComponent? arrivalDockable = null;
         if (spawn.ArrivalObject != null &&
             world.GameWorld.GetObject(spawn.ArrivalObject)?.TryGetComponent<SDockableComponent>(out var dockable) == true)
@@ -248,13 +267,23 @@ public partial class SpacePopulationManager
         for (int i = 0; i < info.Ships.Count; i++)
         {
             var arrivalIndex = spawn.ArrivalIndex;
-            if (arrivalDockable != null && !arrivalDockable.TryGetUndockIndex(out arrivalIndex))
-                break;
+            var reservedArrival = false;
+            if (arrivalDockable != null)
+            {
+                reservedArrival = spawn.ArrivalIndex == 0
+                    ? arrivalDockable.TryReserveUndockIndex(out arrivalIndex)
+                    : arrivalDockable.TryReserveUndockIndex(arrivalIndex);
+
+                if (!reservedArrival)
+                    break;
+            }
 
             var entry = info.Ships[i];
             if (string.IsNullOrWhiteSpace(entry.Ship.Loadout) ||
                 !items.TryGetLoadout(entry.Ship.Loadout, out var loadout))
             {
+                if (reservedArrival)
+                    arrivalDockable!.ReleaseUndockIndex(arrivalIndex);
                 FLLog.Warning("SpacePop", $"NPC ship {entry.Ship.Nickname} has no valid loadout");
                 continue;
             }
@@ -281,18 +310,13 @@ public partial class SpacePopulationManager
                 spawn.ArrivalObject,
                 arrivalIndex,
                 null,
-                false);
+                false,
+                reservedArrival);
             group.Ships.Add(obj);
         }
 
         if (group.Ships.Count == 0)
             return;
-
-        var factionName = string.IsNullOrWhiteSpace(faction.Nickname) ? "unknown" : faction.Nickname;
-        var arrival = spawn.ArrivalObject == null
-            ? "free space"
-            : $"{spawn.ArrivalObject}:{spawn.ArrivalIndex}";
-        FLLog.Debug("SpacePop", $"Spawned {group.Ships.Count} NPC(s) from zone {state.Zone.Nickname} for faction {factionName} via {arrival}");
 
         state.Groups.Add(group);
         RecordFormationCreation(state, info);
@@ -305,6 +329,88 @@ public partial class SpacePopulationManager
                 group.Ships.Skip(1).Select(x => x.Nickname).ToList());
         }
         AssignDirectives(group);
+    }
+
+    private bool CanSpawnRestrictedPopulation(ZoneState state, HashSet<string> populationClasses)
+    {
+        if (state.Zone.DensityRestrictions is not { Length: > 0 })
+            return true;
+
+        foreach (var restriction in state.Zone.DensityRestrictions)
+        {
+            var type = NormalizePopulationClass(restriction.Type);
+            if (!populationClasses.Contains(type))
+                continue;
+
+            if (restriction.Count <= 0)
+                return false;
+
+            if (CountPopulationClass(type) >= restriction.Count)
+                return false;
+        }
+        return true;
+    }
+
+    private int CountPopulationClass(string populationClass)
+    {
+        var count = 0;
+        foreach (var state in zones)
+        {
+            foreach (var group in state.Groups)
+            {
+                if (group.PopulationClasses.Contains(populationClass) &&
+                    group.Ships.Any(Alive))
+                {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private static HashSet<string> BuildPopulationClasses(Zone zone, EncounterInfo info, Faction faction)
+    {
+        var classes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        AddPopulationClasses(classes, zone.PopType);
+        foreach (var entry in info.Ships)
+            AddPopulationClass(classes, entry.MakeClass);
+
+        if (faction.Properties?.Legality == Legality.Unlawful)
+            classes.Add("unlawfuls");
+        else
+            classes.Add("lawfuls");
+        return classes;
+    }
+
+    private static void AddPopulationClasses(HashSet<string> classes, string[]? values)
+    {
+        if (values == null)
+            return;
+
+        foreach (var value in values)
+            AddPopulationClass(classes, value);
+    }
+
+    private static void AddPopulationClass(HashSet<string> classes, string? value)
+    {
+        var normalized = NormalizePopulationClass(value);
+        if (normalized.Length == 0)
+            return;
+
+        classes.Add(normalized);
+        if (normalized.EndsWith("_patroller", StringComparison.OrdinalIgnoreCase))
+            classes.Add("patroller");
+    }
+
+    private static string NormalizePopulationClass(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        value = value.Trim();
+        return value.StartsWith("class_", StringComparison.OrdinalIgnoreCase)
+            ? value["class_".Length..]
+            : value;
     }
 
     private bool CanCreateFormation(ZoneState state, EncounterInfo info)

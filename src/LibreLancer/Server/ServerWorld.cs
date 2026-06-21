@@ -531,7 +531,7 @@ namespace LibreLancer.Server
                     }
                     else
                     {
-                        component.StartDock(obj, 0);
+                        component.StartDock(obj, 0, world: GameWorld);
                     }
                 }
             });

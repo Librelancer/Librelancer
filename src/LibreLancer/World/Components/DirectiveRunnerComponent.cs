@@ -27,6 +27,17 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         }
     }
 
+    public void Cancel(bool cancelAutopilot = true)
+    {
+        currentDirectives = null;
+        index = -1;
+        splineIndex = -1;
+        if (cancelAutopilot && Parent.TryGetComponent<AutopilotComponent>(out var ap))
+        {
+            ap.Cancel();
+        }
+    }
+
     private double currentDelay = 0;
 
     public override void Update(double time, GameWorld world)
@@ -55,7 +66,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                 {
                     if (tgt.TryGetComponent<SDockableComponent>(out var sd))
                     {
-                        sd.StartDock(Parent, 0);
+                        sd.StartDock(Parent, 0, world: world);
                     }
                     else if (tgt.TryGetComponent<CLocalPlayerComponent>(out var pl))
                     {
@@ -92,7 +103,12 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             {
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
-                    ap.GotoVec(vec.Target, vec.CruiseKind, Throttle(vec.MaxThrottle), vec.Range);
+                    ap.GotoVec(
+                        vec.Target,
+                        vec.CruiseKind,
+                        Throttle(vec.MaxThrottle),
+                        vec.Range,
+                        shouldStopAtTarget: vec.CruiseKind == GotoKind.GotoNoCruise);
                 }
 
                 break;
