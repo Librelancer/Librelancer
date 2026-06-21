@@ -1121,6 +1121,14 @@ namespace LibreLancer.Server
                             update.CruiseThrust = CruiseThrustState.Thrusting;
                             break;
                     }
+                    // Not needed when an object is not in a formation
+                    if (obj.Formation != null)
+                    {
+                        update.Strafe = objPhysics.CurrentStrafe;
+                        update.Pitch = objPhysics.Steering.X;
+                        update.Yaw = objPhysics.Steering.Y;
+                        update.Roll = objPhysics.Steering.Z;
+                    }
                 }
 
                 if (obj.TryGetComponent<SHealthComponent>(out var health))

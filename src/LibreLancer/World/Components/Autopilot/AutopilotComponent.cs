@@ -446,29 +446,21 @@ namespace LibreLancer.World.Components
 
         private static bool LeadIsCruising(GameObject lead)
         {
-            if (lead.TryGetComponent<ShipPhysicsComponent>(out var leadControl) &&
+            if (lead.TryGetComponent<ShipControlAccessComponent>(out var leadControl) &&
                 (leadControl.CruiseEnabled ||
                  leadControl.EngineState is EngineStates.Cruise or EngineStates.CruiseCharging))
             {
                 return true;
             }
-
-            return lead.TryGetComponent<CEngineComponent>(out var eng) &&
-                   eng.CruiseThrust is CruiseThrustState.Cruising or CruiseThrustState.CruiseCharging;
+            return false;
         }
 
         private static float LeadThrottle(GameObject lead)
         {
-            if (lead.TryGetComponent<ShipPhysicsComponent>(out var leadControl))
+            if (lead.TryGetComponent<ShipControlAccessComponent>(out var leadControl))
             {
                 return leadControl.EnginePower;
             }
-
-            if (lead.TryGetComponent<CEngineComponent>(out var eng))
-            {
-                return MathHelper.Clamp(eng.Speed / 0.9f, 0, 1);
-            }
-
             return 0;
         }
 

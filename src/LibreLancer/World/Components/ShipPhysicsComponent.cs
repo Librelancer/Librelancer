@@ -26,34 +26,33 @@ namespace LibreLancer.World.Components
 		CruiseCharging,
 		Cruise,
 	}
-    public class ShipPhysicsComponent : GameComponent
+    public class ShipPhysicsComponent : ShipControlAccessComponent
     {
         public bool Active { get; set; }
 
         public Ship Ship;
-        public float EnginePower = 0f; // from 0 to 1
-                                       // TODO: I forget how this is configured in .ini files. Constants.ini?
-                                       // Some mods have a per-ship (engine?) cruise speed. Check how this is implemented, and include as native feature.
         public bool ThrustEnabled = false;
         private bool cruiseEnabled = false;
         private bool previousCruiseEnabled = false;
-        public bool CruiseEnabled
+        public override bool CruiseEnabled
         {
             get => cruiseEnabled;
             set => cruiseEnabled = value;
         }
         public float CruiseSpeedOffset = 0;
         public bool EngineKillEnabled = false;
-        public EngineStates EngineState { get; private set; }
-        public StrafeControls CurrentStrafe = StrafeControls.None;
         public float ChargePercent;
-        public Vector3 Steering;
         public float CruiseAccelPct = 0;
 
         public ShipPhysicsComponent(GameObject parent, Ship ship) : base(parent)
         {
             Active = true;
             Ship = ship;
+        }
+
+        public override void SetEngineState(EngineStates es)
+        {
+            throw new InvalidOperationException("Cannot force EngineState on sim object");
         }
 
         // TODO: Engine Kill

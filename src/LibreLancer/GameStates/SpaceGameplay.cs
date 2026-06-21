@@ -2282,9 +2282,13 @@ World Time: {12:F2}
 
                 if (Selection.Selected != null)
                 {
-                    if (Selection.Selected.TryGetComponent<CEngineComponent>(out var eng))
+                    if (Selection.Selected.TryGetComponent<ShipControlAccessComponent>(out var sca))
                     {
-                        ImGui.Text($"selected throttle: {eng.Speed}");
+                        ImGui.Text($"selected throttle: {sca.EnginePower}");
+                        ImGui.Text("received controls (if ship is in a formation)");
+                        ImGui.Text($"steering: {sca.Steering}");
+                        ImGui.Text($"strafe: {sca.CurrentStrafe}");
+                        ImGui.Text($"engine state: {sca.EngineState}");
                     }
                     ImGui.Text($"selected linear velocity: {Selection.Selected.PhysicsComponent?.Body?.LinearVelocity}");
                 }

@@ -374,6 +374,19 @@ public partial class CGameSession
                 comp.Enabled = update.CruiseThrust == CruiseThrustState.Thrusting;
         }
 
+        if (obj.TryGetComponent<ShipControlAccessComponent>(out var sca))
+        {
+            sca.SetEngineState(update.CruiseThrust switch
+            {
+                CruiseThrustState.CruiseCharging => EngineStates.CruiseCharging,
+                CruiseThrustState.Cruising => EngineStates.Cruise,
+                _ => update.EngineKill ? EngineStates.EngineKill : EngineStates.Standard
+            });
+            sca.Steering = new(update.Pitch, update.Yaw, update.Roll);
+            sca.CurrentStrafe = update.Strafe;
+            sca.EnginePower = MathHelper.Clamp(update.ThrottleFloat / 0.9f, 0, 1);
+        }
+
         if (obj.TryGetComponent<CHealthComponent>(out var health))
             health.CurrentHealth = update.Hull;
 
@@ -1060,6 +1073,7 @@ public partial class CGameSession
                     newObj.AddComponent(new CHealthComponent(newObj)
                         { CurrentHealth = objInfo.Loadout.Health, MaxHealth = shp.Hitpoints });
                     newObj.AddComponent(new CExplosionComponent(newObj, shp.Explosion!));
+                    newObj.AddComponent(new ShipControlAccessComponent(newObj));
                 }
 
                 if (newObj is null)

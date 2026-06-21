@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.Net.Protocol;
 
@@ -309,6 +310,10 @@ public class ObjectUpdate
     public Vec3Fix22d10 LinearVelocity;
     public Vec3Fix22d10 AngularVelocity;
     public UpdateQuaternion Orientation = Quaternion.Identity;
+    public StrafeControls Strafe;
+    private byte pitchControl;
+    private byte yawControl;
+    private byte rollControl;
     public int Hull;
     public int Shield;
     private byte throttle;
@@ -317,6 +322,24 @@ public class ObjectUpdate
     {
         get => Unsafe.BitCast<byte,sbyte>(throttle) / 127f;
         set => throttle = Unsafe.BitCast<sbyte, byte>((sbyte)(value * 127.0f));
+    }
+
+    public float Pitch
+    {
+        get => Unsafe.BitCast<byte,sbyte>(pitchControl) / 127f;
+        set => pitchControl = Unsafe.BitCast<sbyte, byte>((sbyte)(value * 127.0f));
+    }
+
+    public float Yaw
+    {
+        get => Unsafe.BitCast<byte,sbyte>(yawControl) / 127f;
+        set => yawControl = Unsafe.BitCast<sbyte, byte>((sbyte)(value * 127.0f));
+    }
+
+    public float Roll
+    {
+        get => Unsafe.BitCast<byte,sbyte>(rollControl) / 127f;
+        set => rollControl = Unsafe.BitCast<sbyte, byte>((sbyte)(value * 127.0f));
     }
 
     public byte Flags;
@@ -443,6 +466,9 @@ public class ObjectUpdate
 
         msg.Write((byte)(Flags - src.Flags));
         msg.Write((byte)(throttle - src.throttle));
+        msg.Write((byte)(pitchControl - src.pitchControl));
+        msg.Write((byte)(yawControl - src.yawControl));
+        msg.Write((byte)((byte)Strafe - (byte)src.Strafe));
 
         var dHull = NetPacking.Zig32(Hull - src.Hull);
         var dShield = NetPacking.Zig32(Shield - src.Shield);
@@ -589,6 +615,10 @@ public class ObjectUpdate
 
         od.Flags = (byte)(src.Flags + msg.ReadByte());
         od.throttle = (byte)(src.throttle + msg.ReadByte());
+        od.pitchControl = (byte)(src.pitchControl + msg.ReadByte());
+        od.yawControl = (byte)(src.yawControl + msg.ReadByte());
+        var srcS = (byte)src.Strafe;
+        od.Strafe = (StrafeControls)(byte)(srcS + msg.ReadByte());
 
         uint dHull = 0;
         uint dShield = 0;
