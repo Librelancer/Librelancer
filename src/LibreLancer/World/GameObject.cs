@@ -901,6 +901,9 @@ namespace LibreLancer.World
 
         public void Unregister(GameWorld world)
         {
+            if(Formation?.Contains(this) ?? false)
+                Formation.Remove(this);
+            Formation = null;
             foreach (var component in components)
             {
                 component.Unregister(world);

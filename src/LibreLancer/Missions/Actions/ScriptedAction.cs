@@ -817,18 +817,31 @@ namespace LibreLancer.Missions.Actions
                 ol = script.ObjLists[List].Directives.ToArray();
             }
 
-            var gw = runtime.Player.Space.World.GameWorld;
-            if (script.Formations.TryGetValue(Target, out var formation))
+            runtime.Player.MissionWorldAction(() =>
             {
-                foreach (var s in formation.Ships)
+                var space = runtime.Player.Space;
+                if (space == null)
                 {
-                    runtime.Player.Space!.World.NPCs.NpcDoAction(s.Nickname,
-                        (npc) => { GiveObjList(npc, gw, ol); });
+                    FLLog.Error("Mission", $"Act_GiveObjList can't run for '{Target}' while player is not in space");
+                    return;
                 }
-            }
-            else
-            {
-                runtime.Player.Space!.World.EnqueueAction(() =>
+
+                var gw = space.World.GameWorld;
+                if (script.Formations.TryGetValue(Target, out var formation))
+                {
+                    foreach (var s in formation.Ships)
+                    {
+                        var npc = gw.GetObject(s.Nickname);
+                        if (npc == null)
+                        {
+                            FLLog.Error("Mission", $"Act_GiveObjList can't find formation ship '{s.Nickname}' in '{Target}'");
+                            continue;
+                        }
+
+                        GiveObjList(npc, gw, ol);
+                    }
+                }
+                else
                 {
                     var tgt = gw.GetObject(Target);
 
@@ -840,8 +853,8 @@ namespace LibreLancer.Missions.Actions
                     {
                         GiveObjList(tgt, gw, ol);
                     }
-                });
-            }
+                }
+            });
         }
     }
 
