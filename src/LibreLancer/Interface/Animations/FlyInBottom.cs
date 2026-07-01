@@ -11,26 +11,27 @@ namespace LibreLancer
     {
         private Vector2 finalPos;
         public float From = 480;
-        public FlyInBottom(Vector2 final, double start, double time) : base(start, time)
+        private RectangleF clientRectangle;
+
+        public FlyInBottom(double start, double time) : base(start, time)
         {
-            finalPos = final;
-            CurrentPosition.X = finalPos.X;
         }
 
-        public override void SetWidgetPosition(Vector2 pos)
+        public override void SetWidgetRectangle(RectangleF rect)
         {
-            finalPos = pos;
-            CurrentPosition.X = finalPos.X;
+            base.SetWidgetRectangle(rect);
+
         }
 
         protected override void Run (double currentTime, float aspectRatio)
         {
+            CurrentPosition.X = clientRectangle.X;
             CurrentPosition.Y = Easing.Ease(EasingTypes.EaseOut,
                 (float) currentTime,
                 0,
                 (float) Duration,
                 From,
-                finalPos.Y
+                clientRectangle.Y
             );
         }
     }

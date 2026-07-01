@@ -2,14 +2,14 @@ namespace LibreLancer.Net.Protocol;
 
 public struct MissileFireCmd
 {
-    public string Hardpoint;
+    public uint Hardpoint;
     public ObjNetId Target;
 
     public static MissileFireCmd Read(PacketReader message)
     {
         var cmd = new MissileFireCmd
         {
-            Hardpoint = message.GetHpid(),
+            Hardpoint = message.GetUInt(),
             Target = ObjNetId.Read(message)
         };
         return cmd;
@@ -17,7 +17,7 @@ public struct MissileFireCmd
 
     public void Put(PacketWriter message)
     {
-        message.PutHpid(Hardpoint);
+        message.Put(Hardpoint);
         Target.Put(message);
     }
 }

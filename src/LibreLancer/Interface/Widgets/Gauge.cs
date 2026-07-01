@@ -17,20 +17,17 @@ namespace LibreLancer.Interface
 
         public bool Reverse { get; set; }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
             if (!Visible) return;
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X, myPos.Y, Width, Height);
-            Background?.Draw(context, drawList, myRectangle);
-            var fillRect = myRectangle;
+            Background?.Draw(context, drawList, ClientRectangle);
+            var fillRect = ClientRectangle;
             fillRect.Width *= PercentFilled;
             if (Reverse) {
-                fillRect.X = myPos.X + Width - fillRect.Width;
+                fillRect.X = ClientRectangle.X + Width - fillRect.Width;
             }
-
-            Fill?.DrawWithClip(context, drawList, myRectangle, fillRect);
-            Border?.Draw(context, drawList, myRectangle);
+            Fill?.DrawWithClip(context, drawList, ClientRectangle, fillRect);
+            Border?.Draw(context, drawList, ClientRectangle);
         }
 
     }

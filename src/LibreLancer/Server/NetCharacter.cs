@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
@@ -213,7 +214,7 @@ namespace LibreLancer.Server
 
             public void CargoModified() => cargoDirty = true;
 
-            public void AddCargo(Equipment equip, string? hardpoint, int count)
+            public void AddCargo(Equipment equip, string? hardpoint, int count, bool isMissionItem = false)
             {
                 cargoDirty = true;
                 if (equip.Good?.Ini.Combinable ?? false)
@@ -225,14 +226,15 @@ namespace LibreLancer.Server
                     var slot = nc.Items.FirstOrDefault(x => equip.Good.Equipment == x.Equipment);
                     if (slot == null)
                     {
-                        nc.Items.Add(new NetCargo() {Equipment = equip, Count = count });
+                        nc.Items.Add(new NetCargo() {Equipment = equip, Count = count, IsMissionItem = isMissionItem });
                     }
                     else
                     {
                         slot.Count += count;
+                        slot.IsMissionItem |= isMissionItem;
                     }
                 } else {
-                    nc.Items.Add(new NetCargo() { Equipment =  equip, Hardpoint = hardpoint, Count = count });
+                    nc.Items.Add(new NetCargo() { Equipment =  equip, Hardpoint = hardpoint, Count = count, IsMissionItem = isMissionItem });
                 }
             }
 
@@ -303,6 +305,7 @@ namespace LibreLancer.Server
                         dbItem.ItemCount = item.Count;
                         dbItem.Hardpoint = item.Hardpoint;
                         dbItem.Health = item.Health;
+                        dbItem.IsMissionItem = item.IsMissionItem;
                     }
                 }
             }
@@ -410,7 +413,7 @@ namespace LibreLancer.Server
             {
                 var equip = game.GameData.Items.Equipment.Get(cg.Item);
                 if (equip != null)
-                    c.AddCargo(equip, null, cg.Count);
+                    c.AddCargo(equip, null, cg.Count, cg.IsMissionCargo);
             }
             foreach (var rep in RepFromSave(game, sg))
             {
@@ -512,6 +515,7 @@ namespace LibreLancer.Server
                     Hardpoint = cargo.Hardpoint,
                     Health = cargo.Health,
                     Equipment = resolved,
+                    IsMissionItem = cargo.IsMissionItem,
                     DbItemId = cargo.Id
                 });
             }
@@ -559,8 +563,10 @@ namespace LibreLancer.Server
             {
                 sl.Items.Add(new NetShipCargo(
                     c.ID, c.Equipment!.CRC,
-                    c.Hardpoint, (byte) (c.Health * 255f),
-                    c.Count
+                    c.Hardpoint,
+                    (byte) (c.Health * 255f),
+                    c.Count,
+                    c.IsMissionItem
                 ));
             }
             return sl;
@@ -601,5 +607,6 @@ namespace LibreLancer.Server
         public float Health;
         public int Count;
         public long DbItemId;
+        public bool IsMissionItem;
     }
 }

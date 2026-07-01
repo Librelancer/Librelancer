@@ -19,15 +19,22 @@ public static class RPCSourceWriter
     private const string IPacketSender = "LibreLancer.Net.IPacketSender";
     private const string NetResponseHandler = "LibreLancer.Net.Protocol.RpcPackets.NetResponseHandler";
 
-    public static void GenerateProtocol(SourceProductionContext context, ImmutableArray<RPCInterface> interfaces)
+    public static void GenerateProtocol(SourceProductionContext context, ImmutableArray<RPCInterface> inputInterfaces)
     {
+        var interfaces = inputInterfaces
+            .Select(x =>
+                    (x with { Methods = new(x.Methods.OrderBy(x => x.Name).ToArray()) }))
+                .OrderBy(x => x.Name)
+                .ToArray();
+
         var sw = new StringBuilder();
         foreach (var ifc in interfaces)
         {
-            sw.AppendLine($"{ifc.Name} {ifc.ContainingNamespace}");
+            // \r\n is appended on windows with AppendLine. Specify \n explicitly.
+            sw.Append($"{ifc.Name} {ifc.ContainingNamespace}\n");
             foreach (var method in ifc.Methods)
             {
-                sw.AppendLine($"{method.ReturnType} {method.Name} {method.Channel} {string.Join("$", method.Parameters.Select(x => x.ToString()))}");
+                sw.Append($"{method.ReturnType} {method.Name} {method.Channel} {string.Join("$", method.Parameters.Select(x => x.ToString()))}\n");
             }
         }
         var hash = ProtocolHash.Hash(sw);

@@ -2,28 +2,15 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System;
-using System.Numerics;
-
 namespace LibreLancer
 {
 	public class FlyInLeft : UiAnimation
 	{
-        private Vector2 finalPos;
-        private float width;
         public float From = -2;
-		public FlyInLeft(Vector2 final, float controlWidth, double start, double time) : base(start, time)
-		{
-			finalPos = final;
-            width = controlWidth;
-			CurrentPosition.Y = finalPos.Y;
-		}
 
-        public override void SetWidgetPosition(Vector2 pos)
-        {
-            finalPos = pos;
-            CurrentPosition.Y = finalPos.Y;
-        }
+		public FlyInLeft(double start, double time) : base(start, time)
+		{
+		}
 
         protected override void Run (double currentTime, float aspectRatio)
         {
@@ -31,9 +18,10 @@ namespace LibreLancer
                 (float)currentTime,
                 0,
                 (float)Duration,
-                finalPos.X + From - width,
-                finalPos.X
+                From - ClientRectangle.Width,
+                ClientRectangle.X
             );
+            CurrentPosition.Y = ClientRectangle.Y;
         }
 	}
 }

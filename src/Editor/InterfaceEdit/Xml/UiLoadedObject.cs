@@ -148,7 +148,6 @@ public class UiLoadedObject
         printer.ElementProperty = "this.Elements";
         PrintSetter(printer, $"this.{fieldName}");
         printer.ElementProperty = null;
-        printer.WriteLine($"this.{fieldName}.ApplyStylesheet(Stylesheet);");
         printer.TabOut();
         printer.WriteLine("}");
         printer.TabOut();
@@ -208,12 +207,12 @@ internal abstract class UiLoadedProperty
         }
     }
 
-    protected PropertyInfo property;
+    public PropertyInfo Property;
     private Action<object, object> setter;
 
     protected UiLoadedProperty(PropertyInfo property)
     {
-        this.property = property;
+        this.Property = property;
         setter = GetSetter(property.DeclaringType!, property);
     }
 
@@ -223,6 +222,7 @@ internal abstract class UiLoadedProperty
     }
 
     protected abstract void SetInternal(Action<object, object> setter, object obj, List<XmlObjectMap>? maps);
+
     public abstract void Print(LuaPrinterContext printer, string parent);
 
     public static string TypeInitExpression(Type t)
@@ -278,6 +278,7 @@ internal abstract class UiLoadedProperty
         else if (o is InterfaceModel mdl) valuestr = $"GetModel({ToLiteral(mdl.Name!)})";
         else if (o is InterfaceColor clr) valuestr = $"GetColor({ToLiteral(clr.ToString())})";
         else if (o is InterfaceImage img) valuestr = $"GetImage({ToLiteral(img.Name)})";
+        else if (o is XmlStyle style) valuestr = $"GetStyle({ToLiteral(style.Name)})";
         else if (o is Vector3 vec)
             valuestr = $"Vector3({LiteralFloat(vec.X)}, {LiteralFloat(vec.Y)}, {LiteralFloat(vec.Z)})";
         else if (o.GetType().IsEnum) valuestr = $"{o.GetType().Name}.{o}";
@@ -341,7 +342,7 @@ internal class UiSimpleProperty : UiLoadedProperty
 
     public override void Print(LuaPrinterContext printer, string parent)
     {
-        printer.WriteLine($"{parent}.{property.Name} = {ObjToString(Value)}");
+        printer.WriteLine($"{parent}.{Property.Name} = {ObjToString(Value)}");
     }
 }
 
@@ -362,7 +363,7 @@ internal class UiComplexProperty : UiLoadedProperty
         var (ident, define) = printer.GetIdentifier();
         printer.WriteLine($"{(define ? "local " : "")}{ident} = {TypeInitExpression(Value.Type)}");
         Value.PrintSetter(printer, ident);
-        printer.WriteLine($"{parent}.{property.Name} = {ident}");
+        printer.WriteLine($"{parent}.{Property.Name} = {ident}");
         printer.FreeIdentifier(ident);
     }
 }
@@ -396,7 +397,7 @@ internal class UiPrimitiveList : UiLoadedProperty
         printer.WriteLine($"{(define ? "local " : "")}{ident} = {TypeInitExpression(type)}");
         foreach (var obj in Values)
             printer.WriteLine($"{ident}.Add({ObjToString(obj)}");
-        printer.WriteLine($"{parent}.{property.Name} = {ident}");
+        printer.WriteLine($"{parent}.{Property.Name} = {ident}");
         printer.FreeIdentifier(ident);
     }
 }
@@ -508,7 +509,7 @@ internal class UiComplexList : UiLoadedProperty
             }
         }
 
-        printer.WriteLine($"{parent}.{property.Name} = {ident}");
+        printer.WriteLine($"{parent}.{Property.Name} = {ident}");
         printer.FreeIdentifier(ident);
     }
 }

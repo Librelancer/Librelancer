@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using LibreLancer.Net.Protocol;
 using LiteNetLib;
 using LiteNetLib.Utils;
@@ -13,39 +14,52 @@ namespace LibreLancer.Net
     public class RemotePacketClient : IPacketClient
     {
         public NetPeer Client;
-        public NetHpidWriter Hpids;
 
         //LiteNetLib overhead = 4 bytes
         //NetPeer already includes IPv4/6 header size in reported Mtu
         public int MaxSequencedSize => (Client?.Mtu ?? 1024) - 4;
 
+        private NetDataWriter writer = new();
+        private Lock writerLock = new();
+
         public void SendPacket(IPacket packet, PacketDeliveryMethod method)
         {
             method.ToLiteNetLib(out DeliveryMethod mt, out byte ch);
-            var m = new PacketWriter(new NetDataWriter(), Hpids);
-            Packets.Write(m, packet);
-            Client.Send(m, ch, mt);
+            lock (writerLock)
+            {
+                writer.Reset();
+                var m = new PacketWriter(writer);
+                Packets.Write(m, packet);
+                Client.Send(m, ch, mt);
+            }
         }
 
         public void Disconnect(DisconnectReason reason)
         {
-            var pw = new PacketWriter();
-            pw.Put(reason);
-            Client.Disconnect(pw);
+            lock (writerLock)
+            {
+                writer.Reset();
+                var pw = new PacketWriter(writer);
+                pw.Put(reason);
+                Client.Disconnect(pw);
+            }
         }
 
         public void SendPacketWithEvent(IPacket packet, Action onAck, PacketDeliveryMethod method)
         {
-            var m = new PacketWriter();
-            Packets.Write(m, packet);
             method.ToLiteNetLib(out var mtd, out var channel);
-            Client.SendWithDeliveryEvent(m, channel, mtd, onAck);
+            lock (writerLock)
+            {
+                writer.Reset();
+                var m = new PacketWriter(writer);
+                Packets.Write(m, packet);
+                Client.SendWithDeliveryEvent(m, channel, mtd, onAck);
+            }
         }
 
-        public RemotePacketClient(NetPeer client, NetHpidWriter hpids)
+        public RemotePacketClient(NetPeer client)
         {
             Client = client;
-            this.Hpids = hpids;
         }
     }
 }

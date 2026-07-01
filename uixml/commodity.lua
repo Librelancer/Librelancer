@@ -10,6 +10,7 @@ class commodity : commodity_Designer with ChildWindow
 {
 	commodity(kind)
 	{
+		this.PreviewPrice = 0;
 		base();
 		this.ChildWindowInit();
 		Game.Trader.OnUpdateInventory(() => this.construct_inventory());
@@ -94,16 +95,14 @@ class commodity : commodity_Designer with ChildWindow
 		switch(state) {
 			case "buy":
 				x.Strid = STRID_BUY;
-				x.Style = "trader_buy";
-				x.ReloadStyle();
+				x.Style =  GetStyle("trader_buy");
 				container.Visible = true;
 				err.Visible = false;
 				iprev.Visible = true;
 				break;
 			case "sell":
 				x.Strid = STRID_SELL;
-				x.Style = "trader_sell";
-				x.ReloadStyle();
+				x.Style = GetStyle("trader_sell");
 				container.Visible = true;
 				err.Visible = false;
 				iprev.Visible = true;
@@ -145,7 +144,6 @@ class commodity : commodity_Designer with ChildWindow
 			this.set_buysell("hidden");
 		}
 		e.inv_list.SelectedIndex = e.inv_list.SelectedIndex; //refresh after list change
-		e.inv_list.ReloadStyle();
 	}
 
 	change_category(category)

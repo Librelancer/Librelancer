@@ -32,6 +32,7 @@ namespace LibreLancer.Server
         public GameServer Server;
         public StarSystem System;
         public NPCManager NPCs;
+        public SpacePopulationManager Population;
         private Random debrisRandom = new();
         private object _idLock = new();
 
@@ -57,11 +58,12 @@ namespace LibreLancer.Server
         {
             Server = server;
             System = system;
-            GameWorld = new GameWorld(null, server.Resources, () => server.TotalTime);
+            GameWorld = new GameWorld(null, null, server.Resources, () => server.TotalTime);
             GameWorld.Server = this;
             GameWorld.LoadSystem(system, server.Resources, null, true);
             GameWorld.Physics!.OnCollision += PhysicsOnCollision;
             NPCs = new NPCManager(this);
+            Population = new SpacePopulationManager(this);
         }
 
         private void PhysicsOnCollision(PhysicsObject? obja, PhysicsObject? objb)
@@ -529,7 +531,7 @@ namespace LibreLancer.Server
                     }
                     else
                     {
-                        component.StartDock(obj, 0);
+                        component.StartDock(obj, 0, world: GameWorld);
                     }
                 }
             });
@@ -617,8 +619,7 @@ namespace LibreLancer.Server
 
                 foreach (var m in missiles)
                 {
-                    var x = go.Children.FirstOrDefault(c =>
-                        m.Hardpoint.Equals(c.Attachment?.Name, StringComparison.OrdinalIgnoreCase));
+                    var x = go.Children.FirstOrDefault(c => m.Hardpoint == c.Attachment?.CRC);
 
                     if (x?.TryGetComponent<MissileLauncherComponent>(out var ml) ?? false)
                     {
@@ -961,7 +962,7 @@ namespace LibreLancer.Server
         private double noPlayersTime;
         private double maxNoPlayers = 2.0;
 
-        public bool Update(double delta, double totalTime, uint currentTick)
+        public bool Update(double delta, double totalTime, uint currentTick, int step)
         {
             // Avoid locks during Update
             CurrentTick = currentTick;
@@ -988,6 +989,7 @@ namespace LibreLancer.Server
 
             // Update
             NPCs.FrameStart();
+            Population.Update(delta);
             GameWorld.Update(delta);
 
             // projectiles
@@ -1001,9 +1003,16 @@ namespace LibreLancer.Server
                 }
             }
 
-            // Network update tick
-            SendWorldUpdates(currentTick);
-            UpdateDebugInfo();
+            // We half the packet send rate when catching up to
+            // real time as the network could get overwhelmed
+            // Send packets on step 0, 1, 3, 5, 7, 9 etc.
+            // Also reduces load when running extra slow.
+            if (step < 2 || (step % 2) != 0)
+            {
+                // Network update tick
+                SendWorldUpdates(currentTick);
+                UpdateDebugInfo();
+            }
 
             // Despawn after 2 seconds of nothing
             if (PlayerCount == 0)
@@ -1111,6 +1120,14 @@ namespace LibreLancer.Server
                         case EngineStates.Standard when objPhysics.ThrustEnabled:
                             update.CruiseThrust = CruiseThrustState.Thrusting;
                             break;
+                    }
+                    // Not needed when an object is not in a formation
+                    if (obj.Formation != null)
+                    {
+                        update.Strafe = objPhysics.CurrentStrafe;
+                        update.Pitch = objPhysics.Steering.X;
+                        update.Yaw = objPhysics.Steering.Y;
+                        update.Roll = objPhysics.Steering.Z;
                     }
                 }
 

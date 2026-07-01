@@ -57,7 +57,8 @@ namespace LibreLancer.Server
                 {
                     sg.Player.Cargo.Add(new PlayerCargo() {
                         Item = new HashValue(item.Equipment!.Nickname),
-                        Count = item.Count
+                        Count = item.Count,
+                        IsMissionCargo = item.IsMissionItem
                     });
                 }
             }

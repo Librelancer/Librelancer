@@ -13,71 +13,56 @@ namespace LibreLancer.Interface
     {
         public bool CaptureMouse { get; set; } = true;
 
-        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
-        {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            Update(context, myPos);
-            myPos = AnimatedPosition(myPos);
-            var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            return myRect;
-        }
-        public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseClick(UiContext context)
         {
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            foreach(var child in Children)
-                child.OnMouseClick(context, myRectangle);
+            foreach (var child in Children)
+                child.OnMouseClick(context);
         }
 
-        public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseDown(UiContext context)
         {
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
             foreach(var child in Children)
-                child.OnMouseDown(context, myRectangle);
+                child.OnMouseDown(context);
         }
 
-        public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseUp(UiContext context)
         {
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
             foreach(var child in Children)
-                child.OnMouseUp(context, myRectangle);
+                child.OnMouseUp(context);
         }
 
-        public override void OnMouseDoubleClick(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseDoubleClick(UiContext context)
         {
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
             foreach(var child in Children)
-                child.OnMouseDoubleClick(context, myRectangle);
+                child.OnMouseDoubleClick(context);
         }
 
-        public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        public override void OnMouseWheel(UiContext context, float delta)
         {
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
             foreach(var child in Children)
-                child.OnMouseWheel(context, myRectangle, delta);
+                child.OnMouseWheel(context, delta);
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
             ProcessAddChildren(context);
             if (!Visible) return;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, drawList, myRectangle);
+            Background?.Draw(context, drawList, ClientRectangle);
             foreach(var child in Children)
-                child.Render(context, drawList, myRectangle);
-            Border?.Draw(context, drawList, myRectangle);
+                child.Render(context, delta, drawList);
+            Border?.Draw(context, drawList, ClientRectangle);
         }
 
-        public override bool MouseWanted(UiContext context, RectangleF parentRectangle, float x, float y)
+        public override bool MouseWanted(UiContext context, float x, float y)
         {
             if (!Visible || !CaptureMouse) return false;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-            if (Background != null && myRectangle.Contains(x, y)) return true;
-            return base.MouseWanted(context, myRectangle, x, y);
+            if (Background != null && ClientRectangle.Contains(x, y)) return true;
+            return base.MouseWanted(context, x, y);
         }
     }
 }

@@ -27,6 +27,17 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         }
     }
 
+    public void Cancel(bool cancelAutopilot = true)
+    {
+        currentDirectives = null;
+        index = -1;
+        splineIndex = -1;
+        if (cancelAutopilot && Parent.TryGetComponent<AutopilotComponent>(out var ap))
+        {
+            ap.Cancel();
+        }
+    }
+
     private double currentDelay = 0;
 
     public override void Update(double time, GameWorld world)
@@ -51,18 +62,16 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             case DockDirective dock:
             {
                 var tgt = world.GetObject(dock.Target)!;
-                if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
+                if (Parent.TryGetComponent<AutopilotComponent>(out _))
                 {
                     if (tgt.TryGetComponent<SDockableComponent>(out var sd))
                     {
-                        sd.StartDock(Parent, 0);
+                        sd.StartDock(Parent, 0, world: world);
                     }
                     else if (tgt.TryGetComponent<CLocalPlayerComponent>(out var pl))
                     {
                         pl.Dock(tgt);
                     }
-
-                    ap.StartDock(tgt, GotoKind.Goto);
                 }
 
                 break;
@@ -94,7 +103,12 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
             {
                 if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
                 {
-                    ap.GotoVec(vec.Target, vec.CruiseKind, Throttle(vec.MaxThrottle), vec.Range);
+                    ap.GotoVec(
+                        vec.Target,
+                        vec.CruiseKind,
+                        Throttle(vec.MaxThrottle),
+                        vec.Range,
+                        shouldStopAtTarget: vec.CruiseKind == GotoKind.GotoNoCruise);
                 }
 
                 break;
@@ -202,8 +216,16 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
     {
         switch (directive)
         {
-            case DockDirective:
+            case DockDirective dock:
             {
+                var target = world.GetObject(dock.Target);
+                if (target != null &&
+                    target.TryGetComponent<SDockableComponent>(out var dockable) &&
+                    dockable.IsQueuedForDock(Parent))
+                {
+                    break;
+                }
+
                 if (Parent!.TryGetComponent<AutopilotComponent>(out var ap))
                 {
                     if (ap.CurrentBehavior != AutopilotBehaviors.Dock)

@@ -21,12 +21,15 @@ namespace LibreLancer.Net
 
         public int MaxSequencedSize => int.MaxValue;
 
+        public bool Connected => true;
+
         public EmbeddedServer(GameDataManager gameData, GameResourceManager resources, string saveFolder)
         {
             Client = new LocalPacketClient();
             Server = new GameServer(gameData, resources.ConvexCollection)
             {
-                ScriptsFolder = Path.Combine(saveFolder, "scripts")
+                ScriptsFolder = Path.Combine(saveFolder, "scripts"),
+                ThreadCount = 1
             };
             Server.LocalPlayer = new Player(Client, Server, Guid.Empty);
             Server.ConnectedPlayers.Add(Server.LocalPlayer);

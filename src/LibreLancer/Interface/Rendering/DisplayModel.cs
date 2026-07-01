@@ -118,7 +118,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, float alpha)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
         {
             if (!Enabled || Model == null)
             {
@@ -136,8 +136,12 @@ namespace LibreLancer.Interface
                 return;
             }
 
-            var tint = Tint;
-            if (tint != null && !materialsSetup)
+            var matColor = Tint;
+            if (matColor == null && tint != Color4.White)
+            {
+                matColor = tint;
+            }
+            if (matColor != null && !materialsSetup)
             {
                 mats = MaterialModification.Setup(model!, context.Data.ResourceManager, ForceTint);
                 materialsSetup = true;
@@ -179,17 +183,19 @@ namespace LibreLancer.Interface
                     rc.SetIdentityCamera();
                     model!.UpdateTransform();
                     model.Update(context.GlobalTime);
-                    if (tint != null)
+                    if (matColor != null)
                     {
-                        var color = tint.GetColor(context.GlobalTime);
+                        var color = matColor.GetColor(context.GlobalTime);
+                        if (Tint != null)
+                            color *= tint;
                         for (int i = 0; i < mats.Count; i++)
                             mats[i].Mat.Dc = color;
                     }
 
                     model.DrawImmediate(rc, context.Data.ResourceManager, transform,
-                        ref Lighting.Empty, 0, null, alpha);
+                        ref Lighting.Empty, 0, null, tint.A);
 
-                    if (tint != null)
+                    if (matColor != null)
                     {
                         for (int i = 0; i < mats.Count; i++)
                         {
@@ -206,7 +212,7 @@ namespace LibreLancer.Interface
                     {
                         if (part.Wireframe != null)
                         {
-                            DrawVMeshWire(context, part.Wireframe, part.LocalTransform.Matrix() * transform, alpha);
+                            DrawVMeshWire(context, part.Wireframe, part.LocalTransform.Matrix() * transform, tint.A);
                         }
                     }
                     context.Lines.Render();

@@ -15,11 +15,11 @@ namespace LibreLancer.Net.Protocol
             if (Exists)
             {
                 message.PutVariableInt32(LeadShip);
+                message.PutVariableUInt32((uint) Followers.Length);
+                foreach (var f in Followers)
+                    message.PutVariableInt32(f);
+                message.Put(YourPosition);
             }
-            message.PutVariableUInt32((uint) Followers.Length);
-            foreach (var f in Followers)
-                message.PutVariableInt32(f);
-            message.Put(YourPosition);
         }
 
         public static NetFormation Read(PacketReader message)

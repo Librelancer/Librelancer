@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -24,7 +25,6 @@ namespace LibreLancer.Net
         }
 
         private GameServer game;
-        private NetHpidWriter hpids = null!;
         private static readonly object TagConnecting = new();
 
         public int Port = LNetConst.DEFAULT_PORT;
@@ -52,6 +52,7 @@ namespace LibreLancer.Net
 		}
 
         private AutoResetEvent stopHandle = null!;
+        private DateTime lastKeyPrint = DateTime.UnixEpoch;
 
         private void NetThread()
         {
@@ -61,25 +62,34 @@ namespace LibreLancer.Net
             EventBasedNetListener broadcastListener = new EventBasedNetListener();
             NetManager broadcastServer = new NetManager(broadcastListener);
             var unique = Guid.NewGuid();
-            hpids = new NetHpidWriter();
             listener.ConnectionRequestEvent += request =>
             {
-
                 if (!new PacketReader(request.Data).TryGetString(out var key))
                 {
                     FLLog.Debug("Server", $"Connect with no key {request.RemoteEndPoint}");
-                    request.Reject();
+                    var dw = new PacketWriter();
+                    dw.Put(DisconnectReason.NoProtocolHash);
+                    request.Reject(dw);
                     return;
                 }
                 if (key != AppIdentifier + GeneratedProtocol.PROTOCOL_HASH)
                 {
-                    FLLog.Debug("Server", $"Connect with bad key {request.RemoteEndPoint}");
-                    request.Reject();
+                    var n = DateTime.UtcNow;
+                    if (n - lastKeyPrint > TimeSpan.FromSeconds(10))
+                    {
+                        FLLog.Info("Server", $"{request.RemoteEndPoint} Bad Key: '{key}' != '{AppIdentifier}{GeneratedProtocol.PROTOCOL_HASH}'");
+                        lastKeyPrint = n;
+                    }
+                    var dw = new PacketWriter();
+                    dw.Put(DisconnectReason.BadProtocolHash);
+                    request.Reject(dw);
                     return;
                 }
                 if (Server.ConnectedPeersCount > MaxConnections)
                 {
-                    request.Reject();
+                    var dw = new PacketWriter();
+                    dw.Put(DisconnectReason.TooManyConnections);
+                    request.Reject(dw);
                     return;
                 }
                 if (!string.IsNullOrEmpty(game.LoginUrl))
@@ -108,8 +118,7 @@ namespace LibreLancer.Net
                             else
                             {
                                 var peer = request.Accept();
-                                var remote = new RemotePacketClient(peer, hpids);
-                                remote.SendPacket(new SetStringsPacket() { Data = hpids.GetData() }, PacketDeliveryMethod.ReliableOrdered);
+                                var remote = new RemotePacketClient(peer);
                                 var p = new Player(remote,
                                     game, guid);
                                 peer.Tag = p;
@@ -185,9 +194,7 @@ namespace LibreLancer.Net
             {
                 try
                 {
-                    NetHpidReader? hpidReader = null;
-                    if (peer.Tag is Player pl) hpidReader = pl.HpidReader;
-                    var reader = new PacketReader(msg, hpidReader);
+                    var reader = new PacketReader(msg);
                     var pkt = Packets.Read(reader);
                     if (peer.Tag is DateTime)
                     {
@@ -201,9 +208,7 @@ namespace LibreLancer.Net
                             }
                             else
                             {
-                                var remote = new RemotePacketClient(peer, hpids);
-                                remote.SendPacket(new SetStringsPacket() {Data = hpids.GetData()},
-                                    PacketDeliveryMethod.ReliableOrdered);
+                                var remote = new RemotePacketClient(peer);
                                 var p = new Player(remote, game, auth.Guid);
                                 peer.Tag = p;
                                 lock (game.ConnectedPlayers)
@@ -220,14 +225,6 @@ namespace LibreLancer.Net
                             dw.Put(DisconnectReason.ConnectionError);
                             peer.Disconnect(dw);
                         }
-                    }
-                    else if (pkt is SetStringsPacket set)
-                    {
-                        hpidReader?.SetStrings(set.Data);
-                    }
-                    else if (pkt is AddStringPacket add)
-                    {
-                        hpidReader?.AddString(add.ToAdd);
                     }
                     else
                     {
@@ -260,16 +257,6 @@ namespace LibreLancer.Net
             {
                 if (data is Action onAck)
                     onAck();
-            };
-            hpids.OnAddString += s =>
-            {
-                foreach (var p in Server.ConnectedPeerList.ToArray())
-                {
-                    if (p.Tag is Player player)
-                    {
-                        (player.Client as RemotePacketClient)?.SendPacket(new AddStringPacket() { ToAdd = s }, PacketDeliveryMethod.ReliableOrdered);
-                    }
-                }
             };
             broadcastServer.ReuseAddress = true;
             broadcastServer.IPv6Enabled = true;

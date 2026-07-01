@@ -13,31 +13,18 @@ namespace LibreLancer.Interface
     {
         public bool CanRotate { get; set; } = true;
 
-        protected virtual RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
-        {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            Update(context, myPos);
-            myPos = AnimatedPosition(myPos);
-            var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            return myRect;
-        }
-
         protected Vector2 OrbitPan;
         private Vector2 dragStart = Vector2.Zero;
         private bool dragging = false;
 
-        public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseDown(UiContext context)
         {
-            var myRect = GetMyRectangle(context, parentRectangle);
-            if (CanRotate && myRect.Contains(context.MouseX, context.MouseY))
+            if (CanRotate && ClientRectangle.Contains(context.MouseX, context.MouseY))
             {
                 dragStart = new Vector2(context.MouseX, context.MouseY);
                 dragging = true;
             }
-        }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
-        {
             if (!context.MouseLeftDown || !CanRotate)
             {
                 dragging = false;

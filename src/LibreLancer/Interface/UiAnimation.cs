@@ -17,6 +17,8 @@ namespace LibreLancer
 		public Vector2? FinalPositionSet;
 		public bool Running = false;
         public bool Remain = false;
+        protected RectangleF ClientRectangle;
+
 		protected UiAnimation (double start, double duration)
 		{
 			Start = start;
@@ -30,13 +32,13 @@ namespace LibreLancer
 				Running = false;
 				return;
 			}
-
-            if (Time >= Start)
-                Run(Time - Start, aspectRatio);
+            var t = MathHelper.Clamp(Time - Start, 0, Duration);
+            Run(t, aspectRatio);
         }
 
-        public virtual void SetWidgetPosition(Vector2 pos)
+        public virtual void SetWidgetRectangle(RectangleF rect)
         {
+            ClientRectangle = rect;
         }
 
         protected abstract void Run(double currentTime, float aspectRatio);

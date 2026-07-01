@@ -26,6 +26,7 @@ public class Ship : NamedItem
     public float StrafeForce;
     public float Hitpoints;
     public Explosion? Explosion;
+    public ShipMissionProperty MissionProperty;
 
     public Vector3 ChaseOffset;
     public float MaxBankAngle;
@@ -44,6 +45,11 @@ public class Ship : NamedItem
     public string? ShieldLinkHull;
     public string? ShieldLinkSource;
     public string? TractorSource;
+    public string? BayDoorAnim;
+    public string? BayDoorsOpenSound;
+    public string? BayDoorsCloseSound;
+    public string? HpBaySurface;
+    public string? HpBayExternal;
 
     public List<SeparablePart> SeparableParts = [];
 

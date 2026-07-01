@@ -47,14 +47,18 @@ namespace LibreLancer.Interface
         private double blinkDuration = 0.4;
         private bool cursorVisible = false;
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Update(UiContext context, double delta)
         {
+            base.Update(context, delta);
             if (context.GlobalTime - lastChange > blinkDuration)
             {
                 lastChange = context.GlobalTime;
                 cursorVisible = !cursorVisible;
             }
+        }
 
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
+        {
             if (!Visible) return;
 
             if (doSetFocus)
@@ -69,17 +73,15 @@ namespace LibreLancer.Interface
                 context.SetTextFocus(this);
             }
 
-            var rect = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, drawList, rect);
-            DrawText(context, drawList, rect);
-            (hasFocus ? FocusedBorder ?? Border : Border)?.Draw(context, drawList, rect);
+            Background?.Draw(context, drawList, ClientRectangle);
+            DrawText(context, drawList, ClientRectangle);
+            (hasFocus ? FocusedBorder ?? Border : Border)?.Draw(context, drawList, ClientRectangle);
         }
 
-        public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseClick(UiContext context)
         {
             if (!Visible) return;
-            var myRect = GetMyRectangle(context, parentRectangle);
-            if (myRect.Contains(context.MouseX, context.MouseY))
+            if (ClientRectangle.Contains(context.MouseX, context.MouseY))
                 SetFocus();
             else
                 UnFocus();
@@ -117,15 +119,6 @@ namespace LibreLancer.Interface
             editBase.SetRectangle(px);
             editBase.Focused = hasFocus;
             editBase.Draw(context.RenderContext, drawList, context.GlobalTime);
-        }
-
-        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
-        {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            Update(context, myPos);
-            myPos = AnimatedPosition(myPos);
-            var myRect = new RectangleF(myPos.X, myPos.Y, Width, Height);
-            return myRect;
         }
 
         public override void OnKeyDown(UiContext context, Keys key, bool control)

@@ -167,7 +167,11 @@ public class FakeContactList : IContactListData
 
     public void SelectIndex(int index) => selIndex = index;
 
-    public string Get(int index) => contacts[index];
+    public string GetLabel(int index) => contacts[index];
+
+    public string GetDistanceString(int index) => "100";
+
+    public ContactIcon GetIcon(int index) => ContactIcon.WeaponPlatform;
 
     public RepAttitude GetAttitude(int index) => RepAttitude.Friendly;
 
@@ -308,6 +312,8 @@ public class TestingApi
     {
     }
 
+    public int UserWaypointCount() => 0;
+
 
     public Infocard _Infocard = null!;
 
@@ -437,6 +443,7 @@ public class TestingApi
         return dict;
     }
 
+
     public bool HasShip() => true;
 
     public float GetPlayerHealth() => 0.75f;
@@ -471,7 +478,8 @@ public class TestingApi
             IdsInfo = 65908,
             Combinable = true,
             Count = 32,
-            Volume = 1
+            Volume = 1,
+            CanJettison = true
         },
         new UIInventoryItem()
         {
@@ -481,7 +489,8 @@ public class TestingApi
             IdsInfo = 65908,
             Combinable = true,
             Count = 1,
-            Volume = 1
+            Volume = 1,
+            CanJettison = true
         },
         new UIInventoryItem()
         {
@@ -537,7 +546,8 @@ public class TestingApi
                 IdsInfo = 65908,
                 Combinable = true,
                 Count = 32,
-                Volume = 1
+                Volume = 1,
+                CanJettison = true
             },
             new UIInventoryItem()
             {
@@ -548,7 +558,8 @@ public class TestingApi
                 IdsInfo = 65908,
                 Combinable = true,
                 Count = 1,
-                Volume = 1
+                Volume = 1,
+                CanJettison = true
             },
             new UIInventoryItem()
             {
@@ -609,6 +620,8 @@ public class TestingApi
 
         public float GetUsedHoldSpace() => 30;
 
+        public float GetPurchaseLimit(object item) => 5;
+
         public void Buy(string good, int count, Closure onSuccess)
         {
         }
@@ -634,6 +647,9 @@ public class TestingApi
     public FakeShipDealer ShipDealer = new FakeShipDealer();
 
     public string SelectionName() => "Selected Object";
+
+    public string SelectionDistance() => "1.4K";
+
     public bool SelectionVisible() => true;
 
     public float SelectionHealth() => 0.5f;
@@ -668,6 +684,14 @@ public class TestingApi
     {
     }
 
+    public void SetWaypointTemplate(UiWidget widget, Closure closure)
+    {
+    }
+
+    public void SetWaypointLabelTemplate(UiWidget widget, Closure closure)
+    {
+    }
+
     public void SetReticleTemplate(UiWidget template, Closure callback)
     {
     }
@@ -679,6 +703,8 @@ public class TestingApi
     public void SetSelectedArrowTemplate(UiWidget template, Closure callback)
     {
     }
+
+ public bool SelectionIsWaypoint() => false;
 
     public string ActiveNavbarButton()
     {
@@ -776,6 +802,10 @@ public class TestingApi
     }
 
     public void OnUpdatePlayerInventory(Closure handler)
+    {
+    }
+
+    public void JettisonInventoryItem(UIInventoryItem item, int count)
     {
     }
 }

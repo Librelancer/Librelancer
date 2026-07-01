@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using static BuildLL.Runtime;
 
@@ -24,7 +25,7 @@ namespace BuildLL
         };
         static readonly List<string> paths = new List<string>();
 
-        static string VSPath(string ver, string[] editions, string msbuildVer, MSBuildPlatform platform)
+        static string? VSPath(string ver, string[] editions, string msbuildVer, MSBuildPlatform platform)
         {
             // VS 2022 can exist in either Program Files or X86
             // Just check all combinations
@@ -50,7 +51,7 @@ namespace BuildLL
             return null;
         }
 
-        static bool TryFind(VSVersion vs, MSBuildPlatform platform, out string msbuild)
+        static bool TryFind(VSVersion vs, MSBuildPlatform platform, [NotNullWhen(true)]out string? msbuild)
         {
             msbuild = null;
             if (vs == VSVersion.VS2019)

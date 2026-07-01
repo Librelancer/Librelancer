@@ -70,6 +70,8 @@ public class UiXmlWriter
                 return model.Name!;
             case InterfaceImage image:
                 return image.Name;
+            case XmlStyle style:
+                return style.Name;
             case Vector3 vec:
             {
                 const string FMT = "0.##########";

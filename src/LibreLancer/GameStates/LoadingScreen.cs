@@ -27,7 +27,7 @@ namespace LibreLancer
         private const int DELAY_FRAMES = 3;
         public bool Update(double delta)
         {
-            if(fCount > DELAY_FRAMES) game.Ui.Update(game);
+            if(fCount > DELAY_FRAMES) game.Ui.Update(game, delta);
             double tick = game.TimerTick;
             while (game.TimerTick - tick < (1 / 30.0))
             {

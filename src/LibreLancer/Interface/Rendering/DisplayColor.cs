@@ -12,7 +12,7 @@ namespace LibreLancer.Interface
     public class DisplayColor : DisplayElement
     {
         public InterfaceColor? Color { get; set; }
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, float alpha)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
         {
             if(!Enabled)
             {
@@ -25,8 +25,7 @@ namespace LibreLancer.Interface
             }
 
             var rect = context.PointsToPixels(clientRectangle);
-            var c = Color.GetColor(context.GlobalTime);
-            c.A *= alpha;
+            var c = Color.GetColor(context.GlobalTime) * tint;
             drawList.FillRectangle(rect, c);
         }
     }

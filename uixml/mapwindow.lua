@@ -58,9 +58,11 @@ class mapwindow : mapwindow_Designer with ChildWindow
         this.Widget.OnUpdate((delta) => {
             this.UpdateWaypointPanels();
             this.UpdateSidePanels(delta);
+            this.UpdateTopButtons();
         });
         this.Elements.exit.OnClick(() => this.Close());
         this.Elements.universebutton.OnClick(() => this.Elements.navmap.ShowSectorView());
+        this.Elements.playersystem.OnClick(() => this.Elements.navmap.ShowPlayerSystem());
         this.Elements.clear_waypoints.OnClick(() => {
             Game.ClearUserWaypoints();
             this.waypointPanelCount = -1;
@@ -81,6 +83,20 @@ class mapwindow : mapwindow_Designer with ChildWindow
     ResetNavmap()
     {
         this.Elements.navmap.ResetView();
+        this.UpdateTopButtons();
+    }
+    UpdateTopButtons()
+    {
+        local sector = this.Elements.navmap.SectorViewActive;
+        this.Elements.universebutton.Visible = !sector;
+        this.Elements.labels.Visible = !sector;
+        this.Elements.physical.Visible = !sector;
+        this.Elements.political.Visible = !sector;
+        this.Elements.patrol.Visible = !sector;
+        this.Elements.miningfilter.Visible = !sector;
+        this.Elements.legendtoggle.Visible = !sector;
+        this.Elements.knownbases.Visible = !sector;
+        this.Elements.playersystem.Visible = sector;
     }
     UpdateWaypointPanels()
     {

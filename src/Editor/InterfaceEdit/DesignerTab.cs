@@ -211,7 +211,7 @@ public class DesignerTab : SaveableTab
 
         if (ImGui.IsItemHovered())
         {
-            context.Update(mainWindow.TotalTime, mX, mY, false);
+            context.Update(mainWindow.TotalTime, delta, mX, mY, false);
             if (ImGui.IsItemClicked(0)) context.OnMouseClick();
             var isDown = ImGui.IsMouseDown(0);
             if (lastDown && !isDown) context.OnMouseUp();
@@ -221,7 +221,7 @@ public class DesignerTab : SaveableTab
         }
         else
         {
-            context.Update(mainWindow.TotalTime, 0, 0, false);
+            context.Update(mainWindow.TotalTime, delta, 0, 0, false);
             context.MouseLeftDown = false;
 
             if (lastDown)
@@ -314,8 +314,6 @@ public class DesignerTab : SaveableTab
         {
             objectMaps = new List<XmlObjectMap>();
             widget = (UiWidget) mainWindow.Project!.XmlLoader.FromString(text, objectMaps);
-            if (mainWindow.Project.UiData.Stylesheet != null)
-                widget.ApplyStylesheet(mainWindow.Project.UiData.Stylesheet);
             context.SetWidget(widget);
             validXml = true;
         }

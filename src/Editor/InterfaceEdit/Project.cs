@@ -76,12 +76,13 @@ public class Project
 
         try
         {
-            var navbarIni = new BaseNavBarIni(dataPath, UiData.FileSystem);
+            var navbarIni = new BaseNavBarIni(flIni.DataPath, UiData.FileSystem);
             UiData.NavbarIcons = navbarIni.Navbar;
         }
-        catch (Exception)
+        catch (Exception e)
         {
             UiData.NavbarIcons = null;
+            FLLog.Error("InterfaceEdit", $"NavbarIcons load failed\n{e}");
         }
 
         try
@@ -121,10 +122,11 @@ public class Project
         }
 
         UiData.Infocards = new InfocardManager(flIni.Resources);
-        XmlLoader = new UiXmlLoader(UiData.Resources);
+        XmlLoader = new UiXmlLoader(UiData.Resources, null);
         try
         {
             UiData.Stylesheet = (Stylesheet)XmlLoader.FromString(UiData.ReadAllText("stylesheet.xml"), null);
+            XmlLoader.Stylesheet = UiData.Stylesheet;
         }
         catch (Exception)
         {

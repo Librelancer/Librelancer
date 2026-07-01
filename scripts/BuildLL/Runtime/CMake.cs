@@ -8,7 +8,7 @@ namespace BuildLL
 {
     public class CMake
     {
-        public static void Run(string directory, CMakeSettings settings = null)
+        public static void Run(string directory, CMakeSettings? settings = null)
         {
             var argBuilder = new StringBuilder();
             var workingDir = Path.GetFullPath(settings?.OutputPath ?? directory);
@@ -36,7 +36,7 @@ namespace BuildLL
             {
                 argBuilder.Append(" -DCMAKE_BUILD_TYPE=").Append(settings.BuildType).Append(" ");
             }
-            string cmakePath = "cmake";
+            string? cmakePath = "cmake";
             if (IsWindows)
             {
                 cmakePath = FindExeWin32("cmake.exe",
@@ -51,11 +51,11 @@ namespace BuildLL
 
     public class CMakeSettings
     {
-        public string OutputPath { get; set; }
-        public string Generator { get; set; }
-        public string Cache { get; set; }
-        public string Platform { get; set; }
-        public string[] Options { get; set; }
-        public string BuildType { get; set; }
+        public string? OutputPath { get; set; }
+        public string? Generator { get; set; }
+        public string? Cache { get; set; }
+        public string? Platform { get; set; }
+        public string[]? Options { get; set; }
+        public string? BuildType { get; set; }
     }
 }

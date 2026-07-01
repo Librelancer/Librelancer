@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Enumeration;
 using System.Runtime.InteropServices;
@@ -70,7 +71,7 @@ namespace BuildLL
             return builder.Append(Quote(s));
         }
 
-        public static bool TryGetEnv(string variable, out string value)
+        public static bool TryGetEnv(string variable, [NotNullWhen(true)]out string? value)
         {
             value = Environment.GetEnvironmentVariable(variable);
             return !string.IsNullOrWhiteSpace(value);
@@ -109,7 +110,7 @@ namespace BuildLL
         public static void Cmd(string command)
         {
             var psi = new ProcessStartInfo("cmd", $"/c \"{command}\"");
-            var process = Process.Start(psi);
+            var process = Process.Start(psi)!;
             process.WaitForExit();
             if (process.ExitCode != 0) throw new Exception($"Command Failed: {command}");
         }
@@ -122,8 +123,8 @@ namespace BuildLL
                 Arguments = $" -c \"command -v {cmd} >/dev/null 2>&1\""
             };
             using var p = Process.Start(startInfo);
-            p.WaitForExit();
-            return p.ExitCode == 0;
+            p?.WaitForExit();
+            return p?.ExitCode == 0;
         }
 
         public static string Bash(string command, bool print = true)
@@ -132,7 +133,7 @@ namespace BuildLL
             var psi = new ProcessStartInfo("/usr/bin/env", "bash");
             psi.RedirectStandardInput = true;
             psi.RedirectStandardOutput = true;
-            var process = Process.Start(psi);
+            var process = Process.Start(psi)!;
             process.StandardInput.Write(command);
             process.StandardInput.Close();
             var task = process.StandardOutput.ReadToEndAsync();
@@ -142,13 +143,13 @@ namespace BuildLL
             return task.Result.Trim();
         }
 
-        public static void RunCommand(string cmd, string args, string workingDirectory = null)
+        public static void RunCommand(string cmd, string args, string? workingDirectory = null)
         {
             if(IsVerbose) Console.WriteLine($"{cmd} {args}");
             workingDirectory ??= Environment.CurrentDirectory;
             var psi = new ProcessStartInfo(cmd, args);
             psi.WorkingDirectory = workingDirectory;
-            var process = Process.Start(psi);
+            var process = Process.Start(psi)!;
             process.WaitForExit();
             if (process.ExitCode != 0) throw new Exception($"Command Failed: {cmd} {args}");
         }
@@ -156,7 +157,7 @@ namespace BuildLL
         public static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         public static bool IsVerbose { get; private set; }
 
-        private static CommandLineApplication _app;
+        private static CommandLineApplication _app = null!;
 
         private static List<Action> setArgActions = new List<Action>();
 
@@ -164,7 +165,7 @@ namespace BuildLL
         {
             var a = _app.Option<string>(option, description, CommandOptionType.SingleValue);
             setArgActions.Add(() => {
-                if (a.HasValue()) setVal(a.Value());
+                if (a.HasValue()) setVal(a.Value()!);
             });
         }
         public static void IntArg(string option, Action<int> setVal, string description = "")
@@ -185,7 +186,7 @@ namespace BuildLL
             });
         }
 
-        public static ConfigFile Config;
+        public static ConfigFile Config = null!;
 
         static int Main(string[] args)
         {
@@ -200,7 +201,7 @@ namespace BuildLL
             // add options
             Program.Options();
             //post build
-            string postbuild = null;
+            string? postbuild = null;
             StringArg("--postbuild", x => postbuild = x, "Command to run after build");
             // translate from Bullseye to McMaster.Extensions.CommandLineUtils
             app.Argument("targets", "A list of targets to run or list. If not specified, the \"default\" target will be run, or all targets will be listed.", true);
@@ -214,14 +215,13 @@ namespace BuildLL
                 var options = new Options(Options.Definitions.Select(d => (d.LongName, app.Options.Single(o => "--" + o.LongName == d.LongName).HasValue())));
                 IsVerbose = options.Verbose;
                 foreach (var action in setArgActions) action();
-                setArgActions = null;
                 try
                 {
                     Program.Targets();
                     if (WebHook.UseWebhook)
                     {
                         var message = $"Build started ({RuntimeInformation.OSDescription}).";
-                        if (TryGetEnv("APPVEYOR_BUILD_NUMBER", out string jobNumber))
+                        if (TryGetEnv("APPVEYOR_BUILD_NUMBER", out var jobNumber))
                             message += $" #{jobNumber}.";
                         WebHook.AppveyorDiscordWebhook(message);
                     }
@@ -244,7 +244,7 @@ namespace BuildLL
                         if (WebHook.UseWebhook)
                         {
                             var message = $"Build succeeded ({RuntimeInformation.OSDescription}).";
-                            if (TryGetEnv("APPVEYOR_BUILD_NUMBER", out string jobNumber))
+                            if (TryGetEnv("APPVEYOR_BUILD_NUMBER", out var jobNumber))
                                 message += $" #{jobNumber}.";
                             WebHook.AppveyorDiscordWebhook(message);
                         }
@@ -275,7 +275,7 @@ namespace BuildLL
             if (WebHook.UseWebhook)
             {
                 var message = $"Build failed ({RuntimeInformation.OSDescription}).";
-                if (TryGetEnv("APPVEYOR_JOB_NUMBER", out string jobNumber))
+                if (TryGetEnv("APPVEYOR_JOB_NUMBER", out var jobNumber))
                     message += $" #{jobNumber}.";
                 message += "\n```\n";
                 var msg = e.ToString();
@@ -285,7 +285,7 @@ namespace BuildLL
             }
         }
 
-        public static string FindExeWin32(string exe, params string[] extraPaths)
+        public static string? FindExeWin32(string exe, params string[] extraPaths)
         {
             var p = GetFullPathFromWindows(exe);
             if (!string.IsNullOrWhiteSpace(p) && File.Exists(p)) return p;
@@ -296,7 +296,7 @@ namespace BuildLL
             return null;
         }
 
-        static string GetFullPathFromWindows(string exeName)
+        static string? GetFullPathFromWindows(string exeName)
         {
             if (exeName.Length >= MAX_PATH)
                 throw new ArgumentException($"The executable name '{exeName}' must have less than {MAX_PATH} characters.",
@@ -309,7 +309,7 @@ namespace BuildLL
         //https://docs.microsoft.com/en-us/windows/desktop/api/shlwapi/nf-shlwapi-pathfindonpathw
         //https://www.pinvoke.net/default.aspx/shlwapi.PathFindOnPath
         [DllImport("shlwapi.dll", CharSet = CharSet.Unicode, SetLastError = false)]
-        static extern bool PathFindOnPath([In, Out] StringBuilder pszFile, [In] string[] ppszOtherDirs);
+        static extern bool PathFindOnPath([In, Out] StringBuilder pszFile, [In] string[]? ppszOtherDirs);
         private const int MAX_PATH = 260;
     }
 }

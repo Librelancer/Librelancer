@@ -17,7 +17,7 @@ namespace LibreLancer.Server.Components
 
         public override void Update(double time, GameWorld world)
         {
-            if (SendPartsUpdate)
+            if (SendPartsUpdate || SendSolarUpdate)
             {
                 if (Parent.TryGetComponent<SHealthComponent>(out var health))
                 {
@@ -33,17 +33,17 @@ namespace LibreLancer.Server.Components
                     }
 
                 }
-            }
-            if (Parent.TryGetFirstChildComponent<SShieldComponent>(out var shield))
-            {
-                if (shield.Health < shield.Equip.Def.MaxCapacity) {
-                    SendSolarUpdate = true;
-                    stopUpdateTimer = UPDATE_TIMEOUT_TICKS;
-                }
-                else {
-                    if (stopUpdateTimer > 0)
-                        stopUpdateTimer--;
-                    SendSolarUpdate = stopUpdateTimer > 0;
+                if (Parent.TryGetFirstChildComponent<SShieldComponent>(out var shield))
+                {
+                    if (shield.Health < shield.Equip.Def.MaxCapacity) {
+                        SendSolarUpdate = true;
+                        stopUpdateTimer = UPDATE_TIMEOUT_TICKS;
+                    }
+                    else {
+                        if (stopUpdateTimer > 0)
+                            stopUpdateTimer--;
+                        SendSolarUpdate = stopUpdateTimer > 0;
+                    }
                 }
             }
         }

@@ -50,7 +50,7 @@ namespace LibreLancer.Net.Protocol
     public struct IncludedGood
     {
         public uint EquipCRC;
-        public string Hardpoint;
+        public string? Hardpoint;
         public int Amount;
 
         public static IncludedGood Read(PacketReader message)
@@ -58,7 +58,7 @@ namespace LibreLancer.Net.Protocol
             var ic = new IncludedGood
             {
                 EquipCRC = message.GetUInt(),
-                Hardpoint = message.GetHpid(),
+                Hardpoint = message.GetString(),
                 Amount = (int) message.GetVariableUInt32()
             };
             return ic;
@@ -67,7 +67,7 @@ namespace LibreLancer.Net.Protocol
         public void Put(PacketWriter message)
         {
             message.Put(EquipCRC);
-            message.PutHpid(Hardpoint);
+            message.Put(Hardpoint);
             message.PutVariableUInt32((uint) Amount);
         }
     }

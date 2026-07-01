@@ -188,17 +188,13 @@ namespace LibreLancer.Interface
             return new Vector2(resolveX, resolveY);
         }
 
+        // Points->Pixels
+
         public Vector2 PointsToPixels(Vector2 points)
         {
             var ratio = ViewportHeight / 480;
             return points * ratio;
         }
-
-        public Vector2 PixelsToPoints(Point pixels) => PixelsToPoints(new Vector2(pixels.X, pixels.Y));
-
-        public Vector2 PixelsToPoints(Vector2 pixels) => pixels * (480f / ViewportHeight);
-
-        public float PixelsToPoints(float pixels) => pixels * (480 / ViewportHeight);
 
         public int PointsToPixels(float points)
         {
@@ -226,6 +222,15 @@ namespace LibreLancer.Interface
                 (int) (points.Height * ratio));
         }
 
+        // Pixels->Points
+
+        public Vector2 PixelsToPoints(Point pixels) => PixelsToPoints(new Vector2(pixels.X, pixels.Y));
+
+        public Vector2 PixelsToPoints(Vector2 pixels) => pixels * (480f / ViewportHeight);
+
+        public float PixelsToPoints(float pixels) => pixels * (480 / ViewportHeight);
+
+
         public float TextSize(float inputPoints)
         {
             var ratio = ViewportHeight / 480;
@@ -233,7 +238,7 @@ namespace LibreLancer.Interface
             return (int) Math.Floor(pixels);
         }
 
-        public void Update(double globalTime, int mouseX, int mouseY, bool leftDown)
+        public void Update(double globalTime, double deltaTime, int mouseX, int mouseY, bool leftDown)
         {
             GlobalTime = globalTime;
             var inputRatio = 480 / ViewportHeight;
@@ -242,13 +247,29 @@ namespace LibreLancer.Interface
             MouseLeftDown = leftDown;
             lua?.DoTimers(globalTime);
             lua?.CallEvent("Update", globalTime);
+            UpdateWidgets(deltaTime);
         }
 
-        public void Update(FreelancerGame game)
+        void UpdateWidgets(double delta)
+        {
+            var layout = new Layout(GetRectangle());
+            if (Visible)
+            {
+                baseWidget?.Update(this, delta);
+                baseWidget?.OnLayout(this, layout, delta);
+            }
+            foreach (var modal in modals)
+            {
+                modal.Widget.Update(this, delta);
+                modal.Widget.OnLayout(this, layout, delta);
+            }
+        }
+
+        public void Update(FreelancerGame game, double deltaTime)
         {
             ViewportWidth = game.Width;
             ViewportHeight = game.Height;
-            Update(game.TotalTime, game.Mouse.X, game.Mouse.Y, game.Mouse.IsButtonDown(MouseButtons.Left));
+            Update(game.TotalTime, deltaTime, game.Mouse.X, game.Mouse.Y, game.Mouse.IsButtonDown(MouseButtons.Left));
         }
 
         public bool HasModal => modals.Count > 0;
@@ -267,7 +288,7 @@ namespace LibreLancer.Interface
                 return false;
             }
 
-            return baseWidget?.MouseWanted(this, GetRectangle(), mouseX * inputRatio, mouseY * inputRatio) ?? false;
+            return baseWidget?.MouseWanted(this, mouseX * inputRatio, mouseY * inputRatio) ?? false;
         }
 
         public bool WantsEscape()
@@ -302,7 +323,6 @@ namespace LibreLancer.Interface
 
         public void SetWidget(UiWidget widget)
         {
-            widget.ApplyStylesheet(Data.Stylesheet);
             foreach (var m in modals)
                 m.Widget.Dispose();
             modals = [];
@@ -314,15 +334,12 @@ namespace LibreLancer.Interface
         public int OpenModal(UiWidget widget)
         {
             var handle = _h++;
-            widget.ApplyStylesheet(Data.Stylesheet);
             modals.Add(new ModalState(widget, handle));
             return handle;
         }
 
         public void SwapModal(UiWidget widget, int handle)
         {
-            widget.ApplyStylesheet(Data.Stylesheet);
-
             foreach (var modal in modals)
             {
                 if (modal.Handle == handle)
@@ -395,13 +412,13 @@ namespace LibreLancer.Interface
             GetActive()?.OnEscapePressed();
         }
 
-        public void OnMouseDown() => GetActive()?.OnMouseDown(this, GetRectangle());
-        public void OnMouseUp() => GetActive()?.OnMouseUp(this, GetRectangle());
-        public void OnMouseClick() => GetActive()?.OnMouseClick(this, GetRectangle());
+        public void OnMouseDown() => GetActive()?.OnMouseDown(this);
+        public void OnMouseUp() => GetActive()?.OnMouseUp(this);
+        public void OnMouseClick() => GetActive()?.OnMouseClick(this);
 
-        public void OnMouseDoubleClick() => GetActive()?.OnMouseDoubleClick(this, GetRectangle());
+        public void OnMouseDoubleClick() => GetActive()?.OnMouseDoubleClick(this);
 
-        public void OnMouseWheel(float delta) => GetActive()?.OnMouseWheel(this, GetRectangle(), delta);
+        public void OnMouseWheel(float delta) => GetActive()?.OnMouseWheel(this, delta);
 
         private UiWidget? textFocusWidget = null;
 
@@ -412,8 +429,6 @@ namespace LibreLancer.Interface
         public void OnKeyDown(Keys key, bool control) => textFocusWidget?.OnKeyDown(this, key, control);
 
         public void OnTextEntry(string text) => textFocusWidget?.OnTextInput(text);
-
-        public double DeltaTime;
 
         private string? requestedRollover = null;
         private CachedRenderString? rolloverCache;
@@ -440,7 +455,6 @@ namespace LibreLancer.Interface
 
         public void RenderWidget(double delta)
         {
-            DeltaTime = delta;
             requestedRollover = null;
             requestedTooltip = null;
 
@@ -458,19 +472,18 @@ namespace LibreLancer.Interface
             textFocusWidget = null;
             var dlist = RenderContext.Renderer2D.CreateDrawList();
             var aspect = ViewportWidth / ViewportHeight;
-            var desktopRect = new RectangleF(0, 0, 480 * aspect, 480);
 
             if (Visible)
             {
-                baseWidget.Render(this, dlist, desktopRect);
+                baseWidget.Render(this, delta, dlist);
             }
 
             foreach (var widget in modals)
-                widget.Widget.Render(this, dlist, desktopRect);
+                widget.Widget.Render(this, delta, dlist);
 
             if (!string.IsNullOrWhiteSpace(requestedRollover))
             {
-                var style = Data.Stylesheet?.Lookup<RolloverStyle>(null);
+                var style = Data.Stylesheet?.Styles.DefaultStyle<RolloverStyle>();
 
                 var maxWidth = PointsToPixels(225);
 
@@ -501,7 +514,7 @@ namespace LibreLancer.Interface
 
             if (!string.IsNullOrWhiteSpace(requestedTooltip))
             {
-                var style = Data.Stylesheet?.Lookup<TooltipStyle>(null);
+                var style = Data.Stylesheet?.Styles.DefaultStyle<TooltipStyle>();
 
                 var maxWidth = PointsToPixels(225);
 

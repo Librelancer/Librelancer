@@ -36,6 +36,6 @@ public class CPlayerCargoComponent : AbstractCargoComponent
     public override IEnumerable<NetShipCargo> GetCargo(int firstId)
     {
         return session.Items.Where(x => string.IsNullOrEmpty(x.Hardpoint))
-            .Select(c => new NetShipCargo(c.ID, c.Equipment!.CRC, null, 255, c.Count));
+            .Select(c => new NetShipCargo(c.ID, c.Equipment!.CRC, null, 255, c.Count, c.IsMissionItem));
     }
 }

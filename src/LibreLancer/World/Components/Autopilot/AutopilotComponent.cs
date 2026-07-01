@@ -5,7 +5,9 @@
 using System;
 using System.Linq;
 using System.Numerics;
+using ImGuiNET;
 using LibreLancer.Client.Components;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Net.Protocol;
 
 namespace LibreLancer.World.Components
@@ -22,8 +24,11 @@ namespace LibreLancer.World.Components
     internal abstract class AutopilotBehavior
     {
         private bool hasTriggeredCruise = false;
+        protected readonly AutopilotObstacleAvoidance avoidance = new();
 
         public abstract AutopilotBehaviors Behavior { get; }
+
+        public virtual bool DockCameraActive => false;
 
         protected AutopilotBehavior(AutopilotComponent component)
         {
@@ -33,10 +38,13 @@ namespace LibreLancer.World.Components
         protected readonly AutopilotComponent Component;
         protected GameObject Parent => Component.Parent;
 
+        public abstract void ImGuiDebug();
+
         public abstract bool Update(
             ShipSteeringComponent control,
             ShipInputComponent? input,
-            double time);
+            double time,
+            GameWorld world);
 
         private void Start(GotoKind kind, float maxThrottle, float gotoRadius)
         {
@@ -48,19 +56,23 @@ namespace LibreLancer.World.Components
         public void Start(GotoKind kind,
             GameObject targetObject,
             float maxThrottle,
-            float gotoRadius)
+            float gotoRadius,
+            bool shouldStopAtTarget = true)
         {
             TargetObject = targetObject;
+            ShouldStopAtTarget = shouldStopAtTarget;
             Start(kind, maxThrottle, gotoRadius);
         }
 
         public void Start(GotoKind kind,
             Vector3 targetPosition,
             float maxThrottle,
-            float gotoRadius)
+            float gotoRadius,
+            bool shouldStopAtTarget = true)
         {
             _targetPosition = targetPosition;
             _targetRadius = 5;
+            ShouldStopAtTarget = shouldStopAtTarget;
             Start(kind, maxThrottle, gotoRadius);
         }
 
@@ -72,6 +84,7 @@ namespace LibreLancer.World.Components
 
         protected float MaxThrottle;
         protected float GotoRadius;
+        protected bool ShouldStopAtTarget = true;
 
         protected void SetThrottle(float throttle, ShipSteeringComponent control, ShipInputComponent? input)
         {
@@ -120,9 +133,9 @@ namespace LibreLancer.World.Components
             return TargetObject.PhysicsComponent!.Body!.Collider.Radius;
         }
 
-        protected Hardpoint? GetTargetHardpoint(DockInfoComponent docking, bool reverse, int index)
+        protected Hardpoint? GetTargetHardpoint(DockInfoComponent docking, bool reverse, int index, int dockIndex = 0)
         {
-            var hps = docking.GetDockHardpoints(Parent.PhysicsComponent!.Body!.Position);
+            var hps = docking.GetDockHardpoints(Parent.PhysicsComponent!.Body!.Position, dockIndex);
 
             if (reverse)
             {
@@ -144,8 +157,8 @@ namespace LibreLancer.World.Components
 
             if (!directionSatisfied)
             {
-                Component.OutYaw = MathHelper.Clamp((float) Component.YawControl.Update(0, vec.X, dt), -1, 1);
-                Component.OutPitch = MathHelper.Clamp((float) Component.PitchControl.Update(0, -vec.Y, dt), -1, 1);
+                Component.OutYaw = MathHelper.Clamp((float)Component.YawControl.Update(0, vec.X, dt), -1, 1);
+                Component.OutPitch = MathHelper.Clamp((float)Component.PitchControl.Update(0, -vec.Y, dt), -1, 1);
                 return false;
             }
 
@@ -162,17 +175,19 @@ namespace LibreLancer.World.Components
             float maxSpeed,
             bool shouldStop,
             ShipSteeringComponent control,
-            ShipInputComponent? input)
+            ShipInputComponent? input,
+            GameWorld world,
+            bool includeTargetRadius = true)
         {
             float targetPower = 0;
             // Bring ship to within GotoRange metres of target
-            var targetRadius = GetTargetRadius();
+            var targetRadius = includeTargetRadius ? GetTargetRadius() : 0;
             var myRadius = Parent.PhysicsComponent!.Body!.Collider.Radius;
             var distance = (point - Parent.PhysicsComponent.Body.Position).Length();
 
             TriggerCruise(control, (distance - range) > 2000);
 
-            if ((distance - range) < 500)
+            if (shouldStop && (distance - range) < 500)
             {
                 control.Cruise = false; // Disable cruise at small distance
             }
@@ -200,64 +215,119 @@ namespace LibreLancer.World.Components
             if (distanceSatisfied)
                 return true;
 
+            if (Behavior != AutopilotBehaviors.Undock)
+            {
+                var avoidancePlan = avoidance.GetPlan(world, Parent, TargetObject, point, targetRadius + radius + range,
+                    time);
+                Component.SetAutopilotStrafe(avoidancePlan.Strafe, avoidancePlan.StrafeVector);
+            }
+
             var directionSatisfied = TurnTowards(time, point);
 
 
             return distanceSatisfied && directionSatisfied;
         }
+
     }
 
-    internal sealed class DockBehavior(AutopilotComponent c) : AutopilotBehavior(c)
+    internal sealed class DockBehavior(AutopilotComponent c, int dockIndex) : AutopilotBehavior(c)
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Dock;
+        public override bool DockCameraActive => ringDocking;
 
         private int lastTargetHp = 0;
+        private bool ringDocking = false;
+        private double ringDockTime = 0;
 
-        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time)
+        private static bool IsDockingRingIndex(DockInfoComponent docking, int index) =>
+            docking.Action.Kind == DockKinds.Base &&
+            index == 0 &&
+            index < docking.Spheres.Length &&
+            docking.Spheres[index].Type == Data.Schema.Solar.DockSphereType.ring;
+
+        private void StartRingFlyThrough(ShipSteeringComponent control, ShipInputComponent? input)
+        {
+            if (Parent.TryGetComponent<ShipPhysicsComponent>(out var physics))
+            {
+                physics.Active = false;
+            }
+
+            Parent.PhysicsComponent!.Collidable = false;
+            Parent.PhysicsComponent.Body.Collidable = false;
+            Parent.PhysicsComponent.Body.LinearVelocity =
+                Vector3.Transform(-Vector3.UnitZ, Parent.PhysicsComponent.Body.Orientation) * 80;
+            ringDocking = true;
+            ringDockTime = 3.0;
+            SetThrottle(1, control, input);
+        }
+
+        public override void ImGuiDebug()
+        {
+            if (Dockable(out var docking))
+            {
+                ImGui.Text($"Docking with: {docking?.Parent}");
+                var hp = GetTargetHardpoint(docking!, false, lastTargetHp, dockIndex);
+                ImGui.Text($"Target hardpoint: {hp?.Name}");
+            }
+        }
+
+        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time, GameWorld world)
         {
             if (!TargetValid() || !Dockable(out var docking))
             {
                 return true; // finished
             }
 
-            var hp = GetTargetHardpoint(docking!, true, lastTargetHp);
+            if (ringDocking)
+            {
+                SetThrottle(1, control, input);
+                ringDockTime -= time;
+                return ringDockTime <= 0;
+            }
+
+            var dock = docking!;
+            var hp = GetTargetHardpoint(dock, false, lastTargetHp, dockIndex);
 
             if (hp == null)
             {
                 // No dock hardpoints available, cancel docking
-                FLLog.Error("Autopilot", $"No dock hardpoints available for {Parent.Nickname} docking");
+                FLLog.Error("Autopilot", "No dock hardpoints available for docking");
                 return true; // finished
             }
 
-            float radius = 5;
-            var maxSpeed = 1f;
+            var isTradelane = dock.Action.Kind == DockKinds.Tradelane;
+            var radius = isTradelane || lastTargetHp == 2 ? dock.GetTriggerRadius(dockIndex) : 5;
             var targetPoint = (hp.Transform * TargetObject!.WorldTransform).Position;
-
-            if (lastTargetHp > 0)
-            {
-                maxSpeed = 0.3f;
-            }
-
-            if (lastTargetHp == 2)
-            {
-                radius = docking!.GetTriggerRadius();
-            }
+            var isDockingRing = IsDockingRingIndex(dock, dockIndex);
 
             var d2 = (targetPoint - Parent.PhysicsComponent!.Body!.Position).Length();
 
-            if (d2 < 80)
+            if (isDockingRing &&
+                hp.Name.Equals(dock.Spheres[dockIndex].Hardpoint, StringComparison.OrdinalIgnoreCase) &&
+                d2 <= Math.Max(250, dock.GetTriggerRadius(dockIndex) + Parent.PhysicsComponent.Body.Collider.Radius))
             {
-                maxSpeed = 0.3f;
+                StartRingFlyThrough(control, input);
+                return false;
             }
 
-            if (!MoveToPoint(time, targetPoint, radius, GotoRadius, maxSpeed, true, control, input))
+            var maxSpeed = lastTargetHp > 0 || d2 < 80 ? 0.3f : 1f;
+            if (!MoveToPoint(time, targetPoint, radius, 0, maxSpeed, true, control, input, world, false))
             {
                 return false; // not finished
+            }
+
+            if (isTradelane)
+            {
+                return false; // wait for the server to start the tradelane
             }
 
             if (lastTargetHp < 2)
             {
                 lastTargetHp++;
+            }
+            else if (isDockingRing)
+            {
+                StartRingFlyThrough(control, input);
             }
             else
             {
@@ -268,18 +338,25 @@ namespace LibreLancer.World.Components
         }
     }
 
-    internal sealed class UndockBehavior(AutopilotComponent c, int index) : AutopilotBehavior(c)
+    internal sealed class UndockBehavior(AutopilotComponent c, int index, double initialDelay) : AutopilotBehavior(c)
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Undock;
 
-        private const double MAX_TIME_UNDOCK = 8.0;
+        private const double MAX_TIME_UNDOCK = 30.0;
 
         private double totalTime = 0.0;
-        private double delay = 1.2;
+        private double delay = initialDelay;
+        private int targetHp = 1;
+
+        public override void ImGuiDebug()
+        {
+            ImGui.Text("Undocking");
+        }
 
         public override bool Update(ShipSteeringComponent control,
             ShipInputComponent? input,
-            double time)
+            double time,
+            GameWorld world)
         {
             if (delay > 0)
             {
@@ -304,12 +381,32 @@ namespace LibreLancer.World.Components
                 return true; // finished
             }
 
-            var info = docking!.GetUndockInfo(index);
-            var targetPoint = (info.End!.Transform * TargetObject!.WorldTransform).Position;
-            var startPoint = (info.Start!.Transform * TargetObject.WorldTransform).Position;
-            return MoveToPoint(time, targetPoint, 25, 10, 1f, false, control, input) ||
-                   Vector3.Distance(startPoint, targetPoint) - 20 <
-                   Vector3.Distance(Parent.LocalTransform.Position, startPoint);
+            var hps = docking!.GetDockHardpoints(Parent.PhysicsComponent!.Body!.Position, index).Reverse().ToArray();
+            if (hps.Length < 2)
+            {
+                var info = docking.GetUndockInfo(index);
+                var fallbackPoint = (info.End!.Transform * TargetObject!.WorldTransform).Position;
+                return MoveToPoint(time, fallbackPoint, 25, 0, 1f, false, control, input, world, false);
+            }
+
+            if (targetHp >= hps.Length)
+            {
+                return true;
+            }
+
+            var targetPoint = (hps[targetHp].Transform * TargetObject!.WorldTransform).Position;
+            if (!MoveToPoint(time, targetPoint, 25, 0, 1f, false, control, input, world, false))
+            {
+                return false;
+            }
+
+            targetHp++;
+            if (targetHp < hps.Length)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 
@@ -317,15 +414,20 @@ namespace LibreLancer.World.Components
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Goto;
 
-        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time)
+        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time, GameWorld world)
         {
             if (!TargetValid())
             {
                 return true;
             }
 
-            return MoveToPoint(time, GetTargetPoint(), GetTargetRadius(), GotoRadius, MaxThrottle, true, control,
-                input);
+            return MoveToPoint(time, GetTargetPoint(), GetTargetRadius(), GotoRadius, MaxThrottle, ShouldStopAtTarget, control,
+                input, world);
+        }
+
+        public override void ImGuiDebug()
+        {
+            ImGui.Text($"Goto: {GetTargetPoint()}");
         }
     }
 
@@ -344,29 +446,21 @@ namespace LibreLancer.World.Components
 
         private static bool LeadIsCruising(GameObject lead)
         {
-            if (lead.TryGetComponent<ShipPhysicsComponent>(out var leadControl) &&
+            if (lead.TryGetComponent<ShipControlAccessComponent>(out var leadControl) &&
                 (leadControl.CruiseEnabled ||
                  leadControl.EngineState is EngineStates.Cruise or EngineStates.CruiseCharging))
             {
                 return true;
             }
-
-            return lead.TryGetComponent<CEngineComponent>(out var eng) &&
-                   eng.CruiseThrust is CruiseThrustState.Cruising or CruiseThrustState.CruiseCharging;
+            return false;
         }
 
         private static float LeadThrottle(GameObject lead)
         {
-            if (lead.TryGetComponent<ShipPhysicsComponent>(out var leadControl))
+            if (lead.TryGetComponent<ShipControlAccessComponent>(out var leadControl))
             {
                 return leadControl.EnginePower;
             }
-
-            if (lead.TryGetComponent<CEngineComponent>(out var eng))
-            {
-                return MathHelper.Clamp(eng.Speed / 0.9f, 0, 1);
-            }
-
             return 0;
         }
 
@@ -427,7 +521,12 @@ namespace LibreLancer.World.Components
             return null;
         }
 
-        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time)
+        public override void ImGuiDebug()
+        {
+            ImGui.Text("In Formation");
+        }
+
+        public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time, GameWorld world)
         {
             if (Parent.Formation == null ||
                 Parent.Formation.LeadShip == Parent)
@@ -451,7 +550,11 @@ namespace LibreLancer.World.Components
                     : 0;
             SetThrottle(ApproachThrottle(distance, leadThrottle), control, input);
 
-            var facingPoint = FormationFacingPoint(Parent, lead, targetPoint, distance);
+            var avoidancePlan = avoidance.GetPlan(world, Parent, TargetObject, targetPoint, ThrottleDampenDistance,
+                time);
+            Component.SetAutopilotStrafe(avoidancePlan.Strafe, avoidancePlan.StrafeVector);
+
+            Vector3? facingPoint = FormationFacingPoint(Parent, lead, targetPoint, distance);
             if (facingPoint != null)
             {
                 TurnTowards(time, facingPoint.Value);
@@ -471,9 +574,12 @@ namespace LibreLancer.World.Components
     {
         private AutopilotBehavior? instance;
         public bool LocalPlayer = false;
+        internal StrafeControls AutopilotStrafe { get; private set; } = StrafeControls.None;
 
         public AutopilotBehaviors CurrentBehavior
             => instance?.Behavior ?? AutopilotBehaviors.None;
+
+        public bool DockCameraActive => instance?.DockCameraActive ?? false;
 
         public readonly PIDController PitchControl = new();
         public readonly PIDController YawControl = new();
@@ -502,34 +608,55 @@ namespace LibreLancer.World.Components
             }
         }
 
-        public void GotoVec(Vector3 vec, GotoKind kind, float maxThrottle = 1, float gotoRange = 40)
+        public void ImGuiDebug()
         {
-            SetInstance(new GotoBehavior(this));
-            instance?.Start(kind, vec, maxThrottle, gotoRange);
+            ImGui.Text($"Autopilot: {CurrentBehavior}");
+            instance?.ImGuiDebug();
         }
 
-        public void GotoObject(GameObject obj, GotoKind kind, float maxThrottle = 1, float gotoRange = 40)
+        public void GotoVec(Vector3 vec, GotoKind kind, float maxThrottle = 1, float gotoRange = 40, bool shouldStopAtTarget = true)
         {
             SetInstance(new GotoBehavior(this));
-            instance?.Start(kind, obj, maxThrottle, gotoRange);
+            instance?.Start(kind, vec, maxThrottle, gotoRange, shouldStopAtTarget);
+        }
+
+        public void GotoObject(GameObject obj, GotoKind kind, float maxThrottle = 1, float gotoRange = 40, bool shouldStopAtTarget = true)
+        {
+            SetInstance(new GotoBehavior(this));
+            instance?.Start(kind, obj, maxThrottle, gotoRange, shouldStopAtTarget);
         }
 
         public void Cancel()
         {
             SetInstance(null);
+            SetAutopilotStrafe(StrafeControls.None, Vector2.Zero);
         }
 
-        public void StartDock(GameObject target, GotoKind kind)
+        public void StartDock(GameObject target, GotoKind kind, int dockIndex = 0)
         {
-            SetInstance(new DockBehavior(this));
+            SetInstance(new DockBehavior(this, dockIndex));
             instance?.Start(kind, target, 1, 40);
         }
 
         public void Undock(GameObject target, int index)
         {
-            SetInstance(new UndockBehavior(this, index));
+            SetInstance(new UndockBehavior(this, index, GetUndockDelay(target, index)));
             instance?.Start(GotoKind.GotoNoCruise,
                 target, 1, 10);
+        }
+
+        private static double GetUndockDelay(GameObject target, int index)
+        {
+            if (!target.TryGetComponent<DockInfoComponent>(out var docking) ||
+                index < 0 ||
+                index >= docking.Spheres.Length ||
+                docking.Spheres[index].Type != Data.Schema.Solar.DockSphereType.berth)
+            {
+                return 1.2;
+            }
+
+            var duration = target.AnimationComponent?.GetAnimationDuration(docking.Spheres[index].Script) ?? 0;
+            return Math.Max(1.2, duration);
         }
 
         public void StartFormation()
@@ -560,6 +687,7 @@ namespace LibreLancer.World.Components
         {
             var control = Parent?.GetComponent<ShipSteeringComponent>();
             var input = Parent?.GetComponent<ShipInputComponent>();
+            SetAutopilotStrafe(StrafeControls.None, Vector2.Zero);
 
             if (input != null)
             {
@@ -579,10 +707,21 @@ namespace LibreLancer.World.Components
                 return;
             }
 
-            if (instance.Update(control, input, time))
+            if (instance.Update(control, input, time, world))
             {
                 SetInstance(null);
+                SetAutopilotStrafe(StrafeControls.None, Vector2.Zero);
             }
+        }
+
+        internal void SetAutopilotStrafe(StrafeControls strafe)
+        {
+            SetAutopilotStrafe(strafe, Vector2.Zero);
+        }
+
+        internal void SetAutopilotStrafe(StrafeControls strafe, Vector2 _)
+        {
+            AutopilotStrafe = strafe;
         }
     }
 }

@@ -56,14 +56,13 @@ namespace LibreLancer.Interface
             Visible = false;
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
             if (!Visible) return;
             context.SetTextFocus(this);
-            var rect = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, drawList, rect);
-            DrawText(context, drawList, rect);
-            Border?.Draw(context, drawList, rect);
+            Background?.Draw(context, drawList, ClientRectangle);
+            DrawText(context, drawList, ClientRectangle);
+            Border?.Draw(context, drawList, ClientRectangle);
         }
 
         private void DrawText(UiContext context, DrawList2D drawList, RectangleF myRect)
@@ -78,15 +77,6 @@ namespace LibreLancer.Interface
             editBase.FontShadow = new OptionalColor(Color4.Black);
             editBase.SetRectangle(rect.X + 2, rect.Y + 2, rect.Width - 4, rect.Height - 4);
             editBase.Draw(context.RenderContext, drawList, context.GlobalTime);
-        }
-
-        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
-        {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            Update(context, myPos);
-            myPos = AnimatedPosition(myPos);
-            var myRect = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            return myRect;
         }
 
         public override void OnKeyDown(UiContext context, Keys key, bool control)

@@ -2193,6 +2193,7 @@ public class GameItemDb
                 IdsInfo = orig.IdsInfo,
                 ExtraIdsInfo = [orig.IdsInfo1, orig.IdsInfo2, orig.IdsInfo3],
                 ShipType = orig.Type,
+                MissionProperty = orig.MissionProperty,
                 Explosion = orig.ExplosionArch is not null ? Explosions.Get(orig.ExplosionArch) : null,
             };
             ship.CRC = FLHash.CreateID(ship.Nickname);
@@ -2201,6 +2202,11 @@ public class GameItemDb
             ship.ShieldLinkHull = orig.ShieldLink?.HardpointMount;
             ship.ShieldLinkSource = orig.ShieldLink?.HardpointShield;
             ship.TractorSource = orig.HpTractorSource;
+            ship.BayDoorAnim = orig.BayDoorAnim;
+            ship.BayDoorsOpenSound = orig.BayDoorsOpenSound;
+            ship.BayDoorsCloseSound = orig.BayDoorsCloseSound;
+            ship.HpBaySurface = orig.HpBaySurface;
+            ship.HpBayExternal = orig.HpBayExternal;
             ship.SeparableParts = orig.CollisionGroups.Select(FromCollisionGroup).ToList();
 
             foreach (var fuse in orig.Fuses)

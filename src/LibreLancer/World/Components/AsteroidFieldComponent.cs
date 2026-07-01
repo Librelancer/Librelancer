@@ -144,6 +144,13 @@ namespace LibreLancer.World.Components
             }
         }
 
+
+        Vector4i CalculateCubeExtents(BoundingBox boundingBox)
+        {
+            var boxCubes = (boundingBox.Max - boundingBox.Min) / Field.CubeSize + Vector3.One;
+            return new((int)boxCubes.X, (int)boxCubes.Y, (int)boxCubes.Z, 0);
+        }
+
         public override void Update(double time, GameWorld world)
         {
             if (phys == null)
@@ -229,6 +236,7 @@ namespace LibreLancer.World.Components
 
                 spawnedA.Count = 0;
                 spawnedB.Count = 0;
+                fillBoxes.Dispose(phys.BufferPool);
                 return;
             }
 
@@ -237,7 +245,7 @@ namespace LibreLancer.World.Components
 
             for (var i = 0; i < fillBoxes.Count; i++)
             {
-                var boxCubes = (fillBoxes[i].Bb.Max - fillBoxes[i].Bb.Min) / Field.CubeSize + Vector3.One;
+                var boxCubes = CalculateCubeExtents(fillBoxes[i].Bb);
                 var strideX = (int) (boxCubes.Y * boxCubes.Z);
                 var amount = ((int) (boxCubes.X * boxCubes.Y * boxCubes.Z) >> 6) + 1;
                 fillBoxes[i].Dims = new Vector4i(strideX, (int) boxCubes.Z, 0, arrayLength);
@@ -280,7 +288,7 @@ namespace LibreLancer.World.Components
             // Fill remaining cubes if needed
             foreach (var box in fillBoxes)
             {
-                var boxCubes = (box.Bb.Max - box.Bb.Min) / Field.CubeSize;
+                var boxCubes = CalculateCubeExtents(box.Bb);
 
                 for (var x = 0; x < boxCubes.X; x++)
                 {

@@ -9,23 +9,22 @@ namespace LibreLancer
 {
 	public class FlyOutLeft : UiAnimation
 	{
-        private Vector2 finalPos;
         public float To = -2;
-		public FlyOutLeft(Vector2 final, double start, double time) : base(start, time)
+
+		public FlyOutLeft( double start, double time) : base(start, time)
 		{
-			finalPos = final;
-			CurrentPosition.Y = finalPos.Y;
-			FinalPositionSet = new Vector2(To, finalPos.Y);
             Remain = true;
 		}
 
-        public override void SetWidgetPosition(Vector2 pos)
+        public override void SetWidgetRectangle(RectangleF rect)
         {
-            finalPos = pos;
-            if (Time <= Start) CurrentPosition.X = finalPos.X;
-            CurrentPosition.Y = finalPos.Y;
-            FinalPositionSet = new Vector2(To, finalPos.Y);
+            base.SetWidgetRectangle(rect);
+            if (Time <= Start) CurrentPosition.X = ClientRectangle.X;
+            CurrentPosition.Y = ClientRectangle.Y;
+            FinalPositionSet = new(To - ClientRectangle.Width, ClientRectangle.Y);
         }
+
+
 		protected override void Run(double currentTime, float aspectRatio)
 		{
 			CurrentPosition.X = Easing.Ease(
@@ -33,8 +32,8 @@ namespace LibreLancer
 				(float)currentTime,
 				 0,
 				(float)Duration,
-				finalPos.X,
-				To
+				ClientRectangle.X,
+				To - ClientRectangle.Width
 			);
 		}
 	}

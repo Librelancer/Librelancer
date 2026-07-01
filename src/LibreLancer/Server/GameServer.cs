@@ -3,6 +3,7 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,6 +36,8 @@ namespace LibreLancer.Server
         public string DebugInfo { get; private set; } = null!;
 
         public string ScriptsFolder { get; set; } = null!;
+
+        public int ThreadCount { get; set; } = Math.Min(1, (int)(Environment.ProcessorCount * 0.75));
 
         public IDesignTimeDbContextFactory<LibreLancerContext> DbContextFactory = null!;
         public GameDataManager GameData;
@@ -149,6 +152,7 @@ namespace LibreLancer.Server
         {
             running = false;
             gameThread.Join();
+            updateRunner.Dispose();
         }
 
         public void AdminChanged(long id, bool isAdmin)
@@ -239,7 +243,10 @@ namespace LibreLancer.Server
 
         public uint CurrentTick { get; private set; }
 
-        private void Process(TimeSpan time, TimeSpan totalTime, uint currentTick)
+        private int slowCount = 0;
+        private ParallelActionRunner updateRunner = null!;
+
+        private void Process(TimeSpan time, TimeSpan totalTime, uint currentTick, int step)
         {
             CurrentTick = currentTick;
             var startTime = serverTiming.Elapsed;
@@ -254,34 +261,60 @@ namespace LibreLancer.Server
             }
             LocalPlayer?.RunSave();
             debugInfoForFrame = "";
-            var toSpinDown = new StarSystem[worlds.Count];
-            int spinDownCount = -1;
-            foreach (var w in worlds)
+
+            // Copy worlds to array
+            var allSystems = worlds.ToArray();
+            // Can't be stack allocated as we reference from multiple threads
+            bool[] shouldSpinDown = ArrayPool<bool>.Shared.Rent(allSystems.Length);
+
+            void Worker(int jobIndex)
             {
-                if (!w.Value.Update(time.TotalSeconds, totalTime.TotalSeconds, currentTick))
-                    toSpinDown[Interlocked.Increment(ref spinDownCount)] = w.Key;
+                shouldSpinDown[jobIndex] =
+                    !allSystems[jobIndex].Value.Update(
+                        time.TotalSeconds,
+                        totalTime.TotalSeconds,
+                        currentTick, step);
             }
+            updateRunner.RunActions(Worker, allSystems.Length);
 
             DebugInfo = debugInfoForFrame;
             Listener?.Server?.TriggerUpdate(); // Send packets asap
             // Remove
-            for (int i = 0; i <= spinDownCount; i++)
+            for (int i = 0; i < allSystems.Length; i++)
             {
-                var w = toSpinDown[i];
-                if (worlds[w].PlayerCount <= 0)
+                var w = allSystems[i];
+                if (shouldSpinDown[i] && w.Value.PlayerCount <= 0)
                 {
-                    Worlds.RemoveWorld(w);
-                    worlds[w].Finish();
-                    worlds.Remove(w);
-                    var wName = GameData.GetString(w.IdsName);
-                    FLLog.Info("Server", $"Shut down world {w.Nickname} ({wName})");
+                    Worlds.RemoveWorld(w.Key);
+                    worlds.Remove(w.Key);
+                    var wName = GameData.GetString(w.Key.IdsName);
+                    Task.Run(() => w.Value.Finish()); // this does a lot of checks in debug for held objects, unimportant.
+                    FLLog.Info("Server", $"Shut down world {w.Key.Nickname} ({wName})");
                 }
             }
+            ArrayPool<bool>.Shared.Return(shouldSpinDown);
+
             var updateDuration = serverTiming.Elapsed - startTime;
             PerformanceStats?.AddEntry((float)updateDuration.TotalMilliseconds);
-            if (updateDuration > TimeSpan.FromTicks(166667))
+            bool slow = (updateDuration > TimeSpan.FromTicks(166667));
+            if (slowCount == 0 && slow)
             {
                 FLLog.Warning("Server", $"Running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
+                slowCount++;
+            }
+            else if (slow)
+            {
+                slowCount++;
+                if (slowCount > 360)
+                {
+                    FLLog.Warning("Server", $"Still running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
+                    slowCount = 1;
+                }
+            }
+            else if (slowCount > 0 && !slow)
+            {
+                FLLog.Info("Server", $"Not running slow: update took {updateDuration.TotalMilliseconds:F2}ms");
+                slowCount = 0;
             }
             if (!running) processingLoop.Stop();
         }
@@ -304,6 +337,7 @@ namespace LibreLancer.Server
             serverTiming = Stopwatch.StartNew();
             Database = new ServerDatabase(this);
             Listener?.Start();
+            updateRunner = new ParallelActionRunner(ThreadCount, "Server Update Worker");
             processingLoop = new FixedTimestepLoop(Process);
             processingLoop.Start();
             Listener?.Stop();

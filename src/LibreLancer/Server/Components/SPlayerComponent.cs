@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Missions;
 using LibreLancer.Missions.Directives;
 using LibreLancer.Net;
@@ -237,6 +239,95 @@ namespace LibreLancer.Server.Components
                    world.Server.TryScanCargo(obj, out loadout);
         }
 
+        private const double JettisonShieldSuppressionTime = 5.0;
+        private const double JettisonPodSpawnDelay = 0.8;
+        private const double JettisonBayCloseDelay = 1.6;
+
+        public void Jettison(int id, int count, ServerWorld world)
+        {
+            var character = Player.Character;
+            if (character == null)
+                return;
+
+            var slot = character.Items.FirstOrDefault(x => x.ID == id);
+            if (slot?.Equipment == null ||
+                !string.IsNullOrEmpty(slot.Hardpoint) ||
+                slot.IsMissionItem ||
+                slot.Equipment.LootAppearance == null)
+            {
+                return;
+            }
+
+            count = Math.Clamp(count, 1, slot.Count);
+            var equipment = slot.Equipment;
+            using (var t = character.BeginTransaction())
+            {
+                t.RemoveCargo(slot, count);
+            }
+            Player.UpdateCurrentInventory();
+
+            Parent.GetFirstChildComponent<SShieldComponent>()?.Suppress(JettisonShieldSuppressionTime, world.GameWorld);
+            AnimateJettisonBay(world, character.Ship, close: false);
+            world.DelayAction(() =>
+            {
+                if ((Parent.Flags & GameObjectFlags.Exists) == 0)
+                    return;
+
+                var spawnTransform = Parent.WorldTransform;
+                var launchDirection = Vector3.Transform(-Vector3.UnitZ, spawnTransform.Orientation);
+                var bayStart = GetJettisonBayHardpoint(character.Ship?.HpBaySurface);
+                if (bayStart != null)
+                    spawnTransform = bayStart.Transform * Parent.WorldTransform;
+
+                var bayTarget = GetJettisonBayHardpoint(character.Ship?.HpBayExternal);
+                if (bayTarget != null)
+                {
+                    var targetTransform = bayTarget.Transform * Parent.WorldTransform;
+                    var offset = targetTransform.Position - spawnTransform.Position;
+                    if (offset.LengthSquared() > float.Epsilon)
+                        launchDirection = Vector3.Normalize(offset);
+                }
+
+                world.SpawnLoot(
+                    equipment.LootAppearance,
+                    equipment,
+                    count,
+                    spawnTransform,
+                    initialImpulse: launchDirection * 35f
+                );
+            }, JettisonPodSpawnDelay);
+            world.DelayAction(() =>
+            {
+                if ((Parent.Flags & GameObjectFlags.Exists) != 0)
+                    AnimateJettisonBay(world, character.Ship, close: true);
+            }, JettisonBayCloseDelay);
+        }
+
+        private Hardpoint? GetJettisonBayHardpoint(string? hardpointName)
+        {
+            return string.IsNullOrWhiteSpace(hardpointName) ? null : Parent.GetHardpoint(hardpointName);
+        }
+
+        private void AnimateJettisonBay(ServerWorld world, LibreLancer.Data.GameData.Ship? ship, bool close)
+        {
+            var component = Parent.AnimationComponent;
+            if (component == null)
+                return;
+
+            var animated = StartJettisonBayAnimation(component, ship?.BayDoorAnim, close);
+
+            if (animated)
+                world.StartAnimation(Parent);
+        }
+
+        private static bool StartJettisonBayAnimation(AnimationComponent component, string? animationName, bool close)
+        {
+            if (string.IsNullOrWhiteSpace(animationName) || !component.HasAnimation(animationName))
+                return false;
+            component.StartAnimation(animationName, false, 0, 1, 0, close);
+            return true;
+        }
+
         private ulong formationHash = 0;
         private const float FormationSlotCruiseCatchupDistance = 800;
         private const float FormationLeaderCruiseCatchupDistance = 450;
@@ -330,12 +421,23 @@ namespace LibreLancer.Server.Components
                 Player.RpcClient.UpdateFormation(Parent.Formation.ToNetFormation(Parent));
             }
 
-            foreach (var obj in world.SpatialLookup
-                         .GetNearbyObjects(Parent, Parent.WorldTransform.Position, 10000))
+            var playerPosition = Parent.WorldTransform.Position;
+            var system = world.Server?.System;
+            if (system != null)
             {
-                if (obj.SystemObject != null)
+                foreach (var obj in system.Objects)
                 {
-                    Player.VisitObject(obj.SystemObject, obj.NicknameCRC);
+                    if (obj.Archetype?.CanVisit != true ||
+                        Vector3.Distance(playerPosition, obj.Position) > Player.GetVisitDistance(obj))
+                        continue;
+
+                    Player.VisitObject(system, obj, FLHash.CreateID(obj.Nickname));
+                }
+
+                foreach (var zone in system.Zones)
+                {
+                    if (zone.ContainsPoint(playerPosition))
+                        Player.VisitZone(system, zone);
                 }
             }
 
@@ -400,7 +502,7 @@ namespace LibreLancer.Server.Components
         {
             foreach (var i in Player.Character!.Items.Where(x => string.IsNullOrEmpty(x.Hardpoint)))
             {
-                yield return new NetShipCargo(i.ID, i.Equipment!.CRC, null, 255, i.Count);
+                yield return new NetShipCargo(i.ID, i.Equipment!.CRC, null, 255, i.Count, i.IsMissionItem);
             }
         }
     }

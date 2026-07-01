@@ -37,5 +37,11 @@ public struct RectangleF
                 Y < (other.Y + other.Height));
     }
 
+    public RectangleF Pad(float padX, float padY) =>
+        new(X + padX, Y + padY, Width - padX - padX, Height - padY - padY);
+
+    public RectangleF Pad(float padding) => Pad(padding, padding);
+
+
     public static explicit operator Rectangle(RectangleF src) => new Rectangle((int)src.X, (int)src.Y, (int)src.Width, (int)src.Height);
 }

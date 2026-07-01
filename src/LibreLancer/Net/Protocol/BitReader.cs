@@ -19,29 +19,11 @@ namespace LibreLancer.Net.Protocol
         private ReadOnlySpan<byte> array;
         private int bitsOffset;
         public int BitsLeft => (array.Length * 8) - bitsOffset;
-        public NetHpidReader? HpidReader;
 
-        public BitReader(ReadOnlySpan<byte> array, int bitsOffset, NetHpidReader? hpidReader = null)
+        public BitReader(ReadOnlySpan<byte> array, int bitsOffset)
         {
             this.array = array;
             this.bitsOffset = bitsOffset;
-            this.HpidReader = hpidReader;
-        }
-
-        public string? GetHpid()
-        {
-            if (HpidReader == null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            var idx = GetVarUInt32();
-            return idx switch
-            {
-                0 => null,
-                1 => "",
-                _ => HpidReader.GetString(idx - 2)
-            };
         }
 
         public int GetInt()

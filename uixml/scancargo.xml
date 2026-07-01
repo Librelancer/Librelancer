@@ -1,33 +1,42 @@
 <Scene>
 <Panel Width="640" Height="480" Anchor="Center">
-	<!--<ImageFile Fill="true" Path="scancargo.png"/>-->
-	<Panel Anchor="Center" X="2" Y="-37" Width="429" Height="271" ID="background">
-		<Panel.Background>
-			<DisplayModel model="char_infowindow"/>
-		</Panel.Background>
-		<Panel Width="429" Height="271" ID="contents">
-			<TextBlock id="title" Anchor="TopCenter" Width="427" Height="40" TextSize="14" Y="2" TextColor="text" TextShadow="black" Strid="3019"></TextBlock>
-			<Button id="close" Anchor="TopRight" X="16" Y="15" Style="xbutton"/>
-			<ListBox id="inv_list" X = "14" Y = "65" Width = "186" Height="170" ItemHeight="32">
-			</ListBox>
-			<Panel id="inv_categories">
-        <Button X="101" Y="223" id="category_weapons" Strid="8501" DrawText="false" Style="inv_category_weapons" MouseDownSound="ui_item_select"/>
-        <Button X="118" Y="223" id="category_ammo" Strid="8522" DrawText="false" Style="inv_category_ammo" MouseDownSound="ui_item_select"/>
-        <Button X="135" Y="223" id="category_external" Strid="8514" DrawText="false" Style="inv_category_external" MouseDownSound="ui_item_select"/>
-        <Button X="153" Y="223" id="category_internal" Strid="8513" DrawText="false" Style="inv_category_internal" MouseDownSound="ui_item_select"/>
-				<Button X="171" Y="223" id="category_commodity" Strid="8504" DrawText="false" Style="inv_category_commodity" MouseDownSound="ui_item_select"/>
-			</Panel>
-			<Panel id="ship_infocard_panel" Anchor="TopRight" X="23" Y="36" Width="200" height="210">
-				<TextBlock Anchor="TopCenter" Width="200" Height="24" VerticalAlignment="Top" TextSize="11" Strid="903" TextColor="text" TextShadow="Black"/>
-				<InfocardDisplay Anchor="TopCenter" id="ship_infocard" X="0" Y="20" Width="200" Height="190" >
-				</InfocardDisplay>
-			</Panel>
-			<Panel id="item_infocard_panel" Anchor="TopRight" X="23" Y="36" Width="200" height="210" Visible="false">
-				<TextBlock Anchor="TopCenter" Width="200" Height="24" VerticalAlignment="Top" TextSize="11" Strid="904" TextColor="text" TextShadow="Black"/>
-				<InfocardDisplay Anchor="TopCenter" id="item_infocard" X="0" Y="20" Width="200" Height="190" >
-				</InfocardDisplay>
-			</Panel>
-		</Panel>
-	</Panel>
+    <!--<ImageFile Fill="true" Path="scancargo.png"/>-->
+    <Panel Anchor="Center" X="2" Y="-37" Width="429" Height="271" ID="background">
+        <Panel.Background>
+            <DisplayModel model="char_infowindow"/>
+        </Panel.Background>
+        <Panel Width="429" Height="271" ID="contents">
+            <TextBlock id="title" Anchor="TopCenter" Width="427" Height="40" TextSize="14" Y="2" TextColor="text" TextShadow="black" Strid="3019"></TextBlock>
+            <Button id="close" Anchor="TopRight" X="16" Y="15" Style="xbutton"/>
+            <ListBox id="inv_list" X = "14" Y = "65" Width = "186" Height="170" ItemHeight="32">
+            </ListBox>
+            <Button id="btn_jettison" X="202" Y="37" Width="16" Height="16" Style="inv_dump" DrawText="false" Visible="false"/>
+            <Panel id="jettison_panel" Anchor="TopRight" X="23" Y="36" Width="200" Height="210" Visible="false">
+                <TextBlock Anchor="TopCenter" Width="200" Height="24" VerticalAlignment="Top" TextSize="11" Strid="1592" TextColor="text" TextShadow="Black"/>
+                <HSlider ID="jettison_quantity" Width="160" X="20" Y="54"/>
+                <TextBlock TextColor="text" TextShadow="#000000FF" Strid="1146" HorizontalAlignment="Left" Height="18" Width="100" X="32" Y="84" TextSize="9"/>
+                <TextBlock id="jettison_quantity_label" TextColor="text" TextShadow="#000000FF" Text="1" HorizontalAlignment="Right" Height="18" Width="96" X="72" Y="84" TextSize="9"/>
+                <Button id="btn_jettison_cancel" X="34" Y="128" Width="132" Height="26" Style="wirebutton" Strid="1597"/>
+                <Button id="btn_jettison_confirm" X="34" Y="166" Width="132" Height="26" Style="wirebutton" Strid="8518"/>
+            </Panel>
+            <Panel id="inv_categories">
+                <Button X="97"  Y="223" id="category_weapons"   Strid="8501" DrawText="false" Style="inv_category_weapons"   MouseDownSound="ui_item_select"/>
+                <Button X="114" Y="223" id="category_ammo"      Strid="8522" DrawText="false" Style="inv_category_ammo"      MouseDownSound="ui_item_select"/>
+                <Button X="131" Y="223" id="category_external"  Strid="8514" DrawText="false" Style="inv_category_external"  MouseDownSound="ui_item_select"/>
+                <Button X="148" Y="223" id="category_internal"  Strid="8513" DrawText="false" Style="inv_category_internal"  MouseDownSound="ui_item_select"/>
+                <Button X="165" Y="223" id="category_commodity" Strid="8504" DrawText="false" Style="inv_category_commodity" MouseDownSound="ui_item_select"/>
+            </Panel>
+            <Panel id="ship_infocard_panel" Anchor="TopRight" X="23" Y="36" Width="200" height="210">
+                <TextBlock id="ship_infocard_title" Anchor="TopCenter" Width="200" Height="24" VerticalAlignment="Top" TextSize="11" Strid="903" TextColor="text" TextShadow="Black"/>
+                <InfocardDisplay Anchor="TopCenter" id="ship_infocard" X="0" Y="20" Width="200" Height="190" >
+                </InfocardDisplay>
+            </Panel>
+            <Panel id="item_infocard_panel" Anchor="TopRight" X="25" Y="36" Width="180" height="210" Visible="false">
+                <TextBlock Anchor="TopCenter" Width="200" Height="24" VerticalAlignment="Top" TextSize="11" Strid="904" TextColor="text" TextShadow="Black"/>
+                <InfocardDisplay Anchor="TopCenter" id="item_infocard" X="0" Y="20" Width="200" Height="190" >
+                </InfocardDisplay>
+            </Panel>
+        </Panel>
+    </Panel>
 </Panel>
 </Scene>

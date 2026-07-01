@@ -26,7 +26,7 @@ namespace BuildLL
                 }
             }
         }
-        public static void CopyFilesRecursively (DirectoryInfo source, DirectoryInfo target, List<string> copiedFiles = null) {
+        public static void CopyFilesRecursively (DirectoryInfo source, DirectoryInfo target, List<string>? copiedFiles = null) {
             foreach (DirectoryInfo dir in source.GetDirectories())
                 CopyFilesRecursively(dir, target.CreateSubdirectory(dir.Name), copiedFiles);
             foreach (FileInfo file in source.GetFiles()) {
@@ -62,7 +62,7 @@ namespace BuildLL
                 await Task.WhenAll(calculatedHashes);
                 foreach (var result in calculatedHashes.Select(x => x.Result))
                 {
-                    if(hashes.TryGetValue(result.File, out string oldmd5)) {
+                    if(hashes.TryGetValue(result.File, out var oldmd5)) {
                         if(oldmd5 != result.Hash) {
                             Console.Error.WriteLine($"{result.File} MD5 mismatch");
                             valid = false;

@@ -7,6 +7,7 @@ namespace LibreLancer.Server
     public class FixedTimestepLoop
     {
         private const int SLEEP_TIME_COUNT = 64;
+        public const int MaxSteps = 25; //about 400ms of catchup
 
         private CircularBuffer<TimeSpan> sleepTimes = new(SLEEP_TIME_COUNT);
 
@@ -21,7 +22,7 @@ namespace LibreLancer.Server
         private TimeSpan accumulatedTime;
         private TimeSpan lastTime;
 
-        public delegate void OnStep(TimeSpan delta, TimeSpan totalTime, uint currentTick);
+        public delegate void OnStep(TimeSpan delta, TimeSpan totalTime, uint currentTick, int step);
 
         public FixedTimestepLoop(OnStep onStep)
         {
@@ -77,17 +78,17 @@ namespace LibreLancer.Server
                 }
 
                 int stepCount = 0;
-                while (accumulatedTime >= TimeStep && stepCount < 2)
+                while (accumulatedTime >= TimeStep && stepCount < MaxSteps)
                 {
                     TotalTime += TimeStep;
                     accumulatedTime -= TimeStep;
+                    onStep(TimeStep,TotalTime, currentTick++, stepCount);
                     stepCount++;
-                    onStep(TimeStep,TotalTime, currentTick++);
                 }
-                if (stepCount == 2 && accumulatedTime >= TimeStep)
+                if (stepCount == MaxSteps && accumulatedTime >= TimeStep)
                 {
                     TotalTime += accumulatedTime;
-                    onStep(accumulatedTime,TotalTime, currentTick++);
+                    onStep(accumulatedTime,TotalTime, currentTick++, stepCount);
                     accumulatedTime = TimeSpan.Zero;
                 }
             }

@@ -117,16 +117,16 @@ namespace LibreLancer.World.Components
 
             //Smooth out errors
             if (PredictionErrorPos.Length() > 0 ||
-                MathHelper.QuatError(PredictionErrorQuat, Quaternion.Identity) > 0.001)
+                MathHelper.QuatError(PredictionErrorQuat, Quaternion.Identity) > 0.000001)
             {
-                PredictionErrorPos *= 0.95f;
+                PredictionErrorPos *= 0.93f;
                 if (PredictionErrorPos.Length() < 0.001)
                 {
                     PredictionErrorPos = Vector3.Zero;
                 }
 
-                PredictionErrorQuat = Quaternion.Slerp(PredictionErrorQuat, Quaternion.Identity, 0.05f);
-                if(MathHelper.QuatError(PredictionErrorQuat, Quaternion.Identity) < 0.001)
+                PredictionErrorQuat = Quaternion.Slerp(PredictionErrorQuat, Quaternion.Identity, 0.025f);
+                if(MathHelper.QuatError(PredictionErrorQuat, Quaternion.Identity) < 0.000005)
                 {
                     PredictionErrorQuat = Quaternion.Identity;
                 }

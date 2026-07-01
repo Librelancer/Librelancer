@@ -14,6 +14,7 @@ using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema;
+using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Data.Schema.Voices;
 using LibreLancer.Graphics;
 using LibreLancer.Infocards;
@@ -97,6 +98,7 @@ World Time: {12:F2}
 
         private int updateStartDelay = -1;
         private DockCameraInfo? dockCameraInfo = null;
+        private bool fadeToRoom;
         public AutopilotComponent? pilotComponent = null;
 
         public bool ShowHud = true;
@@ -120,6 +122,7 @@ World Time: {12:F2}
         private const double WaypointSelectionAnimationDuration = 0.18;
         private int selectedWaypointAnimationObject;
         private double selectedWaypointAnimationStart;
+        private double bestPathRecheckTimer;
         private TargetShipWireframe targetWireframe = new();
         private double accum = 0;
 
@@ -243,15 +246,14 @@ World Time: {12:F2}
 
             sysrender = new SystemRenderer(_chaseCamera, Game.ResourceManager, Game);
             sysrender.ZOverride = true; // Draw all with regular Z
-            world = new GameWorld(sysrender, Game.ResourceManager, () => session.WorldTime);
+            world = new GameWorld(sysrender, Game.Sound, Game.ResourceManager, () => session.WorldTime);
             // Game.GameData.PreloadObjects(session.Preloads);
             world.LoadSystem(sys, Game.ResourceManager, Game.Sound, false);
             session.WorldReady();
             world.AddObject(player);
             player.Register(world);
             world.Projectiles.Player = player; // For sending projectile spawns over the network
-            if (session.TryGetActiveUserWaypoint(out var userWaypointPosition))
-                ActivateUserWaypoint(userWaypointPosition, false);
+            RefreshActiveUserWaypoint(false);
             cur_arrow = Game.ResourceManager.GetCursor("arrow")!;
             cur_cross = Game.ResourceManager.GetCursor("cross")!;
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral")!;
@@ -265,6 +267,7 @@ World Time: {12:F2}
             contactList = new ContactList(this);
             ui.OpenScene("hud");
             FadeIn(0.5, 0.5);
+            GC.Collect();
             updateStartDelay = 3;
         }
 
@@ -414,26 +417,35 @@ World Time: {12:F2}
 
         }
 
-        [WattleScript.Interpreter.WattleScriptUserData]
+        [WattleScriptUserData]
         public class ContactList : IContactListData
         {
-            private readonly record struct Contact(GameObject obj, float distance, string display);
+            private readonly record struct Contact(
+                GameObject Obj,
+                float Distance,
+                string DistanceString,
+                string Label,
+                ContactIcon Icon);
 
             private Contact[] Contacts = [];
             private SpaceGameplay game = null!;
             private Vector3 playerPos;
             private Func<GameObject, bool> contactFilter;
+            private double timer = 0;
+            private GameObject? lastSelected = null;
+
+            private const double UpdateInterval = 1.0; // 1 second
 
             public ContactList()
             {
                 contactFilter = AllFilter;
             }
 
-            private string GetDistanceString(float distance)
+            private string FormatDistance(float distance)
             {
                 if (distance < 1000)
                 {
-                    return $"{(int)distance}m";
+                    return $"{(int)distance}";
                 }
                 else if (distance < 10000)
                 {
@@ -454,9 +466,39 @@ World Time: {12:F2}
                 var distance = Vector3.Distance(playerPos, obj.WorldTransform.Position);
                 var name = obj.Name?.GetName(game.Game.GameData, playerPos);
 
+                ContactIcon icon = ContactIcon.WeaponPlatform;
+                if (obj.SystemObject != null)
+                {
+                    icon = obj.SystemObject.Archetype?.Type switch
+                    {
+                        ArchetypeType.airlock_gate => ContactIcon.Jumpgate,
+                        ArchetypeType.jump_gate => ContactIcon.Jumpgate,
+                        ArchetypeType.jump_hole => ContactIcon.Jumpgate,
+                        ArchetypeType.jumphole => ContactIcon.Jumpgate,
+                        ArchetypeType.destroyable_depot => ContactIcon.LootableDepot,
+                        ArchetypeType.planet => ContactIcon.Planet,
+                        ArchetypeType.tradelane_ring => ContactIcon.Tradelane,
+                        ArchetypeType.station => ContactIcon.Station,
+                        ArchetypeType.docking_ring => ContactIcon.Station,
+                        _ => ContactIcon.WeaponPlatform
+                    };
+                }
+                else if (obj.Kind == GameObjectKind.Waypoint)
+                {
+                    icon = ContactIcon.Waypoint;
+                }
+                else if (obj.Kind == GameObjectKind.Loot)
+                {
+                    icon = ContactIcon.Loot;
+                }
+                else if (obj.Kind == GameObjectKind.Ship)
+                {
+                    icon = obj.NetID > 0 ? ContactIcon.OtherPlayer : ContactIcon.Ship;
+                }
+
                 if (obj.Kind != GameObjectKind.Ship || !obj.TryGetComponent<CFactionComponent>(out var fac))
                 {
-                    return new Contact(obj, distance, $"{GetDistanceString(distance)} - {name}");
+                    return new Contact(obj, distance, FormatDistance(distance), name ?? "-", icon);
                 }
 
                 var fn = game.Game.GameData.GetString(fac.Faction.IdsShortName);
@@ -466,7 +508,7 @@ World Time: {12:F2}
                     name = $"{fn} - {name}";
                 }
 
-                return new Contact(obj, distance, $"{GetDistanceString(distance)} - {name}");
+                return new Contact(obj, distance, FormatDistance(distance), name ?? "-", icon);
             }
 
             private bool AllFilter(GameObject o) => true;
@@ -479,6 +521,7 @@ World Time: {12:F2}
             {
                 return game.Selection.Selected == o ||
                        (o.Flags & GameObjectFlags.Important) == GameObjectFlags.Important ||
+                       o.NetID > 0 || // remote player
                        o.Kind == GameObjectKind.Waypoint ||
                        game.GetRepToPlayer(o) == RepAttitude.Hostile;
             }
@@ -507,9 +550,21 @@ World Time: {12:F2}
                         FLLog.Warning("Ui", $"Unknown contact list filter {filter}, defaulting to all");
                         break;
                 }
+                UpdateList();
             }
 
-            public void UpdateList()
+            public void Update(double delta)
+            {
+                timer -= delta;
+                if (timer <= 0 ||
+                    lastSelected != game.Selection.Selected ||
+                    Contacts.Any(x => (x.Obj.Flags & GameObjectFlags.Exists) == 0))
+                {
+                    UpdateList();
+                }
+            }
+
+            void UpdateList()
             {
                 playerPos = game.player.WorldTransform.Position;
                 Contacts = game.world.Objects.Where(x => x != game.player &&
@@ -519,7 +574,9 @@ World Time: {12:F2}
                                                              Vector3.Zero)))
                     .Where(contactFilter)
                     .Select(GetContact)
-                    .OrderBy(x => x.distance).ToArray();
+                    .OrderBy(x => x.Distance).ToArray();
+                lastSelected = game.Selection.Selected;
+                timer = UpdateInterval;
             }
 
             public ContactList(SpaceGameplay game) : this()
@@ -531,27 +588,34 @@ World Time: {12:F2}
 
             public bool IsSelected(int index)
             {
-                return game.Selection.Selected == Contacts[index].obj;
+                return game.Selection.Selected == Contacts[index].Obj;
             }
 
             public void SelectIndex(int index)
             {
-                game.Selection.Selected = Contacts[index].obj;
+                game.Selection.Selected = Contacts[index].Obj;
             }
 
-            public string Get(int index)
+            public string GetLabel(int index)
             {
-                return Contacts[index].display;
+                return Contacts[index].Label;
+            }
+
+            public string GetDistanceString(int index)
+            {
+                return Contacts[index].DistanceString;
             }
 
             public RepAttitude GetAttitude(int index)
             {
-                return game.GetRepToPlayer(Contacts[index].obj);
+                return game.GetRepToPlayer(Contacts[index].Obj);
             }
+
+            public ContactIcon GetIcon(int index) => Contacts[index].Icon;
 
             public bool IsWaypoint(int index)
             {
-                return Contacts[index].obj.Kind == GameObjectKind.Waypoint;
+                return Contacts[index].Obj.Kind == GameObjectKind.Waypoint;
             }
         }
 
@@ -566,12 +630,18 @@ World Time: {12:F2}
                 Callback = cb;
             }
 
-            public void Draw(UiContext context, DrawList2D drawList, RectangleF parentRectangle, float x, float y, params object[] args)
+            public void Draw(UiContext context,
+                double delta,
+                DrawList2D drawList,
+                RectangleF canvasRectangle,
+                float x, float y, params object[] args)
             {
                 Callback?.Call(args);
                 Template.X = x;
                 Template.Y = y;
-                Template.Render(context, drawList, parentRectangle);
+                Template.OnLayout(context, new Layout(canvasRectangle), delta);
+                Template.Update(context, delta);
+                Template.Render(context, delta, drawList);
             }
         }
 
@@ -599,6 +669,7 @@ World Time: {12:F2}
             }
 
             public UIInventoryItem[] GetScannedInventory(string filter) => g.session.GetScannedInventory(filter);
+            public UIInventoryItem[] GetPlayerInventory(string filter) => g.session.GetPlayerInventory(filter);
 
             public Infocard? GetScannedShipInfocard()
             {
@@ -634,6 +705,20 @@ World Time: {12:F2}
             public void OnUpdateScannedInventory(Closure handler)
             {
                 ScanHandler = handler;
+            }
+
+            public Closure PlayerInventoryHandler;
+
+            public void OnUpdatePlayerInventory(Closure handler)
+            {
+                PlayerInventoryHandler = handler;
+                g.session.OnUpdateInventory = () => PlayerInventoryHandler?.Call();
+            }
+
+            public void JettisonInventoryItem(UIInventoryItem item, int count)
+            {
+                if (item.CanJettison)
+                    g.session.SpaceRpc.Jettison(item.ID, count);
             }
 
             public int CurrentRank => g.session.CurrentRank;
@@ -797,7 +882,7 @@ World Time: {12:F2}
 
             public string SelectionName()
             {
-                return g.Selection.Selected?.Name?.GetName(g.Game.GameData, g.player.PhysicsComponent!.Body.Position) ??
+                return g.Selection.Selected?.Name?.GetName(g.Game.GameData, g.player.WorldTransform.Position) ??
                        "NULL";
             }
 
@@ -810,7 +895,7 @@ World Time: {12:F2}
                     return "";
                 }
 
-                var playerPosition = g.player.PhysicsComponent!.Body.Position;
+                var playerPosition = g.player.WorldTransform.Position;
                 var targetPosition = g.Selection.Selected.WorldTransform.Position;
                 var distance = Vector3.Distance(playerPosition, targetPosition);
                 return distance < 2000f
@@ -891,13 +976,15 @@ World Time: {12:F2}
                 nav.SetUniverse(g.Game.GameData.Items);
                 nav.SetVisitFunction(g.session.IsVisited);
                 nav.SetAddWaypointFunction(g.CreateUserWaypoint);
+                nav.SetBestPathFunction(g.ComputeBestPathToSelection);
                 nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);
+                nav.SetPlayerSystemProvider(() => g.sys.CRC);
                 nav.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
             }
 
             public int UserWaypointCount() => g.session.UserWaypointCount;
 
-            public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index, g.sys);
+            public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index);
 
             public void ClearUserWaypoints() => g.ClearUserWaypoints();
 
@@ -986,6 +1073,13 @@ World Time: {12:F2}
             this.dockCameraInfo = info;
         }
 
+        public void FadeToRoom(Action changeState)
+        {
+            FadeOut(0.5, changeState);
+        }
+
+        public bool ShouldFadeToRoom => fadeToRoom;
+
         protected override void OnUnload()
         {
             Game.Keyboard.TextInput -= Game_TextInput;
@@ -1019,10 +1113,13 @@ World Time: {12:F2}
                     session.Pause();
                     ui.Event("Pause");
                 }
-#if DEBUG
                 if (e.Key == Keys.R && (e.Modifiers & KeyModifiers.Control) != 0)
-                    world.RenderDebugPoints = !world.RenderDebugPoints;
+                {
+                    world.RenderAutopilotDebug = !world.RenderAutopilotDebug;
+#if DEBUG
+                    world.RenderDebugPoints = world.RenderAutopilotDebug;
 #endif
+                }
             }
         }
 
@@ -1044,7 +1141,7 @@ World Time: {12:F2}
                         return false;
                     }
 
-                    if (!Selection.Selected.TryGetComponent<DockInfoComponent>(out _))
+                    if (!Selection.Selected.TryGetComponent<DockInfoComponent>(out var dock))
                     {
                         return false;
                     }
@@ -1056,6 +1153,12 @@ World Time: {12:F2}
                     }
 
                     pilotComponent!.StartDock(Selection.Selected, GotoKind.Goto);
+                    var dockCam = dock.GetDockCamera(0);
+                    if (dockCam != null)
+                    {
+                        SetDockCam(dockCam);
+                    }
+                    session.RegisterRouteDock(Selection.Selected.NicknameCRC, sys.CRC);
                     session.SpaceRpc.RequestDock(Selection.Selected);
                     return true;
 
@@ -1133,7 +1236,7 @@ World Time: {12:F2}
             {
                 return Thn.CameraHandle;
             }
-            else if (dockCameraInfo != null && pilotComponent!.CurrentBehavior == AutopilotBehaviors.Undock)
+            else if (UseDockCamera())
             {
                 return undockCamera;
             }
@@ -1141,6 +1244,17 @@ World Time: {12:F2}
             {
                 return activeCamera;
             }
+        }
+
+        private bool UseDockCamera()
+        {
+            var dockCameraActive = pilotComponent?.DockCameraActive == true;
+            if (dockCameraActive && pilotComponent?.CurrentBehavior == AutopilotBehaviors.Dock)
+                fadeToRoom = true;
+
+            return dockCameraInfo != null &&
+                   (pilotComponent?.CurrentBehavior == AutopilotBehaviors.Undock ||
+                    dockCameraActive);
         }
 
         private bool IsSpecialCamera() => GetCurrentCamera() != activeCamera;
@@ -1198,18 +1312,19 @@ World Time: {12:F2}
                 return;
             }
 
+            contactList.Update(delta);
             if (ShowHud && !IsSpecialCamera())
             {
-                contactList.UpdateList();
                 uiApi.ShieldBatteries =
                     session.Items.FirstOrDefault(x => x.Equipment is ShieldBatteryEquipment)?.Count ?? 0;
                 uiApi.RepairKits =
                     session.Items.FirstOrDefault(x => x.Equipment is RepairKitEquipment)?.Count ?? 0;
             }
 
-            ui.Update(Game);
+            ui.Update(Game, delta);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
             TimeDilatedUpdate(delta);
+            UpdateBestPathRoute(delta);
             UpdateUserWaypointRoute();
             sysrender.Camera = GetCurrentCamera();
 
@@ -1313,7 +1428,7 @@ World Time: {12:F2}
             // Has to be here or glitches
             if (!Dead)
             {
-                if (dockCameraInfo != null && pilotComponent?.CurrentBehavior == AutopilotBehaviors.Undock)
+                if (UseDockCamera())
                 {
                     var tr = dockCameraInfo.DockHardpoint.Transform * dockCameraInfo.Parent.WorldTransform;
                     undockCamera.Update(Game.Width, Game.Height, tr.Position, player.LocalTransform.Position);
@@ -1429,9 +1544,7 @@ World Time: {12:F2}
             {
                 return;
             }
-
-            var pfx = df.Explosion.Effect.GetEffect(FlGame.ResourceManager);
-            sysrender.SpawnTempFx(pfx, obj.WorldTransform.Position);
+            world.SpawnTempFx(df.Explosion.Effect, obj.WorldTransform.Position);
         }
 
         public void StopShip()
@@ -1464,9 +1577,9 @@ World Time: {12:F2}
                 return false;
             }
 
-            var myPos = player.PhysicsComponent!.Body.Position;
-            var myVel = player.PhysicsComponent.Body.LinearVelocity;
-            var otherPos = Selection.Selected.PhysicsComponent.Body.Position;
+            var myPos = player.WorldTransform.Position;
+            var myVel = player.PhysicsComponent!.Body.LinearVelocity;
+            var otherPos = Selection.Selected.WorldTransform.Position;
             var otherVel = Selection.Selected.PhysicsComponent.Body.LinearVelocity;
             var speed = weapons.GetAverageGunSpeed();
             Aiming.GetTargetLeading(otherPos - myPos, otherVel - myVel, speed, out var t);
@@ -1610,7 +1723,7 @@ World Time: {12:F2}
                 _turretViewCamera.PanControls = Vector2.Zero;
             }
 
-            control.CurrentStrafe = strafe;
+            steering.CurrentStrafe = strafe;
 
             var obj = GetMouseSelection();
 
@@ -1728,6 +1841,7 @@ World Time: {12:F2}
             player.GetComponent<ShipPhysicsComponent>()!.Active = false;
             player.GetComponent<WeaponControlComponent>()!.Enabled = false;
             pilotComponent?.Cancel();
+            RefreshActiveUserWaypoint(false);
         }
 
         public void TradelaneDisrupted()
@@ -1792,7 +1906,7 @@ World Time: {12:F2}
         {
             GameObject? result = null;
             var bestDistance = float.MaxValue;
-            var playerPosition = player.PhysicsComponent!.Body.Position;
+            var playerPosition = player.WorldTransform.Position;
             foreach (var obj in world.Objects)
             {
                 if (obj.Kind != GameObjectKind.Waypoint)
@@ -1841,16 +1955,29 @@ World Time: {12:F2}
             RemoveUserWaypoint();
         }
 
-        private void CreateUserWaypoint(Vector3 pos)
+        private void CreateUserWaypoint(StarSystem system, Vector3 pos)
         {
-            session.AddUserWaypoint(pos);
-            if (userWaypoint != null)
-                return;
-
-            ActivateUserWaypoint(pos, false);
+            session.AddUserWaypoint(system, pos);
+            RefreshActiveUserWaypoint(false);
         }
 
-        private void ActivateUserWaypoint(Vector3 pos, bool continueGoto)
+        private bool ComputeBestPathToSelection(StarSystem system, Vector3 pos)
+        {
+            var cruiseSpeed = player.GetFirstChildComponent<CEngineComponent>()?.Engine.CruiseSpeed ?? 300f;
+            if (!session.ComputeBestPathToSelection(sys, player.WorldTransform.Position, system, pos, cruiseSpeed))
+                return false;
+            RefreshActiveUserWaypoint(false, false);
+            return true;
+        }
+
+        private void RefreshActiveUserWaypoint(bool continueGoto, bool selectWaypoint = true)
+        {
+            RemoveUserWaypoint();
+            if (session.TryGetActiveUserWaypoint(sys.CRC, out var waypoint))
+                ActivateUserWaypoint(waypoint.Position, continueGoto, selectWaypoint);
+        }
+
+        private void ActivateUserWaypoint(Vector3 pos, bool continueGoto, bool selectWaypoint)
         {
             var waypointArch = Game.GameData.Items.Archetypes.Get("waypoint")!;
             userWaypoint = new GameObject(waypointArch, null, Game.ResourceManager)
@@ -1862,7 +1989,8 @@ World Time: {12:F2}
             world.AddObject(userWaypoint);
             userWaypoint.Register(world);
 
-            Selection.Selected = userWaypoint;
+            if (selectWaypoint)
+                Selection.Selected = userWaypoint;
             if (continueGoto)
             {
                 pilotComponent!.GotoObject(userWaypoint, GotoKind.Goto);
@@ -1872,6 +2000,13 @@ World Time: {12:F2}
         private void UpdateUserWaypointRoute()
         {
             if (paused || Dead || userWaypoint == null)
+            {
+                return;
+            }
+
+            if (!session.TryGetActiveUserWaypoint(sys.CRC, out var activeWaypoint) ||
+                (activeWaypoint.Kind != UserWaypointKind.ManualDestination &&
+                 activeWaypoint.Kind != UserWaypointKind.TradelaneExit))
             {
                 return;
             }
@@ -1888,17 +2023,28 @@ World Time: {12:F2}
             // so their ship doesnt stop at the waypoints. False for now since its not vanilla,
             // left it here because its interesting for testing.
             const bool continueGoto = false;
-            RemoveUserWaypoint();
             session.RemoveActiveUserWaypoint();
-            if (session.TryGetActiveUserWaypoint(out var nextPosition))
-            {
-                ActivateUserWaypoint(nextPosition, continueGoto);
-            }
+            RefreshActiveUserWaypoint(continueGoto);
+        }
+
+        private void UpdateBestPathRoute(double delta)
+        {
+            if (paused || Dead || session.InTradelane || !session.BestPathActive)
+                return;
+
+            bestPathRecheckTimer += delta;
+            if (bestPathRecheckTimer < 1.0)
+                return;
+            bestPathRecheckTimer = 0;
+
+            var cruiseSpeed = player.GetFirstChildComponent<CEngineComponent>()?.Engine.CruiseSpeed ?? 300f;
+            if (session.RecalculateBestPath(sys, player.WorldTransform.Position, cruiseSpeed))
+                RefreshActiveUserWaypoint(false, false);
         }
 
         private void UpdateWaypointRenderStyle()
         {
-            var playerPosition = player.PhysicsComponent!.Body.Position;
+            var playerPosition = player.WorldTransform.Position;
             foreach (var obj in world.Objects)
             {
                 if (obj.Kind != GameObjectKind.Waypoint)
@@ -2101,7 +2247,7 @@ World Time: {12:F2}
                     else
                     {
                         selObj =
-                            Selection.Selected.Name?.GetName(Game.GameData, player.PhysicsComponent!.Body.Position) ??
+                            Selection.Selected.Name?.GetName(Game.GameData, player.WorldTransform.Position) ??
                             "unknown object";
                     }
 
@@ -2115,8 +2261,13 @@ World Time: {12:F2}
                     control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
                 ImGui.Text(text);
                 ImGui.Text($"Player Position: {player.WorldTransform.Position}");
-                ImGui.InputFloat("FOV Value", ref _chaseCamera.FovX);
+                ImGui.Text($"PredictionErrorPos: {player.PhysicsComponent!.PredictionErrorPos}");
+                ImGui.Text($"PredictionErrorQuat: {player.PhysicsComponent!.PredictionErrorQuat} ({MathHelper.QuatError(
+                    player.PhysicsComponent!.PredictionErrorQuat, Quaternion.Identity)})");
+                ImGui.Separator();
+                pilotComponent?.ImGuiDebug();
                 ImGui.Text($"crosshairHit: {crosshairHit}");
+                ImGui.Separator();
                 var dbgT = session.GetSelectedDebugInfo();
 
                 if (!string.IsNullOrWhiteSpace(dbgT))
@@ -2127,6 +2278,19 @@ World Time: {12:F2}
                 if (Selection.Selected?.PhysicsComponent?.Body?.Collider is ConvexMeshCollider cvx)
                 {
                     ImGui.Text($"selected compound children: {cvx.BepuChildCount}");
+                }
+
+                if (Selection.Selected != null)
+                {
+                    if (Selection.Selected.TryGetComponent<ShipControlAccessComponent>(out var sca))
+                    {
+                        ImGui.Text($"selected throttle: {sca.EnginePower}");
+                        ImGui.Text("received controls (if ship is in a formation)");
+                        ImGui.Text($"steering: {sca.Steering}");
+                        ImGui.Text($"strafe: {sca.CurrentStrafe}");
+                        ImGui.Text($"engine state: {sca.EngineState}");
+                    }
+                    ImGui.Text($"selected linear velocity: {Selection.Selected.PhysicsComponent?.Body?.LinearVelocity}");
                 }
 
                 ImGui.Text($"input queue: {session.UpdateQueueCount}");
@@ -2159,6 +2323,8 @@ World Time: {12:F2}
                 {
                     ImGui.Text($"Server Tick: {session.EmbeddedServer!.Server.CurrentTick}");
                 }
+
+                ImGui.Checkbox("Draw autopilot avoidance", ref world.RenderAutopilotDebug);
 
                 bool hasDebug = world.Physics!.DebugRenderer != null;
                 ImGui.Checkbox("Draw hitboxes", ref hasDebug);
@@ -2247,7 +2413,7 @@ World Time: {12:F2}
             return (pos, angle);
         }
 
-        private void DrawSelectedArrow(GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        private void DrawSelectedArrow(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var rep = GetRepToPlayer(obj) switch
             {
@@ -2257,12 +2423,12 @@ World Time: {12:F2}
             };
             var (arrowPos, angle) = ArrowPosition(pos);
             uiApi.SelectedArrow?.Draw(
-                context, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
+                context, delta, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
                 angle, rep, (obj.Flags & GameObjectFlags.Important) != 0
             );
         }
 
-        private void DrawUnselectedArrow(GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        private void DrawUnselectedArrow(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
         {
             var rep = GetRepToPlayer(obj) switch
             {
@@ -2272,18 +2438,18 @@ World Time: {12:F2}
             };
             var (arrowPos, angle) = ArrowPosition(pos);
             uiApi.UnselectedArrow?.Draw(
-                context, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
+                context, delta, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
                 angle, rep, 0.5f, (obj.Flags & GameObjectFlags.Important) != 0
             );
         }
 
-        private void DrawShipReticle(GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
+        private void DrawShipReticle(double delta, GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
         {
             // var rep = GetRepToPlayer(obj);
 
         }
 
-        private void DrawWaypoint(GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle, bool selected)
+        private void DrawWaypoint(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle, bool selected)
         {
             var size = WaypointSelectionStartSize;
             if (selected)
@@ -2303,14 +2469,14 @@ World Time: {12:F2}
             }
             var alpha = selected ? 1f : 0.85f;
             uiApi.Waypoint?.Draw(
-                context, drawList, parentRectangle,
+                context, delta, drawList, parentRectangle,
                 ui.PixelsToPoints(pos.X) - (size / 2f),
                 ui.PixelsToPoints(pos.Y) - (size / 2f),
                 size, alpha
             );
         }
 
-        private void IndicatorLayerOnRender(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        private void IndicatorLayerOnRender(UiContext context, double delta, DrawList2D drawList, RectangleF clientRectangle)
         {
             foreach (var obj in world.Objects)
             {
@@ -2326,10 +2492,10 @@ World Time: {12:F2}
                     {
                         case false when (obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
                                         (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important:
-                            DrawUnselectedArrow(obj, pos, context, drawList, parentRectangle);
+                            DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
                             break;
                         case true:
-                            DrawShipReticle(obj, pos, context, parentRectangle);
+                            DrawShipReticle(delta, obj, pos, context, clientRectangle);
                             break;
                     }
 
@@ -2340,16 +2506,16 @@ World Time: {12:F2}
 
                     if (visible)
                     {
-                        DrawWaypoint(obj, pos, context, drawList, parentRectangle, false);
+                        DrawWaypoint(delta, obj, pos, context, drawList, clientRectangle, false);
                         uiApi.WaypointLabel?.Draw(
-                            context, drawList, parentRectangle,
+                            context, delta, drawList, clientRectangle,
                             ui.PixelsToPoints(pos.X) - 45f,
                             ui.PixelsToPoints(pos.Y) - (WaypointSelectionStartSize / 2f) - 17f
                         );
                     }
                     else
                     {
-                        DrawUnselectedArrow(obj, pos, context, drawList, parentRectangle);
+                        DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
                     }
                 }
                 else if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
@@ -2359,7 +2525,7 @@ World Time: {12:F2}
 
                     if (!visible)
                     {
-                        DrawUnselectedArrow(obj, pos, context, drawList, parentRectangle);
+                        DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
                     }
                 }
             }
@@ -2374,7 +2540,7 @@ World Time: {12:F2}
             var (selectedPos, selectedVisible) = ScreenPosition(selected);
             if (selectedVisible && selected.Kind == GameObjectKind.Waypoint)
             {
-                DrawWaypoint(selected, selectedPos, context, drawList, parentRectangle, true);
+                DrawWaypoint(delta, selected, selectedPos, context, drawList, clientRectangle, true);
             }
             else
             {
@@ -2382,7 +2548,7 @@ World Time: {12:F2}
 
                 if (!selectedVisible)
                 {
-                    DrawSelectedArrow(selected, selectedPos, context, drawList, parentRectangle);
+                    DrawSelectedArrow(delta, selected, selectedPos, context, drawList, clientRectangle);
                 }
             }
         }

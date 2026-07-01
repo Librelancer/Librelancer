@@ -82,7 +82,7 @@ public partial class Ship
     [Entry("bay_doors_close_snd")]
     public string? BayDoorsCloseSound;
     [Entry("mission_property")]
-    public string? MissionProperty;
+    public ShipMissionProperty MissionProperty;
     [Entry("linear_drag")]
     public float LinearDrag = 1f;
     [Entry("cockpit")]

@@ -27,10 +27,12 @@ public class XmlObjectMap
 public class UiXmlLoader
 {
     public InterfaceResources Resources;
+    public Stylesheet? Stylesheet;
 
-    public UiXmlLoader(InterfaceResources res)
+    public UiXmlLoader(InterfaceResources res, Stylesheet? stylesheet)
     {
         Resources = res;
+        this.Stylesheet = stylesheet;
     }
 
     private static bool PrimitiveList(PropertyInfo property, XElement element, Type type,
@@ -282,6 +284,10 @@ public class UiXmlLoader
                 else if (ptype == typeof(InterfaceImage) && interfaceImages.TryGetValue(attr.Value, out var image))
                 {
                     value = image;
+                }
+                else if (typeof(XmlStyle).IsAssignableFrom(ptype) && Stylesheet != null)
+                {
+                    value = Stylesheet.Styles.Get(attr.Value);
                 }
                 else if (ptype == typeof(string))
                 {

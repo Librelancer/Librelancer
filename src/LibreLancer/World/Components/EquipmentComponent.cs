@@ -12,7 +12,6 @@ public class EquipmentComponent : GameComponent
 
     public NetShipCargo GetDescription(int id = 0)
     {
-        var hp = Parent.Attachment?.Name ?? "internal";
         var health = (byte)255;
         if (Parent.TryGetComponent<SHealthComponent>(out var component) && component.MaxHealth > 0)
         {
@@ -20,7 +19,7 @@ public class EquipmentComponent : GameComponent
             health = (byte)Math.Clamp(value, 0, 255);
         }
 
-        return new NetShipCargo(id, Equipment.CRC, hp, health, 1);
+        return new NetShipCargo(id, Equipment.CRC, Parent.Attachment?.Name ?? "internal", health, 1);
     }
 
     public LoadoutItem GetLoadoutItem()

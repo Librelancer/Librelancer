@@ -44,7 +44,7 @@ namespace LibreLancer.Interface
             accessoryModel = comm.AccessoryModel;
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
             if (!Visible)
             {
@@ -56,15 +56,12 @@ namespace LibreLancer.Interface
                 return;
             }
 
-            var rect = GetMyRectangle(context, parentRectangle);
-            Background?.Draw(context, drawList, rect);
-
+            Background?.Draw(context, drawList, ClientRectangle);
             if (Skeleton != null)
             {
-                drawList.AddCallback(_ => { Draw3DViewport(context, rect); });
+                drawList.AddCallback(_ => { Draw3DViewport(context, ClientRectangle); });
             }
-
-            Border?.Draw(context, drawList, rect);
+            Border?.Draw(context, drawList, ClientRectangle);
         }
 
         private ICamera View(UiContext context, RectangleF rect)
@@ -137,15 +134,20 @@ namespace LibreLancer.Interface
             0f, -0.615f, 2.15f, 1f
         );
 
+        public override void Update(UiContext context, double delta)
+        {
+            base.Update(context, delta);
+            Skeleton?.UpdateScripts(delta);
+        }
+
         protected override void Draw3DContent(UiContext context, RectangleF rect)
         {
-            Skeleton!.UpdateScripts(context.DeltaTime);
             context.CommandBuffer.StartFrame(context.RenderContext);
 
             var bodyTransform = !HeadOnly ? Matrix4x4.Identity :
                 male ? TransformMale : TransformFemale;
 
-            Skeleton.GetTransforms(bodyTransform,
+            Skeleton!.GetTransforms(bodyTransform,
                 out var headTransform,
                 out var leftTransform,
                 out var rightTransform

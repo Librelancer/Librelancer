@@ -29,6 +29,7 @@ namespace LibreLancer.World
     {
         public readonly PhysicsWorld? Physics;
         public readonly SystemRenderer? Renderer;
+        public readonly SoundManager? Sounds;
         public readonly ProjectileManager Projectiles = null!;
 
         public ServerWorld? Server;
@@ -43,13 +44,14 @@ namespace LibreLancer.World
         public readonly SpatialLookup SpatialLookup = new();
 
         private Func<double>? timeSource;
+        private readonly ResourceManager? resources;
 
         static GameWorld()
         {
             EquipmentHandlers.Register();
         }
 
-        public GameWorld(SystemRenderer? render, ResourceManager resources, Func<double>? timeSource,
+        public GameWorld(SystemRenderer? render, SoundManager? sounds, ResourceManager? resources, Func<double>? timeSource,
             bool initPhys = true)
         {
             if (initPhys)
@@ -58,6 +60,8 @@ namespace LibreLancer.World
             }
 
             this.timeSource = timeSource;
+            this.Sounds = sounds;
+            this.resources = resources;
 
             if (render != null)
             {
@@ -73,6 +77,19 @@ namespace LibreLancer.World
             if (initPhys)
             {
                 Projectiles = new ProjectileManager(this);
+            }
+        }
+
+        public void SpawnTempFx(ResolvedFx? fx, Vector3 position)
+        {
+            if (fx == null || Renderer == null || resources == null)
+                return;
+            var particle = fx.GetEffect(resources);
+            Renderer.SpawnTempFx(particle, position);
+            if (fx.Sound != null && Sounds != null)
+            {
+                var snd = Sounds.GetInstance(fx.Sound.Nickname, 0, -1, -1, position);
+                snd?.Play();
             }
         }
 
@@ -185,7 +202,7 @@ namespace LibreLancer.World
             if (Renderer != null)
             {
                 AddObject((new GameObject()
-                    { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
+                { Nickname = "projectiles", RenderComponent = new ProjectileRenderer(Projectiles) }));
             }
 
             Func<int>? netId = null;
@@ -222,9 +239,16 @@ namespace LibreLancer.World
                 AddObject(g);
                 g.Register(this);
             }
-
-            GC.Collect();
         }
+        public List<SystemRenderer.DebugLine> DebugLines = new List<SystemRenderer.DebugLine>();
+        public bool RenderAutopilotDebug = false;
+
+        public void DrawDebugLine(Vector3 start, Vector3 end, Color4 color)
+        {
+            if (RenderAutopilotDebug)
+                DebugLines.Add(new SystemRenderer.DebugLine(start, end, color));
+        }
+
 #if DEBUG
         public List<Vector3> DebugPoints = new List<Vector3>();
         public bool RenderDebugPoints = false;
@@ -321,7 +345,7 @@ namespace LibreLancer.World
                 objects[i].Update(t, this);
             }
 
-            Physics?.StepSimulation((float) t);
+            Physics?.StepSimulation((float)t);
 
             for (int i = 0; i < objects.Count; i++)
             {
@@ -344,6 +368,7 @@ namespace LibreLancer.World
 #if DEBUG
             Renderer?.UseDebugPoints(DebugPoints);
 #endif
+            Renderer?.UseDebugLines(DebugLines);
             Renderer?.Update(t);
 
             foreach (var obj in objects)

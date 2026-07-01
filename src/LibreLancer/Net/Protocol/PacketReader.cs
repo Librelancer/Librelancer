@@ -10,16 +10,12 @@ namespace LibreLancer.Net.Protocol;
 public struct PacketReader
 {
     private NetDataReader reader;
-    private NetHpidReader? hpids;
-
-    public NetHpidReader? HpidReader => hpids;
 
     public int Size => reader.RawDataSize;
 
-    public PacketReader(NetDataReader reader, NetHpidReader? hpids = null)
+    public PacketReader(NetDataReader reader)
     {
         this.reader = reader;
-        this.hpids = hpids;
     }
 
     public bool TryGetDisconnectReason(out DisconnectReason reason)
@@ -322,15 +318,6 @@ public struct PacketReader
             1 => "",
             _ => StringSquash.StringSquasher.Unpack(GetBytes((int) (len - 1)))
         };
-    }
-
-    public string? GetHpid()
-    {
-        if (hpids == null) throw new InvalidOperationException();
-        var idx = GetVariableUInt32();
-        if (idx == 0) return null;
-        else if (idx == 1) return "";
-        else return hpids.GetString(idx - 2);
     }
 
     public bool GetBool() => reader.GetBool();

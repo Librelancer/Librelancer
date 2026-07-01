@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices.JavaScript;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData.Items;
 
 namespace LibreLancer.World.Components
@@ -108,7 +109,7 @@ namespace LibreLancer.World.Components
 
                 if (!string.IsNullOrEmpty(hp))
                 {
-                    world.Projectiles.QueueMissile(hp, target ?? GetTarget());
+                    world.Projectiles.QueueMissile(Parent.Attachment.CRC, target ?? GetTarget());
                 }
                 else
                 {

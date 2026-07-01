@@ -36,12 +36,11 @@ namespace LibreLancer.Interface
             Tint = tint;
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, float alpha)
+        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
         {
             if (!Enabled || Image == null) return;
             if (!CanRender(context)) return;
-            var color = (Tint ?? InterfaceColor.White).GetColor(context.GlobalTime);
-            color.A *= alpha;
+            var color = (Tint ?? InterfaceColor.White).GetColor(context.GlobalTime) * tint;
             var blendMode = OneInvSrcColor ? BlendMode.OneInvSrcColor : BlendMode.Normal;
             clientRectangle.Width *= ScaleX;
             clientRectangle.Height *= ScaleY;

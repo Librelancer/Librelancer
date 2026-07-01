@@ -13,14 +13,12 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ListBox : UiWidget
     {
-        public Scrollbar Scrollbar = new() { Smooth = false };
-
         public float ItemHeight { get; set; } = 30;
         public float ItemWidth { get; set; }
-        public float ScrollbarWidth { get; set; }
-        public float ScrollbarInsetY { get; set; }
         public bool OverlayScrollbar { get; set; } = false;
         public bool AlwaysShowScrollbar { get; set; } = false;
+
+        public Scrollbar Scrollbar { get; set; } = new();
 
         [UiContent]
         public List<ListItem> Children { get; set; } = [];
@@ -67,98 +65,103 @@ namespace LibreLancer.Interface
         {
             foreach (var c in Children) c.Selected = false;
         }
+        private int currScrollCount;
+        private int lastScroll = 0;
 
-        private int _lastScroll = 0;
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Update(UiContext context, double delta)
         {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            Background?.Draw(context, drawList, myRectangle);
-            // Update scrolling
+            base.Update(context, delta);
+            Scrollbar.Visible = AlwaysShowScrollbar || currScrollCount > 0;
+            Scrollbar.Update(context, delta);
             int scrollCount = ScrollCount();
             if (scrollCount <= 0) {
                 childOffset = 0;
                 Scrollbar.ScrollOffset = 0;
                 Scrollbar.Tick = 0;
                 Scrollbar.ThumbSize = 1;
-                _lastScroll = 0;
-            } else if (scrollCount != _lastScroll) {
-                _lastScroll = scrollCount;
+                lastScroll = 0;
+            } else if (scrollCount != lastScroll) {
+                lastScroll = scrollCount;
                 Scrollbar.ThumbSize = 1.0f - (Math.Min(scrollCount, 9) * 0.1f);
                 Scrollbar.Tick = 1.0f / scrollCount;
                 Scrollbar.ScrollOffset = childOffset / (float) scrollCount;
             } else {
                 childOffset = (int)(Scrollbar.ScrollOffset * scrollCount);
             }
-
+            currScrollCount = scrollCount;
+            // Update visible children
             for(int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
             {
                 var child = Children[i];
-                var scrollVisible = scrollCount > 0 || AlwaysShowScrollbar;
-                var scrollbarWidth = ScrollbarWidth > 0 ? ScrollbarWidth : Scrollbar.Style!.Width;
+                child.Update(context, delta);
+            }
+        }
+
+        public override void OnLayout(UiContext context, Layout layout, double delta)
+        {
+            base.OnLayout(context, layout, delta);
+
+            var self = new Layout(ClientRectangle);
+            Scrollbar.OnLayout(context, self, delta);
+            for(int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
+            {
+                var child = Children[i];
+                var scrollVisible = currScrollCount > 0 || AlwaysShowScrollbar;
+                var scrollbarWidth = Scrollbar.ClientRectangle.Width;
                 child.Height = ItemHeight;
                 child.Width = Math.Max(ItemWidth > 0 ? ItemWidth :
                     Width - ((scrollVisible && !OverlayScrollbar) ? scrollbarWidth + 2 : 0), 3);
                 child.X = 0;
                 child.Y = ItemHeight * (i - childOffset);
-                child.Render(context, drawList, myRectangle);
-            }
-            if(scrollCount > 0 || AlwaysShowScrollbar)
-                Scrollbar.Render(context, drawList, myRectangle);
-            Border?.Draw(context, drawList, myRectangle);
-        }
-
-        public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
-        {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            if(myRectangle.Contains(context.MouseX, context.MouseY))
-                Scrollbar.OnMouseWheel(delta);
-        }
-
-        public override void ApplyStylesheet(Stylesheet sheet)
-        {
-            Scrollbar.ApplyStyle(sheet);
-            Scrollbar.WidthOverride = ScrollbarWidth;
-            Scrollbar.InsetY = ScrollbarInsetY;
-            base.ApplyStylesheet(sheet);
-            foreach(var item in Children)
-                item.ApplyStylesheet(sheet);
-        }
-
-        public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
-        {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            if(_lastScroll > 0 || AlwaysShowScrollbar)
-                Scrollbar.OnMouseDown(context, myRectangle);
-            for (int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
-            {
-                Children[i].OnMouseDown(context, myRectangle);
+                child.OnLayout(context, self, delta);
             }
         }
 
-        public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            if(_lastScroll > 0 || AlwaysShowScrollbar)
-                Scrollbar.OnMouseUp(context, myRectangle);
+            Background?.Draw(context, drawList, ClientRectangle);
+            // Update scrolling
+            for(int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
+            {
+                var child = Children[i];
+                child.Render(context, delta, drawList);
+            }
+
+            if (currScrollCount > 0 || AlwaysShowScrollbar)
+                Scrollbar.Render(context, delta, drawList);
+            Border?.Draw(context, drawList, ClientRectangle);
+        }
+
+        public override void OnMouseWheel(UiContext context, float delta)
+        {
+            if(ClientRectangle.Contains(context.MouseX, context.MouseY))
+                Scrollbar.OnMouseWheel(context, delta);
+        }
+
+        public override void OnMouseDown(UiContext context)
+        {
+            Scrollbar.OnMouseDown(context);
             for (int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
             {
-                Children[i].OnMouseUp(context, myRectangle);
+                Children[i].OnMouseDown(context);
             }
         }
 
-        public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseUp(UiContext context)
         {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            var myRectangle = new RectangleF(myPos.X,myPos.Y, Width, Height);
-            if(_lastScroll > 0 || AlwaysShowScrollbar)
-                Scrollbar.OnMouseUp(context, myRectangle);
+            Scrollbar.OnMouseUp(context);
             for (int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
             {
-                Children[i].OnMouseClick(context, myRectangle);
+                Children[i].OnMouseUp(context);
+            }
+        }
+
+        public override void OnMouseClick(UiContext context)
+        {
+            Scrollbar.OnMouseUp(context);
+            for (int i = childOffset; i < childOffset + MaxDisplayChildren() && i < Children.Count; i++)
+            {
+                Children[i].OnMouseClick(context);
                 if (i >= Children.Count) break;
                 if (Children[i].DoSelect) {
                     UnselectAll();

@@ -10,7 +10,7 @@ namespace BuildLL
         public static bool UseWebhook => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("WEBHOOK_URL"));
         public static void AppveyorDiscordWebhook(string message)
         {
-            if (!TryGetEnv("WEBHOOK_URL", out string url)) {
+            if (!TryGetEnv("WEBHOOK_URL", out var url)) {
                 Console.WriteLine("WEBHOOK_URL not set");
                 return;
             }

@@ -368,8 +368,7 @@ namespace LibreLancer
                     {
                         state.FadeOut(0.2, () =>
                         {
-                            netClient!.Disconnected += (reason) => netSession.Disconnected();
-                            netClient.Disconnected -= NetClientOnDisconnected;
+                            netClient!.Disconnected -= NetClientOnDisconnected;
                             netClient = null;
                             state.Game.ChangeState(new NetWaitState(netSession, state.Game));
                         });
@@ -456,7 +455,7 @@ namespace LibreLancer
         private bool newUI = false;
         public override void Update(double delta)
         {
-            ui.Update(Game);
+            ui.Update(Game, delta);
             Game.TextInputEnabled = ui.KeyboardGrabbed;
             scene?.UpdateViewport(Game.RenderContext.CurrentViewport, (float) Game.Width / Game.Height);
             scene?.Update(delta);

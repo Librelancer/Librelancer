@@ -68,17 +68,15 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
-            base.Render(context, drawList, parentRectangle);
-            var rect = GetMyRectangle(context, parentRectangle);
-            if (rect.Width <= 0 || rect.Height <= 0) return;
-            Background?.Draw(context, drawList, rect);
+            if (ClientRectangle.Width <= 0 || ClientRectangle.Height <= 0) return;
+            Background?.Draw(context, drawList, ClientRectangle);
             LoadModel(context);
             if (model != null) {
-                drawList.AddCallback(_ => Draw3DViewport(context, rect));
+                drawList.AddCallback(_ => Draw3DViewport(context, ClientRectangle));
             }
-            Border?.Draw(context, drawList, rect);
+            Border?.Draw(context, drawList, ClientRectangle);
         }
 
         protected override void Draw3DContent(UiContext context, RectangleF rect)

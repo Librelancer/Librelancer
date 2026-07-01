@@ -26,34 +26,33 @@ namespace LibreLancer.World.Components
 		CruiseCharging,
 		Cruise,
 	}
-    public class ShipPhysicsComponent : GameComponent
+    public class ShipPhysicsComponent : ShipControlAccessComponent
     {
         public bool Active { get; set; }
 
         public Ship Ship;
-        public float EnginePower = 0f; // from 0 to 1
-                                       // TODO: I forget how this is configured in .ini files. Constants.ini?
-                                       // Some mods have a per-ship (engine?) cruise speed. Check how this is implemented, and include as native feature.
         public bool ThrustEnabled = false;
         private bool cruiseEnabled = false;
         private bool previousCruiseEnabled = false;
-        public bool CruiseEnabled
+        public override bool CruiseEnabled
         {
             get => cruiseEnabled;
             set => cruiseEnabled = value;
         }
         public float CruiseSpeedOffset = 0;
         public bool EngineKillEnabled = false;
-        public EngineStates EngineState { get; private set; }
-        public StrafeControls CurrentStrafe = StrafeControls.None;
         public float ChargePercent;
-        public Vector3 Steering;
         public float CruiseAccelPct = 0;
 
         public ShipPhysicsComponent(GameObject parent, Ship ship) : base(parent)
         {
             Active = true;
             Ship = ship;
+        }
+
+        public override void SetEngineState(EngineStates es)
+        {
+            throw new InvalidOperationException("Cannot force EngineState on sim object");
         }
 
         // TODO: Engine Kill
@@ -258,32 +257,18 @@ namespace LibreLancer.World.Components
             }
 
             Vector3 strafe = Vector3.Zero;
-            // TODO: Trying to strafe during cruise should drop you out
-            if (EngineState != EngineStates.Cruise) // Cannot strafe during cruise
+            var strafeControl = StrafeControlsToVector(CurrentStrafe);
+            if (strafeControl.LengthSquared() > 1f)
             {
-                if ((CurrentStrafe & StrafeControls.Left) == StrafeControls.Left)
-                {
-                    strafe -= Vector3.UnitX;
-                }
-                else if ((CurrentStrafe & StrafeControls.Right) == StrafeControls.Right)
-                {
-                    strafe += Vector3.UnitX;
-                }
-                if ((CurrentStrafe & StrafeControls.Up) == StrafeControls.Up)
-                {
-                    strafe += Vector3.UnitY;
-                }
-                else if ((CurrentStrafe & StrafeControls.Down) == StrafeControls.Down)
-                {
-                    strafe -= Vector3.UnitY;
-                }
-                if (strafe != Vector3.Zero)
-                {
-                    strafe.Normalize();
-                    strafe = Parent.PhysicsComponent.Body.RotateVector(strafe);
-                    // Apply strafe force
-                    strafe *= Ship.StrafeForce;
-                }
+                strafeControl = Vector2.Normalize(strafeControl);
+            }
+
+            if (strafeControl != Vector2.Zero)
+            {
+                strafe = new Vector3(strafeControl.X, strafeControl.Y, 0);
+                strafe = Parent.PhysicsComponent.Body.RotateVector(strafe);
+                // Apply strafe force
+                strafe *= Ship.StrafeForce;
             }
             var totalForce = (
                 drag +
@@ -295,6 +280,28 @@ namespace LibreLancer.World.Components
             // Add forces
             Parent.PhysicsComponent.Body.AddForce(totalForce);
             Parent.PhysicsComponent.Body.AddTorque(angularForce);
+        }
+
+        public static Vector2 StrafeControlsToVector(StrafeControls controls)
+        {
+            var strafe = Vector2.Zero;
+            if ((controls & StrafeControls.Left) == StrafeControls.Left)
+            {
+                strafe.X -= 1;
+            }
+            else if ((controls & StrafeControls.Right) == StrafeControls.Right)
+            {
+                strafe.X += 1;
+            }
+            if ((controls & StrafeControls.Up) == StrafeControls.Up)
+            {
+                strafe.Y += 1;
+            }
+            else if ((controls & StrafeControls.Down) == StrafeControls.Down)
+            {
+                strafe.Y -= 1;
+            }
+            return strafe;
         }
 
     }

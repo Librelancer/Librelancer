@@ -37,6 +37,8 @@ namespace LibreLancer.Server
 {
     public class Player : IServerPlayer
     {
+        private const float DefaultVisitDistance = 10000f;
+
         // ID
         public int ID = 0;
 
@@ -44,7 +46,6 @@ namespace LibreLancer.Server
 
         // Reference
         public IPacketClient Client;
-        public NetHpidReader HpidReader = new();
         public GameServer Game;
         public SpacePlayer? Space;
         public BasesidePlayer? Baseside;
@@ -205,6 +206,12 @@ namespace LibreLancer.Server
         }
 
         public MissionRuntime? MissionRuntime => msnRuntime;
+
+        public bool AllowFreetimePopulation =>
+            Story?.CurrentStory == null ||
+            Story.CurrentMission == null ||
+            Story.CurrentStory.CashUp > 0 ||
+            Story.CurrentStory.Nickname.EndsWith("_loaded", StringComparison.OrdinalIgnoreCase);
 
         public void AddRTC(string rtc)
         {
@@ -398,7 +405,8 @@ namespace LibreLancer.Server
                 {
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
                         Orientation, world.CurrentTick);
-                    world.SpawnPlayer(this, Position, Orientation);
+                    var pship = world.SpawnPlayer(this, Position, Orientation);
+                    world.Population.PopulateInitialAroundPlayer(pship);
 
                     // Ensure mission runtime is properly initialized when spawning in space
                     HandleSpaceEntry();
@@ -657,9 +665,7 @@ namespace LibreLancer.Server
         }
 
         public bool SinglePlayer => Client is LocalPacketClient;
-
-        public NetHpidWriter? HpidWriter => (Client as RemotePacketClient)?.Hpids;
-
+        
         public void SendSPUpdate(SPUpdatePacket update) =>
             Client.SendPacket(update, PacketDeliveryMethod.SequenceA);
 
@@ -853,7 +859,26 @@ namespace LibreLancer.Server
             }
         }
 
-        public void VisitObject(SystemObject obj, uint hash)
+        public static float GetVisitDistance(SystemObject obj) =>
+            MathF.Max(DefaultVisitDistance, (obj.Archetype?.SolarRadius ?? 0f) + DefaultVisitDistance);
+
+        public void VisitZone(StarSystem system, Zone zone)
+        {
+            if ((zone.VisitFlags & VisitFlags.Hidden) == VisitFlags.Hidden || Character == null)
+                return;
+
+            var hash = FLHash.CreateID(zone.Nickname);
+            var needsFlag = (Character.GetVisitFlags(hash) & VisitFlags.Visited) != VisitFlags.Visited;
+            if (!needsFlag)
+                return;
+
+            VisitSystem(system);
+            using var ts = Character.BeginTransaction();
+            ts.UpdateVisitFlags(hash, zone.VisitFlags | VisitFlags.Visited);
+            rpcClient.VisitObject(hash, (byte)(zone.VisitFlags | VisitFlags.Visited));
+        }
+
+        public void VisitObject(StarSystem system, SystemObject obj, uint hash)
         {
             if ((obj.Visit & VisitFlags.Hidden) ==
                 VisitFlags.Hidden)
@@ -879,6 +904,7 @@ namespace LibreLancer.Server
 
             if (needsFlag || needsList)
             {
+                VisitSystem(system);
                 using var ts = Character.BeginTransaction();
 
                 if (needsFlag)
@@ -1202,7 +1228,8 @@ namespace LibreLancer.Server
                 {
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
                         Orientation, world.CurrentTick);
-                    world.SpawnPlayer(this, Position, Orientation);
+                    var pship = world.SpawnPlayer(this, Position, Orientation);
+                    world.Population.PopulateInitialAroundPlayer(pship);
                     HandleSpaceEntry();
                     msnRuntime?.SystemEnter(system, "Player");
                 });
@@ -1255,8 +1282,18 @@ namespace LibreLancer.Server
 
                     if (undockFrom?.TryGetComponent(out sd) ?? false)
                     {
-                        undockIndex = sd!.GetUndockIndex();
-                        var tr = sd.GetSpawnPoint(undockIndex);
+                        if (!sd!.TryReserveUndockIndex(out undockIndex))
+                        {
+                            FLLog.Warning("Server", $"Could not reserve spawn point for {undockFrom}");
+                            return;
+                        }
+
+                        if (!sd.TryGetSpawnPoint(undockIndex, out var tr))
+                        {
+                            sd.ReleaseUndockIndex(undockIndex);
+                            FLLog.Warning("Server", $"Could not get spawn point {undockIndex} for {undockFrom}");
+                            return;
+                        }
                         Position = tr.Position;
                         Orientation = tr.Orientation;
                     }
@@ -1268,11 +1305,12 @@ namespace LibreLancer.Server
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
                         Orientation, world.CurrentTick);
                     var pship = world.SpawnPlayer(this, Position, Orientation);
+                    world.Population.PopulateInitialAroundPlayer(pship);
 
                     if (undockFrom != null)
                     {
-                        rpcClient.UndockFrom(undockFrom, undockIndex);
                         sd!.UndockShip(pship, world.GameWorld, undockIndex);
+                        rpcClient.UndockFrom(undockFrom, undockIndex);
 
                     }
 

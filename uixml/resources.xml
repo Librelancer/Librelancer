@@ -209,10 +209,12 @@
   <Model name="nav_labels" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_labels.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
   <Model name="nav_filter_political" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_filter_political.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
   <Model name="nav_filter_physical" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_filter_physical.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+  <Model name="nav_gotoship" path="INTERFACE/NEURONET/INVENTORY/gotoship.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
   <Model name="nav_selector" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_selector.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
   <Model name="nav_zoomin" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_zoomin.cmp" x="0" y="0" xscale="72" yscale="72" xz-plane="false" />
   <Model name="nav_zoomout" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_zoomout.cmp" x="0" y="0" xscale="72" yscale="72" xz-plane="false" />
   <Model name="nav_addwaypoint" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_addwaypoint.cmp" x="0" y="0" xscale="72" yscale="72" xz-plane="false" />
+  <Model name="nav_shortestpath" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/nav_shortestpath.cmp" x="0" y="0" xscale="72" yscale="72" xz-plane="false" />
   <Model name="nav_star" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/SPACEOBJECTS/nav_star.3db" x="0" y="0" xscale="104" yscale="104" xz-plane="false" />
   <Model name="nav_waypointdiamond" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/SPACEOBJECTS/nav_waypointdiamond.3db" x="0" y="0" xscale="35" yscale="35" xz-plane="false" />
   <Model name="waypoint0" path="INTERFACE/NEURONET/NAVMAP/NEWNAVMAP/waypoint0.3db" x="0" y="0" xscale="50" yscale="72" xz-plane="false" />
@@ -231,6 +233,7 @@
   <Model name="inv_trade_background" path="INTERFACE/NEURONET/INVENTORY/inv_biginforcard.cmp" x="-1" y="0.973" xscale="1.55" yscale="2.4" xz-plane="false" />
   <Model name="inv_sellarrow.3db" path="INTERFACE/NEURONET/INVENTORY/inv_sellarrow.3db" x="0.63" y="0" xscale="7.4" yscale="36" xz-plane="false" />
   <Model name="inv_buyarrow.3db" path="INTERFACE/NEURONET/INVENTORY/inv_buyarrow.3db" x="-0.6" y="0" xscale="7.4" yscale="36" xz-plane="false" />
+  <Model name="inv_dump.3db" path="INTERFACE/NEURONET/INVENTORY/inv_dump.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
   <Model name="inv_green_circle" path="INTERFACE/NEURONET/INVENTORY/inv_green_circle.3db" x="0" y="0" xscale="89" yscale="95" xz-plane="false" />
   <Model name="inv_green_square" path="INTERFACE/NEURONET/INVENTORY/inv_green_square.3db" x="0" y="0" xscale="89" yscale="95" xz-plane="false" />
   <Model name="inv_yellow_circle" path="INTERFACE/NEURONET/INVENTORY/inv_yellow_circle.3db" x="0" y="0" xscale="89" yscale="95" xz-plane="false" />
@@ -253,10 +256,23 @@
   <Model name="hud_radiationalert" path="INTERFACE/HUD/hud_radiationalert.3db" x="0" y="0" xscale="63" yscale="63" xz-plane="false" />
   <Model name="hud_hailship" path="INTERFACE/HUD/hud_communication.3db" x="0" y="0" xscale="65" yscale="65" xz-plane="false" />
   <Model name="hud_contactall" path="INTERFACE/HUD/hud_contactall.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactlist" path="INTERFACE/HUD/hud_contactlist.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+
   <Model name="hud_contactloot" path="INTERFACE/HUD/hud_contactloot.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactotherplayers" path="INTERFACE/HUD/hud_contactotherplayers.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactlootabledepot" path="INTERFACE/HUD/hud_contactlootabledepot.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactweaponplat" path="INTERFACE/HUD/hud_contactweaponplat.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactnomad" path="INTERFACE/HUD/hud_contactnomad.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contacttransport" path="INTERFACE/HUD/hud_contacttransport.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactfreighter" path="INTERFACE/HUD/hud_contactfrieghter.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contacttradelane" path="INTERFACE/HUD/hud_contacttradelane.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactjumpgate" path="INTERFACE/HUD/hud_contactjumpgate.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactbattleship" path="INTERFACE/HUD/hud_contactbattleship.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactwaypoint" path="INTERFACE/HUD/hud_contactwaypoint.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
+  <Model name="hud_contactplanet" path="INTERFACE/HUD/hud_contactplanet.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
   <Model name="hud_contactship" path="INTERFACE/HUD/hud_contactship.3db" x="0" y="0" xscale="86" yscale="96" xz-plane="false" />
   <Model name="hud_contactstation" path="INTERFACE/HUD/hud_contactstation.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
-  <Model name="hud_contactlist" path="INTERFACE/HUD/hud_contactlist.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
+
   <Model name="hud_contactimportant" path="INTERFACE/HUD/hud_contactimportant.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
   <Model name="hud_targetedobject" path="INTERFACE/HUD/hud_targetedobject.3db" x="0" y="0" xscale="76" yscale="76" xz-plane="false" />
   <Model name="hud_shieldbatteries" path="INTERFACE/HUD/hud_shieldgaugeicon.3db" x="0" y="0" xscale="75" yscale="75" xz-plane="false" />

@@ -59,7 +59,7 @@ public class MainWindow : Game
         renderer = new(new LookAtCamera(), resources, this);
         renderer.SystemLighting.Ambient = new Color4(0.6f, 0.6f, 0.6f, 1f);
         renderer.BackgroundOverride = new Color4(0.2f, 0.2f, 0.2f, 1f);
-        world = new(renderer, resources, null);
+        world = new(renderer, null, resources, null);
 
         var model = resources.GetDrawable("monkey.3db")!;
         monkey = new GameObject(model, resources);

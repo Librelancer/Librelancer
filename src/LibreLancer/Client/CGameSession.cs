@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Missions;
@@ -16,6 +17,7 @@ using LibreLancer.Missions;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Net.Protocol.RpcPackets;
+using LibreLancer.Resources;
 using LibreLancer.Server;
 using LibreLancer.World;
 
@@ -51,6 +53,7 @@ public partial class CGameSession : IClientPlayer
     private bool hasChanged;
 
     private bool inTradelane;
+    public bool InTradelane => inTradelane;
     public List<NetCargo> Items = [];
 
     private PlayerInventory lastInventory = new();
@@ -148,6 +151,7 @@ public partial class CGameSession : IClientPlayer
     void IClientPlayer.StartTradelane()
     {
         inTradelane = true;
+        CompleteActiveTradelaneWaypoint(FLHash.CreateID(PlayerSystem));
         RunSync(spaceGameplay!.StartTradelane);
     }
 
@@ -172,6 +176,7 @@ public partial class CGameSession : IClientPlayer
 
     void IClientPlayer.StartJumpTunnel()
     {
+        inTradelane = false;
         FLLog.Warning("Client", "Jump tunnel unimplemented");
     }
 
@@ -382,7 +387,28 @@ public partial class CGameSession : IClientPlayer
 
         if (PlayerBase != null)
         {
-            Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
+            if (spaceGameplay != null)
+            {
+                var baseId = PlayerBase;
+                var oldSpace = spaceGameplay;
+                if (oldSpace.ShouldFadeToRoom)
+                {
+                    oldSpace.FadeToRoom(() =>
+                    {
+                        spaceGameplay = null;
+                        Game.ChangeState(new RoomGameplay(Game, this, baseId));
+                    });
+                }
+                else
+                {
+                    spaceGameplay = null;
+                    Game.ChangeState(new RoomGameplay(Game, this, baseId));
+                }
+            }
+            else
+            {
+                Game.ChangeState(new RoomGameplay(Game, this, PlayerBase));
+            }
         }
         else
         {
@@ -397,6 +423,10 @@ public partial class CGameSession : IClientPlayer
 
     public bool Update()
     {
+        if (CheckDisconnected())
+        {
+            return true;
+        }
         hasChanged = false;
         UpdatePackets();
         UIUpdate();
@@ -432,7 +462,8 @@ public partial class CGameSession : IClientPlayer
             Equipment = equip,
             Hardpoint = cg.Hardpoint,
             Health = cg.Health / 255f,
-            Count = cg.Count
+            Count = cg.Count,
+            IsMissionItem = cg.MissionItem
         };
     }
 
@@ -457,9 +488,20 @@ public partial class CGameSession : IClientPlayer
                (visit & VisitFlags.Visited) == VisitFlags.Visited;
     }
 
+    bool CheckDisconnected()
+    {
+        if (connection.Connected)
+            return false;
+        connection.Shutdown();
+        Game.ChangeState(new LuaMenu(Game));
+        return true;
+    }
     public void WaitStart()
     {
+        if (CheckDisconnected())
+            return;
         if (!started)
+        {
             while (connection.PollPacket(out var packet))
             {
                 HandlePacket(packet);
@@ -467,6 +509,7 @@ public partial class CGameSession : IClientPlayer
                 if (packet is IClientPlayer_BaseEnterPacket || packet is IClientPlayer_SpawnPlayerPacket)
                     started = true;
             }
+        }
     }
 
     private void RunSync(Action gp)
@@ -591,10 +634,6 @@ public partial class CGameSession : IClientPlayer
         }
     }
 
-    public void Disconnected()
-    {
-        Game.ChangeState(new LuaMenu(Game));
-    }
 
     public void QuitToMenu()
     {

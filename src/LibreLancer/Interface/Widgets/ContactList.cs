@@ -9,7 +9,6 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class ContactList : UiWidget
     {
-        public Scrollbar Scrollbar = new() { Smooth = false };
         public string Font { get; set; } = "$ListText";
         public int TextSize { get; set; }
 
@@ -21,12 +20,67 @@ namespace LibreLancer.Interface
         public InterfaceColor? HoverColor { get; set; }
         public InterfaceColor? SelectedColor { get; set; }
         public InterfaceColor? TextShadow { get; set; }
-        public int DisplayRowCount { get; set; } = 5;
+
+        public int DisplayRowCount { get; set; }
 
         private IContactListData? data;
         private int childOffset = 0;
         private int _lastScroll = 0;
-        private CachedRenderString[]? rowStrings;
+        private CachedRenderString[]? rowLabels;
+        private CachedRenderString[]? rowDistances;
+
+        private CachedRenderString? distanceWidth;
+
+        private ContactListStyle listStyle = new();
+
+        UiRenderable? GetIcon(ContactIcon icon) => icon switch
+        {
+            ContactIcon.WeaponPlatform => listStyle.WeaponPlatform,
+            ContactIcon.LootableDepot => listStyle.LootableDepot,
+            ContactIcon.Loot => listStyle.Loot,
+            ContactIcon.Nomad => listStyle.Nomad,
+            ContactIcon.Transport => listStyle.Transport,
+            ContactIcon.Freighter => listStyle.Freighter,
+            ContactIcon.Tradelane => listStyle.Tradelane,
+            ContactIcon.Jumpgate => listStyle.Jumpgate,
+            ContactIcon.Battleship => listStyle.Battleship,
+            ContactIcon.Waypoint => listStyle.Waypoint,
+            ContactIcon.Station => listStyle.Station,
+            ContactIcon.Planet => listStyle.Planet,
+            ContactIcon.Ship => listStyle.Ship,
+            ContactIcon.OtherPlayer => listStyle.OtherPlayer,
+            _ => listStyle.WeaponPlatform
+        } ?? listStyle.WeaponPlatform;
+
+        // Remove in future refactor
+        static T? Cascade<T>(T? style, T? style2, T? self) where T : class => (self ?? style2 ?? style);
+
+        public Scrollbar Scrollbar { get; set; } = new();
+
+        protected override ElementStyle OnRestyle(UiContext context)
+        {
+            listStyle = new StyleResolver()
+                .Add(context.Data.Stylesheet?.Styles.DefaultStyle<ContactListStyle>())
+                .Add(Style)
+                .Add(WidthProperty)
+                .Add(HeightProperty)
+                .Add(BackgroundProperty)
+                .Add(BorderProperty)
+                .Create<ContactListStyle>();
+            return listStyle;
+        }
+
+        public override void OnLayout(UiContext context, Layout layout, double delta)
+        {
+            base.OnLayout(context, layout, delta);
+            Scrollbar.OnLayout(context, new Layout(ClientRectangle), delta);
+        }
+
+        public override void Update(UiContext context, double delta)
+        {
+            base.Update(context, delta);
+            Scrollbar.Update(context, delta);
+        }
 
         public void SetData(IContactListData data)
         {
@@ -44,21 +98,6 @@ namespace LibreLancer.Interface
             return c <= 0 ? 0 : c;
         }
 
-        public override void ApplyStylesheet(Stylesheet sheet)
-        {
-            base.ApplyStylesheet(sheet);
-            Scrollbar.ApplyStyle(sheet);
-        }
-
-        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
-        {
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, Width, Height);
-            Update(context, myPos);
-            myPos = AnimatedPosition(myPos);
-            var myRect = new RectangleF(myPos.X, myPos.Y, Width, Height);
-            return myRect;
-        }
-
         private RectangleF GetCell(RectangleF parentRect, int row)
         {
             var lineHeight = parentRect.Height / DisplayRowCount;
@@ -73,22 +112,22 @@ namespace LibreLancer.Interface
                    Visible;
         }
 
-        public override void OnMouseWheel(UiContext context, RectangleF parentRectangle, float delta)
+        public override void OnMouseWheel(UiContext context, float delta)
         {
             if (!CanRender() || data == null) return;
-            var rect = GetMyRectangle(context, parentRectangle);
+            var rect = ClientRectangle;
             if (rect.Contains(context.MouseX, context.MouseY))
-                Scrollbar.OnMouseWheel(delta);
+                Scrollbar.OnMouseWheel(context, delta);
         }
 
-        public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseClick(UiContext context)
         {
             if (!CanRender() || data == null) return;
-            var rect = GetMyRectangle(context, parentRectangle);
+            var rect = ClientRectangle;
 
             if (_lastScroll > 0)
             {
-                rect.Width -= Scrollbar.Style!.Width;
+                rect.Width -= Scrollbar.ClientRectangle.Width;
             }
 
             var rowCount = Math.Min(DisplayRowCount, (data.Count - childOffset));
@@ -105,36 +144,25 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseDown(UiContext context)
         {
             if (!CanRender() || data == null) return;
-            var rect = GetMyRectangle(context, parentRectangle);
-
-            if (_lastScroll > 0)
-            {
-                Scrollbar.OnMouseDown(context, rect);
-            }
+            Scrollbar.OnMouseDown(context);
         }
 
-        public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseUp(UiContext context)
         {
             if (!CanRender() || data == null) return;
-            var rect = GetMyRectangle(context, parentRectangle);
-
-            if (_lastScroll > 0)
-            {
-                Scrollbar.OnMouseUp(context, rect);
-            }
+            Scrollbar.OnMouseUp(context);
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
             if (!CanRender())
             {
                 return;
             }
-
-            var rect = GetMyRectangle(context, parentRectangle);
+            var rect = ClientRectangle;
             Background?.Draw(context, drawList, rect);
 
             if (data != null)
@@ -153,7 +181,8 @@ namespace LibreLancer.Interface
                 else if (scrollCount != _lastScroll)
                 {
                     _lastScroll = scrollCount;
-                    Scrollbar.ThumbSize = 1.0f - (Math.Min(scrollCount, 9) * 0.1f);
+                    var tickAmount = 0.75f / (DisplayRowCount * 3);
+                    Scrollbar.ThumbSize = 1.0f - (Math.Min(scrollCount, DisplayRowCount * 3) * tickAmount);
                     Scrollbar.Tick = 1.0f / scrollCount;
                     Scrollbar.ScrollOffset = childOffset / (float) scrollCount;
                 }
@@ -162,23 +191,31 @@ namespace LibreLancer.Interface
                     childOffset = (int) (Scrollbar.ScrollOffset * scrollCount);
                 }
 
+                Scrollbar.Visible = scrollCount > 0;
                 if (scrollCount > 0)
                 {
-                    Scrollbar.Render(context, drawList, rect);
-                    rect.Width -= Scrollbar.Style!.Width;
+                    Scrollbar.Render(context, delta, drawList);
+                    rect.Width -= Scrollbar.ClientRectangle.Width;
                 }
 
                 var rowCount = Math.Min(DisplayRowCount, (data.Count - childOffset));
-                if (rowStrings == null || rowStrings.Length < rowCount)
-                    rowStrings = new CachedRenderString[DisplayRowCount];
+                if (rowLabels == null || rowLabels.Length < rowCount || rowDistances == null)
+                {
+                    rowLabels = new CachedRenderString[DisplayRowCount];
+                    rowDistances = new CachedRenderString[DisplayRowCount];
+                }
+
+                var distSize = MeasureText(context, ref distanceWidth, GetCell(rect, 0),
+                    TextSize, Font, TextShadow != null, "9999", 0);
 
                 for (int row = 0; row < rowCount; row++)
                 {
                     // Get row state
                     bool hovered = false;
                     var selected = data.IsSelected(row + childOffset);
-                    var str = data.Get(row + childOffset);
-
+                    var label = data.GetLabel(row + childOffset);
+                    var distance = data.GetDistanceString(row + childOffset);
+                    var icon = data.GetIcon(row + childOffset);
                     if (!selected)
                     {
                         var c = GetCell(rect, row);
@@ -206,11 +243,24 @@ namespace LibreLancer.Interface
 
                     // Render row
                     var rowColor = Cascade(textColor ?? InterfaceColor.White, hovered ? HoverColor : null,
-                        selected ? SelectedColor : null);
+                        selected ? SelectedColor : null) ?? InterfaceColor.White;
                     var rowRect = GetCell(rect, row);
-                    RenderText(context, drawList, ref rowStrings![row], rowRect, TextSize, Font, rowColor, TextShadow,
+
+                    var iconRect = rowRect with { Width = rowRect.Height };
+                    GetIcon(icon)?.Draw(context, drawList, iconRect, rowColor.GetColor(context.GlobalTime));
+                    rowRect.X += iconRect.Width + 4;
+                    rowRect.Width -= iconRect.Width + 4;
+                    rowRect.Height *= 2;
+
+                    RenderText(context, drawList, ref rowDistances![row], rowRect, TextSize, Font, rowColor, TextShadow,
                         HorizontalAlignment.Left,
-                        VerticalAlignment.Default, true, str);
+                        VerticalAlignment.Top, true, distance);
+                    rowRect.X += distSize.X;
+                    rowRect.Width -= distSize.X;
+
+                    RenderText(context, drawList, ref rowLabels![row], rowRect, TextSize, Font, rowColor, TextShadow,
+                        HorizontalAlignment.Left,
+                        VerticalAlignment.Top, true, label);
                 }
             }
 

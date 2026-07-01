@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Client.Components;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
@@ -119,7 +120,7 @@ public partial class CGameSession
                 Thrust = steering.Thrust,
                 CruiseEnabled = steering.Cruise,
                 EngineKill = steering.EngineKill,
-                FireCommand = gp.world.Projectiles!.GetQueuedRequest()
+                FireCommand = gp.world.Projectiles!.GetQueuedRequest(),
             });
 
             // Store multiple updates for redundancy.
@@ -283,7 +284,7 @@ public partial class CGameSession
     private void ProcessUpdate(SPUpdatePacket p, SpaceGameplay gp, bool resync)
     {
         foreach (var update in p.Updates)
-            UpdateObject(update, gp.world);
+            UpdateObject(update, gp.world, p.Tick, WorldTick);
         var hp = gp.player.GetComponent<CHealthComponent>();
         var state = p.PlayerState;
 
@@ -313,14 +314,28 @@ public partial class CGameSession
                 phys.ResyncCruiseAccel(p.PlayerState.CruiseAccelPct, 1 / 60.0f * (moveState.Count - i));
             }
 
-            if (errorPos.Length() > 0.1 || errorQuat > 0.1f)
+            bool errorAccumulated = errorPos.Length() > 2f || errorQuat > 0.05f;
+            bool slowVelocity = state.LinearVelocity.Length() < 1f &&
+                                state.CruiseAccelPct < float.Epsilon &&
+                                state.CruiseChargePct < float.Epsilon;
+            for (int j = i; j >= 0; j--)
+            {
+                if (moveState[i].Throttle > 0.1f ||
+                    moveState[i].CruiseEnabled)
+                {
+                    slowVelocity = false;
+                    break;
+                }
+            }
+
+            // Resim when there's too much error
+            // Or we're not really moving
+            if (errorAccumulated || slowVelocity)
             {
                 // We now do a basic resim without collision
                 // This needs some work to not show the errors in collision on screen
                 // for the client, but it's almost there
                 // This is much faster than stepping the entire simulation again
-                FLLog.Info("Client",
-                    $"Applying correction at tick {p.InputSequence}. Errors ({errorPos.Length()},{errorQuat})");
                 var transform = gp.player.LocalTransform;
                 var predictedPos = transform.Position;
                 var predictedOrient = transform.Orientation;
@@ -332,7 +347,6 @@ public partial class CGameSession
                 gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
                 phys.SetCruiseState(state.CruiseChargePct, state.CruiseAccelPct);
 
-                // simulate inputs - only outside a tradelane. we go back in time for a tradelane a bit
                 for (i = i + 1; i < moveState.Count; i++)
                     Resimulate(i, gp);
 
@@ -344,7 +358,7 @@ public partial class CGameSession
         }
     }
 
-    private void UpdateObject(ObjectUpdate update, GameWorld world)
+    private void UpdateObject(ObjectUpdate update, GameWorld world, uint updTick, uint currTick)
     {
         var obj = world.GetObject(update.ID);
 
@@ -353,11 +367,24 @@ public partial class CGameSession
 
         if (obj.TryGetComponent<CEngineComponent>(out var eng))
         {
-            eng.Speed = update.Throttle;
+            eng.Speed = update.ThrottleFloat;
             eng.EngineKill = update.EngineKill;
             eng.CruiseThrust = update.CruiseThrust;
             foreach (var comp in obj.GetChildComponents<CThrusterComponent>())
                 comp.Enabled = update.CruiseThrust == CruiseThrustState.Thrusting;
+        }
+
+        if (obj.TryGetComponent<ShipControlAccessComponent>(out var sca))
+        {
+            sca.SetEngineState(update.CruiseThrust switch
+            {
+                CruiseThrustState.CruiseCharging => EngineStates.CruiseCharging,
+                CruiseThrustState.Cruising => EngineStates.Cruise,
+                _ => update.EngineKill ? EngineStates.EngineKill : EngineStates.Standard
+            });
+            sca.Steering = new(update.Pitch, update.Yaw, update.Roll);
+            sca.CurrentStrafe = update.Strafe;
+            sca.EnginePower = MathHelper.Clamp(update.ThrottleFloat / 0.9f, 0, 1);
         }
 
         if (obj.TryGetComponent<CHealthComponent>(out var health))
@@ -392,11 +419,14 @@ public partial class CGameSession
 
         var oldPos = obj.LocalTransform.Position;
         var oldQuat = obj.LocalTransform.Orientation;
+        obj.PhysicsComponent.Body.SetTransform(new Transform3D(update.Position.ToVector3(), update.Orientation.Quaternion));
         obj.PhysicsComponent!.Body.LinearVelocity = update.LinearVelocity.ToVector3();
         obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity.ToVector3();
         obj.PhysicsComponent.Body.Activate();
-        obj.PhysicsComponent.Body.SetTransform(new Transform3D(update.Position.ToVector3(), update.Orientation.Quaternion));
-
+        for (uint u = updTick; u < currTick; u++)
+        {
+            obj.PhysicsComponent!.Body.PredictionStep(1 / 60.0f);
+        }
         SmoothError(obj, oldPos, oldQuat);
     }
 
@@ -422,8 +452,9 @@ public partial class CGameSession
         var newPos = obj.PhysicsComponent!.Body!.Position;
         var newOrient = obj.PhysicsComponent.Body.Orientation;
 
-        if ((oldPos - newPos).Length() >
-            obj.PhysicsComponent.Body.LinearVelocity.Length() * 0.33f)
+        var minNoSmooth = 20;
+        var noSmoothLength = Math.Max(minNoSmooth, obj.PhysicsComponent.Body.LinearVelocity.Length());
+        if ((oldPos - newPos).Length() > noSmoothLength)
         {
             obj.PhysicsComponent.PredictionErrorPos = Vector3.Zero;
             obj.PhysicsComponent.PredictionErrorQuat = Quaternion.Identity;
@@ -450,9 +481,9 @@ public partial class CGameSession
             {
                 if (explode && despawn.TryGetComponent<CMissileComponent>(out var ms)
                             && ms.Missile?.ExplodeFx != null)
-                    spaceGameplay.world.Renderer!.SpawnTempFx(ms.Missile.ExplodeFx.GetEffect(Game.ResourceManager),
-                        despawn.LocalTransform.Position);
-
+                {
+                    spaceGameplay.world.SpawnTempFx(ms.Missile.ExplodeFx, despawn.LocalTransform.Position);
+                }
                 despawn.Unregister(spaceGameplay.world);
                 spaceGameplay.world.RemoveObject(despawn);
                 FLLog.Debug("Client", $"Destroyed missile {id}");
@@ -898,9 +929,43 @@ public partial class CGameSession
             Volume = item.Equipment.Volume,
             Combinable = item.Equipment.Good.Ini.Combinable,
             CanMount = false,
+            CanJettison = string.IsNullOrEmpty(item.Hardpoint) && !item.IsMissionItem && item.Equipment.LootAppearance != null,
+            MissionCargo = item.IsMissionItem,
             Equipment = item.Equipment,
             Hardpoint = item.Hardpoint
         };
+    }
+
+    public UIInventoryItem[] GetPlayerInventory(string filter)
+    {
+        if (PlayerShip == null)
+            return [];
+
+        var predicate = Trader.GetFilter(filter);
+        List<UIInventoryItem> items = [];
+        foreach (var item in Items)
+        {
+            if (item.Equipment?.Good == null || !predicate(item.Equipment))
+                continue;
+
+            var ui = FromNetCargo(item);
+            if (!string.IsNullOrWhiteSpace(item.Hardpoint))
+            {
+                if (PlayerShip.HardpointTypes.TryGetValue(item.Hardpoint, out var hpTypes))
+                {
+                    var hpType = hpTypes.OrderByDescending(x => x.Class).First();
+                    ui.IdsHardpoint = hpType.IdsName;
+                    ui.IdsHardpointDescription = hpType.IdsHpDescription;
+                    ui.HpSortIndex = hpType.SortIndex;
+                }
+                ui.Count = 1;
+                ui.CanJettison = false;
+            }
+            items.Add(ui);
+        }
+
+        Trader.SortGoods(this, items, filter);
+        return items.ToArray();
     }
 
     private UIInventoryItem[] BuildScanList(NetLoadout loadout)
@@ -1008,6 +1073,7 @@ public partial class CGameSession
                     newObj.AddComponent(new CHealthComponent(newObj)
                         { CurrentHealth = objInfo.Loadout.Health, MaxHealth = shp.Hitpoints });
                     newObj.AddComponent(new CExplosionComponent(newObj, shp.Explosion!));
+                    newObj.AddComponent(new ShipControlAccessComponent(newObj));
                 }
 
                 if (newObj is null)
@@ -1177,9 +1243,11 @@ public partial class CGameSession
         PlayerBase = null;
         CurrentObjective = objective;
         FLLog.Info("Client", $"Spawning in {system}");
-        if (!string.Equals(PlayerSystem, system, StringComparison.OrdinalIgnoreCase))
-            ClearUserWaypoints();
+        var previousSystem = PlayerSystem;
         PlayerSystem = system;
+        if (!string.IsNullOrWhiteSpace(previousSystem) &&
+            !string.Equals(previousSystem, system, StringComparison.OrdinalIgnoreCase))
+            CompleteActiveJumpWaypoint(FLHash.CreateID(previousSystem), FLHash.CreateID(system));
         PlayerPosition = position;
         PlayerOrientation = orientation;
         SceneChangeRequired();

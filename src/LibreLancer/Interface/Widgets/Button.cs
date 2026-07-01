@@ -16,16 +16,81 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class Button : UiWidget
     {
+        private StyledProperty<string> fontFamily = new("FontFamily");
+        private StyledProperty<float> marginLeft = new ("MarginLeft");
+        private StyledProperty<float> marginRight = new ("MarginRight");
+        private StyledProperty<float> textSize = new("TextSize");
+        private StyledProperty<string?> mouseEnterSound = new("MouseEnterSound");
+        private StyledProperty<string> mouseDownSound = new("MouseDownSound");
+        private StyledProperty<HorizontalAlignment> horizontalAlignment = new("HorizontalAlignment");
+        private StyledProperty<VerticalAlignment> verticalAlignment = new("VerticalAlignment");
+        private StyledProperty<InterfaceColor?> textColor = new("TextColor");
+        private StyledProperty<InterfaceColor?> textShadow = new("TextShadow");
+
         public bool Selected { get; set; }
-        public string? Style { get; set; }
-        public float TextSize { get; set; }
-        public string? FontFamily { get; set; }
+
+        public float TextSize
+        {
+            get => textSize.Value;
+            set => textSize.Set(value);
+        }
+
+        public string? FontFamily
+        {
+            get => fontFamily.Value;
+            set => fontFamily.Set(value);
+        }
+
+        public float MarginLeft
+        {
+            get => marginLeft.Value;
+            set => marginLeft.Set(value);
+        }
+
+        public float MarginRight
+        {
+            get => marginRight.Value;
+            set => marginRight.Set(value);
+        }
+
+
+        public string? MouseEnterSound
+        {
+            get => mouseEnterSound.Value;
+            set => mouseEnterSound.Set(value);
+        }
+
+        public string? MouseDownSound
+        {
+            get => mouseDownSound.Value;
+            set => mouseDownSound.Set(value);
+        }
+
+        public HorizontalAlignment HorizontalAlignment
+        {
+            get => horizontalAlignment.Value;
+            set => horizontalAlignment.Set(value);
+        }
+
+        public VerticalAlignment VerticalAlignment
+        {
+            get => verticalAlignment.Value;
+            set => verticalAlignment.Set(value);
+        }
+
+        public InterfaceColor? TextColor
+        {
+            get => textColor.Value;
+            set => textColor.Set(value);
+        }
+
+        public InterfaceColor? TextShadow
+        {
+            get => textShadow.Value;
+            set => textShadow.Set(value);
+        }
 
         public bool DrawText { get; set; } = true;
-
-        public float MarginLeft { get; set; }
-
-        public float MarginRight { get; set; }
 
         private InfoTextAccessor txtAccess = new();
 
@@ -47,58 +112,151 @@ namespace LibreLancer.Interface
             set => txtAccess.InfoId = value;
         }
 
-        public string? MouseEnterSound { get; set; }
-        public string? MouseDownSound { get; set; }
-        public HorizontalAlignment HorizontalAlignment { get; set; }
-        public VerticalAlignment VerticalAlignment { get; set; }
-        public InterfaceColor? TextColor { get; set; }
-        public InterfaceColor? TextShadow { get; set; }
-
         public bool DebugTextFrame { get; set; }
-
-        private ButtonStyle? style;
-        private bool styleSetManual = false;
-
-        public void SetStyle(ButtonStyle? style)
-        {
-            this.style = style;
-            styleSetManual = true;
-        }
 
         private bool lastFrameMouseInside = false;
         private string GetText(UiContext context) => txtAccess.GetText(context);
 
         private CachedRenderString? textCache;
+        private ButtonStyle btnStyle = new();
+        private StyledButton appearance = new();
+
+        enum ButtonState
+        {
+            Normal,
+            Selected,
+            Hover,
+            Pressed,
+            Disabled
+        }
+
+        ButtonState State
+        {
+            get;
+            set
+            {
+                if (value != field)
+                    OnStyleChanged();
+                field = value;
+            }
+        }
+
+        class StyledButton : ElementStyle
+        {
+            private StyledProperty<float> textSize = new("TextSize");
+            private StyledProperty<float> marginLeft = new("MarginLeft");
+            private StyledProperty<float> marginRight = new("MarginRight");
+            private StyledProperty<string> fontFamily = new("FontFamily");
+            private StyledProperty<HorizontalAlignment> horizontalAlignment = new("HorizontalAlignment");
+            private StyledProperty<VerticalAlignment> verticalAlignment = new("VerticalAlignment");
+            private StyledProperty<InterfaceColor> textColor = new("TextColor");
+            private StyledProperty<InterfaceColor?> textShadow = new("TextShadow");
+
+            public float TextSize => textSize.Value;
+            public float MarginLeft => marginLeft.Value;
+            public float MarginRight => marginRight.Value;
+            public string FontFamily => fontFamily.Value ?? "$Normal";
+            public HorizontalAlignment HorizontalAlignment => horizontalAlignment.Value;
+            public VerticalAlignment VerticalAlignment => verticalAlignment.Value;
+            public InterfaceColor TextColor => textColor.Value ?? Color4.White;
+            public InterfaceColor? TextShadow => textShadow.Value;
+
+            public override void Set(StyleResolver resolver) =>
+                resolver.Add(WidthProperty)
+                    .Add(HeightProperty)
+                    .Add(BorderProperty)
+                    .Add(BackgroundProperty)
+                    .Add(marginLeft)
+                    .Add(marginRight)
+                    .Add(textSize)
+                    .Add(fontFamily)
+                    .Add(horizontalAlignment)
+                    .Add(verticalAlignment)
+                    .Add(textColor)
+                    .Add(textShadow);
+
+            public override void Create(StyleResolver resolver) =>
+                resolver.Query(WidthProperty)
+                    .Query(HeightProperty)
+                    .Query(BorderProperty)
+                    .Query(BackgroundProperty)
+                    .Query(marginLeft)
+                    .Query(marginRight)
+                    .Query(textSize)
+                    .Query(fontFamily)
+                    .Query(horizontalAlignment)
+                    .Query(verticalAlignment)
+                    .Query(textColor)
+                    .Query(textShadow);
+        }
+
+        protected override ElementStyle OnRestyle(UiContext context)
+        {
+            btnStyle = new StyleResolver()
+                .Add(context.Data.Stylesheet?.Styles.DefaultStyle<ButtonStyle>())
+                .Add(Style)
+                .Add(WidthProperty)
+                .Add(HeightProperty)
+                .Add(mouseEnterSound)
+                .Add(mouseDownSound)
+                .Create<ButtonStyle>();
+            var stateApp = State switch
+            {
+                ButtonState.Selected => btnStyle.Selected,
+                ButtonState.Hover => btnStyle.Hover,
+                ButtonState.Pressed => btnStyle.Pressed,
+                ButtonState.Disabled => btnStyle.Disabled,
+                _ => null
+            };
+
+            var res = new StyleResolver()
+                .Add(btnStyle)
+                .Add(btnStyle.Normal)
+                .Add(stateApp)
+                .Add(marginLeft)
+                .Add(marginRight)
+                .Add(textSize)
+                .Add(fontFamily)
+                .Add(horizontalAlignment)
+                .Add(verticalAlignment)
+                .Add(textColor)
+                .Add(textShadow)
+                .Add(BackgroundProperty)
+                .Add(BorderProperty);
+            appearance = res.Create<StyledButton>();
+            return appearance;
+        }
 
         internal void Draw(UiContext context, DrawList2D drawList, RectangleF myRectangle, bool hover, bool pressed, bool selected,
             bool enabled)
         {
-            ButtonAppearance? activeStyle = null;
-            if (selected) activeStyle = style!.Selected;
-            if (hover) activeStyle = style?.Hover;
-            if (pressed) activeStyle = style?.Pressed ?? style?.Hover;
-            if (!enabled) activeStyle = style?.Disabled;
-            var bk = Cascade(style?.Normal?.Background, activeStyle?.Background, Background);
-            bk?.Draw(context, drawList, myRectangle);
-            var border = Cascade(style?.Normal?.Border, activeStyle?.Border, Border);
-            border?.Draw(context, drawList, myRectangle);
+            var s = ButtonState.Normal;
+            if (!enabled)
+                s = ButtonState.Disabled;
+            else if (pressed)
+                s = ButtonState.Pressed;
+            else if (hover)
+                s = ButtonState.Hover;
+            else if (selected)
+                s = ButtonState.Selected;
+            State = s;
+            CheckStyle(context);
+            appearance.Background?.Draw(context, drawList, myRectangle);
+            appearance.Border?.Draw(context, drawList, myRectangle);
         }
 
-        internal void Update(UiContext context, RectangleF parentRectangle)
+        public override void Update(UiContext context, double delta)
         {
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-
-            if (myRectangle.Contains(context.MouseX, context.MouseY))
+            base.Update(context, delta);
+            if (ClientRectangle.Contains(context.MouseX, context.MouseY))
             {
                 Hovered = true;
 
                 if (!lastFrameMouseInside)
                 {
-                    var sound = MouseEnterSound ?? style?.MouseEnterSound;
-
-                    if (!string.IsNullOrWhiteSpace(sound))
+                    if (!string.IsNullOrWhiteSpace(btnStyle.MouseEnterSound))
                     {
-                        context.PlaySound(sound);
+                        context.PlaySound(btnStyle.MouseEnterSound);
                     }
                 }
 
@@ -117,58 +275,51 @@ namespace LibreLancer.Interface
 
             if (HeldDown)
             {
-                if (!myRectangle.Contains(context.MouseX, context.MouseY))
+                if (!ClientRectangle.Contains(context.MouseX, context.MouseY))
                 {
                     HeldDown = false;
                 }
             }
+
+            if (!Enabled)
+                State = ButtonState.Disabled;
+            else if (HeldDown)
+                State = ButtonState.Pressed;
+            else if (Hovered)
+                State = ButtonState.Hover;
+            else if (Selected)
+                State = ButtonState.Selected;
+            else
+                State = ButtonState.Normal;
         }
+
 
         public bool Hovered { get; set; }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF parentRectangle)
+        public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
             if (!Visible) return;
-            Update(context, parentRectangle);
-            ButtonAppearance? activeStyle = null;
-            var myRectangle = GetMyRectangle(context, parentRectangle);
-
+            CheckStyle(context);
             string txt = GetText(context);
 
-            if (myRectangle.Contains(context.MouseX, context.MouseY))
+            if (State == ButtonState.Hover && !DrawText &&
+                !string.IsNullOrWhiteSpace(txt))
             {
-                activeStyle = style?.Hover;
-                if (!DrawText && !string.IsNullOrWhiteSpace(txt))
-                {
-                    context.SetTooltip(txt, myRectangle);
-                }
-            }
-            else
-            {
+                context.SetTooltip(txt, ClientRectangle);
             }
 
-            if (HeldDown)
-            {
-                activeStyle = style?.Pressed ?? style?.Hover;
-            }
-            else if (Hovered && Strid != 0)
+            if (State == ButtonState.Hover && Strid != 0)
             {
                 context.SetRollover(Strid);
             }
 
-            if (Selected) activeStyle = style?.Selected;
-            if (!Enabled) activeStyle = style?.Disabled;
-            var bk = Cascade(style?.Normal?.Background, activeStyle?.Background, Background);
-            bk?.Draw(context, drawList, myRectangle);
-
-            float mLeft = Cascade(style?.Normal?.MarginLeft, activeStyle?.MarginLeft, MarginLeft);
-            float mRight = Cascade(style?.Normal?.MarginRight, activeStyle?.MarginRight, MarginRight);
+            appearance.Background?.Draw(context, drawList, ClientRectangle);
 
             if (DrawText && !string.IsNullOrWhiteSpace(txt))
             {
-                var textRect = myRectangle;
-                textRect.X += mLeft;
-                textRect.Width -= mRight;
+                var textRect = ClientRectangle;
+                textRect.X += appearance.MarginLeft;
+                textRect.Width -= appearance.MarginLeft + appearance.MarginRight;
 
                 if (DebugTextFrame)
                 {
@@ -180,47 +331,34 @@ namespace LibreLancer.Interface
                     drawList,
                     ref textCache,
                     textRect,
-                    Cascade(style?.Normal?.TextSize, activeStyle?.TextSize, TextSize),
-                    Cascade(style?.Normal?.FontFamily, activeStyle?.FontFamily, FontFamily),
-                    Cascade(style?.Normal?.TextColor, activeStyle?.TextColor, TextColor),
-                    Cascade(style?.Normal?.TextShadow, activeStyle?.TextShadow, TextShadow),
-                    Cascade(style?.Normal?.HorizontalAlignment, activeStyle?.HorizontalAlignment, HorizontalAlignment),
-                    Cascade(style?.Normal?.VerticalAlignment, activeStyle?.VerticalAlignment, VerticalAlignment),
+                    appearance.TextSize,
+                    appearance.FontFamily,
+                    appearance.TextColor,
+                    appearance.TextShadow,
+                    appearance.HorizontalAlignment,
+                    appearance.VerticalAlignment,
                     true,
                     txt
                 );
             }
-
-            var border = Cascade(style?.Normal?.Border, activeStyle?.Border, Border);
-            border?.Draw(context, drawList, myRectangle);
+            appearance.Border?.Draw(context, drawList, ClientRectangle);
         }
 
-        private RectangleF GetMyRectangle(UiContext context, RectangleF parentRectangle)
-        {
-            var width = Cascade(style?.Width, null, Width);
-            var height = Cascade(style?.Height, null, Height);
-            var myPos = context.AnchorPosition(parentRectangle, Anchor, X, Y, width, height);
-            Update(context, myPos);
-            myPos = AnimatedPosition(myPos);
-            var myRect = new RectangleF(myPos.X, myPos.Y, width, height);
-            return myRect;
-        }
 
         public bool HeldDown;
         public bool Dragging;
         public Vector2 DragStart;
         public Vector2 DragOffset;
 
-        public override void OnMouseDown(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseDown(UiContext context)
         {
             if (!Visible) return;
             if (CurrentAnimation != null) return;
-            var myRect = GetMyRectangle(context, parentRectangle);
 
-            if (myRect.Contains(context.MouseX, context.MouseY))
+            if (ClientRectangle.Contains(context.MouseX, context.MouseY))
             {
                 // While we don't have better cascade
-                var sound = MouseDownSound ?? style?.MouseDownSound ?? "ui_select_item";
+                var sound = btnStyle.MouseDownSound;
 
                 if (!string.IsNullOrWhiteSpace(sound))
                 {
@@ -233,19 +371,24 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void OnMouseUp(UiContext context, RectangleF parentRectangle)
+        public override void OnMouseUp(UiContext context)
         {
-            if (!Visible) return;
             Dragging = false;
             HeldDown = false;
             DragStart = DragOffset = Vector2.Zero;
         }
 
-        private event Action? Clicked;
+        private event Action<UiContext>? Clicked;
 
         public void OnClick(WattleScript.Interpreter.Closure handler)
         {
-            Clicked += () => { handler.Call(); };
+            Clicked += _ => { handler.Call(); };
+        }
+
+        [WattleScriptHidden]
+        public void OnClick(Action<UiContext> action)
+        {
+            Clicked += action;
         }
 
         public void ClearClick()
@@ -253,29 +396,18 @@ namespace LibreLancer.Interface
             Clicked = null;
         }
 
-        public override void OnMouseClick(UiContext context, RectangleF parentRectangle)
+        public override bool MouseWanted(UiContext context, float x, float y) =>
+            ClientRectangle.Contains(x, y);
+
+        public override void OnMouseClick(UiContext context)
         {
             if (!Visible || !Enabled) return;
             if (CurrentAnimation != null) return;
-            var myRect = GetMyRectangle(context, parentRectangle);
 
-            if (myRect.Contains(context.MouseX, context.MouseY))
+            if (ClientRectangle.Contains(context.MouseX, context.MouseY))
             {
-                Clicked?.Invoke();
+                Clicked?.Invoke(context);
             }
-        }
-
-        public override Vector2 GetDimensions()
-        {
-            var width = Cascade(style?.Width, null, Width);
-            var height = Cascade(style?.Height, null, Height);
-            return new Vector2(width, height);
-        }
-
-        public override void ApplyStylesheet(Stylesheet sheet)
-        {
-            base.ApplyStylesheet(sheet);
-            if (!styleSetManual) style = sheet.Lookup<ButtonStyle>(Style)!;
         }
     }
 }
