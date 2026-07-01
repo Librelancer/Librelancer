@@ -3,8 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.IO;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using BepuPhysics;
 using BepuPhysics.Collidables;
 using BepuUtilities;
@@ -20,8 +24,8 @@ namespace LibreLancer.Physics
         private readonly List<CollisionPart> children = [];
         private readonly PhysicsWorld world;
 
-        private float radius = 1;
-        public override float Radius => radius;
+        // TODO: Fix
+        public override float Radius => 10;
 
 
         private readonly List<Vector3> partOffsets = [];
@@ -66,7 +70,7 @@ namespace LibreLancer.Physics
         {
             if (Handle.Exists)
             {
-                ref var sh = ref BepuBigCompound();
+                ref BigCompound sh = ref BepuBigCompound();
                 var bepuIdx = childIndices[index];
                 var movedChildIndex = sh.Tree.RemoveAt(bepuIdx);
                 if (movedChildIndex >= 0)
@@ -103,6 +107,7 @@ namespace LibreLancer.Physics
                 childBuilder[index].LocalPosition = t.Position;
             }
         }
+
         public ConvexMeshCollider(PhysicsWorld world)
         {
             this.world = world;
@@ -139,50 +144,6 @@ namespace LibreLancer.Physics
             return ref Sim.Shapes.GetShape<BigCompound>(Handle.Index);
         }
 
-        private void RefitAndRefineCompound()
-        {
-            BepuBigCompound().Tree.RefitAndRefine(Pool, refinementCounter++);
-            lastRefinement = refinementCounter;
-        }
-
-        private float ShapeRadius(TypedIndex shape)
-        {
-            switch (shape.Type)
-            {
-                case ConvexHull.Id:
-                    ref var hull = ref Sim.Shapes.GetShape<ConvexHull>(shape.Index);
-                    hull.ComputeAngularExpansionData(out var hullRadius, out _);
-                    return hullRadius;
-                case Triangle.Id:
-                    ref var triangle = ref Sim.Shapes.GetShape<Triangle>(shape.Index);
-                    return MathF.Max(triangle.A.Length(), MathF.Max(triangle.B.Length(), triangle.C.Length()));
-                default:
-                    return 1;
-            }
-        }
-
-        private void RecalculateRadius()
-        {
-            radius = 1;
-            if (Handle.Exists)
-            {
-                ref var compound = ref BepuBigCompound();
-                for (int i = 0; i < compound.Children.Length; i++)
-                {
-                    var child = compound.Children[i];
-                    radius = MathF.Max(radius, child.LocalPosition.Length() + ShapeRadius(child.ShapeIndex));
-                }
-            }
-            else
-            {
-                for (int i = 0; i < childBuilder.Count; i++)
-                {
-                    var child = childBuilder[i];
-                    radius = MathF.Max(radius, child.LocalPosition.Length() + ShapeRadius(child.ShapeIndex));
-                }
-            }
-        }
-
         public bool Dump = false;
 
         public bool AddPart(uint provider, ConvexMeshId meshId, Transform3D localTransform, object? tag)
@@ -199,14 +160,14 @@ namespace LibreLancer.Physics
                 AddCompoundPart(h.Shape, h.Center, localTransform);
             }
             children.Add(pt);
-            RecalculateRadius();
 
             if (!Handle.Exists)
             {
                 return true;
             }
 
-            RefitAndRefineCompound();
+            BepuBigCompound().Tree.RefitAndRefine(Pool, refinementCounter++);
+            lastRefinement = refinementCounter;
             return true;
         }
 
@@ -223,14 +184,10 @@ namespace LibreLancer.Physics
             return null;
         }
 
-        public void UpdatePart(object? tag, Transform3D localTransform)
+        public void UpdatePart(object tag, Transform3D localTransform)
         {
-            for (var childIndex = 0; childIndex < children.Count; childIndex++)
+            foreach (var part in children.Where(part => part.Tag == tag))
             {
-                var part = children[childIndex];
-                if (part.Tag != tag)
-                    continue;
-
                 if (part.CurrentTransform == localTransform)
                 {
                     return;
@@ -242,18 +199,17 @@ namespace LibreLancer.Physics
                     UpdateCompoundTransform(i, localTransform);
                 }
 
-                if (Handle.Exists)
-                {
-                    refinementCounter++;
-                }
-                RecalculateRadius();
-                return;
+                break;
+            }
+
+            if (Handle.Exists)
+            {
+                refinementCounter++;
             }
         }
 
-        public void RemovePart(object? tag)
+        public void RemovePart(object tag)
         {
-            var removed = false;
             for(var i = 0; i < children.Count; i++)
             {
                 var part = children[i];
@@ -275,22 +231,15 @@ namespace LibreLancer.Physics
                 }
                 children.RemoveAt(i);
                 i--;
-                removed = true;
-            }
-
-            if (!removed)
-            {
-                return;
             }
 
             if (!Handle.Exists)
             {
-                RecalculateRadius();
                 return;
             }
 
-            RefitAndRefineCompound();
-            RecalculateRadius();
+            BepuBigCompound().Tree.RefitAndRefine(Pool, refinementCounter++);
+            lastRefinement = refinementCounter;
         }
 
         internal override void Draw(Matrix4x4 transform, IDebugRenderer renderer)
