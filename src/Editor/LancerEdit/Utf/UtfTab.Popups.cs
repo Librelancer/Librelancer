@@ -66,7 +66,7 @@ namespace LancerEdit
                 {
                     if (x == MessageBoxResponse.Yes)
                     {
-                        action();
+                        main.QueueUIThread(action);
                     }
                 });
         }
