@@ -864,7 +864,7 @@ public partial class CGameSession
                     form.Followers.Select(ObjOrPlayer).ToArray()
                 )
                 {
-                    PlayerPosition = form.YourPosition
+                    PlayerTargetPosition = form.YourPosition
                 };
 
                 FLLog.Debug("Client", $"Formation offset {form.YourPosition}");

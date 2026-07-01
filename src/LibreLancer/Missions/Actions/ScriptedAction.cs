@@ -827,33 +827,34 @@ namespace LibreLancer.Missions.Actions
                 }
 
                 var gw = space.World.GameWorld;
+                var formationTarget = false;
+                string objectName;
                 if (script.Formations.TryGetValue(Target, out var formation))
                 {
-                    foreach (var s in formation.Ships)
-                    {
-                        var npc = gw.GetObject(s.Nickname);
-                        if (npc == null)
-                        {
-                            FLLog.Error("Mission", $"Act_GiveObjList can't find formation ship '{s.Nickname}' in '{Target}'");
-                            continue;
-                        }
-
-                        GiveObjList(npc, gw, ol);
-                    }
+                    formationTarget = true;
+                    // A mission formation is controlled by its lead ship. Giving the
+                    // navigation directives to every member replaces the followers'
+                    // formation autopilot and sends them all to the leader's waypoint.
+                    if (formation.Ships.Count == 0)
+                        return;
+                    objectName = formation.Ships[0].Nickname;
                 }
                 else
                 {
-                    var tgt = gw.GetObject(Target);
-
-                    if (tgt == null)
-                    {
-                        FLLog.Error("Server", $"Act_GiveObjList can't find '{Target}'");
-                    }
-                    else
-                    {
-                        GiveObjList(tgt, gw, ol);
-                    }
+                    objectName = Target;
                 }
+
+                // Keep this ordered with mission spawn actions. On checkpoint load the
+                // object list may be issued in the same trigger that spawns its target.
+                var tgt = gw.GetObject(objectName);
+
+                if (tgt == null)
+                {
+                    FLLog.Error("Server", $"Act_GiveObjList can't find '{objectName}'");
+                    return;
+                }
+
+                GiveObjList(formationTarget ? tgt.Formation?.LeadShip ?? tgt : tgt, gw, ol);
             });
         }
     }

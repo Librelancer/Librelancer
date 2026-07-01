@@ -19,14 +19,6 @@ internal class LinuxPlatform : IPlatform
 
     private IntPtr fcconfig;
 
-    private string? tempFontsDirectory;
-
-    public LinuxPlatform()
-    {
-        fcconfig = LibFontConfig.FcInitLoadConfigAndFonts();
-        LibFontConfig.FcConfigSetCurrent(fcconfig);
-        tempFontsDirectory = Directory.CreateTempSubdirectory("librelancer").FullName;
-    }
 
     public void Init(string sdlBackend)
     {
@@ -70,6 +62,11 @@ internal class LinuxPlatform : IPlatform
     }
     public byte[] GetMonospaceBytes()
     {
+        if (fcconfig == IntPtr.Zero)
+        {
+            fcconfig = LibFontConfig.FcInitLoadConfigAndFonts();
+            LibFontConfig.FcConfigSetCurrent(fcconfig);
+        }
         var pat = LibFontConfig.FcNameParse("monospace");
         LibFontConfig.FcConfigSubstitute(fcconfig, pat, LibFontConfig.FcMatchKind.Pattern);
         LibFontConfig.FcDefaultSubstitute(pat);
@@ -94,16 +91,5 @@ internal class LinuxPlatform : IPlatform
 
     public void Shutdown()
     {
-        try
-        {
-            if(!string.IsNullOrWhiteSpace(tempFontsDirectory))
-                Directory.Delete(tempFontsDirectory, true);
-        }
-        catch (Exception)
-        {
-            // ignored
-        }
-
-        tempFontsDirectory = null;
     }
 }
