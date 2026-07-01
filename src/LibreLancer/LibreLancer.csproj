@@ -49,6 +49,7 @@
   <ItemGroup>
     <Folder Include="Interface\Default" />
     <Folder Include="Properties" />
+    <InternalsVisibleTo Include="LibreLancer.Tests" />
   </ItemGroup>
 
   <ItemGroup>

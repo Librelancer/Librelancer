@@ -544,6 +544,20 @@ public partial class CGameSession : IClientPlayer
         return null;
     }
 
+    public bool TryGetFormationLine(int netId, out Vector3 shipPosition, out Vector3 targetPosition)
+    {
+        shipPosition = default;
+        targetPosition = default;
+        if (connection is not EmbeddedServer es || es.Server.LocalPlayer?.Space?.World is not { } serverWorld)
+            return false;
+        var ship = serverWorld.GameWorld.GetObject(new ObjNetId(netId));
+        if (ship?.Formation == null || !ship.Formation.Contains(ship))
+            return false;
+        shipPosition = ship.PhysicsComponent?.Body?.Position ?? ship.WorldTransform.Position;
+        targetPosition = ship.Formation.GetShipPosition(ship);
+        return true;
+    }
+
     public MissionRuntime.TriggerInfo[]? GetTriggerInfo()
     {
         if (connection is EmbeddedServer es)

@@ -242,10 +242,17 @@ namespace LibreLancer.World
         }
         public List<SystemRenderer.DebugLine> DebugLines = new List<SystemRenderer.DebugLine>();
         public bool RenderAutopilotDebug = false;
+        public bool RenderFormationDebug = false;
 
         public void DrawDebugLine(Vector3 start, Vector3 end, Color4 color)
         {
             if (RenderAutopilotDebug)
+                DebugLines.Add(new SystemRenderer.DebugLine(start, end, color));
+        }
+
+        public void DrawFormationDebugLine(Vector3 start, Vector3 end, Color4 color)
+        {
+            if (RenderFormationDebug)
                 DebugLines.Add(new SystemRenderer.DebugLine(start, end, color));
         }
 
@@ -257,8 +264,18 @@ namespace LibreLancer.World
             if (RenderDebugPoints)
                 DebugPoints.Add(point);
         }
+
+        public void DrawFormationDebug(Vector3 point)
+        {
+            if (RenderFormationDebug)
+                DebugPoints.Add(point);
+        }
 #else
         public void DrawDebug(Vector3 point)
+        {
+        }
+
+        public void DrawFormationDebug(Vector3 point)
         {
         }
 #endif

@@ -1358,6 +1358,8 @@ World Time: {12:F2}
                 Selection.Selected = null; // Object has been blown up/despawned
             }
 
+            DrawSelectedFormationLine();
+
             // do tractor beam things
             if (player.TryGetComponent<CTractorComponent>(out var tractor))
             {
@@ -1383,6 +1385,34 @@ World Time: {12:F2}
 
             // query scanner
             player.TryGetComponent(out scanner);
+        }
+
+        private void DrawSelectedFormationLine()
+        {
+            if (!world.RenderFormationDebug || Selection.Selected is not { } selected)
+                return;
+
+            Vector3 shipPosition;
+            Vector3 targetPosition;
+            if (!session.TryGetFormationLine(selected.NetID, out shipPosition, out targetPosition))
+            {
+                var formation = selected.Formation ??
+                                (player.Formation?.Contains(selected) == true ? player.Formation : null);
+                if (formation == null)
+                    return;
+                shipPosition = selected.PhysicsComponent?.Body?.Position ?? selected.WorldTransform.Position;
+                targetPosition = formation.GetShipPosition(selected);
+            }
+
+            const float markerSize = 22;
+            world.DrawFormationDebug(targetPosition);
+            world.DrawFormationDebugLine(shipPosition, targetPosition, Color4.Cyan);
+            world.DrawFormationDebugLine(targetPosition - Vector3.UnitX * markerSize,
+                targetPosition + Vector3.UnitX * markerSize, Color4.Cyan);
+            world.DrawFormationDebugLine(targetPosition - Vector3.UnitY * markerSize,
+                targetPosition + Vector3.UnitY * markerSize, Color4.Cyan);
+            world.DrawFormationDebugLine(targetPosition - Vector3.UnitZ * markerSize,
+                targetPosition + Vector3.UnitZ * markerSize, Color4.Cyan);
         }
 
         private void TractorSelected()
@@ -2322,10 +2352,11 @@ World Time: {12:F2}
                 }
                 else
                 {
-                    ImGui.Text($"Server Tick: {session.EmbeddedServer!.Server.CurrentTick}");
-                }
+                ImGui.Text($"Server Tick: {session.EmbeddedServer!.Server.CurrentTick}");
+            }
 
                 ImGui.Checkbox("Draw autopilot avoidance", ref world.RenderAutopilotDebug);
+                ImGui.Checkbox("Draw formation lines", ref world.RenderFormationDebug);
 
                 bool hasDebug = world.Physics!.DebugRenderer != null;
                 ImGui.Checkbox("Draw hitboxes", ref hasDebug);
