@@ -312,19 +312,37 @@ namespace LibreLancer.Missions
         {
             lock (_msnLock)
             {
-                foreach (var tr in activeTriggers)
+                var seen = new HashSet<ActiveCondition>();
+                var checkedScript = false;
+
+                while (true)
                 {
-                    for (int i = tr.Conditions.Count - 1; i >= 0; i--)
+                    var processed = false;
+                    foreach (var tr in activeTriggers)
                     {
-                        if (tr.Conditions[i].Condition is EventListenerCondition<T> listener)
+                        for (int i = tr.Conditions.Count - 1; i >= 0; i--)
                         {
-                            listener.OnEvent(e, this, tr.Conditions[i]);
-                            tr.Satisfied[i] = listener.CheckCondition(this, tr.Conditions[i], 0);
+                            var condition = tr.Conditions[i];
+                            if (!seen.Add(condition))
+                                continue;
+                            if (condition.Condition is EventListenerCondition<T> listener)
+                            {
+                                listener.OnEvent(e, this, condition);
+                                tr.Satisfied[i] = listener.CheckCondition(this, condition, 0);
+                                processed = true;
+                            }
                         }
                     }
+
+                    if (!processed)
+                        break;
+
+                    CheckMissionScript();
+                    checkedScript = true;
                 }
 
-                CheckMissionScript();
+                if (!checkedScript)
+                    CheckMissionScript();
             }
         }
 

@@ -526,6 +526,7 @@ public partial class CGameSession
         {
             if (thorn == null)
             {
+                spaceGameplay?.Thn?.Dispose();
                 spaceGameplay?.Thn = null;
             }
             else
@@ -544,7 +545,8 @@ public partial class CGameSession
                     mo = spaceGameplay!.player;
                 }
 
-                spaceGameplay!.Thn = new Cutscene(new ThnScriptContext(null) { MainObject = mo }, spaceGameplay);
+                spaceGameplay!.Thn?.Dispose();
+                spaceGameplay.Thn = new Cutscene(new ThnScriptContext(null) { MainObject = mo }, spaceGameplay);
                 spaceGameplay.Thn.BeginScene(thn);
             }
         });

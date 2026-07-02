@@ -19,6 +19,8 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
 
     public void SetDirectives(MissionDirective[]? directives, GameWorld world)
     {
+        if (Parent.TryGetComponent<SNPCComponent>(out var npc))
+            npc.ClearStayInRange();
         currentDirectives = directives;
         index = directives == null ? -1 : 0;
         if (directives != null && index < directives.Length)
@@ -52,6 +54,20 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
         inThrottle <= 0
             ? 1
             : inThrottle / 100.0f;
+
+    public static bool ShouldStopAtTarget(GotoKind kind, MissionDirective? nextDirective)
+    {
+        if (kind == GotoKind.GotoNoCruise)
+            return true;
+        return nextDirective is not GotoVecDirective and
+               not GotoSplineDirective and
+               not GotoShipDirective;
+    }
+
+    private MissionDirective? NextDirectiveOrNull() =>
+        currentDirectives != null && index + 1 < currentDirectives.Length
+            ? currentDirectives[index + 1]
+            : null;
 
     private void StartDirective(MissionDirective directive, GameWorld world)
     {
@@ -112,7 +128,7 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                         vec.CruiseSpeedFullDistance,
                         vec.CruiseSpeedZeroDistance,
                         vec.CruiseSpeedUnknown,
-                        shouldStopAtTarget: vec.CruiseKind == GotoKind.GotoNoCruise);
+                        shouldStopAtTarget: ShouldStopAtTarget(vec.CruiseKind, NextDirectiveOrNull()));
                 }
 
                 break;
@@ -179,6 +195,16 @@ public class DirectiveRunnerComponent(GameObject parent) : GameComponent(parent)
                     FormationTools.MakeNewFormation(Parent, world, newFormation.Formation, newFormation.Ships);
                 }
 
+                NextDirective(world);
+                break;
+            }
+            case StayInRangeDirective stayInRange:
+            {
+                if (Parent.TryGetComponent<SNPCComponent>(out var npc))
+                {
+                    var target = stayInRange.UseObject ? world.GetObject(stayInRange.Object) : null;
+                    npc.SetStayInRange(target, stayInRange.Point, stayInRange.Range);
+                }
                 NextDirective(world);
                 break;
             }

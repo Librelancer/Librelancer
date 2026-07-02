@@ -95,6 +95,7 @@ World Time: {12:F2}
         private bool pausemenu = false;
         private bool paused = false;
         private int nextObjectiveUpdate = 0;
+        private bool objectiveObjectsDirty = true;
 
         private int updateStartDelay = -1;
         private DockCameraInfo? dockCameraInfo = null;
@@ -143,7 +144,11 @@ World Time: {12:F2}
             ui.GameApi = uiApi = new LuaAPI(this);
             uiApi.IndicatorLayer.OnRender += IndicatorLayerOnRender;
             nextObjectiveUpdate = session.CurrentObjective.Ids;
-            session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjective.Ids;
+            session.ObjectiveUpdated = () =>
+            {
+                nextObjectiveUpdate = session.CurrentObjective.Ids;
+                objectiveObjectsDirty = true;
+            };
             session.OnUpdateInventory = session.OnUpdatePlayerShip = null; // we should clear these handlers better
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys)!);
             loader.Init();
@@ -2108,16 +2113,8 @@ World Time: {12:F2}
                 missionWaypoint = null;
             }
 
-            if ((session.CurrentObjective.Kind == ObjectiveKind.Object ||
-                 session.CurrentObjective.Kind == ObjectiveKind.NavMarker) &&
-                sys.Nickname.Equals(session.CurrentObjective.System, StringComparison.OrdinalIgnoreCase))
+            if (TryGetMissionWaypointPosition(out var pos))
             {
-
-                var pos = session.CurrentObjective.Kind == ObjectiveKind.Object
-                    ? (world.GetObject(session.CurrentObjective.Object)?.WorldTransform ?? Transform3D.Identity)
-                    .Position
-                    : session.CurrentObjective.Position;
-
                 if (pos != Vector3.Zero)
                 {
                     var waypointArch = Game.GameData.Items.Archetypes.Get("waypoint")!;
@@ -2130,6 +2127,52 @@ World Time: {12:F2}
                     missionWaypoint.Register(world);
                 }
             }
+        }
+
+        private bool TryGetMissionWaypointPosition(out Vector3 position)
+        {
+            position = Vector3.Zero;
+            var objective = session.CurrentObjective;
+            if (objective.Kind != ObjectiveKind.Object && objective.Kind != ObjectiveKind.NavMarker)
+                return false;
+
+            if (objective.Kind == ObjectiveKind.Object && !string.IsNullOrWhiteSpace(objective.Object))
+            {
+                var currentObject = world.GetObject(objective.Object);
+                if (currentObject != null)
+                {
+                    position = currentObject.WorldTransform.Position;
+                    return true;
+                }
+            }
+
+            var objectiveSystem = objective.System;
+            if (string.IsNullOrWhiteSpace(objectiveSystem))
+                return false;
+
+            if (sys.Nickname.Equals(objectiveSystem, StringComparison.OrdinalIgnoreCase))
+            {
+                position = objective.Kind == ObjectiveKind.NavMarker
+                    ? objective.Position
+                    : (world.GetObject(objective.Object)?.WorldTransform ?? Transform3D.Identity).Position;
+                return position != Vector3.Zero;
+            }
+
+            var targetSystem = Game.GameData.Items.Systems.Get(objectiveSystem);
+            if (targetSystem == null ||
+                !sys.ShortestPathsAny.TryGetValue(targetSystem, out var path) ||
+                path.Count < 2)
+                return false;
+
+            var nextSystem = path[1].Nickname;
+            var jumpObject = sys.Objects.FirstOrDefault(x =>
+                x.Dock is { Kind: DockKinds.Jump } &&
+                x.Dock.Target?.Equals(nextSystem, StringComparison.OrdinalIgnoreCase) == true);
+            if (jumpObject == null)
+                return false;
+
+            position = world.GetObject(jumpObject.Nickname)?.WorldTransform.Position ?? jumpObject.Position;
+            return position != Vector3.Zero;
         }
 
         private int CrosshairSize()
@@ -2220,6 +2263,12 @@ World Time: {12:F2}
                 waitObjectiveFrames--;
             }
 
+            if (objectiveObjectsDirty)
+            {
+                objectiveObjectsDirty = false;
+                UpdateObjectiveObjects();
+            }
+
             UpdateWaypointRenderStyle();
             world.RenderUpdate(delta);
             sysrender.DebugRenderer.StartFrame(Game.RenderContext);
@@ -2247,7 +2296,6 @@ World Time: {12:F2}
                 {
                     ui.Event("ObjectiveUpdate", nextObjectiveUpdate);
                     nextObjectiveUpdate = 0;
-                    UpdateObjectiveObjects();
                 }
             }
             else

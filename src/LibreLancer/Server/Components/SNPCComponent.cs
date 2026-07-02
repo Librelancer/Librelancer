@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.Schema.Pilots;
+using LibreLancer.Data.Schema.Ships;
+using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Missions;
 using LibreLancer.Server.Ai;
 using LibreLancer.World;
@@ -81,12 +83,15 @@ namespace LibreLancer.Server.Components
             state?.OnStart(Parent, world, this);
         }
 
-        private Dictionary<GameObjectKind, int> attackPref = new();
+        private Dictionary<AttackTarget, int> attackPref = new();
+        private GameObject? stayInRangeObject;
+        private Vector3 stayInRangePoint;
+        private float stayInRangeRadius;
 
         public void SetPilot(Pilot? pilot)
         {
             Pilot = pilot;
-            attackPref = new Dictionary<GameObjectKind, int>();
+            attackPref = new Dictionary<AttackTarget, int>();
 
             if (pilot == null)
             {
@@ -102,32 +107,77 @@ namespace LibreLancer.Server.Components
             {
                 int weight = Pilot.Job.AttackPreferences.Count - i;
 
-                switch (Pilot.Job.AttackPreferences[i].Target)
-                {
-                    case AttackTarget.Fighter:
-                        attackPref[GameObjectKind.Ship] = weight;
-                        break;
-                    case AttackTarget.Solar:
-                        attackPref[GameObjectKind.Solar] = weight;
-                        break;
-                }
+                attackPref[Pilot.Job.AttackPreferences[i].Target] = weight;
             }
+        }
+
+        public void SetStayInRange(GameObject? target, Vector3 point, float radius)
+        {
+            stayInRangeObject = target;
+            stayInRangePoint = point;
+            stayInRangeRadius = MathF.Max(0, radius);
+        }
+
+        public void ClearStayInRange()
+        {
+            stayInRangeObject = null;
+            stayInRangePoint = Vector3.Zero;
+            stayInRangeRadius = 0;
+        }
+
+        private bool TryGetStayInRangeCenter(out Vector3 center)
+        {
+            if (stayInRangeRadius <= 0)
+            {
+                center = Vector3.Zero;
+                return false;
+            }
+            center = stayInRangeObject?.WorldTransform.Position ?? stayInRangePoint;
+            return stayInRangeObject == null || stayInRangeObject.Flags.HasFlag(GameObjectFlags.Exists);
+        }
+
+        public static AttackTarget ClassifyAttackTarget(GameObject obj)
+        {
+            if (obj.TryGetComponent<ShipComponent>(out var ship))
+            {
+                return ship.Ship.ShipType switch
+                {
+                    ShipType.Fighter => AttackTarget.Fighter,
+                    ShipType.Freighter => AttackTarget.Freighter,
+                    ShipType.Gunboat => AttackTarget.Gunboat,
+                    ShipType.Cruiser => AttackTarget.Cruiser,
+                    ShipType.Transport => AttackTarget.Transport,
+                    ShipType.Capital => AttackTarget.Capital,
+                    _ => AttackTarget.Anything
+                };
+            }
+
+            return obj.SystemObject?.Archetype?.Type switch
+            {
+                ArchetypeType.jump_gate or ArchetypeType.jump_hole or ArchetypeType.jumphole => AttackTarget.Jumpgate,
+                ArchetypeType.weapons_platform => AttackTarget.Weapons_Platform,
+                ArchetypeType.destroyable_depot => AttackTarget.Destroyable_Depot,
+                ArchetypeType.tradelane_ring => AttackTarget.Tradelane,
+                _ when obj.Kind == GameObjectKind.Solar => AttackTarget.Solar,
+                _ => AttackTarget.Anything
+            };
         }
 
         private int GetHostileWeight(GameObject obj)
         {
-            if ("player".Equals(obj.Nickname, StringComparison.OrdinalIgnoreCase) &&
-                manager.AttackingPlayer > 2)
+            if (manager.HostileClamp &&
+                "player".Equals(obj.Nickname, StringComparison.OrdinalIgnoreCase))
             {
-                return -100;
+                if (manager.AttackingPlayer >= manager.PlayerEnemyClampMax)
+                    return -100;
+                if (manager.AttackingPlayer < manager.PlayerEnemyClampMin)
+                    return 100;
             }
 
-            if (attackPref.TryGetValue(obj.Kind, out var weight))
-            {
+            var target = ClassifyAttackTarget(obj);
+            if (attackPref.TryGetValue(target, out var weight))
                 return weight;
-            }
-
-            return 0;
+            return attackPref.GetValueOrDefault(AttackTarget.Anything);
         }
 
         private double missileTimer;
@@ -419,7 +469,9 @@ namespace LibreLancer.Server.Components
             // Get hostile
             GameObject? shootAt = null;
             int shootAtWeight = -1000;
+            float shootAtDistance = float.MaxValue;
             var myPos = Parent.WorldTransform.Position;
+            var hasStayInRange = TryGetStayInRangeCenter(out var stayInRangeCenter);
 
             foreach (var other in world.SpatialLookup
                          .GetNearbyObjects(Parent, myPos, 5000))
@@ -440,11 +492,20 @@ namespace LibreLancer.Server.Components
                     continue;
                 }
 
-                int weight = GetHostileWeight(other);
+                if (hasStayInRange &&
+                    Vector3.DistanceSquared(other.WorldTransform.Position, stayInRangeCenter) >
+                    stayInRangeRadius * stayInRangeRadius)
+                {
+                    continue;
+                }
 
-                if (weight > shootAtWeight)
+                int weight = GetHostileWeight(other);
+                var distance = Vector3.DistanceSquared(other.WorldTransform.Position, myPos);
+
+                if (weight > shootAtWeight || weight == shootAtWeight && distance < shootAtDistance)
                 {
                     shootAtWeight = weight;
+                    shootAtDistance = distance;
                     shootAt = other;
                 }
             }
