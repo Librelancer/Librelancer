@@ -1018,11 +1018,13 @@ World Time: {12:F2}
             public LuaCompatibleDictionary GetManeuversEnabled()
             {
                 var dict = new LuaCompatibleDictionary();
-                dict.Set("FreeFlight", true);
-                dict.Set("Goto", g.Selection.Selected != null);
-                dict.Set("Dock", g.Selection.Selected?.GetComponent<DockInfoComponent>() != null &&
+                dict.Set("FreeFlight", g.session.IsManeuverEnabled("FreeFlight"));
+                dict.Set("Goto", g.session.IsManeuverEnabled("Goto") && g.Selection.Selected != null);
+                dict.Set("Dock", g.session.IsManeuverEnabled("Dock") &&
+                                 g.Selection.Selected?.GetComponent<DockInfoComponent>() != null &&
                                  g.session.DockAllowed(g.Selection.Selected));
-                dict.Set("Formation", g.Selection.Selected is { Kind: GameObjectKind.Ship });
+                dict.Set("Formation", g.session.IsManeuverEnabled("Formation") &&
+                                      g.Selection.Selected is { Kind: GameObjectKind.Ship });
                 return dict;
             }
 
@@ -1135,6 +1137,9 @@ World Time: {12:F2}
 
         private bool ManeuverSelect(string e)
         {
+            if (!session.IsManeuverEnabled(e))
+                return false;
+
             switch (e)
             {
                 case "FreeFlight":

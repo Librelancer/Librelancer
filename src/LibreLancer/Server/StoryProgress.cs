@@ -41,10 +41,10 @@ public class StoryProgress
             player.LoadMission();
         }
 
-        if (oldStory.CashUp > 0)
+        if (next.CashUp > 0)
         {
-            NextLevelWorth = player.CalculateNetWorth() + oldStory.CashUp;
-            FLLog.Info("Mission", $"SET Next Level Worth: {NextLevelWorth} (+{oldStory.CashUp})");
+            NextLevelWorth = player.CalculateNetWorth() + next.CashUp;
+            FLLog.Info("Mission", $"SET Next Level Worth: {NextLevelWorth} (+{next.CashUp})");
         }
 
         FLLog.Info("Mission", $"Transitioned from {old} to {next.Nickname}");
@@ -70,7 +70,7 @@ public class StoryProgress
         else if (CurrentStory.CashUp > 0)
         {
             var playerNet = player.CalculateNetWorth();
-            if(playerNet >= NextLevelWorth)
+            if (playerNet >= NextLevelWorth)
             {
                 FLLog.Info("Mission", $"Current worth {playerNet} > {NextLevelWorth}");
                 Advance(player);

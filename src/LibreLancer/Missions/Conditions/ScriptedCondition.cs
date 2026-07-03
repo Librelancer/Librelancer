@@ -359,7 +359,7 @@ public class Cnd_TetherBroke : ScriptedCondition
     }
 }
 
-public class Cnd_SystemExit : ScriptedCondition
+public class Cnd_SystemExit : SingleEventListenerCondition<SystemExitedEvent>
 {
     public List<string> Systems = [];
     public bool Any;
@@ -386,6 +386,12 @@ public class Cnd_SystemExit : ScriptedCondition
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_SystemExit", Any ? ["any"] : Systems.Select(x => (ValueBase)x).ToArray());
+    }
+
+    protected override bool EventCheck(SystemExitedEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        return ev.Ship.Equals("Player", StringComparison.OrdinalIgnoreCase) &&
+               (Any || Systems.Any(x => x.Equals(ev.System, StringComparison.OrdinalIgnoreCase)));
     }
 }
 
@@ -650,7 +656,7 @@ public class Cnd_PlayerLaunch : SingleEventListenerCondition<PlayerLaunchedEvent
     }
 }
 
-public class Cnd_NPCSystemExit : ScriptedCondition
+public class Cnd_NPCSystemExit : EventListenerCondition<SystemExitedEvent>
 {
     public string System = string.Empty;
     public List<string> Ships = [];
@@ -666,6 +672,27 @@ public class Cnd_NPCSystemExit : ScriptedCondition
         {
             Ships.Add(value.ToString());
         }
+    }
+
+    public override void Init(MissionRuntime runtime, ActiveCondition self)
+    {
+        var checking = new ConditionHashSet();
+        foreach (var sh in Ships)
+            checking.Values.Add(sh);
+        self.Storage = checking;
+    }
+
+    public override void OnEvent(SystemExitedEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        if (!ev.System.Equals(System, StringComparison.OrdinalIgnoreCase))
+            return;
+        var v = (ConditionHashSet)self.Storage;
+        v.Values.Remove(ev.Ship);
+    }
+
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        return ((ConditionHashSet)self.Storage).Values.Count == 0;
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -919,6 +946,28 @@ public class Cnd_InTradelane : ScriptedCondition
         GetString(nameof(Ship), 1, out Ship, entry);
     }
 
+    public override bool CheckCondition(MissionRuntime runtime, ActiveCondition self, double elapsed)
+    {
+        bool inTradelane;
+        if (IdEqual(Ship, "Player"))
+        {
+            inTradelane = runtime.Player.InTradelane;
+        }
+        else
+        {
+            if (!runtime.GetSpace(out var space))
+                return false;
+
+            var obj = space.World.GameWorld.GetObject(Ship);
+            if (obj == null)
+                return !InTL;
+
+            inTradelane = obj.TryGetComponent<STradelaneMoveComponent>(out _);
+        }
+
+        return inTradelane == InTL;
+    }
+
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
         section.Entry("Cnd_InTradelane", InTL, Ship);
@@ -1101,8 +1150,9 @@ public class Cnd_DistVec : ScriptedCondition
         GetVector3(nameof(Position), 2, out Position, entry);
         GetFloat(nameof(Distance), 5, out Distance, entry);
 
-        if (entry.Count >= 8 &&
-            entry[7].ToString().Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
+        if (entry.Count >= 7 &&
+            (entry.Count == 7 ||
+             entry[7].ToString().Equals("tick_away", StringComparison.InvariantCultureIgnoreCase)))
         {
             TickAway = entry[6].ToSingle();
         }
@@ -1125,12 +1175,16 @@ public class Cnd_DistVec : ScriptedCondition
         if (obj == null)
             return false;
         bool isInside = Vector3.Distance(obj.WorldTransform.Position, Position) <= Distance;
-        if(TickAway.Present)
+        if (TickAway.Present)
         {
             var st = (ConditionDouble)self.Storage;
             if (Inside == isInside)
             {
                 st.Value -= elapsed;
+            }
+            else
+            {
+                st.Value = TickAway.Value;
             }
             return st.Value <= 0;
         }
@@ -1172,8 +1226,9 @@ public class Cnd_DistShip : ScriptedCondition
         GetString(nameof(DestObject), 2, out DestObject, entry);
         GetFloat(nameof(Distance), 3, out Distance, entry);
 
-        if (entry.Count >= 6 &&
-            entry[5].ToString().Equals("tick_away", StringComparison.InvariantCultureIgnoreCase))
+        if (entry.Count >= 5 &&
+            (entry.Count == 5 ||
+             entry[5].ToString().Equals("tick_away", StringComparison.InvariantCultureIgnoreCase)))
         {
             TickAway = entry[4].ToSingle();
         }
@@ -1197,14 +1252,18 @@ public class Cnd_DistShip : ScriptedCondition
         if (obj == null || obj2 == null)
             return false;
         var isInside = Vector3.Distance(obj.WorldTransform.Position, obj2.WorldTransform.Position) <= Distance;
-        if(TickAway.Present)
+        if (TickAway.Present)
         {
             var st = (ConditionDouble)self.Storage;
             if (Inside == isInside)
             {
                 st.Value -= elapsed;
             }
-            if(st.Value <= 0)
+            else
+            {
+                st.Value = TickAway.Value;
+            }
+            if (st.Value <= 0)
             {
                 FLLog.Debug("Mission", $"Cnd_Dist: {elapsed} satisfied TICK_AWAY");
             }
@@ -1316,7 +1375,7 @@ public class Cnd_Destroyed :
             {
                 if (Kind != CndDestroyedKind.ALL && Kind != CndDestroyedKind.ALL_IGNORE_LANDING)
                 {
-                    return !lbl.AnyAlive();  // True if no ships are alive (all dead or not spawned). Used for EXPLODE with Count=-1.
+                    return lbl.IsAllKilled();  // True if at least one label member has spawned, and none of the spawned members are alive.
                 }
                 else
                 {

@@ -11,6 +11,7 @@ namespace LibreLancer.Physics
     {
         public object? Tag;
         internal readonly int Id;
+        public bool IsDisposed { get; private set; }
 
         protected PhysicsObject(int id, Collider collider)
         {
@@ -58,6 +59,8 @@ namespace LibreLancer.Physics
         public abstract void PredictionStep(float timestep);
 
         internal abstract void UpdateProperties();
+
+        internal void MarkDisposed() => IsDisposed = true;
 
         public abstract void Dispose();
     }

@@ -8,9 +8,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
+using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Data.Schema.Save;
 using LibreLancer.Missions.Conditions;
 using LibreLancer.Missions.Events;
+using LibreLancer.Net;
 using LibreLancer.Server;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
@@ -26,6 +28,7 @@ namespace LibreLancer.Missions
         public Random Random = new();
 
         public Dictionary<string, MissionLabel> Labels = new(StringComparer.OrdinalIgnoreCase);
+        private string? activeNNObjective;
 
         public MissionRuntime(MissionScript script, Player player, uint[] triggerSave)
         {
@@ -72,6 +75,60 @@ namespace LibreLancer.Missions
             }
 
             UpdateUiTriggers();
+        }
+
+        private static NetObjective ToNetObjective(NNObjective objective) => objective.Type switch
+        {
+            NNObjectiveType.ids => new NetObjective(objective.NameIds),
+            NNObjectiveType.navmarker => new NetObjective(
+                objective.NameIds,
+                objective.ExplanationIds,
+                objective.System,
+                objective.Position
+            ),
+            NNObjectiveType.rep_inst => new NetObjective(
+                objective.NameIds,
+                objective.ExplanationIds,
+                objective.System,
+                objective.SolarNickname
+            ),
+            _ => new NetObjective()
+        };
+
+        public void SetNNObjectiveState(string objective, bool complete)
+        {
+            if (!Script.Objectives.ContainsKey(objective))
+            {
+                FLLog.Warning("Mission", $"Act_SetNNState could not find objective `{objective}`");
+                return;
+            }
+
+            if (!complete)
+                activeNNObjective = objective;
+            else if (activeNNObjective != null &&
+                     activeNNObjective.Equals(objective, StringComparison.OrdinalIgnoreCase))
+                activeNNObjective = null;
+        }
+
+        public void SetCurrentObjective(string objective, bool history)
+        {
+            if (!Script.Objectives.TryGetValue(objective, out var value))
+            {
+                FLLog.Warning("Mission", $"Act_SetNNObj could not find objective `{objective}`");
+                return;
+            }
+
+            activeNNObjective = objective;
+            Player.SetObjective(ToNetObjective(value), history);
+        }
+
+        public void GiveNNObjectives()
+        {
+            if (activeNNObjective == null)
+                return;
+            if (!Script.Objectives.TryGetValue(activeNNObjective, out var value))
+                return;
+            Player.SetObjective(ToNetObjective(value), false);
         }
 
         private string lastSaveTrigger = string.Empty;
@@ -141,6 +198,51 @@ namespace LibreLancer.Missions
                     FLLog.Error("Mission", $"Cnd_ProjHit won't register for not spawned {target}");
                 }
             });
+        }
+
+        public GameObject? SpawnMissionSolar(string solarName, ServerWorld world)
+        {
+            if (!Script.Solars.TryGetValue(solarName, out var sol))
+                return null;
+
+            var existing = world.GameWorld.GetObject(sol.Nickname);
+            if (existing != null)
+                return existing;
+
+            ObjectSpawned(sol.Nickname);
+            var obj = world.SpawnSolar(
+                sol.Nickname,
+                sol.Archetype!,
+                sol.Loadout!,
+                sol.Faction!,
+                sol.Position,
+                sol.Orientation,
+                sol.IdsName,
+                sol.Base
+            );
+
+            if (obj.TryGetComponent<SDestroyableComponent>(out var dstComp))
+            {
+                dstComp.OnKilled = () => ObjectDestroyed(sol.Nickname);
+            }
+
+            return obj;
+        }
+
+        public GameObject? SpawnMissionSolarForBase(string baseName, ServerWorld world)
+        {
+            foreach (var sol in Script.Solars.Values)
+            {
+                if (!baseName.Equals(sol.Base, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (sol.System != null && !sol.System.Equals(world.System.Nickname, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                FLLog.Info("Mission", $"Spawning mission solar `{sol.Nickname}` for base `{baseName}`");
+                return SpawnMissionSolar(sol.Nickname, world);
+            }
+
+            return null;
         }
 
         public void ActivateTrigger(string trigger)
@@ -223,6 +325,9 @@ namespace LibreLancer.Missions
 
         public void SystemEnter(string system, string ship) =>
             MsnEvent(new SystemEnteredEvent(system, ship));
+
+        public void SystemExit(string system, string ship) =>
+            MsnEvent(new SystemExitedEvent(system, ship));
 
         public void Update(double elapsed)
         {

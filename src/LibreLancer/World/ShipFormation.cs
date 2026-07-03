@@ -69,6 +69,13 @@ namespace LibreLancer.World
             if (LeadShip == self) return;
             var idx = _followers.IndexOf(self);
             if (idx == -1) throw new InvalidOperationException("Ship not in formation");
+            if (idx >= Offsets.Length)
+            {
+                var oldLength = Offsets.Length;
+                Array.Resize(ref Offsets, idx + 1);
+                for (int i = oldLength; i < Offsets.Length; i++)
+                    Offsets[i] = DefaultOffset(i);
+            }
             Offsets[idx] = offset;
             Version++;
         }
@@ -104,19 +111,43 @@ namespace LibreLancer.World
 
         public void Remove(GameObject obj)
         {
-            if (LeadShip == obj) {
-                if (Followers.Count > 0)
+            if (!Contains(obj))
+                throw new InvalidOperationException("Ship not in formation");
+
+            if (LeadShip == obj)
+            {
+                if (_followers.Count <= 1)
                 {
-                    LeadShip = Followers[0];
-                    _followers.RemoveAt(0);
+                    Disband(obj);
+                    return;
                 }
+
+                LeadShip = _followers[0];
+                _followers.RemoveAt(0);
             }
             else
             {
                 if (!_followers.Remove(obj))
                     throw new InvalidOperationException("Ship not in formation");
+
+                if (_followers.Count == 0)
+                {
+                    Disband(obj);
+                    return;
+                }
             }
+
             obj.Formation = null;
+            Version++;
+        }
+
+        private void Disband(GameObject removed)
+        {
+            LeadShip.Formation = null;
+            foreach (var follower in _followers)
+                follower.Formation = null;
+            removed.Formation = null;
+            _followers.Clear();
             Version++;
         }
 
@@ -146,11 +177,21 @@ namespace LibreLancer.World
 
         public NetFormation ToNetFormation(GameObject self)
         {
+            if (LeadShip != self &&
+                ((LeadShip.Flags & GameObjectFlags.Exists) != GameObjectFlags.Exists || LeadShip.NetID == 0))
+            {
+                return new NetFormation();
+            }
+
+            var followers = Followers
+                .Where(x => x == self || (x.Flags & GameObjectFlags.Exists) == GameObjectFlags.Exists && x.NetID != 0)
+                .Select(x => GetId(x, self))
+                .ToArray();
             var nf = new NetFormation
             {
                 Exists = true,
                 LeadShip = GetId(LeadShip, self),
-                Followers = Followers.Select(x => GetId(x, self)).ToArray(),
+                Followers = followers,
                 YourPosition = GetShipOffset(self)
             };
             return nf;

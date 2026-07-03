@@ -356,6 +356,11 @@ public class Act_LockManeuvers : ScriptedAction
     {
         section.Entry("Act_LockManeuvers", Lock ? "true" : "false");
     }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        runtime.Player.SetManeuversLocked(Lock);
+    }
 }
 
 // Act_NagDistLeaving = takeTL34, escort, Li01_Trade_Lane_Ring_34, 21985, 1, NAG_ALWAYS
@@ -774,6 +779,11 @@ public class Act_SetNNState : ScriptedAction
     {
         section.Entry("Act_SetNNState", Objective, Complete ? "COMPLETE" : "ACTIVE");
     }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        runtime.SetNNObjectiveState(Objective, Complete);
+    }
 }
 
 public class Act_SetLifetime : ScriptedAction
@@ -938,12 +948,17 @@ public class Act_GiveNNObjs : ScriptedAction
     {
         section.Entry("Act_GiveNNObjs", "no_params");
     }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        runtime.GiveNNObjectives();
+    }
 }
 
 public class Act_EnableManeuver : ScriptedAction
 {
     public ManeuverType Maneuver = ManeuverType.Dock;
-    public bool Lock;
+    public bool Enabled;
 
     public Act_EnableManeuver()
     {
@@ -952,12 +967,17 @@ public class Act_EnableManeuver : ScriptedAction
     public Act_EnableManeuver(MissionAction act) : base(act)
     {
         GetEnum(nameof(Maneuver), 0, out Maneuver, act.Entry);
-        GetBoolean(nameof(Lock), 1, out Lock, act.Entry);
+        GetBoolean(nameof(Enabled), 1, out Enabled, act.Entry);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
     {
-        section.Entry("Act_EnableManeuver", Maneuver.ToString(), Lock);
+        section.Entry("Act_EnableManeuver", Maneuver.ToString(), Enabled);
+    }
+
+    public override void Invoke(MissionRuntime runtime, MissionScript script)
+    {
+        runtime.Player.SetManeuverEnabled(Maneuver, Enabled);
     }
 }
 
