@@ -45,7 +45,7 @@ namespace BuildLL
             StringArg("-r|--rid", x => serverRid = x, "Set runtime identifier for server-only build");
             StringArg("--update-channel", v => updateChannel = v, "Sets update channel for this build (SDK only)");
             StringArg("-g|--generator", x => {
-                genTool = x;
+                genTool = x.Equals("ninja", StringComparison.OrdinalIgnoreCase) ? "Ninja" : "Unix Makefiles";
                 buildTool = x.Equals("ninja", StringComparison.OrdinalIgnoreCase) ? "ninja" : "make";
             }, "Set CMake generator (UNIX only)");
             StringArg("--vsversion", v =>
