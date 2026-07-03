@@ -6,6 +6,7 @@ using System.Threading;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.World
 {
@@ -48,6 +49,8 @@ namespace LibreLancer.World
         }
 
         public Vector3? PlayerPosition;
+        // The server sends the player's authored target because the client does not have every NPC offset.
+        internal Vector3? PlayerTargetPosition;
 
         public Vector3 GetShipOffset(GameObject self)
         {
@@ -67,12 +70,13 @@ namespace LibreLancer.World
             var idx = _followers.IndexOf(self);
             if (idx == -1) throw new InvalidOperationException("Ship not in formation");
             Offsets[idx] = offset;
+            Version++;
         }
 
         public Vector3 GetShipPosition(GameObject self, bool isPlayer = false)
         {
-            var offset = isPlayer
-                ? (PlayerPosition ?? GetShipOffset(self))
+            var offset = isPlayer && PlayerTargetPosition != null
+                ? PlayerTargetPosition.Value
                 : GetShipOffset(self);
             return LeadShip.WorldTransform.Transform(offset);
         }
@@ -147,7 +151,7 @@ namespace LibreLancer.World
                 Exists = true,
                 LeadShip = GetId(LeadShip, self),
                 Followers = Followers.Select(x => GetId(x, self)).ToArray(),
-                YourPosition = PlayerPosition ?? GetShipOffset(self)
+                YourPosition = GetShipOffset(self)
             };
             return nf;
         }

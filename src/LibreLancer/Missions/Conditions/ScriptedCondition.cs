@@ -389,7 +389,7 @@ public class Cnd_SystemExit : ScriptedCondition
     }
 }
 
-public class Cnd_SystemEnter : ScriptedCondition
+public class Cnd_SystemEnter : SingleEventListenerCondition<SystemEnteredEvent>
 {
     public List<string> Systems = [];
     public bool Any;
@@ -411,6 +411,12 @@ public class Cnd_SystemEnter : ScriptedCondition
 
             Systems.Add(system.ToString());
         }
+    }
+
+    protected override bool EventCheck(SystemEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        return IdEqual(ev.Ship, "Player") &&
+               (Any || Systems.Any(system => IdEqual(system, ev.System)));
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)
@@ -833,7 +839,7 @@ public class Cnd_LaunchComplete : SingleEventListenerCondition<LaunchCompleteEve
     }
 }
 
-public class Cnd_JumpInComplete : ScriptedCondition
+public class Cnd_JumpInComplete : SingleEventListenerCondition<SystemEnteredEvent>
 {
     public string System = string.Empty;
 
@@ -845,6 +851,11 @@ public class Cnd_JumpInComplete : ScriptedCondition
     {
         GetString(nameof(System),  0, out System, entry);
         System = entry[0].ToString();
+    }
+
+    protected override bool EventCheck(SystemEnteredEvent ev, MissionRuntime runtime, ActiveCondition self)
+    {
+        return IdEqual(ev.Ship, "Player") && IdEqual(ev.System, System);
     }
 
     public override void Write(IniBuilder.IniSectionBuilder section)

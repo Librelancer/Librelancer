@@ -9,6 +9,7 @@ using ImGuiNET;
 using LibreLancer.Client.Components;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Net.Protocol;
+using LibreLancer.Server.Components;
 
 namespace LibreLancer.World.Components
 {
@@ -101,7 +102,6 @@ namespace LibreLancer.World.Components
 
             hasTriggeredCruise = true;
             control.Cruise = CanCruise && shouldCruise;
-            hasTriggeredCruise = true;
         }
 
         protected bool TargetValid() => TargetObject == null ||
@@ -215,7 +215,7 @@ namespace LibreLancer.World.Components
             if (distanceSatisfied)
                 return true;
 
-            if (Behavior != AutopilotBehaviors.Undock)
+            if (Behavior != AutopilotBehaviors.Undock && Component.AvoidanceEnabled)
             {
                 var avoidancePlan = avoidance.GetPlan(world, Parent, TargetObject, point, targetRadius + radius + range,
                     time);
@@ -414,6 +414,65 @@ namespace LibreLancer.World.Components
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Goto;
 
+        private GameObject? cruiseSpeedReference;
+        private string? cruiseSpeedReferenceNickname;
+        private float cruiseSpeedFullDistance;
+        private float cruiseSpeedZeroDistance;
+        private float cruiseSpeedUnknown;
+        private float referenceDistance = -1;
+        private float referenceSpeedFactor = 1;
+        internal float ReferenceSpeedFactor => referenceSpeedFactor;
+
+        internal void SetCruiseSpeedReference(string? referenceNickname, float fullDistance, float zeroDistance,
+            float unknown)
+        {
+            cruiseSpeedReferenceNickname = referenceNickname;
+            cruiseSpeedFullDistance = fullDistance;
+            cruiseSpeedZeroDistance = zeroDistance;
+            cruiseSpeedUnknown = unknown;
+        }
+
+        internal static float ReferenceCruiseSpeedOffset(float distance, float fullDistance, float zeroDistance,
+            float cruiseSpeed)
+        {
+            return -cruiseSpeed * (1 - ReferenceCruiseFactor(distance, fullDistance, zeroDistance));
+        }
+
+        internal static float ReferenceCruiseFactor(float distance, float fullDistance, float zeroDistance)
+        {
+            if (zeroDistance <= fullDistance)
+                return 1;
+            return 1 - MathHelper.Clamp((distance - fullDistance) / (zeroDistance - fullDistance), 0, 1);
+        }
+
+        private GameObject? ResolveCruiseSpeedReference(GameWorld world)
+        {
+            if (string.IsNullOrWhiteSpace(cruiseSpeedReferenceNickname))
+                return null;
+            if (!cruiseSpeedReferenceNickname.Equals("Player", StringComparison.OrdinalIgnoreCase))
+                return world.GetObject(cruiseSpeedReferenceNickname);
+
+            // "Player" in mission objlists is a special token for a player object, not an object nickname.
+            var parentPosition = Parent.PhysicsComponent?.Body?.Position ?? Parent.WorldTransform.Position;
+            GameObject? nearestPlayer = null;
+            var nearestDistance = float.MaxValue;
+            foreach (var candidate in world.Objects)
+            {
+                if (!candidate.Flags.HasFlag(GameObjectFlags.Player) ||
+                    !candidate.Flags.HasFlag(GameObjectFlags.Exists))
+                    continue;
+                var candidatePosition = candidate.PhysicsComponent?.Body?.Position ??
+                                        candidate.WorldTransform.Position;
+                var distance = Vector3.DistanceSquared(parentPosition, candidatePosition);
+                if (distance < nearestDistance)
+                {
+                    nearestDistance = distance;
+                    nearestPlayer = candidate;
+                }
+            }
+            return nearestPlayer;
+        }
+
         public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time, GameWorld world)
         {
             if (!TargetValid())
@@ -421,13 +480,43 @@ namespace LibreLancer.World.Components
                 return true;
             }
 
-            return MoveToPoint(time, GetTargetPoint(), GetTargetRadius(), GotoRadius, MaxThrottle, ShouldStopAtTarget, control,
-                input, world);
+            var finished = MoveToPoint(time, GetTargetPoint(), GetTargetRadius(), GotoRadius, MaxThrottle,
+                ShouldStopAtTarget,
+                control, input, world);
+            referenceDistance = -1;
+            referenceSpeedFactor = 1;
+            cruiseSpeedReference = ResolveCruiseSpeedReference(world);
+            if (cruiseSpeedReference is { } reference && reference.Flags.HasFlag(GameObjectFlags.Exists))
+            {
+                var parentPosition = Parent.PhysicsComponent?.Body?.Position ?? Parent.WorldTransform.Position;
+                var referencePosition = reference.PhysicsComponent?.Body?.Position ?? reference.WorldTransform.Position;
+                var distance = Vector3.Distance(parentPosition, referencePosition);
+                var cruiseFactor = ReferenceCruiseFactor(distance, cruiseSpeedFullDistance,
+                    cruiseSpeedZeroDistance);
+                referenceDistance = distance;
+                referenceSpeedFactor = cruiseFactor;
+                SetThrottle(control.InThrottle * cruiseFactor, control, input);
+                if (control.Cruise)
+                {
+                    var cruiseSpeed = Parent.GetComponent<SEngineComponent>()?.Engine.CruiseSpeed ?? 300;
+                    control.CruiseSpeedOffset = ReferenceCruiseSpeedOffset(distance, cruiseSpeedFullDistance,
+                        cruiseSpeedZeroDistance, cruiseSpeed);
+                }
+            }
+            return finished;
         }
 
         public override void ImGuiDebug()
         {
             ImGui.Text($"Goto: {GetTargetPoint()}");
+            if (!string.IsNullOrWhiteSpace(cruiseSpeedReferenceNickname))
+            {
+                ImGui.Text($"Cruise reference: {cruiseSpeedReference?.Nickname ?? "unresolved"} " +
+                           $"({cruiseSpeedFullDistance}-{cruiseSpeedZeroDistance}, {cruiseSpeedUnknown})");
+                ImGui.Text(referenceDistance < 0
+                    ? "Cruise reference unresolved"
+                    : $"Reference distance: {referenceDistance:0.0}, factor: {referenceSpeedFactor:0.000}");
+            }
         }
     }
 
@@ -435,14 +524,17 @@ namespace LibreLancer.World.Components
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Formation;
 
-        private const float CruiseDampenDistance = 250;
-        private const float ThrottleDampenDistance = 125;
         private const float LeaderCruiseCatchupDistance = 450;
-        private const float FormationSpeedBoost = 0.2f;
-        private const float MaxFormationCruiseSpeedReduction = 5;
-        private const float FormationFacingDistance = 100;
-        private const float ThrottleMatchDistance = 100;
-        private const float MinCatchupThrottle = 0.35f;
+        private const float SteeringLookahead = 1000;
+
+        private Vector3 heldSeparation;
+        private int heldSeparationNeighbor;
+        private float separationHoldTimer;
+        private float debugSlotDistance;
+        private float debugDesiredSpeed;
+        private bool debugSeparating;
+        private float debugSeparationBrake;
+        private FormationControl.Neighbor[] separationNeighbors = [];
 
         private static bool LeadIsCruising(GameObject lead)
         {
@@ -464,35 +556,8 @@ namespace LibreLancer.World.Components
             return 0;
         }
 
-        private static float ApproachThrottle(float distance, float leadThrottle)
-        {
-            if (distance > ThrottleDampenDistance)
-            {
-                return 1 + FormationSpeedBoost;
-            }
-
-            if (distance > ThrottleMatchDistance)
-            {
-                var throttle = MathHelper.Lerp(MinCatchupThrottle, 1, distance / ThrottleDampenDistance);
-                return MathF.Max(leadThrottle, throttle);
-            }
-
-            return leadThrottle;
-        }
-
-        private static float CruiseSpeedOffset(float distance)
-        {
-            var dampen = 1 - MathHelper.Clamp(distance / CruiseDampenDistance, 0, 1);
-            return -MaxFormationCruiseSpeedReduction * dampen;
-        }
-
         private static Vector3 ShipPosition(GameObject ship) =>
             ship.PhysicsComponent?.Body?.Position ?? ship.WorldTransform.Position;
-
-        private static float ShipSpeed(GameObject ship)
-        {
-            return ship.PhysicsComponent?.Body?.LinearVelocity.Length() ?? 0;
-        }
 
         private bool ShouldCruise(GameObject lead)
         {
@@ -500,30 +565,105 @@ namespace LibreLancer.World.Components
             return LeadIsCruising(lead) || leaderDistance > LeaderCruiseCatchupDistance;
         }
 
-        private static Vector3? FormationFacingPoint(GameObject self, GameObject lead, Vector3 targetPoint, float distance)
+        private static int StableFormationId(GameObject ship, ShipFormation formation)
         {
-            if (distance > FormationFacingDistance)
+            if (ship.NetID != 0)
             {
-                return targetPoint;
+                return ship.NetID;
+            }
+            if (ship == formation.LeadShip)
+            {
+                return 0;
+            }
+            for (int i = 0; i < formation.Followers.Count; i++)
+            {
+                if (formation.Followers[i] == ship)
+                    return i + 1;
+            }
+            return -1;
+        }
+
+        private FormationControl.Separation GetSeparation(double time, Vector3 selfForward)
+        {
+            var formation = Parent.Formation!;
+            var body = Parent.PhysicsComponent!.Body!;
+            var requiredNeighbors = formation.Followers.Count + 1;
+            if (separationNeighbors.Length < requiredNeighbors)
+                separationNeighbors = new FormationControl.Neighbor[requiredNeighbors];
+            int neighborCount = 0;
+
+            void AddNeighbor(GameObject ship)
+            {
+                if (ship == Parent || ship.PhysicsComponent?.Body == null)
+                    return;
+                var otherBody = ship.PhysicsComponent.Body;
+                separationNeighbors[neighborCount++] = new FormationControl.Neighbor(otherBody.Position,
+                    otherBody.LinearVelocity, otherBody.Collider.Radius, StableFormationId(ship, formation));
             }
 
-            if (ShipSpeed(self) > ShipSpeed(lead) + 20)
+            AddNeighbor(formation.LeadShip);
+            foreach (var follower in formation.Followers)
+                AddNeighbor(follower);
+
+            var separation = FormationControl.CalculateSeparation(body.Position, body.LinearVelocity, selfForward,
+                body.Collider.Radius, StableFormationId(Parent, formation),
+                separationNeighbors.AsSpan(0, neighborCount));
+            return FormationControl.ApplySeparationHysteresis(separation, ref heldSeparation,
+                ref heldSeparationNeighbor, ref separationHoldTimer, (float)time);
+        }
+
+        private StrafeControls SeparationStrafe(FormationControl.Separation separation)
+        {
+            if (!separation.Active)
+                return StrafeControls.None;
+
+            var body = Parent.PhysicsComponent!.Body!;
+            var rightAmount = Vector3.Dot(separation.Direction, body.RotateVector(Vector3.UnitX));
+            var upAmount = Vector3.Dot(separation.Direction, body.RotateVector(Vector3.UnitY));
+            if (MathF.Abs(rightAmount) < 0.1f && MathF.Abs(upAmount) < 0.1f)
             {
-                return targetPoint;
+                var selfId = StableFormationId(Parent, Parent.Formation!);
+                rightAmount = selfId <= separation.NeighborId ? -1 : 1;
             }
 
-            var leadVelocity = lead.PhysicsComponent?.Body?.LinearVelocity ?? Vector3.Zero;
-            if (leadVelocity.LengthSquared() > 400)
-            {
-                return self.WorldTransform.Position + Vector3.Normalize(leadVelocity) * 1000;
-            }
+            var strafe = StrafeControls.None;
+            if (rightAmount < -0.1f)
+                strafe |= StrafeControls.Left;
+            else if (rightAmount > 0.1f)
+                strafe |= StrafeControls.Right;
+            if (upAmount < -0.1f)
+                strafe |= StrafeControls.Down;
+            else if (upAmount > 0.1f)
+                strafe |= StrafeControls.Up;
+            return strafe;
+        }
 
-            return null;
+        private static void DrawFormationPoint(GameWorld world, Vector3 point, Color4 color, float size = 15)
+        {
+            world.DrawFormationDebug(point);
+            world.DrawFormationDebugLine(point - Vector3.UnitX * size, point + Vector3.UnitX * size, color);
+            world.DrawFormationDebugLine(point - Vector3.UnitY * size, point + Vector3.UnitY * size, color);
+            world.DrawFormationDebugLine(point - Vector3.UnitZ * size, point + Vector3.UnitZ * size, color);
+        }
+
+        private static void DrawFormationPoints(GameWorld world, ShipFormation formation, Vector3 currentTarget)
+        {
+            DrawFormationPoint(world, formation.LeadShip.WorldTransform.Position, Color4.Yellow, 20);
+            foreach (var follower in formation.Followers)
+            {
+                var point = formation.LeadShip.WorldTransform.Transform(formation.GetShipOffset(follower));
+                DrawFormationPoint(world, point, Color4.Yellow);
+            }
+            DrawFormationPoint(world, currentTarget, Color4.Cyan, 22);
         }
 
         public override void ImGuiDebug()
         {
             ImGui.Text("In Formation");
+            ImGui.Text($"Slot distance: {debugSlotDistance:0.0}");
+            ImGui.Text($"Desired speed: {debugDesiredSpeed:0.0}");
+            ImGui.Text($"Separating: {debugSeparating}");
+            ImGui.Text($"Collision brake: {debugSeparationBrake:0.00}");
         }
 
         public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time, GameWorld world)
@@ -536,34 +676,78 @@ namespace LibreLancer.World.Components
 
             var body = Parent.PhysicsComponent!.Body!;
             var targetPoint = Parent.Formation.GetShipPosition(Parent, Component.LocalPlayer);
-            var distance = (targetPoint - body.Position).Length();
             var lead = Parent.Formation.LeadShip;
+            var leadBody = lead.PhysicsComponent?.Body;
+            var slotError = targetPoint - body.Position;
+            var distance = slotError.Length();
+            var leadPosition = leadBody?.Position ?? lead.WorldTransform.Position;
+            var leadVelocity = leadBody?.LinearVelocity ?? Vector3.Zero;
+            var leadAngularVelocity = leadBody?.AngularVelocity ?? Vector3.Zero;
+            var slotVelocity = FormationControl.SlotVelocity(leadVelocity, leadAngularVelocity,
+                targetPoint - leadPosition);
+            var desiredVelocity = FormationControl.DesiredVelocity(slotVelocity, slotError);
             var leadThrottle = LeadThrottle(lead);
-            var selfPhysics = Parent.GetComponent<ShipPhysicsComponent>();
+            var cruiseSpeed = Parent.GetComponent<SEngineComponent>()?.Engine.CruiseSpeed ?? 300;
+            var selfForward = body.RotateVector(-Vector3.UnitZ);
+            var travelDirection = slotVelocity.LengthSquared() > 400
+                ? slotVelocity
+                : leadBody?.RotateVector(-Vector3.UnitZ) ??
+                  Vector3.Transform(-Vector3.UnitZ, lead.WorldTransform.Orientation);
 
             control.Cruise = ShouldCruise(lead);
             control.CruiseSpeedOffset =
-                control.Cruise &&
-                selfPhysics?.EngineState == EngineStates.Cruise &&
-                distance < CruiseDampenDistance
-                    ? CruiseSpeedOffset(distance)
-                    : 0;
-            SetThrottle(ApproachThrottle(distance, leadThrottle), control, input);
-
-            var avoidancePlan = avoidance.GetPlan(world, Parent, TargetObject, targetPoint, ThrottleDampenDistance,
-                time);
-            Component.SetAutopilotStrafe(avoidancePlan.Strafe, avoidancePlan.StrafeVector);
-
-            Vector3? facingPoint = FormationFacingPoint(Parent, lead, targetPoint, distance);
-            if (facingPoint != null)
+                !control.Cruise
+                    ? 0
+                    : FormationControl.CruiseSpeedOffset(slotError, body.LinearVelocity, slotVelocity,
+                        travelDirection, cruiseSpeed);
+            var throttle = FormationControl.StandardThrottle(leadThrottle, desiredVelocity, body.LinearVelocity,
+                selfForward);
+            throttle = FormationControl.ArrivalThrottle(throttle, distance);
+            var separation = Component.AvoidanceEnabled
+                ? GetSeparation(time, selfForward)
+                : FormationControl.Separation.None;
+            throttle *= 1 - separation.Brake;
+            if (separation.Brake > 0.35f)
             {
-                TurnTowards(time, facingPoint.Value);
+                control.Cruise = false;
+                control.CruiseSpeedOffset = 0;
+            }
+            SetThrottle(throttle, control, input);
+            var avoidancePlan = Component.AvoidanceEnabled
+                ? avoidance.GetPlan(world, Parent, TargetObject, targetPoint,
+                    MathF.Max(125, body.Collider.Radius), time)
+                : AutopilotObstacleAvoidance.AvoidancePlan.None;
+            Component.SetAutopilotStrafe(avoidancePlan.Active
+                ? avoidancePlan.Strafe
+                : SeparationStrafe(separation));
+
+            Vector3? steeringPoint = null;
+            if (desiredVelocity.LengthSquared() > 25)
+                steeringPoint = body.Position + Vector3.Normalize(desiredVelocity) * SteeringLookahead;
+            else if (distance > MathF.Max(10, body.Collider.Radius * 0.1f))
+                steeringPoint = targetPoint;
+
+            if (steeringPoint != null)
+            {
+                TurnTowards(time, steeringPoint.Value);
             }
             else
             {
                 Component.OutYaw = 0;
                 Component.OutPitch = 0;
             }
+
+            DrawFormationPoints(world, Parent.Formation, targetPoint);
+            world.DrawFormationDebugLine(body.Position, targetPoint, Color4.Cyan);
+            if (steeringPoint is { } point)
+                world.DrawFormationDebugLine(body.Position, point, Color4.Lime);
+            if (separation.Active)
+                world.DrawFormationDebugLine(body.Position, body.Position + separation.Direction * 200, Color4.Orange);
+
+            debugSlotDistance = distance;
+            debugDesiredSpeed = desiredVelocity.Length();
+            debugSeparating = separation.Active;
+            debugSeparationBrake = separation.Brake;
 
             return false;
         }
@@ -574,12 +758,16 @@ namespace LibreLancer.World.Components
     {
         private AutopilotBehavior? instance;
         public bool LocalPlayer = false;
+        internal bool AvoidanceEnabled { get; set; } = true;
         internal StrafeControls AutopilotStrafe { get; private set; } = StrafeControls.None;
 
         public AutopilotBehaviors CurrentBehavior
             => instance?.Behavior ?? AutopilotBehaviors.None;
 
         public bool DockCameraActive => instance?.DockCameraActive ?? false;
+        internal float ReferenceSpeedFactor => instance is GotoBehavior gotoBehavior
+            ? gotoBehavior.ReferenceSpeedFactor
+            : 1;
 
         public readonly PIDController PitchControl = new();
         public readonly PIDController YawControl = new();
@@ -618,6 +806,18 @@ namespace LibreLancer.World.Components
         {
             SetInstance(new GotoBehavior(this));
             instance?.Start(kind, vec, maxThrottle, gotoRange, shouldStopAtTarget);
+        }
+
+        internal void GotoVec(Vector3 vec, GotoKind kind, float maxThrottle, float gotoRange,
+            string? cruiseSpeedReferenceNickname, float cruiseSpeedFullDistance, float cruiseSpeedZeroDistance,
+            float cruiseSpeedUnknown,
+            bool shouldStopAtTarget = true)
+        {
+            var behavior = new GotoBehavior(this);
+            behavior.Start(kind, vec, maxThrottle, gotoRange, shouldStopAtTarget);
+            behavior.SetCruiseSpeedReference(cruiseSpeedReferenceNickname, cruiseSpeedFullDistance,
+                cruiseSpeedZeroDistance, cruiseSpeedUnknown);
+            SetInstance(behavior);
         }
 
         public void GotoObject(GameObject obj, GotoKind kind, float maxThrottle = 1, float gotoRange = 40, bool shouldStopAtTarget = true)

@@ -43,6 +43,8 @@ public class Cutscene : IDisposable
     private Game game;
     private ThnCamera camera;
     private bool spawnObjects = true;
+    private bool ownsWorld = true;
+    private HashSet<GameObject> spawnedObjects = [];
     private List<Tuple<IDrawable, ThnSceneObject>> layers = [];
     private ThnDisplayText? text;
     private GameDataManager gameData;
@@ -100,6 +102,8 @@ public class Cutscene : IDisposable
         game = gameplay.FlGame;
         gameData = gameplay.FlGame.GameData;
         World = gameplay.world;
+        ownsWorld = false;
+        // Space THNs reference mission objects already present in the shared world.
         spawnObjects = false;
         camera = new ThnCamera(gameplay.FlGame.RenderContext.CurrentViewport);
         resourceManager = gameplay.FlGame.ResourceManager;
@@ -128,8 +132,15 @@ public class Cutscene : IDisposable
         sceneObjects[obj.Name] = obj;
         if (obj.Object != null)
         {
-            World.AddObject(obj.Object);
+            AddWorldObject(obj.Object);
         }
+    }
+
+    public void AddWorldObject(GameObject obj)
+    {
+        World.AddObject(obj);
+        if (!ownsWorld)
+            spawnedObjects.Add(obj);
     }
 
     public void RemoveObject(ThnSceneObject obj)
@@ -176,7 +187,7 @@ public class Cutscene : IDisposable
             layers = [];
         }
 
-        if (spawnObjects && resetObjects)
+        if (ownsWorld && spawnObjects && resetObjects)
         {
             if (Renderer != null)
             {
@@ -229,7 +240,7 @@ public class Cutscene : IDisposable
             }
         }
 
-        if (spawnObjects && resetObjects)
+        if (ownsWorld && spawnObjects && resetObjects)
         {
             // Add starspheres in the right order
             var sorted = ((IEnumerable<Tuple<IDrawable, ThnSceneObject>>)layers).Reverse()
@@ -369,6 +380,11 @@ public class Cutscene : IDisposable
 
     public void Dispose()
     {
+        foreach (var obj in spawnedObjects.ToArray())
+        {
+            World.RemoveObject(obj);
+        }
+        spawnedObjects.Clear();
         Renderer?.Dispose();
     }
 }

@@ -668,6 +668,10 @@ namespace LancerEdit
                     AddTab(new ProjectileViewerTab(this, OpenDataContext));
                 if (Theme.IconMenuItem(Icons.Play, "Thn Player", OpenDataContext != null))
                     AddTab(new ThnPlayerTab(OpenDataContext, this));
+                #if DEBUG
+                if (Theme.IconMenuItem(Icons.Bomb, "Vignette Test", OpenDataContext != null))
+                    AddTab(new VignetteTester(OpenDataContext, this));
+                #endif
                 if (Theme.IconMenuItem(Icons.Check, "Check Faction Hashes", OpenDataContext != null))
                 {
                     Dictionary<ushort, string> hashes = new Dictionary<ushort, string>();

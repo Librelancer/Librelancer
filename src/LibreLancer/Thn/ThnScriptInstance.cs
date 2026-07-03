@@ -90,7 +90,7 @@ namespace LibreLancer.Thn
                     Vector3 transform = kv.Value.Position ?? Vector3.Zero;
                     obj.Object.SetLocalTransform(new Transform3D(transform, obj.Rotate));
                     obj.HpMount = Cutscene.PlayerShip!.GetHardpoint("HpMount");
-                    Cutscene.World.AddObject(obj.Object);
+                    Cutscene.AddWorldObject(obj.Object);
                     Objects.Add(kv.Key, obj);
                     continue;
                 }
@@ -298,7 +298,7 @@ namespace LibreLancer.Thn
                     {
                         Vector3 transform = kv.Value.Position ?? Vector3.Zero;
                         obj.Object.SetLocalTransform(new Transform3D(transform, kv.Value.Rotation));
-                        Cutscene.World.AddObject(obj.Object);
+                        Cutscene.AddWorldObject(obj.Object);
                     }
                 }
 

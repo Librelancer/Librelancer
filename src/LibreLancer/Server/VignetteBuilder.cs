@@ -10,7 +10,7 @@ public class VignetteParameters
     public int Seed = 4869;
     public string OfferGroup = "";
 
-    public bool AssassinateMission;
+    public bool AssassinateMission = true; // Must be set to true, false path not implemented in FL.
     public bool AssassinateShip;
     public bool AssassinateSolar;
     public bool BigSolar;
@@ -46,6 +46,7 @@ public class VignetteParameters
 public class VignetteInfo
 {
     public bool IsError;
+    public string? ErrorReason = null;
     public List<string> Documentation = [];
     public Dictionary<string, VignetteString> ObjectiveStrings = new();
     public Dictionary<string, CommSequence> CommSequences = new();
@@ -56,10 +57,7 @@ public class VignetteInfo
 
 public static class VignetteBuilder
 {
-    private static void Error(VignetteAst ast, string error)
-    {
-        FLLog.Error("VignetteParams", $"{error} at id={ast.Id}");
-    }
+    private static string Error(VignetteAst ast, string error) => $"{error} at id={ast.Id}";
 
     public static VignetteInfo Run(VignetteTree tree, VignetteParameters parameters)
     {
@@ -114,7 +112,7 @@ public static class VignetteBuilder
                 case AstData data:
                     if (!data.Data.Implemented)
                     {
-                        Error(currentNode, "Unimplemented");
+                        vinfo.ErrorReason = Error(currentNode, "Unimplemented");
                         vinfo.IsError = true;
                         return vinfo;
                     }
@@ -156,7 +154,7 @@ public static class VignetteBuilder
                         if (dec.Children[0] is not AstData d1 ||
                             d1.Data.OfferGroup?.Length <= 0)
                         {
-                            Error(currentNode, "Invalid branch node");
+                            vinfo.ErrorReason = Error(currentNode, "Invalid branch node");
                             vinfo.IsError = true;
                             return vinfo;
                         }
@@ -174,7 +172,7 @@ public static class VignetteBuilder
                             }
                             else
                             {
-                                Error(currentNode, $"{parameters.OfferGroup} not in either");
+                                vinfo.ErrorReason = Error(currentNode, $"{parameters.OfferGroup} not in either");
                                 vinfo.IsError = true;
                                 return vinfo;
                             }

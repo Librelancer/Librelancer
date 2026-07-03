@@ -817,31 +817,45 @@ namespace LibreLancer.Missions.Actions
                 ol = script.ObjLists[List].Directives.ToArray();
             }
 
-            var gw = runtime.Player.Space.World.GameWorld;
-            if (script.Formations.TryGetValue(Target, out var formation))
+            runtime.Player.MissionWorldAction(() =>
             {
-                foreach (var s in formation.Ships)
+                var space = runtime.Player.Space;
+                if (space == null)
                 {
-                    runtime.Player.Space!.World.NPCs.NpcDoAction(s.Nickname,
-                        (npc) => { GiveObjList(npc, gw, ol); });
+                    FLLog.Error("Mission", $"Act_GiveObjList can't run for '{Target}' while player is not in space");
+                    return;
                 }
-            }
-            else
-            {
-                runtime.Player.Space!.World.EnqueueAction(() =>
-                {
-                    var tgt = gw.GetObject(Target);
 
-                    if (tgt == null)
-                    {
-                        FLLog.Error("Server", $"Act_GiveObjList can't find '{Target}'");
-                    }
-                    else
-                    {
-                        GiveObjList(tgt, gw, ol);
-                    }
-                });
-            }
+                var gw = space.World.GameWorld;
+                var formationTarget = false;
+                string objectName;
+                if (script.Formations.TryGetValue(Target, out var formation))
+                {
+                    formationTarget = true;
+                    // A mission formation is controlled by its lead ship. Giving the
+                    // navigation directives to every member replaces the followers'
+                    // formation autopilot and sends them all to the leader's waypoint.
+                    if (formation.Ships.Count == 0)
+                        return;
+                    objectName = formation.Ships[0].Nickname;
+                }
+                else
+                {
+                    objectName = Target;
+                }
+
+                // Keep this ordered with mission spawn actions. On checkpoint load the
+                // object list may be issued in the same trigger that spawns its target.
+                var tgt = gw.GetObject(objectName);
+
+                if (tgt == null)
+                {
+                    FLLog.Error("Server", $"Act_GiveObjList can't find '{objectName}'");
+                    return;
+                }
+
+                GiveObjList(formationTarget ? tgt.Formation?.LeadShip ?? tgt : tgt, gw, ol);
+            });
         }
     }
 
