@@ -16,8 +16,8 @@ namespace BuildLL
     {
         private static string versionSetting = "git";
         private static string prefix = "/usr/local/";
-        private static string buildTool = "ninja";
-        private static string genTool = "Ninja";
+        private static string buildTool = "make";
+        private static string genTool = "Unix Makefiles";
         private static int parallel = -1;
         private static string? serverRid = null;
         private static bool buildDebug = false;
@@ -31,16 +31,23 @@ namespace BuildLL
         private static DateTime Invoked = DateTime.UtcNow;
         public static void Options()
         {
-            StringArg("--assemblyversion", x => versionSetting = x, "Set generated version");
-            StringArg("--prefix", x => prefix = x, "Set cmake install prefix");
+
             IntArg("-j|--jobs", x => parallel = x, "Parallelism for native build step");
-            StringArg("-r|--rid", x => serverRid = x, "Set runtime identifier for server-only build");
+
             FlagArg("--debug", () => buildDebug = true, "Build natives with debug info");
             FlagArg("--O0", () => buildO0 = true, "Build natives with -O0 debug");
             FlagArg("--with-win32", () => withWin32 = true, "Also build for 32-bit windows");
             FlagArg("--with-win64", () => withWin64 = true, "(Linux only) Also build for 64-bit windows");
             FlagArg("--no-updates", () => withUpdates = false, "Disables built in updater (SDK only)");
+
+            StringArg("--prefix", x => prefix = x, "Set cmake install prefix");
+            StringArg("--assemblyversion", x => versionSetting = x, "Set generated version");
+            StringArg("-r|--rid", x => serverRid = x, "Set runtime identifier for server-only build");
             StringArg("--update-channel", v => updateChannel = v, "Sets update channel for this build (SDK only)");
+            StringArg("-g|--generator", x => {
+                genTool = x;
+                buildTool = x.Equals("ninja", StringComparison.OrdinalIgnoreCase) ? "ninja" : "make";
+            }, "Set CMake generator (UNIX only)");
             StringArg("--vsversion", v =>
             {
                 if (!Enum.TryParse(v, true, out vsVersion))
