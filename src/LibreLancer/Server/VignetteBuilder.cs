@@ -10,6 +10,9 @@ public class VignetteParameters
     public int Seed = 4869;
     public string OfferGroup = "";
 
+    // Just for info: These names intentionally mirror vignetteparams.ini decision names.
+    // The random mission generator is responsible for deciding which flags
+    // are true for a generated mission.
     public bool AssassinateMission;
     public bool AssassinateShip;
     public bool AssassinateSolar;

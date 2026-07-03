@@ -431,6 +431,7 @@ public class GameItemDb
                     OffersMissions = fac.OffersMissions,
                     Missions = fac.Missions.Select(m => new BaseMissionOffer
                     {
+                        Type = m.Type,
                         MinDiff = m.MinDiff,
                         MaxDiff = m.MaxDiff,
                         Weight = m.Weight,
@@ -722,6 +723,21 @@ public class GameItemDb
     {
         VignetteTree = VignetteTree.FromIni(Ini.VignetteParams!);
         Ini.VignetteParams = null;
+    }
+
+    public List<RandomMissionOffer> GetRandomMissionOffers(
+        Base sourceBase,
+        float? difficulty = null,
+        string? roomNickname = null,
+        IReadOnlyCollection<string>? allowableZoneTypes = null)
+    {
+        Systems.TryGetValue(sourceBase.System, out var sourceSystem);
+        return RandomMissionOfferBuilder.GetOffers(
+            sourceBase,
+            sourceSystem,
+            difficulty,
+            roomNickname,
+            allowableZoneTypes);
     }
 
     private void InitStory()

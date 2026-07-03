@@ -541,7 +541,11 @@ public static class IniSerializer
                     .OptionalEntry("weight", fac.Weight)
                     .OptionalEntry("offers_missions", fac.OffersMissions);
                 foreach (var mt in fac.Missions)
-                    facSection.Entry("mission_type", "DestroyMission", mt.MinDiff, mt.MaxDiff);
+                    facSection.Entry("mission_type",
+                        string.IsNullOrWhiteSpace(mt.Type) ? "DestroyMission" : mt.Type,
+                        mt.MinDiff,
+                        mt.MaxDiff,
+                        mt.Weight);
                 foreach (var npcNick in fac.Npcs)
                     facSection.Entry("npc", npcNick);
             }
