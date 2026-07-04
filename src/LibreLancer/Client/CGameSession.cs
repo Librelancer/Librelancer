@@ -55,6 +55,8 @@ public partial class CGameSession : IClientPlayer
     private bool inTradelane;
     public bool InTradelane => inTradelane;
     public List<NetCargo> Items = [];
+    private bool maneuversLocked;
+    private readonly HashSet<ManeuverType> disabledManeuvers = [];
 
     private PlayerInventory lastInventory = new();
     private string? currentBase;
@@ -89,6 +91,19 @@ public partial class CGameSession : IClientPlayer
     private UIInventoryItem[] scannedInventory = [];
     public NetSoldShip[]? Ships;
     public ulong ShipWorth;
+
+    public bool IsManeuverEnabled(string maneuver)
+    {
+        if (maneuversLocked)
+            return false;
+        if (maneuver.Equals("Dock", StringComparison.OrdinalIgnoreCase))
+            return !disabledManeuvers.Contains(ManeuverType.Dock);
+        if (maneuver.Equals("Goto", StringComparison.OrdinalIgnoreCase))
+            return !disabledManeuvers.Contains(ManeuverType.GoTo);
+        if (maneuver.Equals("Formation", StringComparison.OrdinalIgnoreCase))
+            return !disabledManeuvers.Contains(ManeuverType.Formation);
+        return maneuver.Equals("FreeFlight", StringComparison.OrdinalIgnoreCase);
+    }
     private SpaceGameplay? spaceGameplay;
 
     // Use only for Single Player
@@ -187,6 +202,19 @@ public partial class CGameSession : IClientPlayer
 
         if (!history)
             ObjectiveUpdated?.Invoke();
+    }
+
+    void IClientPlayer.SetManeuverLock(bool locked)
+    {
+        maneuversLocked = locked;
+    }
+
+    void IClientPlayer.SetManeuverEnabled(ManeuverType maneuver, bool enabled)
+    {
+        if (enabled)
+            disabledManeuvers.Remove(maneuver);
+        else
+            disabledManeuvers.Add(maneuver);
     }
 
     void IClientPlayer.OnConsoleMessage(string text)

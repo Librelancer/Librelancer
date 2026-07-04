@@ -4,10 +4,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Numerics;
-using ImGuiNET;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
 using LibreLancer.Data.GameData;
@@ -15,17 +13,13 @@ using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema;
 using LibreLancer.Data.Schema.Solar;
-using LibreLancer.Data.Schema.Voices;
 using LibreLancer.Graphics;
-using LibreLancer.Infocards;
 using LibreLancer.Input;
 using LibreLancer.Interface;
 using LibreLancer.Net;
-using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Resources;
-using LibreLancer.Server.Components;
 using LibreLancer.Sounds.VoiceLines;
 using LibreLancer.Thn;
 using AnmScript = LibreLancer.Utf.Anm.Script;
@@ -35,22 +29,8 @@ using WattleScript.Interpreter;
 
 namespace LibreLancer
 {
-    public class SpaceGameplay : GameState
+    public partial class SpaceGameplay : GameState
     {
-        private const string DEBUG_TEXT =
-            @"{3} ({4})
-Camera Position: (X: {0:0.00}, Y: {1:0.00}, Z: {2:0.00})
-C# Memory Usage: {5}
-Velocity: {6}
-Selected Object: {7}
-Pitch: {8:0.00}
-Yaw: {9:0.00}
-Roll: {10:0.00}
-Mouse Flight: {11}
-World Time: {12:F2}
-";
-
-        private const float ROTATION_SPEED = 1f;
         private StarSystem sys;
         public GameWorld world = null!;
         public FreelancerGame FlGame => Game;
@@ -73,7 +53,6 @@ World Time: {12:F2}
         private bool isTurretView = false;
 
         public float Velocity = 0f;
-        private const float MAX_VELOCITY = 80f;
         private const float CRUISE_CAMERA_LAG_SPEED_BAND = 150f;
         private const float CRUISE_CAMERA_LAG_PER_BAND = 6f;
         private const float CRUISE_CAMERA_LAG_MAX = CRUISE_CAMERA_LAG_PER_BAND * 2f;
@@ -89,8 +68,6 @@ World Time: {12:F2}
         private bool loading = true;
         private LoadingScreen? loader;
         public Cutscene? Thn;
-        private UiContext ui;
-        private LuaAPI uiApi;
 
         private bool pausemenu = false;
         private bool paused = false;
@@ -102,7 +79,6 @@ World Time: {12:F2}
         private bool fadeToRoom;
         public AutopilotComponent? pilotComponent = null;
 
-        public bool ShowHud = true;
 
         // Set to true when the mission system selection.Selected music on launch
         public bool RtcMusic = false;
@@ -140,9 +116,7 @@ World Time: {12:F2}
             Game.Ui.MeshDisposeVersion++;
             this.session = session;
             sys = g.GameData.Items.Systems.Get(session.PlayerSystem)!;
-            ui = Game.Ui;
-            ui.GameApi = uiApi = new LuaAPI(this);
-            uiApi.IndicatorLayer.OnRender += IndicatorLayerOnRender;
+            CreateHud();
             nextObjectiveUpdate = session.CurrentObjective.Ids;
             session.ObjectiveUpdated = () =>
             {
@@ -652,403 +626,6 @@ World Time: {12:F2}
 
         private int frameCount = 0;
 
-        [WattleScriptUserData]
-        public class LuaAPI
-        {
-            private SpaceGameplay g;
-            public CallbackWidget IndicatorLayer;
-
-            public LuaAPI(SpaceGameplay gameplay)
-            {
-                this.g = gameplay;
-                IndicatorLayer = new CallbackWidget();
-            }
-
-            private Container? lastContainer;
-
-            public void SetIndicatorLayer(Container container)
-            {
-                lastContainer?.Children.Remove(IndicatorLayer);
-                container.Children.Add(IndicatorLayer);
-                lastContainer = container;
-            }
-
-            public UIInventoryItem[] GetScannedInventory(string filter) => g.session.GetScannedInventory(filter);
-            public UIInventoryItem[] GetPlayerInventory(string filter) => g.session.GetPlayerInventory(filter);
-
-            public Infocard? GetScannedShipInfocard()
-            {
-                if (g.Selection.Selected == null)
-                {
-                    return null;
-                }
-
-                if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
-                {
-                    return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo, g.Game.Fonts);
-                }
-
-                return null;
-            }
-
-            public bool CanScanSelected()
-            {
-                if (g.Selection.Selected == null)
-                {
-                    return false;
-                }
-
-                return g.scanner?.CanScan(g.Selection.Selected) ?? false;
-            }
-
-            public void ScanSelected() => g.session.SpaceRpc.Scan(g.Selection.Selected!);
-
-            public void StopScan() => g.session.SpaceRpc.StopScan();
-
-            public Closure ScanHandler;
-
-            public void OnUpdateScannedInventory(Closure handler)
-            {
-                ScanHandler = handler;
-            }
-
-            public Closure PlayerInventoryHandler;
-
-            public void OnUpdatePlayerInventory(Closure handler)
-            {
-                PlayerInventoryHandler = handler;
-                g.session.OnUpdateInventory = () => PlayerInventoryHandler?.Call();
-            }
-
-            public void JettisonInventoryItem(UIInventoryItem item, int count)
-            {
-                if (item.CanJettison)
-                    g.session.SpaceRpc.Jettison(item.ID, count);
-            }
-
-            public int CurrentRank => g.session.CurrentRank;
-            public double NetWorth => (double)g.session.NetWorth;
-            public double NextLevelWorth => (double)g.session.NextLevelWorth;
-            public PlayerStats Statistics => g.session.Statistics;
-            public double CharacterPlayTime => g.session.CharacterPlayTime;
-
-            [WattleScriptHidden] public WidgetTemplate? Reticle;
-            [WattleScriptHidden] public WidgetTemplate? UnselectedArrow;
-            [WattleScriptHidden] public WidgetTemplate? SelectedArrow;
-            [WattleScriptHidden] public WidgetTemplate? Waypoint;
-            [WattleScriptHidden] public WidgetTemplate? WaypointLabel;
-            [WattleScriptHidden] public int ShieldBatteries;
-            [WattleScriptHidden] public int RepairKits;
-
-            public int ShieldBatteryCount() => ShieldBatteries;
-
-            public int RepairKitCount() => RepairKits;
-
-            public void UseRepairKits() => g.UseRepairKits();
-
-            public void UseShieldBatteries() => g.UseShieldBatteries();
-
-            public bool CanTractorAll() => g.canTractorAll;
-
-            public bool CanTractorSelected()
-            {
-                return g.canTractorAny && g.Selection.Selected != null &&
-                       g.Selection.Selected.Kind == GameObjectKind.Loot &&
-                       Vector3.Distance(g.Selection.Selected.WorldTransform.Position, g.tractorOrigin) <
-                       g.maxTractorDistance;
-            }
-
-            public void TractorSelected() => g.TractorSelected();
-
-            public void TractorAll() => g.TractorAll();
-
-            public void SetReticleTemplate(UiWidget template, Closure callback) =>
-                Reticle = new(template, callback);
-
-            public void SetUnselectedArrowTemplate(UiWidget template, Closure callback) =>
-                UnselectedArrow = new(template, callback);
-
-            public void SetSelectedArrowTemplate(UiWidget template, Closure callback) =>
-                SelectedArrow = new(template, callback);
-
-            public void SetWaypointTemplate(UiWidget template, Closure callback) =>
-                Waypoint = new(template, callback);
-
-            public void SetWaypointLabelTemplate(UiWidget template, Closure callback) =>
-                WaypointLabel = new(template, callback);
-
-            public ContactList GetContactList() => g.contactList;
-
-            public KeyMapTable GetKeyMap()
-            {
-                var table = new KeyMapTable(g.Game.InputMap, g.Game.GameData.Items.Ini.Infocards);
-                table.OnCaptureInput += (k) => { g.Input.KeyCapture = k; };
-                return table;
-            }
-
-            public GameSettings GetCurrentSettings() => g.Game.Config.Settings.MakeCopy();
-
-            public int GetObjectiveStrid() => g.session.CurrentObjective.Ids;
-
-            public void ApplySettings(GameSettings settings)
-            {
-                g.Game.Config.Settings = settings;
-                g.Game.Config.Save();
-            }
-
-            public void Respawn()
-            {
-                g.session.RpcServer.Respawn();
-            }
-
-            public void PopupFinish(string id)
-            {
-                g.waitObjectiveFrames = 30;
-                g.session.RpcServer.ClosedPopup(id);
-                Resume();
-            }
-
-            public int CruiseCharge() => g.control.EngineState == EngineStates.CruiseCharging
-                ? (int)(g.control.ChargePercent * 100)
-                : -1;
-
-            public bool IsMultiplayer() => g.session.Multiplayer;
-
-            public SaveGameFolder SaveGames() => g.Game.Saves;
-            public void DeleteSelectedGame() => g.Game.Saves.TryDelete(g.Game.Saves.Selected);
-
-            public void LoadSelectedGame()
-            {
-                g.FadeOut(0.2, () =>
-                {
-                    g.session.OnExit();
-                    var embeddedServer =
-                        new EmbeddedServer(g.Game.GameData, g.Game.ResourceManager, g.Game.GetSaveFolder());
-                    var session = new CGameSession(g.Game, embeddedServer);
-                    embeddedServer.StartFromSave(g.Game.Saves.SelectedFile!,
-                        File.ReadAllBytes(g.Game.Saves.SelectedFile!));
-                    g.Game.ChangeState(new NetWaitState(session, g.Game));
-                });
-            }
-
-            public bool CanLoadAutoSave() => !string.IsNullOrWhiteSpace(g.session.AutoSavePath);
-
-            public void LoadAutoSave()
-            {
-                var path = g.session.AutoSavePath!;
-                g.FadeOut(0.2, () =>
-                {
-                    g.session.OnExit();
-                    var embeddedServer =
-                        new EmbeddedServer(g.Game.GameData, g.Game.ResourceManager, g.Game.GetSaveFolder());
-                    var session = new CGameSession(g.Game, embeddedServer);
-                    embeddedServer.StartFromSave(path, File.ReadAllBytes(path));
-                    g.Game.ChangeState(new NetWaitState(session, g.Game));
-                });
-            }
-
-            public void SaveGame(string description)
-            {
-                g.session.Save(description);
-            }
-
-            public void Resume()
-            {
-                g.session.Resume();
-                g.pausemenu = false;
-                g.paused = false;
-            }
-
-            public DisplayFaction[] GetPlayerRelations() => g.session.GetUIRelations();
-
-            public void QuitToMenu()
-            {
-                g.session.QuitToMenu();
-            }
-
-            public Maneuver[] GetManeuvers()
-            {
-                return g.Game.GameData.GetManeuvers().ToArray();
-            }
-
-            public Infocard? CurrentInfocard()
-            {
-                if (g.Selection.Selected?.SystemObject == null)
-                {
-                    return null;
-                }
-
-                var ids = g.Selection.Selected.SystemObject.IdsInfo;
-                return g.Game.GameData.GetInfocard(ids, g.Game.Fonts);
-
-            }
-
-            public string? CurrentInfoString() => g.Selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);
-
-            public string SelectionName()
-            {
-                return g.Selection.Selected?.Name?.GetName(g.Game.GameData, g.player.WorldTransform.Position) ??
-                       "NULL";
-            }
-
-            public bool SelectionIsWaypoint() => g.Selection.Selected?.Kind == GameObjectKind.Waypoint;
-
-            public string SelectionDistance()
-            {
-                if (g.Selection.Selected == null)
-                {
-                    return "";
-                }
-
-                var playerPosition = g.player.WorldTransform.Position;
-                var targetPosition = g.Selection.Selected.WorldTransform.Position;
-                var distance = Vector3.Distance(playerPosition, targetPosition);
-                return distance < 2000f
-                    ? $"{(int)distance}-M"
-                    : $"{distance / 1000f:0.0}-K";
-            }
-
-            public TargetShipWireframe? SelectionWireframe() => g.Selection.Selected != null ? g.targetWireframe : null;
-
-            public bool SelectionVisible()
-            {
-                return g.Selection.Selected != null && g.ScreenPosition(g.Selection.Selected).visible;
-            }
-
-            public float SelectionHealth()
-            {
-                if (g.Selection.Selected == null)
-                {
-                    return -1;
-                }
-
-                if (!g.Selection.Selected.TryGetComponent<CHealthComponent>(out var health))
-                {
-                    return -1;
-                }
-
-                return MathHelper.Clamp(health.CurrentHealth / health.MaxHealth, 0, 1);
-            }
-
-            public float SelectionShield()
-            {
-                if (g.Selection.Selected == null)
-                {
-                    return -1;
-                }
-
-                if (!g.Selection.Selected.TryGetFirstChildComponent<CShieldComponent>(out var shield))
-                {
-                    return -1;
-                }
-
-                return shield.ShieldPercent;
-            }
-
-            public string SelectionReputation()
-            {
-                if (g.Selection.Selected == null)
-                {
-                    return "neutral";
-                }
-
-                var rep = g.GetRepToPlayer(g.Selection.Selected);
-                return rep switch
-                {
-                    RepAttitude.Friendly => "friendly",
-                    RepAttitude.Hostile => "hostile",
-                    _ => "neutral"
-                };
-            }
-
-            public Vector2 SelectionPosition()
-            {
-                if (g.Selection.Selected == null)
-                {
-                    return new Vector2(-1000, -1000);
-                }
-
-                var (pos, _) = g.ScreenPosition(g.Selection.Selected);
-                return new Vector2(
-                    g.ui.PixelsToPoints(pos.X),
-                    g.ui.PixelsToPoints(pos.Y)
-                );
-            }
-
-            public void PopulateNavmap(Navmap nav)
-            {
-                nav.PopulateIcons(g.ui, g.sys);
-                nav.SetUniverse(g.Game.GameData.Items);
-                nav.SetVisitFunction(g.session.IsVisited);
-                nav.SetAddWaypointFunction(g.CreateUserWaypoint);
-                nav.SetBestPathFunction(g.ComputeBestPathToSelection);
-                nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);
-                nav.SetPlayerSystemProvider(() => g.sys.CRC);
-                nav.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
-            }
-
-            public int UserWaypointCount() => g.session.UserWaypointCount;
-
-            public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index);
-
-            public void ClearUserWaypoints() => g.ClearUserWaypoints();
-
-            public ChatSource GetChats() => g.session.Chats;
-            public double GetCredits() => g.session.Credits;
-
-            public float GetPlayerHealth() => g.playerHealth.CurrentHealth / g.playerHealth.MaxHealth;
-
-            public float GetPlayerShield()
-            {
-                return g.player.GetFirstChildComponent<CShieldComponent>()?.ShieldPercent ?? -1;
-            }
-
-            public float GetPlayerPower() => g.powerCore.CurrentEnergy / g.powerCore.Equip.Capacity;
-
-            private string activeManeuver = "FreeFlight";
-
-            public string GetActiveManeuver() => g.pilotComponent!.CurrentBehavior switch
-            {
-                AutopilotBehaviors.Dock => "Dock",
-                AutopilotBehaviors.Formation => "Formation",
-                AutopilotBehaviors.Goto => "Goto",
-                _ => "FreeFlight"
-            };
-
-            public LuaCompatibleDictionary GetManeuversEnabled()
-            {
-                var dict = new LuaCompatibleDictionary();
-                dict.Set("FreeFlight", true);
-                dict.Set("Goto", g.Selection.Selected != null);
-                dict.Set("Dock", g.Selection.Selected?.GetComponent<DockInfoComponent>() != null &&
-                                 g.session.DockAllowed(g.Selection.Selected));
-                dict.Set("Formation", g.Selection.Selected is { Kind: GameObjectKind.Ship });
-                return dict;
-            }
-
-            public void HotspotPressed(string e)
-            {
-                g.ManeuverSelect(e);
-            }
-
-            public void ChatEntered(ChatCategory category, string text)
-            {
-                g.session.OnChat(category, text);
-            }
-
-            public UiEquippedWeapon[] GetWeapons() => g.weapons.GetUiElements().ToArray();
-
-            internal void SetManeuver(string m)
-            {
-                activeManeuver = m;
-            }
-
-            public int ThrustPercent() =>
-                ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.Equip.ThrustCapacity * 100));
-
-            public int Speed() => ((int)g.player.PhysicsComponent!.Body.LinearVelocity.Length());
-        }
-
         private void BehaviorChanged(AutopilotBehaviors newBehavior, AutopilotBehaviors oldBehavior)
         {
             FLLog.Debug("Player", $"Behavior swap new: {newBehavior} old: {oldBehavior}");
@@ -1135,6 +712,9 @@ World Time: {12:F2}
 
         private bool ManeuverSelect(string e)
         {
+            if (!session.IsManeuverEnabled(e))
+                return false;
+
             switch (e)
             {
                 case "FreeFlight":
@@ -1387,37 +967,8 @@ World Time: {12:F2}
                 canTractorAny = false;
                 canTractorAll = false;
             }
-
             // query scanner
             player.TryGetComponent(out scanner);
-        }
-
-        private void DrawSelectedFormationLine()
-        {
-            if (!world.RenderFormationDebug || Selection.Selected is not { } selected)
-                return;
-
-            Vector3 shipPosition;
-            Vector3 targetPosition;
-            if (!session.TryGetFormationLine(selected.NetID, out shipPosition, out targetPosition))
-            {
-                var formation = selected.Formation ??
-                                (player.Formation?.Contains(selected) == true ? player.Formation : null);
-                if (formation == null)
-                    return;
-                shipPosition = selected.PhysicsComponent?.Body?.Position ?? selected.WorldTransform.Position;
-                targetPosition = formation.GetShipPosition(selected);
-            }
-
-            const float markerSize = 22;
-            world.DrawFormationDebug(targetPosition);
-            world.DrawFormationDebugLine(shipPosition, targetPosition, Color4.Cyan);
-            world.DrawFormationDebugLine(targetPosition - Vector3.UnitX * markerSize,
-                targetPosition + Vector3.UnitX * markerSize, Color4.Cyan);
-            world.DrawFormationDebugLine(targetPosition - Vector3.UnitY * markerSize,
-                targetPosition + Vector3.UnitY * markerSize, Color4.Cyan);
-            world.DrawFormationDebugLine(targetPosition - Vector3.UnitZ * markerSize,
-                targetPosition + Vector3.UnitZ * markerSize, Color4.Cyan);
         }
 
         private void TractorSelected()
@@ -2310,136 +1861,7 @@ World Time: {12:F2}
 
             ui.RenderWidget(delta);
             session.SetDebug(Game.Debug.Enabled);
-            Game.Debug.Draw(delta, () =>
-            {
-                ImGui.Checkbox("Object List", ref showObjectList);
-                ImGui.Text($"Object Count: {world.Objects.Count}");
-                string selObj = "None";
-
-                if (Selection.Selected != null)
-                {
-                    if (Selection.Selected.Name == null)
-                    {
-                        selObj = "unknown object";
-                    }
-                    else
-                    {
-                        selObj =
-                            Selection.Selected.Name?.GetName(Game.GameData, player.WorldTransform.Position) ??
-                            "unknown object";
-                    }
-
-                    selObj = $"{selObj} ({Selection.Selected.Nickname ?? "null nickname"})";
-                }
-
-                var systemName = Game.GameData.GetString(sys.IdsName);
-                var text = string.Format(DEBUG_TEXT, activeCamera.Position.X, activeCamera.Position.Y,
-                    activeCamera.Position.Z,
-                    sys.Nickname, systemName, DebugDrawing.SizeSuffix(GC.GetTotalMemory(false)), Velocity, selObj,
-                    control.Steering.X, control.Steering.Y, control.Steering.Z, mouseFlight, session.WorldTime);
-                ImGui.Text(text);
-                ImGui.Text($"Render Resolution: {Game.RenderContext.CurrentViewport.Width}x{Game.RenderContext.CurrentViewport.Height}");
-                ImGui.Text($"Player Position: {player.WorldTransform.Position}");
-                ImGui.Text($"PredictionErrorPos: {player.PhysicsComponent!.PredictionErrorPos}");
-                ImGui.Text($"PredictionErrorQuat: {player.PhysicsComponent!.PredictionErrorQuat} ({MathHelper.QuatError(
-                    player.PhysicsComponent!.PredictionErrorQuat, Quaternion.Identity)})");
-                ImGui.Separator();
-                pilotComponent?.ImGuiDebug();
-                ImGui.Text($"crosshairHit: {crosshairHit}");
-                ImGui.Separator();
-                var dbgT = session.GetSelectedDebugInfo();
-
-                if (!string.IsNullOrWhiteSpace(dbgT))
-                {
-                    ImGui.Text(dbgT);
-                }
-
-                if (Selection.Selected?.PhysicsComponent?.Body?.Collider is ConvexMeshCollider cvx)
-                {
-                    ImGui.Text($"selected compound children: {cvx.BepuChildCount}");
-                }
-
-                if (Selection.Selected != null)
-                {
-                    if (Selection.Selected.TryGetComponent<ShipControlAccessComponent>(out var sca))
-                    {
-                        ImGui.Text($"selected throttle: {sca.EnginePower}");
-                        ImGui.Text("received controls (if ship is in a formation)");
-                        ImGui.Text($"steering: {sca.Steering}");
-                        ImGui.Text($"strafe: {sca.CurrentStrafe}");
-                        ImGui.Text($"engine state: {sca.EngineState}");
-                    }
-                    ImGui.Text($"selected linear velocity: {Selection.Selected.PhysicsComponent?.Body?.LinearVelocity}");
-                }
-
-                ImGui.Text($"input queue: {session.UpdateQueueCount}");
-                ImGui.Text($"tick offset: {session.LastTickOffset}");
-                ImGui.Text($"dropped inputs: {session.DroppedInputs}");
-                ImGui.Text($"average tick offset: {session.AverageTickOffset}");
-                ImGui.Text($"interval: {session.AdjustedInterval}");
-                ImGui.Text($"Client Tick: {session.WorldTick}");
-
-                if (session.Multiplayer)
-                {
-                    var floats = new float[session.UpdatePacketSizes.Count];
-
-                    for (int i = 0; i < session.UpdatePacketSizes.Count; i++)
-                    {
-                        floats[i] = session.UpdatePacketSizes[i];
-                    }
-
-                    fixed (float* f = floats)
-                    {
-                        if (floats.Length > 0)
-                        {
-                            ImGui.Text($"last ack received: {session.Acks.Tick}");
-                            ImGui.Text($"update packet size: {floats[^1]}");
-                            ImGui.PlotLines("update packet size", ref floats[0], floats.Length);
-                        }
-                    }
-                }
-                else
-                {
-                ImGui.Text($"Server Tick: {session.EmbeddedServer!.Server.CurrentTick}");
-            }
-
-                ImGui.Checkbox("Draw autopilot avoidance", ref world.RenderAutopilotDebug);
-                ImGui.Checkbox("Draw formation lines", ref world.RenderFormationDebug);
-
-                bool hasDebug = world.Physics!.DebugRenderer != null;
-                ImGui.Checkbox("Draw hitboxes", ref hasDebug);
-                ImGui.BeginDisabled(!hasDebug);
-                ImGui.Checkbox("Draw raycasts", ref world.Physics.ShowRaycasts);
-                ImGui.EndDisabled();
-
-                if (hasDebug)
-                {
-                    world.Physics.DebugRenderer = sysrender.DebugRenderer;
-                }
-                else
-                {
-                    world.Physics.DebugRenderer = null;
-                }
-
-                ImGui.Text($"Free Audio Voices: {Game.Audio.FreeSources}");
-                ImGui.Text($"Playing Sounds: {Game.Audio.PlayingInstances}");
-                ImGui.Text($"Audio Update Time: {Game.Audio.UpdateTime:0.000}ms");
-
-                if (!session.Multiplayer)
-                {
-                    ImGui.Text(
-                        $"Storyline: {session.EmbeddedServer!.Server.LocalPlayer!.Story?.CurrentStory?.Nickname}");
-                }
-                // ImGuiNET.ImGui.Text(pilotcomponent.ThrottleControl.Current.ToString());
-            }, () =>
-            {
-                Game.Debug.MissionWindow(session.GetTriggerInfo());
-
-                if (showObjectList)
-                {
-                    Game.Debug.ObjectsWindow(world.Objects);
-                }
-            });
+            DrawDebugWindow(delta);
 
             if ((!IsSpecialCamera() && ShowHud) || Game.Debug.Enabled || ui.HasModal)
             {
@@ -2449,188 +1871,6 @@ World Time: {12:F2}
             }
 
             DoFade(delta);
-        }
-
-        private (Vector2, float) ArrowPosition(Vector2 pos)
-        {
-            var screenCenter = new Vector2(ui.ScreenWidth, 480) / 2f;
-            pos -= screenCenter;
-
-            var angle = -(MathF.PI / 2) - MathF.Atan2(pos.Y, -pos.X);
-
-            var cos = MathF.Cos(angle);
-            var sin = -MathF.Sin(angle);
-            var m = cos / sin;
-            var screenBounds = screenCenter * 0.9f;
-
-            if (cos > 0)
-            {
-                pos = screenBounds with
-                {
-                    X = screenBounds.Y / m
-                };
-            }
-            else
-            {
-                pos = new Vector2(-screenBounds.Y / m, -screenBounds.Y);
-            }
-
-            if (pos.X > screenBounds.X)
-            {
-                pos = screenBounds with
-                {
-                    Y = screenBounds.X * m
-                };
-            }
-            else if (pos.X < -screenBounds.X)
-            {
-                pos = new Vector2(-screenBounds.X, -screenBounds.X * m);
-            }
-
-            pos = -pos;
-            pos += screenCenter;
-
-            return (pos, angle);
-        }
-
-        private void DrawSelectedArrow(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
-        {
-            var rep = GetRepToPlayer(obj) switch
-            {
-                RepAttitude.Friendly => "friendly",
-                RepAttitude.Hostile => "hostile",
-                _ => "neutral"
-            };
-            var (arrowPos, angle) = ArrowPosition(pos);
-            uiApi.SelectedArrow?.Draw(
-                context, delta, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
-                angle, rep, (obj.Flags & GameObjectFlags.Important) != 0
-            );
-        }
-
-        private void DrawUnselectedArrow(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle)
-        {
-            var rep = GetRepToPlayer(obj) switch
-            {
-                RepAttitude.Friendly => "friendly",
-                RepAttitude.Hostile => "hostile",
-                _ => "neutral"
-            };
-            var (arrowPos, angle) = ArrowPosition(pos);
-            uiApi.UnselectedArrow?.Draw(
-                context, delta, drawList, parentRectangle, arrowPos.X, arrowPos.Y,
-                angle, rep, 0.5f, (obj.Flags & GameObjectFlags.Important) != 0
-            );
-        }
-
-        private void DrawShipReticle(double delta, GameObject obj, Vector2 pos, UiContext context, RectangleF parentRectangle)
-        {
-            // var rep = GetRepToPlayer(obj);
-
-        }
-
-        private void DrawWaypoint(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList, RectangleF parentRectangle, bool selected)
-        {
-            var size = WaypointSelectionStartSize;
-            if (selected)
-            {
-                if (selectedWaypointAnimationObject != obj.Unique)
-                {
-                    selectedWaypointAnimationObject = obj.Unique;
-                    selectedWaypointAnimationStart = Game.TotalTime;
-                }
-
-                var t = MathHelper.Clamp(
-                    (float)((Game.TotalTime - selectedWaypointAnimationStart) / WaypointSelectionAnimationDuration),
-                    0f,
-                    1f
-                );
-                size = MathHelper.Lerp(WaypointSelectionStartSize, WaypointSelectionEndSize, t);
-            }
-            var alpha = selected ? 1f : 0.85f;
-            uiApi.Waypoint?.Draw(
-                context, delta, drawList, parentRectangle,
-                ui.PixelsToPoints(pos.X) - (size / 2f),
-                ui.PixelsToPoints(pos.Y) - (size / 2f),
-                size, alpha
-            );
-        }
-
-        private void IndicatorLayerOnRender(UiContext context, double delta, DrawList2D drawList, RectangleF clientRectangle)
-        {
-            foreach (var obj in world.Objects)
-            {
-                if (obj == Selection.Selected)
-                {
-                    // Draw last
-                }
-                else if (obj.Kind == GameObjectKind.Ship)
-                {
-                    var (pos, visible) = ScreenPosition(obj);
-
-                    switch (visible)
-                    {
-                        case false when (obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
-                                        (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important:
-                            DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
-                            break;
-                        case true:
-                            DrawShipReticle(delta, obj, pos, context, clientRectangle);
-                            break;
-                    }
-
-                }
-                else if (obj.Kind == GameObjectKind.Waypoint)
-                {
-                    var (pos, visible) = ScreenPosition(obj);
-
-                    if (visible)
-                    {
-                        DrawWaypoint(delta, obj, pos, context, drawList, clientRectangle, false);
-                        uiApi.WaypointLabel?.Draw(
-                            context, delta, drawList, clientRectangle,
-                            ui.PixelsToPoints(pos.X) - 45f,
-                            ui.PixelsToPoints(pos.Y) - (WaypointSelectionStartSize / 2f) - 17f
-                        );
-                    }
-                    else
-                    {
-                        DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
-                    }
-                }
-                else if ((obj.Flags & GameObjectFlags.Hostile) == GameObjectFlags.Hostile ||
-                         (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important)
-                {
-                    var (pos, visible) = ScreenPosition(obj);
-
-                    if (!visible)
-                    {
-                        DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
-                    }
-                }
-            }
-
-            var selected = Selection.Selected;
-            if (selected == null)
-            {
-                selectedWaypointAnimationObject = 0;
-                return;
-            }
-
-            var (selectedPos, selectedVisible) = ScreenPosition(selected);
-            if (selectedVisible && selected.Kind == GameObjectKind.Waypoint)
-            {
-                DrawWaypoint(delta, selected, selectedPos, context, drawList, clientRectangle, true);
-            }
-            else
-            {
-                selectedWaypointAnimationObject = 0;
-
-                if (!selectedVisible)
-                {
-                    DrawSelectedArrow(delta, selected, selectedPos, context, drawList, clientRectangle);
-                }
-            }
         }
 
         public override void Exiting()

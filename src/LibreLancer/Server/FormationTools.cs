@@ -10,17 +10,20 @@ public class FormationTools
 {
     public static void EnterFormation(GameObject self, GameObject tgt, Vector3 offset)
     {
+        if (self.Formation != null && self.Formation != tgt.Formation)
+            self.Formation.Remove(self);
+
         if (tgt.Formation == null)
         {
             tgt.Formation = new ShipFormation(tgt, self);
         }
         else
         {
-            if(!tgt.Formation.Contains(self))
+            if (!tgt.Formation.Contains(self))
                 tgt.Formation.Add(self);
         }
         self.Formation = tgt.Formation;
-        if(offset != Vector3.Zero)
+        if (offset != Vector3.Zero)
             tgt.Formation.SetShipOffset(self, offset);
         if (self.TryGetComponent<AutopilotComponent>(out var ap))
         {
@@ -56,7 +59,16 @@ public class FormationTools
         }
 
         obj.Formation?.Remove(obj);
-        var form = new ShipFormation(playerLead ? player! : obj, formDef!);
+        ShipFormation form;
+        if (formDef != null)
+        {
+            form = new ShipFormation(playerLead ? player! : obj, formDef);
+        }
+        else
+        {
+            FLLog.Warning("Mission", $"Formation definition `{formation}` was not found. Falling back to a simple group.");
+            form = new ShipFormation(playerLead ? player! : obj);
+        }
         if (playerLead && player != null)
         {
             form.Add(obj);

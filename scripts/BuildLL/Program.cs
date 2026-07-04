@@ -16,6 +16,8 @@ namespace BuildLL
     {
         private static string versionSetting = "git";
         private static string prefix = "/usr/local/";
+        private static string buildTool = "make";
+        private static string genTool = "Unix Makefiles";
         private static int parallel = -1;
         private static string? serverRid = null;
         private static bool buildDebug = false;
@@ -29,16 +31,23 @@ namespace BuildLL
         private static DateTime Invoked = DateTime.UtcNow;
         public static void Options()
         {
-            StringArg("--assemblyversion", x => versionSetting = x, "Set generated version");
-            StringArg("--prefix", x => prefix = x, "Set cmake install prefix");
+
             IntArg("-j|--jobs", x => parallel = x, "Parallelism for native build step");
-            StringArg("-r|--rid", x => serverRid = x, "Set runtime identifier for server-only build");
+
             FlagArg("--debug", () => buildDebug = true, "Build natives with debug info");
             FlagArg("--O0", () => buildO0 = true, "Build natives with -O0 debug");
             FlagArg("--with-win32", () => withWin32 = true, "Also build for 32-bit windows");
             FlagArg("--with-win64", () => withWin64 = true, "(Linux only) Also build for 64-bit windows");
             FlagArg("--no-updates", () => withUpdates = false, "Disables built in updater (SDK only)");
+
+            StringArg("--prefix", x => prefix = x, "Set cmake install prefix");
+            StringArg("--assemblyversion", x => versionSetting = x, "Set generated version");
+            StringArg("-r|--rid", x => serverRid = x, "Set runtime identifier for server-only build");
             StringArg("--update-channel", v => updateChannel = v, "Sets update channel for this build (SDK only)");
+            StringArg("-g|--generator", x => {
+                genTool = x.Equals("ninja", StringComparison.OrdinalIgnoreCase) ? "Ninja" : "Unix Makefiles";
+                buildTool = x.Equals("ninja", StringComparison.OrdinalIgnoreCase) ? "ninja" : "make";
+            }, "Set CMake generator (UNIX only)");
             StringArg("--vsversion", v =>
             {
                 if (!Enum.TryParse(v, true, out vsVersion))
@@ -234,14 +243,14 @@ namespace BuildLL
             CMake.Run(srcDir, new CMakeSettings()
             {
                 OutputPath = "obj/dxc-build",
-                Generator = "Unix Makefiles",
+                Generator = genTool,
                 Options = [ "-DSPIRV_WERROR=OFF" ],
                 Cache = Path.Combine(srcDir, "cmake/caches/PredefinedParams.cmake"),
                 BuildType = "Release"
             });
             string pl = "";
             if (parallel > 0) pl = "-j" + parallel;
-            RunCommand("make", pl, "obj/dxc-build");
+            RunCommand(buildTool, pl, "obj/dxc-build");
             Directory.CreateDirectory("bin/builddeps/bin");
             File.CreateSymbolicLink(Path.GetFullPath("bin/builddeps/bin/dxc"), Path.GetFullPath("obj/dxc-build/bin/dxc"));
         }
@@ -290,13 +299,13 @@ namespace BuildLL
                     CMake.Run("extern/SPIRV-Cross", new CMakeSettings()
                     {
                         OutputPath = "obj/spirvcross",
-                        Generator = "Unix Makefiles",
+                        Generator = genTool,
                         BuildType = "MinSizeRel",
                         Options = spvOpts
                     });
                     string pl = "";
                     if (parallel > 0) pl = "-j" + parallel;
-                    RunCommand("make", pl, "obj/spirvcross");
+                    RunCommand(buildTool, pl, "obj/spirvcross");
                 }
                 CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.so");
                 CopyDirContents("obj/spirvcross", "bin/builddeps", false, "*.dll");
@@ -354,7 +363,7 @@ namespace BuildLL
                             Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix, "-DCMAKE_TOOLCHAIN_FILE=./scripts/mingw-w64-i686.cmake" },
                             BuildType = config
                         });
-                        RunCommand("make", args, "obj/x86-mingw");
+                        RunCommand(buildTool, args, "obj/x86-mingw");
                         CopyDirContents("obj/x86-mingw/binaries/", "./bin/natives/x86/", false, "*.dll");
                         MingwDeps.CopyMingwDependencies("i686-w64-mingw32","./bin/natives/x86/");
                     }
@@ -368,7 +377,7 @@ namespace BuildLL
                             Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix, "-DCMAKE_TOOLCHAIN_FILE=./scripts/mingw-w64-x86_64.cmake" },
                             BuildType = config
                         });
-                        RunCommand("make", args, "obj/x64-mingw");
+                        RunCommand(buildTool, args, "obj/x64-mingw");
                         CopyDirContents("obj/x64-mingw/binaries/", "./bin/natives/x64");
                         MingwDeps.CopyMingwDependencies("x86_64-w64-mingw32","./bin/natives/x64/");
                     }
@@ -376,11 +385,11 @@ namespace BuildLL
                     CMake.Run(".", new CMakeSettings()
                     {
                         OutputPath = "obj",
-                        Generator = "Unix Makefiles",
+                        Generator = genTool,
                         Options = new[] { "-DCMAKE_INSTALL_PREFIX=" + prefix },
                         BuildType = config
                     });
-                    RunCommand("make", args, "obj");
+                    RunCommand(buildTool, args, "obj");
                     CopyDirContents("obj/binaries/", "./bin/natives/");
                 }
             });

@@ -103,6 +103,16 @@ namespace LibreLancer.Server
             rpcClient.SetObjective(objective, history);
         }
 
+        public void SetManeuversLocked(bool locked)
+        {
+            rpcClient.SetManeuverLock(locked);
+        }
+
+        public void SetManeuverEnabled(ManeuverType maneuver, bool enabled)
+        {
+            rpcClient.SetManeuverEnabled(maneuver, enabled);
+        }
+
         public void UpdateMissionRuntime(double elapsed)
         {
             msnRuntime?.Update(elapsed);
@@ -1204,6 +1214,7 @@ namespace LibreLancer.Server
 
             if (Space != null)
             {
+                msnRuntime?.SystemExit(System, "Player");
                 Space.Leave(false);
             }
 
@@ -1256,11 +1267,17 @@ namespace LibreLancer.Server
             }, msnPreload);
         }
 
-        void IServerPlayer.Launch()
+        public void LaunchFromBase()
         {
             if (Character?.Ship == null)
             {
                 FLLog.Error("Server", $"{Name} cannot launch without a ship");
+                return;
+            }
+
+            if (Base == null)
+            {
+                rpcClient.OnConsoleMessage("You are not on a base.");
                 return;
             }
 
@@ -1270,32 +1287,47 @@ namespace LibreLancer.Server
             Game.Worlds.RequestWorld(sys!, (world) =>
             {
                 Space = new SpacePlayer(world, this);
+                var launchBase = Base;
                 var obj = sys!.Objects.FirstOrDefault((o) =>
                 {
                     return (o.Dock is { Kind: DockKinds.Base } &&
-                            o.Dock.Target!.Equals(Base, StringComparison.OrdinalIgnoreCase));
+                            o.Dock.Target!.Equals(launchBase, StringComparison.OrdinalIgnoreCase));
                 });
                 System = b.System!;
                 Orientation = Quaternion.Identity;
                 Position = Vector3.Zero;
 
-                if (obj == null)
-                {
-                    FLLog.Error("Base", "Can't find object in " + sys.Nickname + " docking to " + b.Nickname);
-                }
-                else
-                {
-                    Position = obj.Position;
-                    Orientation = obj.Rotation;
-                    Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) +
-                               obj.Position; // TODO: This is bad
-                }
-
                 Baseside = null;
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    var undockFrom = world.GameWorld.GetObject(obj?.Nickname);
+                    GameObject? undockFrom = null;
+                    if (obj != null)
+                    {
+                        undockFrom = world.GameWorld.GetObject(obj.Nickname);
+                        Position = obj.Position;
+                        Orientation = obj.Rotation;
+                    }
+                    else if (launchBase != null)
+                    {
+                        undockFrom = MissionRuntime?.SpawnMissionSolarForBase(launchBase, world);
+                        if (undockFrom != null)
+                        {
+                            Position = undockFrom.WorldTransform.Position;
+                            Orientation = undockFrom.LocalTransform.Orientation;
+                        }
+                    }
+
+                    if (undockFrom == null)
+                    {
+                        FLLog.Error("Base", "Can't find object in " + sys.Nickname + " docking to " + b.Nickname);
+                    }
+                    else
+                    {
+                        Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) +
+                                   Position; // TODO: This is bad
+                    }
+
                     SDockableComponent? sd = null;
                     var undockIndex = 0;
 
@@ -1337,5 +1369,7 @@ namespace LibreLancer.Server
                 });
             }, msnPreload);
         }
+
+        void IServerPlayer.Launch() => LaunchFromBase();
     }
 }

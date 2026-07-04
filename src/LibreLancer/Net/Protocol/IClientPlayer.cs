@@ -32,6 +32,8 @@ public interface IClientPlayer
         NetSoldShip[] ships, NetMissionOffer[] missionOffers);
     void UpdateThns(NetThnInfo thns);
     void SetObjective(NetObjective objective, bool history);
+    void SetManeuverLock(bool locked);
+    void SetManeuverEnabled(ManeuverType maneuver, bool enabled);
     void Killed();
     void DespawnObject(int id, bool explode);
     void PlaySound(string sound);
