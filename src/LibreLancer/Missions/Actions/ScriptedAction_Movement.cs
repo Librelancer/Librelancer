@@ -129,7 +129,7 @@ namespace LibreLancer.Missions.Actions
         }
     }
 
-    public class Act_RelocateShip : ScriptedAction
+    public class Act_RelocateShip : ShipSpawnBase
     {
         public string Ship = string.Empty;
         public Vector3 Position;
@@ -171,14 +171,35 @@ namespace LibreLancer.Missions.Actions
             {
                 runtime.Player.MissionWorldAction(() => runtime.Player.Space!.ForceMove(Position, Orientation));
             }
-            else if (script.Ships.ContainsKey(Ship))
+            else if (script.Ships.TryGetValue(Ship, out var scriptShip))
             {
                 runtime.Player.MissionWorldAction(() =>
                 {
-                    var obj = runtime.Player.Space!.World.GameWorld.GetObject(Ship)!;
+                    var obj = runtime.Player.Space!.World.GameWorld.GetObject(Ship);
+                    if (obj == null)
+                    {
+                        FLLog.Warning("Mission",
+                            $"Act_RelocateShip could not find `{Ship}` in space; spawning mission ship at relocate position");
+                        runtime.ObjectSpawned(scriptShip.Nickname);
+                        var spawnOrientation = Orientation.HasValue
+                            ? (OptionalArgument<Quaternion>)Orientation.Value
+                            : default;
+                        obj = SpawnShipInWorld(scriptShip, Position, spawnOrientation, string.Empty, script, runtime);
+                    }
+
+                    if (obj == null)
+                    {
+                        FLLog.Warning("Mission", $"Act_RelocateShip could not find `{Ship}`");
+                        return;
+                    }
+
                     var quat = Orientation ?? obj.LocalTransform.Orientation;
                     obj.SetLocalTransform(new Transform3D(Position, quat));
                 });
+            }
+            else
+            {
+                FLLog.Warning("Mission", $"Act_RelocateShip could not find mission ship `{Ship}`");
             }
         }
     }

@@ -235,7 +235,8 @@ namespace LibreLancer.World.Components
         public override void Unregister(GameWorld world)
         {
             pworld = null;
-            world.Physics?.RemoveObject(Body);
+            if (Body is { IsDisposed: false })
+                world.Physics?.RemoveObject(Body);
             collider?.Dispose();
         }
     }

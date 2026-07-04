@@ -15,6 +15,9 @@ public class SDestroyableComponent : GameComponent
 
     public void Destroy(bool exploded)
     {
+        if (Parent.Formation?.Contains(Parent) == true)
+            Parent.Formation.Remove(Parent);
+
         OnKilled?.Invoke();
         if (Parent.TryGetComponent<SPlayerComponent>(out var player))
         {

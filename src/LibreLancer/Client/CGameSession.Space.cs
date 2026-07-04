@@ -859,9 +859,20 @@ public partial class CGameSession
             else
             {
                 FLLog.Debug("Client", "Formation received");
+                var lead = ObjOrPlayer(form.LeadShip);
+                var followers = form.Followers.Select(ObjOrPlayer).ToArray();
+                if (lead == null || followers.Any(x => x == null))
+                {
+                    FLLog.Warning("Client", "Formation update referenced a missing object. Clearing formation.");
+                    spaceGameplay.player.Formation = null;
+                    if (spaceGameplay.pilotComponent.CurrentBehavior == AutopilotBehaviors.Formation)
+                        spaceGameplay.pilotComponent.Cancel();
+                    return;
+                }
+
                 spaceGameplay.player.Formation = new ShipFormation(
-                    ObjOrPlayer(form.LeadShip),
-                    form.Followers.Select(ObjOrPlayer).ToArray()
+                    lead,
+                    followers.Select(x => x!).ToArray()
                 )
                 {
                     PlayerTargetPosition = form.YourPosition
@@ -988,12 +999,12 @@ public partial class CGameSession
         return scannedInventory.Where(x => predicate(x.Equipment!)).ToArray();
     }
 
-    private GameObject ObjOrPlayer(int id)
+    private GameObject? ObjOrPlayer(int id)
     {
         if (id == 0)
             return spaceGameplay!.player;
 
-        return spaceGameplay!.world.GetNetObject(id)!;
+        return spaceGameplay!.world.GetNetObject(id);
     }
 
     public bool DockAllowed(GameObject gameObject)

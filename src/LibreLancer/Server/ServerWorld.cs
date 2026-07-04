@@ -256,6 +256,7 @@ namespace LibreLancer.Server
                 }
 
                 jumpers.Add(JumperNpc.FromGameObject(go));
+                msn.SystemExit(System.Nickname, npc.Nickname);
                 RemoveSpawnedObject(go, false);
             }
 
@@ -665,6 +666,11 @@ namespace LibreLancer.Server
 
         private void RemoveObjectInternal(GameObject obj)
         {
+            if ((obj.Flags & GameObjectFlags.Exists) == 0)
+            {
+                return;
+            }
+
             obj.Unregister(GameWorld);
             GameWorld.RemoveObject(obj);
             withAnimations.Remove(obj);
@@ -691,9 +697,16 @@ namespace LibreLancer.Server
         {
             actions.Enqueue(() =>
             {
+                if ((obj.Flags & GameObjectFlags.Exists) == 0)
+                {
+                    spawnedObjects.Remove(obj);
+                    return;
+                }
+
                 RemoveObjectInternal(obj);
                 spawnedObjects.Remove(obj);
-                IdGenerator.Free(obj.NetID);
+                if (obj.NetID != 0)
+                    IdGenerator.Free(obj.NetID);
                 foreach (var p in Players) p.Key.Despawn(obj.NetID, exploded);
             });
         }

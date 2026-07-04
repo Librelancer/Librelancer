@@ -587,6 +587,8 @@ namespace LibreLancer.World.Components
         {
             var formation = Parent.Formation!;
             var body = Parent.PhysicsComponent!.Body!;
+            if (body.IsDisposed)
+                return FormationControl.Separation.None;
             var requiredNeighbors = formation.Followers.Count + 1;
             if (separationNeighbors.Length < requiredNeighbors)
                 separationNeighbors = new FormationControl.Neighbor[requiredNeighbors];
@@ -594,9 +596,9 @@ namespace LibreLancer.World.Components
 
             void AddNeighbor(GameObject ship)
             {
-                if (ship == Parent || ship.PhysicsComponent?.Body == null)
+                var otherBody = ship.PhysicsComponent?.Body;
+                if (ship == Parent || otherBody is not { IsDisposed: false })
                     return;
-                var otherBody = ship.PhysicsComponent.Body;
                 separationNeighbors[neighborCount++] = new FormationControl.Neighbor(otherBody.Position,
                     otherBody.LinearVelocity, otherBody.Collider.Radius, StableFormationId(ship, formation));
             }
@@ -668,21 +670,31 @@ namespace LibreLancer.World.Components
 
         public override bool Update(ShipSteeringComponent control, ShipInputComponent? input, double time, GameWorld world)
         {
-            if (Parent.Formation == null ||
-                Parent.Formation.LeadShip == Parent)
+            var formation = Parent.Formation;
+            if (formation == null ||
+                formation.LeadShip == Parent)
             {
                 return true;
             }
 
-            var body = Parent.PhysicsComponent!.Body!;
-            var targetPoint = Parent.Formation.GetShipPosition(Parent, Component.LocalPlayer);
-            var lead = Parent.Formation.LeadShip;
+            var body = Parent.PhysicsComponent?.Body;
+            var lead = formation.LeadShip;
             var leadBody = lead.PhysicsComponent?.Body;
+            if ((lead.Flags & GameObjectFlags.Exists) != GameObjectFlags.Exists ||
+                body is not { IsDisposed: false } ||
+                leadBody is not { IsDisposed: false })
+            {
+                if (formation.Contains(Parent))
+                    formation.Remove(Parent);
+                return true;
+            }
+
+            var targetPoint = formation.GetShipPosition(Parent, Component.LocalPlayer);
             var slotError = targetPoint - body.Position;
             var distance = slotError.Length();
-            var leadPosition = leadBody?.Position ?? lead.WorldTransform.Position;
-            var leadVelocity = leadBody?.LinearVelocity ?? Vector3.Zero;
-            var leadAngularVelocity = leadBody?.AngularVelocity ?? Vector3.Zero;
+            var leadPosition = leadBody.Position;
+            var leadVelocity = leadBody.LinearVelocity;
+            var leadAngularVelocity = leadBody.AngularVelocity;
             var slotVelocity = FormationControl.SlotVelocity(leadVelocity, leadAngularVelocity,
                 targetPoint - leadPosition);
             var desiredVelocity = FormationControl.DesiredVelocity(slotVelocity, slotError);
@@ -691,8 +703,7 @@ namespace LibreLancer.World.Components
             var selfForward = body.RotateVector(-Vector3.UnitZ);
             var travelDirection = slotVelocity.LengthSquared() > 400
                 ? slotVelocity
-                : leadBody?.RotateVector(-Vector3.UnitZ) ??
-                  Vector3.Transform(-Vector3.UnitZ, lead.WorldTransform.Orientation);
+                : leadBody.RotateVector(-Vector3.UnitZ);
 
             control.Cruise = ShouldCruise(lead);
             control.CruiseSpeedOffset =
@@ -737,7 +748,7 @@ namespace LibreLancer.World.Components
                 Component.OutPitch = 0;
             }
 
-            DrawFormationPoints(world, Parent.Formation, targetPoint);
+            DrawFormationPoints(world, formation, targetPoint);
             world.DrawFormationDebugLine(body.Position, targetPoint, Color4.Cyan);
             if (steeringPoint is { } point)
                 world.DrawFormationDebugLine(body.Position, point, Color4.Lime);

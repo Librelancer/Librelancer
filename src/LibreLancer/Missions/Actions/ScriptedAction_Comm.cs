@@ -39,8 +39,7 @@ namespace LibreLancer.Missions.Actions
                 int sourceId = 0;
                 if (!d.Source!.Equals("Player", StringComparison.OrdinalIgnoreCase))
                 {
-                    var src = script.Ships[d.Source];
-                    voice = src.NPC!.Voice!;
+                    voice = Act_SendComm.GetCommVoice(script, d.Source);
                     var o = runtime.Player.Space!.World.GameWorld.GetObject(d.Source);
                     sourceId = o?.NetID ?? 0;
                 }
@@ -82,8 +81,7 @@ namespace LibreLancer.Missions.Actions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             var netdlg = new NetDlgLine[1];
-            var src = script.Ships[Source];
-            var voice = src.NPC!.Voice;
+            var voice = GetCommVoice(script, Source);
             var hash = FLHash.CreateID(Line);
             runtime.EnqueueLine(hash, Line);
             int sourceId = 0;
@@ -97,6 +95,24 @@ namespace LibreLancer.Missions.Actions
                 Hash = hash
             };
             runtime.Player.RpcClient.RunMissionDialog(netdlg);
+        }
+
+        internal static string GetCommVoice(MissionScript script, string source)
+        {
+            if (script.Ships.TryGetValue(source, out var ship) &&
+                !string.IsNullOrWhiteSpace(ship.NPC?.Voice))
+            {
+                return ship.NPC.Voice;
+            }
+
+            if (script.Solars.TryGetValue(source, out var solar) &&
+                !string.IsNullOrWhiteSpace(solar.Voice))
+            {
+                return solar.Voice;
+            }
+
+            FLLog.Warning("Missions", $"Could not find comm voice for '{source}', using trent_voice");
+            return "trent_voice";
         }
     }
 

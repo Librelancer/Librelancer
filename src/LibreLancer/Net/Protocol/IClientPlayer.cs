@@ -31,6 +31,8 @@ public interface IClientPlayer
     void BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships);
     void UpdateThns(NetThnInfo thns);
     void SetObjective(NetObjective objective, bool history);
+    void SetManeuverLock(bool locked);
+    void SetManeuverEnabled(ManeuverType maneuver, bool enabled);
     void Killed();
     void DespawnObject(int id, bool explode);
     void PlaySound(string sound);

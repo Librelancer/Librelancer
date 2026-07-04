@@ -864,12 +864,22 @@ namespace LibreLancer
                         cState == CutsceneState.Accept ||
                         cState == CutsceneState.Reject)
                     {
-                        session.FinishCutscene(currentCutscene);
+                        var finishedCutscene = currentCutscene;
+                        session.FinishCutscene(finishedCutscene);
 
-                        if (currentCutscene.Encounters[0].RelocatePlayer != null)
+                        if (finishedCutscene.Encounters[0].RelocatePlayer != null)
                         {
-                            var rm = currentBase.Rooms.Get(currentCutscene.Encounters[0].RelocatePlayer);
-                            Game.ChangeState(new RoomGameplay(Game, session, baseId, rm));
+                            var relocate = finishedCutscene.Encounters[0].RelocatePlayer!;
+                            currentCutscene = null;
+                            if (relocate.Equals("Spaceflight", StringComparison.OrdinalIgnoreCase))
+                            {
+                                SendLaunch();
+                            }
+                            else
+                            {
+                                var rm = currentBase.Rooms.Get(relocate);
+                                Game.ChangeState(new RoomGameplay(Game, session, baseId, rm));
+                            }
                         }
                         else
                         {

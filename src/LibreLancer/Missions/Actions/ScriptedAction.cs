@@ -216,36 +216,7 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            if (!script.Objectives.TryGetValue(Objective, out var v))
-            {
-                return;
-            }
-
-            switch (v.Type)
-            {
-                case NNObjectiveType.ids:
-                    runtime.Player.SetObjective(new NetObjective(v.NameIds), History);
-                    break;
-                case NNObjectiveType.navmarker:
-                    runtime.Player.SetObjective(
-                        new NetObjective(
-                            v.NameIds,
-                            v.ExplanationIds,
-                            v.System,
-                            v.Position
-                        ), History);
-                    break;
-                case NNObjectiveType.rep_inst:
-                    runtime.Player.SetObjective(
-                        new NetObjective(
-                            v.NameIds,
-                            v.ExplanationIds,
-                            v.System,
-                            v.SolarNickname
-                        ), History);
-                    break;
-            }
-
+            runtime.SetCurrentObjective(Objective, History);
         }
     }
 

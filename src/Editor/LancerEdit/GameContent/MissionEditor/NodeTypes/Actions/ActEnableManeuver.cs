@@ -27,7 +27,7 @@ public sealed class ActEnableManeuver : NodeTriggerEntry
         ref NodeLookups lookups)
     {
         nodePopups.Combo("Maneuver", undoBuffer, () => ref Data.Maneuver);
-        Controls.CheckboxUndo("Lock", undoBuffer, () => ref Data.Lock);
+        Controls.CheckboxUndo("Enabled", undoBuffer, () => ref Data.Enabled);
     }
 
     public override void WriteEntry(IniBuilder.IniSectionBuilder sectionBuilder)

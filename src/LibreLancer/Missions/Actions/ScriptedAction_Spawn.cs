@@ -35,26 +35,9 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            var sol = script.Solars[Solar];
-            var arch = sol.Archetype;
-            runtime.ObjectSpawned(sol.Nickname);
             runtime.Player.MissionWorldAction(() =>
             {
-                var obj = runtime.Player.Space!.World.SpawnSolar(
-                    sol.Nickname,
-                    arch!,
-                    sol.Loadout!,
-                    sol.Faction!,
-                    sol.Position,
-                    sol.Orientation,
-                    sol.IdsName,
-                    sol.Base
-                );
-
-                if (obj.TryGetComponent<SDestroyableComponent>(out var dstComp))
-                {
-                    dstComp.OnKilled = () => { runtime.ObjectDestroyed(Solar); };
-                }
+                runtime.SpawnMissionSolar(Solar, runtime.Player.Space!.World);
             });
         }
     }
@@ -115,12 +98,11 @@ namespace LibreLancer.Missions.Actions
         {
         }
 
-        protected void SpawnShip(ScriptShip ship, OptionalArgument<Vector3> spawnpos,
+        protected GameObject SpawnShipInWorld(ScriptShip ship, OptionalArgument<Vector3> spawnpos,
             OptionalArgument<Quaternion> spawnorient, string objList, MissionScript script, MissionRuntime runtime)
         {
             var npcDef = ship.NPC!;
             script.NpcShips.TryGetValue(npcDef.NpcShipArch!, out var shipArch);
-            runtime.ObjectSpawned(ship.Nickname);
 
             if (shipArch == null)
             {
@@ -143,47 +125,59 @@ namespace LibreLancer.Missions.Actions
                 }
             }
 
+            runtime.Player.Space!.World.Server.GameData.Items.TryGetLoadout(shipArch!.Loadout!, out var ld);
+            var pilot = runtime.Player.Space.World.Server.GameData.Items.GetPilot(shipArch.Pilot!);
+            ObjectName oName;
+
+            if (ship.RandomName)
+            {
+                oName = runtime.Player.Space.World.NPCs.RandomName(npcDef.Affiliation);
+            }
+            else
+            {
+                oName = new ObjectName(npcDef.IndividualName);
+            }
+
+            var pos = archPos;
+            GameObject relObj;
+
+            // Spawn relative to object
+            if (!string.IsNullOrWhiteSpace(ship.RelativePosition.ObjectName) &&
+                (relObj = runtime.Player.Space.World.GameWorld.GetObject(ship.RelativePosition.ObjectName)!) != null)
+            {
+                var dir = new Vector3(runtime.Random.NextFloat(-1, 1),
+                    runtime.Random.NextFloat(-0.1f, 0.1f),
+                    runtime.Random.NextFloat(-1, 1)).Normalized();
+                var range = runtime.Random.NextFloat(ship.RelativePosition.MinRange,
+                    ship.RelativePosition.MaxRange);
+                pos = relObj.WorldTransform.Position + (dir * range);
+            }
+
+            var arrivalObject = string.IsNullOrWhiteSpace(ship.ArrivalObj.Object) || spawnpos.Present
+                ? null
+                : ship.ArrivalObj.Object;
+
+            var obj = runtime.Player.Space.World.NPCs.DoSpawn(
+                oName,
+                ship.Nickname,
+                npcDef.Affiliation,
+                shipArch?.StateGraph ?? "FIGHTER",
+                npcDef.SpaceCostume,
+                ld!, pilot, pos, orient, arrivalObject, ship.ArrivalObj.Index, runtime);
+            var drComp = obj.GetComponent<DirectiveRunnerComponent>();
+            drComp!.SetDirectives(directives, runtime.Player.Space.World.GameWorld);
+            var dstComp = obj.GetComponent<SDestroyableComponent>();
+            dstComp!.OnKilled = () => { runtime.ObjectDestroyed(ship.Nickname); };
+            return obj;
+        }
+
+        protected void SpawnShip(ScriptShip ship, OptionalArgument<Vector3> spawnpos,
+            OptionalArgument<Quaternion> spawnorient, string objList, MissionScript script, MissionRuntime runtime)
+        {
+            runtime.ObjectSpawned(ship.Nickname);
             runtime.Player.MissionWorldAction(() =>
             {
-                runtime.Player.Space!.World.Server.GameData.Items.TryGetLoadout(shipArch!.Loadout!, out var ld);
-                var pilot = runtime.Player.Space.World.Server.GameData.Items.GetPilot(shipArch.Pilot!);
-                ObjectName oName;
-
-                if (ship.RandomName)
-                {
-                    oName = runtime.Player.Space.World.NPCs.RandomName(npcDef.Affiliation);
-                }
-                else
-                {
-                    oName = new ObjectName(npcDef.IndividualName);
-                }
-
-                var pos = archPos;
-                GameObject relObj;
-
-                // Spawn relative to object
-                if (!string.IsNullOrWhiteSpace(ship.RelativePosition.ObjectName) &&
-                    (relObj = runtime.Player.Space.World.GameWorld.GetObject(ship.RelativePosition.ObjectName)!) != null)
-                {
-                    var dir = new Vector3(runtime.Random.NextFloat(-1, 1),
-                        runtime.Random.NextFloat(-0.1f, 0.1f),
-                        runtime.Random.NextFloat(-1, 1)).Normalized();
-                    var range = runtime.Random.NextFloat(ship.RelativePosition.MinRange,
-                        ship.RelativePosition.MaxRange);
-                    pos = relObj.WorldTransform.Position + (dir * range);
-                }
-
-                var obj = runtime.Player.Space.World.NPCs.DoSpawn(
-                    oName,
-                    ship.Nickname,
-                    npcDef.Affiliation,
-                    shipArch?.StateGraph ?? "FIGHTER",
-                    npcDef.SpaceCostume,
-                    ld!, pilot, pos, orient, null, 0, runtime);
-                var drComp = obj.GetComponent<DirectiveRunnerComponent>();
-                drComp!.SetDirectives(directives, runtime.Player.Space.World.GameWorld);
-                var dstComp = obj.GetComponent<SDestroyableComponent>();
-                dstComp!.OnKilled = () => { runtime.ObjectDestroyed(ship.Nickname); };
+                SpawnShipInWorld(ship, spawnpos, spawnorient, objList, script, runtime);
             });
         }
     }
@@ -250,7 +244,24 @@ namespace LibreLancer.Missions.Actions
 
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
-            var form = script.Formations[Formation];
+            if (!script.Formations.TryGetValue(Formation, out var form))
+            {
+                if (script.Ships.TryGetValue(Formation, out var ship))
+                {
+                    SpawnShip(ship, Position, Orientation, string.Empty, script, runtime);
+                    return;
+                }
+
+                FLLog.Warning("Mission", $"Act_SpawnFormation could not find formation `{Formation}`");
+                return;
+            }
+
+            if (form.Ships.Count == 0)
+            {
+                FLLog.Warning("Mission", $"Act_SpawnFormation `{Formation}` has no valid ships to spawn");
+                return;
+            }
+
             var fpos = Position.Get(form.Position);
             var forient = Orientation.Get(form.Orientation);
             var mat = Matrix4x4.CreateFromQuaternion(forient) *
@@ -260,7 +271,8 @@ namespace LibreLancer.Missions.Actions
 
             for (int i = 0; i < form.Ships.Count; i++)
             {
-                var pos = Vector3.Transform(positions[i], mat);
+                var offset = i < positions.Count ? positions[i] : positions[^1];
+                var pos = Vector3.Transform(offset, mat);
                 SpawnShip(form.Ships[i], pos, forient, null!, script, runtime);
             }
 
@@ -440,8 +452,14 @@ namespace LibreLancer.Missions.Actions
             runtime.ObjectDestroyed(ship.Nickname);
             runtime.Player.MissionWorldAction(() =>
             {
-                runtime.Player.Space!.World.NPCs.Despawn(runtime.Player.Space.World.GameWorld.GetObject(Target)!,
-                    false);
+                var obj = runtime.Player.Space!.World.GameWorld.GetObject(Target);
+                if (obj == null)
+                {
+                    FLLog.Warning("Mission", $"Act_Destroy could not find `{Target}`");
+                    return;
+                }
+
+                runtime.Player.Space.World.NPCs.Despawn(obj, Kind == DestroyKind.EXPLODE);
             });
         }
 

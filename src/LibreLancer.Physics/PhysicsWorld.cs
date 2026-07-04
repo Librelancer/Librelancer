@@ -397,6 +397,7 @@ namespace LibreLancer.Physics
             }
 
             var id = -1;
+            obj.MarkDisposed();
 
             switch (obj)
             {
