@@ -381,13 +381,13 @@ namespace LibreLancer
 
                         break;
                     case "bar":
-                        if (g.session.News.Length > 0)
-                        {
-                            actions.Add(new NavbarButtonInfo(INVALID_ACTION, "IDS_HOTSPOT_NEWSVENDOR"));
-                        }
                         if (g.session.MissionOffers.Length > 0)
                         {
                             actions.Add(new NavbarButtonInfo(JOB_BOARD_ACTION, "IDS_HOTSPOT_MISSIONVENDOR"));
+                        }
+                        if (g.session.News.Length > 0)
+                        {
+                            actions.Add(new NavbarButtonInfo(INVALID_ACTION, "IDS_HOTSPOT_NEWSVENDOR"));
                         }
 
                         break;
