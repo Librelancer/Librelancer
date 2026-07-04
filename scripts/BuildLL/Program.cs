@@ -93,7 +93,7 @@ namespace BuildLL
                 OutputDirectory = objDir,
                 Runtime = rid,
                 SelfContained = true,
-                Extra = "-p:DisableShaders=True"
+                Extra = "-p:DisableShaders=true -p:InvariantGlobalization=true"
             };
             Dotnet.Publish("src/LLServer/LLServer.csproj", settings);
             await CustomPublish.MergeAndPatch(objDir, binDir + rid, rid, ["LLServer"]);
@@ -404,7 +404,6 @@ namespace BuildLL
                 var rid = serverRid ?? (IsWindows ? "win-x64" : GetLinuxRid());
                 await HeadlessBuild(rid);
             });
-
 
             Target("BuildEngine", DependsOn("GenerateVersion", "BuildNatives", "ShaderDependencies"), async () =>
             {
