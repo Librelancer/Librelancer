@@ -42,9 +42,7 @@ local function format_system_name(offer)
     local name = StringFromID(offer.SystemIdsName)
     if (name == nil || name == "")
         return "Unknown System";
-    if (string.sub(name, -7) == " System")
-        return name;
-    return name + " System";
+    return string.format(StringFromID(1356), name);
 }
 
 local function format_faction_name(offer)
