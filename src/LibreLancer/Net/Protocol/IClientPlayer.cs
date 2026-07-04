@@ -28,7 +28,8 @@ public interface IClientPlayer
     void OnConsoleMessage(string text);
     void SpawnMissile(int id, bool playSound, uint equip, Vector3 position, Quaternion orientation);
     void DestroyMissile(int id, bool explode);
-    void BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news, SoldGood[] goods, NetSoldShip[] ships);
+    void BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news, SoldGood[] goods,
+        NetSoldShip[] ships, NetMissionOffer[] missionOffers);
     void UpdateThns(NetThnInfo thns);
     void SetObjective(NetObjective objective, bool history);
     void Killed();

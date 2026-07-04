@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.Market;
+using LibreLancer.Data.GameData.RandomMissions;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Entities.Character;
@@ -19,11 +19,45 @@ public class BasesidePlayer : IBasesidePlayer
 {
     public Player Player;
     public Base? BaseData;
+    public readonly List<RandomMissionOffer> MissionOffers = [];
+    public NetMissionOffer[] NetMissionOffers = [];
 
     public BasesidePlayer(Player player, Base baseData)
     {
         BaseData = baseData;
         Player = player;
+        GenerateMissionOffers(baseData.StartRoom.Nickname);
+    }
+
+    public void GenerateMissionOffers(string? roomNickname)
+    {
+        if (BaseData == null)
+            return;
+
+        MissionOffers.Clear();
+        var offers = Player.Game.GameData.Items.GetRandomMissionOffers(BaseData, roomNickname: roomNickname);
+        var systemIdsName = Player.Game.GameData.Items.Systems.Get(BaseData.System)?.IdsName ?? 0;
+        NetMissionOffers = new NetMissionOffer[offers.Count];
+        for (int i = 0; i < offers.Count; i++)
+        {
+            var offer = offers[i];
+            MissionOffers.Add(offer);
+            NetMissionOffers[i] = new NetMissionOffer
+            {
+                Id = i,
+                NpcIdsName = offer.Npc.IndividualName,
+                FactionIdsName = offer.Faction?.IdsName ?? 0,
+                SystemIdsName = systemIdsName,
+                Reward = 0,
+                MissionType = offer.MissionType
+            };
+        }
+    }
+
+    public void ClearMissionOffers()
+    {
+        MissionOffers.Clear();
+        NetMissionOffers = [];
     }
 
     private string? FirstAvailableHardpoint(string? hptype)

@@ -1,405 +1,405 @@
 <Stylesheet>
 <!-- Default Style -->
     <ButtonStyle MouseDownSound="ui_select_item"/>
-	<!-- Generic buttons -->
-	<ButtonStyle Width="16" Height="16" Name="xbutton">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="xbutton" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="xbutton" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-	</ButtonStyle>
-	<ButtonStyle Width="8" Height="9" Name="sel_left">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayImage Image="sliderarrow_left" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayImage image="sliderarrow_left" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-	</ButtonStyle>
-	<ButtonStyle Width="8" Height="9" Name="sel_right">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayImage Image="sliderarrow_right" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayImage image="sliderarrow_right" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-	</ButtonStyle>
-	<!-- Sell button -->
-	<ButtonStyle Width="132" Height="26" Name="trader_sell">
-		<ButtonStyle.Normal MarginRight="46" TextSize="13" TextColor="text" TextShadow="black" FontFamily="$ButtonText">
-			<ButtonAppearance.Background>
-				<DisplayModel model="inv_sellarrow.3db" tint="text" />
-			</ButtonAppearance.Background>
-			<ButtonAppearance.Border>
-				<DisplayWireBorder color="text" width="2"/>
-			</ButtonAppearance.Border>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover TextColor="text_hover">
-			<ButtonAppearance.Background>
-				<DisplayModel model="inv_sellarrow.3db" tint="text_hover" />
-			</ButtonAppearance.Background>
-			<ButtonAppearance.Border>
-				<DisplayWireBorder color="text_hover" width="2"/>
-			</ButtonAppearance.Border>
-		</ButtonStyle.Hover>
-	</ButtonStyle>
-	
-	<!-- Inventory jettison icon -->
-	<ButtonStyle Width="48" Height="48" Name="inv_dump">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="inv_dump.3db" tint="text" />
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="inv_dump.3db" tint="text_hover" Rotate="0.05,0,0.05" />
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="inv_dump.3db" tint="yellow" />
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
+    <!-- Generic buttons -->
+    <ButtonStyle Width="16" Height="16" Name="xbutton">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="xbutton" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="xbutton" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+    </ButtonStyle>
+    <ButtonStyle Width="8" Height="9" Name="sel_left">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayImage Image="sliderarrow_left" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayImage image="sliderarrow_left" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+    </ButtonStyle>
+    <ButtonStyle Width="8" Height="9" Name="sel_right">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayImage Image="sliderarrow_right" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayImage image="sliderarrow_right" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+    </ButtonStyle>
+    <!-- Sell button -->
+    <ButtonStyle Width="132" Height="26" Name="trader_sell">
+        <ButtonStyle.Normal MarginRight="46" TextSize="13" TextColor="text" TextShadow="black" FontFamily="$ButtonText">
+            <ButtonAppearance.Background>
+                <DisplayModel model="inv_sellarrow.3db" tint="text" />
+            </ButtonAppearance.Background>
+            <ButtonAppearance.Border>
+                <DisplayWireBorder color="text" width="2"/>
+            </ButtonAppearance.Border>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover TextColor="text_hover">
+            <ButtonAppearance.Background>
+                <DisplayModel model="inv_sellarrow.3db" tint="text_hover" />
+            </ButtonAppearance.Background>
+            <ButtonAppearance.Border>
+                <DisplayWireBorder color="text_hover" width="2"/>
+            </ButtonAppearance.Border>
+        </ButtonStyle.Hover>
+    </ButtonStyle>
+    
+    <!-- Inventory jettison icon -->
+    <ButtonStyle Width="48" Height="48" Name="inv_dump">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="inv_dump.3db" tint="text" />
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="inv_dump.3db" tint="text_hover" Rotate="0.05,0,0.05" />
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="inv_dump.3db" tint="yellow" />
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
 
-	<!-- Buy button -->
-	<ButtonStyle Width="132" Height="26" Name="trader_buy">
-		<ButtonStyle.Normal MarginLeft="17" TextSize="13" TextColor="text" TextShadow="black" FontFamily="$ButtonText">
-			<ButtonAppearance.Background>
-				<DisplayModel model="inv_buyarrow.3db" tint="text" />
-			</ButtonAppearance.Background>
-			<ButtonAppearance.Border>
-				<DisplayWireBorder color="text" width="2"/>
-			</ButtonAppearance.Border>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover TextColor="text_hover">
-			<ButtonAppearance.Background>
-				<DisplayModel model="inv_buyarrow.3db" tint="text_hover" />
-			</ButtonAppearance.Background>
-			<ButtonAppearance.Border>
-				<DisplayWireBorder color="text_hover" width="2"/>
-			</ButtonAppearance.Border>
-		</ButtonStyle.Hover>
-	</ButtonStyle>
-	
-	<!-- Hud buttons -->
-	<ButtonStyle Width="20" Height="22" Name="hud_contactlist">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactlist" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactlist" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactlist" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Width="18" Height="18" Name="hud_targetedobject">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_targetedobject" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_targetedobject" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_targetedobject" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Width="18" Height="18" Name="hud_tractorbeam">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_tractorbeam2" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_tractorbeam2" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_tractorbeam2" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Width="18" Height="18" Name="hud_scanship">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_scanship" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_scanship" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_scanship" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Width="16" Height="16" Name="hud_contactall">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactall" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactall" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactall" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	
-	<ButtonStyle Width="15" Height="15" Name="hud_contactloot">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactloot" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactloot" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactloot" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	
-	<ButtonStyle Width="16" Height="16" Name="hud_contactstation">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactstation" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactstation" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactstation" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	
-	<ButtonStyle Width="15" Height="14" Name="hud_contactship">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactship" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactship" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactship" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	
-	<ButtonStyle Width="15" Height="15" Name="hud_contactimportant">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactimportant" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactimportant" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_contactimportant" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Width="19" Height="18" Name="hud_nanobots">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_nanobots" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_nanobots" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-	</ButtonStyle>
-	<ButtonStyle Width="20" Height="20" Name="hud_shieldbatteries">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_shieldbatteries" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="hud_shieldbatteries" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-	</ButtonStyle>
-	<!-- Neuronet buttons -->
-	<ButtonStyle Width="21" Height="21" Name="nn_info">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_info.3db" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_info.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_info.3db" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Name="nn_playerstatus" Width="10" Height="22">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_playerstatus.3db" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_playerstatus.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_playerstatus.3db" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Name="nn_inventory" Width ="24" Height="11">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_inventory.3db" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_inventory.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_inventory.3db" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Name="nn_map" Width="23" Height="23">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_map.3db" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_map.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_map.3db" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Name="nn_storystar" Width="22" Height="22">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_storystar.3db" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_storystar.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_storystar.3db" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Name="nn_chat" Width="22" Height="22">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_chat.3db" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_chat.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_chat.3db" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Name="nn_request" Width="18" Height="23">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_request.3db" Tint="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_request.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nn_request.3db" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<!-- Navmap buttons -->
+    <!-- Buy button -->
+    <ButtonStyle Width="132" Height="26" Name="trader_buy">
+        <ButtonStyle.Normal MarginLeft="17" TextSize="13" TextColor="text" TextShadow="black" FontFamily="$ButtonText">
+            <ButtonAppearance.Background>
+                <DisplayModel model="inv_buyarrow.3db" tint="text" />
+            </ButtonAppearance.Background>
+            <ButtonAppearance.Border>
+                <DisplayWireBorder color="text" width="2"/>
+            </ButtonAppearance.Border>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover TextColor="text_hover">
+            <ButtonAppearance.Background>
+                <DisplayModel model="inv_buyarrow.3db" tint="text_hover" />
+            </ButtonAppearance.Background>
+            <ButtonAppearance.Border>
+                <DisplayWireBorder color="text_hover" width="2"/>
+            </ButtonAppearance.Border>
+        </ButtonStyle.Hover>
+    </ButtonStyle>
+    
+    <!-- Hud buttons -->
+    <ButtonStyle Width="20" Height="22" Name="hud_contactlist">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactlist" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactlist" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactlist" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="18" Height="18" Name="hud_targetedobject">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_targetedobject" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_targetedobject" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_targetedobject" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="18" Height="18" Name="hud_tractorbeam">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_tractorbeam2" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_tractorbeam2" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_tractorbeam2" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="18" Height="18" Name="hud_scanship">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_scanship" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_scanship" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_scanship" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="16" Height="16" Name="hud_contactall">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactall" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactall" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactall" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    
+    <ButtonStyle Width="15" Height="15" Name="hud_contactloot">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactloot" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactloot" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactloot" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    
+    <ButtonStyle Width="16" Height="16" Name="hud_contactstation">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactstation" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactstation" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactstation" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    
+    <ButtonStyle Width="15" Height="14" Name="hud_contactship">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactship" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactship" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactship" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    
+    <ButtonStyle Width="15" Height="15" Name="hud_contactimportant">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactimportant" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactimportant" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_contactimportant" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="19" Height="18" Name="hud_nanobots">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_nanobots" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_nanobots" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+    </ButtonStyle>
+    <ButtonStyle Width="20" Height="20" Name="hud_shieldbatteries">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_shieldbatteries" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="hud_shieldbatteries" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+    </ButtonStyle>
+    <!-- Neuronet buttons -->
+    <ButtonStyle Width="21" Height="21" Name="nn_info">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_info.3db" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_info.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_info.3db" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nn_playerstatus" Width="10" Height="22">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_playerstatus.3db" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_playerstatus.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_playerstatus.3db" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nn_inventory" Width ="24" Height="11">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_inventory.3db" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_inventory.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_inventory.3db" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nn_map" Width="23" Height="23">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_map.3db" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_map.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_map.3db" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nn_storystar" Width="22" Height="22">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_storystar.3db" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_storystar.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_storystar.3db" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nn_chat" Width="22" Height="22">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_chat.3db" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_chat.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_chat.3db" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Name="nn_request" Width="18" Height="23">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_request.3db" Tint="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_request.3db" Tint="text_hover" Rotate="0.05,0,0.05" RotateAnimation="0,-3,0"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nn_request.3db" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <!-- Navmap buttons -->
     <ButtonStyle Name="nav_universebutton" Width="13" Height="13" MouseEnterSound="ui_rollover"> <ButtonStyle.Normal>
         <ButtonAppearance.Background>
             <DisplayModel model="nav_universebutton" Tint="text"/>
@@ -561,7 +561,7 @@
                 </ButtonAppearance.Background>
             </ButtonStyle.Pressed>
         </NavmapStyle.ZoomInButton>
-	<NavmapStyle.ZoomOutButton Width="17" Height="17" MouseDownSound="ui_item_select">
+    <NavmapStyle.ZoomOutButton Width="17" Height="17" MouseDownSound="ui_item_select">
             <ButtonStyle.Normal>
                 <ButtonAppearance.Background>
                     <DisplayModel model="nav_zoomout"/>
@@ -578,310 +578,310 @@
                 </ButtonAppearance.Background>
             </ButtonStyle.Pressed>
         </NavmapStyle.ZoomOutButton>
-	<NavmapStyle.AddWaypointButton Width="17" Height="17" MouseDownSound="ui_item_select">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nav_addwaypoint"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nav_addwaypoint" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Pressed>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nav_addwaypoint" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Pressed>
-	</NavmapStyle.AddWaypointButton>
-	<NavmapStyle.BestPathButton Width="17" Height="17" MouseDownSound="ui_item_select">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nav_shortestpath"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nav_shortestpath" Tint="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Pressed>
-			<ButtonAppearance.Background>
-				<DisplayModel model="nav_shortestpath" Tint="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Pressed>
-	</NavmapStyle.BestPathButton>
+    <NavmapStyle.AddWaypointButton Width="17" Height="17" MouseDownSound="ui_item_select">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_addwaypoint"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_addwaypoint" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Pressed>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_addwaypoint" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Pressed>
+    </NavmapStyle.AddWaypointButton>
+    <NavmapStyle.BestPathButton Width="17" Height="17" MouseDownSound="ui_item_select">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_shortestpath"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_shortestpath" Tint="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Pressed>
+            <ButtonAppearance.Background>
+                <DisplayModel model="nav_shortestpath" Tint="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Pressed>
+    </NavmapStyle.BestPathButton>
     </NavmapStyle>
-	<!-- Menu -->
-	<ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
-		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
-			<ButtonAppearance.Background>
-				<DisplayModel model="fullbutton_animating"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover TextColor="text_hover"/>
+    <!-- Menu -->
+    <ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
+        <ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
+            <ButtonAppearance.Background>
+                <DisplayModel model="fullbutton_animating"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover TextColor="text_hover"/>
         <ButtonStyle.Disabled TextColor="#666"/>
         <ButtonStyle.Selected TextColor="yellow"/>
-	</ButtonStyle>
-	<ButtonStyle Width="162" Height="36" Name="wirebutton" MouseEnterSound="ui_rollover">
-		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
-			<ButtonAppearance.Background>
-				<DisplayWireBorder Width="4" Color="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover TextColor="text_hover">
-			<ButtonAppearance.Background>
-				<DisplayWireBorder Width="4" Color="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
+    </ButtonStyle>
+    <ButtonStyle Width="162" Height="36" Name="wirebutton" MouseEnterSound="ui_rollover">
+        <ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
+            <ButtonAppearance.Background>
+                <DisplayWireBorder Width="4" Color="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover TextColor="text_hover">
+            <ButtonAppearance.Background>
+                <DisplayWireBorder Width="4" Color="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
         <ButtonStyle.Disabled TextColor="#666"/>
-	</ButtonStyle>
-	<ButtonStyle Width="90" Height="20" Name="wirebutton_small" MouseEnterSound="ui_rollover">
-		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="9" FontFamily="$ButtonText">
-			<ButtonAppearance.Background>
-				<DisplayWireBorder Width="2" Color="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover TextColor="text_hover">
-			<ButtonAppearance.Background>
-				<DisplayWireBorder Width="2" Color="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected TextColor="yellow">
-			<ButtonAppearance.Background>
-				<DisplayWireBorder Width="2" Color="yellow"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="90" Height="20" Name="wirebutton_small" MouseEnterSound="ui_rollover">
+        <ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="9" FontFamily="$ButtonText">
+            <ButtonAppearance.Background>
+                <DisplayWireBorder Width="2" Color="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover TextColor="text_hover">
+            <ButtonAppearance.Background>
+                <DisplayWireBorder Width="2" Color="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected TextColor="yellow">
+            <ButtonAppearance.Background>
+                <DisplayWireBorder Width="2" Color="yellow"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Selected>
         <ButtonStyle.Disabled TextColor="#666"/>
-	</ButtonStyle>
-	<ButtonStyle Width="127" Height="25" Name="wirebutton_navpanel" MouseEnterSound="ui_rollover">
-		<ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="10" FontFamily="$ButtonText">
-			<ButtonAppearance.Background>
-				<DisplayWireBorder Width="2" Color="text"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover TextColor="text_hover">
-			<ButtonAppearance.Background>
-				<DisplayWireBorder Width="2" Color="text_hover"/>
-			</ButtonAppearance.Background>
-		</ButtonStyle.Hover>
+    </ButtonStyle>
+    <ButtonStyle Width="127" Height="25" Name="wirebutton_navpanel" MouseEnterSound="ui_rollover">
+        <ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="10" FontFamily="$ButtonText">
+            <ButtonAppearance.Background>
+                <DisplayWireBorder Width="2" Color="text"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover TextColor="text_hover">
+            <ButtonAppearance.Background>
+                <DisplayWireBorder Width="2" Color="text_hover"/>
+            </ButtonAppearance.Background>
+        </ButtonStyle.Hover>
         <ButtonStyle.Disabled TextColor="#666"/>
-	</ButtonStyle>
-	<ButtonStyle Width="15" Height="15" Name="inv_category_weapons">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_weapons" tint="text"/></ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_weapons" tint="text_hover"/></ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_weapons" tint="yellow"/></ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Width="15" Height="15" Name="inv_category_ammo">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_ammo" tint="text"/></ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_ammo" tint="text_hover"/></ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_ammo" tint="yellow"/></ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Width="15" Height="15" Name="inv_category_internal">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_internal" tint="text"/></ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_internal" tint="text_hover"/></ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_internal" tint="yellow"/></ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Width="15" Height="15" Name="inv_category_external">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_external" tint="text"/></ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_external" tint="text_hover"/></ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_external" tint="yellow"/></ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Width="15" Height="15" Name="inv_category_commodity">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_commodity" tint="text"/></ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_commodity" tint="text_hover"/></ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Selected>
-			<ButtonAppearance.Background><DisplayModel model="inv_category_commodity" tint="yellow"/></ButtonAppearance.Background>
-		</ButtonStyle.Selected>
-	</ButtonStyle>
-	<ButtonStyle Width="8" Height="8" Name="inv_mount">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background><DisplayModel model="inv_mount" tint="text"/></ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background><DisplayModel model="inv_mount" tint="text_hover"/></ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Disabled>
-			<ButtonAppearance.Background><DisplayModel model="inv_mount" tint="gray"/></ButtonAppearance.Background>
-		</ButtonStyle.Disabled>
-	</ButtonStyle>
-	<ButtonStyle Width="8" Height="8" Name="inv_unmount">
-		<ButtonStyle.Normal>
-			<ButtonAppearance.Background><DisplayModel model="inv_unmount" tint="text"/></ButtonAppearance.Background>
-		</ButtonStyle.Normal>
-		<ButtonStyle.Hover>
-			<ButtonAppearance.Background><DisplayModel model="inv_unmount" tint="text_hover"/></ButtonAppearance.Background>
-		</ButtonStyle.Hover>
-		<ButtonStyle.Disabled>
-			<ButtonAppearance.Background><DisplayModel model="inv_unmount" tint="gray"/></ButtonAppearance.Background>
-		</ButtonStyle.Disabled>
-	</ButtonStyle>
+    </ButtonStyle>
+    <ButtonStyle Width="15" Height="15" Name="inv_category_weapons">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_weapons" tint="text"/></ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_weapons" tint="text_hover"/></ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_weapons" tint="yellow"/></ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="15" Height="15" Name="inv_category_ammo">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_ammo" tint="text"/></ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_ammo" tint="text_hover"/></ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_ammo" tint="yellow"/></ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="15" Height="15" Name="inv_category_internal">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_internal" tint="text"/></ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_internal" tint="text_hover"/></ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_internal" tint="yellow"/></ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="15" Height="15" Name="inv_category_external">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_external" tint="text"/></ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_external" tint="text_hover"/></ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_external" tint="yellow"/></ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="15" Height="15" Name="inv_category_commodity">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_commodity" tint="text"/></ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_commodity" tint="text_hover"/></ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Selected>
+            <ButtonAppearance.Background><DisplayModel model="inv_category_commodity" tint="yellow"/></ButtonAppearance.Background>
+        </ButtonStyle.Selected>
+    </ButtonStyle>
+    <ButtonStyle Width="8" Height="8" Name="inv_mount">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background><DisplayModel model="inv_mount" tint="text"/></ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background><DisplayModel model="inv_mount" tint="text_hover"/></ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Disabled>
+            <ButtonAppearance.Background><DisplayModel model="inv_mount" tint="gray"/></ButtonAppearance.Background>
+        </ButtonStyle.Disabled>
+    </ButtonStyle>
+    <ButtonStyle Width="8" Height="8" Name="inv_unmount">
+        <ButtonStyle.Normal>
+            <ButtonAppearance.Background><DisplayModel model="inv_unmount" tint="text"/></ButtonAppearance.Background>
+        </ButtonStyle.Normal>
+        <ButtonStyle.Hover>
+            <ButtonAppearance.Background><DisplayModel model="inv_unmount" tint="text_hover"/></ButtonAppearance.Background>
+        </ButtonStyle.Hover>
+        <ButtonStyle.Disabled>
+            <ButtonAppearance.Background><DisplayModel model="inv_unmount" tint="gray"/></ButtonAppearance.Background>
+        </ButtonStyle.Disabled>
+    </ButtonStyle>
     <!-- ScrollbarStyle -->
-	<ScrollbarStyle Width="16" TrackMarginY="4" ButtonMarginX="2">
-		<ScrollbarStyle.UpButton Height="12">
-			<ButtonStyle.Normal>
-				<ButtonAppearance.Background>
-					<DisplayImage image="sliderarrow_up" tint="text"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Normal>
-			<ButtonStyle.Hover>
-				<ButtonAppearance.Background>
-					<DisplayImage image="sliderarrow_up" tint="slow_blue_yellow"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Hover>
-		</ScrollbarStyle.UpButton>
-		<ScrollbarStyle.DownButton Height="12">
-			<ButtonStyle.Normal>
-				<ButtonAppearance.Background>
-					<DisplayImage image="sliderarrow_down" tint="text"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Normal>
-			<ButtonStyle.Hover>
-				<ButtonAppearance.Background>
-					<DisplayImage image="sliderarrow_down" tint="slow_blue_yellow"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Hover>
-		</ScrollbarStyle.DownButton>
-		<ScrollbarStyle.TrackArea>
-			<DisplayRectangle color="text" WidthPx="1"/>
-		</ScrollbarStyle.TrackArea>
-		<ScrollbarStyle.ThumbTop Height="1.5">
-			<ButtonStyle.Normal>
-				<ButtonAppearance.Background>
-					<DisplayImage image="slider_top" tint="text"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Normal>
-			<ButtonStyle.Hover>
-				<ButtonAppearance.Background>
-					<DisplayImage image="slider_top" tint="slow_blue_yellow"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Hover>
-		</ScrollbarStyle.ThumbTop>
-		<ScrollbarStyle.ThumbBottom Height="1.5">
-			<ButtonStyle.Normal>
-				<ButtonAppearance.Background>
-					<DisplayImage image="slider_bottom" tint="text"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Normal>
-			<ButtonStyle.Hover>
-				<ButtonAppearance.Background>
-					<DisplayImage image="slider_bottom" tint="slow_blue_yellow"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Hover>
-		</ScrollbarStyle.ThumbBottom>
-		<ScrollbarStyle.Thumb Height="32">
-			<ButtonStyle.Normal>
-				<ButtonAppearance.Background>
-					<DisplayImage image="slider_middle" tint="text"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Normal>
-			<ButtonStyle.Hover>
-				<ButtonAppearance.Background>
-					<DisplayImage image="slider_middle" tint="slow_blue_yellow"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Hover>
-		</ScrollbarStyle.Thumb>
-	</ScrollbarStyle>
+    <ScrollbarStyle Width="16" TrackMarginY="4" ButtonMarginX="2">
+        <ScrollbarStyle.UpButton Height="12">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="sliderarrow_up" tint="text"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="sliderarrow_up" tint="slow_blue_yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+        </ScrollbarStyle.UpButton>
+        <ScrollbarStyle.DownButton Height="12">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="sliderarrow_down" tint="text"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="sliderarrow_down" tint="slow_blue_yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+        </ScrollbarStyle.DownButton>
+        <ScrollbarStyle.TrackArea>
+            <DisplayRectangle color="text" WidthPx="1"/>
+        </ScrollbarStyle.TrackArea>
+        <ScrollbarStyle.ThumbTop Height="1.5">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="slider_top" tint="text"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="slider_top" tint="slow_blue_yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+        </ScrollbarStyle.ThumbTop>
+        <ScrollbarStyle.ThumbBottom Height="1.5">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="slider_bottom" tint="text"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="slider_bottom" tint="slow_blue_yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+        </ScrollbarStyle.ThumbBottom>
+        <ScrollbarStyle.Thumb Height="32">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="slider_middle" tint="text"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="slider_middle" tint="slow_blue_yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+        </ScrollbarStyle.Thumb>
+    </ScrollbarStyle>
     <!-- HSliderStyle -->
     <HSliderStyle Height="10" TrackMarginX="4" ButtonMarginY="1">
-		<HSliderStyle.LeftButton Width="8">
-			<ButtonStyle.Normal>
-				<ButtonAppearance.Background>
-					<DisplayImage image="sliderarrow_left" tint="text"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Normal>
-			<ButtonStyle.Hover>
-				<ButtonAppearance.Background>
-					<DisplayImage image="sliderarrow_left" tint="slow_blue_yellow"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Hover>
-		</HSliderStyle.LeftButton>
-		<HSliderStyle.RightButton Width="8">
-			<ButtonStyle.Normal>
-				<ButtonAppearance.Background>
-					<DisplayImage image="sliderarrow_right" tint="text"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Normal>
-			<ButtonStyle.Hover>
-				<ButtonAppearance.Background>
-					<DisplayImage image="sliderarrow_right" tint="slow_blue_yellow"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Hover>
-		</HSliderStyle.RightButton>
-		<HSliderStyle.TrackArea>
-			<DisplayRectangle color="text" WidthPx="1"/>
-		</HSliderStyle.TrackArea>
-		<HSliderStyle.ThumbLeft Width="1.5">
-			<ButtonStyle.Normal>
-				<ButtonAppearance.Background>
-					<DisplayImage image="slider_top" tint="text"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Normal>
-			<ButtonStyle.Hover>
-				<ButtonAppearance.Background>
-					<DisplayImage image="slider_top" tint="slow_blue_yellow"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Hover>
-		</HSliderStyle.ThumbLeft>
-		<HSliderStyle.ThumbRight Width="1.5">
-			<ButtonStyle.Normal>
-				<ButtonAppearance.Background>
-					<DisplayImage image="slider_bottom" tint="text"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Normal>
-			<ButtonStyle.Hover>
-				<ButtonAppearance.Background>
-					<DisplayImage image="slider_bottom" tint="slow_blue_yellow"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Hover>
-		</HSliderStyle.ThumbRight>
-		<HSliderStyle.Thumb Height="32">
-			<ButtonStyle.Normal>
-				<ButtonAppearance.Background>
-					<DisplayImage image="hslider_middle" tint="text"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Normal>
-			<ButtonStyle.Hover>
-				<ButtonAppearance.Background>
-					<DisplayImage image="hslider_middle" tint="slow_blue_yellow"/>
-				</ButtonAppearance.Background>
-			</ButtonStyle.Hover>
-		</HSliderStyle.Thumb>
-	</HSliderStyle>
-	
-	<RolloverStyle Font="$Rollover" TextColor="rollover_text" TextShadow="black">
-		<RolloverStyle.Background><DisplayColor color="rollover_background"/></RolloverStyle.Background>
-		<RolloverStyle.Border><DisplayRectangle color="rollover_text"/></RolloverStyle.Border>
-	</RolloverStyle>
+        <HSliderStyle.LeftButton Width="8">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="sliderarrow_left" tint="text"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="sliderarrow_left" tint="slow_blue_yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+        </HSliderStyle.LeftButton>
+        <HSliderStyle.RightButton Width="8">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="sliderarrow_right" tint="text"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="sliderarrow_right" tint="slow_blue_yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+        </HSliderStyle.RightButton>
+        <HSliderStyle.TrackArea>
+            <DisplayRectangle color="text" WidthPx="1"/>
+        </HSliderStyle.TrackArea>
+        <HSliderStyle.ThumbLeft Width="1.5">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="slider_top" tint="text"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="slider_top" tint="slow_blue_yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+        </HSliderStyle.ThumbLeft>
+        <HSliderStyle.ThumbRight Width="1.5">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="slider_bottom" tint="text"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="slider_bottom" tint="slow_blue_yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+        </HSliderStyle.ThumbRight>
+        <HSliderStyle.Thumb Height="32">
+            <ButtonStyle.Normal>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="hslider_middle" tint="text"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Normal>
+            <ButtonStyle.Hover>
+                <ButtonAppearance.Background>
+                    <DisplayImage image="hslider_middle" tint="slow_blue_yellow"/>
+                </ButtonAppearance.Background>
+            </ButtonStyle.Hover>
+        </HSliderStyle.Thumb>
+    </HSliderStyle>
+    
+    <RolloverStyle Font="$Rollover" TextColor="rollover_text" TextShadow="black">
+        <RolloverStyle.Background><DisplayColor color="rollover_background"/></RolloverStyle.Background>
+        <RolloverStyle.Border><DisplayRectangle color="rollover_text"/></RolloverStyle.Border>
+    </RolloverStyle>
 
   <TooltipStyle Font="$Rollover" TextColor="text" TextShadow="black" OffsetY="20">
     <TooltipStyle.Background><DisplayColor color="tooltip_background"/></TooltipStyle.Background>

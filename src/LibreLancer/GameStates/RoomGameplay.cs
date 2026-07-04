@@ -46,6 +46,7 @@ namespace LibreLancer
 
         private const string LAUNCH_ACTION = "$LAUNCH";
         private const string INVALID_ACTION = "$INVALID";
+        private const string JOB_BOARD_ACTION = "$JOB_BOARD";
         private Base currentBase;
         private StarSystem starSystem;
         private BaseRoom currentRoom;
@@ -291,6 +292,7 @@ namespace LibreLancer
             }
 
             public NewsArticle[] GetNewsArticles() => articles;
+            public NetMissionOffer[] GetMissionOffers() => g.session.MissionOffers;
             public bool IsMultiplayer() => g.session.Multiplayer;
             public void HotspotPressed(string item) => g.Hud_OnManeuverSelected(item);
             public string ActiveNavbarButton() => g.active ?? "";
@@ -379,9 +381,13 @@ namespace LibreLancer
 
                         break;
                     case "bar":
-                        if (g.session.News?.Length > 0)
+                        if (g.session.News.Length > 0)
                         {
                             actions.Add(new NavbarButtonInfo(INVALID_ACTION, "IDS_HOTSPOT_NEWSVENDOR"));
+                        }
+                        if (g.session.MissionOffers.Length > 0)
+                        {
+                            actions.Add(new NavbarButtonInfo(JOB_BOARD_ACTION, "IDS_HOTSPOT_MISSIONVENDOR"));
                         }
 
                         break;

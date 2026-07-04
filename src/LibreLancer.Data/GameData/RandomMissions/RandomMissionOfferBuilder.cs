@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.MBases;
+using LibreLancer.Data.Schema.Missions;
 
 namespace LibreLancer.Data.GameData.RandomMissions;
 
@@ -53,7 +54,7 @@ public static class RandomMissionOfferBuilder
                     continue;
                 }
 
-                var zones = GetEligibleZones(sourceSystem, mission.Type, allowableZoneTypes);
+                var zones = GetEligibleZones(sourceSystem, mission.Type, fac.Faction, allowableZoneTypes);
                 if (zones.Count == 0)
                     continue;
 
@@ -85,9 +86,19 @@ public static class RandomMissionOfferBuilder
         string missionType,
         IReadOnlyCollection<string>? allowableZoneTypes = null)
     {
+        return GetEligibleZones(sourceSystem, missionType, null, allowableZoneTypes);
+    }
+
+    private static List<Zone> GetEligibleZones(
+        StarSystem sourceSystem,
+        string missionType,
+        Faction? faction,
+        IReadOnlyCollection<string>? allowableZoneTypes = null)
+    {
+        var zoneGroup = MissionZoneGroup(faction?.Properties?.Legality);
         return sourceSystem.Zones
-            .Where(z => z.MissionEligible &&
-                        MissionTypeMatches(z.MissionType, missionType) &&
+            .Where(z => IsVignetteZone(z) &&
+                        MissionTypeMatches(z.MissionType, missionType, zoneGroup) &&
                         ZoneTypeMatches(z.VignetteType, allowableZoneTypes))
             .ToList();
     }
@@ -109,9 +120,13 @@ public static class RandomMissionOfferBuilder
         npcMission.Kind.Equals(missionType, StringComparison.OrdinalIgnoreCase) &&
         DifficultyMatches(npcMission.Min, npcMission.Max, difficulty);
 
-    private static bool MissionTypeMatches(string[]? supportedTypes, string missionType) =>
+    private static bool MissionTypeMatches(string[]? supportedTypes, string missionType, Legality? legality = null) =>
         supportedTypes is { Length: > 0 } &&
-        supportedTypes.Contains(missionType, StringComparer.OrdinalIgnoreCase);
+        (supportedTypes.Contains(missionType, StringComparer.OrdinalIgnoreCase) ||
+         (legality != null && supportedTypes.Contains(legality.ToString(), StringComparer.OrdinalIgnoreCase)));
+
+    private static bool IsVignetteZone(Zone zone) =>
+        !string.IsNullOrEmpty(zone.VignetteType);
 
     private static bool ZoneTypeMatches(string? vignetteType, IReadOnlyCollection<string>? allowableZoneTypes) =>
         allowableZoneTypes == null ||
@@ -122,4 +137,12 @@ public static class RandomMissionOfferBuilder
     private static bool DifficultyMatches(float min, float max, float? difficulty) =>
         difficulty == null ||
         (difficulty.Value >= min && difficulty.Value <= max);
+
+    private static Legality? MissionZoneGroup(Legality? offeringFactionLegality) =>
+        offeringFactionLegality switch
+        {
+            Legality.Lawful => Legality.Unlawful,
+            Legality.Unlawful => Legality.Lawful,
+            _ => null,
+        };
 }

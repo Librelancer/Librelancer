@@ -1,6 +1,8 @@
+using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.RandomMissions;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.MBases;
+using LibreLancer.Data.Schema.Missions;
 using Xunit;
 
 namespace LibreLancer.Tests;
@@ -45,7 +47,51 @@ public class RandomMissionOfferBuilderTests
     }
 
     [Fact]
-    public void RejectsOfferWhenSystemHasNoEligibleMissionZone()
+    public void AllowsVanillaZoneMissionTypesByFactionLegality()
+    {
+        var sourceBase = CreateBase();
+        sourceBase.BaseFactions[0].Faction = new Faction
+        {
+            Nickname = "test_faction",
+            Properties = new FactionProps
+            {
+                Legality = Legality.Lawful
+            }
+        };
+        var system = CreateSystem();
+        system.Zones[0].MissionType = ["unlawful"];
+
+        var offers = RandomMissionOfferBuilder.GetOffers(sourceBase, system, 0.1f);
+
+        Assert.Single(offers);
+    }
+
+    [Fact]
+    public void RejectsMissionEligibleZoneWithoutMissionType()
+    {
+        var sourceBase = CreateBase();
+        var system = CreateSystem();
+        system.Zones[0].MissionType = [];
+
+        var offers = RandomMissionOfferBuilder.GetOffers(sourceBase, system, 0.1f);
+
+        Assert.Empty(offers);
+    }
+
+    [Fact]
+    public void RejectsOfferWhenSystemHasNoVignetteZone()
+    {
+        var sourceBase = CreateBase();
+        var system = CreateSystem();
+        system.Zones[0].VignetteType = null;
+
+        var offers = RandomMissionOfferBuilder.GetOffers(sourceBase, system, 0.1f);
+
+        Assert.Empty(offers);
+    }
+
+    [Fact]
+    public void AllowsVignetteZoneWithoutMissionEligibleFlag()
     {
         var sourceBase = CreateBase();
         var system = CreateSystem();
@@ -53,7 +99,7 @@ public class RandomMissionOfferBuilderTests
 
         var offers = RandomMissionOfferBuilder.GetOffers(sourceBase, system, 0.1f);
 
-        Assert.Empty(offers);
+        Assert.Single(offers);
     }
 
     [Fact]
