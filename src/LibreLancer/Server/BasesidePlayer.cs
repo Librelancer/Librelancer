@@ -26,7 +26,7 @@ public class BasesidePlayer : IBasesidePlayer
     {
         BaseData = baseData;
         Player = player;
-        GenerateMissionOffers(baseData.StartRoom.Nickname);
+        GenerateMissionOffers("bar");
     }
 
     public void GenerateMissionOffers(string? roomNickname)
@@ -52,12 +52,6 @@ public class BasesidePlayer : IBasesidePlayer
                 MissionType = offer.MissionType.ToString()
             };
         }
-    }
-
-    public void ClearMissionOffers()
-    {
-        MissionOffers.Clear();
-        NetMissionOffers = [];
     }
 
     private string? FirstAvailableHardpoint(string? hptype)

@@ -287,15 +287,11 @@ namespace LibreLancer.Server
 
         void IServerPlayer.OnLocationEnter(string _base, string room)
         {
-            if (Baseside?.BaseData?.Nickname.Equals(_base, StringComparison.OrdinalIgnoreCase) == true)
-                Baseside.GenerateMissionOffers(room);
             msnRuntime?.EnterLocation(room, _base);
         }
 
         void IServerPlayer.OnLocationExit(string _base, string room)
         {
-            if (Baseside?.BaseData?.Nickname.Equals(_base, StringComparison.OrdinalIgnoreCase) == true)
-                Baseside.ClearMissionOffers();
             msnRuntime?.ExitLocation(room, _base);
         }
 

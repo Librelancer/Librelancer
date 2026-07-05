@@ -46,36 +46,6 @@ local function NavbarAction(hotspot)
 	return obj
 }
 
-local function CustomNavbarAction(path, hotspot)
-{
-	local model = NewObject('InterfaceModel')
-	model.Path = path
-	model.X = 0
-	model.Y = 0
-	model.XScale = 35.0
-	model.YScale = 35.0
-	local button = NewObject('Button')
-	local style = NewObject('ButtonStyle')
-	style.Width = 38
-	style.Height = 38
-	local regAppearance = NewObject('ButtonAppearance')
-	regAppearance.Background = ModelRenderable(model, GetColor('text'))
-	style.Normal = regAppearance
-	local hoverAppearance = NewObject('ButtonAppearance')
-	hoverAppearance.Background = ModelRenderable(model, GetColor('text_hover'))
-	style.Hover = hoverAppearance
-	local selectedAppearance = NewObject('ButtonAppearance')
-	selectedAppearance.Background = ModelRenderable(model, GetColor('yellow'))
-	style.Selected = selectedAppearance
-	button.ID = hotspot
-	button.Style = style
-	button.Width = 33
-	button.Height = 33
-	return button
-}
-
-local function MissionVendorAction() => CustomNavbarAction("INTERFACE/BASESIDE/mission_vendor.3db", "IDS_HOTSPOT_MISSIONVENDOR")
-
 local navbox = require 'navbox.lua'
 
 class baseside : baseside_Designer
@@ -118,7 +88,7 @@ class baseside : baseside_Designer
 	
         local actionbox = navbox.GetActionBox(this.Widget, container, btns, actions, activeIDS)
         for (index, action in ipairs(actions)) {
-            local obj = action.IconName == "IDS_HOTSPOT_MISSIONVENDOR" ? MissionVendorAction() : NavbarAction(action.IconName)
+            local obj = NavbarAction(action.IconName)
             switch(action.IconName) {
                 case "IDS_HOTSPOT_NEWSVENDOR":
                     has_news = true;
@@ -216,6 +186,5 @@ class baseside : baseside_Designer
     
     MissionOffer(mission) => OpenModal(new popup(STRID_MISSION, mission, 'accept', (result) => Game.MissionResponse(result)));
 }
-
 
 
