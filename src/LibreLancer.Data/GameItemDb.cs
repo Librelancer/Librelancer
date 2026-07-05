@@ -431,7 +431,9 @@ public class GameItemDb
                     OffersMissions = fac.OffersMissions,
                     Missions = fac.Missions.Select(m => new BaseMissionOffer
                     {
-                        Type = m.Type,
+                        MissionType = Enum.TryParse<RandomMissionType>(m.Type, true, out var missionType)
+                            ? missionType
+                            : RandomMissionType.DestroyMission,
                         MinDiff = m.MinDiff,
                         MaxDiff = m.MaxDiff,
                         Weight = m.Weight,

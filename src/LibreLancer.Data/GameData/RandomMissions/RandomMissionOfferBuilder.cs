@@ -15,7 +15,7 @@ public sealed class RandomMissionOffer
     public required BaseMissionOffer Mission;
     public required List<Zone> EligibleZones;
 
-    public string MissionType => Mission.Type;
+    public RandomMissionType MissionType => Mission.MissionType;
     public Faction? Faction => BaseFaction.Faction;
     public float Weight => Mission.Weight;
 }
@@ -48,20 +48,19 @@ public static class RandomMissionOfferBuilder
 
             foreach (var mission in fac.Missions)
             {
-                if (string.IsNullOrWhiteSpace(mission.Type) ||
-                    !DifficultyMatches(mission.MinDiff, mission.MaxDiff, difficulty))
+                if (!DifficultyMatches(mission.MinDiff, mission.MaxDiff, difficulty))
                 {
                     continue;
                 }
 
-                var zones = GetEligibleZones(sourceSystem, mission.Type, fac.Faction, allowableZoneTypes);
+                var zones = GetEligibleZones(sourceSystem, mission.MissionType, fac.Faction, allowableZoneTypes);
                 if (zones.Count == 0)
                     continue;
 
                 foreach (var npc in missionNpcs)
                 {
                     if (!FactionCanUseNpc(fac, npc) ||
-                        !NpcMissionMatches(npc.Mission, mission.Type, difficulty))
+                        !NpcMissionMatches(npc.Mission, mission.MissionType, difficulty))
                     {
                         continue;
                     }
@@ -83,7 +82,7 @@ public static class RandomMissionOfferBuilder
 
     public static List<Zone> GetEligibleZones(
         StarSystem sourceSystem,
-        string missionType,
+        RandomMissionType missionType,
         IReadOnlyCollection<string>? allowableZoneTypes = null)
     {
         return GetEligibleZones(sourceSystem, missionType, null, allowableZoneTypes);
@@ -91,7 +90,7 @@ public static class RandomMissionOfferBuilder
 
     private static List<Zone> GetEligibleZones(
         StarSystem sourceSystem,
-        string missionType,
+        RandomMissionType missionType,
         Faction? faction,
         IReadOnlyCollection<string>? allowableZoneTypes = null)
     {
@@ -115,14 +114,14 @@ public static class RandomMissionOfferBuilder
         faction.Npcs.Count == 0 ||
         faction.Npcs.Contains(npc.Nickname, StringComparer.OrdinalIgnoreCase);
 
-    private static bool NpcMissionMatches(NpcMission? npcMission, string missionType, float? difficulty) =>
+    private static bool NpcMissionMatches(NpcMission? npcMission, RandomMissionType missionType, float? difficulty) =>
         npcMission != null &&
-        npcMission.Kind.Equals(missionType, StringComparison.OrdinalIgnoreCase) &&
+        npcMission.Kind.Equals(missionType.ToString(), StringComparison.OrdinalIgnoreCase) &&
         DifficultyMatches(npcMission.Min, npcMission.Max, difficulty);
 
-    private static bool MissionTypeMatches(string[]? supportedTypes, string missionType, Legality? legality = null) =>
+    private static bool MissionTypeMatches(string[]? supportedTypes, RandomMissionType missionType, Legality? legality = null) =>
         supportedTypes is { Length: > 0 } &&
-        (supportedTypes.Contains(missionType, StringComparer.OrdinalIgnoreCase) ||
+        (supportedTypes.Contains(missionType.ToString(), StringComparer.OrdinalIgnoreCase) ||
          (legality != null && supportedTypes.Contains(legality.ToString(), StringComparer.OrdinalIgnoreCase)));
 
     private static bool IsVignetteZone(Zone zone) =>

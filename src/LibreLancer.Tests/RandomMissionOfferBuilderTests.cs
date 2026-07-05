@@ -18,7 +18,7 @@ public class RandomMissionOfferBuilderTests
         var offers = RandomMissionOfferBuilder.GetOffers(sourceBase, system, 0.1f);
 
         Assert.Single(offers);
-        Assert.Equal("DestroyMission", offers[0].MissionType);
+        Assert.Equal(RandomMissionType.DestroyMission, offers[0].MissionType);
         Assert.Equal("mission_npc", offers[0].Npc.Nickname);
         Assert.Single(offers[0].EligibleZones);
     }
@@ -150,7 +150,7 @@ public class RandomMissionOfferBuilderTests
             [
                 new BaseMissionOffer
                 {
-                    Type = "DestroyMission",
+                    MissionType = RandomMissionType.DestroyMission,
                     MinDiff = 0,
                     MaxDiff = 0.2f,
                     Weight = 30,

@@ -49,7 +49,7 @@ public class BasesidePlayer : IBasesidePlayer
                 FactionIdsName = offer.Faction?.IdsName ?? 0,
                 SystemIdsName = systemIdsName,
                 Reward = 0,
-                MissionType = offer.MissionType
+                MissionType = offer.MissionType.ToString()
             };
         }
     }

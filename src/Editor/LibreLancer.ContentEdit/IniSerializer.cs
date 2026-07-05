@@ -542,7 +542,7 @@ public static class IniSerializer
                     .OptionalEntry("offers_missions", fac.OffersMissions);
                 foreach (var mt in fac.Missions)
                     facSection.Entry("mission_type",
-                        string.IsNullOrWhiteSpace(mt.Type) ? "DestroyMission" : mt.Type,
+                        "DestroyMission",
                         mt.MinDiff,
                         mt.MaxDiff,
                         mt.Weight);

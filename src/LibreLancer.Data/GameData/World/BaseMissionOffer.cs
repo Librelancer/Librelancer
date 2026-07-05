@@ -4,9 +4,14 @@
 
 namespace LibreLancer.Data.GameData.World;
 
+public enum RandomMissionType
+{
+    DestroyMission
+}
+
 public class BaseMissionOffer
 {
-    public string Type = null!;
+    public RandomMissionType MissionType;
     public float MinDiff;
     public float MaxDiff;
     public float Weight;
