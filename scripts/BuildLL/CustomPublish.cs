@@ -146,7 +146,7 @@ namespace BuildLL
             var origName = apphostName + ".dll";
             //Patch the AppHost
             var origPathBytes = Encoding.UTF8.GetBytes(origName + "\0");
-            var libDir = IsWindows ? "lib\\" : "lib/";
+            var libDir = win32 ? "lib\\" : "lib/";
             var newPath = libDir + origName;
             var newPathBytes = Encoding.UTF8.GetBytes(newPath + "\0");
             var apphostExe = File.ReadAllBytes(apphost);
@@ -158,7 +158,7 @@ namespace BuildLL
                 apphostExe[offset + i] = newPathBytes[i];
             File.WriteAllBytes(apphost, apphostExe);
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && !win32)
             {
                 RunCommand("codesign", $"--force --deep -s - {Quote(apphost)}");
             }
