@@ -61,6 +61,16 @@ internal static class DllMap
             mappedName = libs.TryGetValue(libraryName, out mappedName) ? mappedName : libraryName;
         }
 
-        return NativeLibrary.Load(mappedName, assembly, dllImportSearchPath);
+        // A mapping may list several candidates separated by ';' — first one
+        // that loads wins. Lets a single config serve both app-local dylibs
+        // and package-manager install locations (e.g. homebrew on macOS).
+        var candidates = mappedName.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < candidates.Length - 1; i++)
+        {
+            if (NativeLibrary.TryLoad(candidates[i], assembly, dllImportSearchPath, out var handle))
+                return handle;
+        }
+
+        return NativeLibrary.Load(candidates[^1], assembly, dllImportSearchPath);
     }
 }
