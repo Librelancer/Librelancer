@@ -375,13 +375,31 @@ public unsafe class AudioManager
         RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? "soft_oal.dll"
             : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                ? "/opt/homebrew/opt/openal-soft/lib/libopenal.dylib"
+                ? "libopenal.dylib"
                 : "libopenal.so.1";
+
+    private static readonly string[] macFallbackPaths =
+    [
+        "/opt/homebrew/opt/openal-soft/lib/libopenal.dylib",
+        "/usr/local/opt/openal-soft/lib/libopenal.dylib"
+    ];
 
     static bool LoadALSoft()
     {
-        if (!NativeLibrary.TryLoad(libraryName, out alsoftDll))
-            return false;
+        // Probe app/assembly directories first (bundled dylib), then fall
+        // back to the homebrew install locations on macOS
+        if (!NativeLibrary.TryLoad(libraryName, typeof(AudioManager).Assembly, null, out alsoftDll))
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return false;
+            foreach (var path in macFallbackPaths)
+            {
+                if (NativeLibrary.TryLoad(path, out alsoftDll))
+                    break;
+            }
+            if (alsoftDll == IntPtr.Zero)
+                return false;
+        }
         Alc.LoadFunctions(alsoftDll);
         Al.Native.LoadFunctions(alsoftDll);
         // Set logging
