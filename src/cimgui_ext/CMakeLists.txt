@@ -42,10 +42,19 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND ${CMAKE_CXX_COMPILER_ID} MATCHES "
     target_link_options(cimgui PRIVATE -static-libgcc -static-libstdc++ -static)
 endif()
 
-if(NOT WIN32)
+if(NOT WIN32 AND NOT APPLE)
     find_package(Freetype REQUIRED)
     target_link_libraries(cimgui PRIVATE ${FREETYPE_LIBRARIES})
     target_include_directories(cimgui PRIVATE ${FREETYPE_INCLUDE_DIRS})
 else()
+    # macOS: no system freetype; use blurgtext's vendored static
+    # freetype+harfbuzz (BT_BUILD_FTHB), same as the Windows build
     target_link_libraries(cimgui PRIVATE FREETYPE_LIBRARY HARFBUZZ_LIBRARY)
+    if(APPLE)
+        # static harfbuzz includes the CoreText shaper
+        find_library(COREFOUNDATION_FRAMEWORK CoreFoundation REQUIRED)
+        find_library(CORETEXT_FRAMEWORK CoreText REQUIRED)
+        find_library(COREGRAPHICS_FRAMEWORK CoreGraphics REQUIRED)
+        target_link_libraries(cimgui PRIVATE ${COREFOUNDATION_FRAMEWORK} ${CORETEXT_FRAMEWORK} ${COREGRAPHICS_FRAMEWORK})
+    endif()
 endif()
