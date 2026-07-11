@@ -165,9 +165,6 @@ namespace LibreLancer.Render
 
             this.sysr = sys;
 
-            // Use the same opacity that draws the nebula transition. Objects
-            // outside it remain rendered throughout the fade and are culled
-            // only once that visual fog has reached 100%.
             if ((sys.DrawNebulae && nr != null && nr.FogTransitionOpacity() >= 1f && Nebula != nr) ||
                 (forceCull && InheritCull))
             {
