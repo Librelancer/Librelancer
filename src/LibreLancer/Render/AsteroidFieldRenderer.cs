@@ -447,7 +447,10 @@ namespace LibreLancer.Render
                     p = Vector3.Transform(p, bandTransform);
                     var lt = RenderHelpers.ApplyLights(lighting, 0, p, lightingRadius, nr);
 
-                    if (lt.FogMode != FogModes.Linear || Vector3.DistanceSquared(cameraPos, p) <=
+                    var canFogCullBand = lt.FogMode == FogModes.Linear &&
+                                         (nr == null || nr.FogTransitionOpacity() >= 1f);
+
+                    if (!canFogCullBand || Vector3.DistanceSquared(cameraPos, p) <=
                         (lightingRadius + lt.FogRange.Y) * (lightingRadius + lt.FogRange.Y))
                     {
                         buffer.AddCommand(bandMaterial, null, bandHandle, lt, bandCylinder.VertexBuffer, 1.0f,

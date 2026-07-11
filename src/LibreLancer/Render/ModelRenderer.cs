@@ -165,7 +165,11 @@ namespace LibreLancer.Render
 
             this.sysr = sys;
 
-            if (sys.DrawNebulae && Nebula != null && nr != Nebula || (forceCull && InheritCull))
+            // Use the same opacity that draws the nebula transition. Objects
+            // outside it remain rendered throughout the fade and are culled
+            // only once that visual fog has reached 100%.
+            if ((sys.DrawNebulae && nr != null && nr.FogTransitionOpacity() >= 1f && Nebula != nr) ||
+                (forceCull && InheritCull))
             {
                 return false;
             }
@@ -248,9 +252,11 @@ namespace LibreLancer.Render
 
                     var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, part.GetRadius(), nr,
                         LitAmbient, LitDynamic, NoFog);
+                    var canFogCullPart = lighting.FogMode == FogModes.Linear &&
+                                         (nr == null || nr.FogTransitionOpacity() >= 1f || Nebula == nr);
                     var r = part.GetRadius() + lighting.FogRange.Y;
 
-                    if (lighting.FogMode != FogModes.Linear ||
+                    if (!canFogCullPart ||
                         Vector3.DistanceSquared(camera.Position, center) <= (r * r))
                     {
                         var userData = ColorOverride is { } color ? BasicMaterial.SetDc(color) : 0;
