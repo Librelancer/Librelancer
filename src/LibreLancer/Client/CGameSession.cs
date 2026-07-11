@@ -72,6 +72,7 @@ public partial class CGameSession : IClientPlayer
     public Action? OnUpdatePlayerShip;
     private bool paused;
     public string? PlayerBase;
+    private bool systemEntryAnnouncementPending;
     public int PlayerNetID;
     public Quaternion PlayerOrientation;
     public Vector3 PlayerPosition;

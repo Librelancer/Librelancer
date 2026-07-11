@@ -75,6 +75,7 @@ namespace LibreLancer
         private bool objectiveObjectsDirty = true;
 
         private int updateStartDelay = -1;
+        private double systemAnnouncementDelay = -1;
         private DockCameraInfo? dockCameraInfo = null;
         private bool fadeToRoom;
         public AutopilotComponent? pilotComponent = null;
@@ -246,6 +247,8 @@ namespace LibreLancer
             contactList = new ContactList(this);
             ui.OpenScene("hud");
             FadeIn(0.5, 0.5);
+            if (session.ConsumeSystemEntryAnnouncement())
+                systemAnnouncementDelay = 5;
             GC.Collect();
             updateStartDelay = 3;
         }
@@ -647,6 +650,7 @@ namespace LibreLancer
             if (oldBehavior == AutopilotBehaviors.Undock)
             {
                 shipInput.Throttle = 1;
+                systemAnnouncementDelay = 5;
             }
         }
 
@@ -895,6 +899,17 @@ namespace LibreLancer
                 }
 
                 return;
+            }
+
+            if (systemAnnouncementDelay >= 0)
+            {
+                systemAnnouncementDelay -= delta;
+                if (systemAnnouncementDelay <= 0)
+                {
+                    systemAnnouncementDelay = -1;
+                    Game.Typewriter.PlayString($"{Game.GameData.GetString(sys.IdsName)} SYSTEM.",
+                        TypewriterStyle.LocationEntry);
+                }
             }
 
             contactList.Update(delta);
