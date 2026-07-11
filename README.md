@@ -2,16 +2,19 @@
 A re-implementation of the 2003 Space Game [Freelancer](https://en.wikipedia.org/wiki/Freelancer_(video_game)) in C# and OpenGL.
 
 Currently running on Windows and Linux (macOS pending maintainer)
-Pull Requests are welcome!
 
 Support Librelancer on Patreon: https://www.patreon.com/librelancer
-
 
 Download compiled binaries from https://librelancer.net/downloads.html
 
 ## General Requirements
 * GPU must be capable of OpenGL 3.1+
 * A Freelancer installation (Vanilla recommended, some mods may work)
+
+## Contributions and Issue Reports
+
+Please check [CONTRIBUTING.md] before opening issues or pull requests.
+_Please note: Librelancer does not accept LLM/AI-written issues or pull requests. Issues and PRs where LLM-isms are evident will be closed automatically._
 
 ## Build Instructions
 
