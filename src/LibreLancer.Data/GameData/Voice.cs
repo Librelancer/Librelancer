@@ -10,6 +10,7 @@ public class Voice : IdentifiableItem
     public string[] Scripts = [];
     public Dictionary<string, VoiceLineInfo> Lines = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<uint, VoiceLineInfo> LinesByHash = new();
+    public Dictionary<uint, uint[]> Permutations = new();
 }
 
 public record struct VoiceLineInfo(float Attenuation);

@@ -599,15 +599,21 @@ public class GameItemDb
     {
         FLLog.Info("Voices", $"Initing {flData.Voices.Voices.Count} voices");
         Dictionary<string, VoiceProp> voiceProps = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, MsnVoiceProperties> msnVoiceProps = new(StringComparer.OrdinalIgnoreCase);
         foreach (var vp in flData.Voices.VoiceProps)
         {
             voiceProps[vp.Voice] = vp;
         }
+        foreach (var msn in flData.MsnVoiceProps.VoiceProps)
+        {
+            msnVoiceProps[msn.Voice] = msn;
+        }
+
 
         foreach (var v in flData.Voices.Voices.Values)
         {
-            if (!voiceProps.TryGetValue(v.Nickname, out var p))
-                p = new();
+            var p = voiceProps.GetValueOrDefault(v.Nickname) ?? new();
+            var mp = msnVoiceProps.GetValueOrDefault(v.Nickname) ?? new();
             var n = new Voice()
             {
                 Nickname = v.Nickname,
@@ -621,6 +627,18 @@ public class GameItemDb
                 n.Lines[line.Message] = info;
                 n.LinesByHash[FLHash.CreateID(line.Message)] = info;
             }
+
+            foreach (var perm in mp.PermutationCounts)
+            {
+                var permuted = new uint[perm.Count];
+                for (int i = 0; i < permuted.Length; i++)
+                {
+                    var newLine = $"{perm.Line}_{(i + 1):D2}-";
+                    permuted[i] = FLHash.CreateID(newLine);
+                }
+                n.Permutations[FLHash.CreateID(perm.Line)] = permuted;
+            }
+
 
             Voices.Add(n);
         }

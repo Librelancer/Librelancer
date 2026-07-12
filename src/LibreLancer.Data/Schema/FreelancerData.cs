@@ -82,6 +82,7 @@ public class FreelancerData
     public KeyListIni KeyList = null!;
     public RolloverIni Rollover = null!;
     public VoicesIni Voices = null!;
+    public VoicePropertiesIni MsnVoiceProps = new();
     public ShipClassesIni ShipClasses = null!;
     public StorylineIni Storyline = null!;
     public Diff2MoneyIni Diff2Money = null!;
@@ -286,6 +287,13 @@ public class FreelancerData
             Voices = new VoicesIni();
             foreach (var voice in Freelancer.VoicePaths)
                 Voices.AddVoicesIni(voice, VFS, stringPool);
+        });
+        Run(() =>
+        {
+            if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\voice_properties.ini"))
+            {
+                MsnVoiceProps.AddIni(Freelancer.DataPath + "MISSIONS\\voice_properties.ini", VFS, stringPool);
+            }
         });
         Run(() =>
         {
