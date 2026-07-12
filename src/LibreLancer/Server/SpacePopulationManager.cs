@@ -20,6 +20,7 @@ public partial class SpacePopulationManager
     private const float CombatEngageDistance = 2500f;
     private const float BattlePersistDistance = 7500f;
     private const float ZoneSpawnEdgeDistance = 2000f;
+    private const float RandomMissionNoSpawnRadius = 10000f;
     private const double BattleCooldownSeconds = 10.0;
 
     private readonly ServerWorld world;
@@ -200,6 +201,9 @@ public partial class SpacePopulationManager
 
     private bool AllowsPopulationSpawn(Zone zone, Vector3 position)
     {
+        if (IsInsideRandomMissionNoSpawnZone(position))
+            return false;
+
         if (zone.PopulationAdditive != false)
             return true;
 
@@ -213,6 +217,27 @@ public partial class SpacePopulationManager
 
         return true;
     }
+
+    private bool IsInsideRandomMissionNoSpawnZone(Vector3 position)
+    {
+        var radiusSquared = RandomMissionNoSpawnRadius * RandomMissionNoSpawnRadius;
+        foreach (var player in world.Players.Keys)
+        {
+            if (player.ActiveRandomMissionPosition is not { } missionPosition)
+                continue;
+            if (Vector3.DistanceSquared(position, missionPosition) <= radiusSquared)
+                return true;
+        }
+        return false;
+    }
+
+    private GameObject[] ActiveRandomMissionPlayerObjects() =>
+        world.Players
+            .Where(x =>
+                x.Key.ActiveRandomMissionPosition.HasValue &&
+                Alive(x.Value))
+            .Select(x => x.Value)
+            .ToArray();
 
     private static bool Alive(GameObject obj) =>
         (obj.Flags & GameObjectFlags.Exists) == GameObjectFlags.Exists;

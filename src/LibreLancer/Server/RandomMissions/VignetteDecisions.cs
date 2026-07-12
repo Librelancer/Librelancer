@@ -2,6 +2,8 @@ namespace LibreLancer.Server.RandomMissions;
 
 public struct VignetteDecisions
 {
+    // This is the outer branch used by vignetteparams. It contains both
+    // AssassinateShip and the Pk_all_ships destroy variant.
     public bool AssassinateMission;
     public bool AssassinateShip;
     public bool AssassinateSolar;

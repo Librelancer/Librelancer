@@ -13,6 +13,8 @@
 		<Panel.Background>
 			<DisplayModel model="nav_navmap_right"/>
 		</Panel.Background>
+		<TextBlock ID="mission_title" X="17" Y="14" Width="126" Height="18" Text="ACTIVE MISSION" TextColor="text" TextShadow="black" TextSize="9" HorizontalAlignment="Center" Visible="false"/>
+		<InfocardDisplay ID="mission_description" X="18" Y="37" Width="124" Height="184" Visible="false"/>
 	</Panel>
 	
 	<Panel Anchor="Center" Width="263" Height="292" X="2" Y="-23" ID="background">

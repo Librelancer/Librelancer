@@ -12,7 +12,7 @@ public record PossibleMission(VignetteData EndNode, List<MissionVariantPath> Pat
 
 public record MissionVariantPath(List<VignetteTreeNode> Nodes, VignetteDecisions Decisions, double Probability)
 {
-    public VignetteStrings GetStrings(VC6Random r)
+    public VignetteStrings GetStrings(VC6Random random)
     {
         VignetteStrings vinfo = new();
         foreach (var n in Nodes)
@@ -31,12 +31,15 @@ public record MissionVariantPath(List<VignetteTreeNode> Nodes, VignetteDecisions
 
                 if (data.OfferTexts is { Count: > 0 })
                 {
-                    var ot = data.OfferTexts.Count == 1
+                    // Each entry is a complete alternative containing all of the
+                    // fragments for this node. Select one entry, then retain every
+                    // item in it (faction/target, location, and closing text).
+                    var offerText = data.OfferTexts.Count == 1
                         ? data.OfferTexts[0]
-                        : data.OfferTexts[r.Next() % data.OfferTexts.Count];
-                    if (ot.Op == OfferTextOp.replace)
+                        : data.OfferTexts[random.Next() % data.OfferTexts.Count];
+                    if (offerText.Op == OfferTextOp.replace)
                         vinfo.OfferText = [];
-                    vinfo.OfferText.AddRange(ot.Items);
+                    vinfo.OfferText.AddRange(offerText.Items);
                 }
 
                 foreach (var str in data.ObjectiveTexts)
@@ -167,10 +170,14 @@ public static class VignetteWalker
                 }
                 else
                 {
+                    // A filtered-out branch must not change the meaning of the
+                    // remaining branch. Left is the true branch and right is
+                    // the false branch, even when only one is eligible.
+                    var decisionValue = left != null;
                     Traverse(
                         defPath,
                         new List<VignetteTreeNode>(visited),
-                        decisions.With(decision.Nickname, true),
+                        decisions.With(decision.Nickname, decisionValue),
                         probability,
                         output,
                         p);

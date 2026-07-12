@@ -65,6 +65,8 @@ public partial class CGameSession : IClientPlayer
 
     private string? newPlayerStr;
     public NewsArticle[] News = [];
+    public NetMissionOffer[] MissionOffers = [];
+    private NetMissionOffer? activeRandomMissionOffer;
     public long NextLevelWorth;
     public Action? ObjectiveUpdated;
 
@@ -198,10 +200,23 @@ public partial class CGameSession : IClientPlayer
     void IClientPlayer.SetObjective(NetObjective objective, bool history)
     {
         CurrentObjective = objective;
+        if (objective.Kind == ObjectiveKind.NoObjective)
+            activeRandomMissionOffer = null;
 
         if (!history)
             ObjectiveUpdated?.Invoke();
     }
+
+    void IClientPlayer.SetActiveRandomMission(NetMissionOffer offer)
+    {
+        activeRandomMissionOffer = offer.Seed > 0 ? offer : null;
+        if (activeRandomMissionOffer.HasValue)
+            MissionOffers = [];
+    }
+
+    public bool HasActiveRandomMission => activeRandomMissionOffer.HasValue;
+
+    public string? ActiveRandomMissionDescription => activeRandomMissionOffer?.OfferText;
 
     void IClientPlayer.SetManeuverLock(bool locked)
     {
@@ -285,7 +300,7 @@ public partial class CGameSession : IClientPlayer
 
 
     void IClientPlayer.BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news,
-        SoldGood[] goods, NetSoldShip[] ships)
+        SoldGood[] goods, NetSoldShip[] ships, NetMissionOffer[] missionOffers)
     {
         if (enterCount > 0 && connection is EmbeddedServer es)
         {
@@ -300,6 +315,7 @@ public partial class CGameSession : IClientPlayer
         News = news;
         Goods = goods;
         Ships = ships;
+        MissionOffers = missionOffers;
         SceneChangeRequired();
         CutsceneUpdate(thns);
     }

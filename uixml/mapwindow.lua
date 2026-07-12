@@ -40,6 +40,8 @@ class mapwindow : mapwindow_Designer with ChildWindow
         base();
         this.ChildWindowInit();
         this.waypointPanelCount = -1;
+        this.randomMissionPanelVisible = false;
+        this.randomMissionDescription = "";
         this.sidePanelAmount = 0;
         this.sidePanelStartAmount = 0;
         this.sidePanelTargetAmount = 0;
@@ -107,18 +109,26 @@ class mapwindow : mapwindow_Designer with ChildWindow
         }
 
         local count = Game.UserWaypointCount();
-        local visible = count > 0;
+        local missionVisible = Game.HasActiveRandomMission();
+        local missionDescription = missionVisible ? Game.ActiveRandomMissionDescription() : "";
+        local visible = count > 0 || missionVisible;
         if (visible) this.OpenWaypointPanels();
         else this.CloseWaypointPanels();
-        if (count == this.waypointPanelCount) return;
+        if (count == this.waypointPanelCount &&
+            missionVisible == this.randomMissionPanelVisible &&
+            missionDescription == this.randomMissionDescription) return;
 
         this.waypointPanelCount = count;
+        this.randomMissionPanelVisible = missionVisible;
+        this.randomMissionDescription = missionDescription;
         this.Elements.waypoint_list.Children.Clear();
-        if (count <= 0) return;
-
         for (i in 1..count) {
             this.Elements.waypoint_list.Children.Add(waypoint_list_item(Game.UserWaypointPanelText(i - 1)));
         }
+        this.Elements.clear_waypoints.Visible = count > 0;
+        this.Elements.mission_title.Visible = missionVisible;
+        this.Elements.mission_description.Visible = missionVisible;
+        this.Elements.mission_description.SetString(missionDescription, "$ListText", 18);
     }
     OpenWaypointPanels()
     {
