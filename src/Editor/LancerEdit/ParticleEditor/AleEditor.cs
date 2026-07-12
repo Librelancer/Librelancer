@@ -38,6 +38,8 @@ namespace LancerEdit
             new DropdownOption("Walkthrough", Icons.StreetView, CameraModes.Walkthrough),
         };
 
+        public static char? AsciiFilter(char ch) => char.IsAscii(ch) ? ch : null;
+
         private MainWindow window;
         //Tab
         public string FilePath;
@@ -433,6 +435,8 @@ alchemy = FILE_PATH_HERE
                 ( ParticleFile.Nodes, create(x), this))));
         }
 
+
+
         unsafe void NodeLibraryPanel()
         {
             ImGui.AlignTextToFramePadding();
@@ -509,6 +513,26 @@ alchemy = FILE_PATH_HERE
                     ImGui.Text($"{NodeIcon(n)} {n.NodeName}");
                     ImGui.EndDragDropSource();
                 }
+                if (ImGui.BeginPopupContextItem("context"))
+                {
+                    if (Theme.IconMenuItem(Icons.Edit, "Rename", true))
+                    {
+                        var c = new NameInputConfig()
+                        {
+                            Title = "Rename",
+                            InUse = x => x != n.NodeName && ParticleFile.Nodes.ContainsKey(x),
+                            Filter = AsciiFilter,
+                            Extra = () => ImGui.TextWrapped("Note: Node names are case-sensitive")
+                        };
+                        popups.OpenPopup(new NameInputPopup(c, n.NodeName, x =>
+                        {
+                            if (x == n.NodeName)
+                                return;
+                            undoBuffer.Commit(new RenameNode(ParticleFile, n, n.NodeName, x));
+                        }));
+                    }
+                    ImGui.EndPopup();
+                }
                 ImGui.PopID();
             }
         }
@@ -523,6 +547,7 @@ alchemy = FILE_PATH_HERE
                 {
                     Title = "New Effect",
                     InUse = ParticleFile.Effects.Contains,
+                    Filter = AsciiFilter,
                     Extra = () => ImGui.TextWrapped("Note: Particle effect names are case-sensitive")
                 };
                 popups.OpenPopup(new NameInputPopup(c, "", x =>
@@ -546,12 +571,13 @@ alchemy = FILE_PATH_HERE
                         var c = new NameInputConfig()
                         {
                             Title = "Rename",
+                            Filter = AsciiFilter,
                             InUse = x => x != fx.Nickname && ParticleFile.Effects.Contains(x),
                             Extra = () =>
                                 ImGui.TextWrapped(
                                     "Note: Particle effect names are case-sensitive. [VisEffect] sections in inis must be updated after renaming an effect.")
                         };
-                        popups.OpenPopup(new NameInputPopup(c, "", x =>
+                        popups.OpenPopup(new NameInputPopup(c, fx.Nickname, x =>
                         {
                             if (x == fx.Nickname)
                                 return;
