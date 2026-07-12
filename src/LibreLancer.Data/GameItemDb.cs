@@ -86,6 +86,7 @@ public class GameItemDb
     public GameItemCollection<Voice> Voices = [];
     public GameItemCollection<ResolvedFx> VisEffects = [];
     public VignetteTree VignetteTree = null!;
+    public DifficultyInfo VignetteDifficulty = new();
 
     // Backing Fields
     private FreelancerData flData;
@@ -719,10 +720,29 @@ public class GameItemDb
         }
     }
 
-    private void InitVignetteTree()
+    private void InitVignetteInfo()
     {
         VignetteTree = VignetteTree.FromIni(Ini.VignetteParams!);
         Ini.VignetteParams = null;
+        if (Ini.Diff2Money.Graph != null)
+        {
+            VignetteDifficulty.MoneyGraph.AddRange(Ini.Diff2Money.Graph.Graph);
+            VignetteDifficulty.MoneyGraph.Sort((x,y) => x.Difficulty.CompareTo(y.Difficulty));
+        }
+        if (Ini.RankDiff.Graph != null)
+        {
+            foreach (var item in Ini.RankDiff.Graph.Graph)
+            {
+                var rank = Story.FirstOrDefault(x =>
+                    x.Item.Nickname.Equals(item.Rank, StringComparison.OrdinalIgnoreCase));
+                if (rank != null)
+                {
+                    VignetteDifficulty.StoryGraph.Add((rank, item.Difficulty));
+                }
+            }
+            VignetteDifficulty.StoryGraph.Sort((x,y) => x.Index.Index.CompareTo(y.Index.Index));
+        }
+        FLLog.Info("RandomMissions", "Inited RandomMission data");
     }
 
     private void InitStory()
@@ -867,7 +887,7 @@ public class GameItemDb
             astsTask,
             starsTask
         );
-        tasks.Begin(InitVignetteTree);
+        tasks.Begin(InitVignetteInfo, storyTask);
         tasks.Begin(InitGCSScripts);
         tasks.WaitAll();
         flData.Universe = null; //Free universe ini!

@@ -84,6 +84,8 @@ public class FreelancerData
     public VoicesIni Voices = null!;
     public ShipClassesIni ShipClasses = null!;
     public StorylineIni Storyline = null!;
+    public Diff2MoneyIni Diff2Money = null!;
+    public RankDiffIni RankDiff = null!;
     public VignetteParamsIni? VignetteParams;
     public GenericScriptsIni GenericScripts;
     public string? DataVersion;
@@ -385,6 +387,22 @@ public class FreelancerData
             {
                 VignetteParams = new();
                 VignetteParams.AddFile(Freelancer.DataPath + "randommissions\\vignetteparams.ini", VFS);
+            }
+        });
+        Run(() =>
+        {
+            Diff2Money = new();
+            if (VFS.FileExists(Freelancer.DataPath + "randommissions\\diff2money.ini"))
+            {
+                Diff2Money.AddFile(Freelancer.DataPath + "randommissions\\diff2money.ini", VFS);
+            }
+        });
+        Run(() =>
+        {
+            RankDiff = new();
+            if (VFS.FileExists(Freelancer.DataPath + "missions\\rankdiff.ini"))
+            {
+                RankDiff.AddFile(Freelancer.DataPath + "missions\\rankdiff.ini", VFS);
             }
         });
         Run(() =>
