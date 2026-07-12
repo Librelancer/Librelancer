@@ -27,6 +27,7 @@ using LibreLancer.Data.Schema.Goods;
 using LibreLancer.Data.Schema.MBases;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Data.Schema.Pilots;
+using LibreLancer.Data.Schema.RandomMissions;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Data.Schema.Universe;
 using LibreLancer.Data.Schema.Voices;
@@ -640,7 +641,7 @@ public class GameItemDb
                     x.Affiliation.Equals(f.Nickname, StringComparison.OrdinalIgnoreCase))
             };
             fac.Hidden = flData.Freelancer.HiddenFactions.Contains(fac.Nickname, StringComparer.OrdinalIgnoreCase);
-            fac.CRC = CrcTool.FLModelCrc(fac.Nickname);
+            fac.CRC = FLHash.CreateID(fac.Nickname);
             if (fac.Properties != null)
             {
                 foreach (var v in fac.Properties.Voice)
