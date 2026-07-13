@@ -19,6 +19,7 @@ partial class SpaceGameplay
     public bool ShowHud = true;
     private UiContext ui;
     private LuaAPI uiApi;
+    private UiRenderable? steerArrow;
 
 
     private void CreateHud()
@@ -26,6 +27,16 @@ partial class SpaceGameplay
         ui = Game.Ui;
         ui.GameApi = uiApi = new LuaAPI(this);
         uiApi.IndicatorLayer.OnRender += IndicatorLayerOnRender;
+    }
+
+    private UiRenderable SteerArrow()
+    {
+        return steerArrow ??= [
+            new DisplayModel(new InterfaceModel { Path = @"interface\hud\hud_steeringarrow.3db" })
+            {
+                BaseRadius = 1f
+            }
+        ];
     }
 
     private (Vector2, float) ArrowPosition(Vector2 pos)
@@ -108,6 +119,61 @@ partial class SpaceGameplay
         // var rep = GetRepToPlayer(obj);
     }
 
+    private void DrawSteeringArrows(UiContext context, DrawList2D drawList)
+    {
+        var steeringActive = ((isLeftDown && leftDownTimer < 0) || mouseFlight) &&
+                             control.Active &&
+                             !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y);
+        if (!steeringActive || isTurretView)
+        {
+            return;
+        }
+
+        var steer = Game.GameData.Items.Ini.Hud.Steer;
+        if (steer.Radius <= 0 || steer.Range <= 0 || steer.Size <= 0)
+        {
+            return;
+        }
+
+        var mouse = ui.PixelsToPoints(new Vector2(Game.Mouse.X, Game.Mouse.Y));
+        var center = new Vector2(ui.ScreenWidth, 480) / 2f;
+        var offset = mouse - center;
+        var distance = offset.Length();
+        if (distance < steer.Radius)
+        {
+            return;
+        }
+
+        var direction = offset / distance;
+        var maxCount = Math.Max(1, (int)MathF.Floor(steer.Range / steer.Radius));
+        var count = Math.Min(maxCount, (int)MathF.Floor(distance / steer.Radius));
+        var angle = MathF.Atan2(direction.Y, direction.X) + (MathF.PI / 2f);
+        var arrow = SteerArrow();
+        var textColor = context.Data.GetColor("text").GetColor(context.GlobalTime);
+
+        if (arrow.GetElement(0) is DisplayModel model)
+        {
+            model.Rotate = new Vector3(0, 0, -angle);
+        }
+
+        for (int i = 1; i <= count; i++)
+        {
+            var t = maxCount <= 1 ? 1f : (i - 1) / (float)(maxCount - 1);
+            var size = MathHelper.Lerp(steer.Size * 1.1f, steer.Size * 3.0f, t);
+            var alpha = MathHelper.Lerp(0.55f, 1f, t);
+            var color = textColor;
+            color.A *= alpha;
+            var point = center + (direction * (steer.Radius * i));
+            var rect = new RectangleF(
+                point.X - (size / 2f),
+                point.Y - (size / 2f),
+                size,
+                size
+            );
+            arrow.Draw(context, drawList, rect, color);
+        }
+    }
+
     private void DrawWaypoint(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList,
         RectangleF parentRectangle, bool selected)
     {
@@ -140,6 +206,8 @@ partial class SpaceGameplay
     private void IndicatorLayerOnRender(UiContext context, double delta, DrawList2D drawList,
         RectangleF clientRectangle)
     {
+        DrawSteeringArrows(context, drawList);
+
         foreach (var obj in world.Objects)
         {
             if (obj == Selection.Selected)
