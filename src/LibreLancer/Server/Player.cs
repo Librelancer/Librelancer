@@ -231,7 +231,7 @@ namespace LibreLancer.Server
         public void StartRandomMission(GeneratedRandomMission mission, NetMissionOffer netOffer)
         {
             ActiveRandomMissionPosition = mission.TargetPosition;
-            msnRuntime = new MissionRuntime(mission.CreateScript(Game.GameData), this, []);
+            msnRuntime = new MissionRuntime(mission.CreateScript(), this, []);
             rpcClient.SetActiveRandomMission(netOffer);
             // Keep the objective in the mission runtime as well as on the client. This
             // makes the accepted offer a real active mission and lets the normal space

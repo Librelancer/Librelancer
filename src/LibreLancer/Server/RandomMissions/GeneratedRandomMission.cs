@@ -4,7 +4,6 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer;
 using LibreLancer.Data;
-using LibreLancer.Data.Ini;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.RandomMissions;
 using LibreLancer.Data.GameData.World;
@@ -12,6 +11,8 @@ using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Data.Schema.RandomMissions;
 using LibreLancer.Interface;
 using LibreLancer.Missions;
+using LibreLancer.Missions.Actions;
+using LibreLancer.Missions.Conditions;
 
 namespace LibreLancer.Server.RandomMissions;
 
@@ -40,11 +41,11 @@ public sealed class GeneratedRandomMission
     public required int Reward;
     public required ShipArch TargetShipArch;
 
-    public MissionScript CreateScript(GameDataManager gameData)
+    public MissionScript CreateScript()
     {
         if (UsesSingleShipTarget(MissionType))
-            return CreateAssassinationScript(gameData);
-        return CreateDestroyScript(gameData);
+            return CreateAssassinationScript();
+        return CreateDestroyScript();
     }
 
     internal static bool UsesSingleShipTarget(string missionType) =>
@@ -53,183 +54,136 @@ public sealed class GeneratedRandomMission
         missionType.Equals("RetrieveMission", StringComparison.OrdinalIgnoreCase) ||
         missionType.Equals("DestroyContrabandMission", StringComparison.OrdinalIgnoreCase);
 
-    MissionScript CreateAssassinationScript(GameDataManager gameData)
+    MissionScript CreateAssassinationScript()
     {
         const string targetShip = "rm_target_ship";
         const string targetObjective = TargetObjectiveNickname;
         const string triggerInit = "rm_init";
         const string triggerDestroyed = "rm_target_destroyed";
-        var ini = new MissionIni
-        {
-            Info = new MissionInfo
-            {
-                MissionTitle = TargetZone.IdsName,
-                MissionOffer = 0,
-                Reward = Reward
-            },
-            NPCs =
-            {
-                new MissionNPC
-                {
-                    Nickname = "rm_target_npc",
-                    Affiliation = HostileFaction.Nickname,
-                    IndividualName = 0,
-                    NpcShipArch = TargetShipArch.Nickname
-                }
-            },
-            Ships =
-            {
-                new MissionShip
-                {
-                    Nickname = targetShip,
-                    System = Offer.Base.System,
-                    NPC = "rm_target_npc",
-                    Position = TargetPosition,
-                    RandomName = true
-                }
-            },
-            Objectives =
-            {
-                new NNObjective
-                {
-                    Nickname = targetObjective,
-                    State = "ACTIVE",
-                    Type = NNObjectiveType.navmarker,
-                    System = Offer.Base.System!,
-                    NameIds = TargetZone.IdsName,
-                    ExplanationIds = TargetZone.IdsInfo,
-                    Position = TargetPosition
-                }
-            },
-            Triggers =
-            {
-                new MissionTrigger
-                {
-                    Nickname = triggerInit,
-                    InitState = TriggerInitState.ACTIVE,
-                    Conditions = { MakeCondition(TriggerConditions.Cnd_SpaceEnter, "no_params") },
-                    Actions =
-                    {
-                        MakeAction(TriggerActions.Act_SetNNObj, targetObjective, "OBJECTIVE_HISTORY"),
-                        MakeAction(TriggerActions.Act_SpawnShip, targetShip, "", TargetPosition.X, TargetPosition.Y, TargetPosition.Z),
-                        MakeAction(TriggerActions.Act_SetVibe, targetShip, "Player", "REP_HOSTILE_MAXIMUM"),
-                        MakeAction(TriggerActions.Act_ActTrig, triggerDestroyed)
-                    }
-                },
-                new MissionTrigger
-                {
-                    Nickname = triggerDestroyed,
-                    Conditions = { MakeCondition(TriggerConditions.Cnd_Destroyed, targetShip, 1, "EXPLODE") },
-                    Actions =
-                    {
-                        MakeAction(TriggerActions.Act_SetNNState, targetObjective, "COMPLETE"),
-                        MakeAction(TriggerActions.Act_AdjAcct, Reward),
-                        MakeAction(TriggerActions.Act_PlaySoundEffect, "ui_receive_money"),
-                        MakeAction(TriggerActions.Act_PlayMusic, "none", "none", "none", "music_victory", 3, true),
-                        MakeAction(TriggerActions.Act_ChangeState, "SUCCEED")
-                    }
-                }
-            }
-        };
-        return new MissionScript(ini, gameData.Items);
+
+        var script = CreateBaseScript(TargetZone.IdsName, targetObjective);
+        AddNpc(script, "rm_target_npc");
+        AddShip(script, targetShip, "rm_target_npc", TargetPosition);
+        AddTrigger(script, triggerInit, true,
+            [new Cnd_SpaceEnter()],
+            [
+                new Act_SetNNObj { Objective = targetObjective, History = true },
+                new Act_SpawnShip { Ship = targetShip, Position = TargetPosition },
+                HostileToPlayer(targetShip),
+                new Act_ActTrig { Trigger = triggerDestroyed }
+            ]);
+        AddTrigger(script, triggerDestroyed, false,
+            [Destroyed(targetShip, 1, CndDestroyedKind.EXPLODE)],
+            CompleteMissionActions(targetObjective));
+        return script;
     }
 
-    MissionScript CreateDestroyScript(GameDataManager gameData)
+    MissionScript CreateDestroyScript()
     {
         const string targetObjective = TargetObjectiveNickname;
         const string triggerInit = "rm_init";
         const string triggerDestroyed = "rm_destroy_group_destroyed";
         const string groupLabel = "rm_destroy_group";
         const string npc = "rm_destroy_npc";
+
         var shipCount = GetDestroyShipCount();
-        var ini = new MissionIni
+        var script = CreateBaseScript(TargetLocationIds(), targetObjective);
+        AddNpc(script, npc);
+        for (int i = 0; i < shipCount; i++)
+            AddShip(script, $"rm_destroy_ship_{i + 1}", npc, DestroyShipPosition(i), groupLabel);
+
+        var initActions = new List<ScriptedAction>
+        {
+            new Act_SetNNObj { Objective = targetObjective, History = true },
+            new Act_ActTrig { Trigger = triggerDestroyed }
+        };
+        foreach (var ship in script.Ships.Values)
+        {
+            initActions.Add(new Act_SpawnShip { Ship = ship.Nickname, Position = ship.Position });
+            initActions.Add(HostileToPlayer(ship.Nickname));
+        }
+        AddTrigger(script, triggerInit, true, [new Cnd_SpaceEnter()], initActions);
+        AddTrigger(script, triggerDestroyed, false,
+            [Destroyed(groupLabel, shipCount)],
+            CompleteMissionActions(targetObjective));
+        return script;
+    }
+
+    MissionScript CreateBaseScript(int titleIds, string objective)
+    {
+        var script = new MissionScript
         {
             Info = new MissionInfo
             {
-                MissionTitle = TargetLocationIds(),
+                MissionTitle = titleIds,
                 MissionOffer = 0,
                 Reward = Reward
-            },
-            NPCs =
-            {
-                new MissionNPC
-                {
-                    Nickname = npc,
-                    Affiliation = HostileFaction.Nickname,
-                    IndividualName = 0,
-                    NpcShipArch = TargetShipArch.Nickname
-                }
-            },
-            Objectives =
-            {
-                new NNObjective
-                {
-                    Nickname = targetObjective,
-                    State = "ACTIVE",
-                    Type = NNObjectiveType.navmarker,
-                    System = Offer.Base.System!,
-                    NameIds = TargetLocationIds(),
-                    ExplanationIds = TargetZone.IdsInfo,
-                    Position = TargetPosition
-                }
             }
         };
-
-        for (int i = 0; i < shipCount; i++)
+        script.Objectives[objective] = new NNObjective
         {
-            ini.Ships.Add(new MissionShip
-            {
-                Nickname = $"rm_destroy_ship_{i + 1}",
-                System = Offer.Base.System,
-                NPC = npc,
-                Labels = { groupLabel },
-                Position = DestroyShipPosition(i),
-                RandomName = true
-            });
-        }
-
-        var initTrigger = new MissionTrigger
-        {
-            Nickname = triggerInit,
-            InitState = TriggerInitState.ACTIVE,
-            Conditions = { MakeCondition(TriggerConditions.Cnd_SpaceEnter, "no_params") },
-            Actions =
-            {
-                MakeAction(TriggerActions.Act_SetNNObj, targetObjective, "OBJECTIVE_HISTORY"),
-                MakeAction(TriggerActions.Act_ActTrig, triggerDestroyed)
-            }
+            Nickname = objective,
+            State = "ACTIVE",
+            Type = NNObjectiveType.navmarker,
+            System = Offer.Base.System!,
+            NameIds = titleIds,
+            ExplanationIds = TargetZone.IdsInfo,
+            Position = TargetPosition
         };
-        foreach (var ship in ini.Ships)
-        {
-            initTrigger.Actions.Add(MakeAction(
-                TriggerActions.Act_SpawnShip,
-                ship.Nickname,
-                "",
-                ship.Position.X,
-                ship.Position.Y,
-                ship.Position.Z));
-            initTrigger.Actions.Add(MakeAction(
-                TriggerActions.Act_SetVibe,
-                ship.Nickname,
-                "Player",
-                "REP_HOSTILE_MAXIMUM"));
-        }
-        ini.Triggers.Add(initTrigger);
-        ini.Triggers.Add(new MissionTrigger
-        {
-            Nickname = triggerDestroyed,
-            Conditions = { MakeCondition(TriggerConditions.Cnd_Destroyed, groupLabel, shipCount) },
-            Actions =
-            {
-                MakeAction(TriggerActions.Act_SetNNState, targetObjective, "COMPLETE"),
-                MakeAction(TriggerActions.Act_AdjAcct, Reward),
-                MakeAction(TriggerActions.Act_PlaySoundEffect, "ui_receive_money"),
-                MakeAction(TriggerActions.Act_PlayMusic, "none", "none", "none", "music_victory", 3, true),
-                MakeAction(TriggerActions.Act_ChangeState, "SUCCEED")
-            }
-        });
-        return new MissionScript(ini, gameData.Items);
+        return script;
     }
+
+    void AddNpc(MissionScript script, string nickname) =>
+        script.NPCs[nickname] = new ScriptNPC
+        {
+            Nickname = nickname,
+            Affiliation = HostileFaction,
+            IndividualName = 0,
+            NpcShipArch = TargetShipArch.Nickname
+        };
+
+    void AddShip(MissionScript script, string nickname, string npc, Vector3 position, string? label = null)
+    {
+        var labels = new List<string>();
+        if (label != null)
+            labels.Add(label);
+        script.Ships[nickname] = new ScriptShip
+        {
+            Nickname = nickname,
+            System = Offer.Base.System,
+            NPC = script.NPCs[npc],
+            Labels = labels,
+            Position = position,
+            RandomName = true
+        };
+    }
+
+    void AddTrigger(
+        MissionScript script,
+        string nickname,
+        bool active,
+        ScriptedCondition[] conditions,
+        IEnumerable<ScriptedAction> actions)
+    {
+        script.AvailableTriggers[nickname] = new ScriptedTrigger(nickname, false, conditions, actions.ToArray());
+        if (active)
+            script.InitTriggers.Add(nickname);
+    }
+
+    ScriptedAction[] CompleteMissionActions(string objective) =>
+    [
+        new Act_SetNNState { Objective = objective, Complete = true },
+        new Act_AdjAcct { Amount = Reward },
+        new Act_PlaySoundEffect { Effect = "ui_receive_money" },
+        new Act_PlayMusic { Motif = "music_victory", Fade = 3, Unknown = true },
+        new Act_ChangeState { Succeed = true }
+    ];
+
+    static Act_SetVibe HostileToPlayer(string ship) =>
+        new() { Target = ship, Other = "Player", Vibe = VibeSet.REP_HOSTILE_MAXIMUM };
+
+    static Cnd_Destroyed Destroyed(string label, int count, CndDestroyedKind kind = CndDestroyedKind.Unset) =>
+        new() { Label = label, Count = count, Kind = kind };
 
     int GetDestroyShipCount() =>
         Math.Clamp(2 + (int)MathF.Ceiling(Difficulty), 3, 5);
@@ -257,19 +211,6 @@ public sealed class GeneratedRandomMission
         _ => TargetZone.IdsName
     };
 
-    static MissionAction MakeAction(TriggerActions action, params ValueBase[] values) =>
-        new(action, Entry(action.ToString(), values));
-
-    static MissionCondition MakeCondition(TriggerConditions condition, params ValueBase[] values) =>
-        new(condition, Entry(condition.ToString(), values));
-
-    static Entry Entry(string name, params ValueBase[] values)
-    {
-        var entry = new Entry(new Section("generated"), name, values.Length);
-        foreach (var value in values)
-            entry.Add(value);
-        return entry;
-    }
 }
 
 public static class RandomMissionGenerator
@@ -311,7 +252,7 @@ public static class RandomMissionGenerator
             var selectedLeaf = random.Select(leaves, x => x.EndNode.Weight);
             var selectedPath = random.Select(selectedLeaf.Paths, x => (float)x.Probability);
             var strings = selectedPath.GetStrings(random);
-            var missionType = DetermineMissionType(selectedPath, strings);
+            var missionType = DetermineMissionType(selectedPath);
             var targetName = CreateTargetName(gameData, hostileFaction, random);
             var reward = CalculateReward(gameData, difficulty);
             var bigSolar = ChooseNamedSystemObject(system, zone, null);
@@ -359,24 +300,8 @@ public static class RandomMissionGenerator
         return false;
     }
 
-    internal static string DetermineMissionType(MissionVariantPath path, VignetteStrings strings)
+    internal static string DetermineMissionType(MissionVariantPath path)
     {
-        if (strings.CommSequences.TryGetValue("GLOBAL_SUCCESS", out var success))
-        {
-            var fromSuccessComm = success.Comm?.ToLowerInvariant() switch
-            {
-                "rmb_success_ships" => "DestroyMission",
-                "rmb_success_ass" => "AssassinateMission",
-                "rmb_success_returnloot" => "BountyMission",
-                "rmb_success_tractorloot" => "RetrieveMission",
-                "rmb_success_destroyloot" => "DestroyContrabandMission",
-                "rmb_success_solar" => "DestroyInstallationMission",
-                _ => null
-            };
-            if (fromSuccessComm != null)
-                return fromSuccessComm;
-        }
-
         var decisions = path.Decisions;
         if (decisions.DestroySolarsMission)
             return "DestroyInstallationMission";
@@ -606,15 +531,12 @@ public static class RandomMissionGenerator
                 items[offerText.Args[0]] is Faction p &&
                 p.Properties?.NicknamePlurality != NicknamePlurality.Plural)
                 continue;
-            output.Add(CleanResourceString(Format(gameData, offerText.Ids, offerText.Args, items)));
+            output.Add(Format(gameData, offerText.Ids, offerText.Args, items));
         }
         if (output.Count > 0)
             return string.Join("", output);
         return "Mission generated from vignette data.";
     }
-
-    internal static string CleanResourceString(string value) =>
-        value.Replace("\0", "");
 
     internal static string Format(GameDataManager gameData, int ids, string[] args, IReadOnlyDictionary<string, object> items)
     {
