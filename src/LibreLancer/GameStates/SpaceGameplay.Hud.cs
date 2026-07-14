@@ -667,6 +667,8 @@ partial class SpaceGameplay
 
         public UiEquippedWeapon[] GetWeapons() => g.weapons.GetUiElements().ToArray();
 
+        public bool ToggleWeapon(int index) => g.weapons.ToggleMouseEnabled(index);
+
         internal void SetManeuver(string m)
         {
             activeManeuver = m;

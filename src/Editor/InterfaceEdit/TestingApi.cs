@@ -364,6 +364,8 @@ public class TestingApi
         };
     }
 
+    public bool ToggleWeapon(int index) => true;
+
     public bool ConnectAddress(string address)
     {
         return false;
