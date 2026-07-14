@@ -21,7 +21,7 @@ namespace LibreLancer.World.Components
         public bool Enabled { get; set; } = true;
         private double DryFireTimer { get; set; }
         public WeaponComponent[]? NetOrderWeapons;
-        private readonly Dictionary<WeaponComponent, bool> mouseEnabled = [];
+        private readonly Dictionary<WeaponComponent, bool> activatedWeapons = [];
 
         public WeaponControlComponent(GameObject parent) : base(parent)
         {
@@ -52,27 +52,27 @@ namespace LibreLancer.World.Components
             GetWeapons();
         }
 
-        private static bool IsDefaultMouseEnabled(WeaponComponent weapon) => weapon is GunComponent;
+        private static bool IsDefaultWeaponEnabled(WeaponComponent weapon) => weapon is GunComponent;
 
-        public bool ToggleMouseEnabled(int index)
+        public bool ToggleWeaponEnabled(int index)
         {
             var weapon = GetWeapons().Skip(index).FirstOrDefault();
             if (weapon == null)
                 return false;
-            mouseEnabled[weapon] = !mouseEnabled[weapon];
-            return mouseEnabled[weapon];
+            activatedWeapons[weapon] = !activatedWeapons[weapon];
+            return activatedWeapons[weapon];
         }
 
-        private bool IsMouseEnabled(WeaponComponent weapon) =>
-            mouseEnabled.TryGetValue(weapon, out var enabled) ? enabled : IsDefaultMouseEnabled(weapon);
+        private bool IsWeaponEnabled(WeaponComponent weapon) =>
+            activatedWeapons.TryGetValue(weapon, out var enabled) ? enabled : IsDefaultWeaponEnabled(weapon);
 
         private WeaponComponent[] GetWeapons()
         {
             var weapons = Parent.GetChildComponents<WeaponComponent>().ToArray();
             foreach (var weapon in weapons)
-                mouseEnabled.TryAdd(weapon, IsDefaultMouseEnabled(weapon));
-            foreach (var weapon in mouseEnabled.Keys.Except(weapons).ToArray())
-                mouseEnabled.Remove(weapon);
+                activatedWeapons.TryAdd(weapon, IsDefaultWeaponEnabled(weapon));
+            foreach (var weapon in activatedWeapons.Keys.Except(weapons).ToArray())
+                activatedWeapons.Remove(weapon);
             return weapons;
         }
 
@@ -179,7 +179,7 @@ namespace LibreLancer.World.Components
 
             foreach (var wp in GetWeapons())
             {
-                if (IsMouseEnabled(wp))
+                if (IsWeaponEnabled(wp))
                     wp.Fire(AimPoint, world);
             }
         }
@@ -187,7 +187,7 @@ namespace LibreLancer.World.Components
         public IEnumerable<UiEquippedWeapon> GetUiElements()
         {
             return from wp in GetWeapons()
-                select new UiEquippedWeapon(IsMouseEnabled(wp), wp.IdsName);
+                select new UiEquippedWeapon(IsWeaponEnabled(wp), wp.IdsName);
         }
     }
 }
