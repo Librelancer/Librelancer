@@ -56,15 +56,16 @@ local function NavbarAction(hotspot)
 	return obj
 }
 
-local function weapon_list_item(index, name)
+local function weapon_list_item(index, name, enabled)
 {
+	local textColor = GetColor(enabled ? "color_friendly" : "text")
 	local li = NewObject("ListItem")
 	li.ItemA = NewObject("Panel")
 	li.ItemA.Width = 13;
 	local ta = NewObject("TextBlock")
 	ta.TextSize = 8
 	ta.HorizontalAlignment = HorizontalAlignment.Right
-	ta.TextColor = GetColor("text")
+	ta.TextColor = textColor
 	ta.TextShadow = GetColor("black")
 	ta.Fill = true
 	ta.Text = tostring(index)
@@ -73,7 +74,7 @@ local function weapon_list_item(index, name)
 	local tb = NewObject("TextBlock")	
 	tb.TextSize = 8
 	tb.HorizontalAlignment = HorizontalAlignment.Left
-	tb.TextColor = GetColor("text")
+	tb.TextColor = textColor
 	tb.TextShadow = GetColor("black")
 	tb.Fill = true
 	tb.Strid = name
@@ -108,9 +109,11 @@ class hud : hud_Designer
             container.AddChild(obj)
         }
 		local weaplist = this.Elements.weapons_list;
-		for (index, weapon in ipairs(Game.GetWeapons())) {
-			weaplist.Children.Add(weapon_list_item(index, weapon.Strid));
-		}
+		this.RefreshWeaponsList();
+		weaplist.OnSelectedIndexChanged(() => {
+			Game.ToggleWeapon(weaplist.SelectedIndex);
+			this.RefreshWeaponsList();
+		});
         this.UpdateManeuverState()
 		local e = this.Elements;
         e.chatbox.OnTextEntered((category, text) => Game.ChatEntered(category, text));
@@ -208,6 +211,16 @@ class hud : hud_Designer
 		});
 		this.SetupIndicators()
     }
+
+	RefreshWeaponsList()
+	{
+		local weaplist = this.Elements.weapons_list;
+		weaplist.Children.Clear();
+		weaplist.SelectedIndex = -1;
+		for (index, weapon in ipairs(Game.GetWeapons())) {
+			weaplist.Children.Add(weapon_list_item(index, weapon.Strid, weapon.Enabled));
+		}
+	}
 
 	SetupIndicators()
 	{

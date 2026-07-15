@@ -21,6 +21,7 @@ namespace LibreLancer.World.Components
         public bool Enabled { get; set; } = true;
         private double DryFireTimer { get; set; }
         public WeaponComponent[]? NetOrderWeapons;
+        private readonly Dictionary<WeaponComponent, bool> activatedWeapons = [];
 
         public WeaponControlComponent(GameObject parent) : base(parent)
         {
@@ -48,6 +49,31 @@ namespace LibreLancer.World.Components
             NetOrderWeapons = Parent.GetChildComponents<WeaponComponent>()!
                 .OrderBy(x => x.Parent.Attachment?.Name.ToLowerInvariant())
                 .ToArray();
+            GetWeapons();
+        }
+
+        private static bool IsDefaultWeaponEnabled(WeaponComponent weapon) => weapon is GunComponent;
+
+        public bool ToggleWeaponEnabled(int index)
+        {
+            var weapon = GetWeapons().Skip(index).FirstOrDefault();
+            if (weapon == null)
+                return false;
+            activatedWeapons[weapon] = !activatedWeapons[weapon];
+            return activatedWeapons[weapon];
+        }
+
+        private bool IsWeaponEnabled(WeaponComponent weapon) =>
+            activatedWeapons.TryGetValue(weapon, out var enabled) ? enabled : IsDefaultWeaponEnabled(weapon);
+
+        private WeaponComponent[] GetWeapons()
+        {
+            var weapons = Parent.GetChildComponents<WeaponComponent>().ToArray();
+            foreach (var weapon in weapons)
+                activatedWeapons.TryAdd(weapon, IsDefaultWeaponEnabled(weapon));
+            foreach (var weapon in activatedWeapons.Keys.Except(weapons).ToArray())
+                activatedWeapons.Remove(weapon);
+            return weapons;
         }
 
         public override void Register(GameWorld world)
@@ -151,15 +177,17 @@ namespace LibreLancer.World.Components
         {
             if (!CanFireWeapons(world)) return;
 
-            foreach (var wp in Parent?.GetChildComponents<WeaponComponent>()!)
+            foreach (var wp in GetWeapons())
             {
-                wp?.Fire(AimPoint, world);
+                if (IsWeaponEnabled(wp))
+                    wp.Fire(AimPoint, world);
             }
         }
 
         public IEnumerable<UiEquippedWeapon> GetUiElements()
         {
-            return from WeaponComponent? wp in Parent?.GetChildComponents<WeaponComponent>()! select new UiEquippedWeapon(true, wp!.IdsName);
+            return from wp in GetWeapons()
+                select new UiEquippedWeapon(IsWeaponEnabled(wp), wp.IdsName);
         }
     }
 }
