@@ -377,6 +377,8 @@ public class TestingApi
 
     public int CruiseCharge() => 25;
 
+    public bool CruiseEnabled() => false;
+
     public void PopulateNavmap(Navmap nav)
     {
     }

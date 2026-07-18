@@ -12,6 +12,19 @@ local function ModelRenderable(model, tint)
 	return renderable
 }
 
+local function ScaledModel(name, xscale, yscale)
+{
+	local source = GetModel(name)
+	local model = NewObject('InterfaceModel')
+	model.Path = source.Path
+	model.X = source.X
+	model.Y = source.Y
+	model.XScale = xscale
+	model.YScale = yscale
+	model.XZPlane = source.XZPlane
+	return model
+}
+
 local function HudButton(modelPath, disabledPath)
 {
 	// Construct Appearance
@@ -44,6 +57,29 @@ local function HudButton(modelPath, disabledPath)
 	disabledAppearance.Background = ModelRenderable(disabledModel)
 	style.Disabled = disabledAppearance
 	// Set Appearance
+	button.Style = style
+	return button
+}
+
+local function CruiseButton()
+{
+	local iconModel = ScaledModel("hud_mnvrwarp.3db", 38.0, 38.0)
+	local button = NewObject('Button')
+	local style = NewObject('ButtonStyle')
+	style.Width = 33
+	style.Height = 31
+	local regAppearance = NewObject('ButtonAppearance')
+	regAppearance.Background = ModelRenderable(iconModel)
+	style.Normal = regAppearance
+	local hoverAppearance = NewObject('ButtonAppearance')
+	hoverAppearance.Background = ModelRenderable(iconModel, GetColor('white_hover'))
+	style.Hover = hoverAppearance
+	local selectedAppearance = NewObject('ButtonAppearance')
+	selectedAppearance.Background = ModelRenderable(iconModel, GetColor('yellow'))
+	style.Selected = selectedAppearance
+	local disabledAppearance = NewObject('ButtonAppearance')
+	disabledAppearance.Background = ModelRenderable(iconModel)
+	style.Disabled = disabledAppearance
 	button.Style = style
 	return button
 }
@@ -107,6 +143,16 @@ class hud : hud_Designer
             else
                 activeIDS = index;
             container.AddChild(obj)
+            if (button.Action == "FreeFlight") {
+                local cruise = CruiseButton()
+                this.CruiseButton = cruise
+                cruise.OnClick(() => Game.HotspotPressed("Cruise"));
+                local cruiseBox = this.Widget.GetElement("actionbox1")
+                cruiseBox.X = obj.X
+                cruiseBox.Y = obj.Y + 32
+                cruiseBox.Visible = true
+                navbox.PositionAction(cruise, cruiseBox, 1)
+            }
         }
 		local weaplist = this.Elements.weapons_list;
 		this.RefreshWeaponsList();
@@ -373,6 +419,10 @@ class hud : hud_Designer
 	    {
 		    button.Selected = (activeManeuver == action)
 		    button.Enabled = maneuversEnabled.Get(action)
+	    }
+	    if (this.CruiseButton != nil) {
+		    this.CruiseButton.Enabled = (activeManeuver == "FreeFlight")
+		    this.CruiseButton.Selected = Game.CruiseEnabled() && (activeManeuver == "FreeFlight")
 	    }
     }
     
