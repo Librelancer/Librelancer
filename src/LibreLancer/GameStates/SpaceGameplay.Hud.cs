@@ -659,7 +659,7 @@ partial class SpaceGameplay
         {
             if (e.Equals("Cruise", StringComparison.OrdinalIgnoreCase))
             {
-                if (GetActiveManeuver() != "FreeFlight")
+                if (GetActiveManeuver() == "Formation")
                 {
                     return;
                 }

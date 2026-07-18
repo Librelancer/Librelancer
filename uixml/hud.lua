@@ -1,5 +1,7 @@
 require 'ids.lua'
 
+local navbox = require 'navbox'
+
 local function ModelRenderable(model, tint)
 {
 	local renderable = NewObject('UiRenderable')
@@ -84,6 +86,13 @@ local function CruiseButton()
 	return button
 }
 
+local function PositionHudActionBox(actionbox, activeButton)
+{
+	actionbox.X = activeButton.X
+	actionbox.Y = navbox.OffsetY + 32
+	actionbox.Visible = true
+}
+
 local function NavbarAction(hotspot)
 {
 	local obj = NavbarButton(hotspot, false)
@@ -119,13 +128,11 @@ local function weapon_list_item(index, name, enabled)
 	return li;
 }
 
-local navbox = require 'navbox'
-
 class hud : hud_Designer
 {
     hud()
     {
-		base();
+        base();
         this.ManeuverButtons = {}
         local btns = Game.GetManeuvers()
         local container = navbox.GetNavbox(this.Widget, btns)
@@ -143,17 +150,11 @@ class hud : hud_Designer
             else
                 activeIDS = index;
             container.AddChild(obj)
-            if (button.Action == "FreeFlight") {
-                local cruise = CruiseButton()
-                this.CruiseButton = cruise
-                cruise.OnClick(() => Game.HotspotPressed("Cruise"));
-                local cruiseBox = this.Widget.GetElement("actionbox1")
-                cruiseBox.X = obj.X
-                cruiseBox.Y = obj.Y + 32
-                cruiseBox.Visible = true
-                navbox.PositionAction(cruise, cruiseBox, 1)
-            }
         }
+        this.CruiseButton = CruiseButton()
+        this.CruiseButton.OnClick(() => Game.HotspotPressed("Cruise"));
+        this.CruiseBox = this.Widget.GetElement("actionbox1")
+        navbox.PositionAction(this.CruiseButton, this.CruiseBox, 1)
 		local weaplist = this.Elements.weapons_list;
 		this.RefreshWeaponsList();
 		weaplist.OnSelectedIndexChanged(() => {
@@ -421,8 +422,16 @@ class hud : hud_Designer
 		    button.Enabled = maneuversEnabled.Get(action)
 	    }
 	    if (this.CruiseButton != nil) {
-		    this.CruiseButton.Enabled = (activeManeuver == "FreeFlight")
-		    this.CruiseButton.Selected = Game.CruiseEnabled() && (activeManeuver == "FreeFlight")
+		    local activeButton = this.ManeuverButtons[activeManeuver]
+		    if (activeManeuver != "Formation" && activeButton != nil) {
+			    PositionHudActionBox(this.CruiseBox, activeButton)
+			    this.CruiseButton.Enabled = true
+			    this.CruiseButton.Selected = Game.CruiseEnabled()
+		    } else {
+			    this.CruiseBox.Visible = false
+			    this.CruiseButton.Enabled = false
+			    this.CruiseButton.Selected = false
+		    }
 	    }
     }
     
