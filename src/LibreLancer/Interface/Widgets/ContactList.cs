@@ -15,7 +15,7 @@ namespace LibreLancer.Interface
         public InterfaceColor? FriendlyColor { get; set; }
 
         public InterfaceColor? HostileColor { get; set; }
-
+        public InterfaceColor? WaypointColor { get; set; }
         public InterfaceColor? NeutralColor { get; set; }
         public InterfaceColor? HoverColor { get; set; }
         public InterfaceColor? SelectedColor { get; set; }
@@ -239,6 +239,11 @@ namespace LibreLancer.Interface
                         case RepAttitude.Neutral:
                             textColor = NeutralColor;
                             break;
+                    }
+
+                    if (WaypointColor != null && icon == ContactIcon.Waypoint)
+                    {
+                        textColor = WaypointColor;
                     }
 
                     // Render row

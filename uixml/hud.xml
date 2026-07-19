@@ -54,7 +54,8 @@
             <Button id="filter_station" style="hud_contactstation" X="76" Y="33"/>
             <Button id="filter_loot" style="hud_contactloot" X="97" Y="33"/>
             <Button id="filter_all" style="hud_contactall" X="118" Y="32"/>
-            <ContactList id="contactlistview" X="14" Y="48" Width="142" Height="90" FriendlyColor="color_friendly" HostileColor="color_hostile" NeutralColor="color_neutral" TextSize="9" Font="$Normal" DisplayRowCount="7" HoverColor="text_hover" SelectedColor="yellow">
+            <ContactList id="contactlistview" X="14" Y="48" Width="142" Height="90" FriendlyColor="color_friendly" HostileColor="color_hostile" NeutralColor="color_neutral" TextSize="9" Font="$Normal" DisplayRowCount="7" HoverColor="text_hover" SelectedColor="yellow"
+                TextShadow="black" WaypointColor="color_waypoint">
             </ContactList>
         </Scene>
         <Scene id="targetwireframe" Visible="false">
