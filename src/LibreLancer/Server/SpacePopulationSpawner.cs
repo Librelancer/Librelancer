@@ -263,6 +263,7 @@ public partial class SpacePopulationManager
         {
             arrivalDockable = dockable;
         }
+        var neutralTo = ActiveRandomMissionPlayerObjects();
 
         for (int i = 0; i < info.Ships.Count; i++)
         {
@@ -311,7 +312,8 @@ public partial class SpacePopulationManager
                 arrivalIndex,
                 null,
                 false,
-                reservedArrival);
+                reservedArrival,
+                neutralTo);
             group.Ships.Add(obj);
         }
 

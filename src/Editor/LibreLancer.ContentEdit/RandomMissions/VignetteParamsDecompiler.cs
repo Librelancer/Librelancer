@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LibreLancer.Data;
-using LibreLancer.Data.GameData.RandomMissions;
 using LibreLancer.Data.Schema.RandomMissions;
 
 namespace LibreLancer.ContentEdit.RandomMissions;
@@ -15,7 +14,7 @@ public static class VignetteParamsDecompiler
             return false;
         return !dat.Data.Implemented &&
                dat.Children.Count == 0 &&
-               VignetteTree.IsEmptyData(dat);
+               VignetteAstTree.IsEmptyData(dat);
     }
 
 
@@ -152,7 +151,7 @@ public static class VignetteParamsDecompiler
 
     public static string Decompile(VignetteParamsIni vparams)
     {
-        var tree = VignetteTree.FromIni(vparams);
+        var tree = VignetteAstTree.FromIni(vparams);
         var newId = tree.Nodes.Keys.Max() + 1;
 
         Dictionary<string, string> groups = new Dictionary<string, string>();

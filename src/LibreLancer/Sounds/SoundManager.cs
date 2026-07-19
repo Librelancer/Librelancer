@@ -44,6 +44,7 @@ namespace LibreLancer.Sounds
         private GameDataManager data = null!;
         private AudioManager audio;
         private bool isDisposed = false;
+        private Random random = new();
 
         private LRUCache<SoundKey, LoadedSound> soundCache;
 
@@ -396,6 +397,16 @@ namespace LibreLancer.Sounds
             PlayVoiceLine(voice, FLHash.CreateID(line), onEnd);
         }
 
+        uint PermuteLine(string voice, uint lineHash)
+        {
+            if (data.Items.Voices.TryGetValue(voice, out var v) &&
+                v.Permutations.TryGetValue(lineHash, out var p))
+            {
+                return p[random.Next(p.Length)];
+            }
+            return lineHash;
+        }
+
         public void PlayVoiceLine(string voice, uint lineHash, Action? onEnd = null)
         {
             if (isDisposed)
@@ -403,7 +414,7 @@ namespace LibreLancer.Sounds
                 throw new ObjectDisposedException(nameof(SoundManager));
             }
 
-            var instance = GetInstance(voice, lineHash);
+            var instance = GetInstance(voice, PermuteLine(voice, lineHash));
             if (instance == null)
             {
                 onEnd?.Invoke();

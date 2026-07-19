@@ -669,19 +669,28 @@ public partial class CGameSession
         });
     }
 
-    void IClientPlayer.PlayMusic(string? music, float fade)
+    void IClientPlayer.PlayMusic(string? music, float fade, bool oneshot)
     {
         audioActions.Enqueue(() =>
         {
             if (string.IsNullOrWhiteSpace(music) ||
                 music.Equals("none", StringComparison.OrdinalIgnoreCase))
             {
+                if (spaceGameplay != null)
+                {
+                    spaceGameplay.RtcMusic = false;
+                    spaceGameplay.RtcMusicOneShot = false;
+                }
                 Game.Sound.StopMusic(fade);
             }
             else
             {
-                spaceGameplay?.RtcMusic = true;
-                Game.Sound.PlayMusic(music, fade);
+                if (spaceGameplay != null)
+                {
+                    spaceGameplay.RtcMusic = true;
+                    spaceGameplay.RtcMusicOneShot = oneshot;
+                }
+                Game.Sound.PlayMusic(music, fade, oneshot);
             }
         });
     }

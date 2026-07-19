@@ -16,6 +16,7 @@ public interface IServerPlayer
     Task<bool> CreateNewCharacter(string name, int index);
     void ClosedPopup(string id);
     void StoryNPCSelect(string name, string room, string _base);
+    void AcceptMissionOffer(int seed);
     void RTCMissionAccepted();
     void RTCMissionRejected();
     void Respawn();

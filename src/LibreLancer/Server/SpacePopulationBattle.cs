@@ -199,6 +199,17 @@ public partial class SpacePopulationManager
                     continue;
                 }
 
+                if (group.Ships.Any(x => IsInsideRandomMissionNoSpawnZone(x.WorldTransform.Position)))
+                {
+                    foreach (var ship in group.Ships)
+                    {
+                        if (Alive(ship))
+                            world.RemoveSpawnedObject(ship, false);
+                    }
+                    state.Groups.RemoveAt(i);
+                    continue;
+                }
+
                 var basePersistDistance = group.PersistDistance > 0
                     ? group.PersistDistance
                     : DefaultPersistDistance;

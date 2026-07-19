@@ -620,6 +620,11 @@ partial class SpaceGameplay
 
         public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index);
 
+        public bool HasActiveRandomMission() => g.session.HasActiveRandomMission;
+
+        public string ActiveRandomMissionDescription() =>
+            g.session.ActiveRandomMissionDescription ?? "";
+
         public void ClearUserWaypoints() => g.ClearUserWaypoints();
 
         public ChatSource GetChats() => g.session.Chats;
