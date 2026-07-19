@@ -7,18 +7,23 @@ public class DifficultyInfo
     public List<(float Difficulty, float Money)> MoneyGraph = [];
     public List<(StoryIndex Index, float Difficulty)> StoryGraph = [];
 
-    public float GetDifficultyCap(StoryIndex? story)
+    public bool TryGetDifficultyCenter(int? story, out float value)
     {
+        value = 0;
         if (story == null || StoryGraph.Count == 0)
-            return 100.0f;
-        float diff = 0;
+            return false;
         for (int i = 0; i < StoryGraph.Count; i++)
         {
-            if (StoryGraph[i].Index.Index > story.Index)
-                return diff;
-            diff = StoryGraph[i].Difficulty;
+            if (StoryGraph[i].Index.Index == story)
+            {
+                value = StoryGraph[i].Difficulty;
+                return true;
+            }
+            if (StoryGraph[i].Index.Index > story)
+                return true;
+            value = StoryGraph[i].Difficulty;
         }
-        return diff;
+        return true;
     }
 
     public int GetMissionReward(float difficulty)

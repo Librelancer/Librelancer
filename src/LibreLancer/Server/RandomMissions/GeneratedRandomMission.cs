@@ -218,6 +218,7 @@ public static class RandomMissionGenerator
     public static bool TryGenerate(
         GameDataManager gameData,
         RandomMissionOffer offer,
+        int? missionNum,
         int seed,
         out GeneratedRandomMission? mission)
     {
@@ -242,7 +243,13 @@ public static class RandomMissionGenerator
             if (targetShipArch == null)
                 continue;
 
-            var difficulty = GetDifficulty(offer, random);
+            if (!TryGetDifficulty(gameData, missionNum, offer.Mission.MinDiff, offer.Mission.MaxDiff, random,
+                    out float difficulty))
+            {
+                continue;
+            }
+
+
             var leaves = VignetteWalker.Enumerate(
                 gameData.Items.VignetteTree,
                 new VignetteGraphParameters(offerFaction, hostileFaction, difficulty, zoneType));
@@ -411,17 +418,53 @@ public static class RandomMissionGenerator
         return best;
     }
 
-    static float GetDifficulty(RandomMissionOffer offer, VC6Random random)
+    private const float DifficultyWindow = 2.56514f;
+
+    static bool TryGetDifficulty(
+        GameDataManager gameData,
+        int? missionNum,
+        float minDiff,
+        float maxDiff,
+        VC6Random random,
+        out float difficulty)
     {
-        var min = offer.Mission.MinDiff;
-        var max = offer.Mission.MaxDiff;
-        if (max <= min)
-            return min;
-        return min + ((random.Next() / 32767f) * (max - min));
+        if (gameData.Items.VignetteDifficulty.TryGetDifficultyCenter(missionNum, out var middle))
+        {
+            // Weight mission difficulty based on rank, and refuse to generate a mission
+            // if the player's rank is not high enough.
+            var lowerBound = middle / DifficultyWindow;
+            var upperBound = middle * DifficultyWindow;
+
+            if (upperBound > minDiff)
+            {
+                if (upperBound >= maxDiff)
+                {
+                    upperBound = maxDiff;
+                    lowerBound = Math.Max(maxDiff / DifficultyWindow, minDiff);
+                }
+                else
+                {
+                    lowerBound = Math.Max(lowerBound, minDiff);
+                }
+                difficulty = lowerBound + (upperBound - lowerBound) * random.NextCosWeightedFloat();
+                return true;
+            }
+
+            difficulty = 0;
+            // We aren't allowed to have a mission at this difficulty
+            return false;
+        }
+        // No restriction on mission difficulty (multiplayer).
+        difficulty = minDiff + (maxDiff - minDiff) * random.NextCosWeightedFloat();
+        return true;
     }
 
-    static int CalculateReward(GameDataManager gameData, float difficulty) =>
-        Math.Max(500, gameData.Items.VignetteDifficulty.GetMissionReward(Math.Max(0, difficulty)));
+    static int CalculateReward(GameDataManager gameData, float difficulty)
+    {
+        var reward = Math.Max(500, gameData.Items.VignetteDifficulty.GetMissionReward(Math.Max(0, difficulty)));
+        // freelancer seems to round to the lowest 50
+        return (int)(Math.Floor(reward / 50f) * 50);
+    }
 
     static AllowedZoneType GetAllowedZoneType(Zone zone)
     {

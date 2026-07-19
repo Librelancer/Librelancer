@@ -52,7 +52,7 @@ public class BasesidePlayer : IBasesidePlayer
                 seed = random.Next(1, 0x8000);
             } while (!usedSeeds.Add(seed));
 
-            if (!RandomMissionGenerator.TryGenerate(Player.Game.GameData, offer, seed, out var generated) ||
+            if (!RandomMissionGenerator.TryGenerate(Player.Game.GameData, offer, Player.Story?.MissionNum, seed, out var generated) ||
                 generated == null)
                 continue;
 

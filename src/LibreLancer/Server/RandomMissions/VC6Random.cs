@@ -39,4 +39,14 @@ public class VC6Random(int seed)
         return v;
     }
 
+    /// <summary>
+    /// Generates a random non-zero float weighted towards 1.0
+    /// </summary>
+    /// <returns>A float between 0.00004788 and 1.0</returns>
+    public float NextCosWeightedFloat()
+    {
+        const float F = 1 / 32768f; // Not a typo
+        return MathF.Cos(Next() * F * (MathF.PI / 2.0f));
+    }
+
 }
