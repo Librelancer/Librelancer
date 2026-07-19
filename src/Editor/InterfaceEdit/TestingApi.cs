@@ -313,6 +313,8 @@ public class TestingApi
     }
 
     public int UserWaypointCount() => 0;
+    public bool HasActiveRandomMission() => false;
+    public string ActiveRandomMissionDescription() => "";
 
 
     public Infocard _Infocard = null!;

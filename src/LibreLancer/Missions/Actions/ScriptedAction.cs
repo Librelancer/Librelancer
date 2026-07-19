@@ -580,7 +580,7 @@ namespace LibreLancer.Missions.Actions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             if (!Reset)
-                runtime.Player.RpcClient.PlayMusic(Motif == "" ? Battle : Motif, Fade);
+                runtime.Player.RpcClient.PlayMusic(Motif == "" ? Battle : Motif, Fade, Unknown);
         }
     }
 

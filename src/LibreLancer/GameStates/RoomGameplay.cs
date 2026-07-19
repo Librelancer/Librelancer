@@ -46,6 +46,7 @@ namespace LibreLancer
 
         private const string LAUNCH_ACTION = "$LAUNCH";
         private const string INVALID_ACTION = "$INVALID";
+        private const string JOB_BOARD_ACTION = "$JOB_BOARD";
         private Base currentBase;
         private StarSystem starSystem;
         private BaseRoom currentRoom;
@@ -291,6 +292,11 @@ namespace LibreLancer
             }
 
             public NewsArticle[] GetNewsArticles() => articles;
+            public NetMissionOffer[] GetMissionOffers() => g.session.MissionOffers;
+            public void AcceptMissionOffer(int seed)
+            {
+                g.session.RpcServer.AcceptMissionOffer(seed);
+            }
             public bool IsMultiplayer() => g.session.Multiplayer;
             public void HotspotPressed(string item) => g.Hud_OnManeuverSelected(item);
             public string ActiveNavbarButton() => g.active ?? "";
@@ -329,6 +335,11 @@ namespace LibreLancer
             public int UserWaypointCount() => g.session.UserWaypointCount;
 
             public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index);
+
+            public bool HasActiveRandomMission() => g.session.HasActiveRandomMission;
+
+            public string ActiveRandomMissionDescription() =>
+                g.session.ActiveRandomMissionDescription ?? "";
 
             public void ClearUserWaypoints()
             {
@@ -382,6 +393,10 @@ namespace LibreLancer
                         if (g.session.News?.Length > 0)
                         {
                             actions.Add(new NavbarButtonInfo(INVALID_ACTION, "IDS_HOTSPOT_NEWSVENDOR"));
+                        }
+                        if (g.session.MissionOffers.Length > 0)
+                        {
+                            actions.Add(new NavbarButtonInfo(JOB_BOARD_ACTION, "IDS_HOTSPOT_MISSIONVENDOR"));
                         }
 
                         break;

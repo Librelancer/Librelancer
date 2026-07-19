@@ -82,6 +82,7 @@ namespace LibreLancer
 
         // Set to true when the mission system selection.Selected music on launch
         public bool RtcMusic = false;
+        public bool RtcMusicOneShot = false;
         private bool musicTriggered = false;
         private ScannerComponent? scanner;
         private Vector3 tractorOrigin;
@@ -122,6 +123,7 @@ namespace LibreLancer
             {
                 nextObjectiveUpdate = session.CurrentObjective.Ids;
                 objectiveObjectsDirty = true;
+                UpdateObjectiveRoute();
             };
             session.OnUpdateInventory = session.OnUpdatePlayerShip = null; // we should clear these handlers better
             loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys)!);
@@ -233,6 +235,7 @@ namespace LibreLancer
             player.Register(world);
             world.Projectiles.Player = player; // For sending projectile spawns over the network
             RefreshActiveUserWaypoint(false);
+            UpdateObjectiveRoute();
             cur_arrow = Game.ResourceManager.GetCursor("arrow")!;
             cur_cross = Game.ResourceManager.GetCursor("cross")!;
             cur_reticle = Game.ResourceManager.GetCursor("fire_neutral")!;
@@ -791,6 +794,13 @@ namespace LibreLancer
 
                     if (musicTriggered)
                     {
+                        if (RtcMusicOneShot && !Game.Sound.MusicPlaying)
+                        {
+                            RtcMusic = false;
+                            RtcMusicOneShot = false;
+                            if (!string.IsNullOrWhiteSpace(sys.MusicSpace))
+                                Game.Sound.PlayMusic(sys.MusicSpace!, 0);
+                        }
                         continue;
                     }
 
@@ -1677,6 +1687,37 @@ namespace LibreLancer
                     world.AddObject(missionWaypoint);
                     missionWaypoint.Register(world);
                 }
+            }
+        }
+
+        private void UpdateObjectiveRoute()
+        {
+            var objective = session.CurrentObjective;
+            if (objective.Kind != ObjectiveKind.NavMarker ||
+                string.IsNullOrWhiteSpace(objective.System))
+            {
+                if (session.BestPathActive)
+                    ClearUserWaypoints();
+                return;
+            }
+
+            var destination = Game.GameData.Items.Systems.Get(objective.System);
+            if (destination == null || player == null || sys == null)
+            {
+                if (session.BestPathActive)
+                    ClearUserWaypoints();
+                return;
+            }
+
+            var cruiseSpeed = player.GetFirstChildComponent<CEngineComponent>()?.Engine.CruiseSpeed ?? 300f;
+            if (session.ComputeBestPathToSelection(
+                    sys,
+                    player.WorldTransform.Position,
+                    destination,
+                    objective.Position,
+                    cruiseSpeed))
+            {
+                RefreshActiveUserWaypoint(false, false);
             }
         }
 

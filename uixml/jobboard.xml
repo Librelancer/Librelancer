@@ -1,0 +1,62 @@
+<Scene>
+    <Panel Width="640" Height="480" Anchor="Center">
+        <Panel ID="background" Width="590" Height="410" Anchor="Center">
+            <Panel.Background>
+                <DisplayModel model="news_background" />
+            </Panel.Background>
+            <Panel ID="contents" Width="590" Height="410">
+                <Button ID="close" Style="xbutton" Anchor="TopRight" X="18" Y="18" Width="12" Height="12" />
+                <TextBlock Y="9" Width="590" Height="40" HorizontalAlignment="Center" Text="JOB BOARD" TextColor="text" TextShadow="black" VerticalAlignment="Top" TextSize="16" />
+                <Panel X="22" Y="39" Width="318" Height="190">
+                    <Panel.Border>
+                        <DisplayModel model="news_headlineframe" />
+                    </Panel.Border>
+                    <ListBox ID="mission_list" X="12" Y="14" Width="294" Height="146" ItemHeight="32" AlwaysShowScrollbar="true" />
+                </Panel>
+                <Panel X="357" Y="39" Width="200" Height="140">
+                    <Panel.Background>
+                        <DisplayModel model="mission_videowindow"/>
+                    </Panel.Background>
+                    <Panel X="2" Y="2" Width="196" Height="136">
+                        <Panel.Background>
+                            <DisplayColor color="black" />
+                        </Panel.Background>
+                        <Panel ID="preview_destroy" Width="196" Height="136">
+                            <Panel.Background><DisplayImage image="mission_preview_destroy" /></Panel.Background>
+                        </Panel>
+                        <Panel ID="preview_destroyinstallation" Width="196" Height="136" Visible="false">
+                            <Panel.Background><DisplayImage image="mission_preview_destroyinstallation" /></Panel.Background>
+                        </Panel>
+                        <Panel ID="preview_destroycontraband" Width="196" Height="136" Visible="false">
+                            <Panel.Background><DisplayImage image="mission_preview_destroycontraband" /></Panel.Background>
+                        </Panel>
+                        <Panel ID="preview_bountyoffer" Width="196" Height="136" Visible="false">
+                            <Panel.Background><DisplayImage image="mission_preview_bountyoffer" /></Panel.Background>
+                        </Panel>
+                        <Panel ID="preview_assassinate" Width="196" Height="136" Visible="false">
+                            <Panel.Background><DisplayImage image="mission_preview_assassinate" /></Panel.Background>
+                        </Panel>
+                        <Panel ID="preview_retrievemissingitem" Width="196" Height="136" Visible="false">
+                            <Panel.Background><DisplayImage image="mission_preview_retrievemissingitem" /></Panel.Background>
+                        </Panel>
+                    </Panel>
+                </Panel>
+                <Button ID="accept" Style="wirebutton" Text="ACCEPT JOB" X="379" Y="197" Width="160" Height="32" TextSize="13" />
+                <Panel X="21" Y="240" Width="541" Height="150">
+                    <Panel.Border>
+                        <DisplayModel model="news_textframe"/>
+                    </Panel.Border>
+                    <Panel ID="detail_icon" X="4" Y="3" Width="26" Height="26">
+                        <Panel.Background>
+                            <DisplayColor color="black" />
+                        </Panel.Background>
+                    </Panel>
+                    <TextBlock ID="detail_system" X="39" Y="2" Width="320" Height="16" Text="No Mission Selected" TextColor="text" TextShadow="black" TextSize="10" HorizontalAlignment="Left"/>
+                    <TextBlock ID="detail_faction" X="39" Y="15" Width="320" Height="16" Text="" TextColor="text" TextShadow="black" TextSize="10" HorizontalAlignment="Left"/>
+                    <TextBlock ID="detail_reward" X="405" Y="8" Width="120" Height="18" HorizontalAlignment="Right" Text="$ ---" TextColor="text" TextShadow="black" TextSize="11" />
+                    <InfocardDisplay ID="detail_description" X="12" Y="38" Width="505" Height="100" />
+                </Panel>
+            </Panel>
+        </Panel>
+    </Panel>
+</Scene>

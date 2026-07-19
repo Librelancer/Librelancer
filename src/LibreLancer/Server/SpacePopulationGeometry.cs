@@ -53,6 +53,9 @@ public partial class SpacePopulationManager
         }
 
         var candidate = SamplePatrolPathSpawnPoint(candidateInfo, players, maxDistance);
+        if (IsInsideRandomMissionNoSpawnZone(candidate))
+            return false;
+
         var approachTarget = ClosestPointOnSegment(
             candidateInfo.Start,
             candidateInfo.End,
@@ -254,7 +257,9 @@ public partial class SpacePopulationManager
         {
             var playerPosition = GetNearestPlayer(point, players).WorldTransform.Position;
             var distance = Vector3.Distance(point, playerPosition);
-            if (distance + 1 >= PatrolPathSpawnMinDistance && distance <= maxDistance)
+            if (distance + 1 >= PatrolPathSpawnMinDistance &&
+                distance <= maxDistance &&
+                !IsInsideRandomMissionNoSpawnZone(point))
                 return point;
 
             point = MovePatrolSpawnIntoRange(
@@ -317,7 +322,8 @@ public partial class SpacePopulationManager
             var distance = Lerp(minDistance, maxDistance, random.NextSingle());
             var candidate = player.WorldTransform.Position + RandomUnitVector() * distance;
             candidate = ClampSpawnHeight(candidate, player.WorldTransform.Position);
-            if (zone.ContainsPoint(candidate))
+            if (zone.ContainsPoint(candidate) &&
+                !IsInsideRandomMissionNoSpawnZone(candidate))
             {
                 point = candidate;
                 return true;
@@ -332,7 +338,8 @@ public partial class SpacePopulationManager
             var distance = DistanceToNearestPlayer(candidate, players);
             if (distance >= minDistance &&
                 distance <= maxDistance * 1.5f &&
-                zone.ContainsPoint(candidate))
+                zone.ContainsPoint(candidate) &&
+                !IsInsideRandomMissionNoSpawnZone(candidate))
             {
                 point = candidate;
                 return true;

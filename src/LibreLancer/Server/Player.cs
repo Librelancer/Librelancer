@@ -26,6 +26,7 @@ using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.Server.Components;
+using LibreLancer.Server.RandomMissions;
 using LibreLancer.World;
 using LiteNetLib;
 using DisconnectReason = LibreLancer.Net.DisconnectReason;
@@ -69,6 +70,7 @@ namespace LibreLancer.Server
         public Vector3 Position;
         public Quaternion Orientation;
         public NetObjective Objective;
+        public Vector3? ActiveRandomMissionPosition;
 
         public StoryProgress Story = null!;
 
@@ -195,6 +197,14 @@ namespace LibreLancer.Server
 
         public void MissionSuccess()
         {
+            if (Story?.CurrentMission == null)
+            {
+                msnRuntime = null;
+                ActiveRandomMissionPosition = null;
+                SetObjective(new NetObjective(), false);
+                return;
+            }
+
             loadTriggers = [];
             Story.Advance(this);
         }
@@ -217,6 +227,17 @@ namespace LibreLancer.Server
         }
 
         public MissionRuntime? MissionRuntime => msnRuntime;
+
+        public void StartRandomMission(GeneratedRandomMission mission, NetMissionOffer netOffer)
+        {
+            ActiveRandomMissionPosition = mission.TargetPosition;
+            msnRuntime = new MissionRuntime(mission.CreateScript(), this, []);
+            rpcClient.SetActiveRandomMission(netOffer);
+            // Keep the objective in the mission runtime as well as on the client. This
+            // makes the accepted offer a real active mission and lets the normal space
+            // gameplay objective handler build the best-path route on launch.
+            msnRuntime.SetCurrentObjective(GeneratedRandomMission.TargetObjectiveNickname, false);
+        }
 
         public bool AllowFreetimePopulation =>
             Story?.CurrentStory == null ||
@@ -273,6 +294,11 @@ namespace LibreLancer.Server
         void IServerPlayer.StoryNPCSelect(string name, string room, string _base)
         {
             msnRuntime?.StoryNPCSelect(name, room, _base);
+        }
+
+        void IServerPlayer.AcceptMissionOffer(int seed)
+        {
+            Baseside?.AcceptMissionOffer(seed);
         }
 
         void IServerPlayer.ClosedPopup(string id)
@@ -488,7 +514,7 @@ namespace LibreLancer.Server
                         Rank = x.Rank,
                         Rep = x.Rep,
                         ForSale = x.ForSale
-                    }).ToArray(), GetSoldShips().ToArray());
+                    }).ToArray(), GetSoldShips().ToArray(), Baseside.NetMissionOffers);
             }
         }
 

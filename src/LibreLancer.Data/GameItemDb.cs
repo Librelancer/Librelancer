@@ -433,6 +433,7 @@ public class GameItemDb
                     OffersMissions = fac.OffersMissions,
                     Missions = fac.Missions.Select(m => new BaseMissionOffer
                     {
+                        Type = m.Type,
                         MinDiff = m.MinDiff,
                         MaxDiff = m.MaxDiff,
                         Weight = m.Weight,
@@ -609,7 +610,6 @@ public class GameItemDb
             msnVoiceProps[msn.Voice] = msn;
         }
 
-
         foreach (var v in flData.Voices.Voices.Values)
         {
             var p = voiceProps.GetValueOrDefault(v.Nickname) ?? new();
@@ -627,7 +627,6 @@ public class GameItemDb
                 n.Lines[line.Message] = info;
                 n.LinesByHash[FLHash.CreateID(line.Message)] = info;
             }
-
             foreach (var perm in mp.PermutationCounts)
             {
                 var permuted = new uint[perm.Count];
@@ -638,8 +637,6 @@ public class GameItemDb
                 }
                 n.Permutations[FLHash.CreateID(perm.Line)] = permuted;
             }
-
-
             Voices.Add(n);
         }
     }
@@ -745,7 +742,7 @@ public class GameItemDb
         if (Ini.Diff2Money.Graph != null)
         {
             VignetteDifficulty.MoneyGraph.AddRange(Ini.Diff2Money.Graph.Graph);
-            VignetteDifficulty.MoneyGraph.Sort((x,y) => x.Difficulty.CompareTo(y.Difficulty));
+            VignetteDifficulty.MoneyGraph.Sort((x, y) => x.Difficulty.CompareTo(y.Difficulty));
         }
         if (Ini.RankDiff.Graph != null)
         {
@@ -754,13 +751,22 @@ public class GameItemDb
                 var rank = Story.FirstOrDefault(x =>
                     x.Item.Nickname.Equals(item.Rank, StringComparison.OrdinalIgnoreCase));
                 if (rank != null)
-                {
                     VignetteDifficulty.StoryGraph.Add((rank, item.Difficulty));
-                }
             }
-            VignetteDifficulty.StoryGraph.Sort((x,y) => x.Index.Index.CompareTo(y.Index.Index));
+            VignetteDifficulty.StoryGraph.Sort((x, y) => x.Index.Index.CompareTo(y.Index.Index));
         }
         FLLog.Info("RandomMissions", "Inited RandomMission data");
+    }
+
+    public List<RandomMissionOffer> GetRandomMissionOffers(
+        Base sourceBase,
+        float? difficulty = null,
+        string? roomNickname = null,
+        IReadOnlyCollection<string>? allowableZoneTypes = null)
+    {
+        Systems.TryGetValue(sourceBase.System, out var sourceSystem);
+        return RandomMissionOfferBuilder.GetOffers(
+            sourceBase, sourceSystem, difficulty, roomNickname, allowableZoneTypes);
     }
 
     private void InitStory()

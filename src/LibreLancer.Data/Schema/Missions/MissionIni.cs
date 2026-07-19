@@ -33,6 +33,10 @@ public partial class MissionIni
     public List<ObjList> ObjLists = [];
 
     public NPCShipIni? ShipIni;
+    public MissionIni()
+    {
+    }
+
     public MissionIni(string path, FileSystem vfs)
     {
         ParseIni(path, vfs);

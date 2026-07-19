@@ -30,6 +30,11 @@ namespace LibreLancer.Missions
 
         public readonly List<string> InitTriggers = [];
 
+        public MissionScript()
+        {
+            Info = new MissionInfo();
+        }
+
         public PreloadObject[] CalculatePreloads(GameDataManager gameData)
         {
             HashSet<string> ships = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
