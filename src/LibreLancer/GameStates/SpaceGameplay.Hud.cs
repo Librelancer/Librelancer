@@ -657,6 +657,18 @@ partial class SpaceGameplay
 
         public void HotspotPressed(string e)
         {
+            if (e.Equals("Cruise", StringComparison.OrdinalIgnoreCase))
+            {
+                if (GetActiveManeuver() == "Formation")
+                {
+                    return;
+                }
+
+                g.steering.Cruise = !g.steering.Cruise;
+                g.steering.EngineKill = false;
+                return;
+            }
+
             g.ManeuverSelect(e);
         }
 
@@ -668,6 +680,8 @@ partial class SpaceGameplay
         public UiEquippedWeapon[] GetWeapons() => g.weapons.GetUiElements().ToArray();
 
         public bool ToggleWeapon(int index) => g.weapons.ToggleWeaponEnabled(index);
+
+        public bool CruiseEnabled() => g.steering.Cruise;
 
         internal void SetManeuver(string m)
         {

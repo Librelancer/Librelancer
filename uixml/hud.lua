@@ -1,5 +1,7 @@
 require 'ids.lua'
 
+local navbox = require 'navbox'
+
 local function ModelRenderable(model, tint)
 {
 	local renderable = NewObject('UiRenderable')
@@ -10,6 +12,19 @@ local function ModelRenderable(model, tint)
 		
 	renderable.AddElement(modelElem)
 	return renderable
+}
+
+local function ScaledModel(name, xscale, yscale)
+{
+	local source = GetModel(name)
+	local model = NewObject('InterfaceModel')
+	model.Path = source.Path
+	model.X = source.X
+	model.Y = source.Y
+	model.XScale = xscale
+	model.YScale = yscale
+	model.XZPlane = source.XZPlane
+	return model
 }
 
 local function HudButton(modelPath, disabledPath)
@@ -48,6 +63,36 @@ local function HudButton(modelPath, disabledPath)
 	return button
 }
 
+local function CruiseButton()
+{
+	local iconModel = ScaledModel("hud_mnvrwarp.3db", 38.0, 38.0)
+	local button = NewObject('Button')
+	local style = NewObject('ButtonStyle')
+	style.Width = 33
+	style.Height = 31
+	local regAppearance = NewObject('ButtonAppearance')
+	regAppearance.Background = ModelRenderable(iconModel)
+	style.Normal = regAppearance
+	local hoverAppearance = NewObject('ButtonAppearance')
+	hoverAppearance.Background = ModelRenderable(iconModel, GetColor('white_hover'))
+	style.Hover = hoverAppearance
+	local selectedAppearance = NewObject('ButtonAppearance')
+	selectedAppearance.Background = ModelRenderable(iconModel, GetColor('yellow'))
+	style.Selected = selectedAppearance
+	local disabledAppearance = NewObject('ButtonAppearance')
+	disabledAppearance.Background = ModelRenderable(iconModel)
+	style.Disabled = disabledAppearance
+	button.Style = style
+	return button
+}
+
+local function PositionHudActionBox(actionbox, activeButton)
+{
+	actionbox.X = activeButton.X
+	actionbox.Y = navbox.OffsetY + 32
+	actionbox.Visible = true
+}
+
 local function NavbarAction(hotspot)
 {
 	local obj = NavbarButton(hotspot, false)
@@ -83,13 +128,11 @@ local function weapon_list_item(index, name, enabled)
 	return li;
 }
 
-local navbox = require 'navbox'
-
 class hud : hud_Designer
 {
     hud()
     {
-		base();
+        base();
         this.ManeuverButtons = {}
         local btns = Game.GetManeuvers()
         local container = navbox.GetNavbox(this.Widget, btns)
@@ -108,6 +151,10 @@ class hud : hud_Designer
                 activeIDS = index;
             container.AddChild(obj)
         }
+        this.CruiseButton = CruiseButton()
+        this.CruiseButton.OnClick(() => Game.HotspotPressed("Cruise"));
+        this.CruiseBox = this.Widget.GetElement("actionbox1")
+        navbox.PositionAction(this.CruiseButton, this.CruiseBox, 1)
 		local weaplist = this.Elements.weapons_list;
 		this.RefreshWeaponsList();
 		weaplist.OnSelectedIndexChanged(() => {
@@ -373,6 +420,18 @@ class hud : hud_Designer
 	    {
 		    button.Selected = (activeManeuver == action)
 		    button.Enabled = maneuversEnabled.Get(action)
+	    }
+	    if (this.CruiseButton != nil) {
+		    local activeButton = this.ManeuverButtons[activeManeuver]
+		    if (activeManeuver != "Formation" && activeButton != nil) {
+			    PositionHudActionBox(this.CruiseBox, activeButton)
+			    this.CruiseButton.Enabled = true
+			    this.CruiseButton.Selected = Game.CruiseEnabled()
+		    } else {
+			    this.CruiseBox.Visible = false
+			    this.CruiseButton.Enabled = false
+			    this.CruiseButton.Selected = false
+		    }
 	    }
     }
     
