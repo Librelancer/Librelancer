@@ -209,7 +209,7 @@ public partial class CGameSession : IClientPlayer
 
     void IClientPlayer.SetActiveRandomMission(NetMissionOffer offer)
     {
-        activeRandomMissionOffer = offer.Seed > 0 ? offer : null;
+        activeRandomMissionOffer = offer.Id > 0 ? offer : null;
         if (activeRandomMissionOffer.HasValue)
             MissionOffers = [];
     }

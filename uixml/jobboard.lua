@@ -196,7 +196,7 @@ class jobboard : jobboard_Designer with ChildWindow
         e.close.OnClick(() => this.Close());
         e.accept.OnClick(() => {
             if (this.SelectedOffer != nil)
-                Game.AcceptMissionOffer(this.SelectedOffer.Seed);
+                Game.AcceptMissionOffer(this.SelectedOffer.Id);
             this.Close();
         });
         this.Offers = Game.GetMissionOffers();

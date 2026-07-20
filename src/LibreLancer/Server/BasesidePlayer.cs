@@ -6,6 +6,7 @@ using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.Market;
+using LibreLancer.Data.GameData.RandomMissions;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Entities.Character;
@@ -39,24 +40,13 @@ public class BasesidePlayer : IBasesidePlayer
         generatedMissionOffers = true;
         var offers = Player.Game.GameData.Items.GetRandomMissionOffers(BaseData, roomNickname: roomNickname);
         var systemIdsName = Player.Game.GameData.Items.Systems.Get(BaseData.System)?.IdsName ?? 0;
-        var generatedOffers = new List<GeneratedRandomMission>();
+        var generatedOffers = new List<(RandomMissionOffer Offer, GeneratedRandomMission Mission)>();
         var random = Random.Shared;
-        var usedSeeds = new HashSet<int>();
         foreach (var offer in offers)
         {
-            // Freelancer's vignette random seed is a 15-bit value. Use the .NET
-            // generator for the offer seed, then keep the VC6-compatible range.
-            int seed;
-            do
-            {
-                seed = random.Next(1, 0x8000);
-            } while (!usedSeeds.Add(seed));
-
-            if (!RandomMissionGenerator.TryGenerate(Player.Game.GameData, offer, Player.Story?.MissionNum, seed, out var generated) ||
-                generated == null)
+            if (!RandomMissionGenerator.TryGenerate(Player.Game.GameData, offer, Player.Story?.MissionNum, out var generated))
                 continue;
-
-            generatedOffers.Add(generated);
+            generatedOffers.Add((offer, generated));
         }
 
         var selectedOffers = SelectMissionOffers(
@@ -65,7 +55,7 @@ public class BasesidePlayer : IBasesidePlayer
             random);
         generatedMissions.AddRange(selectedOffers);
         NetMissionOffers = selectedOffers
-            .Select((x, i) => CreateNetMissionOffer(i, x, systemIdsName))
+            .Select(x => CreateNetMissionOffer(x, systemIdsName))
             .ToArray();
     }
 
@@ -84,13 +74,13 @@ public class BasesidePlayer : IBasesidePlayer
     }
 
     static List<GeneratedRandomMission> SelectMissionOffers(
-        List<GeneratedRandomMission> candidates,
+        List<(RandomMissionOffer Offer, GeneratedRandomMission Mission)> candidates,
         int count,
         Random random)
     {
         var selected = new List<GeneratedRandomMission>();
         var deferred = new List<GeneratedRandomMission>();
-        var available = new List<GeneratedRandomMission>(candidates);
+        var available = new List<(RandomMissionOffer Offer, GeneratedRandomMission Mission)>(candidates);
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         while (selected.Count < count && available.Count > 0)
@@ -101,16 +91,16 @@ public class BasesidePlayer : IBasesidePlayer
 
             var key = string.Join("|",
                 candidate.Offer.Faction?.Nickname,
-                candidate.MissionType,
-                candidate.HostileFaction.Nickname,
-                MissionLocationKey(candidate));
+                candidate.Mission.MissionType,
+                candidate.Mission.Parameters.HostileFaction.Nickname,
+                MissionLocationKey(candidate.Mission));
             if (seen.Add(key))
             {
-                selected.Add(candidate);
+                selected.Add(candidate.Mission);
             }
             else
             {
-                deferred.Add(candidate);
+                deferred.Add(candidate.Mission);
             }
         }
 
@@ -119,7 +109,7 @@ public class BasesidePlayer : IBasesidePlayer
         return selected;
     }
 
-    static int WeightedPick(List<GeneratedRandomMission> candidates, Random random)
+    static int WeightedPick(List<(RandomMissionOffer Offer, GeneratedRandomMission Mission)> candidates, Random random)
     {
         var total = candidates.Sum(OfferWeight);
         var choice = random.NextSingle() * total;
@@ -133,8 +123,8 @@ public class BasesidePlayer : IBasesidePlayer
         return candidates.Count - 1;
     }
 
-    static float OfferWeight(GeneratedRandomMission mission) =>
-        Math.Max(0.0001f, mission.Offer.Weight);
+    static float OfferWeight((RandomMissionOffer Offer, GeneratedRandomMission Mission) item) =>
+        Math.Max(0.0001f, item.Offer.Weight);
 
     static string MissionLocationKey(GeneratedRandomMission mission)
     {
@@ -146,36 +136,35 @@ public class BasesidePlayer : IBasesidePlayer
             NamedItem n => $"item:{n.Nickname}:{n.IdsName}",
             IdsArgument i => $"ids:{i.Category}:{i.Ids}",
             StringArgument s => $"string:{s.Category}:{s.Value}",
-            _ => $"target-zone:{mission.TargetZone.Nickname}"
+            _ => $"target-zone:{mission.Parameters.TargetZone.Nickname}"
         };
     }
 
-    public void AcceptMissionOffer(int seed)
+    public void AcceptMissionOffer(int id)
     {
-        var offerId = generatedMissions.FindIndex(x => x.Seed == seed);
-        if (offerId < 0)
+        var idx = generatedMissions.FindIndex(x => x.Id == id);
+        if (idx < 0)
         {
             FLLog.Warning("RandomMissions",
-                $"{Player.Name} tried to accept unknown random mission seed {seed}");
+                $"{Player.Name} tried to accept unknown random mission seed {id}");
             return;
         }
-        var mission = generatedMissions[offerId];
-        Player.StartRandomMission(mission, CreateNetMissionOffer(offerId, mission));
+        var mission = generatedMissions[idx];
+        Player.StartRandomMission(mission, CreateNetMissionOffer(mission));
         ClearMissionOffers();
     }
 
-    NetMissionOffer CreateNetMissionOffer(int offerId, GeneratedRandomMission mission, int? systemIdsName = null)
+    NetMissionOffer CreateNetMissionOffer(GeneratedRandomMission mission, int? systemIdsName = null)
     {
         var idsName = systemIdsName ??
-            Player.Game.GameData.Items.Systems.Get(mission.Offer.Base.System)?.IdsName ?? 0;
+            mission.Parameters.DestinationSystem?.IdsName ?? 0;
         return new NetMissionOffer
         {
-            Id = offerId,
-            NpcIdsName = mission.Offer.Npc.IndividualName,
-            FactionIdsName = mission.Offer.Faction?.IdsName ?? 0,
+            Id = mission.Id,
+            //NpcIdsName = mission.Offer.Npc.IndividualName, 0
+            FactionIdsName = mission.Parameters.OfferFaction?.IdsName ?? 0,
             SystemIdsName = idsName,
-            Reward = mission.Reward,
-            Seed = mission.Seed,
+            Reward = mission.Parameters.Reward,
             MissionType = mission.MissionType,
             OfferText = mission.OfferText,
             TargetName = mission.TargetName

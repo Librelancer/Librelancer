@@ -293,9 +293,9 @@ namespace LibreLancer
 
             public NewsArticle[] GetNewsArticles() => articles;
             public NetMissionOffer[] GetMissionOffers() => g.session.MissionOffers;
-            public void AcceptMissionOffer(int seed)
+            public void AcceptMissionOffer(int id)
             {
-                g.session.RpcServer.AcceptMissionOffer(seed);
+                g.session.RpcServer.AcceptMissionOffer(id);
             }
             public bool IsMultiplayer() => g.session.Multiplayer;
             public void HotspotPressed(string item) => g.Hud_OnManeuverSelected(item);

@@ -10,7 +10,6 @@ public struct NetMissionOffer
     public int FactionIdsName;
     public int SystemIdsName;
     public int Reward;
-    public int Seed;
     public string MissionType;
     public string OfferText;
     public string TargetName;
@@ -22,7 +21,6 @@ public struct NetMissionOffer
         message.PutVariableInt32(FactionIdsName);
         message.PutVariableInt32(SystemIdsName);
         message.PutVariableInt32(Reward);
-        message.PutVariableInt32(Seed);
         message.Put(MissionType);
         message.Put(OfferText ?? "");
         message.Put(TargetName ?? "");
@@ -35,7 +33,6 @@ public struct NetMissionOffer
         FactionIdsName = message.GetVariableInt32(),
         SystemIdsName = message.GetVariableInt32(),
         Reward = message.GetVariableInt32(),
-        Seed = message.GetVariableInt32(),
         MissionType = message.GetString()!,
         OfferText = message.GetString()!,
         TargetName = message.GetString()!

@@ -230,7 +230,7 @@ namespace LibreLancer.Server
 
         public void StartRandomMission(GeneratedRandomMission mission, NetMissionOffer netOffer)
         {
-            ActiveRandomMissionPosition = mission.TargetPosition;
+            ActiveRandomMissionPosition = mission.Parameters.TargetPosition;
             msnRuntime = new MissionRuntime(mission.CreateScript(), this, []);
             rpcClient.SetActiveRandomMission(netOffer);
             // Keep the objective in the mission runtime as well as on the client. This
@@ -702,7 +702,7 @@ namespace LibreLancer.Server
         }
 
         public bool SinglePlayer => Client is LocalPacketClient;
-        
+
         public void SendSPUpdate(SPUpdatePacket update) =>
             Client.SendPacket(update, PacketDeliveryMethod.SequenceA);
 

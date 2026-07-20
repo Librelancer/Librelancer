@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using LibreLancer;
+using System.Threading;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.RandomMissions;
@@ -17,28 +18,36 @@ using LibreLancer.Missions.Conditions;
 namespace LibreLancer.Server.RandomMissions;
 
 readonly record struct IdsArgument(char Category, int Ids);
+
 readonly record struct StringArgument(char Category, string Value);
+
+public readonly record struct RandomMissionParameters(
+    Faction OfferFaction,
+    Base OfferBase,
+    int Reward,
+    float Difficulty,
+    Faction HostileFaction,
+    StarSystem DestinationSystem,
+    Vector3 TargetPosition,
+    Zone TargetZone,
+    int Seed);
 
 public sealed class GeneratedRandomMission
 {
+    private static int _id = 16;
+
+    public readonly int Id = Interlocked.Increment(ref _id);
+
     public const string TargetObjectiveNickname = "rm_target";
 
-    public required RandomMissionOffer Offer;
-    public required Faction OfferFaction;
-    public required Faction HostileFaction;
-    public required Zone TargetZone;
-    public required object TargetLocation;
-    public required Vector3 TargetPosition;
-    public required PossibleMission Vignette;
+    public required RandomMissionParameters Parameters;
     public required MissionVariantPath Path;
     public required VignetteStrings Strings;
     public required IReadOnlyDictionary<string, object> Items;
     public required string MissionType;
     public required string OfferText;
     public required string TargetName;
-    public required int Seed;
-    public required float Difficulty;
-    public required int Reward;
+    public required object TargetLocation; // To remove
     public required ShipArch TargetShipArch;
 
     public MissionScript CreateScript()
@@ -61,14 +70,14 @@ public sealed class GeneratedRandomMission
         const string triggerInit = "rm_init";
         const string triggerDestroyed = "rm_target_destroyed";
 
-        var script = CreateBaseScript(TargetZone.IdsName, targetObjective);
+        var script = CreateBaseScript(Parameters.TargetZone.IdsName, targetObjective);
         AddNpc(script, "rm_target_npc");
-        AddShip(script, targetShip, "rm_target_npc", TargetPosition);
+        AddShip(script, targetShip, "rm_target_npc", Parameters.TargetPosition);
         AddTrigger(script, triggerInit, true,
             [new Cnd_SpaceEnter()],
             [
                 new Act_SetNNObj { Objective = targetObjective, History = true },
-                new Act_SpawnShip { Ship = targetShip, Position = TargetPosition },
+                new Act_SpawnShip { Ship = targetShip, Position = Parameters.TargetPosition },
                 HostileToPlayer(targetShip),
                 new Act_ActTrig { Trigger = triggerDestroyed }
             ]);
@@ -102,6 +111,7 @@ public sealed class GeneratedRandomMission
             initActions.Add(new Act_SpawnShip { Ship = ship.Nickname, Position = ship.Position });
             initActions.Add(HostileToPlayer(ship.Nickname));
         }
+
         AddTrigger(script, triggerInit, true, [new Cnd_SpaceEnter()], initActions);
         AddTrigger(script, triggerDestroyed, false,
             [Destroyed(groupLabel, shipCount)],
@@ -117,7 +127,7 @@ public sealed class GeneratedRandomMission
             {
                 MissionTitle = titleIds,
                 MissionOffer = 0,
-                Reward = Reward
+                Reward = Parameters.Reward
             }
         };
         script.Objectives[objective] = new NNObjective
@@ -125,10 +135,10 @@ public sealed class GeneratedRandomMission
             Nickname = objective,
             State = "ACTIVE",
             Type = NNObjectiveType.navmarker,
-            System = Offer.Base.System!,
+            System = Parameters.DestinationSystem.Nickname,
             NameIds = titleIds,
-            ExplanationIds = TargetZone.IdsInfo,
-            Position = TargetPosition
+            ExplanationIds = Parameters.TargetZone.IdsInfo,
+            Position = Parameters.TargetPosition
         };
         return script;
     }
@@ -137,7 +147,7 @@ public sealed class GeneratedRandomMission
         script.NPCs[nickname] = new ScriptNPC
         {
             Nickname = nickname,
-            Affiliation = HostileFaction,
+            Affiliation = Parameters.HostileFaction,
             IndividualName = 0,
             NpcShipArch = TargetShipArch.Nickname
         };
@@ -150,7 +160,7 @@ public sealed class GeneratedRandomMission
         script.Ships[nickname] = new ScriptShip
         {
             Nickname = nickname,
-            System = Offer.Base.System,
+            System = Parameters.DestinationSystem.Nickname,
             NPC = script.NPCs[npc],
             Labels = labels,
             Position = position,
@@ -173,7 +183,7 @@ public sealed class GeneratedRandomMission
     ScriptedAction[] CompleteMissionActions(string objective) =>
     [
         new Act_SetNNState { Objective = objective, Complete = true },
-        new Act_AdjAcct { Amount = Reward },
+        new Act_AdjAcct { Amount = Parameters.Reward },
         new Act_PlaySoundEffect { Effect = "ui_receive_money" },
         new Act_PlayMusic { Motif = "music_victory", Fade = 3, Unknown = true },
         new Act_ChangeState { Succeed = true }
@@ -186,7 +196,7 @@ public sealed class GeneratedRandomMission
         new() { Label = label, Count = count, Kind = kind };
 
     int GetDestroyShipCount() =>
-        Math.Clamp(2 + (int)MathF.Ceiling(Difficulty), 3, 5);
+        Math.Clamp(2 + (int)MathF.Ceiling(Parameters.Difficulty), 3, 5);
 
     Vector3 DestroyShipPosition(int index)
     {
@@ -198,7 +208,7 @@ public sealed class GeneratedRandomMission
             new Vector3(0, 150, -300),
             new Vector3(0, -150, 300)
         ];
-        return TargetPosition + offsets[index % offsets.Length];
+        return Parameters.TargetPosition + offsets[index % offsets.Length];
     }
 
     int TargetLocationIds() => TargetLocation switch
@@ -208,9 +218,8 @@ public sealed class GeneratedRandomMission
         SystemObject o => o.IdsName,
         NamedItem n => n.IdsName,
         IdsArgument i => i.Ids,
-        _ => TargetZone.IdsName
+        _ => Parameters.TargetZone.IdsName
     };
-
 }
 
 public static class RandomMissionGenerator
@@ -219,92 +228,114 @@ public static class RandomMissionGenerator
         GameDataManager gameData,
         RandomMissionOffer offer,
         int? missionNum,
-        int seed,
-        out GeneratedRandomMission? mission)
+        [NotNullWhen(true)]out GeneratedRandomMission? mission)
     {
         mission = null;
         if (offer.Faction is not { Properties: not null } offerFaction)
             return false;
-        if (offer.Base.System == null ||
-            gameData.Items.Systems.Get(offer.Base.System) is not { } system)
+        if (!gameData.Items.Systems.TryGetValue(offer.Base.System, out var system))
             return false;
 
-        var random = new VC6Random(seed);
-        foreach (var zone in RandomZoneOrder(offer.EligibleZones, random))
+        var selectRandom = new VC6Random(new Random().Next(1, 0x8000));
+        foreach (var zone in RandomZoneOrder(offer.EligibleZones, selectRandom))
         {
             var zoneType = GetAllowedZoneType(zone);
             if (zoneType == AllowedZoneType.None)
                 continue;
 
-            var hostileFaction = ChooseHostileFaction(gameData.Items, system, offerFaction, zone, random);
+            var hostileFaction = ChooseHostileFaction(gameData.Items, system, offerFaction, zone, selectRandom);
             if (hostileFaction?.Properties == null)
                 continue;
-            var targetShipArch = ChooseTargetShip(hostileFaction);
-            if (targetShipArch == null)
-                continue;
 
-            if (!TryGetDifficulty(gameData, missionNum, offer.Mission.MinDiff, offer.Mission.MaxDiff, random,
+            if (!TryGetDifficulty(gameData, missionNum, offer.Mission.MinDiff, offer.Mission.MaxDiff, selectRandom,
                     out float difficulty))
             {
                 continue;
             }
 
+            int seed = selectRandom.Next();
 
-            var leaves = VignetteWalker.Enumerate(
-                gameData.Items.VignetteTree,
-                new VignetteGraphParameters(offerFaction, hostileFaction, difficulty, zoneType));
-            if (leaves.Count == 0)
+            var p = new RandomMissionParameters(
+                offer.Faction,
+                offer.Base,
+                CalculateReward(gameData, difficulty),
+                difficulty,
+                hostileFaction,
+                system,
+                zone.Position,
+                zone,
+                seed);
+            if (!TryGenerate(gameData, p, out mission))
                 continue;
 
-            var selectedLeaf = random.Select(leaves, x => x.EndNode.Weight);
-            var selectedPath = random.Select(selectedLeaf.Paths, x => (float)x.Probability);
-            var strings = selectedPath.GetStrings(random);
-            var missionType = DetermineMissionType(selectedPath);
-            var targetName = CreateTargetName(gameData, hostileFaction, random);
-            var reward = CalculateReward(gameData, difficulty);
-            var bigSolar = ChooseNamedSystemObject(system, zone, null);
-            var otherSolar = ChooseNamedSystemObject(system, zone, bigSolar);
-            var criticalLoot = ChooseCriticalLoot(offer.Base);
-            var targetZoneArgument = ChooseTargetZoneArgument(system, zone);
-            var items = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["MISSION_DIFFICULTY"] = (int)MathF.Round(difficulty),
-                ["REWARD_MONEY"] = reward,
-                ["Offer_group"] = offerFaction,
-                ["Hostile_group"] = hostileFaction,
-                ["TARGET_ZONE"] = targetZoneArgument,
-                ["TARGET_FULL_NAME"] = targetName,
-                ["OFFER_BASE"] = offer.Base,
-                ["Big_solar"] = bigSolar != null ? (object)bigSolar : new IdsArgument('I', zone.IdsName),
-                ["OTHER_SOLAR"] = otherSolar != null ? (object)otherSolar :
-                    bigSolar != null ? (object)bigSolar : new IdsArgument('I', zone.IdsName),
-                ["CRITICAL_LOOT"] = criticalLoot != null ? (object)criticalLoot : new IdsArgument('I', zone.IdsName)
-            };
-
-            mission = new GeneratedRandomMission
-            {
-                Offer = offer,
-                OfferFaction = offerFaction,
-                HostileFaction = hostileFaction,
-                TargetZone = zone,
-                TargetLocation = targetZoneArgument,
-                TargetPosition = zone.Position,
-                Vignette = selectedLeaf,
-                Path = selectedPath,
-                Strings = strings,
-                Items = items,
-                MissionType = missionType,
-                OfferText = FormatOfferText(gameData, strings, items),
-                TargetName = targetName,
-                Seed = seed,
-                Difficulty = difficulty,
-                Reward = reward,
-                TargetShipArch = targetShipArch
-            };
             return true;
         }
 
         return false;
+    }
+
+    public static bool TryGenerate(
+        GameDataManager gameData,
+        RandomMissionParameters parameters,
+        [NotNullWhen(true)]out GeneratedRandomMission? mission)
+    {
+        var zone = parameters.TargetZone;
+        var zoneType = GetAllowedZoneType(parameters.TargetZone);
+
+        var random = new VC6Random(parameters.Seed);
+        var leaves = VignetteWalker.Enumerate(
+            gameData.Items.VignetteTree,
+            new VignetteGraphParameters(parameters.OfferFaction, parameters.HostileFaction, parameters.Difficulty,
+                zoneType));
+        if (leaves.Count == 0)
+        {
+            mission = null;
+            return false;
+        }
+
+        var selectedLeaf = random.Select(leaves, x => x.EndNode.Weight);
+        var selectedPath = random.Select(selectedLeaf.Paths, x => (float)x.Probability);
+        var targetShipArch = ChooseTargetShip(parameters.HostileFaction);
+        if (targetShipArch == null)
+        {
+            mission = null;
+            return false;
+        }
+        var strings = selectedPath.GetStrings(random);
+        var missionType = DetermineMissionType(selectedPath);
+        var targetName = CreateTargetName(gameData, parameters.HostileFaction, random);
+        var bigSolar = ChooseNamedSystemObject(parameters.DestinationSystem, parameters.TargetZone, null);
+        var otherSolar = ChooseNamedSystemObject(parameters.DestinationSystem, parameters.TargetZone, bigSolar);
+        var criticalLoot = ChooseCriticalLoot(parameters.OfferBase);
+        var targetZoneArgument = ChooseTargetZoneArgument(parameters.DestinationSystem, parameters.TargetZone);
+        var items = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["MISSION_DIFFICULTY"] = (int)MathF.Round(parameters.Difficulty),
+            ["REWARD_MONEY"] = parameters.Reward,
+            ["Offer_group"] = parameters.OfferFaction,
+            ["Hostile_group"] = parameters.HostileFaction,
+            ["TARGET_ZONE"] = targetZoneArgument,
+            ["TARGET_FULL_NAME"] = targetName,
+            ["OFFER_BASE"] = parameters.OfferBase,
+            ["Big_solar"] = bigSolar != null ? (object)bigSolar : new IdsArgument('I', zone.IdsName),
+            ["OTHER_SOLAR"] = otherSolar != null ? (object)otherSolar :
+                bigSolar != null ? (object)bigSolar : new IdsArgument('I', zone.IdsName),
+            ["CRITICAL_LOOT"] = criticalLoot != null ? (object)criticalLoot : new IdsArgument('I', zone.IdsName)
+        };
+
+        mission = new GeneratedRandomMission
+        {
+            Parameters = parameters,
+            Path = selectedPath,
+            Strings = strings,
+            Items = items,
+            MissionType = missionType,
+            OfferText = FormatOfferText(gameData, strings, items),
+            TargetName = targetName,
+            TargetShipArch = targetShipArch,
+            TargetLocation = targetZoneArgument
+        };
+        return true;
     }
 
     internal static string DetermineMissionType(MissionVariantPath path)
@@ -344,6 +375,7 @@ public static class RandomMissionGenerator
             var j = random.Next() % (i + 1);
             (output[i], output[j]) = (output[j], output[i]);
         }
+
         return output;
     }
 
@@ -364,17 +396,20 @@ public static class RandomMissionGenerator
             if (asteroid.Zone is { IdsName: > 0 } zone && zone.ContainsPoint(position))
                 fieldZones.Add(zone);
         }
+
         foreach (var nebula in system.Nebulae)
         {
             if (nebula.Zone is { IdsName: > 0 } zone && zone.ContainsPoint(position))
                 fieldZones.Add(zone);
         }
+
         foreach (var zone in system.Zones)
         {
             if (zone.IdsName <= 0 || !IsNamedFieldZone(zone) || !zone.ContainsPoint(position))
                 continue;
             fieldZones.Add(zone);
         }
+
         if (fieldZones.Count == 0)
             return null;
         fieldZones.Sort((x, y) =>
@@ -415,6 +450,7 @@ public static class RandomMissionGenerator
                 bestDistance = distance;
             }
         }
+
         return best;
     }
 
@@ -446,6 +482,7 @@ public static class RandomMissionGenerator
                 {
                     lowerBound = Math.Max(lowerBound, minDiff);
                 }
+
                 difficulty = lowerBound + (upperBound - lowerBound) * random.NextCosWeightedFloat();
                 return true;
             }
@@ -454,6 +491,7 @@ public static class RandomMissionGenerator
             // We aren't allowed to have a mission at this difficulty
             return false;
         }
+
         // No restriction on mission difficulty (multiplayer).
         difficulty = minDiff + (maxDiff - minDiff) * random.NextCosWeightedFloat();
         return true;
@@ -505,6 +543,7 @@ public static class RandomMissionGenerator
                 }
             }
         }
+
         return candidates.Count > 0 ? random.Select(candidates, x => x.Weight).Faction : null;
     }
 
@@ -576,12 +615,14 @@ public static class RandomMissionGenerator
                 continue;
             output.Add(Format(gameData, offerText.Ids, offerText.Args, items));
         }
+
         if (output.Count > 0)
             return string.Join("", output);
         return "Mission generated from vignette data.";
     }
 
-    internal static string Format(GameDataManager gameData, int ids, string[] args, IReadOnlyDictionary<string, object> items)
+    internal static string Format(GameDataManager gameData, int ids, string[] args,
+        IReadOnlyDictionary<string, object> items)
     {
         List<IdsFormatItem> resolvedArgs = [];
         int indexS = 0;
@@ -614,13 +655,16 @@ public static class RandomMissionGenerator
                     resolvedArgs.Add(new('I', indexI++, n.IdsName));
                     break;
                 case IdsArgument i:
-                    resolvedArgs.Add(new(i.Category, NextIndex(i.Category, ref indexS, ref indexD, ref indexF, ref indexZ, ref indexI), i.Ids));
+                    resolvedArgs.Add(new(i.Category,
+                        NextIndex(i.Category, ref indexS, ref indexD, ref indexF, ref indexZ, ref indexI), i.Ids));
                     break;
                 case StringArgument s:
-                    resolvedArgs.Add(new(s.Category, NextIndex(s.Category, ref indexS, ref indexD, ref indexF, ref indexZ, ref indexI), s.Value));
+                    resolvedArgs.Add(new(s.Category,
+                        NextIndex(s.Category, ref indexS, ref indexD, ref indexF, ref indexZ, ref indexI), s.Value));
                     break;
             }
         }
+
         return IdsFormatting.Format(gameData.GetString(ids),
             gameData.Items.Ini.Infocards, resolvedArgs.ToArray());
     }
@@ -643,5 +687,4 @@ public static class RandomMissionGenerator
                 return indexI++;
         }
     }
-
 }
