@@ -86,7 +86,7 @@ public class VignetteTester : GameContentTab
         ImGui.Text("Hostile Group: ");
         ImGui.SameLine();
         data.Factions.Draw("##hostilegroup", ref hostileFaction);
-        ImGui.InputFloat("Difficulty", ref difficulty);
+        ImGui.InputFloat("Difficulty", ref difficulty, 0, 0, "%.7f");
         ImGui.InputInt("Seed", ref seed);
 
 
