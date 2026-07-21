@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
 using System.Linq;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.RandomMissions;
@@ -10,7 +9,12 @@ namespace LibreLancer.Server.RandomMissions;
 
 public record PossibleMission(VignetteData EndNode, List<MissionVariantPath> Paths);
 
-public record MissionVariantPath(List<VignetteTreeNode> Nodes, VignetteDecisions Decisions, double Probability)
+
+public record MissionVariantPath(
+    List<bool> Branches,
+    List<VignetteTreeNode> Nodes,
+    VignetteDecisions Decisions,
+    double Probability)
 {
     public VignetteStrings GetStrings(VC6Random random)
     {
@@ -76,6 +80,8 @@ public static class VignetteWalker
 
         Traverse(
             tree.StartNode,
+            null,
+            [],
             [],
             new(),
             1.0,
@@ -87,6 +93,8 @@ public static class VignetteWalker
 
     static void Traverse(
         VignetteTreeNode node,
+        bool? wasLeft,
+        List<bool> branches,
         List<VignetteTreeNode> visited,
         VignetteDecisions decisions,
         double probability,
@@ -95,6 +103,10 @@ public static class VignetteWalker
     {
         if (IsExcluded(node, p))
             return;
+
+        if (wasLeft != null)
+            branches.Add(wasLeft.Value);
+
 
         visited.Add(node);
 
@@ -112,6 +124,8 @@ public static class VignetteWalker
 
                 Traverse(
                    defPath,
+                   true,
+                   new(branches),
                     new List<VignetteTreeNode>(visited),
                     decisions,
                     probability,
@@ -131,12 +145,14 @@ public static class VignetteWalker
                         output.Add(leaf);
                     }
 
-                    leaf.Paths.Add(new MissionVariantPath(new(visited), decisions, probability));
+                    leaf.Paths.Add(new MissionVariantPath(new(branches), new(visited), decisions, probability));
                     return;
                 }
 
                 Traverse(
                     defPath,
+                    true,
+                    new(branches),
                     new List<VignetteTreeNode>(visited),
                     decisions,
                     probability,
@@ -147,38 +163,27 @@ public static class VignetteWalker
 
             case VignetteDecision decision:
             {
-                if (defPath == null)
-                    return;
-
-                if (left != null && right != null)
+                if (left != null)
                 {
                     Traverse(
                         left,
+                        true,
+                        new(branches),
                         new List<VignetteTreeNode>(visited),
                         decisions.With(decision.Nickname, true),
                         probability * 0.5,
                         output,
                         p);
-
+                }
+                if (right != null)
+                {
                     Traverse(
                         right,
+                        right == left,
+                        new(branches),
                         new List<VignetteTreeNode>(visited),
                         decisions.With(decision.Nickname, false),
                         probability * 0.5,
-                        output,
-                        p);
-                }
-                else
-                {
-                    // A filtered-out branch must not change the meaning of the
-                    // remaining branch. Left is the true branch and right is
-                    // the false branch, even when only one is eligible.
-                    var decisionValue = left != null;
-                    Traverse(
-                        defPath,
-                        new List<VignetteTreeNode>(visited),
-                        decisions.With(decision.Nickname, decisionValue),
-                        probability,
                         output,
                         p);
                 }

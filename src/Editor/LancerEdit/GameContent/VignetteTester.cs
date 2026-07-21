@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using ImGuiNET;
+using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.RandomMissions;
@@ -24,10 +25,7 @@ public class VignetteTester : GameContentTab
     private Faction? offerFaction = null;
     private Faction? hostileFaction = null;
 
-
-    private string? text = null;
-    private string? jsonText = null;
-    private int seed = 4819;
+    private int seed = 9827;
 
 
     public VignetteTester(GameDataContext data, MainWindow win)
@@ -72,10 +70,16 @@ public class VignetteTester : GameContentTab
     }
 
 
-    private float difficulty = 0;
+    private float difficulty = 0.0810805f;
+
+    private string path = "";
+    private AllowedZoneType zoneType = AllowedZoneType.Open;
 
 
-    public override void Draw(double elapsed)
+    private static char[] pathChars = ['t', 'T', 'f', 'F'];
+    static char? PathFilter(char ch) => pathChars.Contains(ch) ? ch : null;
+
+    public override unsafe void Draw(double elapsed)
     {
         ImGui.Text("Vignette Tester");
         ImGui.AlignTextToFramePadding();
@@ -88,24 +92,48 @@ public class VignetteTester : GameContentTab
         data.Factions.Draw("##hostilegroup", ref hostileFaction);
         ImGui.InputFloat("Difficulty", ref difficulty, 0, 0, "%.7f");
         ImGui.InputInt("Seed", ref seed);
+        if (ImGui.BeginCombo("ZoneType", zoneType.ToString()))
+        {
+            if (ImGui.Selectable("Open", zoneType == AllowedZoneType.Open))
+                zoneType = AllowedZoneType.Open;
+            if (ImGui.Selectable("Field", zoneType == AllowedZoneType.Field))
+                zoneType = AllowedZoneType.Field;
+            if (ImGui.Selectable("Exclusion", zoneType == AllowedZoneType.Exclusion))
+                zoneType = AllowedZoneType.Exclusion;
+            ImGui.EndCombo();
+        }
 
-
-        if (ImGuiExt.Button("Go", offerFaction != null && hostileFaction != null))
+        if (ImGuiExt.Button("Generate Mission", offerFaction != null && hostileFaction != null))
         {
             var random = new VC6Random(seed);
 
-            var leaves = VignetteWalker.Enumerate(data.GameData.Items.VignetteTree,
-                new(offerFaction!, hostileFaction!, difficulty, AllowedZoneType.Open));
+            var vignetteParameters = new VignetteGraphParameters(offerFaction!, hostileFaction!, difficulty, zoneType);
+            var leaves = VignetteWalker.Enumerate(data.GameData.Items.VignetteTree,vignetteParameters);
 
+            var sb = new StringBuilder();
             if (leaves.Count == 0)
             {
-                text = "No missions generated for parameters.";
+                win.Popups.MessageBox("Error", "No possible missions for config.");
             }
             else
             {
-                var selectedLeaf = random.Select(leaves, x => x.EndNode.Weight);
-                var selectedPath = random.Select(selectedLeaf.Paths, x => (float)x.Probability);
+                sb.AppendLine($"Generation for: {vignetteParameters}");
+                foreach (var l in leaves)
+                {
+                    sb.AppendLine($"leaf: {l.EndNode.Id} {l.EndNode.Weight}");
+                }
 
+                var selectedLeaf = random.Select(leaves, x => x.EndNode.Weight);
+                sb.AppendLine($"selected leaf: {selectedLeaf.EndNode.Id}");
+                foreach (var path in selectedLeaf.Paths)
+                {
+                    sb.AppendLine($"Path: {path.Probability:F7}");
+                    sb.AppendLine(string.Join("", path.Branches.Select(x => x ? 'T' : 'F')));
+                }
+
+                var selectedPath = random.Select(selectedLeaf.Paths, x => (float)x.Probability);
+                sb.AppendLine();
+                sb.AppendLine($"selected path: {string.Join("", selectedPath.Branches.Select(x => x ? 'T' : 'F'))}");
                 // Assume assassinate mission.
                 random.Next(); //unknown
                 random.Next(); //unknown
@@ -117,7 +145,7 @@ public class VignetteTester : GameContentTab
 
                 var info = selectedPath.GetStrings(random);
 
-                jsonText = JSON.Serialize(selectedPath.Decisions);
+                var jsonText = JSON.Serialize(selectedPath.Decisions);
 
                 Dictionary<string, object> items = new(StringComparer.OrdinalIgnoreCase);
                 items["MISSION_DIFFICULTY"] = 5;
@@ -128,7 +156,6 @@ public class VignetteTester : GameContentTab
                     data.GameData.Items.Systems.Get("li01")!.ZoneDict["Zone_Li01_Detroit_debris_001"];
                 items["TARGET_FULL_NAME"] =
                     $"{data.GameData.GetString(firstNameMale)} {data.GameData.GetString(lastName)}";
-                var sb = new StringBuilder();
                 sb.AppendLine("Reward Text:");
                 sb.AppendLine(Format(info.RewardText.Ids, info.RewardText.Arguments, items));
                 sb.AppendLine("Failure Text:");
@@ -155,22 +182,29 @@ public class VignetteTester : GameContentTab
                 }
 
                 sb.AppendLine();
-                text = sb.ToString();
+                sb.AppendLine("decisions:");
+                sb.Append(jsonText);
+                win.TextWindows.Add(new TextDisplayWindow(sb.ToString(), "vignette.txt", win));
             }
         }
 
-        if (!string.IsNullOrEmpty(text))
-        {
-            if (ImGui.Button("Copy Resolved Text"))
-                win.SetClipboardText(text);
-            ImGui.TextWrapped(text);
-        }
+        ImGui.Separator();
 
-        if (!string.IsNullOrWhiteSpace(jsonText))
+        Controls.InputTextFilter("Path (T/F)", ref path, PathFilter);
+
+        if (ImGui.Button("Walk Path"))
         {
-            if (ImGui.Button("Copy JSON"))
-                win.SetClipboardText(jsonText);
-            ImGui.Text(jsonText);
+            var sb = new StringBuilder();
+            sb.AppendLine($"Path Walked: {path.ToUpper()}");
+            var bools = path.Select(x => x == 't' || x == 'T').ToArray();
+            VignetteTreeNode tN = data.GameData.Items.VignetteTree.StartNode;
+            sb.AppendLine(tN.ToString());
+            foreach (var b in bools)
+            {
+                tN = b ? tN.Left : tN.Right;
+                sb.AppendLine($"{(b ? 'T' : 'F')} -> {tN}");
+            }
+            win.TextWindows.Add(new TextDisplayWindow(sb.ToString(), "vignette-path.txt", win));
         }
     }
 }

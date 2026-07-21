@@ -31,7 +31,7 @@ public class VignetteTree(VignetteTreeNode start)
             VignetteTreeNode run = null!;
             if (n is DecisionNode dec)
             {
-                run = new VignetteDecision(dec.Nickname ?? "null");
+                run = new VignetteDecision(n.NodeId, dec.Nickname ?? "null");
             }
             else if (n is DataNode dat)
             {
@@ -47,9 +47,8 @@ public class VignetteTree(VignetteTreeNode start)
                         }
                     }
                 }
-                run = new VignetteData()
+                run = new VignetteData(n.NodeId)
                 {
-                    Id = n.NodeId,
                     OfferGroups = IsGroupExclusions(dat.OfferGroup) ? new(dat.OfferGroup.Select(FLHash.CreateID)) : null,
                     HostileGroups = IsGroupExclusions(dat.HostileGroup) ? new(dat.HostileGroup.Select(FLHash.CreateID)) : null,
                     Weight = dat.Weight ?? 1,
@@ -65,7 +64,7 @@ public class VignetteTree(VignetteTreeNode start)
             }
             else if (n is DocumentationNode doc)
             {
-                run = new VignetteDebug(doc.Documentation ?? doc.NodeId.ToString());
+                run = new VignetteDebug(n.NodeId, doc.Documentation ?? doc.NodeId.ToString());
             }
             else
             {

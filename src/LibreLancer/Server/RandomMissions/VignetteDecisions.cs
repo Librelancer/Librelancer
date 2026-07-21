@@ -43,7 +43,6 @@ public struct VignetteDecisions
         return n;
     }
 
-
     void SetDecision(string decision, bool value)
     {
         switch (decision.ToLowerInvariant())
