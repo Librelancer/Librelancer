@@ -4,12 +4,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
+using LibreLancer.ContentEdit;
 using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Graphics;
 using LibreLancer.Render.Materials;
 using LibreLancer.Resources;
+using LibreLancer.Utf;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Mat;
 namespace LancerEdit
@@ -46,16 +49,18 @@ namespace LancerEdit
     }
 	static class ResourceDetection
 	{
-		public static void DetectDrawable(string name, IDrawable drawable, ResourceManager res, List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
+		static readonly Dictionary<string, string> materialLibraryHints = new(StringComparer.OrdinalIgnoreCase);
+
+		public static void DetectDrawable(string name, IDrawable drawable, ResourceManager res, List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs, string sourcePath = null)
 		{
 			if (drawable is CmpFile)
 			{
 				var cmp = (CmpFile)drawable;
-				foreach (var part in cmp.ModelParts()) DetectResourcesModel(part.Model, name + ", " + part.Model.Path, res, missing, matrefs, texrefs);
+				foreach (var part in cmp.ModelParts()) DetectResourcesModel(part.Model, name + ", " + part.Model.Path, res, missing, matrefs, texrefs, sourcePath);
 			}
 			if (drawable is ModelFile)
 			{
-				DetectResourcesModel((ModelFile)drawable, name, res, missing, matrefs, texrefs);
+				DetectResourcesModel((ModelFile)drawable, name, res, missing, matrefs, texrefs, sourcePath);
 			}
 			if (drawable is SphFile)
 			{
@@ -77,26 +82,103 @@ namespace LancerEdit
 				}
 			}
 		}
-		static void DetectResourcesModel(ModelFile mdl, string mdlname, ResourceManager res, List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
+		static void DetectResourcesModel(ModelFile mdl, string mdlname, ResourceManager res, List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs, string sourcePath)
         {
             if (mdl.Levels.Length <= 0) return;
 			var lvl = mdl.Levels[0];
             var msh = res.FindMesh(lvl.MeshCrc);
-            if (msh == null) return;
+			if (msh == null) return;
 			for (int i = lvl.StartMesh; i < (lvl.StartMesh + lvl.MeshCount); i++)
             {
-                var mat = res.FindMaterial(msh.Meshes[i].MaterialCrc);
+                var materialCrc = msh.Meshes[i].MaterialCrc;
+                if (materialCrc == 0)
+                    continue;
+                var mat = res.FindMaterial(materialCrc);
 				if (mat == null)
 				{
-					var str = "Material: 0x" + msh.Meshes[i].MaterialCrc.ToString("X");
-					if (!HasMissing(missing, str)) missing.Add(new MissingReference(str, string.Format("{0}, VMesh(0x{1:X}) #{2}", mdlname, lvl.MeshCrc, i)));
+					var str = "Material: 0x" + materialCrc.ToString("X");
+					if (!HasMissing(missing, str)) missing.Add(new MissingReference(
+						str,
+						string.Format("{0}, VMesh(0x{1:X}) #{2}", mdlname, lvl.MeshCrc, i),
+						FindMaterialLibraryHint(sourcePath, materialCrc)));
 				}
 				else
 				{
-					if (!matrefs.Contains(msh.Meshes[i].MaterialCrc)) matrefs.Add(msh.Meshes[i].MaterialCrc);
+					if (!matrefs.Contains(materialCrc)) matrefs.Add(materialCrc);
 					DoMaterialRefs(mat, res, missing, texrefs, string.Format(" - {0} VMesh(0x{1:X}) #{2}", mdlname, lvl.MeshCrc, i));
 				}
 			}
+		}
+
+		static string FindMaterialLibraryHint(string sourcePath, uint materialCrc)
+		{
+			if (string.IsNullOrWhiteSpace(sourcePath))
+				return null;
+
+			var cacheKey = $"{sourcePath}|{materialCrc:X}";
+			if (materialLibraryHints.TryGetValue(cacheKey, out var cached))
+				return cached;
+
+			var hint = BuildMaterialLibraryHint(sourcePath, materialCrc);
+			materialLibraryHints[cacheKey] = hint;
+			return hint;
+		}
+
+		static string BuildMaterialLibraryHint(string sourcePath, uint materialCrc)
+		{
+			try
+			{
+				if (!File.Exists(sourcePath))
+					return null;
+
+				var directory = Path.GetDirectoryName(sourcePath);
+				if (string.IsNullOrEmpty(directory))
+					return null;
+
+				foreach (var matPath in Directory.EnumerateFiles(directory, "*.mat"))
+				{
+					if (MatFileContainsMaterial(matPath, materialCrc))
+					{
+						var rel = ToDataRelativePath(matPath);
+						return $"Recommended fix: add material_library = {rel}";
+					}
+				}
+
+				var expected = Path.ChangeExtension(sourcePath, ".mat");
+				var expectedRel = ToDataRelativePath(expected);
+				var existsText = File.Exists(expected)
+					? "The same-name MAT exists but does not contain this CRC."
+					: "No adjacent MAT containing this CRC was found.";
+				return $"{existsText} Check material_library. Candidate: material_library = {expectedRel}";
+			}
+			catch (Exception ex)
+			{
+				return $"Could not inspect adjacent MAT files: {ex.Message}";
+			}
+		}
+
+		static bool MatFileContainsMaterial(string matPath, uint materialCrc)
+		{
+			try
+			{
+				var utf = new EditableUtf(matPath);
+				UtfLoader.LoadResourceNode(utf.Export(), null, out var mat, out _, out _);
+				return mat?.Materials.ContainsKey(materialCrc) == true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+		static string ToDataRelativePath(string path)
+		{
+			var normalized = path.Replace('/', '\\');
+			var marker = "\\DATA\\";
+			var idx = normalized.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+			if (idx >= 0)
+				return normalized.Substring(idx + marker.Length);
+			return Path.GetFileName(path);
 		}
 
 		static void DoMaterialRefs(Material m, ResourceManager res, List<MissingReference> missing, List<TextureReference> texrefs, string refstr)

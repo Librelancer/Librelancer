@@ -105,6 +105,11 @@ namespace LancerEdit
         private VerticalTabLayout layout;
 
         public ModelViewer(string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs)
+            : this(name, drawable, win, parent, hprefs, null)
+        {
+        }
+
+        public ModelViewer(string name, IDrawable drawable, MainWindow win, UtfTab parent, ModelNodes hprefs, ResourceManager resources)
         {
             blenderEnabled = Blender.BlenderPathValid(win.Config.BlenderPath);
             selectedCam = win.Config.DefaultCameraMode;
@@ -116,7 +121,7 @@ namespace LancerEdit
             this.TabColor = parent.TabColor;
             this.hprefs = hprefs;
             rstate = win.RenderContext;
-            res = parent.DetachedResources ?? win.Resources;
+            res = resources ?? parent.DetachedResources ?? win.Resources;
             buffer = win.Commands;
             _window = win;
             SaveStrategy = parent.SaveStrategy;
@@ -1254,7 +1259,7 @@ namespace LancerEdit
 
         public override void DetectResources(List<MissingReference> missing, List<uint> matrefs, List<TextureReference> texrefs)
         {
-            ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs);
+            ResourceDetection.DetectDrawable(Name, drawable, res, missing, matrefs, texrefs, parent?.FilePath);
         }
 
 

@@ -663,6 +663,14 @@ namespace LancerEdit
                         AddTab(new MissionScriptEditorTab(OpenDataContext, this, x));
                     }, AppFilters.IniFilters, GetDataPath());
                 }
+                if (Theme.IconMenuItem(Icons.Images, "3DB Icon Browser", OpenDataContext != null))
+                {
+                    var fd = TabControl.Tabs.FirstOrDefault(x => x is ThreeDbIconBrowserTab);
+                    if (fd != null)
+                        TabControl.SetSelected(fd);
+                    else
+                        AddTab(new ThreeDbIconBrowserTab(this, OpenDataContext));
+                }
                 ImGui.Separator();
                 if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", OpenDataContext != null))
                     AddTab(new ProjectileViewerTab(this, OpenDataContext));
@@ -1256,9 +1264,14 @@ namespace LancerEdit
                                 Type = ResourceUsageType.Material,
                                 MaterialId = matId,
                                 Name = ResolveMaterialName(matId),
-                                Missing = true
+                                Missing = true,
+                                Hint = miss.Hint
                             };
                             ResourceIndex[key] = usage;
+                        }
+                        else if (string.IsNullOrEmpty(usage.Hint))
+                        {
+                            usage.Hint = miss.Hint;
                         }
 
                         if (!string.IsNullOrEmpty(miss.Reference))
@@ -1342,6 +1355,7 @@ namespace LancerEdit
         public string Name; // texture name OR material display name
         public uint? MaterialId; // only for materials
         public bool Missing;
+        public string Hint;
 
         public HashSet<string> UsedBy = new(); // model / drawable names
         public HashSet<string> ProvidedBy = new(); // utf filenames (optional, can be empty)
