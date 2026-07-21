@@ -127,7 +127,7 @@ public class VignetteTester : GameContentTab
                 sb.AppendLine($"selected leaf: {selectedLeaf.EndNode.Id}");
                 foreach (var path in selectedLeaf.Paths)
                 {
-                    sb.AppendLine($"Path: {path.Probability:F7}");
+                    sb.Append($"P: {path.Probability:F7}, ");
                     sb.AppendLine(string.Join("", path.Branches.Select(x => x ? 'T' : 'F')));
                 }
 
@@ -143,7 +143,7 @@ public class VignetteTester : GameContentTab
                 var lastName = random.NextInt(hostileFaction.Properties.LastName.Min,
                     hostileFaction.Properties.LastName.Max);
 
-                var info = selectedPath.GetStrings(random);
+                var info = selectedPath.GetStrings(data.GameData.Items.VignetteTree, random);
 
                 var jsonText = JSON.Serialize(selectedPath.Decisions);
 

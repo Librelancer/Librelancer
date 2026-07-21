@@ -36,14 +36,7 @@ public struct VignetteDecisions
     public bool TractorInLoot;
     public bool WaveJustAfterMainBattleStarts;
 
-    public VignetteDecisions With(string decision, bool value)
-    {
-        var n = this;
-        n.SetDecision(decision, value);
-        return n;
-    }
-
-    void SetDecision(string decision, bool value)
+    public void Set(string decision, bool value)
     {
         switch (decision.ToLowerInvariant())
         {

@@ -79,14 +79,23 @@ public class VignetteTree(VignetteTreeNode start)
         {
             if (pair.Ini.ChildId is { Count: > 0 })
             {
-                pair.Runtime.Left = nodesById[pair.Ini.ChildId[0]];
-                unreferenced.Remove(pair.Ini.ChildId[0]);
+                var c = nodesById[pair.Ini.ChildId[0]];
+                pair.Runtime.Left = c;
+                c.Parents.Add(pair.Runtime);
+                unreferenced.Remove(c.Id);
             }
             if (pair.Ini.ChildId is { Count: > 1 })
             {
-                pair.Runtime.Right = nodesById[pair.Ini.ChildId[1]];
-                unreferenced.Remove(pair.Ini.ChildId[1]);
+                var c = nodesById[pair.Ini.ChildId[1]];
+                pair.Runtime.Right = c;
+                c.Parents.Add(pair.Runtime);
+                unreferenced.Remove(c.Id);
             }
+        }
+
+        foreach (var pair in allNodes)
+        {
+            pair.Runtime.Parents.Sort((x, y) => x.Id.CompareTo(y.Id));
         }
 
         // Get start node

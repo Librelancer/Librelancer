@@ -1,6 +1,6 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.RandomMissions;
 using LibreLancer.Data.Schema.RandomMissions;
@@ -10,16 +10,14 @@ namespace LibreLancer.Server.RandomMissions;
 public record PossibleMission(VignetteData EndNode, List<MissionVariantPath> Paths);
 
 
-public record MissionVariantPath(
-    List<bool> Branches,
-    List<VignetteTreeNode> Nodes,
-    VignetteDecisions Decisions,
-    double Probability)
+public record MissionVariantPath(VignetteBranches Branches, VignetteDecisions Decisions, double Probability)
 {
-    public VignetteStrings GetStrings(VC6Random random)
+    public VignetteStrings GetStrings(VignetteTree tree, VC6Random random)
     {
         VignetteStrings vinfo = new();
-        foreach (var n in Nodes)
+        VignetteTreeNode? n = tree.StartNode;
+        int i = 0;
+        while (i < Branches.Count && n != null)
         {
             if (n is VignetteData data)
             {
@@ -60,138 +58,202 @@ public record MissionVariantPath(
             {
                 vinfo.Messages.Add(docs.Message);
             }
+            n = Branches[i++] ? n.Left : n.Right;
         }
-
         return vinfo;
     }
 }
 
-public record VignetteGraphParameters(
-    Faction OfferGroup,
-    Faction HostileGroup,
-    float Difficulty,
-    AllowedZoneType ZoneType);
+public struct VignetteBranches : IEnumerable<bool>
+{
+    private BitArray128 data;
+    private int count;
+    public int Count => count;
+
+    public bool this[int index] => data[index];
+
+    public void Add(bool b)
+    {
+        data[count++] = b;
+    }
+
+    public void Pop()
+    {
+        count--;
+    }
+
+    public VignetteBranches CopyReversed()
+    {
+        var dest = new VignetteBranches();
+        for (int i = 0; i < Count; i++)
+        {
+            dest.data[i] = data[Count - 1 - i];
+        }
+        dest.count = count;
+        return dest;
+    }
+
+    public Enumerator GetEnumerator() => new Enumerator(this);
+
+    IEnumerator<bool> IEnumerable<bool>.GetEnumerator() => GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public struct Enumerator : IEnumerator<bool>
+    {
+        private readonly VignetteBranches _branches;
+        private int _index;
+
+        internal Enumerator(VignetteBranches branches)
+        {
+            _branches = branches;
+            _index = -1;
+        }
+
+        public bool MoveNext()
+        {
+            _index++;
+            return _index < _branches.Count;
+        }
+
+        public void Reset() => _index = -1;
+
+        public bool Current => _branches[_index];
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() { }
+    }
+}
+
+public record VignetteGraphParameters(Faction OfferGroup, Faction HostileGroup, float Difficulty, AllowedZoneType ZoneType);
 
 public static class VignetteWalker
 {
+    private const int DepthMax = 100;
+
+    /*
+     * NOTE: These steps should be split out later to avoid excess work, when we have a better
+     * API that both the game and VignetteTester can use.
+     *
+     * Freelancer's mission generation algorithm goes through vignetteparams.ini in 3 steps
+     *
+     * 1) Step through and find all the valid leaf nodes
+     * 2) Select one valid leaf node randomly using the weights provided
+     * 3) Backtrack from the leaf node to find all the valid paths to that node
+     * 4) Calculate a "probability" weight, based on the amount of times there is a decision node.
+     *    It doesn't matter if a decision node's children are culled/not accessible. It always halves probability
+     * 5) Select a path randomly using the probability as the weight.
+     *
+     * Other notes: To achieve the same order, all the node's parents are stored on the node. They are sorted by ID.
+     */
     public static IReadOnlyList<PossibleMission> Enumerate(VignetteTree tree, VignetteGraphParameters p)
     {
         var results = new List<PossibleMission>();
 
-        Traverse(
-            tree.StartNode,
-            null,
-            [],
-            [],
-            new(),
-            1.0,
-            results,
-            p);
+        List<VignetteData> endNodes = new();
+        FindAccessibleLeafNodes(tree.StartNode, null, 0, endNodes, p);
 
+        foreach (var endNode in endNodes)
+        {
+            var treePaths = new List<VignetteBranches>();
+            VignetteBranches scratchSpace = new();
+            FindPathsBackwards(
+                currentNode: endNode,
+                startNode: tree.StartNode,
+                p: p,
+                currentBranches: ref scratchSpace,
+                paths: treePaths
+            );
+
+            if (treePaths.Count > 0)
+            {
+                List<MissionVariantPath> paths = new(treePaths.Count);
+                foreach (var path in treePaths)
+                {
+                    double probability = 1.0f;
+                    VignetteTreeNode? n = tree.StartNode;
+                    VignetteDecisions decisions = new();
+                    int i = 0;
+                    while (i < path.Count && n != null)
+                    {
+                        if (n is VignetteDecision dec)
+                        {
+                            decisions.Set(dec.Nickname, path[i]);
+                            probability *= 0.5f;
+                        }
+                        n = path[i++] ? n.Left : n.Right;
+                    }
+                    paths.Add(new(path, decisions, probability));
+                }
+                results.Add(new PossibleMission(endNode, paths));
+            }
+        }
         return results;
     }
 
-    static void Traverse(
+    static void FindAccessibleLeafNodes(
         VignetteTreeNode node,
-        bool? wasLeft,
-        List<bool> branches,
-        List<VignetteTreeNode> visited,
-        VignetteDecisions decisions,
-        double probability,
-        List<PossibleMission> output,
+        VignetteTreeNode? src,
+        int depth,
+        List<VignetteData> endNodes,
         VignetteGraphParameters p)
     {
+        if (depth > DepthMax)
+        {
+            FLLog.Error("VignetteParams", $"Tree walk exceeded depth max walking {src} -> {node}");
+            return;
+        }
         if (IsExcluded(node, p))
             return;
-
-        if (wasLeft != null)
-            branches.Add(wasLeft.Value);
-
-
-        visited.Add(node);
-
-        var left = node.Left != null && !IsExcluded(node.Left, p) ? node.Left : null;
-        var right = node.Right != null && !IsExcluded(node.Right, p) ? node.Right : null;
-        var defPath = left ?? right;
-
-
         switch (node)
         {
             case VignetteDebug:
-            {
-                if (defPath == null)
-                    return;
-
-                Traverse(
-                   defPath,
-                   true,
-                   new(branches),
-                    new List<VignetteTreeNode>(visited),
-                    decisions,
-                    probability,
-                    output,
-                    p);
-                return;
-            }
-
-            case VignetteData data:
-            {
-                if (defPath == null)
+                FindAccessibleLeafNodes(node.Left!, node, depth + 1, endNodes, p);
+                break;
+            case VignetteData d:
+                if (node.Left == null && node.Right == null)
                 {
-                    var leaf = output.FirstOrDefault(x => ReferenceEquals(x.EndNode, data));
-                    if (leaf == null)
-                    {
-                        leaf = new(data, []);
-                        output.Add(leaf);
-                    }
-
-                    leaf.Paths.Add(new MissionVariantPath(new(branches), new(visited), decisions, probability));
-                    return;
+                    if(!endNodes.Contains(d))
+                        endNodes.Add(d);
                 }
-
-                Traverse(
-                    defPath,
-                    true,
-                    new(branches),
-                    new List<VignetteTreeNode>(visited),
-                    decisions,
-                    probability,
-                    output,
-                    p);
-                return;
-            }
-
-            case VignetteDecision decision:
-            {
-                if (left != null)
+                else
                 {
-                    Traverse(
-                        left,
-                        true,
-                        new(branches),
-                        new List<VignetteTreeNode>(visited),
-                        decisions.With(decision.Nickname, true),
-                        probability * 0.5,
-                        output,
-                        p);
+                    FindAccessibleLeafNodes(d.Left!, node, depth + 1, endNodes, p);
                 }
-                if (right != null)
-                {
-                    Traverse(
-                        right,
-                        right == left,
-                        new(branches),
-                        new List<VignetteTreeNode>(visited),
-                        decisions.With(decision.Nickname, false),
-                        probability * 0.5,
-                        output,
-                        p);
-                }
-                return;
-            }
+                break;
+            case VignetteDecision:
+                if (node.Left != null)
+                    FindAccessibleLeafNodes(node.Left!, node, depth + 1, endNodes, p);
+                if(node.Right != null)
+                    FindAccessibleLeafNodes(node.Right!, node, depth + 1, endNodes, p);
+                break;
+        }
+    }
 
-            default:
-                throw new InvalidOperationException(); // unreachable
+    private static void FindPathsBackwards(
+        VignetteTreeNode currentNode,
+        VignetteTreeNode startNode,
+        VignetteGraphParameters p,
+        ref VignetteBranches currentBranches,
+        List<VignetteBranches> paths)
+    {
+        if (currentNode == startNode)
+        {
+            paths.Add(currentBranches.CopyReversed());
+            return;
+        }
+
+        foreach (var parent in currentNode.Parents)
+        {
+            if (IsExcluded(parent, p))
+                continue;
+
+            currentBranches.Add(parent.Left == currentNode);
+
+            FindPathsBackwards(parent, startNode, p, ref currentBranches, paths);
+
+            currentBranches.Pop();
         }
     }
 

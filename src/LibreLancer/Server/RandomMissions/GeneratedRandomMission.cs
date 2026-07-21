@@ -301,7 +301,7 @@ public static class RandomMissionGenerator
             mission = null;
             return false;
         }
-        var strings = selectedPath.GetStrings(random);
+        var strings = selectedPath.GetStrings(gameData.Items.VignetteTree, random);
         var missionType = DetermineMissionType(selectedPath);
         var targetName = CreateTargetName(gameData, parameters.HostileFaction, random);
         var bigSolar = ChooseNamedSystemObject(parameters.DestinationSystem, parameters.TargetZone, null);
