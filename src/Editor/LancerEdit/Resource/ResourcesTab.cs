@@ -155,6 +155,14 @@ namespace LancerEdit
                     return false;
             }
 
+            if (!string.IsNullOrEmpty(sourceFilter))
+            {
+                if (!u.ProvidedBy.Any(x =>
+                        x.Contains(sourceFilter, StringComparison.OrdinalIgnoreCase)) &&
+                    (u.Hint == null || !u.Hint.Contains(sourceFilter, StringComparison.OrdinalIgnoreCase)))
+                    return false;
+            }
+
             return true;
         }
 
@@ -211,7 +219,16 @@ namespace LancerEdit
 
             if (u.ProvidedBy.Count == 0)
             {
-                ImGui.TextDisabled("-");
+                if (!string.IsNullOrEmpty(u.Hint))
+                {
+                    ImGui.TextColored(color, u.Hint);
+                    if (ImGui.IsItemHovered())
+                        ImGui.SetTooltip(u.Hint);
+                }
+                else
+                {
+                    ImGui.TextDisabled("-");
+                }
                 return;
             }
 
@@ -255,6 +272,8 @@ namespace LancerEdit
             {
                 if (ImGui.MenuItem("Copy Material CRC"))
                     win.SetClipboardText($"0x{u.MaterialId.Value:X}");
+                if (!string.IsNullOrEmpty(u.Hint) && ImGui.MenuItem("Copy Recommendation"))
+                    win.SetClipboardText(u.Hint);
             }
 
             ImGui.EndPopup();

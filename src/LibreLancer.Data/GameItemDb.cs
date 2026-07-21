@@ -1005,6 +1005,16 @@ public class GameItemDb
             equip.Volume = val.Volume;
         }
 
+        void AddEquipment(Equipment equip)
+        {
+            if (Equipment.Contains(equip.Nickname))
+            {
+                FLLog.Warning("Equipment", $"Duplicate equipment nickname '{equip.Nickname}', replacing previous entry");
+            }
+
+            Equipment.Add(equip);
+        }
+
         //Process munitions first
         foreach (var mn in flData.Equipment.Munitions)
         {
@@ -1012,17 +1022,43 @@ public class GameItemDb
 
             if (!string.IsNullOrEmpty(mn.Motor))
             {
+                var motor = flData.Equipment.Motors.FirstOrDefault(x =>
+                    x.Nickname.Equals(mn.Motor, StringComparison.OrdinalIgnoreCase));
+                if (motor == null)
+                {
+                    FLLog.Warning(
+                        "Equipment",
+                        $"Munition '{mn.Nickname}' references missing motor '{mn.Motor}'");
+                }
+
+                Data.Schema.Equipment.Explosion? explosion = null;
+                if (!string.IsNullOrEmpty(mn.ExplosionArch))
+                {
+                    explosion = flData.Equipment.Explosions.FirstOrDefault(x =>
+                        x.Nickname.Equals(mn.ExplosionArch, StringComparison.OrdinalIgnoreCase));
+                    if (explosion == null)
+                    {
+                        FLLog.Warning(
+                            "Equipment",
+                            $"Munition '{mn.Nickname}' references missing explosion_arch '{mn.ExplosionArch}'");
+                    }
+                }
+                else
+                {
+                    FLLog.Warning(
+                        "Equipment",
+                        $"Munition '{mn.Nickname}' has motor '{mn.Motor}' but no explosion_arch");
+                }
+
                 var mequip = new MissileEquip()
                 {
                     Def = mn,
                     ModelFile = ResolveDrawable(mn.MaterialLibrary, mn.DaArchetype),
-                    Motor = flData.Equipment.Motors.First(x =>
-                        x.Nickname.Equals(mn.Motor, StringComparison.OrdinalIgnoreCase)),
-                    Explosion = flData.Equipment.Explosions.First(x =>
-                        x.Nickname.Equals(mn.ExplosionArch, StringComparison.OrdinalIgnoreCase))
+                    Motor = motor,
+                    Explosion = explosion
                 };
 
-                if (!string.IsNullOrEmpty(mequip.Explosion.Effect))
+                if (!string.IsNullOrEmpty(mequip.Explosion?.Effect))
                 {
                     mequip.ExplodeFx = Effects.Get(mequip.Explosion.Effect);
                 }
@@ -1042,7 +1078,7 @@ public class GameItemDb
             }
 
             SetCommonFields(equip, mn);
-            Equipment.Add(equip);
+            AddEquipment(equip);
         }
 
         // Then all equipment
@@ -1052,7 +1088,12 @@ public class GameItemDb
 
             if (val is Light l)
             {
-                lights.Add(val.Nickname, new LightInheritHelper(l));
+                if (lights.ContainsKey(val.Nickname))
+                {
+                    FLLog.Warning("Light", $"Duplicate light nickname '{val.Nickname}', replacing previous entry");
+                }
+
+                lights[val.Nickname] = new LightInheritHelper(l);
             }
             else if (val is InternalFx)
             {
@@ -1264,7 +1305,7 @@ public class GameItemDb
             }
 
             SetCommonFields(equip, val);
-            Equipment.Add(equip);
+            AddEquipment(equip);
         }
 
         //Resolve light inheritance
@@ -1284,7 +1325,7 @@ public class GameItemDb
             var eq = GetLight(lt);
             eq.Nickname = lt.Nickname;
             eq.CRC = FLHash.CreateID(eq.Nickname);
-            Equipment.Add(eq);
+            AddEquipment(eq);
         }
 
         // LootCrateEquipment references

@@ -15,6 +15,7 @@ using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
 using LibreLancer.Data;
+using LibreLancer.Data.GameData;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
 using LibreLancer.ImageLib;
@@ -37,6 +38,10 @@ namespace LancerEdit
         List<JointMapView> jointViews = new List<JointMapView>();
         private HashSet<uint> materials = new();
         private HashSet<string> textures = new(StringComparer.OrdinalIgnoreCase);
+        private LUtfNode inlineTextureNode;
+        private Texture2D inlineTexturePreview;
+        private TextureCube inlineCubePreview;
+        private ImTextureRef? inlineTextureId;
 
         public GameResourceManager DetachedResources;
         public int DetachedResourceCount;
@@ -139,6 +144,7 @@ namespace LancerEdit
 
         public override void Dispose()
         {
+            ClearInlineTexturePreview();
             DereferenceDetached();
             main.Resources.RemoveResourcesForId(Unique.ToString());
         }
@@ -156,6 +162,86 @@ namespace LancerEdit
             strings.Reverse();
             var path = string.Join("/", strings);
             return path;
+        }
+
+        bool TryGetGameDataDrawable(out IDrawable drawable, out ResourceManager resources)
+        {
+            drawable = null;
+            resources = null;
+
+            if (main.OpenDataContext == null || string.IsNullOrEmpty(FilePath))
+                return false;
+
+            var targetPath = Path.GetFullPath(FilePath);
+            var items = main.OpenDataContext.GameData.Items;
+            IDrawable foundDrawable = null;
+            ResourceManager foundResources = null;
+
+            bool Matches(ResolvedModel mdl)
+            {
+                if (mdl?.ModelFile == null)
+                    return false;
+                var modelPath = mdl.ModelFile;
+                if (!Path.IsPathRooted(modelPath))
+                    modelPath = Path.Combine(main.OpenDataContext.Folder, modelPath);
+                return string.Equals(Path.GetFullPath(modelPath), targetPath, StringComparison.OrdinalIgnoreCase);
+            }
+
+            bool TryLoad(ResolvedModel mdl)
+            {
+                if (!Matches(mdl))
+                    return false;
+
+                var loaded = mdl.LoadFile(main.OpenDataContext.Resources);
+                foundDrawable = loaded?.Drawable;
+                foundResources = main.OpenDataContext.Resources;
+                return foundDrawable != null;
+            }
+
+            foreach (var arch in items.Archetypes)
+                if (TryLoad(arch.ModelFile))
+                {
+                    drawable = foundDrawable;
+                    resources = foundResources;
+                    return true;
+                }
+            foreach (var ship in items.Ships)
+                if (TryLoad(ship.ModelFile))
+                {
+                    drawable = foundDrawable;
+                    resources = foundResources;
+                    return true;
+                }
+            foreach (var asteroid in items.Asteroids)
+                if (TryLoad(asteroid.ModelFile))
+                {
+                    drawable = foundDrawable;
+                    resources = foundResources;
+                    return true;
+                }
+            foreach (var asteroid in items.DynamicAsteroids)
+                if (TryLoad(asteroid.ModelFile))
+                {
+                    drawable = foundDrawable;
+                    resources = foundResources;
+                    return true;
+                }
+            foreach (var simple in items.SimpleObjects)
+                if (TryLoad(simple.Model))
+                {
+                    drawable = foundDrawable;
+                    resources = foundResources;
+                    return true;
+                }
+            foreach (var equipment in items.Equipment)
+                if (TryLoad(equipment.ModelFile))
+                {
+                    drawable = foundDrawable;
+                    resources = foundResources;
+                    return true;
+                }
+
+            return false;
         }
 
         public void GenerateTangents()
@@ -270,11 +356,16 @@ namespace LancerEdit
                 if (tb.ButtonItem("View Model"))
                 {
                     IDrawable drawable = null;
+                    ResourceManager modelResources = null;
                     ModelNodes hpn = new ModelNodes();
                     hpn.RootNode = Utf.Root;
                     try
                     {
-                        drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
+                        if (!TryGetGameDataDrawable(out drawable, out modelResources))
+                        {
+                            drawable = LibreLancer.Utf.UtfLoader.GetDrawable(Utf.Export(), main.Resources);
+                            modelResources = main.Resources;
+                        }
                         if (Utf.Root.Children.Any((x) => x.Name.Equals("cmpnd", StringComparison.OrdinalIgnoreCase)))
                         {
                             foreach (var child in Utf.Root.Children.Where((x) => x.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase)))
@@ -301,7 +392,7 @@ namespace LancerEdit
                     if (drawable != null)
                     {
                         ReferenceDetached();
-                        main.AddTab(new ModelViewer(DocumentName, drawable, main, this, hpn));
+                        main.AddTab(new ModelViewer(DocumentName, drawable, main, this, hpn, modelResources));
                     }
                 }
 
@@ -498,6 +589,7 @@ namespace LancerEdit
                             ImGui.Text(((int*)ptr)[i].ToString());
                         }
                     }
+                    DrawInlineTexturePreview(selectedNode);
                 }
                 else
                 {
@@ -545,13 +637,7 @@ namespace LancerEdit
                     try
                     {
 #endif
-                    using (var stream = new MemoryStream(selectedNode.Data))
-                    {
-                        if (DDS.StreamIsDDS(stream))
-                            tex = DDS.FromStream(main.RenderContext, stream);
-                        else
-                            tex = TGA.TextureFromStream(main.RenderContext, stream);
-                    }
+                    tex = LoadTextureFromNode(selectedNode);
                     var title = string.Format("{0} ({1})", selectedNode.Name, Title);
                     if (tex is Texture2D tex2d)
                     {
@@ -709,6 +795,69 @@ namespace LancerEdit
             }
             foreach (var jmv in removeJmv) jointViews.Remove(jmv);
             ImGui.EndChild();
+        }
+
+        Texture LoadTextureFromNode(LUtfNode node)
+        {
+            if (node?.Data == null || node.Data.Length == 0)
+                return null;
+            using var stream = new MemoryStream(node.Data);
+            if (DDS.StreamIsDDS(stream))
+                return DDS.FromStream(main.RenderContext, stream);
+            return TGA.TextureFromStream(main.RenderContext, stream);
+        }
+
+        void ClearInlineTexturePreview()
+        {
+            if (inlineTexturePreview != null)
+            {
+                ImGuiHelper.DeregisterTexture(inlineTexturePreview);
+                inlineTexturePreview.Dispose();
+            }
+            inlineCubePreview?.Dispose();
+            inlineTexturePreview = null;
+            inlineCubePreview = null;
+            inlineTextureId = null;
+            inlineTextureNode = null;
+        }
+
+        void DrawInlineTexturePreview(LUtfNode node)
+        {
+            if (inlineTextureNode != node)
+            {
+                ClearInlineTexturePreview();
+                inlineTextureNode = node;
+                try
+                {
+                    var tex = LoadTextureFromNode(node);
+                    switch (tex)
+                    {
+                        case Texture2D tex2d:
+                            inlineTexturePreview = tex2d;
+                            inlineTextureId = ImGuiHelper.RegisterTexture(tex2d);
+                            break;
+                        case TextureCube cube:
+                            inlineCubePreview = cube;
+                            break;
+                    }
+                }
+                catch
+                {
+                    inlineTextureNode = node;
+                }
+            }
+
+            if (inlineTexturePreview == null || inlineTextureId == null)
+                return;
+
+            ImGui.Spacing();
+            ImGui.Text("Texture Preview:");
+            var maxSize = Math.Min(256 * ImGuiHelper.Scale, ImGui.GetContentRegionAvail().X);
+            var scale = Math.Min(maxSize / inlineTexturePreview.Width, maxSize / inlineTexturePreview.Height);
+            scale = Math.Clamp(scale, 0.05f, 1f);
+            var size = new Vector2(inlineTexturePreview.Width, inlineTexturePreview.Height) * scale;
+            ImGui.Image(inlineTextureId.Value, size, new Vector2(0, 1), new Vector2(1, 0));
+            ImGui.TextDisabled($"{inlineTexturePreview.Width} x {inlineTexturePreview.Height} {inlineTexturePreview.Format}");
         }
 
         void ImportTexture()

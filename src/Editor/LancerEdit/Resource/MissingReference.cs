@@ -9,10 +9,19 @@ namespace LancerEdit
 	{
 		public string Missing;
 		public string Reference;
+		public string Hint;
 		public MissingReference(string m, string r)
 		{
 			Missing = m;
 			Reference = r;
+			Hint = null;
+		}
+
+		public MissingReference(string m, string r, string hint)
+		{
+			Missing = m;
+			Reference = r;
+			Hint = hint;
 		}
 	}
 }

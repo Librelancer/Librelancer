@@ -60,6 +60,20 @@ $env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 $env:DOTNET_CLI_TELEMETRY_OPTOUT=1
 $env:DOTNET_ROLL_FORWARD_ON_NO_CANDIDATE_FX=2
 
+# Windows fresh setups often have CMake installed, but the current shell has not
+# picked up PATH changes yet. Make the standard install location visible here.
+$DefaultCMakePath = Join-Path ([Environment]::GetFolderPath("ProgramFiles")) "CMake\bin"
+if ((Get-Command cmake -ErrorAction SilentlyContinue) -eq $null -and (Test-Path (Join-Path $DefaultCMakePath "cmake.exe"))) {
+    $env:Path = "$DefaultCMakePath;$env:Path"
+}
+
+# LLShaderCompiler compiles many shader permutations in parallel. On some Windows
+# machines that can leave 9-byte/corrupt shader bundles after an out-of-memory
+# failure. Keep the default conservative unless the caller already chose a value.
+if ([string]::IsNullOrWhiteSpace($env:DOTNET_PROCESSOR_COUNT)) {
+    $env:DOTNET_PROCESSOR_COUNT = "2"
+}
+
 # Get .NET Core CLI path if installed.
 $SDKResult = "notfound";
 if (Get-Command dotnet -ErrorAction SilentlyContinue) {
