@@ -253,9 +253,11 @@ public static unsafe class S3TC
             {
                 uint *outPx = (uint*)optr;
                 uint* iPx = (uint*) iptr;
-                for(int x =0; x < width; x++) {
-                    for(int y = 0; y < height; y++) {
-                        outPx[y * height + x] = iPx[y * 4 + x];
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        outPx[y * width + x] = iPx[y * 4 + x];
                     }
                 }
             }
@@ -387,9 +389,11 @@ public static unsafe class S3TC
             {
                 uint *outPx = (uint*)optr;
                 uint* iPx = (uint*) iptr;
-                for(int x =0; x < width; x++) {
-                    for(int y = 0; y < height; y++) {
-                        outPx[y * height + x] = iPx[y * 4 + x];
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        outPx[y * width + x] = iPx[y * 4 + x];
                     }
                 }
             }
@@ -427,7 +431,7 @@ uint *image:				pointer to image where the decompressed pixel data should be sto
             }
         }
 
-        DecompressBlockBC1Internal (blockStorage,
+        DecompressBlockBC1Internal (blockStorage.Slice(8),
             image.Slice( (int)(x * sizeof (uint) + (y * stride))), stride, alphaValues);
     }
 
@@ -455,9 +459,11 @@ uint *image:				pointer to image where the decompressed pixel data should be sto
             {
                 uint *outPx = (uint*)optr;
                 uint* iPx = (uint*) iptr;
-                for(int x = 0; x < width; x++) {
-                    for(int y = 0; y < height; y++) {
-                        outPx[y * height + x] = iPx[y * 4 + x];
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        outPx[y * width + x] = iPx[y * 4 + x];
                     }
                 }
             }

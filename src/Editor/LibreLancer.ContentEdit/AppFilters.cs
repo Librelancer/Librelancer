@@ -67,6 +67,10 @@ public class AppFilters
             new FileFilter("Images", "bmp", "png", "tga", "dds", "jpg", "jpeg")
         );
 
+        public static readonly FileDialogFilters PngFilter = new FileDialogFilters(
+            new FileFilter("Png Files", "png")
+        );
+
         public static readonly FileDialogFilters SurFilters = new FileDialogFilters(
             new FileFilter("Sur Files", "sur")
         );

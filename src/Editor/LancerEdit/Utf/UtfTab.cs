@@ -14,6 +14,7 @@ using LancerEdit.Utf.Popups;
 using LibreLancer;
 using LibreLancer.ContentEdit;
 using LibreLancer.ContentEdit.Model;
+using LibreLancer.ContentEdit.Texture;
 using LibreLancer.Data;
 using LibreLancer.Dialogs;
 using LibreLancer.Graphics;
@@ -642,6 +643,23 @@ namespace LancerEdit
                     }
                     if (dat != null)
                         popups.OpenPopup(dat);
+                }
+
+                if (selectedNode.Name.ToLowerInvariant() == "mips" &&
+                    ImGui.Button("Export .png"))
+                {
+                    FileDialog.Save(x =>
+                    {
+                        try
+                        {
+                            var data = TextureExporter.ExportTexture(new(ImageType.DDS,selectedNode.Data), true);
+                            File.WriteAllBytes(x, data);
+                        }
+                        catch (Exception e)
+                        {
+                            ErrorPopup($"Error exporting MIPS node\n{e}");
+                        }
+                    }, AppFilters.PngFilter);
                 }
 
                 if (selectedNode.Name.ToLowerInvariant() == "vmeshref" &&
