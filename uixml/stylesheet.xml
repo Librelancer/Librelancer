@@ -536,7 +536,16 @@
     </ButtonStyle.Selected>
   </ButtonStyle>
 
-  <NavmapStyle UserWaypointSize="28" UserWaypointDigitWidth="6" UserWaypointDigitHeight="10" UserWaypointRouteThickness="2" UserWaypointColor="#ff33ff" UserWaypointDigitColor="yellow">
+  <NavmapStyle UserWaypointSize="28" UserWaypointDigitWidth="6" UserWaypointDigitHeight="10"
+               UserWaypointRouteThickness="2" UserWaypointColor="#ff33ff" UserWaypointDigitColor="yellow"
+               SystemPlayerShipSize="14" SectorPlayerShipSize="14"
+               ZoneFilterButtonSize="13" ZoneFilterButtonSpacing="7"
+               ZoneFilterButtonMarginX="12" ZoneFilterButtonMarginY="8"
+               BaseListTitleTop="2" BaseListTitleHeight="18" BaseListTitleTextSize="11"
+               BaseListHeaderTop="24" BaseListHeaderHeight="20" BaseListHeaderTextSize="11"
+               BaseListRowsTop="42" BaseListRowHeight="14" BaseListRowTextSize="8"
+               BaseListHorizontalPadding="10" BaseListBottomPadding="4"
+               BaseListColumnGap="16" BaseListNameColumnWidth="95" BaseListScrollbarGap="5">
     <NavmapStyle.SelectorButton Width="14" Height="14">
       <ButtonStyle.Normal>
         <ButtonAppearance.Background>

@@ -3,9 +3,12 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Data;
+using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Graphics;
@@ -46,6 +49,9 @@ public partial class Navmap
         currentDisplaySystem = sys;
         objects = [];
         tradelanes = [];
+        politicalZones = [];
+        miningZones = [];
+        patrolPaths = [];
         navmapscale = sys.NavMapScale;
 
         foreach (var obj in sys.Objects)
@@ -104,8 +110,33 @@ public partial class Navmap
 
         foreach (var zone in sys.Zones)
         {
-            if ((zone.VisitFlags & VisitFlags.Hidden) == VisitFlags.Hidden ||
-                (zone.Shape != ShapeKind.Sphere && zone.Shape != ShapeKind.Ellipsoid))
+            if ((zone.VisitFlags & VisitFlags.Hidden) == VisitFlags.Hidden)
+                continue;
+            var zoneHash = FLHash.CreateID(zone.Nickname);
+            var drawableZone = IsDrawableZone(zone);
+            if (drawableZone)
+            {
+                var relation = ZoneRelation(zone);
+                if (zone.IsPopulationZone)
+                    politicalZones.Add(new DrawZone(zone, ZoneRelationFillColor(relation), "", zone.Sort, relation));
+                if ((zone.VisitFlags & VisitFlags.MineableZone) == VisitFlags.MineableZone)
+                    miningZones.Add(new DrawZone(zone, new Color4(1.0f, 0.72f, 0.12f, 0.65f), "", zone.Sort));
+            }
+            if (zone.IsPatrolPathZone && zone.Shape == ShapeKind.Cylinder)
+            {
+                var halfAxis = Vector3.TransformNormal(
+                    new Vector3(0, zone.Size.Y * 0.5f, 0),
+                    zone.RotationMatrix);
+                var start = zone.Position - halfAxis;
+                var end = zone.Position + halfAxis;
+                patrolPaths.Add(new PatrolPath(
+                    new Vector2(start.X, start.Z),
+                    new Vector2(end.X, end.Z),
+                    ZoneRelation(zone),
+                    zoneHash));
+            }
+
+            if (!drawableZone)
                 continue;
             var tint = zone.PropertyFogColor;
             string? tex = null;
@@ -141,8 +172,56 @@ public partial class Navmap
         }
 
         zones.Sort((x, y) => x.Sort.CompareTo(y.Sort));
+        politicalZones.Sort((x, y) => x.Sort.CompareTo(y.Sort));
+        miningZones.Sort((x, y) => x.Sort.CompareTo(y.Sort));
         systemName = ctx.Data.Infocards!.GetStringResource(sys.IdsName);
     }
+
+    private static bool IsDrawableZone(Zone zone) =>
+        zone.Shape is ShapeKind.Sphere or ShapeKind.Ellipsoid or ShapeKind.Box or ShapeKind.Cylinder or ShapeKind.Ring;
+
+    private ZoneRelationship ZoneRelation(Zone zone)
+    {
+        if (zone.Encounters != null)
+        {
+            foreach (var encounter in zone.Encounters)
+            {
+                foreach (var spawn in encounter.FactionSpawns)
+                {
+                    if (string.IsNullOrWhiteSpace(spawn.Faction))
+                        continue;
+                    return RelationFromValue(factionRelation(spawn.Faction));
+                }
+            }
+        }
+
+        return ZoneRelationship.Neutral;
+    }
+
+    private static ZoneRelationship RelationFromValue(float relation)
+    {
+        if (relation <= Faction.HostileThreshold)
+            return ZoneRelationship.Hostile;
+        if (relation >= Faction.FriendlyThreshold)
+            return ZoneRelationship.Friendly;
+        return ZoneRelationship.Neutral;
+    }
+
+    private static Color4 ZoneRelationColor(ZoneRelationship relation) =>
+        relation switch
+        {
+            ZoneRelationship.Hostile => new Color4(1.0f, 0.12f, 0.08f, 1f),
+            ZoneRelationship.Friendly => new Color4(0.20f, 1.0f, 0.25f, 1f),
+            _ => new Color4(1.0f, 1.0f, 1.0f, 1f)
+        };
+
+    private static Color4 ZoneRelationFillColor(ZoneRelationship relation) =>
+        relation switch
+        {
+            ZoneRelationship.Hostile => new Color4(1.0f, 0.12f, 0.08f, 0.58f),
+            ZoneRelationship.Friendly => new Color4(0.20f, 1.0f, 0.25f, 0.50f),
+            _ => new Color4(1.0f, 1.0f, 1.0f, 0.42f)
+        };
 
     private static int LabelPriority(ArchetypeType type) => type switch
     {
@@ -178,8 +257,11 @@ public partial class Navmap
         }
 
         var mapRect = GetMapRectangle(context);
+        ApplyPendingFocus(mapRect);
         UpdateZoomAnimation(context, delta, mapRect);
         selectorMenu.Update(context, delta);
+        BaseListScrollbar.Update(context, delta);
+        UpdateKnownBaseScrollbar(mapRect);
     }
 
     public override void OnLayout(UiContext context, Layout layout, double delta)
@@ -188,6 +270,8 @@ public partial class Navmap
         var mapRect = GetMapRectangle(context);
         LayoutSelectorMenu(context, delta, viewState.Active(SectorViewState.System),
             mapRect, selectorMapPosition);
+        UpdateKnownBaseScrollbar(mapRect);
+        BaseListScrollbar.OnLayout(context, new Layout(KnownBaseScrollbarLayoutRectangle(mapRect)), delta);
     }
 
     public override unsafe void Render(UiContext context, double delta, DrawList2D drawList)
@@ -203,7 +287,12 @@ public partial class Navmap
         var jj = 0;
         var systemAlpha = viewState.Alpha(SectorViewState.System);
         var sectorAlpha = viewState.Alpha(SectorViewState.Sector);
-        if (systemAlpha > 0)
+        var baseListMode = OverlayMode == NavmapOverlayMode.Bases;
+        var mapZoom = baseListMode ? 1f : Zoom;
+        var mapOffsetX = baseListMode ? 0f : OffsetX;
+        var mapOffsetY = baseListMode ? 0f : OffsetY;
+        var overlayListMode = OverlayMode is NavmapOverlayMode.Legend;
+        if (systemAlpha > 0 && !overlayListMode)
         {
             var rHoriz = rectNoScale.Width / 8;
             var rVert = rectNoScale.Height / 8;
@@ -216,8 +305,8 @@ public partial class Navmap
                 {
                     var renNum = GRIDNUMBERS[i];
                     var vOff = rVert * i;
-                    var numRect = new RectangleF(rectNoScale.X - lH - lH * 0.15f, rectNoScale.Y + vOff * Zoom - OffsetY,
-                        lH, rVert * Zoom);
+                    var numRect = new RectangleF(rectNoScale.X - lH - lH * 0.15f,
+                        rectNoScale.Y + vOff * mapZoom - mapOffsetY, lH, rVert * mapZoom);
                     RenderText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont,
                         context.Data.GetColor("text"),
                         new InterfaceColor { Color = Color4.Black }, HorizontalAlignment.Center,
@@ -235,8 +324,8 @@ public partial class Navmap
                 {
                     var renLet = GRIDLETTERS[i];
                     var hOff = rHoriz * i;
-                    var letterRect = new RectangleF(rectNoScale.X + hOff * Zoom - OffsetX,
-                        rectNoScale.Y + rectNoScale.Height + 1, rHoriz * Zoom, lH);
+                    var letterRect = new RectangleF(rectNoScale.X + hOff * mapZoom - mapOffsetX,
+                        rectNoScale.Y + rectNoScale.Height + 1, rHoriz * mapZoom, lH);
                     RenderText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont,
                         context.Data.GetColor("text"),
                         new InterfaceColor { Color = Color4.Black }, HorizontalAlignment.Center,
@@ -248,15 +337,16 @@ public partial class Navmap
         }
 
         var rect = rectNoScale;
-        rect.Width *= Zoom;
-        rect.Height *= Zoom;
+        rect.Width *= mapZoom;
+        rect.Height *= mapZoom;
 
         var scale = new Vector2(GridSizeDefault / (navmapscale == 0 ? 1 : navmapscale));
         if (systemAlpha > 0)
         {
             var background = context.Data.NavmapIcons.GetBackground();
             background.DrawWithClip(context, drawList,
-                new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height), rectNoScale, systemAlpha);
+                new RectangleF(rect.X - mapOffsetX, rect.Y - mapOffsetY, rect.Width, rect.Height),
+                rectNoScale, systemAlpha);
         }
 
         if (sectorAlpha > 0)
@@ -265,6 +355,7 @@ public partial class Navmap
             sectorBackground.DrawWithClip(context, drawList, rectNoScale, rectNoScale, sectorAlpha);
             DrawSectorConnections(context, drawList, rectNoScale, sectorAlpha);
             DrawSectorStars(context, drawList, rectNoScale, sectorAlpha);
+            DrawSectorPlayerShip(context, drawList, rectNoScale, sectorAlpha);
             if (AcceptInput && viewState.Active(SectorViewState.Sector))
                 DrawSelectorMenu(context, delta, drawList);
         }
@@ -277,6 +368,23 @@ public partial class Navmap
                 drawList.DrawRectangle(pRect, new Color4(1, 1, 1, sectorAlpha), 1);
             }
 
+            return;
+        }
+
+        if (OverlayMode == NavmapOverlayMode.Legend)
+        {
+            DrawLegendView(context, drawList, rectNoScale, systemAlpha);
+            if (MapBorder)
+                drawList.DrawRectangle(context.PointsToPixels(rectNoScale), new Color4(1, 1, 1, systemAlpha), 1);
+            return;
+        }
+
+        if (OverlayMode == NavmapOverlayMode.Bases)
+        {
+            DrawKnownBasesView(context, drawList, rectNoScale, systemAlpha);
+            BaseListScrollbar.Render(context, delta, drawList);
+            if (MapBorder)
+                drawList.DrawRectangle(context.PointsToPixels(rectNoScale), new Color4(1, 1, 1, systemAlpha), 1);
             return;
         }
 
@@ -294,63 +402,23 @@ public partial class Navmap
         zoneclip.Height -= 1;
         if (zoneclip.Width <= 0) zoneclip.Width = 1;
         if (zoneclip.Height <= 0) zoneclip.Height = 1;
-        var zoneOrigin =
-            context.PointsToPixels(new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height));
-        if (!drawList.PushClip(zoneclip))
-            return;
-        drawList.AddCallback(_ =>
+        var overlayZones = OverlayMode switch
         {
-            var zoneMat = Matrix4x4.CreateOrthographicOffCenter(0, context.RenderContext.CurrentViewport.Width,
-                context.RenderContext.CurrentViewport.Height, 0, 0, 1);
-            var zoneShader = AllShaders.Navmap.Get(0);
-            var np = new NavmapParameters
+            NavmapOverlayMode.Political => politicalZones,
+            NavmapOverlayMode.Mining => miningZones,
+            _ => []
+        };
+        DrawZones(context, drawList, zoneclip, rect, scale, WorldToMap, zones, systemAlpha);
+        DrawZones(context, drawList, zoneclip, rect, scale, WorldToMap, overlayZones, systemAlpha,
+            OverlayMode == NavmapOverlayMode.Political);
+        if (OverlayMode == NavmapOverlayMode.Patrol)
+        {
+            if (drawList.PushClip(zoneclip))
             {
-                Rectangle = new Vector4(zoneOrigin.X,
-                    context.RenderContext.CurrentViewport.Height - zoneOrigin.Y - zoneOrigin.Height,
-                    zoneOrigin.Width, zoneOrigin.Height),
-                Tiling = new Vector2(8)
-            };
-            zoneShader.SetUniformBlock(0, ref zoneMat);
-            zoneShader.SetUniformBlock(3, ref np);
-
-            foreach (var zone in zones)
-            {
-                if (!isVisited(zone.Hash))
-                    continue;
-                Texture2D? texture = null;
-                if (!string.IsNullOrEmpty(zone.Texture))
-                    texture = (Texture2D?)context.Data.ResourceManager.FindTexture(zone.Texture);
-                context.RenderContext.Textures[0] = texture;
-                context.RenderContext.Samplers[0] = new SamplerState(context.RenderContext.PreferredFilterLevel,
-                    WrapMode.Repeat, WrapMode.Repeat);
-                var tint = zone.Tint;
-                tint.A *= systemAlpha;
-                zoneShader.SetUniformBlock(4, ref tint);
-                var dim = zone.Zone.Shape == ShapeKind.Sphere
-                    ? new Vector2(zone.Zone.Size.X)
-                    : new Vector2(zone.Zone.Size.X, zone.Zone.Size.Z);
-                var screenSize = context.PointsToPixelsF(dim / scale * new Vector2(rect.Width, rect.Height));
-                var meshScale = new Vector3(screenSize.X / dim.X, screenSize.Y / dim.Y, 1);
-                var screenPos =
-                    context.PointsToPixels(WorldToMap(new Vector2(zone.Zone.Position.X, zone.Zone.Position.Z)));
-                var world = Matrix4x4.CreateScale(meshScale) *
-                            Matrix4x4.CreateTranslation(new Vector3(screenPos.X, screenPos.Y, 0));
-                zoneShader.SetUniformBlock(2, ref world);
-                context.NavmapBuffer ??= new VertexBuffer(context.RenderContext, typeof(ZoneVertex), 400, true);
-                var dst = (void*)context.NavmapBuffer.BeginStreaming();
-                var td = zone.Zone.TopDownMesh();
-                fixed (Vector2* src = td)
-                {
-                    Buffer.MemoryCopy(src, dst, 400 * sizeof(Vector2), sizeof(Vector2) * td.Length);
-                }
-
-                context.NavmapBuffer.EndStreaming(td.Length);
-                context.RenderContext.Shader = zoneShader;
-                context.NavmapBuffer.Draw(PrimitiveTypes.TriangleList, td.Length / 3);
+                DrawPatrolPaths(context, drawList, WorldToMap, systemAlpha);
+                drawList.PopClip();
             }
-        });
-
-        drawList.PopClip();
+        }
 
         if (!string.IsNullOrWhiteSpace(systemName))
         {
@@ -386,7 +454,7 @@ public partial class Navmap
                 obj.Renderable.Draw(context, drawList, objRect, systemAlpha);
             }
 
-            if (!string.IsNullOrWhiteSpace(obj.Name))
+            if (ShowLabels && !string.IsNullOrWhiteSpace(obj.Name))
             {
                 var textSize = context.RenderContext.Renderer2D.MeasureString(font, context.TextSize(fontSize), obj.Name);
                 var width = context.PixelsToPoints(textSize.X) + 2;
@@ -399,23 +467,26 @@ public partial class Navmap
             }
         }
 
-        placedLabels.Clear();
-        labelCandidates.Sort(CompareLabels);
-        foreach (var label in labelCandidates)
+        if (ShowLabels)
         {
-            var paddedBounds = new RectangleF(
-                label.Bounds.X - LabelCollisionPadding,
-                label.Bounds.Y - LabelCollisionPadding,
-                label.Bounds.Width + 2 * LabelCollisionPadding,
-                label.Bounds.Height + 2 * LabelCollisionPadding);
-            if (IntersectsPlacedLabel(paddedBounds))
-                continue;
+            placedLabels.Clear();
+            labelCandidates.Sort(CompareLabels);
+            foreach (var label in labelCandidates)
+            {
+                var paddedBounds = new RectangleF(
+                    label.Bounds.X - LabelCollisionPadding,
+                    label.Bounds.Y - LabelCollisionPadding,
+                    label.Bounds.Width + 2 * LabelCollisionPadding,
+                    label.Bounds.Height + 2 * LabelCollisionPadding);
+                if (IntersectsPlacedLabel(paddedBounds))
+                    continue;
 
-            placedLabels.Add(paddedBounds);
-            RenderText(context, drawList, ref objectStrings[jj++], label.Bounds,
-                fontSize, font, InterfaceColor.White,
-                new InterfaceColor { Color = Color4.Black }, HorizontalAlignment.Center,
-                VerticalAlignment.Top, false, label.Object.Name!, systemAlpha);
+                placedLabels.Add(paddedBounds);
+                RenderText(context, drawList, ref objectStrings[jj++], label.Bounds,
+                    fontSize, font, InterfaceColor.White,
+                    new InterfaceColor { Color = Color4.Black }, HorizontalAlignment.Center,
+                    VerticalAlignment.Top, false, label.Object.Name!, systemAlpha);
+            }
         }
 
         foreach (var tl in tradelanes)
@@ -428,17 +499,248 @@ public partial class Navmap
         }
 
         DrawUserWaypointRoute(context, drawList, WorldToMap, systemAlpha);
+        DrawSystemPlayerShip(context, drawList, WorldToMap, systemAlpha);
 
         if (AcceptInput && viewState.Active(SectorViewState.System))
             DrawSelectorMenu(context, delta, drawList);
 
         drawList.PopClip();
 
+        if (ZoneFilterVisible)
+            DrawZoneFilterButtons(context, drawList, rectNoScale, systemAlpha);
+
         if (MapBorder)
         {
             var pRect = context.PointsToPixels(rectNoScale);
             drawList.DrawRectangle(pRect, new Color4(1, 1, 1, systemAlpha), 1);
         }
+    }
+
+    private void DrawLegendView(UiContext context, DrawList2D drawList, RectangleF rect, float alpha)
+    {
+        var background = new Color4(0, 0, 0, 0.35f * alpha);
+        drawList.FillRectangle(context.PointsToPixels(rect), background);
+        var font = context.Data.GetFont("$NavMap800");
+        var titleRect = new RectangleF(rect.X + NavmapListPadding, rect.Y + NavmapListPadding,
+            rect.Width - NavmapListPadding * 2, 18);
+        RenderText(context, drawList, ref overlayTitleCache, titleRect, 11f, font,
+            InterfaceColor.White, new InterfaceColor { Color = Color4.Black },
+            HorizontalAlignment.Center, VerticalAlignment.Top, false, "NAVMAP LEGEND", alpha);
+        var textRect = new RectangleF(rect.X + NavmapListPadding, rect.Y + 34,
+            rect.Width - NavmapListPadding * 2, rect.Height - 42);
+        RenderText(context, drawList, ref overlayTextCache, textRect, 9f, font,
+            InterfaceColor.White, new InterfaceColor { Color = Color4.Black },
+            HorizontalAlignment.Left, VerticalAlignment.Top, true, "Legend test text", alpha);
+    }
+
+    private void DrawKnownBasesView(UiContext context, DrawList2D drawList, RectangleF rect, float alpha)
+    {
+        var font = context.Data.GetFont("$NavMap800");
+        var textColor = context.Data.GetColor("text");
+        var selectedHeaderColor = new InterfaceColor { Color = Color4.Yellow };
+        var titleRect = new RectangleF(rect.X + NavmapListPadding, rect.Y + navStyle.BaseListTitleTop,
+            rect.Width - NavmapListPadding * 2, navStyle.BaseListTitleHeight);
+        RenderText(context, drawList, ref overlayTitleCache, titleRect, navStyle.BaseListTitleTextSize, font,
+            textColor, new InterfaceColor { Color = Color4.Black },
+            HorizontalAlignment.Center, VerticalAlignment.Top, false, "BASE LIST", alpha);
+
+        if (knownBases.Length == 0)
+        {
+            var emptyRect = new RectangleF(rect.X + NavmapListPadding, rect.Y + navStyle.BaseListRowsTop,
+                rect.Width - NavmapListPadding * 2, 20);
+            RenderText(context, drawList, ref overlayTextCache, emptyRect, 9f, font,
+                textColor, new InterfaceColor { Color = Color4.Black },
+                HorizontalAlignment.Center, VerticalAlignment.Top, false, "No known bases", alpha);
+            return;
+        }
+
+        var layout = GetBaseListLayout(rect);
+        RenderText(context, drawList, ref baseNameHeaderCache,
+            layout.NameHeader, navStyle.BaseListHeaderTextSize, font,
+            knownBaseSortColumn == KnownBaseSortColumn.Name ? selectedHeaderColor : textColor,
+            new InterfaceColor { Color = Color4.Black },
+            HorizontalAlignment.Left, VerticalAlignment.Center, false, "BASE NAMES", alpha);
+        RenderText(context, drawList, ref baseSystemHeaderCache,
+            layout.SystemHeader, navStyle.BaseListHeaderTextSize, font,
+            knownBaseSortColumn == KnownBaseSortColumn.SystemName ? selectedHeaderColor : textColor,
+            new InterfaceColor { Color = Color4.Black },
+            HorizontalAlignment.Left, VerticalAlignment.Center, false, "SYSTEM NAME", alpha);
+
+        var rowsRect = layout.Rows;
+        var maxRows = KnownBaseVisibleRows(rect);
+        knownBaseScroll = Math.Clamp(knownBaseScroll, 0, Math.Max(0, knownBases.Length - maxRows));
+        if (drawList.PushClip(context.PointsToPixels(rowsRect)))
+        {
+            for (var visible = 0; visible < maxRows && knownBaseScroll + visible < knownBases.Length; visible++)
+            {
+                var index = knownBaseScroll + visible;
+                var item = knownBases[index];
+                var row = new RectangleF(rowsRect.X, rowsRect.Y + visible * navStyle.BaseListRowHeight,
+                    rowsRect.Width, navStyle.BaseListRowHeight);
+                if (row.Contains(context.MouseX, context.MouseY))
+                {
+                    var hover = new Color4(1.0f, 0.82f, 0.18f, 0.14f * alpha);
+                    drawList.FillRectangle(context.PointsToPixels(row), hover);
+                }
+
+                var nameRect = new RectangleF(row.X, row.Y,
+                    layout.NameColumnWidth, navStyle.BaseListRowHeight);
+                RenderText(context, drawList, ref baseNameCaches[index],
+                    nameRect, navStyle.BaseListRowTextSize, font,
+                    textColor, new InterfaceColor { Color = Color4.Black },
+                    HorizontalAlignment.Left, VerticalAlignment.Center, false, item.Name, alpha);
+                var systemRect = new RectangleF(layout.SystemColumnX, row.Y,
+                    layout.SystemColumnWidth, navStyle.BaseListRowHeight);
+                RenderText(context, drawList, ref baseSystemCaches[index],
+                    systemRect, navStyle.BaseListRowTextSize, font,
+                    textColor, new InterfaceColor { Color = Color4.Black },
+                    HorizontalAlignment.Left, VerticalAlignment.Center, false, item.SystemName, alpha);
+            }
+
+            drawList.PopClip();
+        }
+    }
+
+    private unsafe void DrawZones(
+        UiContext context,
+        DrawList2D drawList,
+        Rectangle zoneclip,
+        RectangleF rect,
+        Vector2 scale,
+        Func<Vector2, Vector2> worldToMap,
+        List<DrawZone> drawZones,
+        float alpha,
+        bool filterRelationship = false)
+    {
+        if (drawZones.Count == 0 || alpha <= 0)
+            return;
+        var zoneOrigin =
+            context.PointsToPixels(new RectangleF(rect.X - OffsetX, rect.Y - OffsetY, rect.Width, rect.Height));
+        if (!drawList.PushClip(zoneclip))
+            return;
+        drawList.AddCallback(_ =>
+        {
+            var zoneMat = Matrix4x4.CreateOrthographicOffCenter(0, context.RenderContext.CurrentViewport.Width,
+                context.RenderContext.CurrentViewport.Height, 0, 0, 1);
+            var zoneShader = AllShaders.Navmap.Get(0);
+            var np = new NavmapParameters
+            {
+                Rectangle = new Vector4(zoneOrigin.X,
+                    context.RenderContext.CurrentViewport.Height - zoneOrigin.Y - zoneOrigin.Height,
+                    zoneOrigin.Width, zoneOrigin.Height),
+                Tiling = new Vector2(8)
+            };
+            zoneShader.SetUniformBlock(0, ref zoneMat);
+            zoneShader.SetUniformBlock(3, ref np);
+
+            foreach (var zone in drawZones)
+            {
+                if (!isVisited(zone.Hash))
+                    continue;
+                if (filterRelationship && zone.Relationship != zoneRelationshipFilter)
+                    continue;
+                var texture = !string.IsNullOrEmpty(zone.Texture)
+                    ? (Texture2D?)context.Data.ResourceManager.FindTexture(zone.Texture)
+                    : context.Data.ResourceManager.WhiteTexture;
+                context.RenderContext.Textures[0] = texture;
+                context.RenderContext.Samplers[0] = new SamplerState(context.RenderContext.PreferredFilterLevel,
+                    WrapMode.Repeat, WrapMode.Repeat);
+                var tint = zone.Tint;
+                tint.A *= alpha;
+                zoneShader.SetUniformBlock(4, ref tint);
+                var dim = ZoneMapSize(zone.Zone);
+                var screenSize = context.PointsToPixelsF(dim / scale * new Vector2(rect.Width, rect.Height));
+                var meshScale = new Vector3(screenSize.X / dim.X, screenSize.Y / dim.Y, 1);
+                var screenPos =
+                    context.PointsToPixels(worldToMap(new Vector2(zone.Zone.Position.X, zone.Zone.Position.Z)));
+                var world = Matrix4x4.CreateScale(meshScale) *
+                            Matrix4x4.CreateTranslation(new Vector3(screenPos.X, screenPos.Y, 0));
+                zoneShader.SetUniformBlock(2, ref world);
+                context.NavmapBuffer ??= new VertexBuffer(context.RenderContext, typeof(ZoneVertex), 400, true);
+                var dst = (void*)context.NavmapBuffer.BeginStreaming();
+                var td = zone.Zone.TopDownMesh();
+                fixed (Vector2* src = td)
+                {
+                    Buffer.MemoryCopy(src, dst, 400 * sizeof(Vector2), sizeof(Vector2) * td.Length);
+                }
+
+                context.NavmapBuffer.EndStreaming(td.Length);
+                context.RenderContext.Shader = zoneShader;
+                context.NavmapBuffer.Draw(PrimitiveTypes.TriangleList, td.Length / 3);
+            }
+        });
+
+        drawList.PopClip();
+    }
+
+    private static Vector2 ZoneMapSize(Zone zone) =>
+        zone.Shape is ShapeKind.Sphere or ShapeKind.Cylinder or ShapeKind.Ring
+            ? new Vector2(zone.Size.X)
+            : new Vector2(zone.Size.X, zone.Size.Z);
+
+    private void DrawPatrolPaths(UiContext context, DrawList2D drawList, Func<Vector2, Vector2> worldToMap, float alpha)
+    {
+        foreach (var path in patrolPaths)
+        {
+            if (!isVisited(path.ZoneHash) || path.Relationship != zoneRelationshipFilter)
+                continue;
+            var start = context.PointsToPixels(worldToMap(path.Start));
+            var end = context.PointsToPixels(worldToMap(path.End));
+            var color = ZoneRelationColor(path.Relationship);
+            color.A *= alpha;
+            drawList.DrawLine(color, start, end, 2f);
+        }
+    }
+
+    private void DrawZoneFilterButtons(UiContext context, DrawList2D drawList, RectangleF mapRect, float alpha)
+    {
+        DrawZoneFilterButton(context, drawList, mapRect, ZoneRelationship.Neutral, GetNeutralZoneFilterIcon(context),
+            alpha);
+        DrawZoneFilterButton(context, drawList, mapRect, ZoneRelationship.Hostile, GetHostileZoneFilterIcon(context),
+            alpha);
+        DrawZoneFilterButton(context, drawList, mapRect, ZoneRelationship.Friendly, GetFriendlyZoneFilterIcon(context),
+            alpha);
+    }
+
+    private void DrawZoneFilterButton(
+        UiContext context,
+        DrawList2D drawList,
+        RectangleF mapRect,
+        ZoneRelationship relationship,
+        UiRenderable icon,
+        float alpha)
+    {
+        var rect = ZoneFilterButtonRectangle(mapRect, relationship);
+        var selected = zoneRelationshipFilter == relationship;
+        var hovered = AcceptInput && rect.Contains(context.MouseX, context.MouseY);
+        var backgroundAlpha = selected ? 0.24f : hovered ? 0.14f : 0f;
+        if (backgroundAlpha > 0)
+            drawList.FillRectangle(context.PointsToPixels(rect), new Color4(1f, 0.9f, 0.25f, backgroundAlpha * alpha));
+        icon.Draw(context, drawList, rect, (selected ? 1f : 0.62f) * alpha);
+    }
+
+    private UiRenderable GetNeutralZoneFilterIcon(UiContext context) =>
+        neutralZoneFilterIcon ??= [new DisplayModel(GetResourceModel(context, "nav_allzonefilter"))];
+
+    private UiRenderable GetFriendlyZoneFilterIcon(UiContext context) =>
+        friendlyZoneFilterIcon ??= [new DisplayModel(GetResourceModel(context, "nav_friendlyzonefilter"))];
+
+    private UiRenderable GetHostileZoneFilterIcon(UiContext context) =>
+        hostileZoneFilterIcon ??= [new DisplayModel(GetResourceModel(context, "nav_hostilezonefilter"))];
+
+    private void ApplyPendingFocus(RectangleF mapRect)
+    {
+        if (pendingFocusPosition == null || currentDisplaySystem == null)
+            return;
+        if (!viewState.Active(SectorViewState.System))
+            return;
+        var scale = GridSizeDefault / (navmapscale == 0 ? 1 : navmapscale);
+        var relative = (new Vector2(pendingFocusPosition.Value.X, pendingFocusPosition.Value.Z) +
+                        new Vector2(scale / 2)) / scale;
+        var focusMapPosition = relative * new Vector2(mapRect.Width, mapRect.Height);
+        SetZoom(mapRect, true, focusMapPosition, true);
+        selectorMapPosition = null;
+        pendingFocusPosition = null;
     }
 
     private void DrawUserWaypointRoute(
@@ -488,6 +790,63 @@ public partial class Navmap
 
     private static RectangleF Centered(Vector2 center, float width, float height) =>
         new(center.X - width / 2, center.Y - height / 2, width, height);
+
+    private static bool PlayerShipBlinkVisible(UiContext context) =>
+        ((long)Math.Floor(context.GlobalTime) & 1) == 0;
+
+    private void DrawSystemPlayerShip(
+        UiContext context,
+        DrawList2D drawList,
+        Func<Vector2, Vector2> worldToMap,
+        float alpha)
+    {
+        if (alpha <= 0 || !PlayerShipBlinkVisible(context) || currentDisplaySystem == null ||
+            playerSystemProvider?.Invoke() != currentDisplaySystem.CRC ||
+            playerPositionProvider?.Invoke() is not { } position)
+            return;
+
+        var orientation = playerOrientationProvider?.Invoke() ?? Quaternion.Identity;
+        var forward = Vector3.Transform(-Vector3.UnitZ, orientation);
+        var heading = MathF.Atan2(forward.X, -forward.Z);
+        GetSystemPlayerShipIcon(context);
+        systemPlayerShipDisplay!.Rotate = new Vector3(0, 0, -heading);
+        var center = worldToMap(new Vector2(position.X, position.Z));
+        systemPlayerShipIcon!.Draw(context, drawList,
+            Centered(center, navStyle.SystemPlayerShipSize, navStyle.SystemPlayerShipSize), alpha);
+    }
+
+    private void DrawSectorPlayerShip(UiContext context, DrawList2D drawList, RectangleF rect, float alpha)
+    {
+        if (alpha <= 0 || !PlayerShipBlinkVisible(context) || playerSystemProvider?.Invoke() is not { } systemHash ||
+            !universeSystems.TryGetValue(systemHash, out var system))
+            return;
+
+        GetSectorPlayerShipIcon(context);
+        sectorPlayerShipDisplay!.Rotate = Vector3.Zero;
+        var center = SectorPositionToMap(rect, system.UniversePosition);
+        sectorPlayerShipIcon!.Draw(context, drawList,
+            Centered(center, navStyle.SectorPlayerShipSize, navStyle.SectorPlayerShipSize), alpha);
+    }
+
+    private void GetSystemPlayerShipIcon(UiContext context)
+    {
+        if (systemPlayerShipIcon != null)
+            return;
+        systemPlayerShipDisplay = new DisplayModel(
+            GetResourceModel(context, "nav_playership"),
+            context.Data.GetColor("text"), true);
+        systemPlayerShipIcon = [systemPlayerShipDisplay];
+    }
+
+    private void GetSectorPlayerShipIcon(UiContext context)
+    {
+        if (sectorPlayerShipIcon != null)
+            return;
+        sectorPlayerShipDisplay = new DisplayModel(
+            GetResourceModel(context, "nav_playership"),
+            context.Data.GetColor("text"), true);
+        sectorPlayerShipIcon = [sectorPlayerShipDisplay];
+    }
 
     private static Vector2 SectorPositionToMap(RectangleF rect, Vector2 sectorPosition)
     {

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData;
 using LibreLancer.Graphics;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
@@ -606,14 +608,46 @@ partial class SpaceGameplay
 
         public void PopulateNavmap(Navmap nav)
         {
-            nav.PopulateIcons(g.ui, g.sys);
             nav.SetUniverse(g.Game.GameData.Items);
             nav.SetVisitFunction(g.session.IsVisited);
+            nav.SetFactionRelationFunction(factionName =>
+            {
+                var faction = g.Game.GameData.Items.Factions.Get(factionName);
+                return g.session.PlayerReputations.GetReputation(faction);
+            });
+            nav.PopulateIcons(g.ui, g.sys);
             nav.SetAddWaypointFunction(g.CreateUserWaypoint);
             nav.SetBestPathFunction(g.ComputeBestPathToSelection);
             nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);
+            nav.SetPlayerOrientationProvider(() => g.player.WorldTransform.Orientation);
             nav.SetPlayerSystemProvider(() => g.sys.CRC);
             nav.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
+        }
+
+        public NavmapBaseListItem[] GetKnownNavmapBases()
+        {
+            var items = g.Game.GameData.Items;
+            return items.Bases
+                .Select(b =>
+                {
+                    var system = !string.IsNullOrWhiteSpace(b.System) ? items.Systems.Get(b.System) : null;
+                    var obj = system?.Objects.FirstOrDefault(x => x.Base == b);
+                    if (system == null || obj == null || !g.session.IsVisited(FLHash.CreateID(obj.Nickname)))
+                        return null;
+                    var baseName = g.Game.GameData.GetString(b.IdsName);
+                    var systemName = g.Game.GameData.GetString(system.IdsName);
+                    return new NavmapBaseListItem
+                    {
+                        Name = string.IsNullOrWhiteSpace(baseName) ? b.Nickname : baseName,
+                        SystemName = string.IsNullOrWhiteSpace(systemName) ? system.Nickname : systemName,
+                        SystemHash = system.CRC,
+                        ObjectHash = FLHash.CreateID(obj.Nickname)
+                    };
+                })
+                .Where(x => x != null)
+                .Cast<NavmapBaseListItem>()
+                .OrderBy(x => x.Name)
+                .ToArray();
         }
 
         public int UserWaypointCount() => g.session.UserWaypointCount;

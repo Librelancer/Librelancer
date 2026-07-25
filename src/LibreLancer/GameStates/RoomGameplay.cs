@@ -314,9 +314,14 @@ namespace LibreLancer
 
             public void PopulateNavmap(Navmap navmap)
             {
-                navmap.PopulateIcons(g.ui, g.starSystem);
                 navmap.SetUniverse(g.Game.GameData.Items);
                 navmap.SetVisitFunction(g.session.IsVisited);
+                navmap.SetFactionRelationFunction(factionName =>
+                {
+                    var faction = g.Game.GameData.Items.Factions.Get(factionName);
+                    return g.session.PlayerReputations.GetReputation(faction);
+                });
+                navmap.PopulateIcons(g.ui, g.starSystem);
                 navmap.SetAddWaypointFunction(null);
                 navmap.SetBestPathFunction((destinationSystem, destinationPosition) =>
                 {
@@ -327,9 +332,37 @@ namespace LibreLancer
                         destinationPosition,
                         300f);
                 });
-                navmap.SetPlayerPositionProvider(null);
-                navmap.SetPlayerSystemProvider(() => FLHash.CreateID(g.session.PlayerSystem));
+                var dockedObject = g.starSystem.Objects.FirstOrDefault(x => x.Base == g.currentBase);
+                navmap.SetPlayerPositionProvider(() => dockedObject?.Position ?? g.session.PlayerPosition);
+                navmap.SetPlayerOrientationProvider(() => Quaternion.Identity);
+                navmap.SetPlayerSystemProvider(() => g.starSystem.CRC);
                 navmap.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
+            }
+
+            public NavmapBaseListItem[] GetKnownNavmapBases()
+            {
+                var items = g.Game.GameData.Items;
+                return items.Bases
+                    .Select(b =>
+                    {
+                        var system = !string.IsNullOrWhiteSpace(b.System) ? items.Systems.Get(b.System) : null;
+                        var obj = system?.Objects.FirstOrDefault(x => x.Base == b);
+                        if (system == null || obj == null || !g.session.IsVisited(FLHash.CreateID(obj.Nickname)))
+                            return null;
+                        var baseName = g.Game.GameData.GetString(b.IdsName);
+                        var systemName = g.Game.GameData.GetString(system.IdsName);
+                        return new NavmapBaseListItem
+                        {
+                            Name = string.IsNullOrWhiteSpace(baseName) ? b.Nickname : baseName,
+                            SystemName = string.IsNullOrWhiteSpace(systemName) ? system.Nickname : systemName,
+                            SystemHash = system.CRC,
+                            ObjectHash = FLHash.CreateID(obj.Nickname)
+                        };
+                    })
+                    .Where(x => x != null)
+                    .Cast<NavmapBaseListItem>()
+                    .OrderBy(x => x.Name)
+                    .ToArray();
             }
 
             public int UserWaypointCount() => g.session.UserWaypointCount;

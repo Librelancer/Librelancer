@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Data;
+using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Graphics;
@@ -19,6 +20,15 @@ using WattleScript.Interpreter;
 namespace LibreLancer.Interface;
 
 public readonly record struct NavmapWaypoint(Vector3 Position, int Number);
+
+[WattleScriptUserData]
+public class NavmapBaseListItem
+{
+    public string Name = "";
+    public string SystemName = "";
+    public uint SystemHash;
+    public uint ObjectHash;
+}
 
 [UiLoadable]
 [WattleScriptUserData]
@@ -45,12 +55,20 @@ public partial class Navmap : UiWidget
     private const float SectorStarLargeSize = 8.0f;
     private const float SectorStarExtraShrinkMaximum = 0.08f;
     private const float SectorConnectionThickness = 4f;
+    private const float NavmapListPadding = 8f;
     private const string SelectSound = "ui_item_select";
     private const string SelectAddSound = "ui_select_add";
 
     private static readonly string[] GRIDNUMBERS =
     [
         "1", "2", "3", "4", "5", "6", "7", "8"
+    ];
+
+    private static readonly ZoneRelationship[] ZoneFilterRelationships =
+    [
+        ZoneRelationship.Neutral,
+        ZoneRelationship.Hostile,
+        ZoneRelationship.Friendly
     ];
 
     private readonly Button addWaypointButton = new();
@@ -74,6 +92,10 @@ public partial class Navmap : UiWidget
     private bool draggingMap;
 
     private Func<uint, bool> isVisited = _ => true;
+    private Func<string?, float> factionRelation = _ => 0;
+    private NavmapBaseListItem[] knownBases = [];
+    private int knownBaseScroll;
+    private KnownBaseSortColumn knownBaseSortColumn = KnownBaseSortColumn.Name;
     private Vector2 lastMousePosition;
 
     private readonly CachedRenderString[] letterCache = new CachedRenderString[16];
@@ -92,7 +114,12 @@ public partial class Navmap : UiWidget
     public float OffsetY;
     private StarSystem? pendingSectorSystem;
     private Func<Vector3>? playerPositionProvider;
+    private Func<Quaternion>? playerOrientationProvider;
     private Func<uint>? playerSystemProvider;
+    private UiRenderable? systemPlayerShipIcon;
+    private DisplayModel? systemPlayerShipDisplay;
+    private UiRenderable? sectorPlayerShipIcon;
+    private DisplayModel? sectorPlayerShipDisplay;
     private UiRenderable? sectorBackground;
 
     private readonly List<SectorConnection> sectorConnections = [];
@@ -108,16 +135,30 @@ public partial class Navmap : UiWidget
     private float startZoom = 1f;
     private string systemName = "";
     private CachedRenderString? systemNameCache;
+    private CachedRenderString? overlayTitleCache;
+    private CachedRenderString? overlayTextCache;
+    private CachedRenderString? baseNameHeaderCache;
+    private CachedRenderString? baseSystemHeaderCache;
+    private CachedRenderString[] baseNameCaches = [];
+    private CachedRenderString[] baseSystemCaches = [];
     private Vector2 targetOffset;
     private float targetZoom = 1f;
 
     private List<Tradelanes> tradelanes = [];
+    private List<DrawZone> politicalZones = [];
+    private List<DrawZone> miningZones = [];
+    private List<PatrolPath> patrolPaths = [];
+    private UiRenderable? neutralZoneFilterIcon;
+    private UiRenderable? friendlyZoneFilterIcon;
+    private UiRenderable? hostileZoneFilterIcon;
+    private ZoneRelationship zoneRelationshipFilter = ZoneRelationship.Neutral;
     private UiRenderable? userWaypointDiamond;
     private Action<StarSystem, List<NavmapWaypoint>>? userWaypointProvider;
 
     private readonly ViewStateMachine<SectorViewState> viewState = new(SectorViewState.System);
 
     private List<DrawZone> zones = [];
+    private Vector3? pendingFocusPosition;
 
     public float Zoom = 1f;
     private float zoomAnimationTime = ZoomAnimationDuration;
@@ -139,10 +180,23 @@ public partial class Navmap : UiWidget
 
     public bool AcceptInput { get; set; } = true;
     public bool SectorViewActive => viewState.Active(SectorViewState.Sector);
+    public bool ShowLabels { get; set; } = true;
+    public NavmapOverlayMode OverlayMode { get; private set; } = NavmapOverlayMode.Physical;
+    public string OverlayModeName => OverlayMode switch
+    {
+        NavmapOverlayMode.Political => "political",
+        NavmapOverlayMode.Patrol => "patrol",
+        NavmapOverlayMode.Mining => "mining",
+        NavmapOverlayMode.Legend => "legend",
+        NavmapOverlayMode.Bases => "bases",
+        _ => "physical"
+    };
 
     public bool LetterMargin { get; set; } = false;
 
     public bool MapBorder { get; set; } = false;
+
+    public Scrollbar BaseListScrollbar { get; set; } = new();
 
     public string ZoomInSound { get; set; } = "hud_zoom_in";
     public string ZoomOutSound { get; set; } = "hud_zoom_out";
@@ -153,6 +207,51 @@ public partial class Navmap : UiWidget
     public void SetVisitFunction(Func<uint, bool> isVisited)
     {
         this.isVisited = isVisited;
+    }
+
+    public void SetLabelsVisible(bool visible)
+    {
+        ShowLabels = visible;
+    }
+
+    public void SetOverlayMode(string mode)
+    {
+        var oldMode = OverlayMode;
+        OverlayMode = mode?.ToLowerInvariant() switch
+        {
+            "political" => NavmapOverlayMode.Political,
+            "patrol" or "patrols" => NavmapOverlayMode.Patrol,
+            "mining" or "miningfilter" => NavmapOverlayMode.Mining,
+            "legend" or "legendtoggle" => NavmapOverlayMode.Legend,
+            "bases" or "knownbases" => NavmapOverlayMode.Bases,
+            _ => NavmapOverlayMode.Physical
+        };
+        if (oldMode != OverlayMode)
+            ResetZoneRelationshipFilter();
+        selectorMapPosition = null;
+    }
+
+    public void SetKnownBases(NavmapBaseListItem[] bases)
+    {
+        knownBases = bases ?? [];
+        knownBaseScroll = 0;
+        BaseListScrollbar.ScrollOffset = 0;
+        SortKnownBases();
+        baseNameCaches = new CachedRenderString[knownBases.Length];
+        baseSystemCaches = new CachedRenderString[knownBases.Length];
+    }
+
+    private void SortKnownBases()
+    {
+        Array.Sort(knownBases, (a, b) =>
+        {
+            var comparison = knownBaseSortColumn == KnownBaseSortColumn.SystemName
+                ? string.Compare(a.SystemName, b.SystemName, StringComparison.OrdinalIgnoreCase)
+                : string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+            return comparison != 0
+                ? comparison
+                : string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+        });
     }
 
     [WattleScriptHidden]
@@ -204,6 +303,26 @@ public partial class Navmap : UiWidget
         sectorConnections.AddRange(visibleConnections.Values);
     }
 
+    public void FocusSystemObject(uint systemHash, uint objectHash)
+    {
+        if (!universeSystems.TryGetValue(systemHash, out var system))
+            return;
+        var obj = system.Objects.FirstOrDefault(x => FLHash.CreateID(x.Nickname) == objectHash);
+        if (obj == null)
+            return;
+        pendingFocusPosition = obj.Position;
+        selectorMapPosition = null;
+        selectorMenu.Visible = false;
+        if (viewState.Active(SectorViewState.System) && currentDisplaySystem == system)
+        {
+            pendingSectorSystem = null;
+        }
+        else
+        {
+            EnterSystemView(system);
+        }
+    }
+
     [WattleScriptHidden]
     public void SetAddWaypointFunction(Action<StarSystem, Vector3>? addWaypoint)
     {
@@ -223,6 +342,12 @@ public partial class Navmap : UiWidget
     }
 
     [WattleScriptHidden]
+    public void SetPlayerOrientationProvider(Func<Quaternion>? playerOrientationProvider)
+    {
+        this.playerOrientationProvider = playerOrientationProvider;
+    }
+
+    [WattleScriptHidden]
     public void SetPlayerSystemProvider(Func<uint>? playerSystemProvider)
     {
         this.playerSystemProvider = playerSystemProvider;
@@ -234,6 +359,12 @@ public partial class Navmap : UiWidget
         this.userWaypointProvider = userWaypointProvider;
         if (userWaypointProvider == null)
             userWaypoints.Clear();
+    }
+
+    [WattleScriptHidden]
+    public void SetFactionRelationFunction(Func<string?, float> factionRelation)
+    {
+        this.factionRelation = factionRelation;
     }
 
     private class DrawObject
@@ -276,20 +407,37 @@ public partial class Navmap : UiWidget
     private class DrawZone
     {
         public readonly uint Hash;
+        public readonly ZoneRelationship Relationship;
         public readonly float Sort;
         public readonly string Texture;
         public readonly Color4 Tint;
         public readonly Zone Zone;
 
-        public DrawZone(Zone zone, Color4 tint, string texture, float sort)
+        public DrawZone(Zone zone, Color4 tint, string texture, float sort,
+            ZoneRelationship relationship = ZoneRelationship.Neutral)
         {
             Hash = FLHash.CreateID(zone.Nickname);
+            Relationship = relationship;
             Zone = zone;
             Tint = tint;
             Texture = texture;
             Sort = sort;
         }
     }
+
+    private readonly record struct PatrolPath(
+        Vector2 Start,
+        Vector2 End,
+        ZoneRelationship Relationship,
+        uint ZoneHash);
+
+    private readonly record struct BaseListLayout(
+        RectangleF Rows,
+        RectangleF NameHeader,
+        RectangleF SystemHeader,
+        float NameColumnWidth,
+        float SystemColumnX,
+        float SystemColumnWidth);
 
     private struct Tradelanes
     {
@@ -301,6 +449,29 @@ public partial class Navmap : UiWidget
     {
         System,
         Sector
+    }
+
+    private enum ZoneRelationship
+    {
+        Neutral,
+        Friendly,
+        Hostile
+    }
+
+    private enum KnownBaseSortColumn
+    {
+        Name,
+        SystemName
+    }
+
+    public enum NavmapOverlayMode
+    {
+        Physical,
+        Political,
+        Patrol,
+        Mining,
+        Legend,
+        Bases
     }
 
     private struct ZoneVertex : IVertexType

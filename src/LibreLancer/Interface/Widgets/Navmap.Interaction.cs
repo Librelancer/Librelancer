@@ -124,6 +124,41 @@ public partial class Navmap
         ClampTargetOffset(mapRect, targetZoom);
     }
 
+    private bool ZoneFilterVisible =>
+        viewState.Active(SectorViewState.System) &&
+        OverlayMode is NavmapOverlayMode.Political or NavmapOverlayMode.Patrol;
+
+    private void ResetZoneRelationshipFilter() => zoneRelationshipFilter = ZoneRelationship.Neutral;
+
+    private RectangleF ZoneFilterButtonRectangle(RectangleF mapRect, ZoneRelationship relationship)
+    {
+        var index = Array.IndexOf(ZoneFilterRelationships, relationship);
+        var totalWidth = navStyle.ZoneFilterButtonSize * ZoneFilterRelationships.Length +
+                         navStyle.ZoneFilterButtonSpacing * (ZoneFilterRelationships.Length - 1);
+        return new RectangleF(
+            mapRect.X + mapRect.Width - navStyle.ZoneFilterButtonMarginX - totalWidth +
+            index * (navStyle.ZoneFilterButtonSize + navStyle.ZoneFilterButtonSpacing),
+            mapRect.Y + navStyle.ZoneFilterButtonMarginY,
+            navStyle.ZoneFilterButtonSize,
+            navStyle.ZoneFilterButtonSize);
+    }
+
+    private bool TryClickZoneFilter(UiContext context, RectangleF mapRect)
+    {
+        if (!ZoneFilterVisible)
+            return false;
+        foreach (var relationship in ZoneFilterRelationships)
+        {
+            if (!ZoneFilterButtonRectangle(mapRect, relationship).Contains(context.MouseX, context.MouseY))
+                continue;
+            zoneRelationshipFilter = relationship;
+            context.PlaySound(SelectSound);
+            selectorMapPosition = null;
+            return true;
+        }
+        return false;
+    }
+
     private void ClampOffset(RectangleF mapRect, float zoom)
     {
         var maxX = MathF.Max(0, mapRect.Width * zoom - mapRect.Width);
@@ -153,17 +188,23 @@ public partial class Navmap
         return new Vector3(worldXZ.X, 0, worldXZ.Y);
     }
 
-    private void SetZoom(RectangleF mapRect, bool enabled)
+    private void SetZoom(RectangleF mapRect, bool enabled, Vector2? focusMapPosition = null, bool resetStart = false)
     {
         if (!viewState.Active(SectorViewState.System))
             return;
 
         zoomed = enabled;
-        startZoom = Zoom;
-        startOffset = new Vector2(OffsetX, OffsetY);
+        startZoom = resetStart ? 1f : Zoom;
+        startOffset = resetStart ? Vector2.Zero : new Vector2(OffsetX, OffsetY);
+        if (resetStart)
+        {
+            Zoom = 1f;
+            OffsetX = OffsetY = 0;
+        }
         zoomAnimationTime = 0;
         targetZoom = enabled ? ZoomedScale : 1f;
-        if (enabled && selectorMapPosition is { } selector)
+        var zoomCenter = focusMapPosition ?? selectorMapPosition;
+        if (enabled && zoomCenter is { } selector)
             targetOffset = new Vector2(
                 selector.X * targetZoom - mapRect.Width / 2,
                 selector.Y * targetZoom - mapRect.Height / 2);
@@ -230,6 +271,13 @@ public partial class Navmap
         if (selectorMenu.MouseWanted(context, context.MouseX, context.MouseY))
             return;
         var mapRect = GetMapRectangle(context);
+        if (ZoneFilterVisible && ZoneFilterButtonHit(mapRect, context.MouseX, context.MouseY))
+            return;
+        if (BaseListVisible)
+        {
+            BaseListScrollbar.OnMouseDown(context);
+            return;
+        }
 
         if (!viewState.Active(SectorViewState.System) ||
             !mapRect.Contains(context.MouseX, context.MouseY))
@@ -305,9 +353,19 @@ public partial class Navmap
         if (!AcceptInput)
             return;
         var mapRect = GetMapRectangle(context);
+        if (TryClickZoneFilter(context, mapRect))
+            return;
         if (!draggingMap)
             selectorMenu.OnMouseClick(context);
         if (selectorMenu.MouseWanted(context, context.MouseX, context.MouseY))
+            return;
+        if (viewState.Active(SectorViewState.System) && OverlayMode == NavmapOverlayMode.Bases)
+        {
+            if (TryClickKnownBase(context, mapRect))
+                context.PlaySound(SelectSound);
+            return;
+        }
+        if (viewState.Active(SectorViewState.System) && OverlayMode == NavmapOverlayMode.Legend)
             return;
         if (viewState.Active(SectorViewState.Sector))
         {
@@ -335,11 +393,55 @@ public partial class Navmap
         context.PlaySound(SelectSound);
     }
 
+    private bool TryClickKnownBase(UiContext context, RectangleF mapRect)
+    {
+        if (!mapRect.Contains(context.MouseX, context.MouseY) || knownBases.Length == 0)
+            return false;
+        if (TryClickKnownBaseHeader(context, mapRect))
+            return true;
+        var index = KnownBaseIndexAt(mapRect, context.MouseX, context.MouseY);
+        if (index < 0 || index >= knownBases.Length)
+            return false;
+        var item = knownBases[index];
+        FocusSystemObject(item.SystemHash, item.ObjectHash);
+        OverlayMode = NavmapOverlayMode.Physical;
+        return true;
+    }
+
+    private bool TryClickKnownBaseHeader(UiContext context, RectangleF mapRect)
+    {
+        var layout = GetBaseListLayout(mapRect);
+        var selectedColumn = layout.NameHeader.Contains(context.MouseX, context.MouseY)
+            ? KnownBaseSortColumn.Name
+            : layout.SystemHeader.Contains(context.MouseX, context.MouseY)
+                ? KnownBaseSortColumn.SystemName
+                : (KnownBaseSortColumn?)null;
+        if (selectedColumn == null)
+            return false;
+        knownBaseSortColumn = selectedColumn.Value;
+        SortKnownBases();
+        knownBaseScroll = 0;
+        BaseListScrollbar.ScrollOffset = 0;
+        return true;
+    }
+
+    public override void OnMouseWheel(UiContext context, float delta)
+    {
+        if (OverlayMode != NavmapOverlayMode.Bases || !viewState.Active(SectorViewState.System))
+        {
+            base.OnMouseWheel(context, delta);
+            return;
+        }
+        if (GetMapRectangle(context).Contains(context.MouseX, context.MouseY))
+            BaseListScrollbar.OnMouseWheel(context, delta);
+    }
+
     public override void OnMouseUp(UiContext context)
     {
         if (!AcceptInput)
             return;
         selectorMenu.OnMouseUp(context);
+        BaseListScrollbar.OnMouseUp(context);
         mouseDownOnMap = false;
         draggingMap = false;
     }
@@ -353,5 +455,79 @@ public partial class Navmap
         var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
             inputRatio + 3;
         return GetMapRectangle(parentRect, lH);
+    }
+
+    private bool BaseListVisible =>
+        viewState.Active(SectorViewState.System) && OverlayMode == NavmapOverlayMode.Bases;
+
+    private int KnownBaseVisibleRows(RectangleF mapRect) =>
+        Math.Max(1, (int)(GetBaseListLayout(mapRect).Rows.Height / navStyle.BaseListRowHeight));
+
+    private int KnownBaseScrollCount(RectangleF mapRect) =>
+        Math.Max(0, knownBases.Length - KnownBaseVisibleRows(mapRect));
+
+    private int KnownBaseIndexAt(RectangleF mapRect, float mouseX, float mouseY)
+    {
+        var rowsRect = GetBaseListLayout(mapRect).Rows;
+        if (!rowsRect.Contains(mouseX, mouseY))
+            return -1;
+        var row = (int)((mouseY - rowsRect.Y) / navStyle.BaseListRowHeight);
+        if (row < 0 || row >= KnownBaseVisibleRows(mapRect))
+            return -1;
+        return knownBaseScroll + row;
+    }
+
+    private BaseListLayout GetBaseListLayout(RectangleF mapRect)
+    {
+        var x = mapRect.X + navStyle.BaseListHorizontalPadding;
+        var y = mapRect.Y + navStyle.BaseListRowsTop;
+        var width = mapRect.Width - navStyle.BaseListHorizontalPadding * 2 -
+                    BaseListScrollbar.Width - navStyle.BaseListScrollbarGap;
+        var height = mapRect.Height - navStyle.BaseListRowsTop - navStyle.BaseListBottomPadding;
+        var rows = new RectangleF(x, y, Math.Max(1, width), Math.Max(navStyle.BaseListRowHeight, height));
+        var nameWidth = Math.Min(
+            navStyle.BaseListNameColumnWidth,
+            Math.Max(0, rows.Width - navStyle.BaseListColumnGap));
+        var systemX = rows.X + nameWidth + navStyle.BaseListColumnGap;
+        var systemWidth = rows.X + rows.Width - systemX;
+        return new BaseListLayout(
+            rows,
+            new RectangleF(rows.X, mapRect.Y + navStyle.BaseListHeaderTop, nameWidth, navStyle.BaseListHeaderHeight),
+            new RectangleF(systemX, mapRect.Y + navStyle.BaseListHeaderTop,
+                systemWidth, navStyle.BaseListHeaderHeight),
+            nameWidth,
+            systemX,
+            systemWidth);
+    }
+
+    private RectangleF KnownBaseScrollbarLayoutRectangle(RectangleF mapRect) =>
+        new(mapRect.X, mapRect.Y + navStyle.BaseListHeaderTop,
+            mapRect.Width - navStyle.BaseListHorizontalPadding,
+            mapRect.Height - navStyle.BaseListHeaderTop - navStyle.BaseListBottomPadding);
+
+    private void UpdateKnownBaseScrollbar(RectangleF mapRect)
+    {
+        var maxRows = KnownBaseVisibleRows(mapRect);
+        var scrollCount = KnownBaseScrollCount(mapRect);
+        BaseListScrollbar.Visible = BaseListVisible && scrollCount > 0;
+        BaseListScrollbar.Tick = scrollCount > 0 ? 1f / scrollCount : 0;
+        BaseListScrollbar.ThumbSize = knownBases.Length > 0
+            ? Math.Min(1f, maxRows / (float)knownBases.Length)
+            : 1f;
+        knownBaseScroll = scrollCount > 0
+            ? Math.Clamp((int)MathF.Round(BaseListScrollbar.ScrollOffset * scrollCount), 0, scrollCount)
+            : 0;
+        if (scrollCount == 0)
+            BaseListScrollbar.ScrollOffset = 0;
+    }
+
+    private bool ZoneFilterButtonHit(RectangleF mapRect, float x, float y)
+    {
+        foreach (var relationship in ZoneFilterRelationships)
+        {
+            if (ZoneFilterButtonRectangle(mapRect, relationship).Contains(x, y))
+                return true;
+        }
+        return false;
     }
 }
