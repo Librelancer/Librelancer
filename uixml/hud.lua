@@ -234,7 +234,6 @@ class hud : hud_Designer
 		e.nn_inventory.ClearClick();
 		e.nn_inventory.OnClick(() => {
 			this.ScanCargo.OpenForPlayer();
-			this.ScanCargo.construct_inventory();
 			this.WindowManager.OpenWindow(this.Widget, this.ScanCargo, true);
 		});
 

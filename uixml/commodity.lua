@@ -1,5 +1,6 @@
 require 'childwindow.lua'
 require 'goods.lua'
+local CargoMeter = require 'cargometer.lua'
 
 local function get_max_amount(item)
 {
@@ -15,6 +16,8 @@ class commodity : commodity_Designer with ChildWindow
 		this.ChildWindowInit();
 		Game.Trader.OnUpdateInventory(() => this.construct_inventory());
 		local e = this.Elements;
+		this.CargoMeter = CargoMeter.Create(e.cargo_space_panel);
+		e.cargo_space_panel.OnUpdate(() => this.update_cargo_meter());
 		this.categories = {
 			weapons = e.category_weapons,
 			ammo = e.category_ammo,
@@ -70,7 +73,7 @@ class commodity : commodity_Designer with ChildWindow
 		});
 
 		this.set_buysell("hidden")
-		e.item_preview.OnUpdate(() => this.PreviewUpdate(delta));
+		e.item_preview.OnUpdate((delta) => this.PreviewUpdate(delta));
 		
 	}
 	setinfocard(good)
@@ -165,6 +168,25 @@ class commodity : commodity_Designer with ChildWindow
 		}
 	}
 
+	update_cargo_meter()
+	{
+		local previewVolume = 0;
+		if(this.BuyState == "buy") {
+			local index = this.Elements.tr_list.SelectedIndex;
+			if(index != nil && index >= 0 && index < this.TraderGoods.length) {
+				local item = this.TraderGoods[index + 1];
+				previewVolume = item.Volume * math.floor(this.Elements.quantitySlider.Value);
+			}
+		}
+		CargoMeter.Update(
+			this.CargoMeter,
+			Game.Trader.GetHoldSize(),
+			Game.Trader.GetUsedHoldSpace(),
+			previewVolume,
+			false
+		);
+	}
+
 	PreviewUpdate(delta)
 	{
 		local e = this.Elements;
@@ -199,7 +221,6 @@ class commodity : commodity_Designer with ChildWindow
 		x.Children.Add(preview)
 		e.quantitySlider.Min = 1
 		if(state == "sell") maxAmount = item.Count;
-		else max = maxAmount;
 		if(!item.Combinable) maxAmount = 1;
 		e.quantitySlider.Visible = (maxAmount > 1)
 		e.quantitySlider.Max = maxAmount
@@ -208,6 +229,4 @@ class commodity : commodity_Designer with ChildWindow
 		e.unit_price.Text = StringFromID(STRID_CREDIT_SIGN) + NumberToStringCS(item.Price, "N0")
 	}
 }
-
-
 

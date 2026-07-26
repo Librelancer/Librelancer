@@ -307,6 +307,12 @@ namespace LibreLancer
 
             public double GetCredits() => g.session.Credits;
 
+            public UIInventoryItem[] GetPlayerInventory(string filter) => g.session.GetPlayerInventory(filter);
+
+            public float GetCargoHoldSize() => g.session.GetCargoHoldSize();
+            public float GetUsedCargoHoldSpace() => g.session.GetUsedCargoHoldSpace();
+            public Infocard? GetPlayerShipInfocard() => g.session.GetPlayerShipInfocard();
+
             public Trader Trader;
             public ShipDealer ShipDealer;
 

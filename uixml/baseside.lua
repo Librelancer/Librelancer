@@ -163,6 +163,7 @@ class baseside : baseside_Designer
 	    this.InfoWindow = new infowindow()
 	    this.Map = new mapwindow()
 		this.PlayerStatus = new playerstatus()
+		this.ScanCargo = new scancargo("docked")
 	    this.Map.InitMap()
 	    this.CommodityTrader = new commodity()
 		this.ChatHistory = new chathistory()
@@ -170,6 +171,7 @@ class baseside : baseside_Designer
 		    { this.Elements.nn_map, this.Map },
 		    { this.Elements.nn_info, this.InfoWindow },
 			{ this.Elements.nn_playerstatus, this.PlayerStatus },
+			{ this.Elements.nn_inventory, this.ScanCargo },
 			{ this.Elements.nn_chat, this.ChatHistory }
 	    }
 	    if (has_news) {

@@ -800,6 +800,12 @@ public class TestingApi
 
     public UIInventoryItem[] GetPlayerInventory(string filter) => scanitems;
 
+    public float GetCargoHoldSize() => Trader.GetHoldSize();
+
+    public float GetUsedCargoHoldSpace() => Trader.GetUsedHoldSpace();
+
+    public Infocard GetPlayerShipInfocard() => _ScannedInfocard;
+
     private Closure scanHandler = null!;
 
     public void OnUpdateScannedInventory(Closure handler)
