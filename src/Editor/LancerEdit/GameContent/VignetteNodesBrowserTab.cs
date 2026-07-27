@@ -527,29 +527,38 @@ public sealed class VignetteNodesBrowserTab : GameContentTab
 
     private void DrawTreeHelp()
     {
-        if (!ImGui.CollapsingHeader($"{Icons.QuestionCircle} DSL help / Справка по DSL"))
+        if (!ImGui.CollapsingHeader($"{Icons.QuestionCircle} DSL help"))
             return;
 
-        ImGui.TextWrapped("RU: Это человекочитаемый вид vignetteparams.ini. Строки с # являются подсказками и игнорируются компилятором. Команды заканчиваются ;, поэтому ; не используется как комментарий.");
-        ImGui.TextWrapped("EN: This is a readable view of vignetteparams.ini. # lines are hints ignored by the compiler. Statements end with ;, so ; is not used as a comment marker.");
+        ImGui.TextWrapped("This is a readable view of vignetteparams.ini. # lines are hints ignored by the compiler. Statements end with ;, so ; is not used as a comment marker.");
         ImGui.Separator();
-        DrawTreeHelpLine("group name factions...;", "RU: именованный список фракций. EN: named faction list.");
-        DrawTreeHelpLine("doc Name;", "RU: DocumentationNode / логический раздел. EN: documentation node / logical section.");
-        DrawTreeHelpLine("if Condition / elif group(name) / else / end", "RU: DecisionNode и ветвления. EN: decision node and branching.");
-        DrawTreeHelpLine("sub node_123 ... end", "RU: переиспользуемая ветка, на которую есть несколько ссылок. EN: reusable branch referenced more than once.");
-        DrawTreeHelpLine("call node_123;", "RU: переход к sub-ветке. EN: jump/call into a sub branch.");
-        DrawTreeHelpLine("offer_group / hostile_group", "RU: фракции оффера и противники. EN: offer and hostile factions.");
-        DrawTreeHelpLine("offer_text / objective_text", "RU: IDS_NAME строки с токенами. EN: IDS_NAME text with tokens.");
-        DrawTreeHelpLine("comm_sequence", "RU: реплики/события коммуникаций. EN: comm event lines.");
-        DrawTreeHelpLine("noop;", "RU: пустая ветка, которой не было в исходном INI. EN: empty branch missing from the original INI.");
+        if (ImGui.BeginTable("##vignetteTreeHelpTable", 2,
+                ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable))
+        {
+            ImGui.TableSetupColumn("Syntax", ImGuiTableColumnFlags.WidthStretch, 0.45f);
+            ImGui.TableSetupColumn("Meaning", ImGuiTableColumnFlags.WidthStretch, 1.0f);
+            ImGui.TableHeadersRow();
+            DrawTreeHelpLine("group name factions...;", "Named faction list reused by branch conditions and offer/hostile groups.");
+            DrawTreeHelpLine("doc Name;", "Creates a DocumentationNode / logical section.");
+            DrawTreeHelpLine("if Condition / elif group(name) / else / end", "Creates DecisionNode branching. group(name) expands to a faction-group condition.");
+            DrawTreeHelpLine("sub node_123 ... end", "Reusable branch body. The decompiler emits a sub when the same node is referenced more than once.");
+            DrawTreeHelpLine("call node_123;", "Jumps into a reusable sub branch.");
+            DrawTreeHelpLine("offer_group / hostile_group", "Defines offer factions and enemy factions for the current mission branch.");
+            DrawTreeHelpLine("offer_text / objective_text", "Adds IDS_NAME-backed mission text with runtime tokens.");
+            DrawTreeHelpLine("comm_sequence", "Adds communication event lines for mission radio/dialog messages.");
+            DrawTreeHelpLine("noop;", "Empty branch placeholder for an alternative that was missing in the original INI.");
+            ImGui.EndTable();
+        }
     }
 
     private static void DrawTreeHelpLine(string syntax, string description)
     {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
         ImGui.PushFont(ImGuiHelper.SystemMonospace, 0);
         ImGui.Text(syntax);
         ImGui.PopFont();
-        ImGui.SameLine(360 * ImGuiHelper.Scale);
+        ImGui.TableNextColumn();
         ImGui.TextWrapped(description);
     }
 
