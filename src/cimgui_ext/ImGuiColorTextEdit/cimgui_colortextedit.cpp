@@ -68,6 +68,24 @@ CIMGUI_API void igExtTextEditorGetCoordinates(texteditor_t textedit, int32_t *x,
 	*y = cursor.line;
 }
 
+CIMGUI_API void igExtTextEditorSetCursor(texteditor_t textedit, int32_t line, int32_t column)
+{
+	TextEditor *editor = (TextEditor*)textedit;
+	editor->SetCursor(line, column);
+}
+
+CIMGUI_API void igExtTextEditorSelectLine(texteditor_t textedit, int32_t line)
+{
+	TextEditor *editor = (TextEditor*)textedit;
+	editor->SelectLine(line);
+}
+
+CIMGUI_API void igExtTextEditorScrollToLine(texteditor_t textedit, int32_t line)
+{
+	TextEditor *editor = (TextEditor*)textedit;
+	editor->ScrollToLine(line, TextEditor::Scroll::alignMiddle);
+}
+
 CIMGUI_API void igExtTextEditorRender(texteditor_t textedit, const char *id)
 {
 	TextEditor *editor = (TextEditor*)textedit;

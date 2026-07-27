@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData.Archetypes;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Render.Materials;
+using LibreLancer.Resources;
 
 namespace LibreLancer.Render
 {
@@ -34,27 +36,30 @@ namespace LibreLancer.Render
             pos = Vector3.Zero;
         }
 
-        private static void AddQuad(VertexBillboardColor2[] vx, ref int i, Vector3 pos, Vector2 size, float angle, Color4 c1, Color4 c2)
+        private static void AddQuad(VertexBillboardColor2[] vx, ref int i, Vector3 pos, Vector2 size, float angle, Color4 c1, Color4 c2) =>
+            AddQuad(vx, ref i, pos, size, angle, c1, c2, new RectangleF(0, 0, 1, 1));
+
+        private static void AddQuad(VertexBillboardColor2[] vx, ref int i, Vector3 pos, Vector2 size, float angle, Color4 c1, Color4 c2, RectangleF texCoords)
         {
             vx[i++] = new VertexBillboardColor2(
                 pos, -0.5f * size.X, -0.5f * size.Y, angle,
                 c1,c2,
-                new Vector2(0, 0)
+                new Vector2(texCoords.X, texCoords.Y)
             );
             vx[i++] = new VertexBillboardColor2(
                 pos, 0.5f * size.X, -0.5f * size.Y, angle,
                 c1,c2,
-                new Vector2(1, 0)
+                new Vector2(texCoords.X + texCoords.Width, texCoords.Y)
             );
             vx[i++] = new VertexBillboardColor2(
                 pos, -0.5f * size.X, 0.5f * size.Y, angle,
                 c1,c2,
-                new Vector2(0, 1)
+                new Vector2(texCoords.X, texCoords.Y + texCoords.Height)
             );
             vx[i++] = new VertexBillboardColor2(
                 pos, 0.5f * size.X, 0.5f * size.Y, angle,
                 c1,c2,
-                new Vector2(1, 1)
+                new Vector2(texCoords.X + texCoords.Width, texCoords.Y + texCoords.Height)
             );
         }
 
@@ -73,18 +78,27 @@ namespace LibreLancer.Render
             return count;
         }
 
-        public static void CreateVertices(VertexBillboardColor2[] vx, Vector3 pos, Sun sun)
+        public static void CreateVertices(VertexBillboardColor2[] vx, Vector3 pos, Sun sun) =>
+            CreateVertices(vx, pos, sun, 0);
+
+        public static void CreateVertices(VertexBillboardColor2[] vx, Vector3 pos, Sun sun, float angleOffset)
+            => CreateVertices(vx, pos, sun, angleOffset, null, null, null);
+
+        public static void CreateVertices(VertexBillboardColor2[] vx, Vector3 pos, Sun sun, float angleOffset,
+            RectangleF? centerCoords, RectangleF? glowCoords, RectangleF? spinesCoords)
         {
             var idx = 0;
             // center
             if (sun.CenterSprite != null)
                 AddQuad(vx, ref idx, pos, new Vector2(sun.Radius * sun.CenterScale), 0,
                     new Color4(sun.CenterColorInner, 1),
-                    new Color4(sun.CenterColorOuter, 1));
+                    new Color4(sun.CenterColorOuter, 1),
+                    centerCoords ?? new RectangleF(0, 0, 1, 1));
             // glow
             AddQuad(vx, ref idx, pos, new Vector2(sun.Radius * sun.GlowScale), 0,
                 new Color4(sun.GlowColorInner, 1),
-                new Color4(sun.GlowColorOuter, 1));
+                new Color4(sun.GlowColorOuter, 1),
+                glowCoords ?? new RectangleF(0, 0, 1, 1));
 
             // spines
             if (sun.SpinesSprite != null)
@@ -99,29 +113,44 @@ namespace LibreLancer.Render
                         ref idx,
                         pos,
                         new Vector2(sun.Radius) * sun.SpinesScale * new Vector2(s.WidthScale / s.LengthScale, s.LengthScale),
-                        (float)current_angle,
+                        (float)current_angle + angleOffset,
                         new Color4(s.InnerColor, s.Alpha),
-                        new Color4(s.OuterColor, s.Alpha)
+                        new Color4(s.OuterColor, s.Alpha),
+                        spinesCoords ?? new RectangleF(0, 0, 1, 1)
                     );
                 }
             }
         }
 
+        private static TextureShape? ResolveShape(ResourceManager resources, string? name)
+        {
+            if (!string.IsNullOrEmpty(name) &&
+                resources.TryGetShape(name, out var shape) &&
+                shape.HasValue)
+            {
+                return shape.Value;
+            }
+            return null;
+        }
+
         public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
         {
+            var centerShape = ResolveShape(sys.ResourceManager, Sun.CenterSprite);
+            var glowShape = ResolveShape(sys.ResourceManager, Sun.GlowSprite);
+            var spinesShape = ResolveShape(sys.ResourceManager, Sun.SpinesSprite);
             if (sysr == null)
             {
-                spineMaterial = new SunSpineMaterial(sys.ResourceManager, Sun.SpinesSprite!, Vector2.One);
+                spineMaterial = new SunSpineMaterial(sys.ResourceManager, spinesShape?.Texture ?? Sun.SpinesSprite!, Vector2.One);
 
                 centerMaterial = new SunRadialMaterial(sys.ResourceManager)
                 {
-                    Texture = Sun.CenterSprite!,
+                    Texture = centerShape?.Texture ?? Sun.CenterSprite!,
                     Additive = true
                 };
 
                 glowMaterial = new SunRadialMaterial(sys.ResourceManager)
                 {
-                    Texture = Sun.GlowSprite!
+                    Texture = glowShape?.Texture ?? Sun.GlowSprite!
                 };
             }
 
@@ -130,7 +159,10 @@ namespace LibreLancer.Render
             if (vertices == null || pos != genPos)
             {
                  vertices = new VertexBillboardColor2[GetVertexCount(Sun)];
-                 CreateVertices(vertices, pos, Sun);
+                 CreateVertices(vertices, pos, Sun, 0,
+                     centerShape?.Dimensions,
+                     glowShape?.Dimensions,
+                     spinesShape?.Dimensions);
                  genPos = pos;
             }
 

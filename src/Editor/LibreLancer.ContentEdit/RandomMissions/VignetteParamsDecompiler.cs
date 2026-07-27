@@ -8,6 +8,8 @@ namespace LibreLancer.ContentEdit.RandomMissions;
 
 public static class VignetteParamsDecompiler
 {
+    const string Noop = "noop; # no branch in original INI";
+
     static bool IsEmptyError(VignetteAst ast)
     {
         if (ast is not AstData dat)
@@ -29,7 +31,7 @@ public static class VignetteParamsDecompiler
     {
         if (IsEmptyError(node))
         {
-            writer.AppendLine("err_unimplemented;");
+            writer.AppendLine(Noop);
             return;
         }
         if (!implement && references[node.Id] > 1)
@@ -55,21 +57,47 @@ public static class VignetteParamsDecompiler
                 WriteNode(ifElse.Children[^1], writer, false, references, groups, false);
                 writer.UnIndent();
             }
+            else if (ifElse.Conditions.Count == 1)
+            {
+                writer.AppendLine("else");
+                writer.Indent();
+                writer.AppendLine(Noop);
+                writer.UnIndent();
+            }
             writer.AppendLine("end");
         }
         else if (node is AstDecision dec)
         {
             var condA = dec.GroupA != null ? $"group ({groups[FormatGroup(dec.GroupA)]})" : dec.Decision.Nickname;
-            var b = dec.GroupB != null ? $"elif group({groups[FormatGroup(dec.GroupB)]})" : "else";
+            if (dec.Children.Count == 0)
+            {
+                writer.AppendLine($"if {condA}");
+                writer.Indent();
+                writer.AppendLine(Noop);
+                writer.UnIndent();
+                writer.AppendLine("end");
+                return;
+            }
 
             writer.AppendLine($"if {condA}");
             writer.Indent();
             WriteNode(dec.Children[0], writer, dec.GroupA != null, references, groups, false);
             writer.UnIndent();
-            writer.AppendLine(b);
-            writer.Indent();
-            WriteNode(dec.Children[^1], writer, dec.GroupB != null, references, groups, false);
-            writer.UnIndent();
+            if (dec.Children.Count > 1)
+            {
+                var b = dec.GroupB != null ? $"elif group({groups[FormatGroup(dec.GroupB)]})" : "else";
+                writer.AppendLine(b);
+                writer.Indent();
+                WriteNode(dec.Children[^1], writer, dec.GroupB != null, references, groups, false);
+                writer.UnIndent();
+            }
+            else
+            {
+                writer.AppendLine("else");
+                writer.Indent();
+                writer.AppendLine(Noop);
+                writer.UnIndent();
+            }
             writer.AppendLine("end");
         }
         else if (node is AstDoc doc)
@@ -83,7 +111,7 @@ public static class VignetteParamsDecompiler
         else if (node is AstData data)
         {
             if (!data.Data.Implemented)
-                writer.AppendLine("err_unimplemented;");
+                writer.AppendLine(Noop);
             if (!branchParent && data.Data.OfferGroup?.Length > 0)
                 writer.AppendLine($"offer_group {groups[FormatGroup(data.Data.OfferGroup)]};");
             if(data.Data.HostileGroup?.Length > 0)
@@ -189,13 +217,15 @@ public static class VignetteParamsDecompiler
             if (kv.Value is AstDecision dec &&
                 dec.Decision.Nickname.Equals("branch", StringComparison.OrdinalIgnoreCase))
             {
-                if (dec.Children[0] is not AstData d1 ||
+                if (dec.Children.Count == 0 ||
+                    dec.Children[0] is not AstData d1 ||
                     d1.Data.OfferGroup?.Length <= 0)
                 {
-                    throw new Exception("Invalid branch node");
+                    continue;
                 }
                 dec.GroupA = d1.Data.OfferGroup;
-                if (dec.Children[1] is AstData d2 &&
+                if (dec.Children.Count > 1 &&
+                    dec.Children[1] is AstData d2 &&
                     d2.Data.OfferGroup?.Length > 0)
                 {
                     dec.GroupB = d2.Data.OfferGroup;
@@ -211,7 +241,8 @@ public static class VignetteParamsDecompiler
                 continue;
             if (n is AstDecision dec)
             {
-                if (dec.Children[1] is AstDecision dec2)
+                if (dec.Children.Count > 1 &&
+                    dec.Children[1] is AstDecision { Children.Count: > 1 } dec2)
                 {
                     // Set up if/else node with multiple conditions
                     var ifElse = new AstIfElse(newId++);
@@ -228,7 +259,8 @@ public static class VignetteParamsDecompiler
             }
             else if (n is AstIfElse ie)
             {
-                if (ie.Children[^1] is AstDecision dec2)
+                if (ie.Children.Count > 0 &&
+                    ie.Children[^1] is AstDecision { Children.Count: > 1 } dec2)
                 {
                     // Add another condition node
                     ie.Children.RemoveAt(ie.Children.Count - 1);

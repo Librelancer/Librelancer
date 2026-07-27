@@ -40,7 +40,7 @@ public class VignetteParamsCompiler
                 return new VIfElse(lexer);
             if(lexer.IsIdentifier("call"))
                 return new VCall(lexer);
-            if (lexer.IsIdentifier("err_unimplemented"))
+            if (lexer.IsIdentifier("err_unimplemented") || lexer.IsIdentifier("noop"))
                 return new VUnimplemented(lexer);
             if (lexer.IsIdentifier("doc"))
                 return new VDoc(lexer);
@@ -347,7 +347,7 @@ public class VignetteParamsCompiler
         public VUnimplemented(Lexer lexer):
             base(lexer.Source, lexer.Current)
         {
-            if (!lexer.IsIdentifier("err_unimplemented"))
+            if (!lexer.IsIdentifier("err_unimplemented") && !lexer.IsIdentifier("noop"))
                 throw new InvalidOperationException();
             Def = lexer.Current;
             lexer.Next();

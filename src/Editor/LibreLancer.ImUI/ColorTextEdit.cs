@@ -31,6 +31,15 @@ public class ColorTextEdit : IDisposable
     static extern void igExtTextEditorGetCoordinates(IntPtr textedit, out int x, out int y);
 
     [DllImport("cimgui")]
+    static extern void igExtTextEditorSetCursor(IntPtr textedit, int line, int column);
+
+    [DllImport("cimgui")]
+    static extern void igExtTextEditorSelectLine(IntPtr textedit, int line);
+
+    [DllImport("cimgui")]
+    static extern void igExtTextEditorScrollToLine(IntPtr textedit, int line);
+
+    [DllImport("cimgui")]
     static extern void igExtTextEditorFree(IntPtr textedit);
 
     [DllImport("cimgui")]
@@ -48,6 +57,7 @@ public class ColorTextEdit : IDisposable
     private IntPtr textedit;
     private bool textChanged = false;
     private int lastUndoIndex = 0;
+    private bool lineNavigationUnavailable;
 
     public ColorTextEdit()
     {
@@ -92,6 +102,26 @@ public class ColorTextEdit : IDisposable
     {
         igExtTextEditorGetCoordinates(textedit, out int x, out int y);
         return new Point(x,y);
+    }
+
+    public bool GoToLine(int line)
+    {
+        if (lineNavigationUnavailable)
+            return false;
+
+        var zeroBased = Math.Max(0, line - 1);
+        try
+        {
+            igExtTextEditorSetCursor(textedit, zeroBased, 0);
+            igExtTextEditorSelectLine(textedit, zeroBased);
+            igExtTextEditorScrollToLine(textedit, zeroBased);
+            return true;
+        }
+        catch (EntryPointNotFoundException)
+        {
+            lineNavigationUnavailable = true;
+            return false;
+        }
     }
 
     public bool TextChanged()

@@ -76,6 +76,9 @@ CIMGUI_API void igExtFree(void *mem);
 CIMGUI_API void igExtTextEditorSetText(texteditor_t textedit, const char *text);
 CIMGUI_API int igExtTextEditorGetUndoIndex(texteditor_t textedit);
 CIMGUI_API void igExtTextEditorGetCoordinates(texteditor_t textedit, int32_t *x, int32_t *y);
+CIMGUI_API void igExtTextEditorSetCursor(texteditor_t textedit, int32_t line, int32_t column);
+CIMGUI_API void igExtTextEditorSelectLine(texteditor_t textedit, int32_t line);
+CIMGUI_API void igExtTextEditorScrollToLine(texteditor_t textedit, int32_t line);
 CIMGUI_API void igExtTextEditorRender(texteditor_t textedit, const char *id);
 CIMGUI_API void igExtTextEditorFree(texteditor_t textedit);
 //guizmo

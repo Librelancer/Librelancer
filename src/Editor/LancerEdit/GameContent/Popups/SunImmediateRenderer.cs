@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using LibreLancer;
+using LibreLancer.Data;
 using LibreLancer.Data.GameData.Archetypes;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Vertices;
@@ -17,6 +18,7 @@ public class SunImmediateRenderer : IDisposable
     private SunSpineMaterial spineMaterial;
     private SunRadialMaterial centerMaterial;
     private SunRadialMaterial glowMaterial;
+    private readonly ResourceManager resources;
 
     VertexBillboardColor2[] vertices;
     private VertexBuffer vertexBuffer;
@@ -26,6 +28,7 @@ public class SunImmediateRenderer : IDisposable
 
     public SunImmediateRenderer(ResourceManager resources)
     {
+        this.resources = resources;
         vtype = new VertexBillboardColor2();
         spineMaterial = new SunSpineMaterial(resources, null, Vector2.One);
 
@@ -71,7 +74,30 @@ public class SunImmediateRenderer : IDisposable
         }
     }
 
-    public unsafe void Render(Sun sun, Color4 background, RenderContext render, Rectangle? viewport)
+    private TextureShape? ResolveShape(string? name)
+    {
+        if (!string.IsNullOrEmpty(name) &&
+            resources.TryGetShape(name, out var shape) &&
+            shape.HasValue)
+        {
+            return shape.Value;
+        }
+        return null;
+    }
+
+    public unsafe void Render(Sun sun, Color4 background, RenderContext render, Rectangle? viewport) =>
+        Render(sun, background, render, viewport, 1f);
+
+    public unsafe void Render(Sun sun, Color4 background, RenderContext render, Rectangle? viewport, float zoom)
+        => Render(sun, background, render, viewport, zoom, 0);
+
+    public unsafe void Render(Sun sun, Color4 background, RenderContext render, Rectangle? viewport, float zoom, float angleOffset)
+        => Render(sun, background, render, viewport, zoom, angleOffset, Vector2.Zero);
+
+    public unsafe void Render(Sun sun, Color4 background, RenderContext render, Rectangle? viewport, float zoom, float angleOffset, Vector2 screenOffset)
+        => Render(sun, background, render, viewport, zoom, angleOffset, screenOffset, true);
+
+    public unsafe void Render(Sun sun, Color4 background, RenderContext render, Rectangle? viewport, float zoom, float angleOffset, Vector2 screenOffset, bool fitFullBillboard)
     {
         if (viewport != null && render.ScissorEnabled && !viewport.Value.Intersects(render.ScissorRectangle))
         {
@@ -108,37 +134,50 @@ public class SunImmediateRenderer : IDisposable
 
         }
 
-        // Calculate size of sun
-        float renderSize = sun.Radius;
-        if (sun.SpinesSprite != null)
+        float renderSize = MathF.Max(1, sun.Radius);
+        if (fitFullBillboard)
         {
-            float rmax = sun.Radius;
-            if (renderSize * sun.SpinesScale > renderSize)
-                rmax = sun.Radius * sun.SpinesScale;
+            if (sun.GlowSprite != null)
+                renderSize = MathF.Max(renderSize, sun.Radius * MathF.Max(1, sun.GlowScale));
+            if (sun.CenterSprite != null)
+                renderSize = MathF.Max(renderSize, sun.Radius * MathF.Max(1, sun.CenterScale));
+        }
+        if (sun.SpinesSprite != null && sun.Spines is { Count: > 0 })
+        {
+            renderSize = MathF.Max(renderSize, sun.Radius * MathF.Max(1, sun.SpinesScale));
             foreach (var s in sun.Spines)
             {
-                var multMax = MathF.Max(s.WidthScale / s.LengthScale, s.LengthScale);
-                if (sun.Radius * sun.SpinesScale * multMax > rmax)
-                    rmax = sun.Radius * sun.SpinesScale * multMax;
+                var lengthScale = MathF.Max(0.001f, s.LengthScale);
+                var multMax = MathF.Max(s.WidthScale / lengthScale, lengthScale);
+                renderSize = MathF.Max(renderSize, sun.Radius * MathF.Max(1, sun.SpinesScale) * multMax);
             }
-
-            renderSize = rmax;
         }
 
         //camera
-        cam.Update(render.CurrentViewport.Width, render.CurrentViewport.Height, new Vector3(0, 0, -renderSize * 0.9f),
+        zoom = MathHelper.Clamp(zoom, 0.1f, 10f);
+        cam.Update(render.CurrentViewport.Width, render.CurrentViewport.Height, new Vector3(0, 0, -(renderSize * 0.9f) / zoom),
             Vector3.Zero);
         render.SetCamera(cam);
         render.Cull = false;
         render.DepthEnabled = false;
 
+        var sunPosition = new Vector3(
+            screenOffset.X * renderSize / zoom,
+            -screenOffset.Y * renderSize / zoom,
+            0);
         var count = SunRenderer.GetVertexCount(sun);
         EnsureCapacity(render, count);
-        SunRenderer.CreateVertices(vertices, Vector3.Zero, sun);
+        var centerShape = ResolveShape(sun.CenterSprite);
+        var glowShape = ResolveShape(sun.GlowSprite);
+        var spinesShape = ResolveShape(sun.SpinesSprite);
+        SunRenderer.CreateVertices(vertices, sunPosition, sun, angleOffset,
+            centerShape?.Dimensions,
+            glowShape?.Dimensions,
+            spinesShape?.Dimensions);
         vertexBuffer.SetData<VertexBillboardColor2>(vertices.AsSpan().Slice(0, count));
-        spineMaterial.Texture = sun.SpinesSprite;
-        centerMaterial.Texture = sun.CenterSprite;
-        glowMaterial.Texture = sun.GlowSprite;
+        spineMaterial.Texture = spinesShape?.Texture ?? sun.SpinesSprite;
+        centerMaterial.Texture = centerShape?.Texture ?? sun.CenterSprite;
+        glowMaterial.Texture = glowShape?.Texture ?? sun.GlowSprite;
         int idx = 0;
         if (sun.CenterSprite != null)
         {

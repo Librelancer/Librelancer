@@ -630,6 +630,14 @@ namespace LancerEdit
                 ImGui.Separator();
                 if (Theme.IconMenuItem(Icons.BookOpen, "Infocard Browser", OpenDataContext != null))
                     AddTab(new InfocardBrowserTab(OpenDataContext, this));
+                if (Theme.IconMenuItem(Icons.Video, "Voice Browser", OpenDataContext != null))
+                {
+                    var fd = TabControl.Tabs.FirstOrDefault(x => x is VoiceBrowserTab);
+                    if (fd != null)
+                        TabControl.SetSelected(fd);
+                    else
+                        AddTab(new VoiceBrowserTab(this, OpenDataContext));
+                }
                 if (Theme.IconMenuItem(Icons.Globe, "Universe Editor", OpenDataContext != null))
                 {
                     var fd = TabControl.Tabs.FirstOrDefault(x => x is UniverseEditorTab);
@@ -670,6 +678,22 @@ namespace LancerEdit
                         TabControl.SetSelected(fd);
                     else
                         AddTab(new ThreeDbIconBrowserTab(this, OpenDataContext));
+                }
+                if (Theme.IconMenuItem(Icons.Star, "Stars Browser", OpenDataContext != null))
+                {
+                    var fd = TabControl.Tabs.FirstOrDefault(x => x is StarsBrowserTab);
+                    if (fd != null)
+                        TabControl.SetSelected(fd);
+                    else
+                        AddTab(new StarsBrowserTab(this, OpenDataContext));
+                }
+                if (Theme.IconMenuItem(Icons.Sitemap, "Vignette Nodes Browser", OpenDataContext != null))
+                {
+                    var fd = TabControl.Tabs.FirstOrDefault(x => x is VignetteNodesBrowserTab);
+                    if (fd != null)
+                        TabControl.SetSelected(fd);
+                    else
+                        AddTab(new VignetteNodesBrowserTab(this, OpenDataContext));
                 }
                 ImGui.Separator();
                 if (Theme.IconMenuItem(Icons.Fire, "Projectile Viewer", OpenDataContext != null))
