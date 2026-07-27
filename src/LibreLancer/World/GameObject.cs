@@ -394,6 +394,11 @@ namespace LibreLancer.World
             {
                 InitWithModel(arch.ModelFile?.LoadFile(res, flags), arch.SeparableParts, res, draw, phys);
             }
+
+            if (arch.PhantomPhysics && PhysicsComponent != null)
+            {
+                PhysicsComponent.Collidable = false;
+            }
         }
 
         public GameObject()

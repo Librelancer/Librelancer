@@ -20,6 +20,7 @@ public class Archetype : IdentifiableItem
     public List<SeparablePart> SeparableParts = [];
     public float SolarRadius;
     public float Hitpoints;
+    public bool PhantomPhysics;
 
     public bool CanVisit => Type switch
     {
