@@ -89,6 +89,28 @@ public class StarSystem : NamedItem
     {
     }
 
+    public float ZoneDamageAt(Vector3 position)
+    {
+        var damage = 0f;
+        foreach (var zone in Zones)
+        {
+            if (zone.Damage > 0 && zone.ContainsPoint(position))
+                damage += zone.Damage;
+        }
+        return damage;
+    }
+
+    public bool InAtmosphere(Vector3 position)
+    {
+        foreach (var obj in Objects)
+        {
+            var range = obj.AtmosphereRange;
+            if (range > 0 && Vector3.DistanceSquared(position, obj.Position) <= range * range)
+                return true;
+        }
+        return false;
+    }
+
     public string WaypointSector(Vector3 position)
     {
         var scale = NavmapGridSizeDefault / (NavMapScale == 0 ? 1 : NavMapScale);

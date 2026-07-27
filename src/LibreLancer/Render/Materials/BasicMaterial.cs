@@ -38,6 +38,7 @@ namespace LibreLancer.Render.Materials
         public bool BtEnabled = false;
         public bool AlphaEnabled = false;
         public bool AlphaTest = false;
+        public ushort? BlendModeOverride;
         public Color4 Ec = Color4.White;
         public string EtSampler;
         public SamplerFlags EtFlags;
@@ -227,16 +228,11 @@ namespace LibreLancer.Render.Materials
             }
 
             // Blending
-            if (AlphaEnabled || Fade || OcEnabled || dxt1 || AlphaTest ||
-                (userData & ForceAlpha) == ForceAlpha ||
-                OpacityMultiplier < 1.0f)
-            {
-                rstate.BlendMode = BlendMode.Normal;
-            }
-            else
-            {
-                rstate.BlendMode = BlendMode.Opaque; // TODO: Maybe I can just leave this out?
-            }
+            rstate.BlendMode = BlendModeOverride ??
+                (AlphaEnabled || Fade || OcEnabled || dxt1 || AlphaTest ||
+                 (userData & ForceAlpha) == ForceAlpha || OpacityMultiplier < 1.0f
+                    ? BlendMode.Normal
+                    : BlendMode.Opaque);
 
             // MaterialAnim
             var ma = new Vector4(0, 0, 1, 1);

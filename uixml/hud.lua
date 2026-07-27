@@ -354,6 +354,7 @@ class hud : hud_Designer
     {
         this.UpdateManeuverState()
 	    local e = this.Elements
+        e.radiationalert.Visible = Game.RadiationWarning() && (math.floor(delta) % 2 == 0)
         e.speedText.Text = Game.Speed() + ""
         e.thrustText.Text = Game.ThrustPercent() + "%"
 		e.repairKitCount.Text = Game.RepairKitCount() + ""

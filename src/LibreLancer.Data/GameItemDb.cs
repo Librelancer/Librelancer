@@ -1003,6 +1003,7 @@ public class GameItemDb
             equip.IdsName = val.IdsName;
             equip.IdsInfo = val.IdsInfo;
             equip.Volume = val.Volume;
+            equip.Hitpoints = val.Hitpoints;
         }
 
         //Process munitions first
@@ -1215,8 +1216,7 @@ public class GameItemDb
                 var eq = new LootCrateEquipment
                 {
                     ModelFile = ResolveDrawable(lc.MaterialLibrary, lc.DaArchetype),
-                    Mass = lc.Mass,
-                    Hitpoints = lc.Hitpoints
+                    Mass = lc.Mass
                 };
                 equip = eq;
             }
@@ -1226,8 +1226,7 @@ public class GameItemDb
                 var eq = new CargoPodEquipment
                 {
                     ModelFile = ResolveDrawable(cp.MaterialLibrary, cp.DaArchetype),
-                    Explosion = cp.ExplosionArch is not null ? Explosions.Get(cp.ExplosionArch) : null,
-                    Hitpoints = cp.Hitpoints
+                    Explosion = cp.ExplosionArch is not null ? Explosions.Get(cp.ExplosionArch) : null
                 };
                 equip = eq;
             }
