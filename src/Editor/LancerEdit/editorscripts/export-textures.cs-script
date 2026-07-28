@@ -13,11 +13,14 @@
 // ; Copyright (c) 2022 Brian Hernandez
 using System.IO;
 using System.Linq;
+using LibreLancer.ContentEdit.Texture;
 
 bool recursive = false;
 FlagOption("recursive", "Traverse directories recursively", v => recursive = v);
 
-ScriptUsage("outputdir/ file/directory ...");
+ScriptUsage(@"outputdir/ file/directory ...
+Exports all the found MIPS and MIP0 nodes from the specified files.
+MIPS nodes are exported directly to .dds files, MIP0 nodes are converted to .png files.");
 
 var args = ParseArguments(2);
 
@@ -49,7 +52,7 @@ for (int i = 1; i < args.Length; ++i)
             mat = new EditableUtf(path);
         }
         catch (Exception e) {
-            Console.Error.WriteLine("Error opening {path}");
+            Console.Error.WriteLine($"Error opening {path}");
             Console.Error.WriteLine(e);
             continue;
         }
@@ -66,10 +69,19 @@ for (int i = 1; i < args.Length; ++i)
                     } else {
                         var mip0 = t.Children.FirstOrDefault(x => x.Name.Equals("MIP0", StringComparison.OrdinalIgnoreCase));
                         if (mip0 != null){
-                            var fileName = Path.Combine(directory, $"{t.Name}.tga");
-                            File.WriteAllBytes(fileName, mip0.Data);
-                            Console.WriteLine("  " + Path.GetFileName(fileName));
-                            exportTotal += 1;
+                            try
+                            {
+                                var fileName = Path.Combine(directory, $"{t.Name}.png");
+                                var pngData = TextureExporter.ExportTexture(new(ImageType.TGA, mip0.Data), true);
+                                File.WriteAllBytes(fileName, pngData);
+                                Console.WriteLine("  " + Path.GetFileName(fileName));
+                                exportTotal += 1;
+                            }
+                            catch (Exception e)
+                            {
+                                Console.Error.WriteLine($"Error exporting {path}:{t.Name}");
+                                Console.Error.WriteLine(e);
+                            }
                         }
                     }
                 }
