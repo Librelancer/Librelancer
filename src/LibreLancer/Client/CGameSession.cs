@@ -75,6 +75,7 @@ public partial class CGameSession : IClientPlayer
     private bool paused;
     public string? PlayerBase;
     public int PlayerNetID;
+    public readonly HashSet<uint> PlayerDestroyedParts = [];
     public Quaternion PlayerOrientation;
     public Vector3 PlayerPosition;
     public ReputationCollection PlayerReputations = new();
@@ -255,6 +256,10 @@ public partial class CGameSession : IClientPlayer
 
     void IClientPlayer.UpdateInventory(PlayerInventoryDiff diff)
     {
+        if (diff.ResetDestroyedParts)
+        {
+            PlayerDestroyedParts.Clear();
+        }
         lastInventory = diff.Apply(lastInventory);
         Credits = lastInventory.Credits;
         ShipWorth = lastInventory.ShipWorth;
@@ -300,7 +305,7 @@ public partial class CGameSession : IClientPlayer
 
 
     void IClientPlayer.BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news,
-        SoldGood[] goods, NetSoldShip[] ships, NetMissionOffer[] missionOffers)
+        SoldGood[] goods, NetSoldShip[] ships, NetMissionOffer[] missionOffers, uint[] destroyedParts)
     {
         if (enterCount > 0 && connection is EmbeddedServer es)
         {
@@ -316,6 +321,8 @@ public partial class CGameSession : IClientPlayer
         Goods = goods;
         Ships = ships;
         MissionOffers = missionOffers;
+        PlayerDestroyedParts.Clear();
+        PlayerDestroyedParts.UnionWith(destroyedParts);
         SceneChangeRequired();
         CutsceneUpdate(thns);
     }

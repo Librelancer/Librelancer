@@ -442,6 +442,11 @@ namespace LibreLancer.Server
             obj.AddComponent(new SFuseRunnerComponent(obj) { DamageFuses = player.Character.Ship.Fuses });
             obj.AddComponent(new ShipPhysicsComponent(obj, player.Character.Ship));
             obj.AddComponent(new SDestroyableComponent(obj, this));
+            var destroyedParts = player.Character.GetDestroyedParts();
+            foreach (var part in destroyedParts)
+            {
+                obj.DisableCmpPart(part, null, Server.Resources, out _);
+            }
 
             if (player == Server.LocalPlayer)
             {
@@ -501,12 +506,30 @@ namespace LibreLancer.Server
             }
         }
 
-        public void ProjectileHit(GameObject obj, GameObject? child, Vector3 hitPoint, GameObject owner, MunitionEquip munition)
+        public void ProjectileHit(GameObject obj, object? hitObject, Vector3 hitPoint, GameObject owner,
+            MunitionEquip munition)
         {
             if (obj.TryGetComponent<SHealthComponent>(out var health))
             {
-                health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage, owner, child);
+                var destroyedPart = health.Damage(
+                    munition.Def.HullDamage,
+                    munition.Def.EnergyDamage,
+                    owner,
+                    hitObject);
                 health.OnProjectileHit(owner);
+
+                if (destroyedPart != null &&
+                    obj.Model!.TryGetCollisionGroup(destroyedPart, out var collisionGroup))
+                {
+                    if (collisionGroup.Definition.Separable)
+                    {
+                        obj.SpawnDebris(destroyedPart.Name!, GameWorld, Server.Resources);
+                    }
+                    else
+                    {
+                        obj.DisableCmpPart(destroyedPart.Name!, GameWorld, Server.Resources, out _);
+                    }
+                }
             }
         }
 
@@ -763,6 +786,10 @@ namespace LibreLancer.Server
             {
                 gameobj.AddComponent(new SHealthComponent(gameobj)
                     { CurrentHealth = arch.Hitpoints, MaxHealth = arch.Hitpoints });
+                if (arch.SeparableParts.Any(x => x.Fuses.Count > 0))
+                {
+                    gameobj.AddComponent(new SFuseRunnerComponent(gameobj));
+                }
                 gameobj.AddComponent(new SDestroyableComponent(gameobj, this));
             }
 
@@ -925,6 +952,10 @@ namespace LibreLancer.Server
 
         public void PartDisabled(GameObject obj, uint part)
         {
+            if (obj.TryGetComponent<SPlayerComponent>(out var player))
+            {
+                player.Player.Character?.MarkPartDestroyed(part);
+            }
             foreach (Player p in Players.Keys)
                 p.RpcClient.DestroyPart(obj, part);
         }
@@ -1153,11 +1184,20 @@ namespace LibreLancer.Server
                     {
                         update.Shield = (int) sh.Health;
                     }
-                    if (health.EquipmentHealths.Count > 0)
+                    var damagedParts = health.EquipmentHealths
+                        .Select(x => new PartHealth(
+                            FLHash.CreateID(x.Key.Name),
+                            (byte)(MathHelper.Clamp(x.Value, 0, 1) * 255f)))
+                        .Concat(obj.Model?.CollisionGroups
+                            .Where(x => x.ModelPart.Active && x.CurrentHealth < x.MaxHealth)
+                            .Select(x => new PartHealth(
+                                x.CRC,
+                                (byte)(x.HealthFraction * 255f))) ?? [])
+                        .OrderBy(x => x.Hardpoint)
+                        .ToArray();
+                    if (damagedParts.Length > 0)
                     {
-                        update.DamagedParts = health.EquipmentHealths
-                            .Select(x => new PartHealth(FLHash.CreateID(x.Key.Name), (byte)(x.Value * 255f)))
-                            .ToArray();
+                        update.DamagedParts = damagedParts;
                     }
                 }
 

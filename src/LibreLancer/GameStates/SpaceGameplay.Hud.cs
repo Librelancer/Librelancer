@@ -342,13 +342,8 @@ partial class SpaceGameplay
             ScanHandler = handler;
         }
 
-        public Closure PlayerInventoryHandler;
-
-        public void OnUpdatePlayerInventory(Closure handler)
-        {
-            PlayerInventoryHandler = handler;
-            g.session.OnUpdateInventory = () => PlayerInventoryHandler?.Call();
-        }
+        public void OnUpdatePlayerInventory(Closure handler) =>
+            g.session.OnUpdateInventory += () => handler.Call();
 
         public void JettisonInventoryItem(UIInventoryItem item, int count)
         {
@@ -537,7 +532,8 @@ partial class SpaceGameplay
                 : $"{distance / 1000f:0.0}-K";
         }
 
-        public TargetShipWireframe? SelectionWireframe() => g.Selection.Selected != null ? g.targetWireframe : null;
+        public TargetShipWireframe? SelectionWireframe() =>
+            g.Selection.Selected?.Model != null ? g.targetWireframe : null;
 
         public bool SelectionVisible()
         {
@@ -554,6 +550,12 @@ partial class SpaceGameplay
             if (!g.Selection.Selected.TryGetComponent<CHealthComponent>(out var health))
             {
                 return -1;
+            }
+
+            if (g.Selection.SelectedPart is uint partCrc &&
+                g.Selection.Selected.Model?.TryGetCollisionGroup(partCrc, out var collisionGroup) == true)
+            {
+                return collisionGroup.HealthFraction;
             }
 
             return MathHelper.Clamp(health.CurrentHealth / health.MaxHealth, 0, 1);
