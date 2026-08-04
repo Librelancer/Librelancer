@@ -22,8 +22,7 @@ namespace LibreLancer.World.Components
         public AsteroidField Field;
         private ConvexMeshCollider? shape;
         private readonly StaticAsteroid[] mines;
-        private readonly Dictionary<(Vector3 Cube, int Mine), double> mineRechargeTimes = new();
-        private double mineTime;
+        private readonly Dictionary<Vector3, float> mineRechargeTimes = new();
 
         public AsteroidFieldComponent(AsteroidField field, ResourceManager res, GameObject parent) : base(parent)
         {
@@ -181,10 +180,24 @@ namespace LibreLancer.World.Components
                 return;
             }
 
+            foreach (var key in mineRechargeTimes.Keys.ToArray())
+            {
+                var rechargeTime = mineRechargeTimes[key] - (float) time;
+                if (rechargeTime <= 0)
+                {
+                    mineRechargeTimes.Remove(key);
+                }
+                else
+                {
+                    mineRechargeTimes[key] = rechargeTime;
+                }
+            }
+
             var amountCubes = (int) Math.Floor((COLLIDE_DISTANCE / Field.CubeSize)) + 1;
 
             // Create series of bounding boxes, merging some as we go
             var fillBoxes = new QuickList<(BoundingBox Bb, Vector4i Dims)>(8, phys.BufferPool);
+            var mineQueries = new QuickList<SphereQuery>(8, phys.BufferPool);
 
             foreach (var pobj in phys.DynamicObjects)
             {
@@ -257,10 +270,10 @@ namespace LibreLancer.World.Components
                     RemoveStatic(ref oldList[i]);
                 }
 
-                mineRechargeTimes.Clear();
                 spawnedA.Count = 0;
                 spawnedB.Count = 0;
                 fillBoxes.Dispose(phys.BufferPool);
+                mineQueries.Dispose(phys.BufferPool);
                 return;
             }
 
@@ -298,6 +311,7 @@ namespace LibreLancer.World.Components
 
                     remove = false;
                     bodies.Add(oldList[i], world?.Physics?.BufferPool);
+                    AddMineQueries(ref mineQueries, oldList[i]);
                     var p = (oldList[i].Position - fillBoxes[j].Bb.Min) / Field.CubeSize;
                     present[Index(fillBoxes[j].Dims, (int) p.X, (int) p.Y, (int) p.Z)] = true;
                     break;
@@ -306,7 +320,6 @@ namespace LibreLancer.World.Components
                 if (remove)
                 {
                     RemoveStatic(ref oldList[i]);
-                    ClearMineRechargeTimes(oldList[i].Position);
                 }
             }
 
@@ -349,6 +362,7 @@ namespace LibreLancer.World.Components
                                 Position = center,
                                 Rotation = cubeRotation
                             }, phys.BufferPool);
+                            AddMineQueries(ref mineQueries, bodies[bodies.Count - 1]);
                             if (shape is { BepuChildCount: > 0 })
                             {
                                 phys.CreateUnmanagedStatic(ref bodies[bodies.Count - 1].Object, transform, shape);
@@ -360,75 +374,45 @@ namespace LibreLancer.World.Components
 
             if (mines.Length > 0)
             {
-                mineTime += time;
-                CheckMines(world, ref bodies);
+                phys.DynamicObjectSphereQuery(mineQueries);
+                CheckMines(world, mineQueries);
             }
             fillBoxes.Dispose(phys.BufferPool);
+            mineQueries.Dispose(phys.BufferPool);
         }
 
-        private void CheckMines(GameWorld world, ref QuickList<SpawnedCube> cubes)
-        {
-            for (var cubeIndex = 0; cubeIndex < cubes.Count; cubeIndex++)
-            {
-                var cube = cubes[cubeIndex];
-
-                for (var mineIndex = 0; mineIndex < mines.Length; mineIndex++)
-                {
-                    var archetype = mines[mineIndex].Archetype!;
-                    var explosion = archetype.MineExplosion!;
-                    var key = (cube.Position, mineIndex);
-                    if (mineRechargeTimes.TryGetValue(key, out var rechargeTime) && rechargeTime > mineTime)
-                    {
-                        continue;
-                    }
-
-                    var minePosition = cube.Position +
-                                       Vector3.Transform(mines[mineIndex].Position * Field.CubeSize, cube.Rotation);
-                    var trigger = GetMineTrigger(minePosition, archetype.MineDetectRadius);
-                    if (trigger == null)
-                    {
-                        continue;
-                    }
-
-                    var direction = trigger.Position - minePosition;
-                    if (direction.LengthSquared() > 0)
-                    {
-                        direction = Vector3.Normalize(direction);
-                    }
-
-                    world.SpawnTempFx(explosion.Effect,
-                        minePosition + (direction * archetype.MineExplosionOffset));
-                    DamageMineExplosion(world, explosion, minePosition);
-                    mineRechargeTimes[key] = mineTime + archetype.MineRechargeTime;
-                }
-            }
-        }
-
-        private void ClearMineRechargeTimes(Vector3 cubePosition)
+        private void AddMineQueries(ref QuickList<SphereQuery> queries, in SpawnedCube cube)
         {
             for (var mineIndex = 0; mineIndex < mines.Length; mineIndex++)
             {
-                mineRechargeTimes.Remove((cubePosition, mineIndex));
+                var mine = mines[mineIndex];
+                var archetype = mine.Archetype!;
+                var minePosition = cube.Position +
+                                   Vector3.Transform(mine.Position * Field.CubeSize, cube.Rotation);
+                queries.Add(new SphereQuery
+                {
+                    Position = minePosition,
+                    Radius = archetype.MineDetectRadius
+                }, phys!.BufferPool);
             }
         }
 
-        private PhysicsObject? GetMineTrigger(Vector3 minePosition, float detectRadius)
+        private void CheckMines(GameWorld world, QuickList<SphereQuery> queries)
         {
-            var detectRadiusSquared = detectRadius * detectRadius;
-            foreach (var pobj in phys!.DynamicObjects)
+            for (var i = 0; i < queries.Count; i++)
             {
-                if (pobj.Tag is not GameObject { Kind: GameObjectKind.Ship })
+                ref var query = ref queries[i];
+                if (!query.Touched || mineRechargeTimes.ContainsKey(query.Position))
                 {
                     continue;
                 }
 
-                if (Vector3.DistanceSquared(pobj.Position, minePosition) <= detectRadiusSquared)
-                {
-                    return pobj;
-                }
+                var archetype = mines[i % mines.Length].Archetype!;
+                var explosion = archetype.MineExplosion!;
+                world.SpawnTempFx(explosion.Effect, query.Position);
+                DamageMineExplosion(world, explosion, query.Position);
+                mineRechargeTimes[query.Position] = archetype.MineRechargeTime;
             }
-
-            return null;
         }
 
         private void DamageMineExplosion(GameWorld world, Explosion explosion, Vector3 minePosition)
