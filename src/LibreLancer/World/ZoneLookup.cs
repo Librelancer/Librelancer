@@ -114,7 +114,7 @@ public class ZoneLookup : IDisposable
             return;
         }
         var iterator = new PointIterator(callback, this, position);
-        tree.GetOverlaps(position, position, ref iterator);
+        tree.GetOverlaps(new BepuUtilities.BoundingBox(position, position), pool, ref iterator);
     }
 
     public void Dispose()
