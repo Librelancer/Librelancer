@@ -12,6 +12,7 @@ using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics.Trees;
 using BepuUtilities;
+using BepuUtilities.Collections;
 using BepuUtilities.Memory;
 using LibreLancer.Physics.ContactEvents;
 
@@ -194,6 +195,15 @@ namespace LibreLancer.Physics
             }
         }
 
+        /// <summary>
+        /// Fills Touched booleans based on if a dynamic object is touching the query spheres
+        /// </summary>
+        /// <param name="queries">A list of queries to run</param>
+        public void DynamicObjectSphereQuery(QuickList<SphereQuery> queries)
+        {
+            DynamicSpheresQuery.Run(Simulation, BufferPool, queries);
+        }
+
         // TODO: Use a CollisionQuery instead.
         public List<PhysicsObject?> SphereTest(Vector3 origin, float radius)
         {
@@ -251,7 +261,7 @@ namespace LibreLancer.Physics
             out Vector3 contactPoint, out PhysicsObject? didHit, out object? childTag)
         {
             HitHandler handler = new HitHandler(this, me);
-            Simulation.RayCast(origin, direction, maxDist, ref handler);
+            Simulation.RayCast(origin, direction, maxDist, BufferPool, ref handler);
             contactPoint = handler.ContactPoint;
             didHit = handler.Result;
             childTag = handler.ResultTag;
