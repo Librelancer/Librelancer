@@ -897,7 +897,7 @@ public class GameItemDb
         var goodsTask = tasks.Begin(InitGoods, equipmentTask);
         var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask);
         var starsTask = tasks.Begin(InitStars);
-        var astsTask = tasks.Begin(InitAsteroids);
+        var astsTask = tasks.Begin(InitAsteroids, explosionTask);
         tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
         tasks.Begin(InitNews, baseTask);
         tasks.Begin(() => InitSystems(tasks),
@@ -2201,10 +2201,15 @@ public class GameItemDb
 
         foreach (var orig in flData.Explosions.Explosions)
         {
-            var ex = new Explosion() { Nickname = orig.Nickname };
+            var ex = new Explosion
+            {
+                Nickname = orig.Nickname,
+                Effect = Effects.Get(orig.Effect),
+                Radius = orig.Radius,
+                HullDamage = orig.HullDamage,
+                EnergyDamage = orig.EnergyDamage
+            };
             ex.CRC = CrcTool.FLModelCrc(ex.Nickname);
-            ex.Effect = Effects.Get(orig.Effect);
-
             Explosions.Add(ex);
         }
     }
@@ -2316,8 +2321,17 @@ public class GameItemDb
             var asteroid = new Asteroid
             {
                 Nickname = ast.Nickname,
-                ModelFile = ResolveDrawable(ast.MaterialLibrary ?? "", ast.DaArchetype)
+                ModelFile = ResolveDrawable(ast.MaterialLibrary ?? "", ast.DaArchetype),
+                MineExplosion = ast.IsMine ? Explosions.Get(ast.ExplosionArch) : null,
+                MineDetectRadius = ast.DetectRadius,
+                MineExplosionOffset = ast.ExplosionOffset,
+                MineRechargeTime = ast.RechargeTime,
+                PhantomPhysics = ast.PhantomPhysics
             };
+            if (ast.IsMine && asteroid.MineExplosion == null)
+            {
+                FLLog.Error("Asteroids", $"Explosion arch '{ast.ExplosionArch}' not found for mine '{ast.Nickname}'");
+            }
             asteroid.CRC = CrcTool.FLModelCrc(asteroid.Nickname);
             Asteroids.Add(asteroid);
         }
@@ -2434,7 +2448,8 @@ public class GameItemDb
                 Type = arch.Type,
                 Loadout = GetLoadout(arch.LoadoutName),
                 NavmapIcon = arch.ShapeName,
-                SolarRadius = arch.SolarRadius ?? 0
+                SolarRadius = arch.SolarRadius ?? 0,
+                PhantomPhysics = arch.PhantomPhysics ?? false
             };
 
             foreach (var dockSphere in arch.DockingSpheres)

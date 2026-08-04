@@ -197,6 +197,7 @@ namespace LibreLancer.World.Components
 
             Body = Mass < float.Epsilon ? world.Physics!.AddStaticObject(Parent!.WorldTransform, cld) : world.Physics!.AddDynamicObject(Mass, Parent!.WorldTransform, cld, Inertia);
             Body.Tag = Parent;
+            Body.Collidable = Collidable;
             collider = cld;
         }
 
