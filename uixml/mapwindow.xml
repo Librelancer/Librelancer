@@ -24,8 +24,26 @@
 
 		<Panel Width="263" Height="292" ID="contents">
 			<Navmap Width="232" Height="235" X="15" Y="29.5" ID="navmap">
-				<Navmap.BaseListScrollbar Width="8"/>
 			</Navmap>
+			<TextBlock ID="knownbases_title" X="23" Y="31.5" Width="216" Height="18"
+				Text="BASE LIST" TextColor="text" TextShadow="black" TextSize="11"
+				HorizontalAlignment="Center" VerticalAlignment="Top" Visible="false"/>
+			<DataTable ID="knownbases_table" X="25" Y="53.5" Width="217" Height="207.5"
+				Visible="false" DisplayRowCount="13" BodyFont="$NavMap800" BodyTextSize="8"
+				BodyColor="text" BodyHover="text_hover" SelectedColor="yellow"
+				HeaderFont="$NavMap800" HeaderTextSize="11" HeaderColor="text" HeaderActiveColor="yellow"
+				ActiveSortColumn="name"
+				TextShadow="black"
+				ShowHeaders="true" ShowColumnBorders="false" ShowRowBorders="false">
+				<DataTable.Scrollbar Width="8"/>
+				<DataTable.Columns>
+					<TableColumn Label="BASE NAMES" Data="name" InitialWidthPercent="48" TextAlignment="left"/>
+					<TableColumn Label="SYSTEM NAME" Data="system" InitialWidthPercent="52" TextAlignment="left"/>
+				</DataTable.Columns>
+			</DataTable>
+			<TextBlock ID="knownbases_empty" X="25" Y="71.5" Width="199" Height="20"
+				Text="No known bases" TextColor="text" TextShadow="black" TextSize="9"
+				HorizontalAlignment="Center" VerticalAlignment="Top" Visible="false"/>
 				<Button Style="nav_universebutton" X="15" Y="9" ID="universebutton" DrawText="false" Strid="8604"/>
 				<Button Style="nav_labels" X="35" Y="9" ID="labels" DrawText="false" Strid="1046"/>
 				<Button Style="nav_filter_physical" X="85" Y="9" ID="physical" DrawText="false" Strid="1235"/>

@@ -21,15 +21,6 @@ namespace LibreLancer.Interface;
 
 public readonly record struct NavmapWaypoint(Vector3 Position, int Number);
 
-[WattleScriptUserData]
-public class NavmapBaseListItem
-{
-    public string Name = "";
-    public string SystemName = "";
-    public uint SystemHash;
-    public uint ObjectHash;
-}
-
 [UiLoadable]
 [WattleScriptUserData]
 public partial class Navmap : UiWidget
@@ -93,9 +84,6 @@ public partial class Navmap : UiWidget
 
     private Func<uint, bool> isVisited = _ => true;
     private Func<string?, float> factionRelation = _ => 0;
-    private NavmapBaseListItem[] knownBases = [];
-    private int knownBaseScroll;
-    private KnownBaseSortColumn knownBaseSortColumn = KnownBaseSortColumn.Name;
     private Vector2 lastMousePosition;
 
     private readonly CachedRenderString[] letterCache = new CachedRenderString[16];
@@ -137,10 +125,6 @@ public partial class Navmap : UiWidget
     private CachedRenderString? systemNameCache;
     private CachedRenderString? overlayTitleCache;
     private CachedRenderString? overlayTextCache;
-    private CachedRenderString? baseNameHeaderCache;
-    private CachedRenderString? baseSystemHeaderCache;
-    private CachedRenderString[] baseNameCaches = [];
-    private CachedRenderString[] baseSystemCaches = [];
     private Vector2 targetOffset;
     private float targetZoom = 1f;
 
@@ -188,15 +172,12 @@ public partial class Navmap : UiWidget
         NavmapOverlayMode.Patrol => "patrol",
         NavmapOverlayMode.Mining => "mining",
         NavmapOverlayMode.Legend => "legend",
-        NavmapOverlayMode.Bases => "bases",
         _ => "physical"
     };
 
     public bool LetterMargin { get; set; } = false;
 
     public bool MapBorder { get; set; } = false;
-
-    public Scrollbar BaseListScrollbar { get; set; } = new();
 
     public string ZoomInSound { get; set; } = "hud_zoom_in";
     public string ZoomOutSound { get; set; } = "hud_zoom_out";
@@ -223,35 +204,11 @@ public partial class Navmap : UiWidget
             "patrol" or "patrols" => NavmapOverlayMode.Patrol,
             "mining" or "miningfilter" => NavmapOverlayMode.Mining,
             "legend" or "legendtoggle" => NavmapOverlayMode.Legend,
-            "bases" or "knownbases" => NavmapOverlayMode.Bases,
             _ => NavmapOverlayMode.Physical
         };
         if (oldMode != OverlayMode)
             ResetZoneRelationshipFilter();
         selectorMapPosition = null;
-    }
-
-    public void SetKnownBases(NavmapBaseListItem[] bases)
-    {
-        knownBases = bases ?? [];
-        knownBaseScroll = 0;
-        BaseListScrollbar.ScrollOffset = 0;
-        SortKnownBases();
-        baseNameCaches = new CachedRenderString[knownBases.Length];
-        baseSystemCaches = new CachedRenderString[knownBases.Length];
-    }
-
-    private void SortKnownBases()
-    {
-        Array.Sort(knownBases, (a, b) =>
-        {
-            var comparison = knownBaseSortColumn == KnownBaseSortColumn.SystemName
-                ? string.Compare(a.SystemName, b.SystemName, StringComparison.OrdinalIgnoreCase)
-                : string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-            return comparison != 0
-                ? comparison
-                : string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
-        });
     }
 
     [WattleScriptHidden]
@@ -431,14 +388,6 @@ public partial class Navmap : UiWidget
         ZoneRelationship Relationship,
         uint ZoneHash);
 
-    private readonly record struct BaseListLayout(
-        RectangleF Rows,
-        RectangleF NameHeader,
-        RectangleF SystemHeader,
-        float NameColumnWidth,
-        float SystemColumnX,
-        float SystemColumnWidth);
-
     private struct Tradelanes
     {
         public Vector2 StartXZ;
@@ -458,20 +407,13 @@ public partial class Navmap : UiWidget
         Hostile
     }
 
-    private enum KnownBaseSortColumn
-    {
-        Name,
-        SystemName
-    }
-
     public enum NavmapOverlayMode
     {
         Physical,
         Political,
         Patrol,
         Mining,
-        Legend,
-        Bases
+        Legend
     }
 
     private struct ZoneVertex : IVertexType

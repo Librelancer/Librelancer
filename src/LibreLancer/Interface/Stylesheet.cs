@@ -721,21 +721,6 @@ namespace LibreLancer.Interface
         private StyledProperty<float> zoneFilterButtonSpacing = new("ZoneFilterButtonSpacing", 7);
         private StyledProperty<float> zoneFilterButtonMarginX = new("ZoneFilterButtonMarginX", 12);
         private StyledProperty<float> zoneFilterButtonMarginY = new("ZoneFilterButtonMarginY", 8);
-        private StyledProperty<float> baseListTitleTop = new("BaseListTitleTop", 2);
-        private StyledProperty<float> baseListTitleHeight = new("BaseListTitleHeight", 18);
-        private StyledProperty<float> baseListTitleTextSize = new("BaseListTitleTextSize", 11);
-        private StyledProperty<float> baseListHeaderTop = new("BaseListHeaderTop", 24);
-        private StyledProperty<float> baseListHeaderHeight = new("BaseListHeaderHeight", 20);
-        private StyledProperty<float> baseListHeaderTextSize = new("BaseListHeaderTextSize", 11);
-        private StyledProperty<float> baseListRowsTop = new("BaseListRowsTop", 42);
-        private StyledProperty<float> baseListRowHeight = new("BaseListRowHeight", 14);
-        private StyledProperty<float> baseListRowTextSize = new("BaseListRowTextSize", 8);
-        private StyledProperty<float> baseListHorizontalPadding = new("BaseListHorizontalPadding", 10);
-        private StyledProperty<float> baseListBottomPadding = new("BaseListBottomPadding", 4);
-        private StyledProperty<float> baseListColumnGap = new("BaseListColumnGap", 16);
-        private StyledProperty<float> baseListNameColumnWidth = new("BaseListNameColumnWidth", 95);
-        private StyledProperty<float> baseListScrollbarGap = new("BaseListScrollbarGap", 5);
-
         private StyledProperty<InterfaceColor> userWaypointColor =
             new("UserWaypointColor", new Color4(1f, 0.2f, 1f, 1f));
 
@@ -760,20 +745,6 @@ namespace LibreLancer.Interface
                 .Add(zoneFilterButtonSpacing)
                 .Add(zoneFilterButtonMarginX)
                 .Add(zoneFilterButtonMarginY)
-                .Add(baseListTitleTop)
-                .Add(baseListTitleHeight)
-                .Add(baseListTitleTextSize)
-                .Add(baseListHeaderTop)
-                .Add(baseListHeaderHeight)
-                .Add(baseListHeaderTextSize)
-                .Add(baseListRowsTop)
-                .Add(baseListRowHeight)
-                .Add(baseListRowTextSize)
-                .Add(baseListHorizontalPadding)
-                .Add(baseListBottomPadding)
-                .Add(baseListColumnGap)
-                .Add(baseListNameColumnWidth)
-                .Add(baseListScrollbarGap)
                 .Add(userWaypointColor)
                 .Add(userWaypointDigitColor);
         }
@@ -797,20 +768,6 @@ namespace LibreLancer.Interface
                 .Query(zoneFilterButtonSpacing)
                 .Query(zoneFilterButtonMarginX)
                 .Query(zoneFilterButtonMarginY)
-                .Query(baseListTitleTop)
-                .Query(baseListTitleHeight)
-                .Query(baseListTitleTextSize)
-                .Query(baseListHeaderTop)
-                .Query(baseListHeaderHeight)
-                .Query(baseListHeaderTextSize)
-                .Query(baseListRowsTop)
-                .Query(baseListRowHeight)
-                .Query(baseListRowTextSize)
-                .Query(baseListHorizontalPadding)
-                .Query(baseListBottomPadding)
-                .Query(baseListColumnGap)
-                .Query(baseListNameColumnWidth)
-                .Query(baseListScrollbarGap)
                 .Query(userWaypointColor)
                 .Query(userWaypointDigitColor);
         }
@@ -903,90 +860,6 @@ namespace LibreLancer.Interface
         {
             get => zoneFilterButtonMarginY.Value;
             set => zoneFilterButtonMarginY.Set(value);
-        }
-
-        public float BaseListTitleTop
-        {
-            get => baseListTitleTop.Value;
-            set => baseListTitleTop.Set(value);
-        }
-
-        public float BaseListTitleHeight
-        {
-            get => baseListTitleHeight.Value;
-            set => baseListTitleHeight.Set(value);
-        }
-
-        public float BaseListTitleTextSize
-        {
-            get => baseListTitleTextSize.Value;
-            set => baseListTitleTextSize.Set(value);
-        }
-
-        public float BaseListHeaderTop
-        {
-            get => baseListHeaderTop.Value;
-            set => baseListHeaderTop.Set(value);
-        }
-
-        public float BaseListHeaderHeight
-        {
-            get => baseListHeaderHeight.Value;
-            set => baseListHeaderHeight.Set(value);
-        }
-
-        public float BaseListHeaderTextSize
-        {
-            get => baseListHeaderTextSize.Value;
-            set => baseListHeaderTextSize.Set(value);
-        }
-
-        public float BaseListRowsTop
-        {
-            get => baseListRowsTop.Value;
-            set => baseListRowsTop.Set(value);
-        }
-
-        public float BaseListRowHeight
-        {
-            get => baseListRowHeight.Value;
-            set => baseListRowHeight.Set(value);
-        }
-
-        public float BaseListRowTextSize
-        {
-            get => baseListRowTextSize.Value;
-            set => baseListRowTextSize.Set(value);
-        }
-
-        public float BaseListHorizontalPadding
-        {
-            get => baseListHorizontalPadding.Value;
-            set => baseListHorizontalPadding.Set(value);
-        }
-
-        public float BaseListBottomPadding
-        {
-            get => baseListBottomPadding.Value;
-            set => baseListBottomPadding.Set(value);
-        }
-
-        public float BaseListColumnGap
-        {
-            get => baseListColumnGap.Value;
-            set => baseListColumnGap.Set(value);
-        }
-
-        public float BaseListNameColumnWidth
-        {
-            get => baseListNameColumnWidth.Value;
-            set => baseListNameColumnWidth.Set(value);
-        }
-
-        public float BaseListScrollbarGap
-        {
-            get => baseListScrollbarGap.Value;
-            set => baseListScrollbarGap.Set(value);
         }
 
         public InterfaceColor UserWaypointColor

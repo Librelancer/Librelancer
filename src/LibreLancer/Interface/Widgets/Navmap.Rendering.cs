@@ -218,9 +218,9 @@ public partial class Navmap
     private static Color4 ZoneRelationFillColor(ZoneRelationship relation) =>
         relation switch
         {
-            ZoneRelationship.Hostile => new Color4(1.0f, 0.12f, 0.08f, 0.58f),
-            ZoneRelationship.Friendly => new Color4(0.20f, 1.0f, 0.25f, 0.50f),
-            _ => new Color4(1.0f, 1.0f, 1.0f, 0.42f)
+            ZoneRelationship.Hostile => new Color4(1.0f, 0.12f, 0.08f, 1f),
+            ZoneRelationship.Friendly => new Color4(0.20f, 1.0f, 0.25f, 1f),
+            _ => new Color4(1.0f, 1.0f, 1.0f, 1f)
         };
 
     private static int LabelPriority(ArchetypeType type) => type switch
@@ -260,8 +260,6 @@ public partial class Navmap
         ApplyPendingFocus(mapRect);
         UpdateZoomAnimation(context, delta, mapRect);
         selectorMenu.Update(context, delta);
-        BaseListScrollbar.Update(context, delta);
-        UpdateKnownBaseScrollbar(mapRect);
     }
 
     public override void OnLayout(UiContext context, Layout layout, double delta)
@@ -270,12 +268,13 @@ public partial class Navmap
         var mapRect = GetMapRectangle(context);
         LayoutSelectorMenu(context, delta, viewState.Active(SectorViewState.System),
             mapRect, selectorMapPosition);
-        UpdateKnownBaseScrollbar(mapRect);
-        BaseListScrollbar.OnLayout(context, new Layout(KnownBaseScrollbarLayoutRectangle(mapRect)), delta);
     }
 
     public override unsafe void Render(UiContext context, double delta, DrawList2D drawList)
     {
+        if (!Visible)
+            return;
+
         var parentRect = ClientRectangle;
         var gridIdentSize = 16.7f * (parentRect.Height / 480);
         var gridIdentFont = context.Data.GetFont("$NavMap800");
@@ -287,10 +286,9 @@ public partial class Navmap
         var jj = 0;
         var systemAlpha = viewState.Alpha(SectorViewState.System);
         var sectorAlpha = viewState.Alpha(SectorViewState.Sector);
-        var baseListMode = OverlayMode == NavmapOverlayMode.Bases;
-        var mapZoom = baseListMode ? 1f : Zoom;
-        var mapOffsetX = baseListMode ? 0f : OffsetX;
-        var mapOffsetY = baseListMode ? 0f : OffsetY;
+        var mapZoom = Zoom;
+        var mapOffsetX = OffsetX;
+        var mapOffsetY = OffsetY;
         var overlayListMode = OverlayMode is NavmapOverlayMode.Legend;
         if (systemAlpha > 0 && !overlayListMode)
         {
@@ -374,15 +372,6 @@ public partial class Navmap
         if (OverlayMode == NavmapOverlayMode.Legend)
         {
             DrawLegendView(context, drawList, rectNoScale, systemAlpha);
-            if (MapBorder)
-                drawList.DrawRectangle(context.PointsToPixels(rectNoScale), new Color4(1, 1, 1, systemAlpha), 1);
-            return;
-        }
-
-        if (OverlayMode == NavmapOverlayMode.Bases)
-        {
-            DrawKnownBasesView(context, drawList, rectNoScale, systemAlpha);
-            BaseListScrollbar.Render(context, delta, drawList);
             if (MapBorder)
                 drawList.DrawRectangle(context.PointsToPixels(rectNoScale), new Color4(1, 1, 1, systemAlpha), 1);
             return;
@@ -531,74 +520,6 @@ public partial class Navmap
         RenderText(context, drawList, ref overlayTextCache, textRect, 9f, font,
             InterfaceColor.White, new InterfaceColor { Color = Color4.Black },
             HorizontalAlignment.Left, VerticalAlignment.Top, true, "Legend test text", alpha);
-    }
-
-    private void DrawKnownBasesView(UiContext context, DrawList2D drawList, RectangleF rect, float alpha)
-    {
-        var font = context.Data.GetFont("$NavMap800");
-        var textColor = context.Data.GetColor("text");
-        var selectedHeaderColor = new InterfaceColor { Color = Color4.Yellow };
-        var titleRect = new RectangleF(rect.X + NavmapListPadding, rect.Y + navStyle.BaseListTitleTop,
-            rect.Width - NavmapListPadding * 2, navStyle.BaseListTitleHeight);
-        RenderText(context, drawList, ref overlayTitleCache, titleRect, navStyle.BaseListTitleTextSize, font,
-            textColor, new InterfaceColor { Color = Color4.Black },
-            HorizontalAlignment.Center, VerticalAlignment.Top, false, "BASE LIST", alpha);
-
-        if (knownBases.Length == 0)
-        {
-            var emptyRect = new RectangleF(rect.X + NavmapListPadding, rect.Y + navStyle.BaseListRowsTop,
-                rect.Width - NavmapListPadding * 2, 20);
-            RenderText(context, drawList, ref overlayTextCache, emptyRect, 9f, font,
-                textColor, new InterfaceColor { Color = Color4.Black },
-                HorizontalAlignment.Center, VerticalAlignment.Top, false, "No known bases", alpha);
-            return;
-        }
-
-        var layout = GetBaseListLayout(rect);
-        RenderText(context, drawList, ref baseNameHeaderCache,
-            layout.NameHeader, navStyle.BaseListHeaderTextSize, font,
-            knownBaseSortColumn == KnownBaseSortColumn.Name ? selectedHeaderColor : textColor,
-            new InterfaceColor { Color = Color4.Black },
-            HorizontalAlignment.Left, VerticalAlignment.Center, false, "BASE NAMES", alpha);
-        RenderText(context, drawList, ref baseSystemHeaderCache,
-            layout.SystemHeader, navStyle.BaseListHeaderTextSize, font,
-            knownBaseSortColumn == KnownBaseSortColumn.SystemName ? selectedHeaderColor : textColor,
-            new InterfaceColor { Color = Color4.Black },
-            HorizontalAlignment.Left, VerticalAlignment.Center, false, "SYSTEM NAME", alpha);
-
-        var rowsRect = layout.Rows;
-        var maxRows = KnownBaseVisibleRows(rect);
-        knownBaseScroll = Math.Clamp(knownBaseScroll, 0, Math.Max(0, knownBases.Length - maxRows));
-        if (drawList.PushClip(context.PointsToPixels(rowsRect)))
-        {
-            for (var visible = 0; visible < maxRows && knownBaseScroll + visible < knownBases.Length; visible++)
-            {
-                var index = knownBaseScroll + visible;
-                var item = knownBases[index];
-                var row = new RectangleF(rowsRect.X, rowsRect.Y + visible * navStyle.BaseListRowHeight,
-                    rowsRect.Width, navStyle.BaseListRowHeight);
-                if (row.Contains(context.MouseX, context.MouseY))
-                {
-                    var hover = new Color4(1.0f, 0.82f, 0.18f, 0.14f * alpha);
-                    drawList.FillRectangle(context.PointsToPixels(row), hover);
-                }
-
-                var nameRect = new RectangleF(row.X, row.Y,
-                    layout.NameColumnWidth, navStyle.BaseListRowHeight);
-                RenderText(context, drawList, ref baseNameCaches[index],
-                    nameRect, navStyle.BaseListRowTextSize, font,
-                    textColor, new InterfaceColor { Color = Color4.Black },
-                    HorizontalAlignment.Left, VerticalAlignment.Center, false, item.Name, alpha);
-                var systemRect = new RectangleF(layout.SystemColumnX, row.Y,
-                    layout.SystemColumnWidth, navStyle.BaseListRowHeight);
-                RenderText(context, drawList, ref baseSystemCaches[index],
-                    systemRect, navStyle.BaseListRowTextSize, font,
-                    textColor, new InterfaceColor { Color = Color4.Black },
-                    HorizontalAlignment.Left, VerticalAlignment.Center, false, item.SystemName, alpha);
-            }
-
-            drawList.PopClip();
-        }
     }
 
     private unsafe void DrawZones(

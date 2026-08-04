@@ -261,11 +261,11 @@ public partial class Navmap
     }
 
     public override bool MouseWanted(UiContext context, float x, float y) =>
-        AcceptInput && (ClientRectangle.Contains(x, y) || selectorMenu.MouseWanted(context, x, y));
+        Visible && AcceptInput && (ClientRectangle.Contains(x, y) || selectorMenu.MouseWanted(context, x, y));
 
     public override void OnMouseDown(UiContext context)
     {
-        if (!AcceptInput)
+        if (!Visible || !AcceptInput)
             return;
         selectorMenu.OnMouseDown(context);
         if (selectorMenu.MouseWanted(context, context.MouseX, context.MouseY))
@@ -273,12 +273,6 @@ public partial class Navmap
         var mapRect = GetMapRectangle(context);
         if (ZoneFilterVisible && ZoneFilterButtonHit(mapRect, context.MouseX, context.MouseY))
             return;
-        if (BaseListVisible)
-        {
-            BaseListScrollbar.OnMouseDown(context);
-            return;
-        }
-
         if (!viewState.Active(SectorViewState.System) ||
             !mapRect.Contains(context.MouseX, context.MouseY))
             return;
@@ -350,7 +344,7 @@ public partial class Navmap
 
     public override void OnMouseClick(UiContext context)
     {
-        if (!AcceptInput)
+        if (!Visible || !AcceptInput)
             return;
         var mapRect = GetMapRectangle(context);
         if (TryClickZoneFilter(context, mapRect))
@@ -359,12 +353,6 @@ public partial class Navmap
             selectorMenu.OnMouseClick(context);
         if (selectorMenu.MouseWanted(context, context.MouseX, context.MouseY))
             return;
-        if (viewState.Active(SectorViewState.System) && OverlayMode == NavmapOverlayMode.Bases)
-        {
-            if (TryClickKnownBase(context, mapRect))
-                context.PlaySound(SelectSound);
-            return;
-        }
         if (viewState.Active(SectorViewState.System) && OverlayMode == NavmapOverlayMode.Legend)
             return;
         if (viewState.Active(SectorViewState.Sector))
@@ -393,55 +381,11 @@ public partial class Navmap
         context.PlaySound(SelectSound);
     }
 
-    private bool TryClickKnownBase(UiContext context, RectangleF mapRect)
-    {
-        if (!mapRect.Contains(context.MouseX, context.MouseY) || knownBases.Length == 0)
-            return false;
-        if (TryClickKnownBaseHeader(context, mapRect))
-            return true;
-        var index = KnownBaseIndexAt(mapRect, context.MouseX, context.MouseY);
-        if (index < 0 || index >= knownBases.Length)
-            return false;
-        var item = knownBases[index];
-        FocusSystemObject(item.SystemHash, item.ObjectHash);
-        OverlayMode = NavmapOverlayMode.Physical;
-        return true;
-    }
-
-    private bool TryClickKnownBaseHeader(UiContext context, RectangleF mapRect)
-    {
-        var layout = GetBaseListLayout(mapRect);
-        var selectedColumn = layout.NameHeader.Contains(context.MouseX, context.MouseY)
-            ? KnownBaseSortColumn.Name
-            : layout.SystemHeader.Contains(context.MouseX, context.MouseY)
-                ? KnownBaseSortColumn.SystemName
-                : (KnownBaseSortColumn?)null;
-        if (selectedColumn == null)
-            return false;
-        knownBaseSortColumn = selectedColumn.Value;
-        SortKnownBases();
-        knownBaseScroll = 0;
-        BaseListScrollbar.ScrollOffset = 0;
-        return true;
-    }
-
-    public override void OnMouseWheel(UiContext context, float delta)
-    {
-        if (OverlayMode != NavmapOverlayMode.Bases || !viewState.Active(SectorViewState.System))
-        {
-            base.OnMouseWheel(context, delta);
-            return;
-        }
-        if (GetMapRectangle(context).Contains(context.MouseX, context.MouseY))
-            BaseListScrollbar.OnMouseWheel(context, delta);
-    }
-
     public override void OnMouseUp(UiContext context)
     {
-        if (!AcceptInput)
+        if (!Visible || !AcceptInput)
             return;
         selectorMenu.OnMouseUp(context);
-        BaseListScrollbar.OnMouseUp(context);
         mouseDownOnMap = false;
         draggingMap = false;
     }
@@ -455,70 +399,6 @@ public partial class Navmap
         var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
             inputRatio + 3;
         return GetMapRectangle(parentRect, lH);
-    }
-
-    private bool BaseListVisible =>
-        viewState.Active(SectorViewState.System) && OverlayMode == NavmapOverlayMode.Bases;
-
-    private int KnownBaseVisibleRows(RectangleF mapRect) =>
-        Math.Max(1, (int)(GetBaseListLayout(mapRect).Rows.Height / navStyle.BaseListRowHeight));
-
-    private int KnownBaseScrollCount(RectangleF mapRect) =>
-        Math.Max(0, knownBases.Length - KnownBaseVisibleRows(mapRect));
-
-    private int KnownBaseIndexAt(RectangleF mapRect, float mouseX, float mouseY)
-    {
-        var rowsRect = GetBaseListLayout(mapRect).Rows;
-        if (!rowsRect.Contains(mouseX, mouseY))
-            return -1;
-        var row = (int)((mouseY - rowsRect.Y) / navStyle.BaseListRowHeight);
-        if (row < 0 || row >= KnownBaseVisibleRows(mapRect))
-            return -1;
-        return knownBaseScroll + row;
-    }
-
-    private BaseListLayout GetBaseListLayout(RectangleF mapRect)
-    {
-        var x = mapRect.X + navStyle.BaseListHorizontalPadding;
-        var y = mapRect.Y + navStyle.BaseListRowsTop;
-        var width = mapRect.Width - navStyle.BaseListHorizontalPadding * 2 -
-                    BaseListScrollbar.Width - navStyle.BaseListScrollbarGap;
-        var height = mapRect.Height - navStyle.BaseListRowsTop - navStyle.BaseListBottomPadding;
-        var rows = new RectangleF(x, y, Math.Max(1, width), Math.Max(navStyle.BaseListRowHeight, height));
-        var nameWidth = Math.Min(
-            navStyle.BaseListNameColumnWidth,
-            Math.Max(0, rows.Width - navStyle.BaseListColumnGap));
-        var systemX = rows.X + nameWidth + navStyle.BaseListColumnGap;
-        var systemWidth = rows.X + rows.Width - systemX;
-        return new BaseListLayout(
-            rows,
-            new RectangleF(rows.X, mapRect.Y + navStyle.BaseListHeaderTop, nameWidth, navStyle.BaseListHeaderHeight),
-            new RectangleF(systemX, mapRect.Y + navStyle.BaseListHeaderTop,
-                systemWidth, navStyle.BaseListHeaderHeight),
-            nameWidth,
-            systemX,
-            systemWidth);
-    }
-
-    private RectangleF KnownBaseScrollbarLayoutRectangle(RectangleF mapRect) =>
-        new(mapRect.X, mapRect.Y + navStyle.BaseListHeaderTop,
-            mapRect.Width - navStyle.BaseListHorizontalPadding,
-            mapRect.Height - navStyle.BaseListHeaderTop - navStyle.BaseListBottomPadding);
-
-    private void UpdateKnownBaseScrollbar(RectangleF mapRect)
-    {
-        var maxRows = KnownBaseVisibleRows(mapRect);
-        var scrollCount = KnownBaseScrollCount(mapRect);
-        BaseListScrollbar.Visible = BaseListVisible && scrollCount > 0;
-        BaseListScrollbar.Tick = scrollCount > 0 ? 1f / scrollCount : 0;
-        BaseListScrollbar.ThumbSize = knownBases.Length > 0
-            ? Math.Min(1f, maxRows / (float)knownBases.Length)
-            : 1f;
-        knownBaseScroll = scrollCount > 0
-            ? Math.Clamp((int)MathF.Round(BaseListScrollbar.ScrollOffset * scrollCount), 0, scrollCount)
-            : 0;
-        if (scrollCount == 0)
-            BaseListScrollbar.ScrollOffset = 0;
     }
 
     private bool ZoneFilterButtonHit(RectangleF mapRect, float x, float y)
