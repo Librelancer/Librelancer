@@ -241,7 +241,7 @@ namespace LibreLancer.World.Components
                         if (i != j && fillBoxes[i].Bb.Intersects(fillBoxes[j].Bb))
                         {
                             fillBoxes[i].Bb = BoundingBox.CreateMerged(fillBoxes[i].Bb, fillBoxes[j].Bb);
-                            fillBoxes.FastRemoveAt(i);
+                            fillBoxes.FastRemoveAt(j); //remove other box
                             changed = true;
                             break;
                         }
