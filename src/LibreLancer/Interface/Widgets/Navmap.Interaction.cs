@@ -14,7 +14,7 @@ public partial class Navmap
     private void LayoutSelectorMenu(UiContext context, double delta,
         bool showAddWaypoint, RectangleF mapRect, Vector2? mapPosition)
     {
-        if (mapPosition == null || !AcceptInput)
+        if (mapPosition == null || !AcceptInput || !MapVisible)
         {
             selectorMenu.Visible = false;
             return;
@@ -125,38 +125,43 @@ public partial class Navmap
     }
 
     private bool ZoneFilterVisible =>
+        MapVisible &&
         viewState.Active(SectorViewState.System) &&
         OverlayMode is NavmapOverlayMode.Political or NavmapOverlayMode.Patrol;
 
     private void ResetZoneRelationshipFilter() => zoneRelationshipFilter = ZoneRelationship.Neutral;
 
-    private RectangleF ZoneFilterButtonRectangle(RectangleF mapRect, ZoneRelationship relationship)
+    private void LayoutZoneFilterMenu(UiContext context, double delta, RectangleF mapRect)
     {
-        var index = Array.IndexOf(ZoneFilterRelationships, relationship);
-        var totalWidth = navStyle.ZoneFilterButtonSize * ZoneFilterRelationships.Length +
-                         navStyle.ZoneFilterButtonSpacing * (ZoneFilterRelationships.Length - 1);
-        return new RectangleF(
-            mapRect.X + mapRect.Width - navStyle.ZoneFilterButtonMarginX - totalWidth +
-            index * (navStyle.ZoneFilterButtonSize + navStyle.ZoneFilterButtonSpacing),
-            mapRect.Y + navStyle.ZoneFilterButtonMarginY,
-            navStyle.ZoneFilterButtonSize,
-            navStyle.ZoneFilterButtonSize);
-    }
+        zoneFilterMenu.Visible = ZoneFilterVisible;
+        if (!zoneFilterMenu.Visible)
+            return;
 
-    private bool TryClickZoneFilter(UiContext context, RectangleF mapRect)
-    {
-        if (!ZoneFilterVisible)
-            return false;
-        foreach (var relationship in ZoneFilterRelationships)
-        {
-            if (!ZoneFilterButtonRectangle(mapRect, relationship).Contains(context.MouseX, context.MouseY))
-                continue;
-            zoneRelationshipFilter = relationship;
-            context.PlaySound(SelectSound);
-            selectorMapPosition = null;
-            return true;
-        }
-        return false;
+        var totalWidth = navStyle.ZoneFilterButtonSize * 3 +
+                         navStyle.ZoneFilterButtonSpacing * 2;
+        zoneFilterMenu.Anchor = AnchorKind.TopLeft;
+        zoneFilterMenu.X = mapRect.X - ClientRectangle.X + mapRect.Width -
+                           navStyle.ZoneFilterButtonMarginX - totalWidth;
+        zoneFilterMenu.Y = mapRect.Y - ClientRectangle.Y + navStyle.ZoneFilterButtonMarginY;
+        zoneFilterMenu.Width = totalWidth;
+        zoneFilterMenu.Height = navStyle.ZoneFilterButtonSize;
+
+        neutralZoneFilterButton.Anchor = AnchorKind.TopLeft;
+        neutralZoneFilterButton.X = 0;
+        neutralZoneFilterButton.Y = 0;
+        neutralZoneFilterButton.Selected = zoneRelationshipFilter == ZoneRelationship.Neutral;
+
+        hostileZoneFilterButton.Anchor = AnchorKind.TopLeft;
+        hostileZoneFilterButton.X = navStyle.ZoneFilterButtonSize + navStyle.ZoneFilterButtonSpacing;
+        hostileZoneFilterButton.Y = 0;
+        hostileZoneFilterButton.Selected = zoneRelationshipFilter == ZoneRelationship.Hostile;
+
+        friendlyZoneFilterButton.Anchor = AnchorKind.TopLeft;
+        friendlyZoneFilterButton.X = 2 * (navStyle.ZoneFilterButtonSize + navStyle.ZoneFilterButtonSpacing);
+        friendlyZoneFilterButton.Y = 0;
+        friendlyZoneFilterButton.Selected = zoneRelationshipFilter == ZoneRelationship.Friendly;
+
+        zoneFilterMenu.OnLayout(context, new Layout(ClientRectangle), delta);
     }
 
     private void ClampOffset(RectangleF mapRect, float zoom)
@@ -250,6 +255,9 @@ public partial class Navmap
         zoomOutButton.HeldDown = zoomOutButton.Dragging = false;
         addWaypointButton.HeldDown = addWaypointButton.Dragging = false;
         bestPathButton.HeldDown = bestPathButton.Dragging = false;
+        neutralZoneFilterButton.HeldDown = neutralZoneFilterButton.Dragging = false;
+        hostileZoneFilterButton.HeldDown = hostileZoneFilterButton.Dragging = false;
+        friendlyZoneFilterButton.HeldDown = friendlyZoneFilterButton.Dragging = false;
     }
 
     public void ResetView()
@@ -261,18 +269,21 @@ public partial class Navmap
     }
 
     public override bool MouseWanted(UiContext context, float x, float y) =>
-        Visible && AcceptInput && (ClientRectangle.Contains(x, y) || selectorMenu.MouseWanted(context, x, y));
+        Visible && AcceptInput &&
+        ((MapVisible && ClientRectangle.Contains(x, y)) ||
+         selectorMenu.MouseWanted(context, x, y) || zoneFilterMenu.MouseWanted(context, x, y));
 
     public override void OnMouseDown(UiContext context)
     {
-        if (!Visible || !AcceptInput)
+        if (!Visible || !AcceptInput || !MapVisible)
             return;
         selectorMenu.OnMouseDown(context);
         if (selectorMenu.MouseWanted(context, context.MouseX, context.MouseY))
             return;
-        var mapRect = GetMapRectangle(context);
-        if (ZoneFilterVisible && ZoneFilterButtonHit(mapRect, context.MouseX, context.MouseY))
+        zoneFilterMenu.OnMouseDown(context);
+        if (zoneFilterMenu.MouseWanted(context, context.MouseX, context.MouseY))
             return;
+        var mapRect = GetMapRectangle(context);
         if (!viewState.Active(SectorViewState.System) ||
             !mapRect.Contains(context.MouseX, context.MouseY))
             return;
@@ -344,17 +355,18 @@ public partial class Navmap
 
     public override void OnMouseClick(UiContext context)
     {
-        if (!Visible || !AcceptInput)
-            return;
-        var mapRect = GetMapRectangle(context);
-        if (TryClickZoneFilter(context, mapRect))
+        if (!Visible || !AcceptInput || !MapVisible)
             return;
         if (!draggingMap)
+        {
             selectorMenu.OnMouseClick(context);
+            zoneFilterMenu.OnMouseClick(context);
+        }
         if (selectorMenu.MouseWanted(context, context.MouseX, context.MouseY))
             return;
-        if (viewState.Active(SectorViewState.System) && OverlayMode == NavmapOverlayMode.Legend)
+        if (zoneFilterMenu.MouseWanted(context, context.MouseX, context.MouseY))
             return;
+        var mapRect = GetMapRectangle(context);
         if (viewState.Active(SectorViewState.Sector))
         {
             var clickedStar = SectorStarAt(mapRect, new Vector2(context.MouseX, context.MouseY));
@@ -386,6 +398,7 @@ public partial class Navmap
         if (!Visible || !AcceptInput)
             return;
         selectorMenu.OnMouseUp(context);
+        zoneFilterMenu.OnMouseUp(context);
         mouseDownOnMap = false;
         draggingMap = false;
     }
@@ -401,13 +414,4 @@ public partial class Navmap
         return GetMapRectangle(parentRect, lH);
     }
 
-    private bool ZoneFilterButtonHit(RectangleF mapRect, float x, float y)
-    {
-        foreach (var relationship in ZoneFilterRelationships)
-        {
-            if (ZoneFilterButtonRectangle(mapRect, relationship).Contains(x, y))
-                return true;
-        }
-        return false;
-    }
 }

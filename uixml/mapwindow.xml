@@ -25,6 +25,17 @@
 		<Panel Width="263" Height="292" ID="contents">
 			<Navmap Width="232" Height="235" X="15" Y="29.5" ID="navmap">
 			</Navmap>
+			<Panel ID="legend" Width="232" Height="235" X="15" Y="29.5" Visible="false">
+				<Panel.Background>
+					<DisplayColor color="rgba(0,0,0,0.35)"/>
+				</Panel.Background>
+				<TextBlock X="8" Y="8" Width="216" Height="18"
+					Text="NAVMAP LEGEND" TextColor="text" TextShadow="black" TextSize="11"
+					HorizontalAlignment="Center" VerticalAlignment="Top"/>
+				<TextBlock X="8" Y="34" Width="216" Height="193"
+					Text="Legend test text" TextColor="text" TextShadow="black" TextSize="9"
+					HorizontalAlignment="Left" VerticalAlignment="Top" Wrap="true"/>
+			</Panel>
 			<TextBlock ID="knownbases_title" X="23" Y="31.5" Width="216" Height="18"
 				Text="BASE LIST" TextColor="text" TextShadow="black" TextSize="11"
 				HorizontalAlignment="Center" VerticalAlignment="Top" Visible="false"/>

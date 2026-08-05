@@ -35,6 +35,9 @@ public partial class Navmap
         zoomOutButton.Style = navStyle.ZoomOutButton;
         addWaypointButton.Style = navStyle.AddWaypointButton;
         bestPathButton.Style = navStyle.BestPathButton;
+        neutralZoneFilterButton.Style = navStyle.NeutralZoneFilterButton;
+        hostileZoneFilterButton.Style = navStyle.HostileZoneFilterButton;
+        friendlyZoneFilterButton.Style = navStyle.FriendlyZoneFilterButton;
         addWaypointButton.MouseDownSound = null;
         bestPathButton.MouseDownSound = null;
         userWaypointDiamond = null;
@@ -245,7 +248,7 @@ public partial class Navmap
         var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
             inputRatio + 3;
         var rectNoScale = GetMapRectangle(parentRect, lH);
-        if (AcceptInput && viewState.Active(SectorViewState.System))
+        if (AcceptInput && MapVisible && viewState.Active(SectorViewState.System))
         {
             UpdateZoomAndDrag(context);
         }
@@ -260,6 +263,7 @@ public partial class Navmap
         ApplyPendingFocus(mapRect);
         UpdateZoomAnimation(context, delta, mapRect);
         selectorMenu.Update(context, delta);
+        zoneFilterMenu.Update(context, delta);
     }
 
     public override void OnLayout(UiContext context, Layout layout, double delta)
@@ -268,11 +272,14 @@ public partial class Navmap
         var mapRect = GetMapRectangle(context);
         LayoutSelectorMenu(context, delta, viewState.Active(SectorViewState.System),
             mapRect, selectorMapPosition);
+        LayoutZoneFilterMenu(context, delta, mapRect);
     }
 
     public override unsafe void Render(UiContext context, double delta, DrawList2D drawList)
     {
         if (!Visible)
+            return;
+        if (!MapVisible)
             return;
 
         var parentRect = ClientRectangle;
@@ -289,8 +296,7 @@ public partial class Navmap
         var mapZoom = Zoom;
         var mapOffsetX = OffsetX;
         var mapOffsetY = OffsetY;
-        var overlayListMode = OverlayMode is NavmapOverlayMode.Legend;
-        if (systemAlpha > 0 && !overlayListMode)
+        if (systemAlpha > 0)
         {
             var rHoriz = rectNoScale.Width / 8;
             var rVert = rectNoScale.Height / 8;
@@ -366,14 +372,6 @@ public partial class Navmap
                 drawList.DrawRectangle(pRect, new Color4(1, 1, 1, sectorAlpha), 1);
             }
 
-            return;
-        }
-
-        if (OverlayMode == NavmapOverlayMode.Legend)
-        {
-            DrawLegendView(context, drawList, rectNoScale, systemAlpha);
-            if (MapBorder)
-                drawList.DrawRectangle(context.PointsToPixels(rectNoScale), new Color4(1, 1, 1, systemAlpha), 1);
             return;
         }
 
@@ -495,31 +493,13 @@ public partial class Navmap
 
         drawList.PopClip();
 
-        if (ZoneFilterVisible)
-            DrawZoneFilterButtons(context, drawList, rectNoScale, systemAlpha);
+        zoneFilterMenu.Render(context, delta, drawList);
 
         if (MapBorder)
         {
             var pRect = context.PointsToPixels(rectNoScale);
             drawList.DrawRectangle(pRect, new Color4(1, 1, 1, systemAlpha), 1);
         }
-    }
-
-    private void DrawLegendView(UiContext context, DrawList2D drawList, RectangleF rect, float alpha)
-    {
-        var background = new Color4(0, 0, 0, 0.35f * alpha);
-        drawList.FillRectangle(context.PointsToPixels(rect), background);
-        var font = context.Data.GetFont("$NavMap800");
-        var titleRect = new RectangleF(rect.X + NavmapListPadding, rect.Y + NavmapListPadding,
-            rect.Width - NavmapListPadding * 2, 18);
-        RenderText(context, drawList, ref overlayTitleCache, titleRect, 11f, font,
-            InterfaceColor.White, new InterfaceColor { Color = Color4.Black },
-            HorizontalAlignment.Center, VerticalAlignment.Top, false, "NAVMAP LEGEND", alpha);
-        var textRect = new RectangleF(rect.X + NavmapListPadding, rect.Y + 34,
-            rect.Width - NavmapListPadding * 2, rect.Height - 42);
-        RenderText(context, drawList, ref overlayTextCache, textRect, 9f, font,
-            InterfaceColor.White, new InterfaceColor { Color = Color4.Black },
-            HorizontalAlignment.Left, VerticalAlignment.Top, true, "Legend test text", alpha);
     }
 
     private unsafe void DrawZones(
@@ -612,42 +592,6 @@ public partial class Navmap
             drawList.DrawLine(color, start, end, 2f);
         }
     }
-
-    private void DrawZoneFilterButtons(UiContext context, DrawList2D drawList, RectangleF mapRect, float alpha)
-    {
-        DrawZoneFilterButton(context, drawList, mapRect, ZoneRelationship.Neutral, GetNeutralZoneFilterIcon(context),
-            alpha);
-        DrawZoneFilterButton(context, drawList, mapRect, ZoneRelationship.Hostile, GetHostileZoneFilterIcon(context),
-            alpha);
-        DrawZoneFilterButton(context, drawList, mapRect, ZoneRelationship.Friendly, GetFriendlyZoneFilterIcon(context),
-            alpha);
-    }
-
-    private void DrawZoneFilterButton(
-        UiContext context,
-        DrawList2D drawList,
-        RectangleF mapRect,
-        ZoneRelationship relationship,
-        UiRenderable icon,
-        float alpha)
-    {
-        var rect = ZoneFilterButtonRectangle(mapRect, relationship);
-        var selected = zoneRelationshipFilter == relationship;
-        var hovered = AcceptInput && rect.Contains(context.MouseX, context.MouseY);
-        var backgroundAlpha = selected ? 0.24f : hovered ? 0.14f : 0f;
-        if (backgroundAlpha > 0)
-            drawList.FillRectangle(context.PointsToPixels(rect), new Color4(1f, 0.9f, 0.25f, backgroundAlpha * alpha));
-        icon.Draw(context, drawList, rect, (selected ? 1f : 0.62f) * alpha);
-    }
-
-    private UiRenderable GetNeutralZoneFilterIcon(UiContext context) =>
-        neutralZoneFilterIcon ??= [new DisplayModel(GetResourceModel(context, "nav_allzonefilter"))];
-
-    private UiRenderable GetFriendlyZoneFilterIcon(UiContext context) =>
-        friendlyZoneFilterIcon ??= [new DisplayModel(GetResourceModel(context, "nav_friendlyzonefilter"))];
-
-    private UiRenderable GetHostileZoneFilterIcon(UiContext context) =>
-        hostileZoneFilterIcon ??= [new DisplayModel(GetResourceModel(context, "nav_hostilezonefilter"))];
 
     private void ApplyPendingFocus(RectangleF mapRect)
     {

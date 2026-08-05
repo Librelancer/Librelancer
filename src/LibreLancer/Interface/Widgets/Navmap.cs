@@ -46,20 +46,12 @@ public partial class Navmap : UiWidget
     private const float SectorStarLargeSize = 8.0f;
     private const float SectorStarExtraShrinkMaximum = 0.08f;
     private const float SectorConnectionThickness = 4f;
-    private const float NavmapListPadding = 8f;
     private const string SelectSound = "ui_item_select";
     private const string SelectAddSound = "ui_select_add";
 
     private static readonly string[] GRIDNUMBERS =
     [
         "1", "2", "3", "4", "5", "6", "7", "8"
-    ];
-
-    private static readonly ZoneRelationship[] ZoneFilterRelationships =
-    [
-        ZoneRelationship.Neutral,
-        ZoneRelationship.Hostile,
-        ZoneRelationship.Friendly
     ];
 
     private readonly Button addWaypointButton = new();
@@ -74,6 +66,9 @@ public partial class Navmap : UiWidget
     private readonly List<RectangleF> placedLabels = [];
 
     private readonly Button selectorButton = new();
+    private readonly Button neutralZoneFilterButton = new();
+    private readonly Button hostileZoneFilterButton = new();
+    private readonly Button friendlyZoneFilterButton = new();
     private readonly Dictionary<int, UiRenderable> userWaypointDigits = [];
     private readonly List<NavmapWaypoint> userWaypoints = [];
     private readonly Button zoomInButton = new();
@@ -119,12 +114,11 @@ public partial class Navmap : UiWidget
     private Vector2? selectorMapPosition;
 
     private readonly Panel selectorMenu = new();
+    private readonly Panel zoneFilterMenu = new();
     private Vector2 startOffset;
     private float startZoom = 1f;
     private string systemName = "";
     private CachedRenderString? systemNameCache;
-    private CachedRenderString? overlayTitleCache;
-    private CachedRenderString? overlayTextCache;
     private Vector2 targetOffset;
     private float targetZoom = 1f;
 
@@ -132,9 +126,6 @@ public partial class Navmap : UiWidget
     private List<DrawZone> politicalZones = [];
     private List<DrawZone> miningZones = [];
     private List<PatrolPath> patrolPaths = [];
-    private UiRenderable? neutralZoneFilterIcon;
-    private UiRenderable? friendlyZoneFilterIcon;
-    private UiRenderable? hostileZoneFilterIcon;
     private ZoneRelationship zoneRelationshipFilter = ZoneRelationship.Neutral;
     private UiRenderable? userWaypointDiamond;
     private Action<StarSystem, List<NavmapWaypoint>>? userWaypointProvider;
@@ -156,13 +147,33 @@ public partial class Navmap : UiWidget
         selectorMenu.Children.Add(zoomOutButton);
         selectorMenu.Children.Add(selectorButton);
 
+        zoneFilterMenu.Children.Add(neutralZoneFilterButton);
+        zoneFilterMenu.Children.Add(hostileZoneFilterButton);
+        zoneFilterMenu.Children.Add(friendlyZoneFilterButton);
+
         zoomInButton.OnClick(OnZoomIn);
         zoomOutButton.OnClick(OnZoomOut);
         addWaypointButton.OnClick(OnAddWaypoint);
         bestPathButton.OnClick(OnBestPath);
+        neutralZoneFilterButton.OnClick(_ =>
+        {
+            zoneRelationshipFilter = ZoneRelationship.Neutral;
+            selectorMapPosition = null;
+        });
+        hostileZoneFilterButton.OnClick(_ =>
+        {
+            zoneRelationshipFilter = ZoneRelationship.Hostile;
+            selectorMapPosition = null;
+        });
+        friendlyZoneFilterButton.OnClick(_ =>
+        {
+            zoneRelationshipFilter = ZoneRelationship.Friendly;
+            selectorMapPosition = null;
+        });
     }
 
     public bool AcceptInput { get; set; } = true;
+    public bool MapVisible { get; set; } = true;
     public bool SectorViewActive => viewState.Active(SectorViewState.Sector);
     public bool ShowLabels { get; set; } = true;
     public NavmapOverlayMode OverlayMode { get; private set; } = NavmapOverlayMode.Physical;
@@ -171,7 +182,6 @@ public partial class Navmap : UiWidget
         NavmapOverlayMode.Political => "political",
         NavmapOverlayMode.Patrol => "patrol",
         NavmapOverlayMode.Mining => "mining",
-        NavmapOverlayMode.Legend => "legend",
         _ => "physical"
     };
 
@@ -203,7 +213,6 @@ public partial class Navmap : UiWidget
             "political" => NavmapOverlayMode.Political,
             "patrol" or "patrols" => NavmapOverlayMode.Patrol,
             "mining" or "miningfilter" => NavmapOverlayMode.Mining,
-            "legend" or "legendtoggle" => NavmapOverlayMode.Legend,
             _ => NavmapOverlayMode.Physical
         };
         if (oldMode != OverlayMode)
@@ -412,8 +421,7 @@ public partial class Navmap : UiWidget
         Physical,
         Political,
         Patrol,
-        Mining,
-        Legend
+        Mining
     }
 
     private struct ZoneVertex : IVertexType

@@ -126,6 +126,8 @@ class mapwindow : mapwindow_Designer with ChildWindow
     {
         if (mode == "bases") {
             this.SelectedOverlay = "bases";
+        } elseif (mode == "legend") {
+            this.SelectedOverlay = "legend";
         } else {
             this.Elements.navmap.SetOverlayMode(mode);
             this.SelectedOverlay = this.Elements.navmap.OverlayModeName;
@@ -137,7 +139,9 @@ class mapwindow : mapwindow_Designer with ChildWindow
     {
         local sector = this.Elements.navmap.SectorViewActive;
         local showKnownBases = !sector && this.SelectedOverlay == "bases";
-        this.Elements.navmap.Visible = !showKnownBases;
+        local showLegend = !sector && this.SelectedOverlay == "legend";
+        this.Elements.navmap.MapVisible = !showKnownBases && !showLegend;
+        this.Elements.legend.Visible = showLegend;
         this.Elements.knownbases_title.Visible = showKnownBases;
         this.Elements.knownbases_table.Visible = showKnownBases;
         this.Elements.knownbases_empty.Visible = showKnownBases &&
