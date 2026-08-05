@@ -26,6 +26,8 @@ namespace LibreLancer.Server.Components
      */
     public class SPlayerComponent : AbstractCargoComponent
     {
+        private const float PopulationZoneVisitDistance = 5_000f;
+
         private PriorityQueue<NetInputControls, uint> inputs = new();
 
         private record SavedTick(uint Tick, PlayerAuthState Player, Dictionary<int, ObjectUpdate> Updates);
@@ -436,7 +438,10 @@ namespace LibreLancer.Server.Components
 
                 foreach (var zone in system.Zones)
                 {
-                    if (zone.ContainsPoint(playerPosition))
+                    var proximityVisit =
+                        (zone.IsPopulationZone || zone.IsPatrolPathZone) &&
+                        zone.DistanceToEdge(playerPosition) <= PopulationZoneVisitDistance;
+                    if (zone.ContainsPoint(playerPosition) || proximityVisit)
                         Player.VisitZone(system, zone);
                 }
             }
