@@ -11,7 +11,7 @@ namespace LancerEdit.GameContent.Popups;
 public class LoadoutSelection : PopupWindow
 {
     public override string Title { get; set; } = "Loadout";
-    public override Vector2 InitSize => new(600, 350);
+    public override Vector2 InitSize => new Vector2(600, 350) * ImGuiHelper.Scale;
 
     private ObjectLoadout[] allLoadouts;
     private ObjectLoadout[] filteredLoadouts;
