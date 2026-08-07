@@ -38,7 +38,7 @@ namespace LibreLancer.Server
 {
     public class Player : IServerPlayer
     {
-        private const float DefaultVisitDistance = 10000f;
+        public const float DefaultVisitDistance = 10000f;
 
         // ID
         public int ID = 0;

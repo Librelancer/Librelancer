@@ -85,9 +85,9 @@ public class Zone : NicknameItem
                 break;
             case ShapeKind.Ring:
             case ShapeKind.Cylinder:
-                _shape.CylRing.P1 = Vector3.Transform(data.Position - new Vector3(0, data.Size.Y * 0.5f, 0),
+                _shape.CylRing.P1 = data.Position - Vector3.Transform(new Vector3(0, data.Size.Y * 0.5f, 0),
                     data.RotationMatrix);
-                _shape.CylRing.P2 = Vector3.Transform(data.Position + new Vector3(0, data.Size.Y * 0.5f, 0),
+                _shape.CylRing.P2 = data.Position + Vector3.Transform(new Vector3(0, data.Size.Y * 0.5f, 0),
                     data.RotationMatrix);
                 _shape.CylRing.SZ2 = data.Size * data.Size;
                 break;

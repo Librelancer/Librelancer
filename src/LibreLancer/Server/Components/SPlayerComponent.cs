@@ -427,23 +427,25 @@ namespace LibreLancer.Server.Components
             var system = world.Server?.System;
             if (system != null)
             {
-                foreach (var obj in system.Objects)
+                // lookup nearby objects for visit
+                foreach (var obj in world.SpatialLookup.GetNearbyObjects(Parent, playerPosition,
+                             Player.DefaultVisitDistance))
                 {
-                    if (obj.Archetype?.CanVisit != true ||
-                        Vector3.Distance(playerPosition, obj.Position) > Player.GetVisitDistance(obj))
+                    if (obj.SystemObject == null ||
+                        obj.SystemObject.Archetype?.CanVisit != true ||
+                        Vector3.Distance(playerPosition, obj.LocalTransform.Position) > Player.GetVisitDistance(obj.SystemObject))
+                    {
                         continue;
-
-                    Player.VisitObject(system, obj, FLHash.CreateID(obj.Nickname));
+                    }
+                    Player.VisitObject(system, obj.SystemObject, FLHash.CreateID(obj.SystemObject.Nickname));
                 }
-
-                foreach (var zone in system.Zones)
+                // lookup nearby zones for visit
+                world.Zones?.NearbyZones(playerPosition, (zone, contains) =>
                 {
-                    var proximityVisit =
-                        (zone.IsPopulationZone || zone.IsPatrolPathZone) &&
-                        zone.DistanceToEdge(playerPosition) <= PopulationZoneVisitDistance;
-                    if (zone.ContainsPoint(playerPosition) || proximityVisit)
+                    var proximityVisit = (zone.IsPopulationZone || zone.IsPatrolPathZone);
+                    if(proximityVisit || contains)
                         Player.VisitZone(system, zone);
-                }
+                });
             }
 
             if (Scanning != null)

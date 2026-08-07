@@ -42,6 +42,7 @@ namespace LibreLancer.World
         public IReadOnlyList<GameObject> AllObjects => objects;
 
         public readonly SpatialLookup SpatialLookup = new();
+        public ZoneLookup? Zones;
 
         private Func<double>? timeSource;
         private readonly ResourceManager? resources;
@@ -184,6 +185,9 @@ namespace LibreLancer.World
         public void LoadSystem(StarSystem sys, ResourceManager res, SoundManager? snd, bool server,
             bool loadRenderer = true)
         {
+            Zones?.Dispose();
+            Zones = new(sys.Zones);
+
             if (Physics is not null)
             {
                 foreach (var g in objects)
@@ -529,6 +533,7 @@ namespace LibreLancer.World
         public void Dispose()
         {
             Physics?.Dispose();
+            Zones?.Dispose();
         }
     }
 }
