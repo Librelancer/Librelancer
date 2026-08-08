@@ -975,6 +975,35 @@ namespace LibreLancer.Server
         private double noPlayersTime;
         private double maxNoPlayers = 2.0;
 
+        private bool ShouldKeepAliveForMissionSolarBase()
+        {
+            var player = Server.LocalPlayer;
+            return PlayerCount == 0 &&
+                   player?.MissionRuntime != null &&
+                   player.Space == null &&
+                   player.MissionRuntime.IsMissionSolarBase(player.Base) &&
+                   System.Nickname.Equals(player.System, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void FreezeShipsForMissionSolarBase()
+        {
+            foreach (var obj in spawnedObjects)
+            {
+                if (!obj.TryGetComponent<ShipPhysicsComponent>(out var physics))
+                    continue;
+
+                obj.PhysicsComponent!.Body.LinearVelocity = Vector3.Zero;
+                obj.PhysicsComponent.Body.AngularVelocity = Vector3.Zero;
+                physics.EnginePower = 0;
+
+                if (obj.TryGetComponent<ShipSteeringComponent>(out var steering))
+                {
+                    steering.InThrottle = 0;
+                    steering.Cruise = false;
+                }
+            }
+        }
+
         public bool Update(double delta, double totalTime, uint currentTick, int step)
         {
             // Avoid locks during Update
@@ -997,6 +1026,13 @@ namespace LibreLancer.Server
             // pause
             if (paused)
             {
+                return true;
+            }
+
+            if (ShouldKeepAliveForMissionSolarBase())
+            {
+                FreezeShipsForMissionSolarBase();
+                noPlayersTime = 0;
                 return true;
             }
 
