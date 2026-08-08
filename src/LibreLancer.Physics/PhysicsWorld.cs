@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Numerics;
 using BepuPhysics;
@@ -448,5 +449,12 @@ namespace LibreLancer.Physics
             BufferPool.Clear();
             threadDispatcher?.Dispose();
         }
+
+        #if DEBUG
+        ~PhysicsWorld()
+        {
+            Debug.Assert(disposed, "Memory leak warning! Don't let a PhysicsWorld die without disposing!");
+        }
+        #endif
     }
 }

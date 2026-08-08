@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using BepuPhysics.Collidables;
@@ -12,6 +13,8 @@ namespace LibreLancer.World;
 
 public class ZoneLookup : IDisposable
 {
+    private bool isDisposed = false;
+
     public const float PopulationZoneVisitDistance = 5_000f;
     private const float SizeModifierZoneVisit = PopulationZoneVisitDistance + 200f;
 
@@ -168,5 +171,13 @@ public class ZoneLookup : IDisposable
     public void Dispose()
     {
         pool.Clear();
+        isDisposed = true;
     }
+
+    #if DEBUG
+    ~ZoneLookup()
+    {
+        Debug.Assert(isDisposed, "Memory leak warning! Don't let a ZoneLookup die without disposing!");
+    }
+    #endif
 }
