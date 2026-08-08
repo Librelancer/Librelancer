@@ -53,15 +53,16 @@ static class DynamicSpheresQuery
     struct BroadPhaseOverlapEnumerator : IBreakableForEach<CollidableReference>
     {
         public QuickList<CollidableReference> References;
+        public PhysicsWorld World;
         //The enumerator never gets stored into unmanaged memory, so it's safe to include a reference type instance.
         public BufferPool Pool;
         public bool LoopBody(CollidableReference reference)
         {
             if (reference.Mobility == CollidableMobility.Static)
                 return false;
+            if (World.CollidableObjects[reference] == false)
+                return false;
             References.Allocate(Pool) = reference;
-            //If you wanted to do any top-level filtering, this would be a good spot for it.
-            //The CollidableReference tells you whether it's a body or a static object and the associated handle. You can look up metadata with that.
             return true;
         }
     }
@@ -82,9 +83,9 @@ static class DynamicSpheresQuery
         }
     }
 
-    static unsafe void AddQueryToBatch(Simulation sim, BufferPool pool, int queryShapeType, void* queryShapeData, int queryShapeSize, Vector3 queryBoundsMin, Vector3 queryBoundsMax, in RigidPose queryPose, int queryId, ref CollisionBatcher<BatcherCallbacks> batcher)
+    static unsafe void AddQueryToBatch(Simulation sim, BufferPool pool, PhysicsWorld world, int queryShapeType, void* queryShapeData, int queryShapeSize, Vector3 queryBoundsMin, Vector3 queryBoundsMax, in RigidPose queryPose, int queryId, ref CollisionBatcher<BatcherCallbacks> batcher)
     {
-        var broadPhaseEnumerator = new BroadPhaseOverlapEnumerator { Pool = pool, References = new QuickList<CollidableReference>(16, pool) };
+        var broadPhaseEnumerator = new BroadPhaseOverlapEnumerator { Pool = pool, World = world, References = new QuickList<CollidableReference>(16, pool) };
         sim.BroadPhase.GetOverlaps(queryBoundsMin, queryBoundsMax, pool, ref broadPhaseEnumerator);
         for (int overlapIndex = 0; overlapIndex < broadPhaseEnumerator.References.Count; ++overlapIndex)
         {
@@ -102,17 +103,18 @@ static class DynamicSpheresQuery
         broadPhaseEnumerator.References.Dispose(pool);
     }
 
-    static unsafe void AddQueryToBatch<TShape>(Simulation sim, BufferPool pool, TShape shape, in RigidPose pose, int queryId, ref CollisionBatcher<BatcherCallbacks> batcher) where TShape : IConvexShape
+    static unsafe void AddQueryToBatch<TShape>(Simulation sim, BufferPool pool, PhysicsWorld world, TShape shape, in RigidPose pose, int queryId, ref CollisionBatcher<BatcherCallbacks> batcher) where TShape : IConvexShape
     {
         var queryShapeData = Unsafe.AsPointer(ref shape);
         var queryShapeSize = Unsafe.SizeOf<TShape>();
         shape.ComputeBounds(pose.Orientation, out var boundingBoxMin, out var boundingBoxMax);
         boundingBoxMin += pose.Position;
         boundingBoxMax += pose.Position;
-        AddQueryToBatch(sim, pool, TShape.TypeId, queryShapeData, queryShapeSize, boundingBoxMin, boundingBoxMax, pose, queryId, ref batcher);
+        AddQueryToBatch(sim, pool, world, TShape.TypeId, queryShapeData, queryShapeSize, boundingBoxMin, boundingBoxMax, pose, queryId, ref batcher);
     }
 
-    internal static void Run(Simulation simulation, BufferPool pool, QuickList<SphereQuery> queries)
+    internal static void Run(Simulation simulation, BufferPool pool, QuickList<SphereQuery> queries,
+        PhysicsWorld world)
     {
         var collisionBatcher = new CollisionBatcher<BatcherCallbacks>(pool, simulation.Shapes, simulation.NarrowPhase.CollisionTaskRegistry, 0, new BatcherCallbacks());
         ref var queryWasTouched = ref collisionBatcher.Callbacks.QueryWasTouched;
@@ -125,7 +127,7 @@ static class DynamicSpheresQuery
             ref var query = ref queries[queryIndex];
             var sph = new Sphere(query.Radius);
             var pose = new RigidPose(query.Position, Quaternion.Identity);
-            AddQueryToBatch(simulation, pool, sph, pose, queryIndex, ref collisionBatcher);
+            AddQueryToBatch(simulation, pool, world, sph, pose, queryIndex, ref collisionBatcher);
         }
 
         collisionBatcher.Flush();

@@ -31,7 +31,7 @@ namespace LibreLancer.Physics
         private readonly Dictionary<int, PhysicsObject?> objectsById = new();
         private readonly IdPool ids = new(100, true);
         private readonly CollidableProperty<int> bepuToLancer;
-        internal readonly CollidableProperty<bool> collidableObjects;
+        internal readonly CollidableProperty<bool> CollidableObjects;
         internal readonly CollidableProperty<Vector2> dampings;
 
         // our list
@@ -75,7 +75,7 @@ namespace LibreLancer.Physics
             );
 
             bepuToLancer = new CollidableProperty<int>(Simulation);
-            collidableObjects = new CollidableProperty<bool>(Simulation);
+            CollidableObjects = new CollidableProperty<bool>(Simulation);
             dampings = new CollidableProperty<Vector2>(Simulation);
             objectsById[-1] = null;
         }
@@ -141,7 +141,7 @@ namespace LibreLancer.Physics
             ids.TryAllocate(out var id);
             var obj = new StaticObject(id, Simulation.Statics.GetStaticReference(h), this, transform, col);
             bepuToLancer.Allocate(h) = id;
-            collidableObjects.Allocate(h) = true;
+            CollidableObjects.Allocate(h) = true;
             objectsById[id] = obj;
             objects.Add(obj);
             return obj;
@@ -159,7 +159,7 @@ namespace LibreLancer.Physics
             var disallow = new DisallowAwakening();
             var h = Simulation.Statics.Add(new StaticDescription(transform.ToPose(), col.Handle), ref disallow);
             bepuToLancer.Allocate(h) = -1;
-            collidableObjects.Allocate(h) = true;
+            CollidableObjects.Allocate(h) = true;
             obj.Valid = true;
             obj.Handle = h;
         }
@@ -179,9 +179,9 @@ namespace LibreLancer.Physics
         {
             public readonly List<PhysicsObject?> Result = [];
 
-            public bool AllowTest(CollidableReference collidable) => world.collidableObjects[collidable];
+            public bool AllowTest(CollidableReference collidable) => world.CollidableObjects[collidable];
 
-            public bool AllowTest(CollidableReference collidable, int child) => world.collidableObjects[collidable];
+            public bool AllowTest(CollidableReference collidable, int child) => world.CollidableObjects[collidable];
 
             public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal,
                 CollidableReference collidable)
@@ -201,7 +201,7 @@ namespace LibreLancer.Physics
         /// <param name="queries">A list of queries to run</param>
         public void DynamicObjectSphereQuery(QuickList<SphereQuery> queries)
         {
-            DynamicSpheresQuery.Run(Simulation, BufferPool, queries);
+            DynamicSpheresQuery.Run(Simulation, BufferPool, queries, this);
         }
 
         // TODO: Use a CollisionQuery instead.
@@ -230,11 +230,11 @@ namespace LibreLancer.Physics
 
             public bool AllowTest(CollidableReference collidable) =>
                 world.bepuToLancer[collidable] != selfId &&
-                world.collidableObjects[collidable];
+                world.CollidableObjects[collidable];
 
             public bool AllowTest(CollidableReference collidable, int childIndex) =>
                 world.bepuToLancer[collidable] != selfId &&
-                world.collidableObjects[collidable];
+                world.CollidableObjects[collidable];
 
             public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal,
                 CollidableReference collidable,
@@ -348,7 +348,7 @@ namespace LibreLancer.Physics
             ids.TryAllocate(out var id);
             var obj = new DynamicObject(id, this, Simulation.Bodies.GetBodyReference(bodyHandle), col);
             bepuToLancer.Allocate(bodyHandle) = id;
-            collidableObjects.Allocate(bodyHandle) = true;
+            CollidableObjects.Allocate(bodyHandle) = true;
             dampings.Allocate(bodyHandle) = Vector2.Zero;
             objectsById[id] = obj;
             objects.Add(obj);
@@ -441,7 +441,7 @@ namespace LibreLancer.Physics
 
             disposed = true;
             bepuToLancer.Dispose();
-            collidableObjects.Dispose();
+            CollidableObjects.Dispose();
             dampings.Dispose();
             contactEvents.Dispose();
             Simulation.Dispose();

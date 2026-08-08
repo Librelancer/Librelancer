@@ -13,8 +13,8 @@ internal sealed class StaticObject : PhysicsObject
 
     public override bool Collidable
     {
-        get => world.collidableObjects[BepuObject.Handle];
-        set => world.collidableObjects[BepuObject.Handle] = value;
+        get => world.CollidableObjects[BepuObject.Handle];
+        set => world.CollidableObjects[BepuObject.Handle] = value;
     }
 
     internal StaticReference BepuObject;
