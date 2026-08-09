@@ -81,7 +81,7 @@ namespace LibreLancer.World.Components
                     if (sur is not null && sur.Value.Valid)
                     {
                         shape ??= new ConvexMeshCollider(phys);
-                        shape.AddPart(sur.Value.FileId, new ConvexMeshId(0, 0),
+                        shape.AddPart(sur.Value.FileId, new ConvexShapeId(0, 0),
                             new Transform3D(asteroid.Position * Field.CubeSize, asteroid.Rotation), null);
                     }
                 }

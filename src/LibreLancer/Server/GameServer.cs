@@ -73,7 +73,7 @@ namespace LibreLancer.Server
             Listener = new GameListener(this);
         }
 
-        public GameServer(GameDataManager gameData, ConvexMeshCollection convexCollection)
+        public GameServer(GameDataManager gameData, ConvexShapeCollection convexCollection)
         {
             Resources = new ServerResourceManager(convexCollection, gameData.VFS);
             GameData = gameData;

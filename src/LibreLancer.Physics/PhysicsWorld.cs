@@ -26,7 +26,7 @@ namespace LibreLancer.Physics
     {
         public IReadOnlyList<PhysicsObject> Objects => objects;
 
-        public ConvexMeshCollection ConvexCollection { get; private set; }
+        public ConvexShapeCollection ConvexCollection { get; private set; }
 
         // mapping bepu bodies to librelancer objects
         private readonly Dictionary<int, PhysicsObject?> objectsById = new();
@@ -53,7 +53,7 @@ namespace LibreLancer.Physics
 
         public event CollideHandler? OnCollision;
 
-        public PhysicsWorld(ConvexMeshCollection convexCollection)
+        public PhysicsWorld(ConvexShapeCollection convexCollection)
         {
             BufferPool = new BufferPool();
             ConvexCollection = convexCollection;
@@ -286,15 +286,15 @@ namespace LibreLancer.Physics
 
         private readonly Dictionary<ShapeId, (TypedIndex Shape, Vector3 Center)[]> shapes = new();
 
-        internal (TypedIndex Shape, Vector3 Center)[] GetConvexShapes(uint fileId, ConvexMeshId meshId)
+        internal (TypedIndex Shape, Vector3 Center)[] GetConvexShapes(uint fileId, ConvexShapeId shapeId)
         {
-            var id = meshId.ShapeId(fileId);
+            var id = shapeId.ShapeId(fileId);
             if (shapes.TryGetValue(id, out var sh))
             {
                 return sh;
             }
 
-            var cvx = ConvexCollection.GetShapes(fileId, meshId);
+            var cvx = ConvexCollection.GetShapes(fileId, shapeId);
             var shx = new (TypedIndex Shape, Vector3 Center)[cvx.Hulls.Length + cvx.Triangles.Length];
 
             for (var i = 0; i < cvx.Hulls.Length; i++)
