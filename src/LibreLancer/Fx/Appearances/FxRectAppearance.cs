@@ -73,14 +73,17 @@ namespace LibreLancer.Fx
             for (int i = 0; i < count; i++)
             {
                 ref var particle = ref instance.Buffer[nodeIdx, i];
+                particle.Normal = particle.Velocity.Normalized();
                 var time = particle.TimeAlive / particle.LifeSpan;
                 var src_pos = particle.Position;
                 var l = Length!.GetValue(sparam, time);
                 var w = Width!.GetValue(sparam, time);
                 var sc = Scale!.GetValue(sparam, time);
+
+                const float particleBaseSize=2.0f;
                 if (!CenterOnPos)
                 {
-                    src_pos += particle.Normal * (l * sc * 0.25f);
+                    src_pos += particle.Normal * (l * sc * 0.5f * particleBaseSize);
                 }
 
                 var p = Vector3.Transform(src_pos, node_tr);
@@ -91,7 +94,7 @@ namespace LibreLancer.Fx
                 instance.Pool.AddParticle(
                     TextureHandler,
                     p,
-                    new Vector2(l, w) * sc * 0.5f,
+                    new Vector2(l, w) * sc * particleBaseSize,
                     new Color4(c, a),
                     GetFrame((float)instance.GlobalTime, sparam, ref particle),
                     n,

@@ -75,10 +75,10 @@ Output main(int vertexID: SV_VertexID)
     }
     else if (Type == 1)
     {
-        // Rect
-        up = particle.normal;
+        // Rect - aligned to the normal
+        right = normalize(particle.normal);
         float3 toCamera = normalize(CameraPosition - p);
-        right = cross(toCamera, up);
+        up = cross(toCamera, right);
     }
     else if (Type == 2)
     {
