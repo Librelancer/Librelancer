@@ -42,14 +42,14 @@ namespace LibreLancer.Fx
             if (count < 2)
                 return;
             // draw
-            var node_tr = GetAttachment(node, transform);
+            var node_tr = instance.NodeWorldTransforms[node.NodeIdx];
             var res = instance.Resources;
             TextureHandler.Update(Texture, res);
             var frame = GetFrame((float) instance.GlobalTime, sparam, ref instance.Buffer[nodeIdx, 0]);
             int index = (int) Math.Floor((TextureHandler.FrameCount - 1) * frame);
             var texCoords = TextureHandler.GetCoordinates(index);
 
-			var z = RenderHelpers.GetZ(instance.Pool!.Camera.Position, Vector3.Transform(Vector3.Zero, node_tr));
+			var z = RenderHelpers.GetZ(instance.Pool!.Camera.Position, Vector3.Transform(Vector3.Zero, transform));
             Vector3 forward = Vector3.Zero;
             for (int i = 0; i < count; i++)
             {

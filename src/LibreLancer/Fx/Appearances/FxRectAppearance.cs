@@ -66,7 +66,7 @@ namespace LibreLancer.Fx
         public override void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx,
             Matrix4x4 transform, float sparam)
         {
-            var node_tr = GetAttachment(node, transform);
+            var node_tr = instance.NodeWorldTransforms[node.NodeIdx];
             var count = instance.Buffer.GetCount(nodeIdx);
             TextureHandler.Update(Texture, instance.Resources!);
 
@@ -74,6 +74,7 @@ namespace LibreLancer.Fx
             {
                 ref var particle = ref instance.Buffer[nodeIdx, i];
                 particle.Normal = particle.Velocity.Normalized();
+
                 var time = particle.TimeAlive / particle.LifeSpan;
                 var src_pos = particle.Position;
                 var l = Length!.GetValue(sparam, time);
@@ -89,7 +90,7 @@ namespace LibreLancer.Fx
                 var p = Vector3.Transform(src_pos, node_tr);
                 var c = Color!.GetValue(sparam, time);
                 var a = Alpha!.GetValue(sparam, time);
-                var n = Vector3.TransformNormal(particle.Normal, transform).Normalized();
+                var n = Vector3.TransformNormal(particle.Normal, node_tr);
 
                 instance.Pool.AddParticle(
                     TextureHandler,
