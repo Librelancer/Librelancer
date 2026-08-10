@@ -1078,15 +1078,24 @@ public partial class CGameSession
                     newObj = new GameObject(model, Game.ResourceManager)
                     {
                         Kind = GameObjectKind.Loot,
-                        PhysicsComponent =
-                        {
-                            Mass = crate.Mass
-                        },
                         ArchetypeName = crate.Nickname
                     };
+                    newObj.PhysicsComponent!.Mass = crate.Mass;
                     newObj.AddComponent(new CHealthComponent(newObj)
                         { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
                     newObj.Name = new LootName(newObj);
+                }
+                else if ((objInfo.Flags & ObjectSpawnFlags.DynamicAsteroid) == ObjectSpawnFlags.DynamicAsteroid)
+                {
+                    var asteroid = Game.GameData.Items.DynamicAsteroids.Get(objInfo.Loadout.ArchetypeCrc)!;
+                    var model = asteroid.ModelFile!.LoadFile(Game.ResourceManager)!;
+                    newObj = new GameObject(model, Game.ResourceManager)
+                    {
+                        Kind = GameObjectKind.DynamicAsteroid,
+                        ArchetypeName = asteroid.Nickname
+                    };
+                    newObj.PhysicsComponent!.Mass = AsteroidFieldShared.DynamicAsteroidMass;
+                    newObj.AddComponent(new DynamicAsteroidComponent(newObj, objInfo.MaxVelocities.X, objInfo.MaxVelocities.Y));
                 }
                 else
                 {

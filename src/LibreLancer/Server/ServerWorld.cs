@@ -34,7 +34,6 @@ namespace LibreLancer.Server
         public NPCManager NPCs;
         public SpacePopulationManager Population;
         private Random debrisRandom = new();
-        private object _idLock = new();
 
         public NetIDGenerator IdGenerator = new();
         private UpdatePacker packer = new();
@@ -389,6 +388,13 @@ namespace LibreLancer.Server
             {
                 info.Flags |= ObjectSpawnFlags.Loot;
                 info.Loadout.ArchetypeCrc = FLHash.CreateID(obj.ArchetypeName!);
+            }
+            else if (obj.Kind == GameObjectKind.DynamicAsteroid)
+            {
+                info.Flags |= ObjectSpawnFlags.DynamicAsteroid;
+                info.Loadout.ArchetypeCrc = FLHash.CreateID(obj.ArchetypeName!);
+                var vel = obj.GetComponent<DynamicAsteroidComponent>()!;
+                info.MaxVelocities = new(vel.MaxVelocity, vel.MaxAngularVelocity);
             }
             else
             {
@@ -817,6 +823,50 @@ namespace LibreLancer.Server
                 go.AddComponent(lt);
 
                 // Spawn debris
+                foreach (var p in Players)
+                {
+                    p.Key.RpcClient.SpawnObjects([BuildSpawnInfo(go, p.Value)]);
+                }
+            });
+        }
+
+        public void SpawnDynamicAsteroid(
+            DynamicAsteroid asteroid,
+            Transform3D transform,
+            float maxLinearVelocity,
+            float maxAngularVelocity,
+            Vector3? force = null
+        )
+        {
+            actions.Enqueue(() =>
+            {
+                var mdl = asteroid.ModelFile!.LoadFile(Server.Resources)!;
+                var go = new GameObject(mdl, Server.Resources, false);
+                go.ArchetypeName = asteroid.Nickname;
+                go.NetID = IdGenerator.Allocate();
+                go.Kind = GameObjectKind.DynamicAsteroid;
+                go.PhysicsComponent!.Mass = AsteroidFieldShared.DynamicAsteroidMass;
+                go.AddComponent(new DynamicAsteroidComponent(go, maxLinearVelocity, maxAngularVelocity));
+                go.SetLocalTransform(transform);
+                GameWorld.AddObject(go);
+                updatingObjects.Add(go);
+                go.Register(GameWorld);
+                spawnedObjects.Add(go);
+                // Apply some kind of random movement
+                Vector3 spawnForce;
+                if (force != null)
+                    spawnForce = force.Value;
+                else
+                {
+                    var forceStrength = debrisRandom.NextFloat(10, 100);
+                    var direction = new Vector3(debrisRandom.NextFloat(0, 2 * MathF.PI),
+                        debrisRandom.NextFloat(0, 2 * MathF.PI), debrisRandom.NextFloat(0, 2 * MathF.PI));
+                    direction = Vector3.Transform(Vector3.UnitZ, Quaternion.CreateFromYawPitchRoll(direction.X, direction.Y, direction.Z));
+                    spawnForce = direction * forceStrength;
+                }
+
+                go.PhysicsComponent!.Body.Impulse(spawnForce);
+                // Spawn on clients
                 foreach (var p in Players)
                 {
                     p.Key.RpcClient.SpawnObjects([BuildSpawnInfo(go, p.Value)]);

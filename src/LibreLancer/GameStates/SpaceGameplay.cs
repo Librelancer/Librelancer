@@ -1208,7 +1208,7 @@ namespace LibreLancer
             var dir = (end - start).Normalized();
             var tgt = start + (dir * 400);
 
-            if (world.Physics!.PointRaycast(player.PhysicsComponent!.Body, start, dir, 1000, out var contactPoint,
+            if (world.Physics!.PointRaycast(player.PhysicsComponent!.Body, start, dir, 1000, true, out var contactPoint,
                     out _, out _))
             {
                 return contactPoint;

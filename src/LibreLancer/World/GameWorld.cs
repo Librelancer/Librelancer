@@ -433,7 +433,8 @@ namespace LibreLancer.World
                     continue;
                 }
 
-                if (rb.Tag is GameObject { Kind: GameObjectKind.Debris })
+                if (rb.Tag is GameObject go &&
+                    (go.Kind == GameObjectKind.Debris || go.Kind == GameObjectKind.DynamicAsteroid))
                 {
                     continue;
                 }
