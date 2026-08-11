@@ -554,12 +554,6 @@ partial class SpaceGameplay
                 return -1;
             }
 
-            if (g.Selection.SelectedPart is uint partCrc &&
-                g.Selection.Selected.Model?.TryGetCollisionGroup(partCrc, out var collisionGroup) == true)
-            {
-                return collisionGroup.HealthFraction;
-            }
-
             return MathHelper.Clamp(health.CurrentHealth / health.MaxHealth, 0, 1);
         }
 
