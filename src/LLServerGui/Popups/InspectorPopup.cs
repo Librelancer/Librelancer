@@ -10,7 +10,7 @@ public class InspectorPopup(Player? player) : PopupWindow
     public override string Title { get; set; } = "Player Inspector";
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.NoCollapse;
     public override bool NoClose => true;
-    public override Vector2 InitSize => new Vector2(400, 600);
+    public override Vector2 InitSize => new Vector2(400, 600) * ImGuiHelper.Scale;
 
     public override void Draw(bool appearing)
     {

@@ -19,7 +19,7 @@ public class VfsFileSelector : PopupWindow
     private Action<string> onSelect;
 
     public override string Title { get; set; } = "Title";
-    public override Vector2 InitSize => new (300);
+    public override Vector2 InitSize => new Vector2(300) * ImGuiHelper.Scale;
 
     public VfsFileSelector(string title, FileSystem fs, string baseDir, Action<string> onSelect, Func<string,bool>? filter)
     {

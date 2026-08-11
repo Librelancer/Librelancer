@@ -314,9 +314,14 @@ namespace LibreLancer
 
             public void PopulateNavmap(Navmap navmap)
             {
-                navmap.PopulateIcons(g.ui, g.starSystem);
                 navmap.SetUniverse(g.Game.GameData.Items);
                 navmap.SetVisitFunction(g.session.IsVisited);
+                navmap.SetFactionRelationFunction(factionName =>
+                {
+                    var faction = g.Game.GameData.Items.Factions.Get(factionName);
+                    return g.session.PlayerReputations.GetReputation(faction);
+                });
+                navmap.PopulateIcons(g.ui, g.starSystem);
                 navmap.SetAddWaypointFunction(null);
                 navmap.SetBestPathFunction((destinationSystem, destinationPosition) =>
                 {
@@ -327,10 +332,15 @@ namespace LibreLancer
                         destinationPosition,
                         300f);
                 });
-                navmap.SetPlayerPositionProvider(null);
-                navmap.SetPlayerSystemProvider(() => FLHash.CreateID(g.session.PlayerSystem));
+                var dockedObject = g.starSystem.Objects.FirstOrDefault(x => x.Base == g.currentBase);
+                navmap.SetPlayerPositionProvider(() => dockedObject?.Position ?? g.session.PlayerPosition);
+                navmap.SetPlayerOrientationProvider(() => Quaternion.Identity);
+                navmap.SetPlayerSystemProvider(() => g.starSystem.CRC);
                 navmap.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
             }
+
+            public KnownNavmapBaseList GetKnownNavmapBases() =>
+                KnownNavmapBaseListBuilder.Build(g.Game.GameData, g.session);
 
             public int UserWaypointCount() => g.session.UserWaypointCount;
 

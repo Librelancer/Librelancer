@@ -14,11 +14,9 @@ using LibreLancer.Physics;
 namespace LibreLancer.Sur
 {
     // TODO: Sur reader is VERY incomplete & undocumented
-    public class SurFile : IConvexMeshProvider
+    public class SurFile
     {
         public List<SurfacePart> Surfaces = [];
-
-        private Dictionary<uint, ConvexMesh[]> shapes = new();
 
         public bool TryGetHardpoint(uint meshId, uint hpId, [MaybeNullWhen(false)] out ConvexMesh[] mesh)
         {
@@ -61,7 +59,7 @@ namespace LibreLancer.Sur
                         indices.Add(tri.Points.C);
                     }
 
-                    hull.Add(new ConvexMesh() { Indices = indices.ToArray(), Vertices = verts.ToArray() });
+                    hull.Add(new ConvexMesh(verts.ToArray(), indices.ToArray()));
                 }
             }
 
@@ -74,18 +72,18 @@ namespace LibreLancer.Sur
             return false;
         }
 
-        public ConvexMesh[] GetMesh(ConvexMeshId meshId)
+        public ConvexMesh[] GetMesh(ConvexShapeId shapeId)
         {
             List<ConvexMesh> hull = [];
 
             foreach (var surface in Surfaces)
             {
-                if (surface.Crc != meshId.Id)
+                if (surface.Crc != shapeId.Id)
                 {
                     continue;
                 }
 
-                if (meshId.SubId != 0 && !surface.HardpointIds.Contains(meshId.SubId))
+                if (shapeId.SubId != 0 && !surface.HardpointIds.Contains(shapeId.SubId))
                 {
                     continue;
                 }
@@ -94,7 +92,7 @@ namespace LibreLancer.Sur
 
                 foreach (var triHull in hulls)
                 {
-                    if (meshId.SubId == 0)
+                    if (shapeId.SubId == 0)
                     {
                         // Skip non-part hulls
                         var hull1 = triHull;
@@ -105,7 +103,7 @@ namespace LibreLancer.Sur
                             continue;
                         }
                     }
-                    else if (meshId.SubId != triHull.HullId)
+                    else if (shapeId.SubId != triHull.HullId)
                     {
                         // Skip hulls that aren't for this hardpoint
                         continue;
@@ -126,7 +124,7 @@ namespace LibreLancer.Sur
                         indices.Add(tri.Points.C);
                     }
 
-                    hull.Add(new ConvexMesh() { Indices = indices.ToArray(), Vertices = verts.ToArray() });
+                    hull.Add(new ConvexMesh(verts.ToArray(), indices.ToArray()));
                 }
             }
 
@@ -136,6 +134,21 @@ namespace LibreLancer.Sur
         public bool HasShape(uint meshId)
         {
             return Surfaces.Any(x => x.Crc == meshId);
+        }
+
+        public RuntimeSurFile Convert()
+        {
+            var result = new RuntimeSurFile();
+            foreach (var surface in Surfaces)
+            {
+                if (surface.Shapes == null)
+                    surface.ConvertShapes();
+                foreach (var sh in surface.Shapes!)
+                {
+                    result.Shapes[new ConvexShapeId(surface.Crc, sh.SubId)] = sh.Shapes;
+                }
+            }
+            return result;
         }
 
         private const uint SUR_MAGIC = 0x73726576; //"vers"

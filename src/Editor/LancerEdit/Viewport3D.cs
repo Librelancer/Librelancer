@@ -68,7 +68,6 @@ namespace LancerEdit
             {
                 if (RenderTarget != null)
                 {
-                    ImGuiHelper.DeregisterTexture(RenderTarget.Texture);
                     RenderTarget.Dispose();
                 }
                 RenderTarget = new RenderTarget2D(rstate, fixWidth, fixHeight);

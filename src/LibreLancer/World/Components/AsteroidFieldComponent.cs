@@ -8,9 +8,11 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using BepuUtilities.Collections;
+using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Physics;
 using LibreLancer.Resources;
+using LibreLancer.Server.Components;
 
 namespace LibreLancer.World.Components
 {
@@ -18,11 +20,16 @@ namespace LibreLancer.World.Components
     public class AsteroidFieldComponent : GameComponent
     {
         public AsteroidField Field;
-        private ConvexMeshCollider shape = null!;
+        private ConvexMeshCollider? shape;
+        private readonly StaticAsteroid[] mines;
+        private readonly Dictionary<Vector3, float> mineRechargeTimes = new();
 
         public AsteroidFieldComponent(AsteroidField field, ResourceManager res, GameObject parent) : base(parent)
         {
             Field = field;
+            mines = field.Cube?
+                .Where(x => x.Archetype is { MineExplosion: not null, MineDetectRadius: > 0 })
+                .ToArray() ?? [];
 
             var rdist = 0f;
 
@@ -58,18 +65,23 @@ namespace LibreLancer.World.Components
             }
 
             phys = world.Physics;
-            shape = new ConvexMeshCollider(phys);
             var resourceManager = GetResourceManager(world);
 
             if (Field.Cube is not null && resourceManager is not null)
             {
                 foreach (var asteroid in Field.Cube)
                 {
+                    if (asteroid.Archetype?.PhantomPhysics == true)
+                    {
+                        continue;
+                    }
+
                     var sur = asteroid.Archetype?.ModelFile?.LoadFile(resourceManager, MeshLoadMode.CPU)!.Collision;
 
                     if (sur is not null && sur.Value.Valid)
                     {
-                        shape.AddPart(sur.Value.FileId, new ConvexMeshId(0, 0),
+                        shape ??= new ConvexMeshCollider(phys);
+                        shape.AddPart(sur.Value.FileId, new ConvexShapeId(0, 0),
                             new Transform3D(asteroid.Position * Field.CubeSize, asteroid.Rotation), null);
                     }
                 }
@@ -91,14 +103,15 @@ namespace LibreLancer.World.Components
                 return;
             }
 
-            shape?.Dispose();
-
             var oldList = useA ? ref spawnedA : ref spawnedB;
             for (var i = 0; i < oldList.Count; i++)
             {
-                phys.RemoveUnmanagedStatic(ref oldList[i].Object);
+                RemoveStatic(ref oldList[i]);
             }
 
+            shape?.Dispose();
+            shape = null;
+            mineRechargeTimes.Clear();
             spawnedA.Dispose(phys.BufferPool);
             spawnedB.Dispose(phys.BufferPool);
 
@@ -110,7 +123,16 @@ namespace LibreLancer.World.Components
         private struct SpawnedCube
         {
             public Vector3 Position;
+            public Quaternion Rotation;
             public UnmanagedStatic Object;
+        }
+
+        private void RemoveStatic(ref SpawnedCube cube)
+        {
+            if (cube.Object.Valid)
+            {
+                phys!.RemoveUnmanagedStatic(ref cube.Object);
+            }
         }
 
         private QuickList<SpawnedCube> spawnedA;
@@ -158,10 +180,24 @@ namespace LibreLancer.World.Components
                 return;
             }
 
+            foreach (var key in mineRechargeTimes.Keys.ToArray())
+            {
+                var rechargeTime = mineRechargeTimes[key] - (float) time;
+                if (rechargeTime <= 0)
+                {
+                    mineRechargeTimes.Remove(key);
+                }
+                else
+                {
+                    mineRechargeTimes[key] = rechargeTime;
+                }
+            }
+
             var amountCubes = (int) Math.Floor((COLLIDE_DISTANCE / Field.CubeSize)) + 1;
 
             // Create series of bounding boxes, merging some as we go
             var fillBoxes = new QuickList<(BoundingBox Bb, Vector4i Dims)>(8, phys.BufferPool);
+            var mineQueries = new QuickList<SphereQuery>(8, phys.BufferPool);
 
             foreach (var pobj in phys.DynamicObjects)
             {
@@ -205,7 +241,7 @@ namespace LibreLancer.World.Components
                         if (i != j && fillBoxes[i].Bb.Intersects(fillBoxes[j].Bb))
                         {
                             fillBoxes[i].Bb = BoundingBox.CreateMerged(fillBoxes[i].Bb, fillBoxes[j].Bb);
-                            fillBoxes.FastRemoveAt(i);
+                            fillBoxes.FastRemoveAt(j); //remove other box
                             changed = true;
                             break;
                         }
@@ -231,12 +267,13 @@ namespace LibreLancer.World.Components
             {
                 for (var i = 0; i < oldList.Count; i++)
                 {
-                    phys.RemoveUnmanagedStatic(ref oldList[i].Object);
+                    RemoveStatic(ref oldList[i]);
                 }
 
                 spawnedA.Count = 0;
                 spawnedB.Count = 0;
                 fillBoxes.Dispose(phys.BufferPool);
+                mineQueries.Dispose(phys.BufferPool);
                 return;
             }
 
@@ -274,6 +311,7 @@ namespace LibreLancer.World.Components
 
                     remove = false;
                     bodies.Add(oldList[i], world?.Physics?.BufferPool);
+                    AddMineQueries(ref mineQueries, oldList[i]);
                     var p = (oldList[i].Position - fillBoxes[j].Bb.Min) / Field.CubeSize;
                     present[Index(fillBoxes[j].Dims, (int) p.X, (int) p.Y, (int) p.Z)] = true;
                     break;
@@ -281,7 +319,7 @@ namespace LibreLancer.World.Components
 
                 if (remove)
                 {
-                    world?.Physics?.RemoveUnmanagedStatic(ref oldList[i].Object);
+                    RemoveStatic(ref oldList[i]);
                 }
             }
 
@@ -317,15 +355,81 @@ namespace LibreLancer.World.Components
                                 continue;
                             }
 
-                            var transform = new Transform3D(center, Field.CubeRotation!.GetRotation(tval));
-                            bodies.Add(new SpawnedCube() { Position = center }, world?.Physics?.BufferPool);
-                            world?.Physics?.CreateUnmanagedStatic(ref bodies[bodies.Count - 1].Object, transform, shape);
+                            var cubeRotation = Field.CubeRotation!.GetRotation(tval);
+                            var transform = new Transform3D(center, cubeRotation);
+                            bodies.Add(new SpawnedCube()
+                            {
+                                Position = center,
+                                Rotation = cubeRotation
+                            }, phys.BufferPool);
+                            AddMineQueries(ref mineQueries, bodies[bodies.Count - 1]);
+                            if (shape is { BepuChildCount: > 0 })
+                            {
+                                phys.CreateUnmanagedStatic(ref bodies[bodies.Count - 1].Object, transform, shape);
+                            }
                         }
                     }
                 }
             }
 
+            if (mines.Length > 0)
+            {
+                phys.DynamicObjectSphereQuery(mineQueries);
+                CheckMines(world, mineQueries);
+            }
             fillBoxes.Dispose(phys.BufferPool);
+            mineQueries.Dispose(phys.BufferPool);
+        }
+
+        private void AddMineQueries(ref QuickList<SphereQuery> queries, in SpawnedCube cube)
+        {
+            for (var mineIndex = 0; mineIndex < mines.Length; mineIndex++)
+            {
+                var mine = mines[mineIndex];
+                var archetype = mine.Archetype!;
+                var minePosition = cube.Position +
+                                   Vector3.Transform(mine.Position * Field.CubeSize, cube.Rotation);
+                queries.Add(new SphereQuery
+                {
+                    Position = minePosition,
+                    Radius = archetype.MineDetectRadius
+                }, phys!.BufferPool);
+            }
+        }
+
+        private void CheckMines(GameWorld world, QuickList<SphereQuery> queries)
+        {
+            for (var i = 0; i < queries.Count; i++)
+            {
+                ref var query = ref queries[i];
+                if (!query.Touched || mineRechargeTimes.ContainsKey(query.Position))
+                {
+                    continue;
+                }
+
+                var archetype = mines[i % mines.Length].Archetype!;
+                var explosion = archetype.MineExplosion!;
+                world.SpawnTempFx(explosion.Effect, query.Position);
+                DamageMineExplosion(world, explosion, query.Position);
+                mineRechargeTimes[query.Position] = archetype.MineRechargeTime;
+            }
+        }
+
+        private void DamageMineExplosion(GameWorld world, Explosion explosion, Vector3 minePosition)
+        {
+            if (world.Server == null)
+            {
+                return;
+            }
+
+            foreach (var other in phys!.SphereTest(minePosition, explosion.Radius))
+            {
+                if (other?.Tag is GameObject g && g.TryGetComponent<SHealthComponent>(out var health))
+                {
+                    health.DamageExplosion(explosion.HullDamage, explosion.EnergyDamage, null, minePosition,
+                        explosion.Radius);
+                }
+            }
         }
     }
 }
