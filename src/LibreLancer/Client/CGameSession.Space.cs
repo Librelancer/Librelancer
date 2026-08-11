@@ -996,7 +996,7 @@ public partial class CGameSession
 
     public Infocard? GetPlayerShipInfocard()
     {
-        var ids = PlayerShip?.ExtraIdsInfo?.FirstOrDefault() ?? 0;
+        var ids = PlayerShip?.IdsInfo ?? 0;
         return ids > 0 ? Game.GameData.GetInfocard(ids, Game.Fonts) : null;
     }
 

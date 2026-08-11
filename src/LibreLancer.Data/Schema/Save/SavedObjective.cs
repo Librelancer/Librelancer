@@ -30,8 +30,12 @@ public partial class SavedObjective
         }
         else
         {
-            if (e.Count > 1)
-                ObjNickname = e[1].ToInt32();
+            if (e.Count < 2)
+            {
+                IniDiagnostic.Warn($"type {Type} needs at least 2 entries, got {e.Count}", e);
+                return;
+            }
+            ObjNickname = e[1].ToInt32();
             if (e.Count > 2)
                 IdsOne = e[2].ToInt32();
             if (e.Count > 3)
