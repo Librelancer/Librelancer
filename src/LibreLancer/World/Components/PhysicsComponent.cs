@@ -55,7 +55,7 @@ namespace LibreLancer.World.Components
                 ? 0
                 : CrcTool.FLModelCrc(hardpoint.Parent!.Name);
             hardpoints.Add((hardpoint, tag));
-             _convexMesh?.AddPart(SurPath.FileId, new ConvexMeshId(meshId, hpid), hardpoint.Parent!.LocalTransform, tag);
+             _convexMesh?.AddPart(SurPath.FileId, new ConvexShapeId(meshId, hpid), hardpoint.Parent!.LocalTransform, tag);
         }
 
         public void DeactivateHardpoint(Hardpoint hardpoint)
@@ -160,7 +160,7 @@ namespace LibreLancer.World.Components
 
                 if(Parent?.Model?.RigidModel.Source == RigidModelSource.SinglePart)
                 {
-                    _convexMesh.AddPart(meshId, new ConvexMeshId(PlainCrc, 0), Transform3D.Identity, null);
+                    _convexMesh.AddPart(meshId, new ConvexShapeId(PlainCrc, 0), Transform3D.Identity, null);
                 }
                 else
                 {
@@ -172,7 +172,7 @@ namespace LibreLancer.World.Components
                             continue;
                         }
 
-                        var id = new ConvexMeshId(CrcTool.FLModelCrc(part.Name), 0);
+                        var id = new ConvexShapeId(CrcTool.FLModelCrc(part.Name), 0);
                         _convexMesh.AddPart(meshId, id, part.Construct == null ? Transform3D.Identity : part.LocalTransform, part);
                     }
                 }
@@ -183,7 +183,7 @@ namespace LibreLancer.World.Components
                     var hpMeshId = Parent?.Model?.RigidModel.Source == RigidModelSource.SinglePart
                         ? 0
                         : CrcTool.FLModelCrc(hardpoint.Hardpoint.Parent!.Name);
-                    _convexMesh?.AddPart(SurPath.FileId, new ConvexMeshId(hpMeshId, hpid),
+                    _convexMesh?.AddPart(SurPath.FileId, new ConvexShapeId(hpMeshId, hpid),
                         hardpoint.Hardpoint.Parent!.LocalTransform, hardpoint.Tag);
                 }
             }
@@ -197,6 +197,7 @@ namespace LibreLancer.World.Components
 
             Body = Mass < float.Epsilon ? world.Physics!.AddStaticObject(Parent!.WorldTransform, cld) : world.Physics!.AddDynamicObject(Mass, Parent!.WorldTransform, cld, Inertia);
             Body.Tag = Parent;
+            Body.Collidable = Collidable;
             collider = cld;
         }
 

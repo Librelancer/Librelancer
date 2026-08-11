@@ -377,6 +377,32 @@ namespace LancerEdit
             }
         }
 
+        enum NodeSpecialName
+        {
+            None,
+            VMeshData,
+            VMeshRef,
+            TextureDDS,
+            TextureTGA
+        }
+
+        private static Dictionary<string, NodeSpecialName> _specialNames = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "vmeshdata", NodeSpecialName.VMeshData },
+            { "vmeshref", NodeSpecialName.VMeshRef },
+            { "mips", NodeSpecialName.TextureDDS },
+            { "mip0", NodeSpecialName.TextureTGA },
+            { "mip1", NodeSpecialName.TextureTGA },
+            { "mip2", NodeSpecialName.TextureTGA },
+            { "mip3", NodeSpecialName.TextureTGA },
+            { "mip4", NodeSpecialName.TextureTGA },
+            { "mip5", NodeSpecialName.TextureTGA },
+            { "mip6", NodeSpecialName.TextureTGA },
+            { "mip7", NodeSpecialName.TextureTGA },
+            { "mip8", NodeSpecialName.TextureTGA },
+            { "mip9", NodeSpecialName.TextureTGA }
+        };
+
         unsafe void NodeInformation()
         {
             ImGui.BeginChild("##scrollnode");
@@ -610,7 +636,9 @@ namespace LancerEdit
                 {
                     FileDialog.Save(path => File.WriteAllBytes(path, selectedNode.Data));
                 }
-                if (selectedNode.Name.ToLowerInvariant() == "vmeshdata" &&
+
+                var specialName = _specialNames.GetValueOrDefault(selectedNode.Name);
+                if (specialName == NodeSpecialName.VMeshData &&
                     ImGui.Button("View VMeshData"))
                 {
                     LibreLancer.Utf.Vms.VMeshData dat = null;
@@ -629,7 +657,7 @@ namespace LancerEdit
                     }
                 }
 
-                if (selectedNode.Name.ToLowerInvariant() == "vmeshdata" &&
+                if (specialName == NodeSpecialName.VMeshData &&
                     ImGui.Button("Edit Materials"))
                 {
                     VmsMaterialEditor dat = null;
@@ -645,14 +673,16 @@ namespace LancerEdit
                         popups.OpenPopup(dat);
                 }
 
-                if (selectedNode.Name.ToLowerInvariant() == "mips" &&
+
+                if ((specialName == NodeSpecialName.TextureDDS || specialName == NodeSpecialName.TextureTGA) &&
                     ImGui.Button("Export .png"))
                 {
                     FileDialog.Save(x =>
                     {
                         try
                         {
-                            var data = TextureExporter.ExportTexture(new(ImageType.DDS,selectedNode.Data), true);
+                            var fmt = specialName == NodeSpecialName.TextureDDS ? ImageType.DDS : ImageType.TGA;
+                            var data = TextureExporter.ExportTexture(new(fmt,selectedNode.Data), true);
                             File.WriteAllBytes(x, data);
                         }
                         catch (Exception e)
@@ -662,7 +692,7 @@ namespace LancerEdit
                     }, AppFilters.PngFilter);
                 }
 
-                if (selectedNode.Name.ToLowerInvariant() == "vmeshref" &&
+                if (specialName == NodeSpecialName.VMeshRef &&
                     ImGui.Button("View VMeshRef"))
                 {
                     LibreLancer.Utf.Cmp.VMeshRef dat = null;

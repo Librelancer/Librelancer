@@ -102,7 +102,7 @@ public class GameResourceManager : ResourceManager, IDisposable
         GreyTexture = new Texture2D(g.RenderContext, 1, 1, false, SurfaceFormat.Bgra8);
         GreyTexture.SetData(new byte[] { 128, 128, 128, 0xFF });
 
-        ConvexCollection = new ConvexMeshCollection(GetSur);
+        ConvexCollection = new ConvexShapeCollection(GetSur);
     }
 
     public GameResourceManager(GameResourceManager src) : this(src.GLWindow, src.VFS)
@@ -567,7 +567,7 @@ public class GameResourceManager : ResourceManager, IDisposable
             if (VFS.FileExists(surPath))
             {
                 res.Collision = new CollisionMeshHandle()
-                    { Sur = GetSur(surPath), FileId = ConvexCollection.UseFile(surPath) };
+                    { FileId = ConvexCollection.UseFile(surPath) };
             }
 
             return res;
@@ -590,7 +590,7 @@ public class GameResourceManager : ResourceManager, IDisposable
             if (VFS.FileExists(surPath))
             {
                 handle = new CollisionMeshHandle()
-                    { Sur = GetSur(surPath), FileId = ConvexCollection.UseFile(surPath) };
+                    { FileId = ConvexCollection.UseFile(surPath) };
             }
         }
 

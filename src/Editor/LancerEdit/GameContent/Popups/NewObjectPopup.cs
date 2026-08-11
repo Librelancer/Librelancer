@@ -12,7 +12,7 @@ public class NewObjectPopup : PopupWindow
 {
     public override string Title { get; set; } = "New Object";
 
-    public override Vector2 InitSize => new Vector2(600, 400);
+    public override Vector2 InitSize => new Vector2(600, 400) * ImGuiHelper.Scale;
 
     private string nickname = "";
 

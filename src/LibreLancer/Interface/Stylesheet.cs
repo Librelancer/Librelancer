@@ -711,11 +711,19 @@ namespace LibreLancer.Interface
         private StyledProperty<ButtonStyle?> selectorButton = new("SelectorButton");
         private StyledProperty<ButtonStyle?> addWaypointButton = new("AddWaypointButton");
         private StyledProperty<ButtonStyle?> bestPathButton = new("BestPathButton");
+        private StyledProperty<ButtonStyle?> neutralZoneFilterButton = new("NeutralZoneFilterButton");
+        private StyledProperty<ButtonStyle?> hostileZoneFilterButton = new("HostileZoneFilterButton");
+        private StyledProperty<ButtonStyle?> friendlyZoneFilterButton = new("FriendlyZoneFilterButton");
         private StyledProperty<float> userWaypointSize = new("UserWaypointSize", 28);
         private StyledProperty<float> userWaypointDigitWidth = new("UserWaypointDigitWidth", 6);
         private StyledProperty<float> userWaypointDigitHeight = new("UserWaypointDigitHeight", 10);
         private StyledProperty<int> userWaypointRouteThickness = new("UserWaypointRouteThickness", 2);
-
+        private StyledProperty<float> systemPlayerShipSize = new("SystemPlayerShipSize", 14);
+        private StyledProperty<float> sectorPlayerShipSize = new("SectorPlayerShipSize", 14);
+        private StyledProperty<float> zoneFilterButtonSize = new("ZoneFilterButtonSize", 13);
+        private StyledProperty<float> zoneFilterButtonSpacing = new("ZoneFilterButtonSpacing", 7);
+        private StyledProperty<float> zoneFilterButtonMarginX = new("ZoneFilterButtonMarginX", 12);
+        private StyledProperty<float> zoneFilterButtonMarginY = new("ZoneFilterButtonMarginY", 8);
         private StyledProperty<InterfaceColor> userWaypointColor =
             new("UserWaypointColor", new Color4(1f, 0.2f, 1f, 1f));
 
@@ -730,10 +738,19 @@ namespace LibreLancer.Interface
                 .Add(selectorButton)
                 .Add(addWaypointButton)
                 .Add(bestPathButton)
+                .Add(neutralZoneFilterButton)
+                .Add(hostileZoneFilterButton)
+                .Add(friendlyZoneFilterButton)
                 .Add(userWaypointSize)
                 .Add(userWaypointDigitWidth)
                 .Add(userWaypointDigitHeight)
                 .Add(userWaypointRouteThickness)
+                .Add(systemPlayerShipSize)
+                .Add(sectorPlayerShipSize)
+                .Add(zoneFilterButtonSize)
+                .Add(zoneFilterButtonSpacing)
+                .Add(zoneFilterButtonMarginX)
+                .Add(zoneFilterButtonMarginY)
                 .Add(userWaypointColor)
                 .Add(userWaypointDigitColor);
         }
@@ -747,10 +764,19 @@ namespace LibreLancer.Interface
                 .Query(selectorButton)
                 .Query(addWaypointButton)
                 .Query(bestPathButton)
+                .Query(neutralZoneFilterButton)
+                .Query(hostileZoneFilterButton)
+                .Query(friendlyZoneFilterButton)
                 .Query(userWaypointSize)
                 .Query(userWaypointDigitWidth)
                 .Query(userWaypointDigitHeight)
                 .Query(userWaypointRouteThickness)
+                .Query(systemPlayerShipSize)
+                .Query(sectorPlayerShipSize)
+                .Query(zoneFilterButtonSize)
+                .Query(zoneFilterButtonSpacing)
+                .Query(zoneFilterButtonMarginX)
+                .Query(zoneFilterButtonMarginY)
                 .Query(userWaypointColor)
                 .Query(userWaypointDigitColor);
         }
@@ -785,6 +811,24 @@ namespace LibreLancer.Interface
             set => bestPathButton.Set(value);
         }
 
+        public ButtonStyle? NeutralZoneFilterButton
+        {
+            get => neutralZoneFilterButton.Value;
+            set => neutralZoneFilterButton.Set(value);
+        }
+
+        public ButtonStyle? HostileZoneFilterButton
+        {
+            get => hostileZoneFilterButton.Value;
+            set => hostileZoneFilterButton.Set(value);
+        }
+
+        public ButtonStyle? FriendlyZoneFilterButton
+        {
+            get => friendlyZoneFilterButton.Value;
+            set => friendlyZoneFilterButton.Set(value);
+        }
+
         public float UserWaypointSize
         {
             get => userWaypointSize.Value;
@@ -807,6 +851,42 @@ namespace LibreLancer.Interface
         {
             get => userWaypointRouteThickness.Value;
             set => userWaypointRouteThickness.Set(value);
+        }
+
+        public float SystemPlayerShipSize
+        {
+            get => systemPlayerShipSize.Value;
+            set => systemPlayerShipSize.Set(value);
+        }
+
+        public float SectorPlayerShipSize
+        {
+            get => sectorPlayerShipSize.Value;
+            set => sectorPlayerShipSize.Set(value);
+        }
+
+        public float ZoneFilterButtonSize
+        {
+            get => zoneFilterButtonSize.Value;
+            set => zoneFilterButtonSize.Set(value);
+        }
+
+        public float ZoneFilterButtonSpacing
+        {
+            get => zoneFilterButtonSpacing.Value;
+            set => zoneFilterButtonSpacing.Set(value);
+        }
+
+        public float ZoneFilterButtonMarginX
+        {
+            get => zoneFilterButtonMarginX.Value;
+            set => zoneFilterButtonMarginX.Set(value);
+        }
+
+        public float ZoneFilterButtonMarginY
+        {
+            get => zoneFilterButtonMarginY.Value;
+            set => zoneFilterButtonMarginY.Set(value);
         }
 
         public InterfaceColor UserWaypointColor

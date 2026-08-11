@@ -28,9 +28,9 @@ public class ServerResourceManager : ResourceManager
 
     private Lock resLock = new();
 
-    public ServerResourceManager(ConvexMeshCollection? collection, FileSystem vfs) : base(vfs)
+    public ServerResourceManager(ConvexShapeCollection? collection, FileSystem vfs) : base(vfs)
     {
-        ConvexCollection = collection ?? new ConvexMeshCollection(GetSur);
+        ConvexCollection = collection ?? new ConvexShapeCollection(GetSur);
     }
 
     public override OpenCylinder GetOpenCylinder(int slices) => throw new InvalidOperationException();
@@ -75,7 +75,6 @@ public class ServerResourceManager : ResourceManager
             {
                 handle = new CollisionMeshHandle
                 {
-                    Sur = GetSur(surPath),
                     FileId = ConvexCollection.UseFile(surPath)
                 };
             }

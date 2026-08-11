@@ -11,10 +11,8 @@ public static class PhysicsWarmup
     public static void Warmup() => RuntimeHelpers.RunClassConstructor(typeof(PhysicsWarmup).TypeHandle);
     static PhysicsWarmup() => RunWarmup();
 
-    private class WarmupMeshes : IConvexMeshProvider
+    private class WarmupMeshes : IConvexShapeProvider
     {
-        private Dictionary<uint, ConvexMesh[]> meshes = new();
-
         private static readonly Vector3[] cubeVertices = new Vector3[]
         {
             new( 1,  1, -1), new( 1, -1, -1),
@@ -27,16 +25,15 @@ public static class PhysicsWarmup
             6, 7, 3, 4, 5, 7, 3, 7, 5, 2, 3, 1, 0, 1, 5
         };
 
-        public bool HasShape(uint meshId) => true;
+        private ConvexShape[] shape = [new ConvexShape(new ConvexMesh(cubeVertices, cubeIndices))];
 
-        public ConvexMesh[] GetMesh(ConvexMeshId meshId) =>
-            [new () { Indices = cubeIndices, Vertices = cubeVertices }];
+        public ConvexShape[] GetShape(ConvexShapeId shapeId) => shape;
     }
 
     private static void RunWarmup()
     {
         var sw = Stopwatch.StartNew();
-        using var collection = new ConvexMeshCollection(_ => new WarmupMeshes());
+        using var collection = new ConvexShapeCollection(_ => new WarmupMeshes());
         using var world = new PhysicsWorld(collection);
         world.OnCollision += WorldOnOnCollision;
         var fileId = collection.UseFile("file");

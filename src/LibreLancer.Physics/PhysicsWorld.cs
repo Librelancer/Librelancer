@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Http;
 using System.Numerics;
 using BepuPhysics;
@@ -12,6 +13,7 @@ using BepuPhysics.Collidables;
 using BepuPhysics.CollisionDetection;
 using BepuPhysics.Trees;
 using BepuUtilities;
+using BepuUtilities.Collections;
 using BepuUtilities.Memory;
 using LibreLancer.Physics.ContactEvents;
 
@@ -24,13 +26,13 @@ namespace LibreLancer.Physics
     {
         public IReadOnlyList<PhysicsObject> Objects => objects;
 
-        public ConvexMeshCollection ConvexCollection { get; private set; }
+        public ConvexShapeCollection ConvexCollection { get; private set; }
 
         // mapping bepu bodies to librelancer objects
         private readonly Dictionary<int, PhysicsObject?> objectsById = new();
         private readonly IdPool ids = new(100, true);
         private readonly CollidableProperty<int> bepuToLancer;
-        internal readonly CollidableProperty<bool> collidableObjects;
+        internal readonly CollidableProperty<bool> CollidableObjects;
         internal readonly CollidableProperty<Vector2> dampings;
 
         // our list
@@ -51,7 +53,7 @@ namespace LibreLancer.Physics
 
         public event CollideHandler? OnCollision;
 
-        public PhysicsWorld(ConvexMeshCollection convexCollection)
+        public PhysicsWorld(ConvexShapeCollection convexCollection)
         {
             BufferPool = new BufferPool();
             ConvexCollection = convexCollection;
@@ -74,7 +76,7 @@ namespace LibreLancer.Physics
             );
 
             bepuToLancer = new CollidableProperty<int>(Simulation);
-            collidableObjects = new CollidableProperty<bool>(Simulation);
+            CollidableObjects = new CollidableProperty<bool>(Simulation);
             dampings = new CollidableProperty<Vector2>(Simulation);
             objectsById[-1] = null;
         }
@@ -140,7 +142,7 @@ namespace LibreLancer.Physics
             ids.TryAllocate(out var id);
             var obj = new StaticObject(id, Simulation.Statics.GetStaticReference(h), this, transform, col);
             bepuToLancer.Allocate(h) = id;
-            collidableObjects.Allocate(h) = true;
+            CollidableObjects.Allocate(h) = true;
             objectsById[id] = obj;
             objects.Add(obj);
             return obj;
@@ -158,7 +160,7 @@ namespace LibreLancer.Physics
             var disallow = new DisallowAwakening();
             var h = Simulation.Statics.Add(new StaticDescription(transform.ToPose(), col.Handle), ref disallow);
             bepuToLancer.Allocate(h) = -1;
-            collidableObjects.Allocate(h) = true;
+            CollidableObjects.Allocate(h) = true;
             obj.Valid = true;
             obj.Handle = h;
         }
@@ -178,9 +180,9 @@ namespace LibreLancer.Physics
         {
             public readonly List<PhysicsObject?> Result = [];
 
-            public bool AllowTest(CollidableReference collidable) => world.collidableObjects[collidable];
+            public bool AllowTest(CollidableReference collidable) => world.CollidableObjects[collidable];
 
-            public bool AllowTest(CollidableReference collidable, int child) => world.collidableObjects[collidable];
+            public bool AllowTest(CollidableReference collidable, int child) => world.CollidableObjects[collidable];
 
             public void OnHit(ref float maximumT, float t, Vector3 hitLocation, Vector3 hitNormal,
                 CollidableReference collidable)
@@ -192,6 +194,15 @@ namespace LibreLancer.Physics
             {
                 Result.Add(world.objectsById[world.bepuToLancer[collidable]]);
             }
+        }
+
+        /// <summary>
+        /// Fills Touched booleans based on if a dynamic object is touching the query spheres
+        /// </summary>
+        /// <param name="queries">A list of queries to run</param>
+        public void DynamicObjectSphereQuery(QuickList<SphereQuery> queries)
+        {
+            DynamicSpheresQuery.Run(Simulation, BufferPool, queries, this);
         }
 
         // TODO: Use a CollisionQuery instead.
@@ -220,11 +231,11 @@ namespace LibreLancer.Physics
 
             public bool AllowTest(CollidableReference collidable) =>
                 world.bepuToLancer[collidable] != selfId &&
-                world.collidableObjects[collidable];
+                world.CollidableObjects[collidable];
 
             public bool AllowTest(CollidableReference collidable, int childIndex) =>
                 world.bepuToLancer[collidable] != selfId &&
-                world.collidableObjects[collidable];
+                world.CollidableObjects[collidable];
 
             public void OnRayHit(in RayData ray, ref float maximumT, float t, Vector3 normal,
                 CollidableReference collidable,
@@ -251,7 +262,7 @@ namespace LibreLancer.Physics
             out Vector3 contactPoint, out PhysicsObject? didHit, out object? childTag)
         {
             HitHandler handler = new HitHandler(this, me);
-            Simulation.RayCast(origin, direction, maxDist, ref handler);
+            Simulation.RayCast(origin, direction, maxDist, BufferPool, ref handler);
             contactPoint = handler.ContactPoint;
             didHit = handler.Result;
             childTag = handler.ResultTag;
@@ -275,15 +286,15 @@ namespace LibreLancer.Physics
 
         private readonly Dictionary<ShapeId, (TypedIndex Shape, Vector3 Center)[]> shapes = new();
 
-        internal (TypedIndex Shape, Vector3 Center)[] GetConvexShapes(uint fileId, ConvexMeshId meshId)
+        internal (TypedIndex Shape, Vector3 Center)[] GetConvexShapes(uint fileId, ConvexShapeId shapeId)
         {
-            var id = meshId.ShapeId(fileId);
+            var id = shapeId.ShapeId(fileId);
             if (shapes.TryGetValue(id, out var sh))
             {
                 return sh;
             }
 
-            var cvx = ConvexCollection.GetShapes(fileId, meshId);
+            var cvx = ConvexCollection.GetShapes(fileId, shapeId);
             var shx = new (TypedIndex Shape, Vector3 Center)[cvx.Hulls.Length + cvx.Triangles.Length];
 
             for (var i = 0; i < cvx.Hulls.Length; i++)
@@ -338,7 +349,7 @@ namespace LibreLancer.Physics
             ids.TryAllocate(out var id);
             var obj = new DynamicObject(id, this, Simulation.Bodies.GetBodyReference(bodyHandle), col);
             bepuToLancer.Allocate(bodyHandle) = id;
-            collidableObjects.Allocate(bodyHandle) = true;
+            CollidableObjects.Allocate(bodyHandle) = true;
             dampings.Allocate(bodyHandle) = Vector2.Zero;
             objectsById[id] = obj;
             objects.Add(obj);
@@ -431,12 +442,19 @@ namespace LibreLancer.Physics
 
             disposed = true;
             bepuToLancer.Dispose();
-            collidableObjects.Dispose();
+            CollidableObjects.Dispose();
             dampings.Dispose();
             contactEvents.Dispose();
             Simulation.Dispose();
             BufferPool.Clear();
             threadDispatcher?.Dispose();
         }
+
+        #if DEBUG
+        ~PhysicsWorld()
+        {
+            Debug.Assert(disposed, "Memory leak warning! Don't let a PhysicsWorld die without disposing!");
+        }
+        #endif
     }
 }
