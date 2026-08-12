@@ -859,10 +859,7 @@ namespace LibreLancer.Server
                 else
                 {
                     var forceStrength = debrisRandom.NextFloat(10, 100);
-                    var direction = new Vector3(debrisRandom.NextFloat(0, 2 * MathF.PI),
-                        debrisRandom.NextFloat(0, 2 * MathF.PI), debrisRandom.NextFloat(0, 2 * MathF.PI));
-                    direction = Vector3.Transform(Vector3.UnitZ, Quaternion.CreateFromYawPitchRoll(direction.X, direction.Y, direction.Z));
-                    spawnForce = direction * forceStrength;
+                    spawnForce = debrisRandom.NextUnitVector() * forceStrength;
                 }
 
                 go.PhysicsComponent!.Body.Impulse(spawnForce);
