@@ -1095,7 +1095,9 @@ public partial class CGameSession
                         ArchetypeName = asteroid.Nickname
                     };
                     newObj.PhysicsComponent!.Mass = AsteroidFieldShared.DynamicAsteroidMass;
-                    newObj.AddComponent(new DynamicAsteroidComponent(newObj, objInfo.MaxVelocities.X, objInfo.MaxVelocities.Y));
+                    newObj.AddComponent(new DynamicAsteroidComponent(newObj, objInfo.MaxVelocities.X, objInfo.MaxVelocities.Y, 0, 0, null, null));
+                    if(asteroid.Explosion != null)
+                        newObj.AddComponent(new CExplosionComponent(newObj, asteroid.Explosion));
                 }
                 else
                 {

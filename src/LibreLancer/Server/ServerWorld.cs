@@ -509,7 +509,12 @@ namespace LibreLancer.Server
 
         public void ProjectileHit(GameObject obj, GameObject? child, Vector3 hitPoint, GameObject owner, MunitionEquip munition)
         {
-            if (obj.TryGetComponent<SHealthComponent>(out var health))
+            if (obj.Kind == GameObjectKind.DynamicAsteroid)
+            {
+                RemoveSpawnedObject(obj, true);
+                // Loot spawn required
+            }
+            else if (obj.TryGetComponent<SHealthComponent>(out var health))
             {
                 health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage, owner, child);
                 health.OnProjectileHit(owner);
@@ -677,6 +682,11 @@ namespace LibreLancer.Server
                 return;
             }
 
+            if (obj.TryGetComponent<DynamicAsteroidComponent>(out var dynast))
+            {
+                dynast.ParentField!.DespawnedDynamicAsteroid(dynast);
+            }
+
             obj.Unregister(GameWorld);
             GameWorld.RemoveObject(obj);
             withAnimations.Remove(obj);
@@ -832,10 +842,13 @@ namespace LibreLancer.Server
 
         public void SpawnDynamicAsteroid(
             DynamicAsteroid asteroid,
+            AsteroidFieldComponent component,
+            GameObject player,
             Transform3D transform,
             float maxLinearVelocity,
             float maxAngularVelocity,
-            Vector3? force = null
+            float despawnDistance,
+            ulong spawnGroup
         )
         {
             actions.Enqueue(() =>
@@ -846,23 +859,15 @@ namespace LibreLancer.Server
                 go.NetID = IdGenerator.Allocate();
                 go.Kind = GameObjectKind.DynamicAsteroid;
                 go.PhysicsComponent!.Mass = AsteroidFieldShared.DynamicAsteroidMass;
-                go.AddComponent(new DynamicAsteroidComponent(go, maxLinearVelocity, maxAngularVelocity));
+                go.AddComponent(new DynamicAsteroidComponent(go, maxLinearVelocity, maxAngularVelocity, despawnDistance, spawnGroup, component, player));
                 go.SetLocalTransform(transform);
                 GameWorld.AddObject(go);
                 updatingObjects.Add(go);
                 go.Register(GameWorld);
                 spawnedObjects.Add(go);
                 // Apply some kind of random movement
-                Vector3 spawnForce;
-                if (force != null)
-                    spawnForce = force.Value;
-                else
-                {
-                    var forceStrength = debrisRandom.NextFloat(10, 100);
-                    spawnForce = debrisRandom.NextUnitVector() * forceStrength;
-                }
-
-                go.PhysicsComponent!.Body.Impulse(spawnForce);
+                go.PhysicsComponent.Body.LinearVelocity = debrisRandom.NextUnitVector() * (maxLinearVelocity * 0.5f);
+                go.PhysicsComponent.Body.AngularVelocity = debrisRandom.NextUnitVector() * (maxAngularVelocity * 0.5f);
                 // Spawn on clients
                 foreach (var p in Players)
                 {
