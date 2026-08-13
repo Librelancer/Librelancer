@@ -1102,7 +1102,7 @@ namespace LibreLancer.Server
                     !obj.TryGetComponent<SHealthComponent>(out var health))
                     continue;
 
-                var damagePerSecond = System.ZoneDamageAt(obj.WorldTransform.Position);
+                var damagePerSecond = GameWorld.ZoneDamageAt(obj.WorldTransform.Position);
                 if (damagePerSecond > 0)
                     health.DamageZone(damagePerSecond * (float)delta);
             }

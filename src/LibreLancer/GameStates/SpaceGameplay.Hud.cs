@@ -646,7 +646,7 @@ partial class SpaceGameplay
         public bool RadiationWarning()
         {
             var position = g.player.WorldTransform.Position;
-            return g.sys.ZoneDamageAt(position) > 0 && !g.sys.InAtmosphere(position);
+            return g.world.ZoneDamageAt(position) > 0 && !g.world.InAtmosphere(position);
         }
 
         public float GetPlayerShield()
