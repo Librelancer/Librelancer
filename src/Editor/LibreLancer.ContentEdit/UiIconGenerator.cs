@@ -41,7 +41,7 @@ namespace LibreLancer.ContentEdit
             ddsNode.Children.Add(new LUtfNode()
             {
                 Name = "MIPS",
-                Data = TextureImport.CreateDDS(File.ReadAllBytes(filename), DDSFormat.DXT5, MipmapMethod.Lanczos4, true, true),
+                Data = TextureImport.CreateDDS(File.ReadAllBytes(filename), alpha ? DDSFormat.DXT5 : DDSFormat.DXT1, MipmapMethod.Lanczos4, true, true),
                 Parent = ddsNode,
             });
             return Generate(iconName, ddsNode, alpha);

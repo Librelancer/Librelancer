@@ -5,9 +5,5 @@ using System;
 using System.Numerics;
 namespace LibreLancer.Physics
 {
-    public class ConvexMesh
-    {
-        public required Vector3[] Vertices;
-        public required int[] Indices;
-    }
+    public record ConvexMesh(Vector3[] Vertices, int[] Indices);
 }

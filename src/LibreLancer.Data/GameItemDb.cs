@@ -509,7 +509,7 @@ public class GameItemDb
                     {
                         var good = new ResolvedGood()
                         {
-                            Nickname = g.Nickname, Equipment = equip!, Ini = g, CRC = CrcTool.FLModelCrc(g.Nickname)
+                            Nickname = g.Nickname, Equipment = equip!, Ini = g, CRC = FLHash.CreateID(g.Nickname)
                         };
 
                         equip!.Good = good;
@@ -897,7 +897,7 @@ public class GameItemDb
         var goodsTask = tasks.Begin(InitGoods, equipmentTask);
         var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask);
         var starsTask = tasks.Begin(InitStars);
-        var astsTask = tasks.Begin(InitAsteroids);
+        var astsTask = tasks.Begin(InitAsteroids, explosionTask);
         tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
         tasks.Begin(InitNews, baseTask);
         tasks.Begin(() => InitSystems(tasks),
@@ -1365,7 +1365,7 @@ public class GameItemDb
                 Nickname = inisys.Nickname,
                 Visit = (VisitFlags)inisys.Visit
             };
-            sys.CRC = CrcTool.FLModelCrc(sys.Nickname);
+            sys.CRC = FLHash.CreateID(sys.Nickname);
             sys.MsgIdPrefix = inisys.MsgIdPrefix;
             sys.BackgroundColor = inisys.Info?.SpaceColor ?? Color4.Black;
             sys.MusicSpace = inisys.Music?.Space;
@@ -2201,10 +2201,15 @@ public class GameItemDb
 
         foreach (var orig in flData.Explosions.Explosions)
         {
-            var ex = new Explosion() { Nickname = orig.Nickname };
+            var ex = new Explosion
+            {
+                Nickname = orig.Nickname,
+                Effect = Effects.Get(orig.Effect),
+                Radius = orig.Radius,
+                HullDamage = orig.HullDamage,
+                EnergyDamage = orig.EnergyDamage
+            };
             ex.CRC = CrcTool.FLModelCrc(ex.Nickname);
-            ex.Effect = Effects.Get(orig.Effect);
-
             Explosions.Add(ex);
         }
     }
@@ -2316,9 +2321,18 @@ public class GameItemDb
             var asteroid = new Asteroid
             {
                 Nickname = ast.Nickname,
-                ModelFile = ResolveDrawable(ast.MaterialLibrary ?? "", ast.DaArchetype)
+                ModelFile = ResolveDrawable(ast.MaterialLibrary ?? "", ast.DaArchetype),
+                MineExplosion = ast.IsMine ? Explosions.Get(ast.ExplosionArch) : null,
+                MineDetectRadius = ast.DetectRadius,
+                MineExplosionOffset = ast.ExplosionOffset,
+                MineRechargeTime = ast.RechargeTime,
+                PhantomPhysics = ast.PhantomPhysics
             };
-            asteroid.CRC = CrcTool.FLModelCrc(asteroid.Nickname);
+            if (ast.IsMine && asteroid.MineExplosion == null)
+            {
+                FLLog.Error("Asteroids", $"Explosion arch '{ast.ExplosionArch}' not found for mine '{ast.Nickname}'");
+            }
+            asteroid.CRC = FLHash.CreateID(asteroid.Nickname);
             Asteroids.Add(asteroid);
         }
 
@@ -2327,9 +2341,10 @@ public class GameItemDb
             var dyn = new DynamicAsteroid
             {
                 Nickname = dynast.Nickname,
-                ModelFile = ResolveDrawable(dynast.MaterialLibrary ?? "", dynast.DaArchetype)
+                ModelFile = ResolveDrawable(dynast.MaterialLibrary ?? "", dynast.DaArchetype),
+                Explosion = Explosions.Get(dynast.ExplosionArch)
             };
-            dyn.CRC = CrcTool.FLModelCrc(dyn.Nickname);
+            dyn.CRC = FLHash.CreateID(dyn.Nickname);
             DynamicAsteroids.Add(dyn);
         }
     }
@@ -2434,7 +2449,8 @@ public class GameItemDb
                 Type = arch.Type,
                 Loadout = GetLoadout(arch.LoadoutName),
                 NavmapIcon = arch.ShapeName,
-                SolarRadius = arch.SolarRadius ?? 0
+                SolarRadius = arch.SolarRadius ?? 0,
+                PhantomPhysics = arch.PhantomPhysics ?? false
             };
 
             foreach (var dockSphere in arch.DockingSpheres)

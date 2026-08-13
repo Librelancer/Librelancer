@@ -33,7 +33,7 @@ namespace LancerEdit.Utf.Popups
         public override string Title { get; set; } = "Frame Rect Editor";
         public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.AlwaysAutoResize;
         public override bool NoClose => false;
-        public override Vector2 InitSize => new Vector2(400, 300);
+        public override Vector2 InitSize => new Vector2(400, 300) * ImGuiHelper.Scale;
 
         private readonly float tableWidth = 550f;
         private readonly float tableHeight = 300f;

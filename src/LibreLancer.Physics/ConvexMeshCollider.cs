@@ -146,9 +146,9 @@ namespace LibreLancer.Physics
 
         public bool Dump = false;
 
-        public bool AddPart(uint provider, ConvexMeshId meshId, Transform3D localTransform, object? tag)
+        public bool AddPart(uint provider, ConvexShapeId shapeId, Transform3D localTransform, object? tag)
         {
-            var hulls = world.GetConvexShapes(provider, meshId);
+            var hulls = world.GetConvexShapes(provider, shapeId);
             if (hulls.Length == 0)
             {
                 return false;

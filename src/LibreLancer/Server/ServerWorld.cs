@@ -34,7 +34,6 @@ namespace LibreLancer.Server
         public NPCManager NPCs;
         public SpacePopulationManager Population;
         private Random debrisRandom = new();
-        private object _idLock = new();
 
         public NetIDGenerator IdGenerator = new();
         private UpdatePacker packer = new();
@@ -390,6 +389,13 @@ namespace LibreLancer.Server
                 info.Flags |= ObjectSpawnFlags.Loot;
                 info.Loadout.ArchetypeCrc = FLHash.CreateID(obj.ArchetypeName!);
             }
+            else if (obj.Kind == GameObjectKind.DynamicAsteroid)
+            {
+                info.Flags |= ObjectSpawnFlags.DynamicAsteroid;
+                info.Loadout.ArchetypeCrc = FLHash.CreateID(obj.ArchetypeName!);
+                var vel = obj.GetComponent<DynamicAsteroidComponent>()!;
+                info.MaxVelocities = new(vel.MaxVelocity, vel.MaxAngularVelocity);
+            }
             else
             {
                 // Shouldn't occur
@@ -503,7 +509,12 @@ namespace LibreLancer.Server
 
         public void ProjectileHit(GameObject obj, GameObject? child, Vector3 hitPoint, GameObject owner, MunitionEquip munition)
         {
-            if (obj.TryGetComponent<SHealthComponent>(out var health))
+            if (obj.Kind == GameObjectKind.DynamicAsteroid)
+            {
+                RemoveSpawnedObject(obj, true);
+                // Loot spawn required
+            }
+            else if (obj.TryGetComponent<SHealthComponent>(out var health))
             {
                 health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage, owner, child);
                 health.OnProjectileHit(owner);
@@ -671,6 +682,11 @@ namespace LibreLancer.Server
                 return;
             }
 
+            if (obj.TryGetComponent<DynamicAsteroidComponent>(out var dynast))
+            {
+                dynast.ParentField!.DespawnedDynamicAsteroid(dynast);
+            }
+
             obj.Unregister(GameWorld);
             GameWorld.RemoveObject(obj);
             withAnimations.Remove(obj);
@@ -817,6 +833,42 @@ namespace LibreLancer.Server
                 go.AddComponent(lt);
 
                 // Spawn debris
+                foreach (var p in Players)
+                {
+                    p.Key.RpcClient.SpawnObjects([BuildSpawnInfo(go, p.Value)]);
+                }
+            });
+        }
+
+        public void SpawnDynamicAsteroid(
+            DynamicAsteroid asteroid,
+            AsteroidFieldComponent component,
+            GameObject player,
+            Transform3D transform,
+            float maxLinearVelocity,
+            float maxAngularVelocity,
+            float despawnDistance,
+            ulong spawnGroup
+        )
+        {
+            actions.Enqueue(() =>
+            {
+                var mdl = asteroid.ModelFile!.LoadFile(Server.Resources)!;
+                var go = new GameObject(mdl, Server.Resources, false);
+                go.ArchetypeName = asteroid.Nickname;
+                go.NetID = IdGenerator.Allocate();
+                go.Kind = GameObjectKind.DynamicAsteroid;
+                go.PhysicsComponent!.Mass = AsteroidFieldShared.DynamicAsteroidMass;
+                go.AddComponent(new DynamicAsteroidComponent(go, maxLinearVelocity, maxAngularVelocity, despawnDistance, spawnGroup, component, player));
+                go.SetLocalTransform(transform);
+                GameWorld.AddObject(go);
+                updatingObjects.Add(go);
+                go.Register(GameWorld);
+                spawnedObjects.Add(go);
+                // Apply some kind of random movement
+                go.PhysicsComponent.Body.LinearVelocity = debrisRandom.NextUnitVector() * (maxLinearVelocity * 0.5f);
+                go.PhysicsComponent.Body.AngularVelocity = debrisRandom.NextUnitVector() * (maxAngularVelocity * 0.5f);
+                // Spawn on clients
                 foreach (var p in Players)
                 {
                     p.Key.RpcClient.SpawnObjects([BuildSpawnInfo(go, p.Value)]);

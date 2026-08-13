@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace LibreLancer.Physics;
 
 [StructLayout(LayoutKind.Explicit)]
-public struct ConvexMeshId(uint id, uint subId)
+public struct ConvexShapeId(uint id, uint subId)
 {
     [FieldOffset(0)]
     internal ulong Bits;
@@ -14,15 +14,15 @@ public struct ConvexMeshId(uint id, uint subId)
     public uint SubId = subId;
 
     public override bool Equals(object? obj) =>
-        obj is ConvexMeshId other && Bits == other.Bits;
+        obj is ConvexShapeId other && Bits == other.Bits;
 
-    public readonly bool Equals(ConvexMeshId other) =>
+    public readonly bool Equals(ConvexShapeId other) =>
         Bits == other.Bits;
 
-    public static bool operator ==(ConvexMeshId left, ConvexMeshId right) =>
+    public static bool operator ==(ConvexShapeId left, ConvexShapeId right) =>
         left.Bits == right.Bits;
 
-    public static bool operator !=(ConvexMeshId left, ConvexMeshId right) =>
+    public static bool operator !=(ConvexShapeId left, ConvexShapeId right) =>
         left.Bits != right.Bits;
 
     public override readonly int GetHashCode() =>

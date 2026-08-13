@@ -294,6 +294,7 @@ internal class GLVertexBuffer : IVertexBuffer
         if (isDisposed) return;
         isDisposed = true;
         buffer?.Dispose();
+        glElements?.VertexBuffers.Remove(this);
         GL.DeleteBuffer(VBO);
         GL.DeleteVertexArray (VAO);
         GLBind.VertexArray(0);
