@@ -536,7 +536,11 @@
     </ButtonStyle.Selected>
   </ButtonStyle>
 
-  <NavmapStyle UserWaypointSize="28" UserWaypointDigitWidth="6" UserWaypointDigitHeight="10" UserWaypointRouteThickness="2" UserWaypointColor="#ff33ff" UserWaypointDigitColor="yellow">
+  <NavmapStyle UserWaypointSize="28" UserWaypointDigitWidth="6" UserWaypointDigitHeight="10"
+               UserWaypointRouteThickness="2" UserWaypointColor="#ff33ff" UserWaypointDigitColor="yellow"
+               SystemPlayerShipSize="14" SectorPlayerShipSize="14"
+               ZoneFilterButtonSize="13" ZoneFilterButtonSpacing="7"
+               ZoneFilterButtonMarginX="12" ZoneFilterButtonMarginY="8">
     <NavmapStyle.SelectorButton Width="14" Height="14">
       <ButtonStyle.Normal>
         <ButtonAppearance.Background>
@@ -612,6 +616,57 @@
         </ButtonAppearance.Background>
       </ButtonStyle.Pressed>
     </NavmapStyle.BestPathButton>
+    <NavmapStyle.NeutralZoneFilterButton Width="13" Height="13" MouseDownSound="ui_item_select">
+      <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+          <DisplayModel model="nav_allzonefilter" Tint="text"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Normal>
+      <ButtonStyle.Hover>
+        <ButtonAppearance.Background>
+          <DisplayModel model="nav_allzonefilter" Tint="text_hover"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Hover>
+      <ButtonStyle.Selected>
+        <ButtonAppearance.Background>
+          <DisplayModel model="nav_allzonefilter" Tint="yellow"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Selected>
+    </NavmapStyle.NeutralZoneFilterButton>
+    <NavmapStyle.HostileZoneFilterButton Width="13" Height="13" MouseDownSound="ui_item_select">
+      <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+          <DisplayModel model="nav_hostilezonefilter" Tint="text"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Normal>
+      <ButtonStyle.Hover>
+        <ButtonAppearance.Background>
+          <DisplayModel model="nav_hostilezonefilter" Tint="text_hover"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Hover>
+      <ButtonStyle.Selected>
+        <ButtonAppearance.Background>
+          <DisplayModel model="nav_hostilezonefilter" Tint="yellow"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Selected>
+    </NavmapStyle.HostileZoneFilterButton>
+    <NavmapStyle.FriendlyZoneFilterButton Width="13" Height="13" MouseDownSound="ui_item_select">
+      <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+          <DisplayModel model="nav_friendlyzonefilter" Tint="text"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Normal>
+      <ButtonStyle.Hover>
+        <ButtonAppearance.Background>
+          <DisplayModel model="nav_friendlyzonefilter" Tint="text_hover"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Hover>
+      <ButtonStyle.Selected>
+        <ButtonAppearance.Background>
+          <DisplayModel model="nav_friendlyzonefilter" Tint="yellow"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Selected>
+    </NavmapStyle.FriendlyZoneFilterButton>
   </NavmapStyle>
   <!-- Menu -->
   <ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
@@ -746,8 +801,8 @@
     </ButtonStyle.Disabled>
   </ButtonStyle>
   <!-- ScrollbarStyle -->
-  <ScrollbarStyle Width="16" TrackMarginY="4" ButtonMarginX="2">
-    <ScrollbarStyle.UpButton Height="12">
+  <ScrollbarStyle Width="10" TrackMarginY="4" ButtonMarginX="1">
+    <ScrollbarStyle.UpButton Height="8">
       <ButtonStyle.Normal>
         <ButtonAppearance.Background>
           <DisplayImage image="sliderarrow_up" tint="text"/>
@@ -759,7 +814,7 @@
         </ButtonAppearance.Background>
       </ButtonStyle.Hover>
     </ScrollbarStyle.UpButton>
-    <ScrollbarStyle.DownButton Height="12">
+    <ScrollbarStyle.DownButton Height="8">
       <ButtonStyle.Normal>
         <ButtonAppearance.Background>
           <DisplayImage image="sliderarrow_down" tint="text"/>
@@ -810,6 +865,33 @@
         </ButtonAppearance.Background>
       </ButtonStyle.Hover>
     </ScrollbarStyle.Thumb>
+  </ScrollbarStyle>
+  
+  <ScrollbarStyle Name="scrollbar_large" Width="16" TrackMarginY="4" ButtonMarginX="2">
+    <ScrollbarStyle.UpButton Height="12">
+      <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+          <DisplayImage image="sliderarrow_up" tint="text"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Normal>
+      <ButtonStyle.Hover>
+        <ButtonAppearance.Background>
+          <DisplayImage image="sliderarrow_up" tint="slow_blue_yellow"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Hover>
+    </ScrollbarStyle.UpButton>
+    <ScrollbarStyle.DownButton Height="12">
+      <ButtonStyle.Normal>
+        <ButtonAppearance.Background>
+          <DisplayImage image="sliderarrow_down" tint="text"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Normal>
+      <ButtonStyle.Hover>
+        <ButtonAppearance.Background>
+          <DisplayImage image="sliderarrow_down" tint="slow_blue_yellow"/>
+        </ButtonAppearance.Background>
+      </ButtonStyle.Hover>
+    </ScrollbarStyle.DownButton>
   </ScrollbarStyle>
   <!-- HSliderStyle -->
   <HSliderStyle Height="10" TrackMarginX="4" ButtonMarginY="1">

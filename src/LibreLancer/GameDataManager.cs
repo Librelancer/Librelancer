@@ -159,12 +159,12 @@ public class GameDataManager
 
         if (mdl.Source == RigidModelSource.SinglePart)
         {
-            res.ConvexCollection.CreateShape(cvx, new ConvexMeshId(0, 0));
+            res.ConvexCollection.CreateShape(cvx, new ConvexShapeId(0, 0));
         }
         else
         {
             foreach (var p in mdl.AllParts)
-                res.ConvexCollection.CreateShape(cvx, new ConvexMeshId(0, CrcTool.FLModelCrc(p.Name)));
+                res.ConvexCollection.CreateShape(cvx, new ConvexShapeId(0, CrcTool.FLModelCrc(p.Name)));
         }
     }
 

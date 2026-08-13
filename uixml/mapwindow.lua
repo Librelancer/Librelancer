@@ -47,12 +47,15 @@ class mapwindow : mapwindow_Designer with ChildWindow
         this.sidePanelTargetAmount = 0;
         this.sidePanelTime = 0;
         this.sidePanelDuration = 0.32;
+        this.knownBases = nil;
         this.leftPanelOpenX = this.Elements.leftpanel.X;
         this.rightPanelOpenX = this.Elements.rightpanel.X;
         this.leftPanelClosedX = this.leftPanelOpenX + this.Elements.leftpanel.Width;
         this.rightPanelClosedX = this.rightPanelOpenX - this.Elements.rightpanel.Width;
         this.Elements.leftpanel.X = this.leftPanelClosedX;
         this.Elements.rightpanel.X = this.rightPanelClosedX;
+        this.LabelsVisible = true;
+        this.SelectedOverlay = "physical";
         this.OnChildOpen = () => {
             this.ResetNavmap();
             this.CloseWaypointPanelsImmediate();
@@ -65,6 +68,31 @@ class mapwindow : mapwindow_Designer with ChildWindow
         this.Elements.exit.OnClick(() => this.Close());
         this.Elements.universebutton.OnClick(() => this.Elements.navmap.ShowSectorView());
         this.Elements.playersystem.OnClick(() => this.Elements.navmap.ShowPlayerSystem());
+        this.Elements.labels.OnClick(() => {
+            this.LabelsVisible = !this.LabelsVisible;
+            this.Elements.navmap.SetLabelsVisible(this.LabelsVisible);
+            this.UpdateTopButtons();
+        });
+        this.Elements.physical.OnClick(() => this.SelectOverlay("physical"));
+        this.Elements.political.OnClick(() => this.SelectOverlay("political"));
+        this.Elements.patrol.OnClick(() => this.SelectOverlay("patrol"));
+        this.Elements.miningfilter.OnClick(() => this.SelectOverlay("mining"));
+        this.Elements.legendtoggle.OnClick(() => this.SelectOverlay("legend"));
+        this.Elements.knownbases.OnClick(() => this.SelectOverlay("bases"));
+        this.Elements.knownbases_table.OnHeaderClick((column) => {
+            if (this.knownBases == nil) return;
+            this.knownBases.Sort(column);
+            this.Elements.knownbases_table.ResetScroll();
+            this.Elements.knownbases_table.ActiveSortColumn = column;
+        });
+        this.Elements.knownbases_table.OnItemSelected(() => {
+            if (this.knownBases == nil || !this.knownBases.ValidSelection()) return;
+            this.Elements.navmap.FocusSystemObject(
+                this.knownBases.SelectedSystemHash,
+                this.knownBases.SelectedObjectHash);
+            PlaySound("ui_item_select");
+            this.SelectOverlay("physical");
+        });
         this.Elements.clear_waypoints.OnClick(() => {
             Game.ClearUserWaypoints();
             this.waypointPanelCount = -1;
@@ -75,6 +103,9 @@ class mapwindow : mapwindow_Designer with ChildWindow
     {
         this.ResetNavmap();
         Game.PopulateNavmap(this.Elements.navmap);
+        this.knownBases = Game.GetKnownNavmapBases();
+        this.Elements.knownbases_table.SetData(this.knownBases);
+        this.Elements.knownbases_table.ActiveSortColumn = "name";
         this.UpdateWaypointPanels();
     }
     Closing()
@@ -85,11 +116,36 @@ class mapwindow : mapwindow_Designer with ChildWindow
     ResetNavmap()
     {
         this.Elements.navmap.ResetView();
+        this.LabelsVisible = true;
+        this.SelectedOverlay = "physical";
+        this.Elements.navmap.SetLabelsVisible(true);
+        this.Elements.navmap.SetOverlayMode("physical");
         this.UpdateTopButtons();
+    }
+    SelectOverlay(mode)
+    {
+        if (mode == "bases") {
+            this.SelectedOverlay = "bases";
+        } elseif (mode == "legend") {
+            this.SelectedOverlay = "legend";
+        } else {
+            this.Elements.navmap.SetOverlayMode(mode);
+            this.SelectedOverlay = this.Elements.navmap.OverlayModeName;
+        }
+        this.UpdateTopButtons();
+        this.UpdateWaypointPanels();
     }
     UpdateTopButtons()
     {
         local sector = this.Elements.navmap.SectorViewActive;
+        local showKnownBases = !sector && this.SelectedOverlay == "bases";
+        local showLegend = !sector && this.SelectedOverlay == "legend";
+        this.Elements.navmap.MapVisible = !showKnownBases && !showLegend;
+        this.Elements.legend.Visible = showLegend;
+        this.Elements.knownbases_title.Visible = showKnownBases;
+        this.Elements.knownbases_table.Visible = showKnownBases;
+        this.Elements.knownbases_empty.Visible = showKnownBases &&
+            (this.knownBases == nil || this.knownBases.Count == 0);
         this.Elements.universebutton.Visible = !sector;
         this.Elements.labels.Visible = !sector;
         this.Elements.physical.Visible = !sector;
@@ -99,6 +155,13 @@ class mapwindow : mapwindow_Designer with ChildWindow
         this.Elements.legendtoggle.Visible = !sector;
         this.Elements.knownbases.Visible = !sector;
         this.Elements.playersystem.Visible = sector;
+        this.Elements.labels.Selected = this.LabelsVisible;
+        this.Elements.physical.Selected = this.SelectedOverlay == "physical";
+        this.Elements.political.Selected = this.SelectedOverlay == "political";
+        this.Elements.patrol.Selected = this.SelectedOverlay == "patrol";
+        this.Elements.miningfilter.Selected = this.SelectedOverlay == "mining";
+        this.Elements.legendtoggle.Selected = this.SelectedOverlay == "legend";
+        this.Elements.knownbases.Selected = this.SelectedOverlay == "bases";
     }
     UpdateWaypointPanels()
     {

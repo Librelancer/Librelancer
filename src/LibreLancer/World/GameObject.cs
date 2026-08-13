@@ -33,7 +33,8 @@ namespace LibreLancer.World
         Missile,
         Waypoint,
         Debris,
-        Loot
+        Loot,
+        DynamicAsteroid
     }
 
     public class TradelaneName : ObjectName
@@ -393,6 +394,11 @@ namespace LibreLancer.World
             else
             {
                 InitWithModel(arch.ModelFile?.LoadFile(res, flags), arch.SeparableParts, res, draw, phys);
+            }
+
+            if (arch.PhantomPhysics && PhysicsComponent != null)
+            {
+                PhysicsComponent.Collidable = false;
             }
         }
 

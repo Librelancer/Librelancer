@@ -122,7 +122,7 @@ namespace LibreLancer.Net.Protocol
     }
 
     [Flags]
-    public enum ObjectSpawnFlags : byte
+    public enum ObjectSpawnFlags : ushort
     {
         Debris = (1 << 0),
         Solar = (1 << 1),
@@ -131,8 +131,9 @@ namespace LibreLancer.Net.Protocol
         Neutral = (1 << 4),
         Important = (1 << 5),
         Loot = (1 << 6),
-        Hidden = (1 << 7),
-        Mask = 0xFF
+        DynamicAsteroid = (1 << 7),
+        Hidden = (1 << 8),
+        Mask = 0x1FF
     }
 
     public struct ObjectSpawnInfo
@@ -148,15 +149,16 @@ namespace LibreLancer.Net.Protocol
             Neutral = (1 << 4),
             Important = (1 << 5),
             Loot = (1 << 6),
-            Hidden = (1 << 7),
+            DynamicAsteroid = (1 << 7),
+            Hidden = (1 << 8),
             // internal field != default
-            Name = (1 << 8),
-            Affiliation = (1 << 9),
-            Comm = (1 << 10),
-            Dock = (1 << 11),
-            Destroyed = (1 << 12),
-            Effects = (1 << 13),
-            NicknameNotNull = (1 << 14),
+            Name = (1 << 9),
+            Affiliation = (1 << 10),
+            Comm = (1 << 11),
+            Dock = (1 << 12),
+            Destroyed = (1 << 13),
+            Effects = (1 << 14),
+            NicknameNotNull = (1 << 15),
         }
         public ObjNetId ID;
         public string? Nickname;
@@ -176,6 +178,7 @@ namespace LibreLancer.Net.Protocol
         public DockAction? Dock;
         public uint[] DestroyedParts;
         public SpawnedEffect[] Effects;
+        public Vector2 MaxVelocities;
 
         public static ObjectSpawnInfo Read(PacketReader message)
         {
@@ -212,6 +215,10 @@ namespace LibreLancer.Net.Protocol
             if (header.HasFlag(SpawnHeader.Debris))
             {
                 result.DebrisPart = message.GetUInt();
+            }
+            if (header.HasFlag(SpawnHeader.DynamicAsteroid))
+            {
+                result.MaxVelocities = new(message.GetFloat(), message.GetFloat());
             }
             result.Loadout = NetLoadout.Read(message);
             if (header.HasFlag(SpawnHeader.Dock))
@@ -313,6 +320,11 @@ namespace LibreLancer.Net.Protocol
             if (header.HasFlag(SpawnHeader.Debris)) // Set from source flags
             {
                 message.Put(DebrisPart);
+            }
+            if (header.HasFlag(SpawnHeader.DynamicAsteroid))
+            {
+                message.Put(MaxVelocities.X);
+                message.Put(MaxVelocities.Y);
             }
             Loadout.Put(message);
             if (Dock != null)

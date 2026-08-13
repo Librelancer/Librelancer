@@ -4,6 +4,8 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData;
 using LibreLancer.Graphics;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
@@ -606,15 +608,24 @@ partial class SpaceGameplay
 
         public void PopulateNavmap(Navmap nav)
         {
-            nav.PopulateIcons(g.ui, g.sys);
             nav.SetUniverse(g.Game.GameData.Items);
             nav.SetVisitFunction(g.session.IsVisited);
+            nav.SetFactionRelationFunction(factionName =>
+            {
+                var faction = g.Game.GameData.Items.Factions.Get(factionName);
+                return g.session.PlayerReputations.GetReputation(faction);
+            });
+            nav.PopulateIcons(g.ui, g.sys);
             nav.SetAddWaypointFunction(g.CreateUserWaypoint);
             nav.SetBestPathFunction(g.ComputeBestPathToSelection);
             nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);
+            nav.SetPlayerOrientationProvider(() => g.player.WorldTransform.Orientation);
             nav.SetPlayerSystemProvider(() => g.sys.CRC);
             nav.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
         }
+
+        public KnownNavmapBaseList GetKnownNavmapBases() =>
+            KnownNavmapBaseListBuilder.Build(g.Game.GameData, g.session);
 
         public int UserWaypointCount() => g.session.UserWaypointCount;
 

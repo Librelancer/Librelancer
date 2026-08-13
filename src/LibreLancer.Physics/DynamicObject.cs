@@ -7,18 +7,31 @@ namespace LibreLancer.Physics;
 internal class DynamicObject : PhysicsObject
 {
     internal BodyReference BepuObject;
+    internal BodyReference Kinematic;
     private readonly PhysicsWorld world;
 
-    internal DynamicObject(int id, PhysicsWorld world, BodyReference bepuObject, Collider col) : base(id, col)
+    internal CollisionKind Kind;
+
+    internal DynamicObject(int id, PhysicsWorld world, BodyReference bepuObject,
+        BodyReference kinematic,
+        bool isDynAsteroid,
+        Collider col) : base(id, col)
     {
         BepuObject = bepuObject;
+        Kinematic = kinematic;
+        Kind = isDynAsteroid ? CollisionKind.DynAsteroid : CollisionKind.DynamicBody;
         this.world = world;
     }
 
     public override bool Collidable
     {
-        get => world.collidableObjects[BepuObject.Handle];
-        set => world.collidableObjects[BepuObject.Handle] = value;
+        get => world.CollidableObjects[BepuObject.Handle] <= CollisionKind.DynAsteroid;
+        set
+        {
+            world.CollidableObjects[BepuObject.Handle] = value ? Kind : CollisionKind.NoCollision;
+            if(Kind == CollisionKind.DynamicBody)
+                world.CollidableObjects[Kinematic.Handle] = value ? CollisionKind.Kinematic : CollisionKind.NoCollision;
+        }
     }
 
     public override bool Static => false;
@@ -27,13 +40,23 @@ internal class DynamicObject : PhysicsObject
     public override Vector3 Position
     {
         get => BepuObject.Pose.Position;
-        protected set => BepuObject.Pose.Position = value;
+        protected set
+        {
+            BepuObject.Pose.Position = value;
+            if(Kind == CollisionKind.DynamicBody)
+                Kinematic.Pose.Position = value;
+        }
     }
 
     public override Quaternion Orientation
     {
         get => BepuObject.Pose.Orientation;
-        protected set => BepuObject.Pose.Orientation = value;
+        protected set
+        {
+            BepuObject.Pose.Orientation = value;
+            if(Kind == CollisionKind.DynamicBody)
+                Kinematic.Pose.Orientation = value;
+        }
     }
 
     public override void SetTransform(Transform3D transform)
@@ -44,7 +67,7 @@ internal class DynamicObject : PhysicsObject
 
     public override void SetOrientation(Quaternion orientation)
     {
-        BepuObject.Pose.Orientation = orientation;
+        Orientation = orientation;
     }
 
     public override Vector3 AngularVelocity
@@ -137,6 +160,12 @@ internal class DynamicObject : PhysicsObject
 
     internal override void UpdateProperties()
     {
+        if (Kind == CollisionKind.DynamicBody)
+        {
+            Kinematic.Pose = BepuObject.Pose;
+            Kinematic.Velocity = BepuObject.Velocity;
+            Kinematic.Awake = BepuObject.Awake;
+        }
     }
 
     public override void Dispose()

@@ -39,7 +39,7 @@ public class MockDataTest
     {
         // Set up backing
         // Throw error on any .sur or file access
-        var convex = new ConvexMeshCollection(x => throw new InvalidOperationException("Tried to open sur"));
+        var convex = new ConvexShapeCollection(x => throw new InvalidOperationException("Tried to open sur"));
         var fs = new FileSystem(new EmptyFS());
         var gdm = new GameDataManager(new GameItemDb(fs), new ServerResourceManager(convex, fs));
         // Construct game data without calling LoadData()
