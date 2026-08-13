@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data;
+using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Ships;
+using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 using LibreLancer.World.Components;
 using DockSphereType = LibreLancer.Data.Schema.Solar.DockSphereType;
@@ -75,11 +77,28 @@ namespace LibreLancer.Server.Components
                 }
             }
         }
+
+        public void KeepOpen()
+        {
+            if (Open)
+                CloseTimer = OPEN_DURATION;
+        }
+
+        public void TriggerClose(GameObject parent, GameWorld world)
+        {
+            if (!Open)
+                return;
+            Open = false;
+            OpenAnimationStarted = false;
+            CloseTimer = 0;
+            Animate(true, parent, world);
+        }
     }
 
     public class SDockableComponent : GameComponent
     {
         private const double NPC_MOOR_TIME = 60.0;
+        internal const float JumpAnimationApproachDistance = 500f;
 
         public DockAction Action;
 
@@ -96,6 +115,17 @@ namespace LibreLancer.Server.Components
         private bool HasDockAnimation(int i) =>
             Parent.GetComponent<AnimationComponent>()?.HasAnimation(DockPoints[i].DockSphere.Script) == true;
 
+        internal static bool IsWithinAnimationTrigger(
+            DockKinds kind,
+            float distance,
+            float shipRadius)
+        {
+            if (kind == DockKinds.Jump)
+                return distance <= JumpAnimationApproachDistance;
+            var animationRadius = kind == DockKinds.Tradelane ? 300f : 100f;
+            return distance <= animationRadius + shipRadius;
+        }
+
         private void TryTriggerAnimation(int i, GameObject obj, GameWorld world)
         {
             if (i < 0 || i >= DockPoints.Length)
@@ -103,14 +133,11 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            float animRadius = 100;
-            if (Action.Kind == DockKinds.Tradelane)
-            {
-                animRadius = 300;
-            }
-
             var rad = obj.PhysicsComponent?.Body.Collider.Radius ?? 15;
             var pos = obj.WorldTransform.Position;
+            // The first docking hardpoint is HpDockPointA02 on vanilla gates.
+            // Start opening while the ship is approaching it instead of waiting
+            // until the ship is effectively on top of the hardpoint.
             var hp = hardpoints.GetDockHardpoints(Parent, i, Vector3.Zero, false).FirstOrDefault();
             if (hp == null)
             {
@@ -124,9 +151,11 @@ namespace LibreLancer.Server.Components
                                  DockPoints[i].Open &&
                                  !DockPoints[i].OpenAnimationStarted;
             if ((!DockPoints[i].Open || forceAnimation) &&
-                dist < animRadius + rad)
+                IsWithinAnimationTrigger(Action.Kind, dist, rad))
             {
                 TriggerAnimation(i, world, forceAnimation);
+                if (Action.Kind == DockKinds.Jump)
+                    world.Server?.SetJumpGateDocking(Parent, true);
             }
         }
 
@@ -458,7 +487,7 @@ namespace LibreLancer.Server.Components
             }
             else if (ship.TryGetComponent<SPlayerComponent>(out var player))
             {
-                player.Player.StartTradelane();
+                player.Player.StartTradelane(Parent);
             }
 
             movement.LaneEntered();
@@ -486,6 +515,30 @@ namespace LibreLancer.Server.Components
             var tr2 = (hps[^2].Transform * Parent.WorldTransform);
             spawnPoint = new Transform3D(tr.Position, QuaternionEx.LookAt(tr.Position, tr2.Position));
             return true;
+        }
+
+        internal void CloseAfterJump(GameWorld world)
+        {
+            foreach (var point in DockPoints)
+                point.TriggerClose(Parent, world);
+        }
+
+        internal Vector3[] GetJumpExitPath(int index, uint seed)
+        {
+            var hardpointPath = index < 0 || index >= DockPoints.Length
+                ? []
+                : hardpoints.GetDockHardpoints(
+                        Parent,
+                        index,
+                        Vector3.Zero,
+                        true)
+                    .Select(x => (x.Transform * Parent.WorldTransform).Position)
+                    .ToArray();
+            return JumpTunnelMotion.BuildJumpExitPath(
+                Parent.WorldTransform.Position,
+                Parent.WorldTransform.Orientation,
+                hardpointPath,
+                seed);
         }
 
         private readonly List<(GameObject Ship, int Index)> undockers = [];
@@ -731,7 +784,10 @@ namespace LibreLancer.Server.Components
                 {
                     if (dock.Ship.TryGetComponent<SPlayerComponent>(out var player))
                     {
-                        player.Player.JumpTo(Action.Target!, Action.Exit!, world.Server!.GatherJumpers());
+                        player.Player.BeginJump(
+                            Parent,
+                            Action,
+                            world.Server!.GatherJumpers());
                     }
                     else if (dock.Ship.TryGetComponent<SNPCComponent>(out var npc))
                     {
@@ -754,10 +810,25 @@ namespace LibreLancer.Server.Components
                 activeDockings.RemoveAt(i);
             }
 
+            if (Action.Kind == DockKinds.Jump &&
+                world.Server?.IsJumpGateOpen(Parent) == true)
+            {
+                foreach (var dp in DockPoints)
+                    dp.KeepOpen();
+            }
+
             foreach (var dp in DockPoints)
                 dp.Update(Parent, world, (float) time);
 
             ProcessDockQueue(world);
+
+            if (Action.Kind == DockKinds.Jump)
+            {
+                var hasDockers = activeDockings.Any(
+                    x => x.Ship.Flags.HasFlag(GameObjectFlags.Exists));
+                var doorsOpen = DockPoints.Any(x => x.Open);
+                world.Server?.SetJumpGateDocking(Parent, hasDockers && doorsOpen);
+            }
 
             if (inactiveTicksLeft > 0 && !leftThisTick)
             {

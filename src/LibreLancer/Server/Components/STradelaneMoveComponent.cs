@@ -80,10 +80,20 @@ namespace LibreLancer.Server.Components
 
         private float totalTime = 0;
 
+        private GameObject? GetNextRing(GameWorld world, GameObject ring)
+        {
+            var dock = ring.GetComponent<SDockableComponent>();
+            if (dock == null)
+                return null;
+            return world.GetObject(
+                lane == "HpRightLane"
+                    ? dock.Action.Target
+                    : dock.Action.TargetLeft);
+        }
+
         public override void Update(double time, GameWorld world)
         {
-            var cmp = currenttradelane.GetComponent<SDockableComponent>()!;
-            var tradelaneComponent = world.GetObject(lane == "HpRightLane" ? cmp.Action.Target : cmp.Action.TargetLeft);
+            var tradelaneComponent = GetNextRing(world, currenttradelane);
 
             if (tradelaneComponent is null)
             {
@@ -120,6 +130,12 @@ namespace LibreLancer.Server.Components
             else if (distanceToTradelane < 200)
             {
                 currenttradelane = tradelaneComponent;
+                // The entry ring is handled by StartTradelane. Do not play the
+                // passage cue on the final ring either; only intermediate
+                // rings receive TradelaneRing.
+                if (GetNextRing(world, currenttradelane) != null &&
+                    Parent.TryGetComponent<SPlayerComponent>(out var player))
+                    player.Player.TradelaneRing(currenttradelane);
                 if (!LaneEntered())
                 {
                     ExitTradelane();
@@ -185,14 +201,17 @@ namespace LibreLancer.Server.Components
 
         private void TradeLaneDisruption()
         {
-            ExitTradelane();
+            // The disrupted RPC selects tl_ship_disrupt on the client. Do not
+            // send a normal EndTradelane first or it will incorrectly play the
+            // successful exit splash.
+            ExitTradelane(false);
             if (Parent!.TryGetComponent<SPlayerComponent>(out var pc))
             {
                 pc.Player.TradelaneDisrupted();
             }
         }
 
-        private void ExitTradelane()
+        private void ExitTradelane(bool notifyPlayer = true)
         {
             if (Parent!.TryGetComponent<ShipPhysicsComponent>(out var ctrl))
             {
@@ -200,7 +219,8 @@ namespace LibreLancer.Server.Components
                 ctrl.Active = true;
             }
 
-            if (Parent.TryGetComponent<SPlayerComponent>(out var player))
+            if (notifyPlayer &&
+                Parent.TryGetComponent<SPlayerComponent>(out var player))
             {
                 player.Player.EndTradelane();
             }

@@ -20,6 +20,8 @@ public interface IServerPlayer
     void RTCMissionAccepted();
     void RTCMissionRejected();
     void Respawn();
+    void JumpTunnelReady();
+    void JumpInComplete();
     [Channel(1)]
     void ChatMessage(ChatCategory category, BinaryChatMessage message);
 

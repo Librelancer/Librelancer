@@ -296,7 +296,13 @@ namespace LibreLancer.World.Components
             }
 
             var isTradelane = dock.Action.Kind == DockKinds.Tradelane;
-            var radius = isTradelane || lastTargetHp == 2 ? dock.GetTriggerRadius(dockIndex) : 5;
+            var isJump = dock.Action.Kind == DockKinds.Jump;
+            // Jump approaches are a continuous fly-through. A slightly wider
+            // intermediate tolerance keeps a full-speed ship from stepping
+            // past a hardpoint between fixed updates.
+            var radius = isTradelane || lastTargetHp == 2
+                ? dock.GetTriggerRadius(dockIndex)
+                : isJump ? 15 : 5;
             var targetPoint = (hp.Transform * TargetObject!.WorldTransform).Position;
             var isDockingRing = IsDockingRingIndex(dock, dockIndex);
 
@@ -310,8 +316,21 @@ namespace LibreLancer.World.Components
                 return false;
             }
 
-            var maxSpeed = lastTargetHp > 0 || d2 < 80 ? 0.3f : 1f;
-            if (!MoveToPoint(time, targetPoint, radius, 0, maxSpeed, true, control, input, world, false))
+            // Gates and holes must retain full throttle through every docking
+            // hardpoint. Other docks keep their existing low-speed final
+            // approach and stopping behavior.
+            var maxSpeed = isJump ? 1f : lastTargetHp > 0 || d2 < 80 ? 0.3f : 1f;
+            if (!MoveToPoint(
+                    time,
+                    targetPoint,
+                    radius,
+                    0,
+                    maxSpeed,
+                    shouldStop: !isJump,
+                    control,
+                    input,
+                    world,
+                    includeTargetRadius: false))
             {
                 return false; // not finished
             }

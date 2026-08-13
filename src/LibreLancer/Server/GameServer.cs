@@ -283,7 +283,7 @@ namespace LibreLancer.Server
             for (int i = 0; i < allSystems.Length; i++)
             {
                 var w = allSystems[i];
-                if (shouldSpinDown[i] && w.Value.PlayerCount <= 0)
+                if (shouldSpinDown[i] && w.Value.CanShutdown)
                 {
                     Worlds.RemoveWorld(w.Key);
                     worlds.Remove(w.Key);

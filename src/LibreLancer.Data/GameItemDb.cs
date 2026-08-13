@@ -70,6 +70,9 @@ public class GameItemDb
     public readonly GameItemCollection<DynamicAsteroid> DynamicAsteroids = [];
     public readonly GameItemCollection<FuseResources> Fuses = [];
     public GameItemCollection<ResolvedFx> Effects = [];
+    public readonly GameItemCollection<GameData.GateTunnel> GateTunnels = [];
+    public readonly GameItemCollection<GameData.JumpGateEffect> JumpGateEffects = [];
+    public GameData.JumpShipEffect ShipJumpEffect { get; private set; } = new();
     public GameItemCollection<Equipment> Equipment = [];
     public readonly GameItemCollection<Explosion> Explosions = [];
     public readonly GameItemCollection<Faction> Factions = [];
@@ -250,6 +253,125 @@ public class GameItemDb
             });
         }
     }
+
+    private void InitJumpEffects()
+    {
+        foreach (var src in flData.GateTunnels.Tunnels)
+        {
+            var tunnel = new GameData.GateTunnel
+            {
+                Nickname = src.Nickname,
+                CRC = FLHash.CreateID(src.Nickname),
+                WriteDepthBuffer = src.WriteDepthBuffer,
+                NumSplineControlPoints = Math.Max(4, src.NumSplineControlPoints),
+                XRange = MathF.Abs(src.XRange),
+                YRange = MathF.Abs(src.YRange),
+                ZRange = MathF.Max(1, MathF.Abs(src.ZRange)),
+                MinRadius = MathF.Max(0.01f, MathF.Min(src.MinRadius, src.MaxRadius)),
+                MaxRadius = MathF.Max(0.01f, MathF.Max(src.MinRadius, src.MaxRadius)),
+                FarRadiusFactor = MathF.Max(-0.999f, src.FarRadiusFactor),
+                MinSpeed = MathF.Max(0, MathF.Min(src.MinSpeed, src.MaxSpeed)),
+                MaxSpeed = MathF.Max(0, MathF.Max(src.MinSpeed, src.MaxSpeed)),
+                TimeToMaxSpeed = MathF.Max(0, src.TimeToMaxSpeed),
+                FadeDistance = Math.Clamp(src.FadeDistance, 0, 1),
+                NearAlpha = Math.Clamp(src.NearAlpha, 0, 1),
+                FarAlpha = Math.Clamp(src.FarAlpha, 0, 1),
+                NumTSteps = Math.Max(2, src.NumTSteps),
+                NumSSteps = Math.Max(3, src.NumSSteps),
+                MinRotation = src.MinRotation,
+                MaxRotation = src.MaxRotation,
+                MinColor = JumpEffectColor.FromIni(Vector3.Min(src.MinRgb, src.MaxRgb)),
+                MaxColor = JumpEffectColor.FromIni(Vector3.Max(src.MinRgb, src.MaxRgb)),
+                Layers = src.Layers.Select(x => new GameData.GateTunnelLayer
+                {
+                    Texture = x.Texture,
+                    Color = JumpEffectColor.FromIni(x.Color),
+                    NearAlphaFactor = MathF.Max(0, x.NearAlphaFactor),
+                    FarAlphaFactor = MathF.Max(0, x.FarAlphaFactor),
+                    RadiusFactor = MathF.Max(0.001f, x.RadiusFactor),
+                    UOffset = x.UOffset,
+                    VOffset = x.VOffset,
+                    Du = x.Du,
+                    Dv = x.Dv,
+                    VScale = x.VScale
+                }).ToArray()
+            };
+            GateTunnels.Add(tunnel);
+        }
+
+        foreach (var src in flData.JumpEffects.GateEffects)
+        {
+            if (src.GlowRingEffects.Length != src.GlowRingHardpoints.Length ||
+                src.GlowRingEffects.Length != src.GlowCreateTimes.Length)
+            {
+                FLLog.Warning("JumpEffect",
+                    $"{src.Nickname} has mismatched glow_ring_effect, glow_ring_hp and glow_create_time arrays");
+            }
+
+            var glows = new JumpGateGlow[src.GlowRingEffects.Length];
+            for (var i = 0; i < glows.Length; i++)
+            {
+                var fx = Effects.Get(src.GlowRingEffects[i]);
+                if (fx == null)
+                    FLLog.Warning("JumpEffect",
+                        $"{src.Nickname} references missing glow effect {src.GlowRingEffects[i]}");
+                glows[i] = new JumpGateGlow(
+                    fx,
+                    i < src.GlowRingHardpoints.Length ? src.GlowRingHardpoints[i] : null,
+                    i < src.GlowCreateTimes.Length ? MathF.Max(0, src.GlowCreateTimes[i]) : 0
+                );
+            }
+            Array.Sort(glows, (a, b) => a.CreateTime.CompareTo(b.CreateTime));
+
+            var tunnelFx = Effects.Get(src.JumpTunnelEffect);
+            if (!string.IsNullOrWhiteSpace(src.JumpTunnelEffect) && tunnelFx == null)
+                FLLog.Warning("JumpEffect",
+                    $"{src.Nickname} references missing tunnel effect {src.JumpTunnelEffect}");
+            var tunnel = GateTunnels.Get(src.JumpTunnel);
+            if (!string.IsNullOrWhiteSpace(src.JumpTunnel) && tunnel == null)
+                FLLog.Warning("JumpEffect",
+                    $"{src.Nickname} references missing tunnel {src.JumpTunnel}");
+
+            JumpGateEffects.Add(new GameData.JumpGateEffect
+            {
+                Nickname = src.Nickname,
+                CRC = FLHash.CreateID(src.Nickname),
+                Glows = glows,
+                JumpOutTime = MathF.Max(0, src.JumpOutTime),
+                JumpOutTunnelTime = MathF.Max(0, src.JumpOutTunnelTime),
+                JumpInTunnelTime = MathF.Max(0, src.JumpInTunnelTime),
+                JumpInTime = MathF.Max(0, src.JumpInTime),
+                KillTimeBeforeDone = MathF.Max(0, src.KillTimeBeforeDone),
+                JumpTunnelEffect = tunnelFx,
+                Tunnel = tunnel,
+                JumpAmbient = JumpEffectColor.FromIni(src.JumpAmbient),
+                JumpBackgroundColor = JumpEffectColor.FromIni(src.JumpBackgroundColor)
+            });
+        }
+
+        var ship = flData.JumpEffects.ShipEffects.LastOrDefault();
+        ShipJumpEffect = new GameData.JumpShipEffect
+        {
+            JumpOutEffect = Effects.Get(ship?.JumpOutEffect),
+            JumpInEffect = Effects.Get(ship?.JumpInEffect)
+        };
+        if (ship != null && !string.IsNullOrWhiteSpace(ship.JumpOutEffect) &&
+            ShipJumpEffect.JumpOutEffect == null)
+            FLLog.Warning("JumpEffect", $"Missing ship jump-out effect {ship.JumpOutEffect}");
+        if (ship != null && !string.IsNullOrWhiteSpace(ship.JumpInEffect) &&
+            ShipJumpEffect.JumpInEffect == null)
+            FLLog.Warning("JumpEffect", $"Missing ship jump-in effect {ship.JumpInEffect}");
+    }
+
+    public GameData.JumpGateEffect? ResolveJumpGateEffect(string? nickname) =>
+        JumpGateEffects.Get(nickname) ?? JumpGateEffects.Get("jump_effect_default");
+
+    public GameData.GateTunnel? ResolveGateTunnel(
+        string? gotoTunnel,
+        GameData.JumpGateEffect? gateEffect) =>
+        GateTunnels.Get(gotoTunnel) ??
+        gateEffect?.Tunnel ??
+        GateTunnels.Get("default_jump_gate");
 
     private IEnumerable<Schema.Universe.Base> InitBases(LoadingTasks tasks)
     {
@@ -840,6 +962,7 @@ public class GameItemDb
 
         var pilotTask = tasks.Begin(InitPilots);
         var effectsTask = tasks.Begin(InitEffects);
+        var jumpEffectsTask = tasks.Begin(InitJumpEffects, effectsTask);
         var fusesTask = tasks.Begin(InitFuses, effectsTask);
         var explosionTask = tasks.Begin(InitExplosions, effectsTask);
         var debrisTask = tasks.Begin(InitDebris);
@@ -909,7 +1032,8 @@ public class GameItemDb
             loadoutsTask,
             pilotTask,
             astsTask,
-            starsTask
+            starsTask,
+            jumpEffectsTask
         );
         tasks.Begin(InitVignetteInfo, storyTask);
         tasks.Begin(InitGCSScripts);
@@ -1248,6 +1372,11 @@ public class GameItemDb
             {
                 var tlequip = new TradelaneEquipment
                 {
+                    ShipEnter = Effects.Get(tl.TlShipEnter),
+                    ShipExit = Effects.Get(tl.TlShipExit),
+                    ShipDisrupt = Effects.Get(tl.TlShipDisrupt),
+                    PlayerTravel = Effects.Get(tl.TlPlayerTravel),
+                    PlayerSplash = Effects.Get(tl.TlPlayerSplash),
                     RingActive = Effects.Get(tl.TlRingActive)
                 };
                 equip = tlequip;
@@ -2449,6 +2578,7 @@ public class GameItemDb
                 Type = arch.Type,
                 Loadout = GetLoadout(arch.LoadoutName),
                 NavmapIcon = arch.ShapeName,
+                JumpOutHp = arch.JumpOutHp,
                 SolarRadius = arch.SolarRadius ?? 0,
                 PhantomPhysics = arch.PhantomPhysics ?? false
             };

@@ -909,6 +909,8 @@ public partial class CGameSession
 
         while (gameplayActions.TryDequeue(out var act))
             act();
+        while (pendingGateEffects.TryDequeue(out var activation))
+            spaceGameplay.ActivateJumpGateEffect(activation.Gate, activation.Phase);
     }
 
     private void RunDialog(NetDlgLine[] lines, int index = 0)
@@ -1283,6 +1285,15 @@ public partial class CGameSession
             CompleteActiveJumpWaypoint(FLHash.CreateID(previousSystem), FLHash.CreateID(system));
         PlayerPosition = position;
         PlayerOrientation = orientation;
+        if (jumpTransition is { } transition &&
+            transition.Phase < JumpClientPhase.DestinationReady &&
+            transition.DestinationSystem.Equals(system, StringComparison.OrdinalIgnoreCase))
+        {
+            // A timeout can force the spawn before preloading completes.
+            // Arrival bypasses ConsumePreloadedJump, so the normal loader runs.
+            transition.Phase = JumpClientPhase.Arrival;
+            transition.ForcedArrival = true;
+        }
         SceneChangeRequired();
         var delay = connection.EstimateTickDelay();
         FLLog.Info("Player", $"Spawning at {tick} + delay {delay}");
