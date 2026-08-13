@@ -211,34 +211,10 @@ namespace LibreLancer.Server.Components
         private bool inBurst = false;
         private float burstTimer = 0;
         private float fireTimer = 0;
-        private int fireCycle = 0; // Track cycles for weapon grouping
-        private int weaponGroupIndex = 0; // Track which weapon group to fire
+        private int weaponGroupIndex = 0;
 
-        public struct FireInfo
+        public bool RunFireTimers(float dt)
         {
-            public bool ShouldFireRegular;
-            public bool ShouldFireAutoTurrets;
-        }
-
-        public FireInfo RunFireTimers(float dt)
-        {
-            var fireInfo = new FireInfo { ShouldFireRegular = false, ShouldFireAutoTurrets = false };
-
-            // Check if ship has auto-turret weapons
-            bool hasAutoTurrets = false;
-
-            if (Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
-            {
-                foreach (var gun in Parent.GetChildComponents<GunComponent>())
-                {
-                    if (gun.Object.Def.AutoTurret)
-                    {
-                        hasAutoTurrets = true;
-                        break;
-                    }
-                }
-            }
-
             if (inBurst)
             {
                 burstTimer -= dt;
@@ -256,29 +232,12 @@ namespace LibreLancer.Server.Components
                     if (fireTimer <= 0)
                     {
                         var interval = Pilot?.Gun?.FireIntervalTime ?? 0;
-
                         if (interval == 0)
-                        {
-                            interval = 0.1f; // minimum interval for NPCs
-                        }
+                            interval = 0.1f;
 
                         fireTimer = ValueWithVariance(interval,
                             Pilot?.Gun?.FireIntervalVariancePercent);
-                        fireInfo.ShouldFireRegular = true;
-
-                        // Auto-turrets fire based on their interval timing
-                        if (hasAutoTurrets)
-                        {
-                            fireCycle++;
-                            // Use auto-turret interval timing from INI
-                            float autoTurretInterval = Pilot?.Gun?.AutoTurretIntervalTime ?? 0.2f;
-
-                            if (autoTurretInterval <= 0 || fireCycle >= Math.Max(1, (int) (autoTurretInterval / 0.1f)))
-                            {
-                                fireInfo.ShouldFireAutoTurrets = true;
-                                fireCycle = 0; // Reset cycle counter
-                            }
-                        }
+                        return true;
                     }
                 }
             }
@@ -291,105 +250,41 @@ namespace LibreLancer.Server.Components
                     inBurst = true;
                     burstTimer = ValueWithVariance(Pilot?.Gun?.FireBurstIntervalTime ?? 1f,
                         Pilot?.Gun?.FireBurstIntervalVariancePercent);
-                    // Reset timer when starting new burst
                     fireTimer = 0;
                 }
             }
 
-            return fireInfo;
+            return false;
         }
 
-        public void FireWeaponGroups(WeaponControlComponent weapons, FireInfo fireInfo, GameWorld world)
+        public void FireWeaponGroups(WeaponControlComponent weapons, GameWorld world)
         {
-            // Get all weapons and group them by type
             var regularGuns = new List<GunComponent>();
-            var autoTurrets = new List<GunComponent>();
 
             foreach (var gun in Parent.GetChildComponents<GunComponent>())
             {
-                if (gun.Object.Def.AutoTurret)
-                {
-                    autoTurrets.Add(gun);
-                }
-                else
-                {
+                if (!gun.Object.Def.AutoTurret)
                     regularGuns.Add(gun);
-                }
             }
 
-            // Create separate aim points for different weapon types due to accuracy differences
-            Vector3 regularAim = weapons.AimPoint; // Use existing aim point for regular guns
-            Vector3 autoTurretAim = weapons.AimPoint; // Will be recalculated with more inaccuracy
+            if (regularGuns.Count == 0)
+                return;
 
-            // If auto-turrets are firing, get a less accurate aim point
-            if (fireInfo.ShouldFireAutoTurrets &&
-                Parent.GetComponent<SelectedTargetComponent>()?.Selected is GameObject target)
+            var burstInterval = Pilot?.Gun?.FireBurstIntervalTime ?? 1f;
+            var weaponsToFire = burstInterval switch
             {
-                autoTurretAim = GetAimPosition(target, weapons, true); // More inaccurate aim point
-            }
+                < 0.3f => Math.Max(1, regularGuns.Count / 2),
+                < 1.0f => Math.Max(1, regularGuns.Count / 3),
+                _ => Math.Max(1, regularGuns.Count / 4)
+            };
 
-            // Fire regular weapons in groups based on burst timing
-            if (fireInfo.ShouldFireRegular && regularGuns.Count > 0)
+            for (var i = 0; i < weaponsToFire && i < regularGuns.Count; i++)
             {
-                // Use INI parameters to determine weapon grouping
-                float burstInterval = Pilot?.Gun?.FireBurstIntervalTime ?? 1f;
-                float fireInterval = Pilot?.Gun?.FireIntervalTime ?? 0.1f;
-                float noBurstInterval = Pilot?.Gun?.FireNoBurstIntervalTime ?? 2f;
-
-                // Determine weapon grouping strategy based on timing parameters
-                int weaponsToFire;
-
-                if (burstInterval < 0.3f)
-                {
-                    // Rapid fire - fire more weapons per burst
-                    weaponsToFire = Math.Max(1, regularGuns.Count / 2); // 50% of weapons
-                }
-                else if (burstInterval < 1.0f)
-                {
-                    // Medium fire rate - fire moderate number of weapons
-                    weaponsToFire = Math.Max(1, regularGuns.Count / 3); // 33% of weapons
-                }
-                else
-                {
-                    // Slow fire rate - fire fewer weapons per burst
-                    weaponsToFire = Math.Max(1, regularGuns.Count / 4); // 25% of weapons
-                }
-
-                // Use weapon group cycling to distribute firing
-                for (int i = 0; i < weaponsToFire && i < regularGuns.Count; i++)
-                {
-                    int weaponIndex = (weaponGroupIndex + i) % regularGuns.Count;
-                    regularGuns[weaponIndex].Fire(regularAim, world);
-                }
-
-                // Advance weapon group for next firing cycle
-                weaponGroupIndex = (weaponGroupIndex + weaponsToFire) % regularGuns.Count;
+                var weaponIndex = (weaponGroupIndex + i) % regularGuns.Count;
+                regularGuns[weaponIndex].Fire(weapons.AimPoint, world);
             }
 
-            // Fire auto-turrets in groups with their own timing
-            if (fireInfo.ShouldFireAutoTurrets && autoTurrets.Count > 0)
-            {
-                // Use auto-turret specific parameters for grouping
-                float autoTurretBurstInterval = Pilot?.Gun?.AutoTurretBurstIntervalTime ?? 1f;
-
-                // Auto-turrets typically fire fewer weapons per cycle
-                int turretsToFire;
-
-                if (autoTurretBurstInterval < 0.5f)
-                {
-                    turretsToFire = Math.Max(1, autoTurrets.Count / 2); // 50% for rapid auto-turrets
-                }
-                else
-                {
-                    turretsToFire = Math.Max(1, autoTurrets.Count / 4); // 25% for normal auto-turrets
-                }
-
-                for (int i = 0; i < turretsToFire && i < autoTurrets.Count; i++)
-                {
-                    int turretIndex = (fireCycle * turretsToFire + i) % autoTurrets.Count;
-                    autoTurrets[turretIndex].Fire(autoTurretAim, world);
-                }
-            }
+            weaponGroupIndex = (weaponGroupIndex + weaponsToFire) % regularGuns.Count;
         }
 
         private Vector3 AddInaccuracy(Vector3 target, Vector3 myPos, float distance, float maxRange,
@@ -429,20 +324,18 @@ namespace LibreLancer.Server.Components
         private GameObject? lastShootAt;
 
         public Vector3 GetAimPosition(GameObject other, WeaponControlComponent weapons, bool isAutoTurret = false)
+            => GetAimPosition(other, weapons.GetAverageGunSpeed(), weapons.GetGunMaxRange(), isAutoTurret);
+
+        private Vector3 GetAimPosition(GameObject other, float projectileSpeed, float maxRange,
+            bool isAutoTurret)
         {
-            if (other.PhysicsComponent == null)
-            {
-                return other.WorldTransform.Position;
-            }
+            var myPos = Parent.PhysicsComponent?.Body.Position ?? Parent.WorldTransform.Position;
+            var myVelocity = Parent.PhysicsComponent?.Body.LinearVelocity ?? Vector3.Zero;
+            var otherPos = other.PhysicsComponent?.Body.Position ?? other.WorldTransform.Position;
+            var otherVelocity = other.PhysicsComponent?.Body.LinearVelocity ?? Vector3.Zero;
 
-            var myPos = Parent.PhysicsComponent!.Body.Position;
-            var myVelocity = Parent.PhysicsComponent.Body.LinearVelocity;
-            var otherPos = other.PhysicsComponent.Body.Position;
-            var otherVelocity = other.PhysicsComponent.Body.LinearVelocity;
-            var avgSpeed = weapons.GetAverageGunSpeed();
-            var maxRange = weapons.GetGunMaxRange();
-
-            if (Aiming.GetTargetLeading((otherPos - myPos), (otherVelocity - myVelocity), avgSpeed, out var t))
+            if (projectileSpeed > float.Epsilon &&
+                Aiming.GetTargetLeading(otherPos - myPos, otherVelocity - myVelocity, projectileSpeed, out var t))
             {
                 var predictedPos = otherPos + otherVelocity * t;
                 var leadDist = Vector3.Distance(myPos, predictedPos);
@@ -540,13 +433,8 @@ namespace LibreLancer.Server.Components
                 // Fire guns
                 if (dist < gunRange)
                 {
-                    var fireInfo = RunFireTimers((float) time);
-
-                    if (fireInfo.ShouldFireRegular || fireInfo.ShouldFireAutoTurrets)
-                    {
-                        // Fire regular guns and auto-turrets separately based on their timers
-                        FireWeaponGroups(weapons, fireInfo, world);
-                    }
+                    if (RunFireTimers((float) time))
+                        FireWeaponGroups(weapons, world);
                 }
             }
             else
@@ -630,6 +518,10 @@ namespace LibreLancer.Server.Components
             // Show accuracy info for debugging
             float npcPower = Pilot?.Gun?.FireAccuracyPowerNpc ?? 0;
             float npcAngle = Pilot?.Gun?.FireAccuracyConeAngle ?? 0;
+            var autoTurretController = Parent.GetComponent<SAutoTurretComponent>();
+            var autoTurretsTracking = autoTurretController?.TrackingCount ?? 0;
+            var autoTurretFireTimer = autoTurretController?.FireTimer ?? 0;
+            var autoTurretInBurst = autoTurretController?.InBurst ?? false;
 
             return
                 $"Autopilot: {beh}\nShooting At: {ls}\n" +
@@ -641,11 +533,11 @@ namespace LibreLancer.Server.Components
                 $"Transition Trace: {lastTransitionTrace}\n" +
                 $"Max Range: {maxRange}\nPhys Active: {physActive}\n" +
                 $"Weapons: {totalGuns} total ({regularGuns} regular, {autoTurrets} auto-turrets)\n" +
-                $"Fire Timer: {fireTimer:F2}, Fire Cycle: {fireCycle}\n" +
+                $"Fire Timer: {fireTimer:F2}\n" +
+                $"Auto-Turrets Tracking: {autoTurretsTracking}, Fire Timer: {autoTurretFireTimer:F2}\n" +
                 $"NPC Base Power: {npcPower} (higher=more inaccuracy)\n" +
                 $"NPC Base Angle: {npcAngle}\n" +
-                $"Accuracy: Regular=min 5.0, Auto-Turret=10x base power\n" +
-                $"InBurst: {inBurst}\n{formation}";
+                $"InBurst: {inBurst}, Auto-Turret InBurst: {autoTurretInBurst}\n{formation}";
         }
 
         private void Transition(params StateGraphEntry[] possible)

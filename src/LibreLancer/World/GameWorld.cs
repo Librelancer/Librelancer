@@ -133,6 +133,11 @@ namespace LibreLancer.World
                 g.SetLoadout(arch.Loadout, res, snd);
             }
 
+            var hasAutoTurrets = g.GetChildComponents<GunComponent>()
+                .Any(x => x.Object.Def.AutoTurret);
+            if (hasAutoTurrets && !g.TryGetComponent<WeaponControlComponent>(out _))
+                g.AddComponent(new WeaponControlComponent(g));
+
             if (g.RenderComponent is ModelRenderer mr)
             {
                 mr.LODRanges = arch.LODRanges;
@@ -158,10 +163,16 @@ namespace LibreLancer.World
             {
                 g.AddComponent(new SHealthComponent(g) { InfiniteHealth = true, CurrentHealth = 100, MaxHealth = 100 });
 
-                if (arch.IsUpdatableSolar() || obj.Faction != null)
+                // Universe objects declare their affiliation with `reputation`.
+                // `faction` is a separate, rarely used like this, but still used for ex by solars.
+                var objectFaction = GetObjectFaction(obj);
+                if (arch.IsUpdatableSolar() || objectFaction != null || hasAutoTurrets)
                 {
-                    g.AddComponent(new SSolarComponent(g) { Faction = obj.Faction });
+                    g.AddComponent(new SSolarComponent(g) { Faction = objectFaction });
                 }
+
+                if (hasAutoTurrets)
+                    SAutoTurretComponent.TryAdd(g, () => obj.Pilot?.Gun);
 
                 if (netId != null)
                 {
@@ -173,6 +184,8 @@ namespace LibreLancer.World
             AddObject(g);
             g.Register(this);
         }
+
+        internal static Faction? GetObjectFaction(SystemObject obj) => obj.Reputation ?? obj.Faction;
 
         public void NewObject(SystemObject obj, ResourceManager res, SoundManager? snd, bool server,
             bool changeLoadout = false, ObjectLoadout? newLoadout = null, Archetype? changedArch = null,

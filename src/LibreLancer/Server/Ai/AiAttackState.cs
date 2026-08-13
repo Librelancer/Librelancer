@@ -33,12 +33,8 @@ namespace LibreLancer.Server.Ai
             if (obj.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
                 weapons.AimPoint = ai.GetAimPosition(target, weapons, false); // Regular accuracy
-                var fireInfo = ai.RunFireTimers((float)time);
-                if (fireInfo.ShouldFireRegular || fireInfo.ShouldFireAutoTurrets)
-                {
-                    // Fire weapon groups based on fire info
-                    ai.FireWeaponGroups(weapons, fireInfo, world);
-                }
+                if (ai.RunFireTimers((float)time))
+                    ai.FireWeaponGroups(weapons, world);
                 if (ai.ShouldFireMissiles(time))
                     weapons.FireMissiles(world);
             }

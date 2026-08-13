@@ -743,7 +743,7 @@ namespace LibreLancer.Server
         private List<GameObject> spawnedObjects = [];
 
         public GameObject SpawnSolar(string nickname, Archetype arch, string loadout, Faction rep, Vector3 position,
-            Quaternion orientation, int idsName = 0, string? dockWith = null)
+            Quaternion orientation, int idsName = 0, string? dockWith = null, Pilot? pilot = null)
         {
             var gameobj = new GameObject(arch, null, Server.Resources, false)
             {
@@ -768,6 +768,7 @@ namespace LibreLancer.Server
             solarLoadout ??= arch.Loadout;
             if (solarLoadout != null)
                 gameobj.SetLoadout(solarLoadout, Server.Resources, null);
+            SAutoTurretComponent.TryAdd(gameobj, () => pilot?.Gun);
 
             if (!string.IsNullOrWhiteSpace(dockWith))
             {
@@ -1119,7 +1120,7 @@ namespace LibreLancer.Server
                 }
                 if (obj.TryGetComponent<SSolarComponent>(out var solar))
                 {
-                    if (solar.SendSolarUpdate || solar.SendPartsUpdate)
+                    if (solar.SendSolarUpdate || solar.SendPartsUpdate || solar.SendAutoTurretUpdate)
                     {
                         yield return obj;
                     }

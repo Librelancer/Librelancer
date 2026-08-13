@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Physics;
-using LibreLancer.Server.Components;
 
 namespace LibreLancer.World.Components
 {
@@ -40,6 +39,9 @@ namespace LibreLancer.World.Components
 
             foreach (var wp in Parent?.GetChildComponents<WeaponComponent>()!)
             {
+                // Auto turrets receive their own orientation for each mount.
+                if (wp is GunComponent { Object.Def.AutoTurret: true })
+                    continue;
                 wp?.AimTowards(AimPoint, time);
             }
         }
@@ -105,16 +107,24 @@ namespace LibreLancer.World.Components
 
             foreach (var wp in Parent!.GetChildComponents<GunComponent>())
             {
+                if (wp.Object.Def.AutoTurret)
+                    continue;
                 accum += wp.Object.Def.MuzzleVelocity;
                 count++;
             }
 
-            return accum / count;
+            return count == 0 ? 0 : accum / count;
         }
 
         public float GetGunMaxRange()
         {
-            return Parent.GetChildComponents<GunComponent>().Select(wp => wp.MaxRange).Prepend(0).Max();
+            var maxRange = 0f;
+            foreach (var gun in Parent.GetChildComponents<GunComponent>())
+            {
+                if (!gun.Object.Def.AutoTurret)
+                    maxRange = MathF.Max(maxRange, gun.MaxRange);
+            }
+            return maxRange;
         }
 
         public float GetMissileMaxRange()
@@ -169,6 +179,8 @@ namespace LibreLancer.World.Components
 
             foreach (var wp in Parent?.GetChildComponents<GunComponent>()!)
             {
+                if (wp.Object.Def.AutoTurret)
+                    continue;
                 wp?.Fire(AimPoint, world);
             }
         }
@@ -187,7 +199,7 @@ namespace LibreLancer.World.Components
         public IEnumerable<UiEquippedWeapon> GetUiElements()
         {
             return from wp in GetWeapons()
-                select new UiEquippedWeapon(IsWeaponEnabled(wp), wp.IdsName);
+                   select new UiEquippedWeapon(IsWeaponEnabled(wp), wp.IdsName);
         }
     }
 }

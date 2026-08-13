@@ -171,7 +171,9 @@ namespace LibreLancer.World
                     bool first = true;
                     List<Vector3>? targets = null;
 
-                    foreach (var v in x)
+                    // OtherTargets is consumed by ascending gun bit on the
+                    // client, so targets must be packed in weapon-index order.
+                    foreach (var v in x.OrderBy(v => v.Index))
                     {
                         if (first)
                         {
@@ -184,7 +186,7 @@ namespace LibreLancer.World
                             if (spawn.Target != v.Target)
                             {
                                 targets ??= [];
-                                targets.Add(spawn.Target);
+                                targets.Add(v.Target);
                                 spawn.Unique |= (1UL << v.Index);
                             }
                         }

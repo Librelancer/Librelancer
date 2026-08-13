@@ -1179,14 +1179,16 @@ public partial class CGameSession
                     }
                 }
 
+                if ((objInfo.Flags & ObjectSpawnFlags.Debris) != ObjectSpawnFlags.Debris &&
+                    (objInfo.Flags & ObjectSpawnFlags.Loot) != ObjectSpawnFlags.Loot)
+                    newObj.AddComponent(new WeaponControlComponent(newObj));
+
                 spaceGameplay!.world.AddObject(newObj);
                 newObj.Register(spaceGameplay.world);
 
                 if ((objInfo.Flags & ObjectSpawnFlags.Debris) == ObjectSpawnFlags.Debris ||
                     (objInfo.Flags & ObjectSpawnFlags.Loot) == ObjectSpawnFlags.Loot)
                     newObj.PhysicsComponent!.Body.SetDamping(0.5f, 0.2f);
-                else
-                    newObj.AddComponent(new WeaponControlComponent(newObj));
 
                 if ((objInfo.Flags & ObjectSpawnFlags.Hidden) == ObjectSpawnFlags.Hidden &&
                     newObj.TryGetComponent<CloakComponent>(out var cloaked))
