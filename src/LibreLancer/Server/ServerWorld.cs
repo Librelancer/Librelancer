@@ -1056,6 +1056,7 @@ namespace LibreLancer.Server
             NPCs.FrameStart();
             Population.Update(delta);
             GameWorld.Update(delta);
+            ApplyDamageZones(delta);
 
             // projectiles
             if (GameWorld.Projectiles!.HasQueued)
@@ -1089,6 +1090,21 @@ namespace LibreLancer.Server
             {
                 noPlayersTime = 0;
                 return true;
+            }
+        }
+
+        private void ApplyDamageZones(double delta)
+        {
+            for (var i = GameWorld.Objects.Count - 1; i >= 0; i--)
+            {
+                var obj = GameWorld.Objects[i];
+                if (obj.Kind != GameObjectKind.Ship ||
+                    !obj.TryGetComponent<SHealthComponent>(out var health))
+                    continue;
+
+                var damagePerSecond = GameWorld.ZoneDamageAt(obj.WorldTransform.Position);
+                if (damagePerSecond > 0)
+                    health.DamageZone(damagePerSecond * (float)delta);
             }
         }
 

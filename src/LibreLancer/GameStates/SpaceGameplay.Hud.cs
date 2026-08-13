@@ -643,6 +643,12 @@ partial class SpaceGameplay
 
         public float GetPlayerHealth() => g.playerHealth.CurrentHealth / g.playerHealth.MaxHealth;
 
+        public bool RadiationWarning()
+        {
+            var position = g.player.WorldTransform.Position;
+            return g.world.ZoneDamageAt(position) > 0 && !g.world.InAtmosphere(position);
+        }
+
         public float GetPlayerShield()
         {
             return g.player.GetFirstChildComponent<CShieldComponent>()?.ShieldPercent ?? -1;
