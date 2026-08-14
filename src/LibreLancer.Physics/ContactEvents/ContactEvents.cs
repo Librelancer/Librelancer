@@ -735,12 +735,12 @@ internal struct ContactEventCallbacks : INarrowPhaseCallbacks
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool AllowContactGeneration(int workerIndex, CollidableReference a, CollidableReference b,
         ref float speculativeMargin) =>
-        world.CollidableObjects[a] && world.CollidableObjects[b];
+        CollisionUtils.CanCollide(world.CollidableObjects[a], world.CollidableObjects[b]);
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool AllowContactGeneration(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB) =>
-        world.CollidableObjects[pair.A] && world.CollidableObjects[pair.B];
+        CollisionUtils.CanCollide(world.CollidableObjects[pair.A], world.CollidableObjects[pair.B]);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ConfigureContactManifold<TManifold>(int workerIndex, CollidablePair pair, ref TManifold manifold,
@@ -756,7 +756,8 @@ internal struct ContactEventCallbacks : INarrowPhaseCallbacks
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ConfigureContactManifold(int workerIndex, CollidablePair pair, int childIndexA, int childIndexB,
         ref ConvexContactManifold manifold)
-        => world.CollidableObjects[pair.A] && world.CollidableObjects[pair.B];
+        => CollisionUtils.CanCollide(world.CollidableObjects[pair.A], world.CollidableObjects[pair.B]);
+
 
     public void Initialize(Simulation simulation)
     {

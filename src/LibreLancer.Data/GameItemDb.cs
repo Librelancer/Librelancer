@@ -509,7 +509,7 @@ public class GameItemDb
                     {
                         var good = new ResolvedGood()
                         {
-                            Nickname = g.Nickname, Equipment = equip!, Ini = g, CRC = CrcTool.FLModelCrc(g.Nickname)
+                            Nickname = g.Nickname, Equipment = equip!, Ini = g, CRC = FLHash.CreateID(g.Nickname)
                         };
 
                         equip!.Good = good;
@@ -1003,6 +1003,7 @@ public class GameItemDb
             equip.IdsName = val.IdsName;
             equip.IdsInfo = val.IdsInfo;
             equip.Volume = val.Volume;
+            equip.Hitpoints = val.Hitpoints;
         }
 
         //Process munitions first
@@ -1215,8 +1216,7 @@ public class GameItemDb
                 var eq = new LootCrateEquipment
                 {
                     ModelFile = ResolveDrawable(lc.MaterialLibrary, lc.DaArchetype),
-                    Mass = lc.Mass,
-                    Hitpoints = lc.Hitpoints
+                    Mass = lc.Mass
                 };
                 equip = eq;
             }
@@ -1226,8 +1226,7 @@ public class GameItemDb
                 var eq = new CargoPodEquipment
                 {
                     ModelFile = ResolveDrawable(cp.MaterialLibrary, cp.DaArchetype),
-                    Explosion = cp.ExplosionArch is not null ? Explosions.Get(cp.ExplosionArch) : null,
-                    Hitpoints = cp.Hitpoints
+                    Explosion = cp.ExplosionArch is not null ? Explosions.Get(cp.ExplosionArch) : null
                 };
                 equip = eq;
             }
@@ -1365,7 +1364,7 @@ public class GameItemDb
                 Nickname = inisys.Nickname,
                 Visit = (VisitFlags)inisys.Visit
             };
-            sys.CRC = CrcTool.FLModelCrc(sys.Nickname);
+            sys.CRC = FLHash.CreateID(sys.Nickname);
             sys.MsgIdPrefix = inisys.MsgIdPrefix;
             sys.BackgroundColor = inisys.Info?.SpaceColor ?? Color4.Black;
             sys.MusicSpace = inisys.Music?.Space;
@@ -2332,7 +2331,7 @@ public class GameItemDb
             {
                 FLLog.Error("Asteroids", $"Explosion arch '{ast.ExplosionArch}' not found for mine '{ast.Nickname}'");
             }
-            asteroid.CRC = CrcTool.FLModelCrc(asteroid.Nickname);
+            asteroid.CRC = FLHash.CreateID(asteroid.Nickname);
             Asteroids.Add(asteroid);
         }
 
@@ -2341,9 +2340,10 @@ public class GameItemDb
             var dyn = new DynamicAsteroid
             {
                 Nickname = dynast.Nickname,
-                ModelFile = ResolveDrawable(dynast.MaterialLibrary ?? "", dynast.DaArchetype)
+                ModelFile = ResolveDrawable(dynast.MaterialLibrary ?? "", dynast.DaArchetype),
+                Explosion = Explosions.Get(dynast.ExplosionArch)
             };
-            dyn.CRC = CrcTool.FLModelCrc(dyn.Nickname);
+            dyn.CRC = FLHash.CreateID(dyn.Nickname);
             DynamicAsteroids.Add(dyn);
         }
     }

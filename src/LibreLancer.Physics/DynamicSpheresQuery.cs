@@ -60,7 +60,7 @@ static class DynamicSpheresQuery
         {
             if (reference.Mobility == CollidableMobility.Static)
                 return false;
-            if (World.CollidableObjects[reference] == false)
+            if (World.CollidableObjects[reference] > CollisionKind.DynAsteroid)
                 return false;
             References.Allocate(Pool) = reference;
             return true;

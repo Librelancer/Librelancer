@@ -95,8 +95,6 @@ public partial class Navmap
                 continue;
 
             var nm = ctx.Data.Infocards?.GetStringResource(obj.IdsName);
-            if (string.IsNullOrWhiteSpace(nm))
-                nm = obj.Nickname;
 
             objects.Add(new DrawObject
             {
@@ -172,12 +170,13 @@ public partial class Navmap
                 continue;
 
             zones.Add(new DrawZone(zone, tint ?? Color4.White, tex, zone.Sort));
+            zones.Add(new DrawZone(zone, tint ?? Color4.White, tex, zone.Sort));
         }
 
         zones.Sort((x, y) => x.Sort.CompareTo(y.Sort));
         politicalZones.Sort((x, y) => x.Sort.CompareTo(y.Sort));
         miningZones.Sort((x, y) => x.Sort.CompareTo(y.Sort));
-        systemName = ctx.Data.Infocards!.GetStringResource(sys.IdsName);
+        systemName = ctx.Data.Infocards!.GetStringResource(sys.IdsName).ToUpper();
     }
 
     private static bool IsDrawableZone(Zone zone) =>
@@ -275,6 +274,30 @@ public partial class Navmap
         LayoutZoneFilterMenu(context, delta, mapRect);
     }
 
+    struct NavmapFont
+    {
+        public string Name;
+        public float Scale;
+
+        public NavmapFont(UiContext context)
+        {
+            Name = context.Data.GetFont("$NavMap800");
+
+            var fz600 = context.Data.GetFontSize("$NavMap800");
+            var fsz768 = context.Data.GetFontSize("$NavMap1024");
+            var fsz1024 = context.Data.GetFontSize("$NavMap1280");
+            var fsz1200 = context.Data.GetFontSize("$NavMap1600");
+            var vpH = MathHelper.Clamp(context.ViewportHeight, 800, 1600);
+            var sz = vpH switch
+            {
+                >= 1024 => MathHelper.Lerp(fsz1024, fsz1200, (vpH - 1024) / (1200.0f - 1024.0f)),
+                >= 768 => MathHelper.Lerp(fsz768, fsz1024, (vpH - 768) / (1024.0f - 768.0f)),
+                _ => MathHelper.Lerp(fz600, fsz768, (vpH - 600.0f) / (768.0f - 600.0f))
+            };
+            Scale = sz / fsz768; // Scale based off 1024x768 size
+        }
+    }
+
     public override unsafe void Render(UiContext context, double delta, DrawList2D drawList)
     {
         if (!Visible)
@@ -283,10 +306,10 @@ public partial class Navmap
             return;
 
         var parentRect = ClientRectangle;
-        var gridIdentSize = 16.7f * (parentRect.Height / 480);
-        var gridIdentFont = context.Data.GetFont("$NavMap800");
+        var navMapFont = new NavmapFont(context);
+        var gridIdentSize = 16.7f * (parentRect.Height / 480) * navMapFont.Scale;
         var inputRatio = 480 / context.ViewportHeight;
-        var lH = context.RenderContext.Renderer2D.LineHeight(gridIdentFont, context.TextSize(gridIdentSize)) *
+        var lH = context.RenderContext.Renderer2D.LineHeight(navMapFont.Name, context.TextSize(gridIdentSize)) *
             inputRatio + 3;
         var rectNoScale = GetMapRectangle(parentRect, lH);
 
@@ -296,6 +319,7 @@ public partial class Navmap
         var mapZoom = Zoom;
         var mapOffsetX = OffsetX;
         var mapOffsetY = OffsetY;
+        var textColor = context.Data.GetColor("text");
         if (systemAlpha > 0)
         {
             var rHoriz = rectNoScale.Width / 8;
@@ -311,8 +335,8 @@ public partial class Navmap
                     var vOff = rVert * i;
                     var numRect = new RectangleF(rectNoScale.X - lH - lH * 0.15f,
                         rectNoScale.Y + vOff * mapZoom - mapOffsetY, lH, rVert * mapZoom);
-                    RenderText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, gridIdentFont,
-                        context.Data.GetColor("text"),
+                    RenderText(context, drawList, ref letterCache[jj++], numRect, gridIdentSize, navMapFont.Name,
+                        textColor,
                         new InterfaceColor { Color = Color4.Black }, HorizontalAlignment.Center,
                         VerticalAlignment.Center, false, renNum, systemAlpha);
                 }
@@ -330,8 +354,8 @@ public partial class Navmap
                     var hOff = rHoriz * i;
                     var letterRect = new RectangleF(rectNoScale.X + hOff * mapZoom - mapOffsetX,
                         rectNoScale.Y + rectNoScale.Height + 1, rHoriz * mapZoom, lH);
-                    RenderText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, gridIdentFont,
-                        context.Data.GetColor("text"),
+                    RenderText(context, drawList, ref letterCache[jj++], letterRect, gridIdentSize, navMapFont.Name,
+                        textColor,
                         new InterfaceColor { Color = Color4.Black }, HorizontalAlignment.Center,
                         VerticalAlignment.Bottom, false, renLet, systemAlpha);
                 }
@@ -409,10 +433,9 @@ public partial class Navmap
 
         if (!string.IsNullOrWhiteSpace(systemName))
         {
-            var sysNameFont = context.Data.GetFont("$NavMap1600");
-            var sysNameSize = 16f * (parentRect.Height / 480);
-            RenderText(context, drawList, ref systemNameCache, rectNoScale, sysNameSize, sysNameFont,
-                InterfaceColor.White,
+            var sysNameSize = 21f * (parentRect.Height / 480) * navMapFont.Scale;
+            RenderText(context, drawList, ref systemNameCache, rectNoScale, sysNameSize, navMapFont.Name,
+               textColor,
                 new InterfaceColor { Color = Color4.Black }, HorizontalAlignment.Center,
                 VerticalAlignment.Bottom, false, systemName, systemAlpha);
         }
@@ -420,8 +443,7 @@ public partial class Navmap
         if (!drawList.PushClip(zoneclip))
             return;
 
-        var fontSize = 11f * (parentRect.Height / 480);
-        var font = context.Data.GetFont("$NavMap800");
+        var fontSize = 17f * (parentRect.Height / 480) * navMapFont.Scale;
         if ((CachedRenderString[]?)objectStrings == null || objectStrings.Length < objects.Count)
             objectStrings = new CachedRenderString[objects.Count];
         jj = 0;
@@ -443,7 +465,7 @@ public partial class Navmap
 
             if (ShowLabels && !string.IsNullOrWhiteSpace(obj.Name))
             {
-                var textSize = context.RenderContext.Renderer2D.MeasureString(font, context.TextSize(fontSize), obj.Name);
+                var textSize = context.RenderContext.Renderer2D.MeasureString(navMapFont.Name, context.TextSize(fontSize), obj.Name);
                 var width = context.PixelsToPoints(textSize.X) + 2;
                 var height = context.PixelsToPoints(textSize.Y);
                 labelCandidates.Add((obj, new RectangleF(
@@ -470,7 +492,7 @@ public partial class Navmap
 
                 placedLabels.Add(paddedBounds);
                 RenderText(context, drawList, ref objectStrings[jj++], label.Bounds,
-                    fontSize, font, InterfaceColor.White,
+                    fontSize, navMapFont.Name, textColor,
                     new InterfaceColor { Color = Color4.Black }, HorizontalAlignment.Center,
                     VerticalAlignment.Top, false, label.Object.Name!, systemAlpha);
             }

@@ -195,7 +195,8 @@ namespace LibreLancer.World.Components
                 FLLog.Error("Sur", $"Hull load failure for object {Parent!.Nickname ?? Parent!.NetID.ToString()}");
             }
 
-            Body = Mass < float.Epsilon ? world.Physics!.AddStaticObject(Parent!.WorldTransform, cld) : world.Physics!.AddDynamicObject(Mass, Parent!.WorldTransform, cld, Inertia);
+            Body = Mass < float.Epsilon ? world.Physics!.AddStaticObject(Parent!.WorldTransform, cld) :
+                world.Physics!.AddDynamicObject(Mass, Parent!.WorldTransform, cld, Parent.Kind == GameObjectKind.DynamicAsteroid, Inertia);
             Body.Tag = Parent;
             Body.Collidable = Collidable;
             collider = cld;
