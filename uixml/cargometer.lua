@@ -1,40 +1,57 @@
 local CargoMeter = {}
 
-local function cargo_segment_background(color)
+local CARGO_BAR_PATH = "INTERFACE/MULTIPLAYER/TRADE/"
+local CARGO_BAR_WIDTH = 70
+local CARGO_BAR_HEIGHT = 10
+local CARGO_MODEL_XSCALE = 16.4
+local CARGO_MODEL_YSCALE = 123
+
+local function cargo_model(path, tint)
 {
-	local renderable = NewObject("UiRenderable");
-	local fill = NewObject("DisplayColor");
-	fill.Color = GetColor(color);
-	renderable.AddElement(fill);
-	return renderable;
+	local model = NewObject("InterfaceModel")
+	model.Path = CARGO_BAR_PATH + path
+	model.XScale = CARGO_MODEL_XSCALE
+	model.YScale = CARGO_MODEL_YSCALE
+
+	local element = NewObject("DisplayModel")
+	element.Model = model
+	if (tint != nil) {
+		element.Tint = tint
+		element.ForceTint = true
+	}
+	return element
+}
+
+local function cargo_renderable(path, tint)
+{
+	local renderable = NewObject("UiRenderable")
+	renderable.AddElement(cargo_model(path, tint))
+	return renderable
 }
 
 function CargoMeter.Create(panel)
 {
-	local meter = {
-		segments = {}
-	};
-	for (i in 1..10) {
-		local segment = NewObject("Panel");
-		segment.X = (i - 1) * 7;
-		segment.Y = 2;
-		segment.Width = 6;
-		segment.Height = 8;
-		segment.Background = cargo_segment_background("#737780FF");
+	local meter = {}
+	local usedFill = NewObject("Gauge")
+	usedFill.X = 0
+	usedFill.Y = 2
+	usedFill.Width = CARGO_BAR_WIDTH
+	usedFill.Height = CARGO_BAR_HEIGHT
+	usedFill.Background = cargo_renderable("trade_cargoempty.3db")
+	usedFill.Fill = cargo_renderable("trade_cargofull.3db")
 
-		local usedFill = NewObject("Panel");
-		usedFill.Height = 8;
-		usedFill.Background = cargo_segment_background("text");
-		segment.Children.Add(usedFill);
+	local previewFill = NewObject("Gauge")
+	previewFill.X = 0
+	previewFill.Y = 2
+	previewFill.Width = CARGO_BAR_WIDTH
+	previewFill.Height = CARGO_BAR_HEIGHT
+	previewFill.Fill = cargo_renderable("trade_cargofull.3db", GetColor("yellow"))
+	previewFill.Visible = false
 
-		local previewFill = NewObject("Panel");
-		previewFill.Height = 8;
-		previewFill.Background = cargo_segment_background("yellow");
-		segment.Children.Add(previewFill);
-
-		panel.Children.Add(segment);
-		meter.segments[i] = { usedFill, previewFill };
-	}
+	panel.Children.Add(usedFill)
+	panel.Children.Add(previewFill)
+	meter.used = usedFill
+	meter.preview = previewFill
 	return meter;
 }
 
@@ -43,16 +60,6 @@ local function cargo_meter_units(space, holdSize)
 	if (holdSize <= 0 || space <= 0)
 		return 0;
 	return math.min(10, (space / holdSize) * 10);
-}
-
-local function cargo_fill_segment(fill, segmentStart, rangeStart, rangeEnd)
-{
-	local fillStart = math.max(segmentStart, rangeStart);
-	local fillEnd = math.min(segmentStart + 1, rangeEnd);
-	local amount = math.max(0, fillEnd - fillStart);
-	fill.Visible = amount > 0;
-	fill.X = (fillStart - segmentStart) * 6;
-	fill.Width = amount * 6;
 }
 
 function CargoMeter.Update(meter, holdSize, usedSpace, previewSpace, previewInside)
@@ -69,11 +76,11 @@ function CargoMeter.Update(meter, holdSize, usedSpace, previewSpace, previewInsi
 		previewStart = math.max(0, usedUnits - previewUnits);
 	}
 
-	for (i in 1..10) {
-		local segmentStart = i - 1;
-		cargo_fill_segment(meter.segments[i][1], segmentStart, 0, usedUnits);
-		cargo_fill_segment(meter.segments[i][2], segmentStart, previewStart, previewEnd);
-	}
+	meter.used.PercentStart = 0;
+	meter.used.PercentFilled = usedUnits / 10;
+	meter.preview.PercentStart = previewStart / 10;
+	meter.preview.PercentFilled = (previewEnd - previewStart) / 10;
+	meter.preview.Visible = previewEnd > previewStart;
 }
 
 return CargoMeter
