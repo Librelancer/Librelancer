@@ -33,7 +33,8 @@ namespace LibreLancer.World
         Missile,
         Waypoint,
         Debris,
-        Loot
+        Loot,
+        DynamicAsteroid
     }
 
     public class TradelaneName : ObjectName

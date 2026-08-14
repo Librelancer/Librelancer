@@ -58,12 +58,12 @@ public static class PhysicsWarmup
         cubeCollider2.AddPart(fileId, default, Transform3D.Identity, null);
         using var sphereCollider = new SphereCollider(2);
 
-        using var cube0 = world.AddDynamicObject(8, Transform3D.Identity, cubeCollider0);
+        using var cube0 = world.AddDynamicObject(8, Transform3D.Identity, cubeCollider0, false);
         using var cube1 = world.AddDynamicObject(8,
-            new Transform3D(new(-0.25f, -0.25f, -100), Quaternion.Identity), cubeCollider1);
+            new Transform3D(new(-0.25f, -0.25f, -100), Quaternion.Identity), cubeCollider1, false);
 
         using var cube2 = world.AddDynamicObject(8,
-            new Transform3D(new(-0.25f, 100f, -100f), Quaternion.Identity), cubeCollider2);
+            new Transform3D(new(-0.25f, 100f, -100f), Quaternion.Identity), cubeCollider2, false);
         using var sphere1 = world.AddStaticObject(
             new Transform3D(new(0, 100, 0), Quaternion.Identity), sphereCollider);
 

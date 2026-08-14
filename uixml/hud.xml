@@ -76,6 +76,11 @@
         </ListBox>
     </Panel>
     <TextBlock Anchor="BottomCenter" Height="27" Width="275" Y="60" Text="CRUISE ENGINE CHARGING - WEAPONS OFF-LINE - 25%" TextShadow="black" TextColor="text" TextSize="12" id="cruisecharge" Visible="false" />
+    <Panel Anchor="TopCenter" X="134" Y="44" Width="32" Height="32" ID="radiationalert" Visible="true" CaptureMouse="false">
+        <Panel.Background>
+            <DisplayModel model="hud_radiationalert" OneInvSrcColor="true" />
+        </Panel.Background>
+    </Panel>
     <Panel Anchor="BottomCenter" Height="27" Width="131" X="4" Y="-5">
         <Panel.Background>
             <DisplayModel model="gaugecontainer" />

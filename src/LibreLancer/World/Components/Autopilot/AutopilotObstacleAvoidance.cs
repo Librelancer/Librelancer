@@ -390,7 +390,7 @@ namespace LibreLancer.World.Components
             out float hitDistance)
         {
             hitDistance = 0;
-            if (!world.Physics!.PointRaycast(body, origin, direction, probeLength, out var contactPoint, out var hitObject,
+            if (!world.Physics!.PointRaycast(body, origin, direction, probeLength, false, out var contactPoint, out var hitObject,
                     out _))
             {
                 return false;

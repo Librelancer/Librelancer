@@ -12,6 +12,7 @@ using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Physics;
 using LibreLancer.Resources;
+using LibreLancer.Server;
 using LibreLancer.Server.Components;
 
 namespace LibreLancer.World.Components
@@ -23,6 +24,7 @@ namespace LibreLancer.World.Components
         private ConvexMeshCollider? shape;
         private readonly StaticAsteroid[] mines;
         private readonly Dictionary<Vector3, float> mineRechargeTimes = new();
+        private readonly Random random = new();
 
         public AsteroidFieldComponent(AsteroidField field, ResourceManager res, GameObject parent) : base(parent)
         {
@@ -199,12 +201,25 @@ namespace LibreLancer.World.Components
             var fillBoxes = new QuickList<(BoundingBox Bb, Vector4i Dims)>(8, phys.BufferPool);
             var mineQueries = new QuickList<SphereQuery>(8, phys.BufferPool);
 
+            List<GameObject> players = [];
+
             foreach (var pobj in phys.DynamicObjects)
             {
                 var pos = pobj.Position;
                 if (Vector3.DistanceSquared(Field.Zone!.Position, pos) > activateDist)
                 {
                     continue;
+                }
+
+                // While we iterate, fetch players to spawn dynamic asteroids for.
+                if (pobj.Tag is GameObject go && go.Kind == GameObjectKind.Ship &&
+                    go.TryGetComponent<SPlayerComponent>(out _))
+                {
+                    if (Field.Zone.ContainsPoint(pos) &&
+                        GetExclusionZone(pos) == null)
+                    {
+                        players.Add(go);
+                    }
                 }
 
                 var c = AsteroidFieldShared.GetCloseCube(pos, Field.CubeSize);
@@ -379,7 +394,70 @@ namespace LibreLancer.World.Components
             }
             fillBoxes.Dispose(phys.BufferPool);
             mineQueries.Dispose(phys.BufferPool);
+
+            if (world!.Server != null)
+            {
+                for (int i = 0; i < Field.DynamicAsteroids.Count; i++)
+                {
+                    SpawnDynamicAsteroids(world.Server, Field.DynamicAsteroids[i], i, players);
+                }
+            }
         }
+
+        private Dictionary<ulong, int> spawnCounts = new();
+
+        ulong GetSpawnID(DynamicAsteroids asteroids, GameObject player) =>
+            GetSpawnID(Field.DynamicAsteroids.IndexOf(asteroids), player);
+
+        static ulong GetSpawnID(int index, GameObject player) => ((ulong)index) << 32 | (uint)(player.NetID);
+
+        // Hacky. Not sure what the actual solution here is
+        private const float DespawnDistanceMultiplier = 3f;
+
+        void SpawnDynamicAsteroids(ServerWorld server, DynamicAsteroids asteroids, int index, List<GameObject> players)
+        {
+            if (players.Count <= 0)
+                return;
+            if (asteroids?.Asteroid == null)
+                return;
+            foreach (var p in players)
+            {
+                var spawnGroup = GetSpawnID(index, p);
+                int spawnCount = spawnCounts.GetValueOrDefault(spawnGroup);
+                var pos = p.LocalTransform.Position;
+                while(spawnCount < asteroids.Count)
+                {
+                    spawnCount++;
+                    var direction = random.NextUnitVector();
+                    var distance = random.NextFloat(asteroids.PlacementOffset, asteroids.PlacementRadius);
+                    var newPosition = direction * distance + pos;
+                    server.SpawnDynamicAsteroid(asteroids.Asteroid,
+                        this,
+                        p,
+                        new(newPosition, Quaternion.Identity),
+                        asteroids.MaxVelocity ?? 30,
+                        asteroids.MaxAngularVelocity ?? 3,
+                        asteroids.PlacementRadius * DespawnDistanceMultiplier,
+                        spawnGroup);
+                }
+
+                spawnCounts[spawnGroup] = spawnCount;
+            }
+
+        }
+
+        public void DespawnedDynamicAsteroid(DynamicAsteroidComponent ast)
+        {
+            if(spawnCounts.TryGetValue(ast.SpawnGroup, out var count))
+            {
+                count--;
+                if (count > 0)
+                    spawnCounts[ast.SpawnGroup] = count;
+                else
+                    spawnCounts.Remove(ast.SpawnGroup);
+            }
+        }
+
 
         private void AddMineQueries(ref QuickList<SphereQuery> queries, in SpawnedCube cube)
         {
