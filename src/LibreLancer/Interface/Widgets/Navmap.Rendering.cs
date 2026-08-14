@@ -283,18 +283,18 @@ public partial class Navmap
         {
             Name = context.Data.GetFont("$NavMap800");
 
-            var fsz0 = context.Data.GetFontSize("$NavMap800");
-            var fsz1 = context.Data.GetFontSize("$NavMap1024");
-            var fsz2 = context.Data.GetFontSize("$NavMap1280");
-            var fsz3 = context.Data.GetFontSize("$NavMap1600");
+            var fz600 = context.Data.GetFontSize("$NavMap800");
+            var fsz768 = context.Data.GetFontSize("$NavMap1024");
+            var fsz1024 = context.Data.GetFontSize("$NavMap1280");
+            var fsz1200 = context.Data.GetFontSize("$NavMap1600");
             var vpH = MathHelper.Clamp(context.ViewportHeight, 800, 1600);
             var sz = vpH switch
             {
-                >= 1280 => MathHelper.Lerp(fsz2, fsz3, (vpH - 1280) / (1600.0f - 1280.0f)),
-                >= 1024 => MathHelper.Lerp(fsz1, fsz2, (vpH - 1024) / (1280.0f - 1024.0f)),
-                _ => MathHelper.Lerp(fsz0, fsz1, (vpH - 800.0f) / (1024.0f - 800.0f))
+                >= 1024 => MathHelper.Lerp(fsz1024, fsz1200, (vpH - 1024) / (1200.0f - 1024.0f)),
+                >= 768 => MathHelper.Lerp(fsz768, fsz1024, (vpH - 768) / (1024.0f - 768.0f)),
+                _ => MathHelper.Lerp(fz600, fsz768, (vpH - 600.0f) / (768.0f - 600.0f))
             };
-            Scale = sz / fsz1; // Scale based off 1024 size
+            Scale = sz / fsz768; // Scale based off 1024x768 size
         }
     }
 
@@ -433,7 +433,7 @@ public partial class Navmap
 
         if (!string.IsNullOrWhiteSpace(systemName))
         {
-            var sysNameSize = 18f * (parentRect.Height / 480) * navMapFont.Scale;
+            var sysNameSize = 21f * (parentRect.Height / 480) * navMapFont.Scale;
             RenderText(context, drawList, ref systemNameCache, rectNoScale, sysNameSize, navMapFont.Name,
                textColor,
                 new InterfaceColor { Color = Color4.Black }, HorizontalAlignment.Center,
@@ -443,7 +443,7 @@ public partial class Navmap
         if (!drawList.PushClip(zoneclip))
             return;
 
-        var fontSize = 14f * (parentRect.Height / 480) * navMapFont.Scale;
+        var fontSize = 17f * (parentRect.Height / 480) * navMapFont.Scale;
         if ((CachedRenderString[]?)objectStrings == null || objectStrings.Length < objects.Count)
             objectStrings = new CachedRenderString[objects.Count];
         jj = 0;
