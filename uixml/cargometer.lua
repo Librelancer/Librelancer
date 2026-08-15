@@ -1,18 +1,10 @@
 local CargoMeter = {}
 
-local CARGO_BAR_PATH = "INTERFACE/MULTIPLAYER/TRADE/"
 local CARGO_BAR_WIDTH = 70
 local CARGO_BAR_HEIGHT = 10
-local CARGO_MODEL_XSCALE = 16.4
-local CARGO_MODEL_YSCALE = 123
 
-local function cargo_model(path, tint)
+local function cargo_renderable(model, tint)
 {
-	local model = NewObject("InterfaceModel")
-	model.Path = CARGO_BAR_PATH + path
-	model.XScale = CARGO_MODEL_XSCALE
-	model.YScale = CARGO_MODEL_YSCALE
-
 	local element = NewObject("DisplayModel")
 	element.Model = model
 	if (tint != nil) {
@@ -20,13 +12,6 @@ local function cargo_model(path, tint)
 		element.ForceTint = true
 	}
 	return element
-}
-
-local function cargo_renderable(path, tint)
-{
-	local renderable = NewObject("UiRenderable")
-	renderable.AddElement(cargo_model(path, tint))
-	return renderable
 }
 
 function CargoMeter.Create(panel)
@@ -37,15 +22,15 @@ function CargoMeter.Create(panel)
 	usedFill.Y = 2
 	usedFill.Width = CARGO_BAR_WIDTH
 	usedFill.Height = CARGO_BAR_HEIGHT
-	usedFill.Background = cargo_renderable("trade_cargoempty.3db")
-	usedFill.Fill = cargo_renderable("trade_cargofull.3db")
+	usedFill.Background = cargo_renderable(GetModel("cargo_empty"))
+	usedFill.Fill = cargo_renderable(GetModel("cargo_full"))
 
 	local previewFill = NewObject("Gauge")
 	previewFill.X = 0
 	previewFill.Y = 2
 	previewFill.Width = CARGO_BAR_WIDTH
 	previewFill.Height = CARGO_BAR_HEIGHT
-	previewFill.Fill = cargo_renderable("trade_cargofull.3db", GetColor("yellow"))
+	previewFill.Fill = cargo_renderable(GetModel("cargo_full"), GetColor("yellow"))
 	previewFill.Visible = false
 
 	panel.Children.Add(usedFill)

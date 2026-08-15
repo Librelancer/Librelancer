@@ -161,6 +161,8 @@
       <A>1</A>
     </Color>
   </Color>
+  <Model name="cargo_empty" path="INTERFACE/MULTIPLAYER/TRADE/trade_cargoempty.3db" x="0" y="0" xscale="16.4" yscale="123" xz-plane="false" />
+  <Model name="cargo_full" path="INTERFACE/MULTIPLAYER/TRADE/trade_cargofull.3db" x="0" y="0" xscale="16.4" yscale="123" xz-plane="false" />
   <Model name="fullbutton_animating" path="INTERFACE/NEURONET/INVENTORY/front_button.cmp" x="0" y="0" xscale="7.8" yscale="31" xz-plane="false" />
   <Model name="hullgauge" path="INTERFACE/HUD/hud_hullgauge.3db" x="0" y="0" xscale="11.7" yscale="249" xz-plane="false" />
   <Model name="shieldgauge" path="INTERFACE/HUD/hud_shieldgauge.3db" x="0" y="0" xscale="11.7" yscale="249" xz-plane="false" />
