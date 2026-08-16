@@ -5,13 +5,15 @@ local CARGO_BAR_HEIGHT = 10
 
 local function cargo_renderable(model, tint)
 {
+	local renderable = NewObject("UiRenderable")
 	local element = NewObject("DisplayModel")
 	element.Model = model
 	if (tint != nil) {
 		element.Tint = tint
 		element.ForceTint = true
 	}
-	return element
+	renderable.AddElement(element)
+	return renderable
 }
 
 function CargoMeter.Create(panel)

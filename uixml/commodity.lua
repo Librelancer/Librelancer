@@ -171,11 +171,19 @@ class commodity : commodity_Designer with ChildWindow
 	update_cargo_meter()
 	{
 		local previewVolume = 0;
+		local previewInside = false;
 		if(this.BuyState == "buy") {
 			local index = this.Elements.tr_list.SelectedIndex;
 			if(index != nil && index >= 0 && index < this.TraderGoods.length) {
 				local item = this.TraderGoods[index + 1];
 				previewVolume = item.Volume * math.floor(this.Elements.quantitySlider.Value);
+			}
+		} elseif (this.BuyState == "sell") {
+			local index = this.Elements.inv_list.SelectedIndex;
+			if(index != nil && index >= 0 && index < this.PlayerGoods.length) {
+				local item = this.PlayerGoods[index + 1];
+				previewVolume = item.Volume * math.floor(this.Elements.quantitySlider.Value);
+				previewInside = true;
 			}
 		}
 		CargoMeter.Update(
@@ -183,7 +191,7 @@ class commodity : commodity_Designer with ChildWindow
 			Game.Trader.GetHoldSize(),
 			Game.Trader.GetUsedHoldSpace(),
 			previewVolume,
-			false
+			previewInside
 		);
 	}
 
@@ -227,6 +235,6 @@ class commodity : commodity_Designer with ChildWindow
 		e.quantitySlider.Value = e.quantitySlider.Max
 		e.quantitySlider.Smooth = false
 		e.unit_price.Text = StringFromID(STRID_CREDIT_SIGN) + NumberToStringCS(item.Price, "N0")
+		this.update_cargo_meter()
 	}
 }
-
