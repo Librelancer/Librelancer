@@ -29,9 +29,9 @@ namespace LibreLancer.Physics
         public ConvexShapeCollection ConvexCollection { get; private set; }
 
         // mapping bepu bodies to librelancer objects
-        private readonly Dictionary<int, PhysicsObject?> objectsById = new();
+        public readonly Dictionary<int, PhysicsObject?> objectsById = new();
         private readonly IdPool ids = new(100, true);
-        private readonly CollidableProperty<int> bepuToLancer;
+        internal readonly CollidableProperty<int> bepuToLancer;
         internal readonly CollidableProperty<CollisionKind> CollidableObjects;
         internal readonly CollidableProperty<Vector2> dampings;
 
@@ -285,6 +285,29 @@ namespace LibreLancer.Physics
             }
 
             return handler.DidHit;
+        }
+
+        public void BatchedRaycast(PhysicsObject? me, bool allowDynAsteroids, QuickList<RayQuery> rays,
+            PhysicsObject?[] hitObjects)
+        {
+            BatchedRaycastQuery.BatchedRaycast(me, rays, hitObjects, this, allowDynAsteroids);
+            if (ShowRaycasts)
+            {
+                for (int i = 0; i < rays.Count; i++)
+                {
+                    if (debugRayIndex >= debugRays.Length)
+                        return;
+                    ref var r = ref rays[i];
+                    if (r.Hit)
+                    {
+                        debugRays[debugRayIndex++] = (r.Origin, r.Origin + r.Direction * r.HitT, true);
+                    }
+                    else
+                    {
+                        debugRays[debugRayIndex++] = (r.Origin, r.Origin + rays[i].Direction * r.MaximumT, false);
+                    }
+                }
+            }
         }
 
         private readonly Dictionary<ShapeId, (TypedIndex Shape, Vector3 Center)[]> shapes = new();

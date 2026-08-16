@@ -3,7 +3,10 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Buffers;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using BepuUtilities.Collections;
 using LibreLancer.Client.Components;
 using LibreLancer.Physics;
 using LibreLancer.Render;
@@ -329,41 +332,72 @@ namespace LibreLancer.World.Components
             float halfHeight,
             GameObject? targetObject)
         {
-            var pathBlocked = RaycastBlocked(world, parent, targetObject, body, body.Position, pathDirection, probeLength,
-                out _);
-            if (RaycastBlocked(world, parent, targetObject, body, body.Position + right * halfWidth, pathDirection,
-                    probeLength, out _))
+            var pos = body.Position;
+            var pool = world.Physics!.BufferPool;
+            var rays = new QuickList<RayQuery>(5 + candidates.Length, world.Physics!.BufferPool);
+            var hitObjects = ArrayPool<PhysicsObject?>.Shared.Rent(5 + candidates.Length);
+
+            rays.AllocateUnsafely() = new RayQuery(pos, pathDirection, probeLength);
+            rays.AllocateUnsafely() = new RayQuery(pos + right * halfWidth, pathDirection, probeLength);
+            rays.AllocateUnsafely() = new RayQuery(pos - right * halfWidth, pathDirection, probeLength);
+            rays.AllocateUnsafely() = new RayQuery(pos + up * halfHeight, pathDirection, probeLength);
+            rays.AllocateUnsafely() = new RayQuery(pos - up * halfHeight, pathDirection, probeLength);
+            for (int i = 0; i < candidates.Length; i++)
+            {
+                var origin = body.Position + right * candidates[i].Offset.X + up * candidates[i].Offset.Y;
+                rays.AllocateUnsafely() = new RayQuery(origin, pathDirection, probeLength);
+            }
+
+            world.Physics.BatchedRaycast(body, false, rays, hitObjects);
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            bool RaycastBlocked(int index, out float hitDistance)
+            {
+                hitDistance = 0;
+                if (rays[index].Hit)
+                {
+                    if (hitObjects[index]?.Tag is GameObject hitGameObject &&
+                        !ShouldAvoid(parent, targetObject, hitGameObject))
+                    {
+                        return false;
+                    }
+                    hitDistance = rays[index].HitT;
+                    return true;
+                }
+                return false;
+            }
+
+            var pathBlocked = RaycastBlocked(0, out _);
+            if (RaycastBlocked(1, out _))
             {
                 pathBlocked = true;
                 PenalizeDirection(candidates, scores, new Vector2(1, 0), 3.5f);
             }
-            if (RaycastBlocked(world, parent, targetObject, body, body.Position - right * halfWidth, pathDirection,
-                    probeLength, out _))
+            if (RaycastBlocked(2, out _))
             {
                 pathBlocked = true;
                 PenalizeDirection(candidates, scores, new Vector2(-1, 0), 3.5f);
             }
-            if (RaycastBlocked(world, parent, targetObject, body, body.Position + up * halfHeight, pathDirection,
-                    probeLength, out _))
+            if (RaycastBlocked(3, out _))
             {
                 pathBlocked = true;
                 PenalizeDirection(candidates, scores, new Vector2(0, 1), 3.5f);
             }
-            if (RaycastBlocked(world, parent, targetObject, body, body.Position - up * halfHeight, pathDirection,
-                    probeLength, out _))
+            if (RaycastBlocked(4, out _))
             {
                 pathBlocked = true;
                 PenalizeDirection(candidates, scores, new Vector2(0, -1), 3.5f);
             }
             for (int i = 0; i < candidates.Length; i++)
             {
-                var origin = body.Position + right * candidates[i].Offset.X + up * candidates[i].Offset.Y;
-                if (RaycastBlocked(world, parent, targetObject, body, origin, pathDirection, probeLength, out var hitDistance))
+                if (RaycastBlocked(5 + i, out var hitDistance))
                 {
                     scores[i] += 8f + ((probeLength - hitDistance + 1f) / probeLength) * 8f;
                 }
             }
 
+            rays.Dispose(pool);
+            ArrayPool<PhysicsObject?>.Shared.Return(hitObjects);
             return pathBlocked;
         }
 
@@ -377,32 +411,6 @@ namespace LibreLancer.World.Components
             {
                 scores[i] += MathF.Max(0, Vector2.Dot(candidates[i].Direction, blockedDirection)) * amount;
             }
-        }
-
-        private bool RaycastBlocked(
-            GameWorld world,
-            GameObject parent,
-            GameObject? targetObject,
-            PhysicsObject body,
-            Vector3 origin,
-            Vector3 direction,
-            float probeLength,
-            out float hitDistance)
-        {
-            hitDistance = 0;
-            if (!world.Physics!.PointRaycast(body, origin, direction, probeLength, false, out var contactPoint, out var hitObject,
-                    out _))
-            {
-                return false;
-            }
-
-            if (hitObject?.Tag is GameObject hitGameObject && !ShouldAvoid(parent, targetObject, hitGameObject))
-            {
-                return false;
-            }
-
-            hitDistance = Vector3.Distance(origin, contactPoint);
-            return true;
         }
 
         private static bool ShouldAvoid(GameObject parent, GameObject? targetObject, GameObject other)
