@@ -509,7 +509,7 @@ namespace LibreLancer.Server
                 rpcClient.BaseEnter(Base!, Objective, thns.Pack(), news.ToArray(), Baseside.BaseData.SoldGoods
                     .Select(x => new SoldGood()
                     {
-                        GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
+                        GoodCRC = FLHash.CreateID(x.Good.Ini.Nickname),
                         Price = x.Price,
                         Rank = x.Rank,
                         Rep = x.Rep,
