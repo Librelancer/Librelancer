@@ -1095,9 +1095,9 @@ namespace LibreLancer.Server
 
         private void ApplyDamageZones(double delta)
         {
-            for (var i = GameWorld.Objects.Count - 1; i >= 0; i--)
+            for (var i = updatingObjects.Count - 1; i >= 0; i--)
             {
-                var obj = GameWorld.Objects[i];
+                var obj = updatingObjects[i];
                 if (obj.Kind != GameObjectKind.Ship ||
                     !obj.TryGetComponent<SHealthComponent>(out var health))
                     continue;
