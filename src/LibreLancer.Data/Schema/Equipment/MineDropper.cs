@@ -15,4 +15,5 @@ public partial class MineDropper : AbstractEquipment
     [Entry("refire_delay")] public float RefireDelay;
     [Entry("muzzle_velocity")] public float MuzzleVelocity;
     [Entry("damage_per_fire")] public float DamagePerFire;
+    [Entry("use_animation")] public string? UseAnimation;
 }
