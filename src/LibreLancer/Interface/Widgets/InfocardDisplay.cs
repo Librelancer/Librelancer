@@ -14,10 +14,21 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class InfocardDisplay : UiWidget
     {
-        public Infocard? Infocard { get; set; }
-        private BuiltRichText? richText;
-        private int mW = -1;
-        private Infocard? currInfocard;
+        public Infocard? Infocard
+        {
+            get;
+            set
+            {
+                field = value;
+                infocardRight = null;
+            }
+        }
+        private Infocard? infocardRight;
+
+        record BuiltInfocard(BuiltRichText RichText, int Width, Infocard Infocard);
+
+        private BuiltInfocard? currLeft;
+        private BuiltInfocard? currRight;
 
         public Scrollbar Scrollbar { get; set; } = new();
 
@@ -35,6 +46,12 @@ namespace LibreLancer.Interface
             this.setString = str;
             this.setFont = font;
             this.setSize = size;
+        }
+
+        public void SetColumnInfocards(Infocard left, Infocard right)
+        {
+            Infocard = left;
+            infocardRight = right;
         }
 
         public void SetInfocards(Infocard?[] infocards)
@@ -55,6 +72,50 @@ namespace LibreLancer.Interface
         {
             base.OnLayout(context, layout, delta);
             Scrollbar.OnLayout(context, new Layout(ClientRectangle), delta);
+        }
+
+        void DrawInfocard(DrawList2D drawList, UiContext context, Infocard infocard, Rectangle myRect,
+            ref BuiltInfocard? built)
+        {
+            var rte = context.RenderContext.Renderer2D.RichText;
+            if (built?.Infocard != infocard || built?.Width != myRect.Width)
+            {
+                built?.RichText?.Dispose();
+                built = new(rte.BuildText(infocard.Nodes, myRect.Width, (context.ViewportHeight / 480) * 0.5f),
+                    myRect.Width, infocard);
+                CalculateScrollbar(myRect.Height);
+            }
+            if (drawList.PushClip(myRect))
+            {
+                int y = myRect.Y;
+
+                if (Scrollbar.Visible)
+                {
+                    y -= (int) (Scrollbar.ScrollOffset * (built.RichText.Height - myRect.Height));
+                }
+
+                rte.RenderText(drawList, built.RichText, myRect.X, y);
+                drawList.PopClip();
+            }
+        }
+
+        void CalculateScrollbar(int containerHeight)
+        {
+            var l = currLeft?.RichText.Height ?? 0;
+            var r = currRight?.RichText.Height ?? 0;
+            var height = float.MaxNative(l, r);
+            if (height > containerHeight + 1)
+            {
+                Scrollbar.ScrollOffset = 0;
+                Scrollbar.ThumbSize = containerHeight / height;
+                const float TICK_MAGIC = 0.2627986f;
+                Scrollbar.Tick = 0.01f * (Scrollbar.ThumbSize / TICK_MAGIC);
+                Scrollbar.Visible = true;
+            }
+            else
+            {
+                Scrollbar.Visible = false;
+            }
         }
 
 
@@ -93,46 +154,23 @@ namespace LibreLancer.Interface
 
             if (Infocard != null)
             {
-                var rte = context.RenderContext.Renderer2D.RichText;
-                var myRect = context.PointsToPixels(myRectangle);
-
-                if (currInfocard != Infocard || mW != myRect.Width)
+                if (infocardRight != null)
                 {
-                    richText?.Dispose();
-                    currInfocard = Infocard;
-                    mW = myRect.Width;
-                    richText = rte.BuildText(Infocard.Nodes, mW, (context.ViewportHeight / 480) * 0.5f);
-                    var h = richText.Height;
-
-                    if ((int) h > myRect.Height + 2)
+                    var lRect = myRectangle with { Width = myRectangle.Width * 0.5f };
+                    var rRect = myRectangle with
                     {
-                        Scrollbar.ScrollOffset = 0;
-                        Scrollbar.ThumbSize = myRect.Height / h;
-                        const float TICK_MAGIC = 0.2627986f;
-                        Scrollbar.Tick = 0.01f * (Scrollbar.ThumbSize / TICK_MAGIC);
-                        Scrollbar.Visible = true;
-                    }
-                    else
-                    {
-                        Scrollbar.Visible = false;
-                    }
-
+                        X = lRect.X + lRect.Width,
+                        Width = lRect.Width
+                    };
+                    DrawInfocard(drawList, context, Infocard, context.PointsToPixels(lRect), ref currLeft);
+                    DrawInfocard(drawList, context, infocardRight, context.PointsToPixels(rRect), ref currRight);
                 }
-
+                else
+                {
+                    var myRect = context.PointsToPixels(myRectangle);
+                    DrawInfocard(drawList, context, Infocard, myRect, ref currLeft);
+                }
                 Scrollbar.Render(context, delta, drawList);
-
-                if (drawList.PushClip(myRect))
-                {
-                    int y = myRect.Y;
-
-                    if (Scrollbar.Visible)
-                    {
-                        y -= (int) (Scrollbar.ScrollOffset * (richText!.Height - myRect.Height));
-                    }
-
-                    rte.RenderText(drawList, richText!, myRect.X, y);
-                    drawList.PopClip();
-                }
             }
 
             Border?.Draw(context, drawList, ClientRectangle);
