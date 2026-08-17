@@ -486,6 +486,11 @@ namespace LibreLancer
                     case Keys.D3:
                         LoadSpecific(2);
                         break;
+                    case Keys.D:
+                        var p = scene?.Renderer?.FxPool;
+                        if (p != null)
+                            p.DrawDebug = !p.DrawDebug;
+                        break;
                 }
             }
         }

@@ -92,13 +92,14 @@ namespace LibreLancer.Render
             AsteroidFields = [];
             Nebulae = [];
             StarSphereModels = [];
-            FxPool = new ParticleEffectPool(resources.GLWindow.RenderContext, Commands);
             rstate = resources.GLWindow.RenderContext;
             resman = resources;
             Polyline = new PolylineRender(rstate, Commands);
             QuadBuffer = new QuadBuffer(rstate);
             dot = (Texture2D) resources.FindTexture(ResourceManager.WhiteTextureName)!;
             DebugRenderer = new LineRenderer(rstate);
+            FxPool = new ParticleEffectPool(resources.GLWindow.RenderContext, Commands);
+            FxPool.Debug = DebugRenderer;
             Beams = new BeamsBuffer(resources, rstate);
         }
 

@@ -46,7 +46,7 @@ namespace LibreLancer.Fx
                     FlipHorizontal, FlipVertical
                 );
 
-                if (DrawNormals)
+                if (DrawDebug)
                 {
                     Debug?.DrawLine(p - (n * 100), p + (n * 100), Color4.Red);
                 }

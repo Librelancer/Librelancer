@@ -55,6 +55,8 @@ namespace LibreLancer.Fx
 
         private ICamera camera = null!;
         public ICamera Camera => camera;
+        public LineRenderer? Debug;
+        public bool DrawDebug;
 
         public ParticleEffectPool(RenderContext context, CommandBuffer commands)
         {

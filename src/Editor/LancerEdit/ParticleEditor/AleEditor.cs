@@ -177,6 +177,8 @@ alchemy = FILE_PATH_HERE
                 paused = !paused;
             }
             ImGui.SameLine();
+            ImGui.Checkbox("Draw Debug", ref pool.DrawDebug);
+            ImGui.SameLine();
             ImGui.Text($"T: {instance.GlobalTime:0.000}, Particle Count: {instance.CountAll()}");
         }
 

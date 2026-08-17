@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
+using LibreLancer.Data.Schema.Effects;
 using LibreLancer.Resources;
 
 namespace LibreLancer.Fx
@@ -167,6 +168,8 @@ namespace LibreLancer.Fx
                     continue;
                 }
 
+                Effect.Appearances[i].Appearance.Debug = Pool.Debug;
+                Effect.Appearances[i].Appearance.DrawDebug = Pool.DrawDebug;
                 Effect.Appearances[i].Appearance.Draw(this, Effect.Appearances[i], i, transform, sparam);
             }
         }

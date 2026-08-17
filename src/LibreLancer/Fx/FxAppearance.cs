@@ -12,7 +12,7 @@ namespace LibreLancer.Fx
     public class FxAppearance : FxNode
     {
         public LineRenderer? Debug;
-        public bool DrawNormals = false;
+        public bool DrawDebug = false;
 
         public FxAppearance(AlchemyNode ale) : base(ale)
         {
