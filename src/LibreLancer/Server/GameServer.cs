@@ -194,7 +194,7 @@ namespace LibreLancer.Server
             {
                 bp.Add(new BaselinePrice()
                 {
-                    GoodCRC = CrcTool.FLModelCrc(good.Ini.Nickname),
+                    GoodCRC = FLHash.CreateID(good.Ini.Nickname),
                     Price = (ulong) good.Ini.Price
                 });
             }
