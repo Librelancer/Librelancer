@@ -1000,9 +1000,8 @@ public partial class CGameSession
         return ids > 0 ? Game.GameData.GetInfocard(ids, Game.Fonts) : null;
     }
 
-    public Infocard?[]? GetPlayerShipInfocards()
+    public Infocard?[]? GetShipInfocards(Ship? ship)
     {
-        var ship = PlayerShip;
         if (ship == null)
             return null;
 
