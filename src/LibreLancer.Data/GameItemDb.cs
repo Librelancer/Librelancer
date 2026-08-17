@@ -2208,7 +2208,7 @@ public class GameItemDb
                 HullDamage = orig.HullDamage,
                 EnergyDamage = orig.EnergyDamage
             };
-            ex.CRC = CrcTool.FLModelCrc(ex.Nickname);
+            ex.CRC = FLHash.CreateID(ex.Nickname);
             Explosions.Add(ex);
         }
     }
