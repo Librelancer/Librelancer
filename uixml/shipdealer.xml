@@ -62,9 +62,12 @@
 	</Panel>
 	
 
-	
 	<InfocardDisplay id="item_infocard" X="40" Y="270" Width="545" Height="120" >
 	</InfocardDisplay>
+	<Panel id="ship_infocards" X="0" Y="270" Width="624" Height="120" Visible="false">
+		<InfocardDisplay id="ship_infocard1" X="40" Y="0" Width="245" Height="120" />
+		<InfocardDisplay id="ship_infocard_stats" X="285" Y="0" Width="300" Height="120" />
+	</Panel>
 	
 	</Panel>
 </Panel>

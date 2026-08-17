@@ -116,6 +116,10 @@ class shipdealer : shipdealer_Designer with ChildWindow
             }, "ship", false))
         }
         e.item_infocard.Infocard = nil
+        e.item_infocard.Visible = true
+        e.ship_infocards.Visible = false
+        e.ship_infocard1.Infocard = nil
+        e.ship_infocard_stats.Infocard = nil
         e.shiplist_credits_text.Text = StringFromID(STRID_CREDITS) + NumberToStringCS(Game.GetCredits(), "N0")
         e.start_buy.Strid = STRID_SHIP_BUY
         e.start_buy.Enabled = true
@@ -127,6 +131,8 @@ class shipdealer : shipdealer_Designer with ChildWindow
         local e = this.Elements
         e.shiplist.Visible = false
         e.item_infocard.Infocard = nil
+        e.item_infocard.Visible = true
+        e.ship_infocards.Visible = false
         e.shipitems.Visible = true
         this.change_category("weapons")
         this.set_buysell("hidden", 0)
@@ -154,8 +160,10 @@ class shipdealer : shipdealer_Designer with ChildWindow
     setinfocard(good)
     {
         local e = this.Elements
+        e.item_infocard.Visible = true
+        e.ship_infocards.Visible = false
         if (good.IdsInfo != 0) {
-            e.item_infocard.Infocard = GetInfocard(good.IdsInfo, 1);
+            e.item_infocard.Infocard = GetInfocard(good.IdsInfo);
         } elseif (good.IdsHardpointDescription != 0) {
             e.item_infocard.SetString(StringFromID(good.IdsHardpointDescription));
         }
@@ -281,13 +289,20 @@ class shipdealer : shipdealer_Designer with ChildWindow
     {
         local e = this.Elements;
         e.ship_preview_panel.Visible = true
+        e.item_infocard.Visible = false
+        e.ship_infocards.Visible = true
         e.ship_preview.ModelPath = ship.Model
         e.ship_name.Strid = ship.IdsName
         e.ship_class.Text = ShipClassNames[ship.ShipClass + 1]
-        if (ship.IdsInfo != 0)
-            e.item_infocard.Infocard = GetInfocard(ship.IdsInfo, 1);
+        e.ship_infocard1.Infocard = ship.IdsInfo1 > 0 ? GetInfocard(ship.IdsInfo1) : nil
+        local statsKeys = ship.IdsInfo2 > 0 ? GetInfocard(ship.IdsInfo2) : nil
+        local statsValues = ship.IdsInfo3 > 0 ? GetInfocard(ship.IdsInfo3) : nil
+        if (statsKeys != nil && statsValues != nil)
+            e.ship_infocard_stats.SetColumnInfocards(statsKeys, statsValues)
+        elseif (statsKeys != nil)
+            e.ship_infocard_stats.Infocard = statsKeys
         else
-            e.item_infocard.Infocard = nil;
+            e.ship_infocard_stats.Infocard = statsValues
     }
 }
 

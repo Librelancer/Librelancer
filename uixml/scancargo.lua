@@ -110,11 +110,19 @@ class scancargo : scancargo_Designer with ChildWindow
 			e.title.Text = nil;
 			e.title.Strid = 8511;
 			e.credits_text.Text = StringFromID(STRID_CREDITS) + NumberToStringCS(Game.GetCredits(), "N0");
-			e.ship_infocard.Infocard = Game.GetPlayerShipInfocard();
+			local infocards = Game.GetPlayerShipInfocards();
+			if (infocards == nil)
+				e.ship_infocard.Infocard = nil;
+			else
+				e.ship_infocard.SetInfocards(infocards);
 		} else {
 			e.title.Text = nil;
 			e.title.Strid = 3019;
-			e.ship_infocard.Infocard = Game.GetScannedShipInfocard();
+			local infocards = Game.GetScannedShipInfocards();
+			if (infocards == nil)
+				e.ship_infocard.Infocard = nil;
+			else
+				e.ship_infocard.SetInfocards(infocards);
 		}
 	}
     
@@ -221,7 +229,7 @@ class scancargo : scancargo_Designer with ChildWindow
 			e.jettison_panel.Visible = false;
 			e.ship_infocard_panel.Visible = false;
 			e.item_infocard_panel.Visible = true;
-			e.item_infocard.Infocard = GetInfocard(idsInfo, 1);
+			e.item_infocard.Infocard = GetInfocard(idsInfo);
 		} else {
 			this.set_ship_infocard();
 		}
