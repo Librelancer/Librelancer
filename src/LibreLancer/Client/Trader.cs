@@ -346,9 +346,9 @@ namespace LibreLancer.Client
             return Math.Min(maxAmount, holdLimit);
         }
 
-        public float GetHoldSize() => session.PlayerShip!.HoldSize;
+        public float GetHoldSize() => session.PlayerShip?.HoldSize ?? 0;
 
-        public float GetUsedHoldSpace() => session.Items.Select(x => x.Count * x.Equipment!.Volume).Sum();
+        public float GetUsedHoldSpace() => CargoUtilities.GetUsedVolume(session.Items);
 
         public UIInventoryItem[] GetPlayerGoods(string filter)
         {

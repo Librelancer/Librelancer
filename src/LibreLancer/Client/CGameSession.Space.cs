@@ -7,6 +7,7 @@ using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Infocards;
 using LibreLancer.Interface;
 using LibreLancer.Missions;
 using LibreLancer.Net;
@@ -988,6 +989,15 @@ public partial class CGameSession
 
         Trader.SortGoods(this, items, filter);
         return items.ToArray();
+    }
+
+    public float GetCargoHoldSize() => PlayerShip?.HoldSize ?? 0;
+    public float GetUsedCargoHoldSpace() => CargoUtilities.GetUsedVolume(Items);
+
+    public Infocard? GetPlayerShipInfocard()
+    {
+        var ids = PlayerShip?.IdsInfo ?? 0;
+        return ids > 0 ? Game.GameData.GetInfocard(ids, Game.Fonts) : null;
     }
 
     private UIInventoryItem[] BuildScanList(NetLoadout loadout)
