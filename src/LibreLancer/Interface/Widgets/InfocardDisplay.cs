@@ -37,6 +37,20 @@ namespace LibreLancer.Interface
             this.setSize = size;
         }
 
+        public void SetInfocards(Infocard?[] infocards)
+        {
+            var ic = new Infocard();
+            foreach (var i in infocards)
+            {
+                if (i == null)
+                    continue;
+                if(ic.Nodes.Count > 0)
+                    ic.Nodes.Add(new RichTextParagraphNode());
+                ic.Nodes.AddRange(i.Nodes);
+            }
+            Infocard = ic;
+        }
+
         public override void OnLayout(UiContext context, Layout layout, double delta)
         {
             base.OnLayout(context, layout, delta);
