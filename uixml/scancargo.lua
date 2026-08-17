@@ -110,20 +110,15 @@ class scancargo : scancargo_Designer with ChildWindow
 			e.title.Text = nil;
 			e.title.Strid = 8511;
 			e.credits_text.Text = StringFromID(STRID_CREDITS) + NumberToStringCS(Game.GetCredits(), "N0");
-			local infocards = Game.GetPlayerShipInfocards();
-			if (infocards == nil)
-				e.ship_infocard.Infocard = nil;
-			else
-				e.ship_infocard.SetInfocards(infocards);
 		} else {
 			e.title.Text = nil;
 			e.title.Strid = 3019;
-			local infocards = Game.GetScannedShipInfocards();
-			if (infocards == nil)
-				e.ship_infocard.Infocard = nil;
-			else
-				e.ship_infocard.SetInfocards(infocards);
 		}
+		local infocards = Game.GetShipInfocards(playerInventory);
+		if (infocards == nil)
+			e.ship_infocard.Infocard = nil;
+		else
+			e.ship_infocard.SetInfocards(infocards);
 	}
     
     construct_inventory()

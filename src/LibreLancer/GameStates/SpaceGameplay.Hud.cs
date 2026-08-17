@@ -311,32 +311,17 @@ partial class SpaceGameplay
         public float GetCargoHoldSize() => g.session.GetCargoHoldSize();
         public float GetUsedCargoHoldSpace() => g.session.GetUsedCargoHoldSpace();
         public Infocard? GetPlayerShipInfocard() => g.session.GetPlayerShipInfocard();
-        public Infocard?[]? GetPlayerShipInfocards() => g.session.GetShipInfocards(g.session.PlayerShip);
-
-        public Infocard? GetScannedShipInfocard()
+        public Infocard?[]? GetShipInfocards(bool playerShip)
         {
-            if (g.Selection.Selected == null)
+            if (playerShip)
             {
-                return null;
+                return g.session.GetShipInfocards(g.session.PlayerShip);
             }
 
-            if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
-            {
-                return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo, g.Game.Fonts);
-            }
+            if (g.Selection.Selected?.TryGetComponent<ShipComponent>(out var ship) == true)
+                return g.session.GetShipInfocards(ship.Ship);
 
             return null;
-        }
-
-        public Infocard?[]? GetScannedShipInfocards()
-        {
-            if (g.Selection.Selected == null ||
-                !g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
-            {
-                return null;
-            }
-
-            return g.session.GetShipInfocards(ship.Ship);
         }
 
         public bool CanScanSelected()
