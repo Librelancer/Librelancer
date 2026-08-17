@@ -14,4 +14,5 @@ public partial class Mine : Munition
     [Entry("owner_safe_time")] public float OwnerSafeTime;
     [Entry("linear_drag")] public float LinearDrag;
     [Entry("seek_dist")] public float SeekDist;
+    [Entry("phantom_physics")] public bool PhantomPhysics;
 }

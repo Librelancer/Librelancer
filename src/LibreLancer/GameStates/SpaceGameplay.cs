@@ -1344,6 +1344,16 @@ namespace LibreLancer
                 weapons.FireMissiles(world);
             }
 
+            if (Input.IsActionDown(InputAction.USER_LAUNCH_COUNTERMEASURES))
+            {
+                weapons.FireCountermeasures(world);
+            }
+
+            if (Input.IsActionDown(InputAction.USER_LAUNCH_MINES))
+            {
+                weapons.FireMines(world);
+            }
+
             for (int i = 0; i < 10; i++)
             {
                 if (Input.IsActionDown(InputAction.USER_FIRE_WEAPON1 + i))

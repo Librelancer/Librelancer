@@ -73,6 +73,11 @@ public static class EquipmentHandlers
     {
         var sh = (CountermeasureEquipment) equip;
         var obj = GameObject.WithModel(sh.ModelFile!, type != EquipmentType.Server, res);
+        if (type != EquipmentType.RemoteObject && type != EquipmentType.Cutscene)
+            obj.AddComponent(new CountermeasureLauncherComponent(obj, sh));
+        if (type is EquipmentType.LocalPlayer or EquipmentType.RemoteObject)
+            obj.AddComponent(new CMuzzleFlashComponent(obj, sh));
+        snd?.LoadSound(sh.Munition?.Def.OneShotSound);
         return obj;
     }
 
@@ -196,6 +201,9 @@ public static class EquipmentHandlers
     {
         var md = (MineDropperEquipment) equip;
         var child = GameObject.WithModel(md.ModelFile!, type != EquipmentType.Server, res);
+        if (type != EquipmentType.RemoteObject && type != EquipmentType.Cutscene)
+            child.AddComponent(new MineLauncherComponent(child, md));
+        snd?.LoadSound(md.Mine?.Def.OneShotSound);
         return child;
     }
 
