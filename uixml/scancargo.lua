@@ -116,7 +116,7 @@ class scancargo : scancargo_Designer with ChildWindow
 		}
 		local infocards = Game.GetShipInfocards(playerInventory);
 		if (infocards == nil)
-			e.ship_infocard.Infocard = nil;
+			e.ship_infocard.Infocard = Game.GetPlayerShipInfocard();
 		else
 			e.ship_infocard.SetInfocards(infocards);
 	}
@@ -224,7 +224,13 @@ class scancargo : scancargo_Designer with ChildWindow
 			e.jettison_panel.Visible = false;
 			e.ship_infocard_panel.Visible = false;
 			e.item_infocard_panel.Visible = true;
-			e.item_infocard.Infocard = GetInfocard(idsInfo);
+			e.item_infocard.Infocard = nil;
+			local stats = Game.GetEquipmentStats(good)
+			if (stats != nil && stats[3] != nil) {
+				e.item_infocard.SetInfocards({ GetInfocard(idsInfo, 1), stats[3] });
+			} else {
+				e.item_infocard.Infocard = GetInfocard(idsInfo, 1);
+			}
 		} else {
 			this.set_ship_infocard();
 		}

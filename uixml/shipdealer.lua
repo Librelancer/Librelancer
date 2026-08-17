@@ -117,7 +117,10 @@ class shipdealer : shipdealer_Designer with ChildWindow
         }
         e.item_infocard.Infocard = nil
         e.item_infocard.Visible = true
+        e.item_infocards.Visible = false
         e.ship_infocards.Visible = false
+        e.item_infocard1.Infocard = nil
+        e.item_infocard_stats.Infocard = nil
         e.ship_infocard1.Infocard = nil
         e.ship_infocard_stats.Infocard = nil
         e.shiplist_credits_text.Text = StringFromID(STRID_CREDITS) + NumberToStringCS(Game.GetCredits(), "N0")
@@ -132,7 +135,10 @@ class shipdealer : shipdealer_Designer with ChildWindow
         e.shiplist.Visible = false
         e.item_infocard.Infocard = nil
         e.item_infocard.Visible = true
+        e.item_infocards.Visible = false
         e.ship_infocards.Visible = false
+        e.item_infocard1.Infocard = nil
+        e.item_infocard_stats.Infocard = nil
         e.shipitems.Visible = true
         this.change_category("weapons")
         this.set_buysell("hidden", 0)
@@ -155,16 +161,54 @@ class shipdealer : shipdealer_Designer with ChildWindow
         for (cat, button in pairs(this.categories)) {
             button.Selected = (cat == category)
         }
+        if (e.shipitems.Visible)
+            this.show_selected_ship_infocard();
+    }
+
+    show_selected_ship_infocard()
+    {
+        local e = this.Elements
+        e.item_infocard.Visible = false
+        e.item_infocards.Visible = false
+        e.ship_infocards.Visible = true
+        e.item_infocard.Infocard = nil
+        e.ship_infocard1.Infocard = nil
+        e.ship_infocard_stats.Infocard = nil
+
+        local infocards = Game.ShipDealer.GetSelectedShipInfocards()
+        if (infocards == nil)
+            return;
+
+        e.ship_infocard1.Infocard = infocards[1]
+        if (infocards[2] != nil && infocards[3] != nil) {
+            e.ship_infocard_stats.SetColumnInfocards(infocards[2], infocards[3])
+        } elseif (infocards[2] != nil) {
+            e.ship_infocard_stats.Infocard = infocards[2]
+        } else {
+            e.ship_infocard_stats.Infocard = infocards[3]
+        }
     }
 
     setinfocard(good)
     {
         local e = this.Elements
-        e.item_infocard.Visible = true
+        e.item_infocard.Visible = false
+        e.item_infocards.Visible = false
         e.ship_infocards.Visible = false
+        e.item_infocard1.Infocard = nil
+        e.item_infocard_stats.Infocard = nil
         if (good.IdsInfo != 0) {
-            e.item_infocard.Infocard = GetInfocard(good.IdsInfo);
+            local stats = Game.Trader.GetEquipmentStats(good)
+            if (stats != nil) {
+                e.item_infocards.Visible = true
+                e.item_infocard1.Infocard = GetInfocard(good.IdsInfo)
+                e.item_infocard_stats.SetColumnInfocards(stats[1], stats[2])
+            } else {
+                e.item_infocard.Visible = true
+                e.item_infocard.Infocard = GetInfocard(good.IdsInfo)
+            }
         } elseif (good.IdsHardpointDescription != 0) {
+            e.item_infocard.Visible = true
             e.item_infocard.SetString(StringFromID(good.IdsHardpointDescription));
         }
     }
@@ -290,6 +334,7 @@ class shipdealer : shipdealer_Designer with ChildWindow
         local e = this.Elements;
         e.ship_preview_panel.Visible = true
         e.item_infocard.Visible = false
+        e.item_infocards.Visible = false
         e.ship_infocards.Visible = true
         e.ship_preview.ModelPath = ship.Model
         e.ship_name.Strid = ship.IdsName
@@ -297,15 +342,12 @@ class shipdealer : shipdealer_Designer with ChildWindow
         e.ship_infocard1.Infocard = ship.IdsInfo1 > 0 ? GetInfocard(ship.IdsInfo1) : nil
         local statsKeys = ship.IdsInfo2 > 0 ? GetInfocard(ship.IdsInfo2) : nil
         local statsValues = ship.IdsInfo3 > 0 ? GetInfocard(ship.IdsInfo3) : nil
-        if (statsKeys != nil && statsValues != nil)
+        if (statsKeys != nil && statsValues != nil) {
             e.ship_infocard_stats.SetColumnInfocards(statsKeys, statsValues)
-        elseif (statsKeys != nil)
+        } elseif (statsKeys != nil) {
             e.ship_infocard_stats.Infocard = statsKeys
-        else
+        } else {
             e.ship_infocard_stats.Infocard = statsValues
+        }
     }
 }
-
-
-
-

@@ -622,6 +622,8 @@ public class TestingApi
         public UIInventoryItem[] GetPlayerGoods(string filter) => pitems;
         public UIInventoryItem[] GetTraderGoods(string filter) => titems;
 
+        public Infocard?[]? GetEquipmentStats(UIInventoryItem item) => null;
+
         public float GetHoldSize() => 60;
 
         public float GetUsedHoldSpace() => 30;
@@ -806,6 +808,10 @@ public class TestingApi
 
     public Infocard GetPlayerShipInfocard() => _ScannedInfocard;
 
+    public Infocard?[]? GetShipInfocards(bool playerShip) => null;
+
+    public Infocard?[]? GetEquipmentStats(UIInventoryItem item) => null;
+
     private Closure scanHandler = null!;
 
     public void OnUpdateScannedInventory(Closure handler)
@@ -857,6 +863,8 @@ public class FakeShipDealer
         Model = @"DATA\ships\civilian\cv_starflier\cv_starflier.cmp",
         Icon = @"DATA\Equipment\models\commodities\nn_icons\cv_starflier.3db",
     };
+
+    public Infocard?[]? GetSelectedShipInfocards() => null;
 
     public void StartPurchase(UISoldShip ship, Closure callback)
     {

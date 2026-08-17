@@ -40,11 +40,17 @@
 	<Panel id="cargo_space_panel" X="14" Y="218" Width="116" Height="28">
 		<TextBlock TextColor="text" TextShadow="#000000FF" Text="Cargo Space" HorizontalAlignment="Left" Height="16" Width="100" X="0" Y="12" TextSize="9"/>
 	</Panel>
-	<InfocardDisplay id="item_infocard" X="40" Y="270" Width="545" Height="120" >
+	<InfocardDisplay id="item_infocard" X="40" Y="270" Width="545" Height="120"
+		TextColor="rollover_text" TextShadow="black" FontScale="0.40" BoldFirstLine="true" FirstLineColor="text" FirstLineScale="1.15" CenterFirstLine="true" >
 
 	</InfocardDisplay>
+	<Panel id="item_infocards" X="0" Y="270" Width="624" Height="120" Visible="false">
+		<InfocardDisplay id="item_infocard1" X="40" Y="0" Width="245" Height="120"
+			TextColor="rollover_text" TextShadow="black" FontScale="0.40" BoldFirstLine="true" FirstLineColor="text" FirstLineScale="1.15" CenterFirstLine="true" />
+		<InfocardDisplay id="item_infocard_stats" X="335" Y="0" Width="235" Height="120"
+			TextColor="rollover_text" TextShadow="black" FontScale="0.40" ColumnSplit="0.62" BoldFirstColumnLine="true" FirstColumnLineColor="text" FirstColumnLineScale="1.15" />
+	</Panel>
 </Panel>
 </Panel>
 </Panel>
 </Scene>
-

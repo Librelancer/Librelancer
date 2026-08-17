@@ -5,6 +5,17 @@ if ($IsMacOS -or $IsLinux) {
 }
 $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
 
+$RebuildInterface = $false
+$BuildArgs = @()
+foreach($arg in $args)
+{
+  if ($arg -eq '--rebuild-interface') {
+    $RebuildInterface = $true
+  } else {
+    $BuildArgs += $arg
+  }
+}
+
 [string] $DotNetVersion= ''
 foreach($line in Get-Content (Join-Path $PSScriptRoot 'build.config'))
 {
@@ -90,4 +101,11 @@ if($SDKResult -eq "notfound") {
 # RUN BUILD SCRIPT
 ###########################################################################
 Set-Location -Path $PSScriptRoot
-dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- $args
+if ($RebuildInterface) {
+    dotnet build ./src/Editor/InterfaceEdit/InterfaceEdit.csproj -p:RestoreUseStaticGraphEvaluation=true --verbosity minimal -m:1 -nr:false
+    if ($LastExitCode -ne 0) { exit 1 }
+    dotnet run --project ./src/Editor/InterfaceEdit/InterfaceEdit.csproj --no-build -- --compile
+    if ($LastExitCode -ne 0) { exit 1 }
+}
+
+dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- $BuildArgs

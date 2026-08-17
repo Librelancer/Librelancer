@@ -10,6 +10,7 @@ using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Interface;
+using LibreLancer.Infocards;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Resources;
@@ -46,6 +47,24 @@ namespace LibreLancer.Client
         public UISoldShip? PlayerShip()
         {
             return session.PlayerShip == null ? null : ShipInfo(session.PlayerShip);
+        }
+
+        public Infocard?[]? GetSelectedShipInfocards()
+        {
+            if (selectedShip == null)
+                return null;
+
+            var extraIdsInfo = selectedShip.ExtraIdsInfo ?? [];
+            Infocard? Get(int index) => extraIdsInfo.Length > index && extraIdsInfo[index] > 0
+                ? session.Game.GameData.GetInfocard(extraIdsInfo[index], session.Game.Fonts)
+                : null;
+
+            var description = Get(0);
+            var statsLabels = Get(1);
+            var statsValues = Get(2);
+            return description == null && statsLabels == null && statsValues == null
+                ? null
+                : [description, statsLabels, statsValues];
         }
 
         public UISoldShip[] SoldShips()
@@ -285,6 +304,7 @@ namespace LibreLancer.Client
                     ui.Icon = equip.Good.Ini.ItemIcon;
                     ui.IdsInfo = equip.IdsInfo;
                     ui.IdsName = equip.IdsName;
+                    ui.Equipment = equip;
                     ui.Price = GetPrice(equip.Good);
                     ui.MountIcon = true;
                     ui.CanMount = true;
@@ -335,6 +355,7 @@ namespace LibreLancer.Client
                     Combinable = g.Ini.Combinable,
                     IdsInfo = g.Equipment.IdsInfo,
                     IdsName = g.Equipment.IdsName,
+                    Equipment = g.Equipment,
                     MountIcon = !string.IsNullOrEmpty(g.Equipment.HpType),
                     CanMount = CanMount(g.Equipment.HpType, null),
                     Price = price
@@ -387,6 +408,7 @@ namespace LibreLancer.Client
                     Combinable = g.Ini.Combinable,
                     IdsInfo = g.Equipment.IdsInfo,
                     IdsName = g.Equipment.IdsName,
+                    Equipment = g.Equipment,
                     Price = price
                 });
             }

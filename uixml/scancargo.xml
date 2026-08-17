@@ -33,14 +33,16 @@
             </Panel>
             <Panel id="ship_infocard_panel" Anchor="TopRight" X="18" Y="45" Width="190" Height="210">
                 <TextBlock id="ship_infocard_title" Anchor="TopCenter" Width="190" Height="24" VerticalAlignment="Top" TextSize="11" Strid="903" TextColor="text" TextShadow="Black"/>
-                <InfocardDisplay Anchor="TopCenter" id="ship_infocard" X="0" Y="23" Width="190" Height="190" >
-                    <InfocardDisplay.Scrollbar Width="8" InsetY="2"/>
+                <InfocardDisplay Anchor="TopCenter" id="ship_infocard" X="-10" Y="23" Width="190" Height="190"
+                    TextColor="rollover_text" TextShadow="black" FontScale="0.45" BoldFirstLine="true" FirstLineColor="text" FirstLineScale="1.15" CenterFirstLine="true" CenterAdditionalInfocardFirstLine="true" >
+                    <InfocardDisplay.Scrollbar Width="8" InsetY="2" X="5"/>
                 </InfocardDisplay>
             </Panel>
             <Panel id="item_infocard_panel" Anchor="TopRight" X="18" Y="45" Width="190" Height="210" Visible="false">
                 <TextBlock Anchor="TopCenter" Width="190" Height="24" VerticalAlignment="Top" TextSize="11" Strid="904" TextColor="text" TextShadow="Black"/>
-                <InfocardDisplay Anchor="TopCenter" id="item_infocard" X="0" Y="23" Width="190" Height="190" >
-                    <InfocardDisplay.Scrollbar Width="8" InsetY="2"/>
+                <InfocardDisplay Anchor="TopCenter" id="item_infocard" X="-10" Y="23" Width="190" Height="190"
+                    TextColor="rollover_text" TextShadow="black" FontScale="0.45" BoldFirstLine="true" FirstLineColor="text" FirstLineScale="1.15" CenterFirstLine="true" CenterAdditionalInfocardFirstLine="true" >
+                    <InfocardDisplay.Scrollbar Width="8" InsetY="2" X="5"/>
                 </InfocardDisplay>
             </Panel>
         </Panel>
