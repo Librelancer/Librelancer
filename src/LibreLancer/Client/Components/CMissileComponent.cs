@@ -16,7 +16,6 @@ public class CDeployedMunitionComponent : GameComponent
 
     public override void Register(GameWorld world)
     {
-.
         if (Munition == null)
         {
             return;
