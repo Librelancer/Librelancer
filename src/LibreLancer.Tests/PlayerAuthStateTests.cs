@@ -41,7 +41,10 @@ public class PlayerAuthStateTests
                 Health = 100,
                 Orientation = orient,
                 Position = ogs[i - 1].Position + Permutation(rand),
-                Shield = 100
+                Shield = 100,
+                TradelaneState = (TradelaneMoveState)(i % 4),
+                TradelaneTargetSpeed = 300 + (i % 4) * 500,
+                TradelaneProgress = (i % 10) / 10f
             };
         }
 
@@ -58,6 +61,9 @@ public class PlayerAuthStateTests
                 $"({ogs[i].LinearVelocity} != {read[i].LinearVelocity})");
             Assert.True((ogs[i].AngularVelocity - read[i].AngularVelocity).Length() < 0.001f, $"AngularVelocity differs {i} " +
                 $"({ogs[i].AngularVelocity} != {read[i].AngularVelocity})");
+            Assert.Equal(ogs[i].TradelaneState, read[i].TradelaneState);
+            Assert.Equal(ogs[i].TradelaneTargetSpeed, read[i].TradelaneTargetSpeed);
+            Assert.Equal(ogs[i].TradelaneProgress, read[i].TradelaneProgress, 3);
         }
 
     }

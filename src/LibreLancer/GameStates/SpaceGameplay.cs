@@ -721,6 +721,11 @@ namespace LibreLancer
             switch (e)
             {
                 case "FreeFlight":
+                    if (session.InTradelane)
+                    {
+                        session.SpaceRpc.ExitTradelane();
+                    }
+
                     pilotComponent!.Cancel();
                     return true;
                 case "Dock":
@@ -1436,6 +1441,10 @@ namespace LibreLancer
         {
             player.GetComponent<ShipPhysicsComponent>()!.Active = false;
             player.GetComponent<WeaponControlComponent>()!.Enabled = false;
+            if (!player.TryGetComponent<CTradelaneMoveComponent>(out _))
+            {
+                player.AddComponent(new CTradelaneMoveComponent(player));
+            }
             pilotComponent?.Cancel();
             RefreshActiveUserWaypoint(false);
         }
@@ -1450,6 +1459,10 @@ namespace LibreLancer
         {
             player.GetComponent<ShipPhysicsComponent>()!.Active = true;
             player.GetComponent<WeaponControlComponent>()!.Enabled = true;
+            if (player.TryGetComponent<CTradelaneMoveComponent>(out var tradelane))
+            {
+                player.RemoveComponent(tradelane);
+            }
         }
 
         private void GetCameraMatrices(out Matrix4x4 view, out Matrix4x4 projection)

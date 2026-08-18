@@ -100,6 +100,23 @@ public class SpacePlayer : ISpacePlayer
         });
     }
 
+    public void ExitTradelane()
+    {
+        world.EnqueueAction(() =>
+        {
+            if (!player.InTradelane)
+            {
+                return;
+            }
+
+            var obj = world.Players[player];
+            if (obj.TryGetComponent<STradelaneMoveComponent>(out var tradelane))
+            {
+                tradelane.RequestFreeFlight();
+            }
+        });
+    }
+
     public void UseRepairKits()
     {
         world.EnqueueAction(() =>

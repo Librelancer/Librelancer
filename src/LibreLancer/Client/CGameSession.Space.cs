@@ -289,6 +289,11 @@ public partial class CGameSession
         var hp = gp.player.GetComponent<CHealthComponent>();
         var state = p.PlayerState;
 
+        if (gp.player.TryGetComponent<CTradelaneMoveComponent>(out var tradelane))
+        {
+            tradelane.ApplyState(state);
+        }
+
         if (hp != null)
         {
             hp.CurrentHealth = state.Health;
@@ -346,6 +351,10 @@ public partial class CGameSession
                 gp.player.SetLocalTransform(new Transform3D(state.Position, state.Orientation));
                 gp.player.PhysicsComponent!.Body!.LinearVelocity = state.LinearVelocity;
                 gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
+                if (gp.player.TryGetComponent<CTradelaneMoveComponent>(out var authoritativeTradelane))
+                {
+                    authoritativeTradelane.ResetToAuthoritative(state);
+                }
                 phys.SetCruiseState(state.CruiseChargePct, state.CruiseAccelPct);
 
                 for (i = i + 1; i < moveState.Count; i++)
@@ -433,6 +442,15 @@ public partial class CGameSession
 
     private void Resimulate(int i, SpaceGameplay gameplay)
     {
+        if (gameplay.player.TryGetComponent<CTradelaneMoveComponent>(out var tradelane) &&
+            tradelane.State != TradelaneMoveState.None)
+        {
+            tradelane.Predict(1 / 60.0);
+            moveState[i].Position = gameplay.player.PhysicsComponent!.Body!.Position;
+            moveState[i].Orientation = gameplay.player.PhysicsComponent.Body.Orientation;
+            return;
+        }
+
         var physComponent = gameplay.player.GetComponent<ShipPhysicsComponent>();
         var player = gameplay.player;
         physComponent!.CurrentStrafe = moveState[i].Strafe;

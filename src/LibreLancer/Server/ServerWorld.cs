@@ -1254,6 +1254,7 @@ namespace LibreLancer.Server
 
                 var selfPlayer = player.Value.GetComponent<SPlayerComponent>();
                 var phys = player.Value.GetComponent<ShipPhysicsComponent>();
+                var hasTradelane = player.Value.TryGetComponent<STradelaneMoveComponent>(out var tradelane);
                 var state = new PlayerAuthState
                 {
                     Health = phealth,
@@ -1263,7 +1264,10 @@ namespace LibreLancer.Server
                     LinearVelocity = player.Value.PhysicsComponent!.Body.LinearVelocity,
                     AngularVelocity = MathHelper.ApplyEpsilon(player.Value.PhysicsComponent.Body.AngularVelocity),
                     CruiseAccelPct = phys!.CruiseAccelPct,
-                    CruiseChargePct = phys.ChargePercent
+                    CruiseChargePct = phys.ChargePercent,
+                    TradelaneState = hasTradelane ? tradelane.MoveState : TradelaneMoveState.None,
+                    TradelaneTargetSpeed = hasTradelane ? tradelane.TargetSpeed : 0,
+                    TradelaneProgress = hasTradelane ? tradelane.Progress : 0
                 };
 
                 if (player.Key.SinglePlayer)

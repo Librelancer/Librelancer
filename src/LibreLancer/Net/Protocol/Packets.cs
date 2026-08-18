@@ -856,6 +856,14 @@ namespace LibreLancer.Net.Protocol
         }
     }
 
+    public enum TradelaneMoveState : byte
+    {
+        None,
+        Transit,
+        Slowdown,
+        ManualExit
+    }
+
     public struct PlayerAuthState
     {
         public Vector3 Position;
@@ -867,6 +875,9 @@ namespace LibreLancer.Net.Protocol
         public float Shield;
         public float CruiseChargePct;
         public float CruiseAccelPct;
+        public TradelaneMoveState TradelaneState;
+        public float TradelaneTargetSpeed;
+        public float TradelaneProgress;
         public static PlayerAuthState Read(ref BitReader reader, PlayerAuthState src)
         {
             var pa = new PlayerAuthState
@@ -879,7 +890,10 @@ namespace LibreLancer.Net.Protocol
                 Health = reader.GetBool() ? reader.GetFloat() : src.Health,
                 Shield = reader.GetBool() ? reader.GetFloat() : src.Shield,
                 CruiseChargePct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseChargePct,
-                CruiseAccelPct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseAccelPct
+                CruiseAccelPct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseAccelPct,
+                TradelaneState = reader.GetBool() ? (TradelaneMoveState)reader.GetUInt(2) : src.TradelaneState,
+                TradelaneTargetSpeed = reader.GetBool() ? reader.GetFloat() : src.TradelaneTargetSpeed,
+                TradelaneProgress = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.TradelaneProgress
             };
             return pa;
         }
@@ -953,6 +967,36 @@ namespace LibreLancer.Net.Protocol
             {
                 writer.PutBool(true);
                 writer.PutRangedFloat(CruiseAccelPct, 0, 1, 12);
+            }
+
+            if (forced != 0 && TradelaneState == prev.TradelaneState)
+            {
+                writer.PutBool(false);
+            }
+            else
+            {
+                writer.PutBool(true);
+                writer.PutUInt((uint)TradelaneState, 2);
+            }
+
+            if (forced != 2 && TradelaneTargetSpeed == prev.TradelaneTargetSpeed)
+            {
+                writer.PutBool(false);
+            }
+            else
+            {
+                writer.PutBool(true);
+                writer.PutFloat(TradelaneTargetSpeed);
+            }
+
+            if (forced != 4 && NetPacking.QuantizedEqual(TradelaneProgress, prev.TradelaneProgress, 0, 1, 12))
+            {
+                writer.PutBool(false);
+            }
+            else
+            {
+                writer.PutBool(true);
+                writer.PutRangedFloat(TradelaneProgress, 0, 1, 12);
             }
         }
     }
