@@ -241,23 +241,28 @@ namespace LibreLancer.Server
                 return false;
             }
 
+
+            var seekerRange = missile.Missile.Def.SeekerRange;
+            if (string.IsNullOrWhiteSpace(missile.Missile.Def.Seeker) || seekerRange <= 0)
+            {
+                return false;
+            }
+
+            var seekerRangeSquared = seekerRange * seekerRange;
+
             var missilePosition = missile.Parent.PhysicsComponent?.Body.Position ?? missile.Parent.LocalTransform.Position;
-            var targetOwner = missile.Target;
 
             foreach (var obj in GameWorld.Objects)
             {
                 if (!obj.Flags.HasFlag(GameObjectFlags.Exists) ||
                     !obj.TryGetComponent<SDeployableComponent>(out var deployable) ||
                     deployable.Munition.Def is not Countermeasure countermeasure ||
-                    !ReferenceEquals(deployable.Owner, targetOwner) ||
                     obj.PhysicsComponent?.Body == null)
                 {
                     continue;
                 }
 
-                var rangeSquared = countermeasure.Range * countermeasure.Range;
-                if (countermeasure.Range < 0 ||
-                    Vector3.DistanceSquared(missilePosition, obj.PhysicsComponent.Body.Position) > rangeSquared)
+                if (Vector3.DistanceSquared(missilePosition, obj.PhysicsComponent.Body.Position) > seekerRangeSquared)
                 {
                     continue;
                 }
@@ -902,7 +907,7 @@ namespace LibreLancer.Server
             if (arch.Hitpoints > 0)
             {
                 gameobj.AddComponent(new SHealthComponent(gameobj)
-                    { CurrentHealth = arch.Hitpoints, MaxHealth = arch.Hitpoints });
+                { CurrentHealth = arch.Hitpoints, MaxHealth = arch.Hitpoints });
                 gameobj.AddComponent(new SDestroyableComponent(gameobj, this));
             }
 
@@ -950,7 +955,7 @@ namespace LibreLancer.Server
                     go.PhysicsComponent.Body.Impulse(initialImpulse.Value);
                 spawnedObjects.Add(go);
                 go.AddComponent(new SHealthComponent(go)
-                    { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
+                { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
                 go.AddComponent(new SDestroyableComponent(go, this));
                 var lt = new LootComponent(go);
                 lt.Cargo.Add(new BasicCargo(good, count));
@@ -1030,7 +1035,7 @@ namespace LibreLancer.Server
                 }
 
                 var collider = src.Collision;
-                var mdl = ((IRigidModelFile) src.Drawable).CreateRigidModel(false, Server.Resources);
+                var mdl = ((IRigidModelFile)src.Drawable).CreateRigidModel(false, Server.Resources);
                 var newmodel = mdl.Parts[part].CloneAsRoot(mdl);
                 var id = IdGenerator.Allocate();
                 var go = new GameObject(newmodel, collider, part, mass, false)
@@ -1338,12 +1343,12 @@ namespace LibreLancer.Server
 
                 if (obj.TryGetComponent<SHealthComponent>(out var health))
                 {
-                    update.Hull = (int) health.CurrentHealth;
+                    update.Hull = (int)health.CurrentHealth;
                     var sh = obj.GetFirstChildComponent<SShieldComponent>();
 
                     if (sh != null)
                     {
-                        update.Shield = (int) sh.Health;
+                        update.Shield = (int)sh.Health;
                     }
                     if (health.EquipmentHealths.Count > 0)
                     {
