@@ -98,7 +98,7 @@ namespace LibreLancer.World.Components
             physics.CurrentStrafe = strafe;
             var escortSpeedFactor = GetEscortSpeedFactor();
             physics.EnginePower = InThrottle * escortSpeedFactor;
-            physics.ThrustEnabled = Thrust;
+            physics.ThrustRequested = Thrust;
             physics.CruiseEnabled = Cruise;
             physics.CruiseSpeedOffset = Cruise ? CruiseSpeedOffset : 0;
             if (Cruise && escortSpeedFactor < 1)

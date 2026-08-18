@@ -440,7 +440,7 @@ public partial class CGameSession
         physComponent.CruiseEnabled = moveState[i].CruiseEnabled;
         physComponent.CruiseSpeedOffset = moveState[i].CruiseEnabled ? moveState[i].CruiseSpeedOffset : 0;
         physComponent.Steering = moveState[i].Steering;
-        physComponent.ThrustEnabled = moveState[i].Thrust;
+        physComponent.ThrustRequested = moveState[i].Thrust;
         physComponent.EngineKillEnabled = moveState[i].EngineKill;
         physComponent.Update(1 / 60.0f, gameplay.world);
         gameplay.player.PhysicsComponent!.Body!.PredictionStep(1 / 60.0f);
