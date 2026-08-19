@@ -311,6 +311,13 @@ namespace LibreLancer.World
             }
         }
 
+        internal void InvalidateWorldTransform()
+        {
+            TransformDirty = true;
+            for (var i = 0; i < Children.Count; i++)
+                Children[i].InvalidateWorldTransform();
+        }
+
         public void AddComponent<T>(T component) where T : GameComponent
         {
             componentLookup.TryAdd(typeof(T), component);

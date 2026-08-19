@@ -1178,6 +1178,10 @@ namespace LibreLancer
             var otherPos = Selection.Selected.WorldTransform.Position;
             var otherVel = Selection.Selected.PhysicsComponent.Body.LinearVelocity;
             var speed = weapons.GetAverageGunSpeed();
+            if (speed <= float.Epsilon)
+            {
+                return false;
+            }
             Aiming.GetTargetLeading(otherPos - myPos, otherVel - myVel, speed, out var t);
             worldPos = (otherPos + otherVel * t);
             bool vis;

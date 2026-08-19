@@ -218,7 +218,8 @@ namespace LibreLancer.Missions
                 sol.Position,
                 sol.Orientation,
                 sol.IdsName,
-                sol.Base
+                sol.Base,
+                Player.Game.GameData.Items.GetPilot(sol.Pilot!)
             );
 
             if (obj.TryGetComponent<SDestroyableComponent>(out var dstComp))

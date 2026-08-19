@@ -214,6 +214,7 @@ namespace LibreLancer.Server
             obj.AddComponent(new ShipSteeringComponent(obj));
             obj.AddComponent(new ShipPhysicsComponent(obj, ship));
             obj.AddComponent(new WeaponControlComponent(obj));
+            SAutoTurretComponent.TryAdd(obj, () => npcComponent.Pilot?.Gun);
             obj.AddComponent(new SDestroyableComponent(obj, World));
             obj.AddComponent(new DirectiveRunnerComponent(obj));
             if (neutralTo != null && obj.TryGetComponent<SRepComponent>(out var rep))

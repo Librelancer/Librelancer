@@ -7,6 +7,7 @@ namespace LibreLancer.Server.Components
     {
         public bool SendSolarUpdate = false;
         public bool SendPartsUpdate = false;
+        public bool SendAutoTurretUpdate = false;
         private int stopUpdateTimer = 0;
         private int stopPartsUpdateTimer = 0;
         private const int UPDATE_TIMEOUT_TICKS = 8 * 60;
