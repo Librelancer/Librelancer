@@ -30,6 +30,15 @@ namespace LibreLancer.Infocards
                 }
                 var src = (InfocardTextNode)n;
                 var d = src.ManualFont ?? fonts.GetInfocardFont(src.FontIndex ?? style.FontIndex);
+                string fontName = d.FontName;
+                if (string.IsNullOrWhiteSpace(fontName))
+                {
+                    fontName = "Arial";
+                }
+                else if (fontName[0] == '$')
+                {
+                    fontName = fonts.ResolveNickname(fontName.Substring(1));
+                }
                 var tn = new RichTextTextNode()
                 {
                     Bold = src.Bold ?? style.Bold,
@@ -39,7 +48,7 @@ namespace LibreLancer.Infocards
                     Alignment = src.Alignment ?? style.Alignment,
                     Shadow = style.TextShadow,
                     Contents = src.Contents,
-                    FontName = d.FontName,
+                    FontName = fontName,
                     FontSize = d.FontSize
                 };
                 rt.Add(tn);
