@@ -79,9 +79,22 @@ class commodity : commodity_Designer with ChildWindow
 	setinfocard(good)
 	{
 		local e = this.Elements
+		e.item_infocard.Visible = false
+		e.item_infocards.Visible = false
+		e.item_infocard1.Infocard = nil
+		e.item_infocard_stats.Infocard = nil
 		if (good.IdsInfo != 0) {
-			e.item_infocard.Infocard = GetInfocard(good.IdsInfo, 1);
+			local stats = Game.GetEquipmentStats(good)
+			if (stats != nil) {
+				e.item_infocards.Visible = true
+				e.item_infocard1.Infocard = GetInfocard(good.IdsInfo)
+				e.item_infocard_stats.SetColumnInfocards(stats[1], stats[2])
+			} else {
+				e.item_infocard.Visible = true
+				e.item_infocard.Infocard = GetInfocard(good.IdsInfo)
+			}
 		} elseif (good.IdsHardpointDescription != 0) {
+			e.item_infocard.Visible = true
 			e.item_infocard.SetString(StringFromID(good.IdsHardpointDescription));
 		}
 	}

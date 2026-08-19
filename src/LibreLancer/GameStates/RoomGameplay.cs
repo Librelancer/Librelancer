@@ -308,6 +308,7 @@ namespace LibreLancer
             public double GetCredits() => g.session.Credits;
 
             public UIInventoryItem[] GetPlayerInventory(string filter) => g.session.GetPlayerInventory(filter);
+            public Infocard?[]? GetEquipmentStats(UIInventoryItem item) => Trader.GetEquipmentStats(item);
 
             public float GetCargoHoldSize() => g.session.GetCargoHoldSize();
             public float GetUsedCargoHoldSpace() => g.session.GetUsedCargoHoldSpace();

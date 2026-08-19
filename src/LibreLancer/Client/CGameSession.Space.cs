@@ -1000,6 +1000,22 @@ public partial class CGameSession
         return ids > 0 ? Game.GameData.GetInfocard(ids) : null;
     }
 
+    public Infocard?[]? GetShipInfocards(Ship? ship)
+    {
+        if (ship == null)
+            return null;
+
+        var extraIdsInfo = ship.ExtraIdsInfo ?? [];
+        var shipInfo = extraIdsInfo.Length > 0 && extraIdsInfo[0] > 0
+            ? Game.GameData.GetInfocard(extraIdsInfo[0])
+            : null;
+        var stats = ship.IdsInfo > 0
+            ? Game.GameData.GetInfocard(ship.IdsInfo)
+            : null;
+
+        return shipInfo == null && stats == null ? null : [shipInfo, stats];
+    }
+
     private UIInventoryItem[] BuildScanList(NetLoadout loadout)
     {
         var list = loadout.Items

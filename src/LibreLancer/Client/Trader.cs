@@ -4,12 +4,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Interface;
+using LibreLancer.Infocards;
 using LibreLancer.Server;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Client
@@ -19,6 +22,169 @@ namespace LibreLancer.Client
     {
         private static Dictionary<string, Func<Equipment, bool>> filters = new();
         private Closure? handler;
+
+        private Infocard BuildStatsInfocard(string[] lines, bool leadingBlank = false, bool boldFirstLine = false)
+        {
+            var nodes = new List<InfocardNode>(lines.Length * 2 + (leadingBlank ? 1 : 0));
+
+            if (leadingBlank)
+                nodes.Add(new InfocardParagraphNode());
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                nodes.Add(new InfocardTextNode
+                {
+                    Contents = lines[i],
+                    Bold = boldFirstLine && i == 0
+                });
+
+                if (i < lines.Length - 1)
+                    nodes.Add(new InfocardParagraphNode());
+            }
+
+            return new Infocard { Nodes = nodes };
+        }
+
+        private static string FormatStat(float value) =>
+            value.ToString("0.##", CultureInfo.InvariantCulture);
+
+        private Infocard[] BuildStatsCards(string[] labels, string[] values)
+        {
+            var continuousStats = new string[labels.Length];
+            continuousStats[0] = labels[0];
+            for (int i = 1; i < labels.Length; i++)
+                continuousStats[i] = $"{labels[i]} {values[i - 1]}";
+
+            return [
+                BuildStatsInfocard(labels, boldFirstLine: true),
+                BuildStatsInfocard(values, leadingBlank: true),
+                BuildStatsInfocard(continuousStats, boldFirstLine: true)
+            ];
+        }
+
+        public Infocard?[]? GetEquipmentStats(UIInventoryItem item)
+        {
+            if (item == null)
+                return null;
+
+            var equipment = item.Equipment;
+            if (equipment == null && item.Good != null)
+                equipment = session.Game.GameData.Items.Equipment.Get(item.Good);
+
+            if (equipment == null)
+                return null;
+
+            if (equipment is ShieldEquipment shield)
+            {
+                return BuildStatsCards(
+                    [
+                        "Stats",
+                        "Shield Type:",
+                        "Max Capacity:",
+                        "Regeneration Rate:",
+                        "Offline Rebuild Time:",
+                        "Offline Threshold:",
+                        "Constant Power Draw:",
+                        "Rebuild Power Draw:"
+                    ],
+                    [
+                        shield.Def.ShieldType ?? "Unknown",
+                        FormatStat(shield.Def.MaxCapacity),
+                        FormatStat(shield.Def.RegenerationRate),
+                        FormatStat(shield.Def.OfflineRebuildTime),
+                        FormatStat(shield.Def.OfflineThreshold),
+                        FormatStat(shield.Def.ConstantPowerDraw),
+                        FormatStat(shield.Def.RebuildPowerDraw)
+                    ]);
+            }
+
+            if (equipment is ThrusterEquipment thruster)
+            {
+                return BuildStatsCards(
+                    ["Stats", "Maximum Force:", "Power Usage:"],
+                    [FormatStat(thruster.Force), FormatStat(thruster.Drain)]);
+            }
+
+            var hullDamage = 0f;
+            var shieldDamage = 0f;
+            var lifetime = 0f;
+            var muzzleVelocity = 0f;
+            var refireDelay = 0f;
+            var powerUsage = 0f;
+            Motor? motor = null;
+            //Do not confuse, this is building the equipment stats infocard line by line here, because its not like ships which are 
+            //defined on the dlls, equipment is defined in game data and must be built.
+            switch (equipment)
+            {
+                case GunEquipment weapon:
+                    hullDamage = weapon.Munition.Def.HullDamage;
+                    shieldDamage = weapon.Munition.Def.EnergyDamage;
+                    lifetime = weapon.Munition.Def.Lifetime;
+                    muzzleVelocity = weapon.Def.MuzzleVelocity;
+                    refireDelay = weapon.Def.RefireDelay;
+                    powerUsage = weapon.Def.PowerUsage;
+                    break;
+                case MissileLauncherEquipment launcher:
+                    hullDamage = launcher.Munition.Def.HullDamage;
+                    shieldDamage = launcher.Munition.Def.EnergyDamage;
+                    lifetime = launcher.Munition.Def.Lifetime;
+                    muzzleVelocity = launcher.Def.MuzzleVelocity;
+                    refireDelay = launcher.Def.RefireDelay;
+                    powerUsage = launcher.Def.PowerUsage;
+                    motor = launcher.Munition.Motor;
+                    break;
+                case CountermeasureEquipment countermeasure when countermeasure.Munition != null:
+                    hullDamage = countermeasure.Munition.Def.HullDamage;
+                    shieldDamage = countermeasure.Munition.Def.EnergyDamage;
+                    lifetime = countermeasure.Munition.Def.Lifetime;
+                    muzzleVelocity = countermeasure.Def.MuzzleVelocity;
+                    refireDelay = countermeasure.Def.RefireDelay;
+                    powerUsage = countermeasure.Def.PowerUsage;
+                    break;
+                case MineDropperEquipment mine when mine.Mine != null:
+                    hullDamage = mine.Mine.Def.HullDamage;
+                    shieldDamage = mine.Mine.Def.EnergyDamage;
+                    lifetime = mine.Mine.Def.Lifetime;
+                    muzzleVelocity = mine.Def.MuzzleVelocity;
+                    refireDelay = mine.Def.RefireDelay;
+                    powerUsage = mine.Def.PowerUsage;
+                    break;
+                default:
+                    return null;
+            }
+
+            var weaponClass = 0;
+            if (equipment.HpType != null &&
+                session.Game.GameData.Items.Ini.HpTypes.Types.TryGetValue(equipment.HpType, out var hpType))
+            {
+                weaponClass = hpType.Class;
+            }
+
+            var range = MissileLauncherComponent.CalculateRange(lifetime, muzzleVelocity, motor);
+            var labels = new[]
+            {
+                "Stats",
+                "Gun/Missile Class:",
+                "Hull Damage Per Shot:",
+                "Shield Damage Per Shot:",
+                "Range:",
+                "Projectile Speed:",
+                "Refire Delay:",
+                "Energy Usage:"
+            };
+            var values = new[]
+            {
+                FormatStat(weaponClass),
+                FormatStat(hullDamage),
+                FormatStat(shieldDamage),
+                $"{FormatStat(range)}m",
+                $"{FormatStat(muzzleVelocity)} m/s",
+                FormatStat(refireDelay),
+                FormatStat(powerUsage)
+            };
+
+            return BuildStatsCards(labels, values);
+        }
 
         private static bool AllowAll(Equipment equip) => true;
         private static bool CommodityFilter(Equipment equip) => equip is CommodityEquipment;

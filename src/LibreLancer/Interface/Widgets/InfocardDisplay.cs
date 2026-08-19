@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Infocards;
@@ -98,6 +99,10 @@ namespace LibreLancer.Interface
             {
                 field = value;
                 infocardRight = null;
+                currLeft?.RichText.Dispose();
+                currLeft = null;
+                currRight?.RichText.Dispose();
+                currRight = null;
             }
         }
 
@@ -109,10 +114,7 @@ namespace LibreLancer.Interface
         private BuiltInfocard? currRight;
 
         public Scrollbar Scrollbar { get; set; } = new();
-
-        private string? setString = null;
-        private string? setFont = null;
-        private int setSize = 0;
+        public float ColumnSplit { get; set; } = 0.5f;
 
         private InfocardDisplayStyle displayStyle = InfocardDisplayStyle.Default;
 
@@ -164,7 +166,7 @@ namespace LibreLancer.Interface
             {
                 if (i == null)
                     continue;
-                if (ic.Nodes.Count > 0)
+                if (ic.Nodes.Count > 0 && ic.Nodes[^1] is not InfocardParagraphNode)
                     ic.Nodes.Add(new InfocardParagraphNode());
                 ic.Nodes.AddRange(i.Nodes);
             }
@@ -238,11 +240,12 @@ namespace LibreLancer.Interface
             {
                 if (infocardRight != null)
                 {
-                    var lRect = myRectangle with { Width = myRectangle.Width * 0.5f };
+                    var split = Math.Clamp(ColumnSplit, 0.1f, 0.9f);
+                    var lRect = myRectangle with { Width = myRectangle.Width * split };
                     var rRect = myRectangle with
                     {
                         X = lRect.X + lRect.Width,
-                        Width = lRect.Width
+                        Width = myRectangle.Width - lRect.Width
                     };
                     DrawInfocard(drawList, context, Infocard, context.PointsToPixels(lRect), ref currLeft);
                     DrawInfocard(drawList, context, infocardRight, context.PointsToPixels(rRect), ref currRight);

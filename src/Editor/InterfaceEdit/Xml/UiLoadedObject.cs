@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Collections;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection.Emit;
@@ -266,7 +267,7 @@ internal abstract class UiLoadedProperty
 
     private static string LiteralFloat(float f)
     {
-        return f.ToString("0.###############");
+        return f.ToString("0.###############", CultureInfo.InvariantCulture);
     }
 
     protected static object ObjToString(object o)

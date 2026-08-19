@@ -307,10 +307,21 @@ partial class SpaceGameplay
 
         public UIInventoryItem[] GetScannedInventory(string filter) => g.session.GetScannedInventory(filter);
         public UIInventoryItem[] GetPlayerInventory(string filter) => g.session.GetPlayerInventory(filter);
+        public Infocard?[]? GetEquipmentStats(UIInventoryItem item) => new Trader(g.session).GetEquipmentStats(item);
 
         public float GetCargoHoldSize() => g.session.GetCargoHoldSize();
         public float GetUsedCargoHoldSpace() => g.session.GetUsedCargoHoldSpace();
         public Infocard? GetPlayerShipInfocard() => g.session.GetPlayerShipInfocard();
+
+        public Infocard?[]? GetShipInfocards(bool playerShip)
+        {
+            if (playerShip)
+                return g.session.GetShipInfocards(g.session.PlayerShip);
+
+            return g.Selection.Selected?.TryGetComponent<ShipComponent>(out var ship) == true
+                ? g.session.GetShipInfocards(ship.Ship)
+                : null;
+        }
 
         public Infocard? GetScannedShipInfocard()
         {
