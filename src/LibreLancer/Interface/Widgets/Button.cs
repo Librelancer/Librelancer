@@ -17,8 +17,8 @@ namespace LibreLancer.Interface
     public class Button : UiWidget
     {
         private StyledProperty<string> fontFamily = new("FontFamily");
-        private StyledProperty<float> marginLeft = new ("MarginLeft");
-        private StyledProperty<float> marginRight = new ("MarginRight");
+        private StyledProperty<float> marginLeft = new("MarginLeft");
+        private StyledProperty<float> marginRight = new("MarginRight");
         private StyledProperty<float> textSize = new("TextSize");
         private StyledProperty<string?> mouseEnterSound = new("MouseEnterSound");
         private StyledProperty<string> mouseDownSound = new("MouseDownSound");
@@ -32,62 +32,102 @@ namespace LibreLancer.Interface
         public float TextSize
         {
             get => textSize.Value;
-            set => textSize.Set(value);
+            set
+            {
+                textSize.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public string? FontFamily
         {
             get => fontFamily.Value;
-            set => fontFamily.Set(value);
+            set
+            {
+                fontFamily.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public float MarginLeft
         {
             get => marginLeft.Value;
-            set => marginLeft.Set(value);
+            set
+            {
+                marginLeft.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public float MarginRight
         {
             get => marginRight.Value;
-            set => marginRight.Set(value);
+            set
+            {
+                marginRight.Set(value);
+                StyleDirty = true;
+            }
         }
 
 
         public string? MouseEnterSound
         {
             get => mouseEnterSound.Value;
-            set => mouseEnterSound.Set(value);
+            set
+            {
+                mouseEnterSound.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public string? MouseDownSound
         {
             get => mouseDownSound.Value;
-            set => mouseDownSound.Set(value);
+            set
+            {
+                mouseDownSound.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public HorizontalAlignment HorizontalAlignment
         {
             get => horizontalAlignment.Value;
-            set => horizontalAlignment.Set(value);
+            set
+            {
+                horizontalAlignment.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public VerticalAlignment VerticalAlignment
         {
             get => verticalAlignment.Value;
-            set => verticalAlignment.Set(value);
+            set
+            {
+                verticalAlignment.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public InterfaceColor? TextColor
         {
             get => textColor.Value;
-            set => textColor.Set(value);
+            set
+            {
+                textColor.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public InterfaceColor? TextShadow
         {
             get => textShadow.Value;
-            set => textShadow.Set(value);
+            set
+            {
+                textShadow.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public bool DrawText { get; set; } = true;
@@ -227,7 +267,8 @@ namespace LibreLancer.Interface
             return appearance;
         }
 
-        internal void Draw(UiContext context, DrawList2D drawList, RectangleF myRectangle, bool hover, bool pressed, bool selected,
+        internal void Draw(UiContext context, DrawList2D drawList, RectangleF myRectangle, bool hover, bool pressed,
+            bool selected,
             bool enabled)
         {
             var s = ButtonState.Normal;
@@ -341,6 +382,7 @@ namespace LibreLancer.Interface
                     txt
                 );
             }
+
             appearance.Border?.Draw(context, drawList, ClientRectangle);
         }
 

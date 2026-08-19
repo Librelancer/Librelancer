@@ -321,7 +321,7 @@ partial class SpaceGameplay
 
             if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
             {
-                return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo, g.Game.Fonts);
+                return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo);
             }
 
             return null;
@@ -515,7 +515,7 @@ partial class SpaceGameplay
             }
 
             var ids = g.Selection.Selected.SystemObject.IdsInfo;
-            return g.Game.GameData.GetInfocard(ids, g.Game.Fonts);
+            return g.Game.GameData.GetInfocard(ids);
         }
 
         public string? CurrentInfoString() => g.Selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);

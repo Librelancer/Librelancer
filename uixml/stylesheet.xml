@@ -959,6 +959,8 @@
       </ButtonStyle.Hover>
     </HSliderStyle.Thumb>
   </HSliderStyle>
+  
+  <InfocardStyle TextColor="text" TextShadow="black"/>
 
   <RolloverStyle Font="$Rollover" TextColor="rollover_text" TextShadow="black">
     <RolloverStyle.Background><DisplayColor color="rollover_background"/></RolloverStyle.Background>

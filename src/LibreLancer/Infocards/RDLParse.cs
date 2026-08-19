@@ -99,26 +99,25 @@ namespace LibreLancer.Infocards
             }
         }
 
-        private static RichTextTextNode CopyAttributes(RichTextTextNode src)
+        private static InfocardTextNode CopyAttributes(InfocardTextNode src)
         {
-            return new RichTextTextNode()
+            return new InfocardTextNode()
             {
                 Bold = src.Bold,
                 Italic = src.Italic,
                 Underline = src.Underline,
-                FontName = src.FontName,
-                FontSize = src.FontSize,
+                FontIndex = src.FontIndex,
                 Color = src.Color,
                 Alignment = src.Alignment
             };
         }
 
         // Main Parsing
-        public static Infocard Parse(string? input, FontManager fonts, int defaultFont = 0)
+        public static Infocard Parse(string? input)
         {
             try
             {
-                return ParseInternal(input, fonts, defaultFont);
+                return ParseInternal(input);
             }
             catch (Exception)
             {
@@ -126,26 +125,24 @@ namespace LibreLancer.Infocards
                 {
                     Nodes =
                     [
-                        new RichTextTextNode()
-                            { FontName = "Arial", Color = Color4.Red, FontSize = 20, Contents = "PARSE FAILED" },
-                        new RichTextParagraphNode(),
-                        new RichTextParagraphNode(),
-                        new RichTextTextNode() { FontName = "Arial", FontSize = 14, Contents = input }
+                        new InfocardTextNode()
+                            { Color = Color4.Red, Contents = "PARSE FAILED" },
+                        new InfocardParagraphNode(),
+                        new InfocardParagraphNode(),
+                        new InfocardTextNode() { Contents = input }
                     ]
                 };
             }
         }
 
-        private static Infocard ParseInternal(string? input, FontManager fonts, int defaultFont)
+        private static Infocard ParseInternal(string? input)
         {
-            var fn = fonts.GetInfocardFont(defaultFont); // default font
-
             if (input == null)
             {
                 return new Infocard()
                 {
                     Nodes =
-                        [new RichTextTextNode() { FontName = fn.FontName, FontSize = fn.FontSize, Contents = "IDS??" }]
+                        [new InfocardTextNode() {  Contents = "IDS??" }]
                 };
             }
 
@@ -154,16 +151,12 @@ namespace LibreLancer.Infocards
                 return new Infocard()
                 {
                     Nodes =
-                        [new RichTextTextNode() { FontName = fn.FontName, FontSize = fn.FontSize, Contents = "" }]
+                        [new InfocardTextNode() { Contents = "" }]
                 };
             }
 
-            var nodes = new List<RichTextNode>();
-            var current = new RichTextTextNode
-            {
-                FontName = fn.FontName,
-                FontSize = fn.FontSize
-            };
+            var nodes = new List<InfocardNode>();
+            var current = new InfocardTextNode();
 
             using (var reader = XmlReader.Create(new StringReader(input)))
             {
@@ -194,7 +187,7 @@ namespace LibreLancer.Infocards
                             switch (elName)
                             {
                                 case "PARA":
-                                    nodes.Add(new RichTextParagraphNode());
+                                    nodes.Add(new InfocardParagraphNode());
                                     break;
                                 case "JUST":
                                     if (Aligns.TryGetValue(attributes["LOC"].ToUpperInvariant(), out var v))
@@ -204,7 +197,7 @@ namespace LibreLancer.Infocards
 
                                     break;
                                 case "TRA":
-                                    ParseTextRenderAttributes(attributes, current, fonts, defaultFont);
+                                    ParseTextRenderAttributes(attributes, current);
                                     break;
                                 case "TEXT":
                                     break;
@@ -238,8 +231,7 @@ namespace LibreLancer.Infocards
 
         }
 
-        private static void ParseTextRenderAttributes(Dictionary<string, string> attrs, RichTextTextNode node,
-            FontManager fonts, int defaultFont)
+        private static void ParseTextRenderAttributes(Dictionary<string, string> attrs, InfocardTextNode node)
         {
             uint data = 0;
             uint mask = 0;
@@ -346,7 +338,7 @@ namespace LibreLancer.Infocards
 
             if ((def & TRA_bold) != 0)
             {
-                node.Bold = false;
+                node.Bold = null;
             }
             else if ((mask & TRA_bold) != 0)
             {
@@ -355,7 +347,7 @@ namespace LibreLancer.Infocards
 
             if ((def & TRA_italic) != 0)
             {
-                node.Italic = false;
+                node.Italic = null;
             }
             else if ((mask & TRA_italic) != 0)
             {
@@ -364,17 +356,11 @@ namespace LibreLancer.Infocards
 
             if ((def & TRA_font) != 0)
             {
-                var d = fonts.GetInfocardFont(defaultFont);
-                node.FontName = d.FontName;
-                node.FontSize = d.FontSize;
-                // node.FontIndex = 0;
+                node.FontIndex = null;
             }
             else if ((mask & TRA_font) != 0)
             {
-                var fnt = (int) ((data & TRA_font) >> 3);
-                var d = fonts.GetInfocardFont(fnt);
-                node.FontName = d.FontName;
-                node.FontSize = d.FontSize;
+                node.FontIndex = (int) ((data & TRA_font) >> 3);
             }
 
             if ((def & TRA_underline) != 0)
@@ -388,7 +374,7 @@ namespace LibreLancer.Infocards
 
             if ((def & TRA_color) != 0)
             {
-                node.Color = Color4.White;
+                node.Color = null;
             }
             else if ((mask & TRA_color) != 0)
             {

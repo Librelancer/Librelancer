@@ -106,11 +106,11 @@ namespace LibreLancer
 
             // Find infocard
             var ids = systemObject?.IdsInfo ?? 0;
-            roomInfocard = g.GameData.GetInfocard(ids, g.Fonts);
+            roomInfocard = g.GameData.GetInfocard(ids);
 
-            if (g.GameData.GetRelatedInfocard(ids, g.Fonts, out var ic2))
+            if (g.GameData.GetRelatedInfocard(ids, out var ic2))
             {
-                roomInfocard.Nodes.Add(new RichTextParagraphNode());
+                roomInfocard.Nodes.Add(new InfocardParagraphNode());
                 roomInfocard.Nodes.AddRange(ic2.Nodes);
             }
 

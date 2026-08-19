@@ -200,7 +200,7 @@ public class IdsSearch : PopupWindow
                         try
                         {
                             searchStringPreviews[i] =
-                                EllipseIfNeeded(RDLParse.Parse(searchStrings[i], fonts).ExtractText());
+                                EllipseIfNeeded(RDLParse.Parse(searchStrings[i]).ExtractText());
                         }
                         catch (Exception)
                         {

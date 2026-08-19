@@ -2,7 +2,6 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System.Collections.Generic;
 using LibreLancer.Graphics;
 using LibreLancer.Graphics.Text;
 using LibreLancer.Infocards;
@@ -14,6 +13,84 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class InfocardDisplay : UiWidget
     {
+        private StyledProperty<bool> bold = new("Bold");
+        private StyledProperty<bool> italic = new("Italic");
+        private StyledProperty<bool> underline = new("Underline");
+        private StyledProperty<int> fontIndex = new ("FontIndex");
+        private StyledProperty<InterfaceColor?> textColor = new("TextColor");
+        private StyledProperty<InterfaceColor?> textShadow = new("TextShadow");
+        private StyledProperty<HorizontalAlignment> textAlignment = new("TextAlignment");
+
+        public bool Bold
+        {
+            get => bold.Value;
+            set
+            {
+                bold.Set(value);
+                StyleDirty = true;
+            }
+        }
+
+        public bool Italic
+        {
+            get => italic.Value;
+            set
+            {
+                italic.Set(value);
+                StyleDirty = true;
+            }
+        }
+
+        public bool Underline
+        {
+            get => underline.Value;
+            set
+            {
+                underline.Set(value);
+                StyleDirty = true;
+            }
+        }
+
+        public int FontIndex
+        {
+            get => fontIndex.Value;
+            set
+            {
+                fontIndex.Set(value);
+                StyleDirty = true;
+            }
+        }
+
+        public InterfaceColor? TextColor
+        {
+            get => textColor.Value;
+            set
+            {
+                textColor.Set(value);
+                StyleDirty = true;
+            }
+        }
+
+        public InterfaceColor? TextShadow
+        {
+            get => textShadow.Value;
+            set
+            {
+                textShadow.Set(value);
+                StyleDirty = true;
+            }
+        }
+
+        public HorizontalAlignment TextAlignment
+        {
+            get => textAlignment.Value;
+            set
+            {
+                textAlignment.Set(value);
+                StyleDirty = true;
+            }
+        }
+
         public Infocard? Infocard
         {
             get;
@@ -23,9 +100,10 @@ namespace LibreLancer.Interface
                 infocardRight = null;
             }
         }
+
         private Infocard? infocardRight;
 
-        record BuiltInfocard(BuiltRichText RichText, int Width, Infocard Infocard);
+        record BuiltInfocard(BuiltRichText RichText, int Width, Infocard Infocard, InfocardDisplayStyle Style);
 
         private BuiltInfocard? currLeft;
         private BuiltInfocard? currRight;
@@ -36,17 +114,42 @@ namespace LibreLancer.Interface
         private string? setFont = null;
         private int setSize = 0;
 
-        public void SetString(string str)
+        private InfocardDisplayStyle displayStyle = InfocardDisplayStyle.Default;
+
+        protected override ElementStyle OnRestyle(UiContext context)
         {
-            this.setString = str;
+            var infocardStyle = new StyleResolver()
+                .Add(context.Data.Stylesheet?.Styles.DefaultStyle<InfocardStyle>())
+                .Add(Style)
+                .Add(WidthProperty)
+                .Add(HeightProperty)
+                .Add(bold)
+                .Add(italic)
+                .Add(underline)
+                .Add(fontIndex)
+                .Add(textColor)
+                .Add(textShadow)
+                .Add(textAlignment)
+                .Create<InfocardStyle>();
+            displayStyle = new()
+            {
+                Bold = infocardStyle.Bold,
+                Italic = infocardStyle.Italic,
+                Underline = infocardStyle.Underline,
+                FontIndex = infocardStyle.FontIndex,
+                Color = infocardStyle.TextColor?.GetColor(0) ?? Color4.White,
+                TextShadow = infocardStyle.TextShadow == null ? default : new OptionalColor(infocardStyle.TextShadow.GetColor(0)),
+                Alignment = CastAlign(infocardStyle.TextAlignment)
+            };
+            return infocardStyle;
         }
 
-        public void SetString(string str, string font, int size)
+        public void SetString(string str) => Infocard = new() { Nodes = [new InfocardTextNode() { Contents = str }] };
+
+        public void SetString(string str, string font, int size) => Infocard = new()
         {
-            this.setString = str;
-            this.setFont = font;
-            this.setSize = size;
-        }
+            Nodes = [new InfocardTextNode() { Contents = str, ManualFont = new(font, size) }]
+        };
 
         public void SetColumnInfocards(Infocard left, Infocard right)
         {
@@ -61,10 +164,11 @@ namespace LibreLancer.Interface
             {
                 if (i == null)
                     continue;
-                if(ic.Nodes.Count > 0)
-                    ic.Nodes.Add(new RichTextParagraphNode());
+                if (ic.Nodes.Count > 0)
+                    ic.Nodes.Add(new InfocardParagraphNode());
                 ic.Nodes.AddRange(i.Nodes);
             }
+
             Infocard = ic;
         }
 
@@ -78,20 +182,24 @@ namespace LibreLancer.Interface
             ref BuiltInfocard? built)
         {
             var rte = context.RenderContext.Renderer2D.RichText;
-            if (built?.Infocard != infocard || built?.Width != myRect.Width)
+            if (built?.Infocard != infocard || built?.Width != myRect.Width ||
+                built?.Style != displayStyle)
             {
                 built?.RichText?.Dispose();
-                built = new(rte.BuildText(infocard.Nodes, myRect.Width, (context.ViewportHeight / 480) * 0.5f),
-                    myRect.Width, infocard);
+                built = new(
+                    rte.BuildText(infocard.CreateDisplayNodes(displayStyle, context.Data.Fonts), myRect.Width,
+                        (context.ViewportHeight / 480) * 0.5f),
+                    myRect.Width, infocard, displayStyle);
                 CalculateScrollbar(myRect.Height);
             }
+
             if (drawList.PushClip(myRect))
             {
                 int y = myRect.Y;
 
                 if (Scrollbar.Visible)
                 {
-                    y -= (int) (Scrollbar.ScrollOffset * (built.RichText.Height - myRect.Height));
+                    y -= (int)(Scrollbar.ScrollOffset * (built.RichText.Height - myRect.Height));
                 }
 
                 rte.RenderText(drawList, built.RichText, myRect.X, y);
@@ -121,32 +229,6 @@ namespace LibreLancer.Interface
 
         public override void Render(UiContext context, double delta, DrawList2D drawList)
         {
-            // TODO: fix up
-            if (setString != null)
-            {
-                Infocard = new Infocard() { Nodes = [] };
-                string fontName = setFont ?? "$ListText";
-                if (fontName[0] == '$') fontName = context.Data.Fonts.ResolveNickname(fontName.Substring(1));
-
-                foreach (var s in setString.Split('\n'))
-                {
-                    Infocard.Nodes.Add(new RichTextTextNode()
-                    {
-                        Contents = s,
-                        FontName = fontName,
-                        FontSize = setSize < 1 ? 22 : setSize,
-                        Alignment = TextAlignment.Left,
-                        Color = context.Data.GetColor("text").Color,
-                        Shadow = new OptionalColor(context.Data.GetColor("black").Color)
-                    });
-                    Infocard.Nodes.Add(new RichTextParagraphNode());
-                }
-
-                setString = null;
-                setFont = null;
-                setSize = 0;
-            }
-
             if (!Visible) return;
             Background?.Draw(context, drawList, ClientRectangle);
             var myRectangle = ClientRectangle;
@@ -170,6 +252,7 @@ namespace LibreLancer.Interface
                     var myRect = context.PointsToPixels(myRectangle);
                     DrawInfocard(drawList, context, Infocard, myRect, ref currLeft);
                 }
+
                 Scrollbar.Render(context, delta, drawList);
             }
 

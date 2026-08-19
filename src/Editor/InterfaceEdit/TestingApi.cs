@@ -762,6 +762,9 @@ public class TestingApi
     {
     }
 
+    public KnownNavmapBaseList GetKnownNavmapBases() =>
+        new([new() { Name = "My Base", ObjectHash = 0x123, SystemHash = 0x456, SystemName = "Da System" }]);
+
 
     public bool CanScanSelected() => contacts.SelectedIndex == 0;
 

@@ -949,7 +949,7 @@ public static class Controls
     {
         if (lastParsed == pa)
             return xmlPreview;
-        xmlPreview = RDLParse.Parse(pa, fonts).ExtractText();
+        xmlPreview = RDLParse.Parse(pa).ExtractText();
         lastParsed = pa;
         return xmlPreview;
     }
