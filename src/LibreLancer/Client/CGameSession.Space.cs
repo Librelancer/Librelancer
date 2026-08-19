@@ -1007,10 +1007,10 @@ public partial class CGameSession
 
         var extraIdsInfo = ship.ExtraIdsInfo ?? [];
         var shipInfo = extraIdsInfo.Length > 0 && extraIdsInfo[0] > 0
-            ? Game.GameData.GetInfocard(extraIdsInfo[0], Game.Fonts)
+            ? Game.GameData.GetInfocard(extraIdsInfo[0])
             : null;
         var stats = ship.IdsInfo > 0
-            ? Game.GameData.GetInfocard(ship.IdsInfo, Game.Fonts)
+            ? Game.GameData.GetInfocard(ship.IdsInfo)
             : null;
 
         return shipInfo == null && stats == null ? null : [shipInfo, stats];

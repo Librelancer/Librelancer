@@ -56,7 +56,7 @@ namespace LibreLancer.Client
 
             var extraIdsInfo = selectedShip.ExtraIdsInfo ?? [];
             Infocard? Get(int index) => extraIdsInfo.Length > index && extraIdsInfo[index] > 0
-                ? session.Game.GameData.GetInfocard(extraIdsInfo[index], session.Game.Fonts)
+                ? session.Game.GameData.GetInfocard(extraIdsInfo[index])
                 : null;
 
             var description = Get(0);

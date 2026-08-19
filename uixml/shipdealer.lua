@@ -198,7 +198,7 @@ class shipdealer : shipdealer_Designer with ChildWindow
         e.item_infocard1.Infocard = nil
         e.item_infocard_stats.Infocard = nil
         if (good.IdsInfo != 0) {
-            local stats = Game.Trader.GetEquipmentStats(good)
+            local stats = Game.GetEquipmentStats(good)
             if (stats != nil) {
                 e.item_infocards.Visible = true
                 e.item_infocard1.Infocard = GetInfocard(good.IdsInfo)

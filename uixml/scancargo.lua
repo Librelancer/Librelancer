@@ -227,9 +227,9 @@ class scancargo : scancargo_Designer with ChildWindow
 			e.item_infocard.Infocard = nil;
 			local stats = Game.GetEquipmentStats(good)
 			if (stats != nil && stats[3] != nil) {
-				e.item_infocard.SetInfocards({ GetInfocard(idsInfo, 1), stats[3] });
+			e.item_infocard.SetInfocards({ GetInfocard(idsInfo), stats[3] });
 			} else {
-				e.item_infocard.Infocard = GetInfocard(idsInfo, 1);
+			e.item_infocard.Infocard = GetInfocard(idsInfo);
 			}
 		} else {
 			this.set_ship_infocard();

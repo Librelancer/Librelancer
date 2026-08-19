@@ -62,20 +62,17 @@
 	</Panel>
 	</Panel>
 
-	<InfocardDisplay id="item_infocard" X="40" Y="270" Width="545" Height="120"
-		TextColor="rollover_text" TextShadow="black" FontScale="0.40" BoldFirstLine="true" FirstLineColor="text" FirstLineScale="1.15" CenterFirstLine="true" >
+	<InfocardDisplay id="item_infocard" X="40" Y="270" Width="545" Height="120">
 	</InfocardDisplay>
 	<Panel id="item_infocards" X="0" Y="270" Width="624" Height="120" Visible="false">
-		<InfocardDisplay id="item_infocard1" X="40" Y="0" Width="245" Height="120"
-			TextColor="rollover_text" TextShadow="black" FontScale="0.40" BoldFirstLine="true" FirstLineColor="text" FirstLineScale="1.15" CenterFirstLine="true" />
+		<InfocardDisplay id="item_infocard1" X="40" Y="0" Width="245" Height="120" />
 		<InfocardDisplay id="item_infocard_stats" X="335" Y="0" Width="235" Height="120"
-			TextColor="rollover_text" TextShadow="black" FontScale="0.40" ColumnSplit="0.62" BoldFirstColumnLine="true" FirstColumnLineColor="text" FirstColumnLineScale="1.15" />
+			ColumnSplit="0.62" />
 	</Panel>
 	<Panel id="ship_infocards" X="0" Y="270" Width="624" Height="120" Visible="false">
-		<InfocardDisplay id="ship_infocard1" X="40" Y="0" Width="245" Height="120"
-			TextColor="rollover_text" TextShadow="black" FontScale="0.40" BoldFirstLine="true" FirstLineColor="text" FirstLineScale="1.15" CenterFirstLine="true" />
+		<InfocardDisplay id="ship_infocard1" X="40" Y="0" Width="245" Height="120" />
 		<InfocardDisplay id="ship_infocard_stats" X="335" Y="0" Width="235" Height="120"
-			TextColor="rollover_text" TextShadow="black" FontScale="0.40" ColumnSplit="0.62" BoldFirstColumnLine="true" FirstColumnLineColor="text" FirstColumnLineScale="1.15" />
+			ColumnSplit="0.62" />
 	</Panel>
 </Panel>
 

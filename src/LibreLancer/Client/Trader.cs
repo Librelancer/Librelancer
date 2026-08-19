@@ -8,7 +8,6 @@ using System.Globalization;
 using System.Linq;
 using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Data.GameData.Items;
-using LibreLancer.Graphics.Text;
 using LibreLancer.Interface;
 using LibreLancer.Infocards;
 using LibreLancer.Server;
@@ -26,25 +25,21 @@ namespace LibreLancer.Client
 
         private Infocard BuildStatsInfocard(string[] lines, bool leadingBlank = false, bool boldFirstLine = false)
         {
-            var font = session.Game.Fonts.GetInfocardFont(0);
-            var nodes = new List<RichTextNode>(lines.Length * 2 + (leadingBlank ? 1 : 0));
+            var nodes = new List<InfocardNode>(lines.Length * 2 + (leadingBlank ? 1 : 0));
 
             if (leadingBlank)
-                nodes.Add(new RichTextParagraphNode());
+                nodes.Add(new InfocardParagraphNode());
 
             for (int i = 0; i < lines.Length; i++)
             {
-                nodes.Add(new RichTextTextNode
+                nodes.Add(new InfocardTextNode
                 {
-                    FontName = font.FontName,
-                    FontSize = font.FontSize,
                     Contents = lines[i],
-                    Alignment = TextAlignment.Left,
                     Bold = boldFirstLine && i == 0
                 });
 
                 if (i < lines.Length - 1)
-                    nodes.Add(new RichTextParagraphNode());
+                    nodes.Add(new InfocardParagraphNode());
             }
 
             return new Infocard { Nodes = nodes };
