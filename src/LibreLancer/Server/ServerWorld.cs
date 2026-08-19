@@ -252,7 +252,8 @@ namespace LibreLancer.Server
 
             var missilePosition = missile.Parent.PhysicsComponent?.Body.Position ?? missile.Parent.LocalTransform.Position;
 
-            foreach (var obj in GameWorld.Objects)
+            foreach (var obj in GameWorld.SpatialLookup.GetNearbyObjects(missile.Parent,
+                         missilePosition, seekerRange))
             {
                 if (!obj.Flags.HasFlag(GameObjectFlags.Exists) ||
                     !obj.TryGetComponent<SDeployableComponent>(out var deployable) ||

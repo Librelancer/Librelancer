@@ -64,7 +64,7 @@ public sealed class SDeployableComponent : GameComponent
         }
 
         var position = physics.Body.Position;
-        if (FindDetonationTarget(world, position) != null)
+        if (HasDetonationTarget(world, position))
         {
             world.Server?.ExplodeMissile(Parent, true);
             return;
@@ -125,52 +125,28 @@ public sealed class SDeployableComponent : GameComponent
         return closest;
     }
 
-    private GameObject? FindDetonationTarget(GameWorld world, Vector3 position)
+    private bool HasDetonationTarget(GameWorld world, Vector3 position)
     {
-        foreach (var candidate in world.Objects)
+        var distance = GetDetonationDistance();
+        if (distance < 0 || world.Physics == null)
         {
-            if (candidate.Kind != GameObjectKind.Ship ||
+            return false;
+        }
+
+        foreach (var hit in world.Physics.SphereTest(position, distance))
+        {
+            if (hit?.Tag is not GameObject candidate ||
+                candidate.Kind != GameObjectKind.Ship ||
                 !candidate.Flags.HasFlag(GameObjectFlags.Exists) ||
-                candidate.PhysicsComponent?.Body == null ||
                 (ReferenceEquals(candidate, Owner) && IsOwnerSafe))
             {
                 continue;
             }
 
-            // Players are intentionally excluded from target seeking, but
-            // any ship (including a player) still detonates a nearby mine.
-            if (IsWithinDetonationDistance(world, candidate, position))
-            {
-                return candidate;
-            }
+            return true;
         }
 
-        return null;
-    }
-
-    private bool IsWithinDetonationDistance(GameWorld world, GameObject target, Vector3 position)
-    {
-        var distance = GetDetonationDistance();
-        if (distance < 0 || target.PhysicsComponent?.Body == null)
-        {
-            return false;
-        }
-
-        if (world.Physics != null)
-        {
-            foreach (var hit in world.Physics.SphereTest(position, distance))
-            {
-                if (ReferenceEquals(hit?.Tag, target))
-                {
-                    return true;
-                }
-            }
-        }
-
-
-        var bounds = target.PhysicsComponent.Body.GetBoundingBox();
-        var closest = Vector3.Clamp(position, bounds.Min, bounds.Max);
-        return Vector3.DistanceSquared(position, closest) <= distance * distance;
+        return false;
     }
 
     private Vector3 GetNearestCollisionPoint(GameWorld world, GameObject target, Vector3 position)
