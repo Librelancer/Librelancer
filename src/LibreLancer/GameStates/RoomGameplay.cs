@@ -358,6 +358,13 @@ namespace LibreLancer
             public string ActiveRandomMissionDescription() =>
                 g.session.ActiveRandomMissionDescription ?? "";
 
+            public Infocard?[]? GetShipInfocards(bool playerShip)
+            {
+                if (playerShip)
+                    return g.session.GetShipInfocards(g.session.PlayerShip);
+                return [];
+            }
+
             public void ClearUserWaypoints()
             {
                 g.session.ClearUserWaypoints();
