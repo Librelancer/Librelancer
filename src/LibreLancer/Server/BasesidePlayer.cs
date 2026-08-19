@@ -535,7 +535,7 @@ public class BasesidePlayer : IBasesidePlayer
             volume += item.Equipment!.Volume * (item.Count - soldAmount);
         }
 
-        volume += included.OfType<PackageAddon>().Sum(item => item.Equipment.Volume * item.Amount);
+        volume += included.OfType<SaleAddon>().Sum(item => item.Equipment.Volume * item.Amount);
 
         if (volume > resolved.Ship.HoldSize)
         {
