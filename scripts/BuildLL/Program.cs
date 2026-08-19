@@ -286,6 +286,11 @@ namespace BuildLL
                 }
             });
 
+            Target("GenerateInterface", DependsOn("GenerateVersion", "ShaderDependencies"), () =>
+            {
+                Dotnet.Run("src/Editor/InterfaceEdit/InterfaceEdit.csproj","obj/interface", "--compile");
+            });
+
             Target("ShaderDependencies", () =>
             {
                 Directory.CreateDirectory("bin/builddeps");
