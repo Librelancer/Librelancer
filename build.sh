@@ -9,16 +9,6 @@ export OPENSSL_ENABLE_SHA1_SIGNATURES=1
 SCRIPT_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 source "$SCRIPT_DIR/build.config"
 
-REBUILD_INTERFACE=0
-BUILD_ARGS=()
-for arg in "$@"; do
-    if [ "$arg" = "--rebuild-interface" ]; then
-        REBUILD_INTERFACE=1
-    else
-        BUILD_ARGS+=("$arg")
-    fi
-done
-
 # Dependency Check (Librelancer)
 "$SCRIPT_DIR/scripts/depcheck_unix" || { echo >&2 "ERROR: Dependency check failed."; exit 1; }
 
@@ -46,12 +36,4 @@ if [ $? -ne 0 ]; then
 fi
 
 cd "$SCRIPT_DIR"
-if [ "$REBUILD_INTERFACE" -eq 1 ]; then
-    echo "Regenerating interface..."
-    dotnet build ./src/Editor/InterfaceEdit/InterfaceEdit.csproj \
-        -p:RestoreUseStaticGraphEvaluation=true --verbosity minimal -m:1 -nr:false || exit 1
-    ./src/Editor/InterfaceEdit/bin/Debug/net10.0/InterfaceEdit --compile || exit 1
-fi
-
-dotnet run --project ./scripts/BuildLL/BuildLL.csproj \
-    -p:RestoreUseStaticGraphEvaluation=true -- "${BUILD_ARGS[@]}"
+dotnet run --project ./scripts/BuildLL/BuildLL.csproj -p:RestoreUseStaticGraphEvaluation=true -- "$@"
