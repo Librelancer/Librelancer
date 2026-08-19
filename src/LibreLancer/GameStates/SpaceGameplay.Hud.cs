@@ -348,13 +348,8 @@ partial class SpaceGameplay
             ScanHandler = handler;
         }
 
-        public Closure PlayerInventoryHandler;
-
-        public void OnUpdatePlayerInventory(Closure handler)
-        {
-            PlayerInventoryHandler = handler;
-            g.session.OnUpdateInventory = () => PlayerInventoryHandler?.Call();
-        }
+        public void OnUpdatePlayerInventory(Closure handler) =>
+            g.session.OnUpdateInventory += () => handler.Call();
 
         public void JettisonInventoryItem(UIInventoryItem item, int count)
         {
@@ -543,7 +538,8 @@ partial class SpaceGameplay
                 : $"{distance / 1000f:0.0}-K";
         }
 
-        public TargetShipWireframe? SelectionWireframe() => g.Selection.Selected != null ? g.targetWireframe : null;
+        public TargetShipWireframe? SelectionWireframe() =>
+            g.Selection.Selected?.Model != null ? g.targetWireframe : null;
 
         public bool SelectionVisible()
         {

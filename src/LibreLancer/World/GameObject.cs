@@ -478,12 +478,12 @@ namespace LibreLancer.World
             PhysicsComponent?.UpdateParts();
         }
 
-        public bool DisableCmpPart(uint part, GameWorld world, ResourceManager res, out GameObject[] children)
+        public bool DisableCmpPart(uint part, GameWorld? world, ResourceManager res, out GameObject[] children)
         {
             if (Model != null && Model.DestroyPart(part, out var destroyed))
             {
                 PhysicsComponent?.DisablePart(destroyed);
-                world.Server?.PartDisabled(this, part);
+                world?.Server?.PartDisabled(this, part);
                 var removedChildren = new List<GameObject>();
 
                 for (int i = Children.Count - 1; i >= 0; i--)
@@ -529,6 +529,7 @@ namespace LibreLancer.World
                     Children.Add(cap);
                 }
 
+                GetComponent<WeaponControlComponent>()?.UpdateNetWeapons();
                 children = removedChildren.ToArray();
                 return true;
             }
@@ -537,7 +538,7 @@ namespace LibreLancer.World
             return false;
         }
 
-        public bool DisableCmpPart(string part, GameWorld world, ResourceManager res, out GameObject[] children) =>
+        public bool DisableCmpPart(string part, GameWorld? world, ResourceManager res, out GameObject[] children) =>
             DisableCmpPart(CrcTool.FLModelCrc(part), world, res, out children);
 
         public void SpawnDebris(string part, GameWorld world, ResourceManager res)
@@ -570,6 +571,7 @@ namespace LibreLancer.World
             {
                 mass = sp.Mass;
                 initialforce = sp.ChildImpulse;
+                PhysicsComponent?.Body.Impulse(-vec * sp.ParentImpulse);
             }
 
             world.Server.SpawnDebris(Kind, ArchetypeName!, part, tr, children, alreadyDestroyed, mass,

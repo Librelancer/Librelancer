@@ -45,6 +45,7 @@ namespace LibreLancer.Server
         public ReputationCollection Reputation = new();
 
         public Ship? Ship { get; private set; }
+        private readonly HashSet<uint> destroyedParts = [];
         public List<NetCargo> Items = [];
         private Dictionary<uint, VisitFlags> visited = new();
         private HashSet<uint> basesVisited = [];
@@ -87,6 +88,15 @@ namespace LibreLancer.Server
         public uint[] GetSystemsVisited() => systemsVisited.ToArray();
         public uint[] GetBasesVisited() => basesVisited.ToArray();
         public uint[] GetHolesVisited() => holesVisited.ToArray();
+        public uint[] GetDestroyedParts() => destroyedParts.Order().ToArray();
+
+        public void MarkPartDestroyed(uint part) => destroyedParts.Add(part);
+
+        public void SetDestroyedParts(IEnumerable<uint> parts)
+        {
+            destroyedParts.Clear();
+            destroyedParts.UnionWith(parts);
+        }
 
         public CharacterTransaction BeginTransaction()
         {
@@ -195,6 +205,7 @@ namespace LibreLancer.Server
 
             public void UpdateShip(Ship? ship)
             {
+                nc.destroyedParts.Clear();
                 nc.Ship = ship;
             }
 
@@ -396,6 +407,7 @@ namespace LibreLancer.Server
             c.UpdateName(sg.Player!.Name!);
             c.UpdateCredits(sg.Player.Money);
             c.UpdateShip(game.GameData.Items.Ships.Get(sg.Player.ShipArchetype));
+            nc.SetDestroyedParts(sg.Player.DestroyedParts);
             c.UpdateCostume(sg.Player.Costume!);
             c.UpdateComCostume(sg.Player.ComCostume!);
             c.UpdatePosition(sg.Player.Base, sg.Player.System!, sg.Player.Position, Quaternion.Identity);
