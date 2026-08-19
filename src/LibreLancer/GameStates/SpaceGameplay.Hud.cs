@@ -307,20 +307,22 @@ partial class SpaceGameplay
 
         public UIInventoryItem[] GetScannedInventory(string filter) => g.session.GetScannedInventory(filter);
         public UIInventoryItem[] GetPlayerInventory(string filter) => g.session.GetPlayerInventory(filter);
-        public Infocard?[]? GetEquipmentStats(UIInventoryItem item) => new Trader(g.session).GetEquipmentStats(item);
 
         public float GetCargoHoldSize() => g.session.GetCargoHoldSize();
         public float GetUsedCargoHoldSpace() => g.session.GetUsedCargoHoldSpace();
         public Infocard? GetPlayerShipInfocard() => g.session.GetPlayerShipInfocard();
-        public Infocard?[]? GetShipInfocards(bool playerShip)
+
+        public Infocard? GetScannedShipInfocard()
         {
-            if (playerShip)
+            if (g.Selection.Selected == null)
             {
-                return g.session.GetShipInfocards(g.session.PlayerShip);
+                return null;
             }
 
-            if (g.Selection.Selected?.TryGetComponent<ShipComponent>(out var ship) == true)
-                return g.session.GetShipInfocards(ship.Ship);
+            if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
+            {
+                return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo);
+            }
 
             return null;
         }
@@ -513,7 +515,7 @@ partial class SpaceGameplay
             }
 
             var ids = g.Selection.Selected.SystemObject.IdsInfo;
-            return g.Game.GameData.GetInfocard(ids, g.Game.Fonts);
+            return g.Game.GameData.GetInfocard(ids);
         }
 
         public string? CurrentInfoString() => g.Selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);

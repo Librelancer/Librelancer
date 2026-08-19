@@ -215,8 +215,9 @@ namespace LibreLancer.Interface
             public Vector3 Vector3(float x, float y, float z) => new(x, y, z);
 
             public string StringFromID(int id) => c.uiContext.Data.Infocards!.GetStringResource(id);
+
             public Infocard GetInfocard(int id) =>
-                RDLParse.Parse(c.uiContext.Data.Infocards!.GetXmlResource(id), c.uiContext.Data.Fonts);
+                RDLParse.Parse(c.uiContext.Data.Infocards!.GetXmlResource(id));
             public string NumberToStringCS(double num, string fmt) => num.ToString(fmt);
         }
         public void CallEvent(string ev, params object?[] p)

@@ -704,6 +704,86 @@ namespace LibreLancer.Interface
 
     [UiLoadable]
     [WattleScriptUserData]
+    public class InfocardStyle : ElementStyle
+    {
+        private StyledProperty<bool> bold = new("Bold");
+        private StyledProperty<bool> italic = new("Italic");
+        private StyledProperty<bool> underline = new("Underline");
+        private StyledProperty<int> fontIndex = new ("FontIndex");
+        private StyledProperty<InterfaceColor?> textColor = new("TextColor", InterfaceColor.White);
+        private StyledProperty<InterfaceColor?> textShadow = new("TextShadow");
+        private StyledProperty<HorizontalAlignment> textAlignment = new("TextAlignment");
+
+        public override void Set(StyleResolver resolver)
+        {
+            base.Set(resolver);
+            resolver.Add(bold)
+                .Add(italic)
+                .Add(underline)
+                .Add(fontIndex)
+                .Add(textColor)
+                .Add(textShadow)
+                .Add(textAlignment);
+        }
+
+        public override void Create(StyleResolver resolver)
+        {
+            base.Create(resolver);
+            resolver
+                .Query(bold)
+                .Query(italic)
+                .Query(underline)
+                .Query(fontIndex)
+                .Query(textColor)
+                .Query(textShadow)
+                .Query(textAlignment);
+        }
+
+        public bool Bold
+        {
+            get => bold.Value;
+            set => bold.Set(value);
+        }
+
+        public bool Italic
+        {
+            get => italic.Value;
+            set => italic.Set(value);
+        }
+
+        public bool Underline
+        {
+            get => underline.Value;
+            set => underline.Set(value);
+        }
+
+        public int FontIndex
+        {
+            get => fontIndex.Value;
+            set => fontIndex.Set(value);
+        }
+
+        public InterfaceColor? TextColor
+        {
+            get => textColor.Value;
+            set => textColor.Set(value);
+        }
+
+        public InterfaceColor? TextShadow
+        {
+            get => textShadow.Value;
+            set => textShadow.Set(value);
+        }
+
+        public HorizontalAlignment TextAlignment
+        {
+            get => textAlignment.Value;
+            set => textAlignment.Set(value);
+        }
+    }
+
+    [UiLoadable]
+    [WattleScriptUserData]
     public class NavmapStyle : ElementStyle
     {
         private StyledProperty<ButtonStyle?> zoomInButton = new("ZoomInButton");

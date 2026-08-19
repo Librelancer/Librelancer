@@ -39,7 +39,7 @@ public sealed class InfocardSelection : PopupWindow
     {
         if (!previews.TryGetValue(ids, out var prev))
         {
-            var txt = RDLParse.Parse(manager.GetXmlResource(ids), fonts).ExtractText();
+            var txt = RDLParse.Parse(manager.GetXmlResource(ids)).ExtractText();
             if (txt.Length > 100)
                 prev = txt.Substring(0, 100) + "...";
             else
@@ -71,8 +71,8 @@ public sealed class InfocardSelection : PopupWindow
         var txt = manager.GetXmlResource(current);
         if (string.IsNullOrWhiteSpace(txt))
             return;
-        var icard = RDLParse.Parse(txt, fonts);
-        display = new InfocardControl(window, icard, 395 * ImGuiHelper.Scale);
+        var icard = RDLParse.Parse(txt);
+        display = new InfocardControl(window, icard, fonts, 395 * ImGuiHelper.Scale);
     }
 
     private bool searching = false;
