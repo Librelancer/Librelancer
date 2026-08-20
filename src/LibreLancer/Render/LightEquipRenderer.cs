@@ -15,6 +15,8 @@ namespace LibreLancer.Render
     {
         private const float BASE_SIZE = 10f;
         private Vector3 pos;
+        private Vector3 forward;
+
         private SystemRenderer? sys;
         private LightEquipment equip;
         public bool LightOn = true;
@@ -40,6 +42,24 @@ namespace LibreLancer.Render
 
         private const float CULL_DISTANCE = 20000;
         private const float CULL = CULL_DISTANCE * CULL_DISTANCE;
+
+        void DrawShine(float alpha)
+        {
+            sys!.Billboards.Draw(
+                shinetex!,
+                pos,
+                new Vector2(equip.GlowSize) * 2,
+                new Color4(colorGlow, alpha),
+                new Vector2(shineshape.Dimensions.X, shineshape.Dimensions.Y),
+                new Vector2(shineshape.Dimensions.X + shineshape.Dimensions.Width, shineshape.Dimensions.Y),
+                new Vector2(shineshape.Dimensions.X, shineshape.Dimensions.Y + shineshape.Dimensions.Height),
+                new Vector2(shineshape.Dimensions.X + shineshape.Dimensions.Width,
+                    shineshape.Dimensions.Y + shineshape.Dimensions.Height),
+                0,
+                SortLayers.OBJECT,
+                BlendMode.Additive
+            );
+        }
 
         public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
         {
@@ -71,20 +91,31 @@ namespace LibreLancer.Render
             if (bulbtex == null || shinetex == null)
                 return;
 
-            sys!.Billboards.Draw(
-                shinetex,
-                pos,
-                new Vector2(equip.GlowSize) * 2,
-                new Color4(colorGlow, 1f),
-                new Vector2(shineshape.Dimensions.X, shineshape.Dimensions.Y),
-                new Vector2(shineshape.Dimensions.X + shineshape.Dimensions.Width, shineshape.Dimensions.Y),
-                new Vector2(shineshape.Dimensions.X, shineshape.Dimensions.Y + shineshape.Dimensions.Height),
-                new Vector2(shineshape.Dimensions.X + shineshape.Dimensions.Width,
-                    shineshape.Dimensions.Y + shineshape.Dimensions.Height),
-                0,
-                SortLayers.OBJECT,
-                BlendMode.Additive
-            );
+            if (equip.FlareCone != null)
+            {
+                float cosAngle = Vector3.Dot(
+                    Vector3.Normalize(forward),
+                    Vector3.Normalize(sys!.Camera.Position - pos)
+                );
+
+                // flare cone is defined as outer, inner
+                float cosStart = MathF.Cos(equip.FlareCone.Value.Y * MathF.PI / 180f);
+                float cosEnd   = MathF.Cos(equip.FlareCone.Value.X   * MathF.PI / 180f);
+
+                float fade = MathHelper.Clamp(
+                    (cosAngle - cosEnd) / (cosStart - cosEnd),
+                    0f,
+                    1f
+                );
+                if(fade > 0)
+                    DrawShine(fade);
+            }
+            else
+            {
+                DrawShine(1);
+            }
+
+
 
             sys.Billboards.Draw(
                 bulbtex,
@@ -103,6 +134,7 @@ namespace LibreLancer.Render
 
         }
 
+
         private double timer = 0;
         private bool lt_on = true;
         private Color3f colorBulb;
@@ -113,7 +145,7 @@ namespace LibreLancer.Render
             if (!LightOn || sys == null)
                 return;
             pos = position;
-
+            forward = transform.GetForward();
             if (equip.Animated)
             {
                 timer -= time;

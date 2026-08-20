@@ -2698,6 +2698,7 @@ public class GameItemDb
             Color = lt.Color ?? Color3f.White,
             MinColor = lt.MinColor ?? Color3f.Black
         };
+        equip.FlareCone = lt.FlareCone;
         equip.GlowColor = lt.GlowColor ?? equip.Color;
         equip.BulbSize = lt.BulbSize ?? 1f;
         equip.GlowSize = lt.GlowSize ?? 1f;
