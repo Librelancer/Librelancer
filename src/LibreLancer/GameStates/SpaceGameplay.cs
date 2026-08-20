@@ -108,6 +108,7 @@ namespace LibreLancer
         private bool isLeftDown = false;
         private double leftDownTimer = 0;
         private bool mouseFlight = false;
+        private const double MouseFlightActivationDelay = 0.5;
 
         public SpaceGameplay(FreelancerGame g, CGameSession session) : base(g)
         {
@@ -1090,17 +1091,10 @@ namespace LibreLancer
 
             if (!(Game.Debug.CaptureMouse) && !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
             {
-                var newSelection = GetMouseSelection();
-
-                if (newSelection != null)
-                {
-                    Selection.Selected = newSelection;
-                }
-
                 if (!isLeftDown)
                 {
                     isLeftDown = true;
-                    leftDownTimer = 0.25;
+                    leftDownTimer = MouseFlightActivationDelay;
                 }
             }
             else
@@ -1114,6 +1108,16 @@ namespace LibreLancer
         {
             if ((e.Buttons & MouseButtons.Left) > 0)
             {
+                if (isLeftDown && leftDownTimer >= 0 && !mouseFlight &&
+                    !Game.Debug.CaptureMouse && !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
+                {
+                    var newSelection = GetMouseSelection();
+                    if (newSelection != null)
+                    {
+                        Selection.Selected = newSelection;
+                    }
+                }
+
                 leftDownTimer = 0;
                 isLeftDown = false;
             }
