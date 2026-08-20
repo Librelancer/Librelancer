@@ -108,7 +108,8 @@ namespace LibreLancer
         private bool isLeftDown = false;
         private double leftDownTimer = 0;
         private bool mouseFlight = false;
-        private const double MouseFlightActivationDelay = 0.5;
+        // Closest to vanilla mouse-flight activation timing.
+        private const double MouseFlightActivationDelay = 0.155;
 
         public SpaceGameplay(FreelancerGame g, CGameSession session) : base(g)
         {
@@ -788,11 +789,6 @@ namespace LibreLancer
                 {
                     session.GameplayUpdate(this, FixedDelta);
 
-                    if (isLeftDown)
-                    {
-                        leftDownTimer -= FixedDelta;
-                    }
-
                     if (musicTriggered)
                     {
                         if (RtcMusicOneShot && !Game.Sound.MusicPlaying)
@@ -1232,6 +1228,11 @@ namespace LibreLancer
             if (paused)
             {
                 return;
+            }
+
+            if (isLeftDown)
+            {
+                leftDownTimer -= delta;
             }
 
             Input.Update();
