@@ -260,6 +260,7 @@ public class Game : IUIThread, IGLWindow
         set
         {
             if (textInputEnabled == value) return;
+            textInputEnabled = value;
             if (value) impl.EnableTextInput();
             else impl.DisableTextInput();
         }
