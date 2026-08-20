@@ -90,10 +90,11 @@ Output main(VSInput input)
     output.ambientTermBack = lightTerms.ambientTermBack;
 #endif
 #ifdef ENVMAP
-    float3 incidentView = normalize(output.viewPosition.xyz);
     float3 viewNormal = normalize(mul(float4(n, 0.0), View).xyz);
-    float3 r =  reflect(-incidentView, viewNormal);
-    output.viewSpaceReflection = r;
+    float3 reflection = reflect(normalize(output.viewPosition.xyz), viewNormal);
+    reflection.xz = -reflection.xz;
+    reflection.x = -reflection.x;
+    output.viewSpaceReflection = reflection;
 #endif
     return output;
 }
