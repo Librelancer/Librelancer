@@ -8,4 +8,5 @@ public interface IRendererSettings
     TextureFiltering SelectedFiltering { get; }
     int SelectedAnisotropy { get; }
     float LodMultiplier { get; }
+    bool PerPixelLighting { get; }
 }

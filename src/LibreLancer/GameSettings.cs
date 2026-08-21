@@ -40,8 +40,11 @@ namespace LibreLancer
         public float LodMultiplier = 1.3f;
         [Entry("debug")]
         public bool Debug = false;
+        [Entry("per_pixel_lighting")]
+        public bool PerPixelLighting = true;
 
         float IRendererSettings.LodMultiplier => LodMultiplier;
+        bool IRendererSettings.PerPixelLighting => PerPixelLighting;
 
         int IRendererSettings.SelectedAnisotropy => Anisotropy;
         TextureFiltering IRendererSettings.SelectedFiltering =>
@@ -69,6 +72,7 @@ namespace LibreLancer
             writer.WriteLine($"msaa = {MSAA}");
             writer.WriteLine($"lod_multiplier = {Fmt(LodMultiplier)}");
             writer.WriteLine($"debug = {(Debug ? "true" : "false")}");
+            writer.WriteLine($"per_pixel_lighting = {(PerPixelLighting ? "true" : "false")}");
         }
 
         [WattleScriptHidden]
@@ -90,7 +94,8 @@ namespace LibreLancer
                 MSAA = MSAA,
                 LodMultiplier = LodMultiplier,
                 RenderContext = RenderContext,
-                Debug = Debug
+                Debug = Debug,
+                PerPixelLighting = PerPixelLighting
             };
 
             return gs;

@@ -442,7 +442,6 @@ namespace LibreLancer
 
         public override void Draw(double delta)
         {
-            RenderMaterial.VertexLighting = true;
             scene?.Draw(delta, Game.Width, Game.Height);
             ui.RenderWidget(delta);
             DoFade(delta);

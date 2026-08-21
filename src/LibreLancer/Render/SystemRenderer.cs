@@ -43,6 +43,7 @@ namespace LibreLancer.Render
         public bool DrawStarsphere = true;
 
         // Global Renderer Options
+        public bool AllowPerPixelLighting = true;
         public bool ExtraLights = false; // See comments in Draw() before enabling
 
         public RigidModel[] StarSphereModels;
@@ -304,6 +305,7 @@ namespace LibreLancer.Render
                 rstate.RenderTarget = msaa;
             }
 
+            RenderMaterial.VertexLighting = !(AllowPerPixelLighting && Settings.PerPixelLighting);
             rstate.PreferredFilterLevel = Settings.SelectedFiltering;
             rstate.AnisotropyLevel = Settings.SelectedAnisotropy;
             var nr = CheckNebulae(); // are we in a nebula?

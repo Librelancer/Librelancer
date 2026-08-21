@@ -145,6 +145,7 @@ namespace LancerEdit
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Default View");
             var pastC = cFilter;
+            ImGui.Checkbox("Per-Pixel Lighting", ref config.PerPixelLighting);
             ImGui.Combo("Texture Filter", ref cFilter, filters, filters.Length);
             if (cFilter != pastC)
             {

@@ -78,6 +78,8 @@ namespace LancerEdit
         public int WindowWidth = 800;
         [Entry("window_height")]
         public int WindowHeight = 600;
+        [Entry("per_pixel_lighting")]
+        public bool PerPixelLighting = true;
 
         public string AutoLoadPath = "";
 
@@ -114,6 +116,7 @@ namespace LancerEdit
         int IRendererSettings.SelectedMSAA => MSAA;
 
         float IRendererSettings.LodMultiplier => LodMultiplier;
+        bool IRendererSettings.PerPixelLighting => PerPixelLighting;
 
         public string LastExportPath
         {
@@ -169,7 +172,8 @@ namespace LancerEdit
                 .Entry("status_bar_visible", StatusBarVisible)
                 .Entry("collada_visible", ColladaVisible)
                 .Entry("window_width", WindowWidth)
-                .Entry("window_height", WindowHeight);
+                .Entry("window_height", WindowHeight)
+                .Entry("per_pixel_lighting", PerPixelLighting);
             foreach (var fav in Favorites)
                 c.Entry("favorite", Encode(fav.Name), Encode(fav.FullPath));
             if (!string.IsNullOrWhiteSpace(AutoLoadPath))

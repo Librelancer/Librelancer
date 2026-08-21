@@ -1791,8 +1791,6 @@ namespace LibreLancer
 
         public override unsafe void Draw(double delta)
         {
-            RenderMaterial.VertexLighting = false;
-
             if (loading)
             {
                 loader!.Draw(delta);

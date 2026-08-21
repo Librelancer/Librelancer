@@ -39,7 +39,7 @@ namespace LibreLancer.Render.Materials
 
         public override unsafe void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData)
         {
-            var sh = AllShaders.Atmosphere.Get(rstate.HasFeature(GraphicsFeature.GLES) ? 1U : 0U);
+            var sh = AllShaders.Atmosphere.Get(VertexLighting ? 1U : 0U);
             SetWorld(sh);
             var p = new AtmosphereParameters() { Dc = Dc, Ac = Ac, Fade = Fade, Oc = Alpha };
             if (GetTexture(0, DtSampler) == null)
