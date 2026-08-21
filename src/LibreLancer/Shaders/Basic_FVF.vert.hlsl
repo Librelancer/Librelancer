@@ -92,7 +92,7 @@ Output main(VSInput input)
 #ifdef ENVMAP
     float3 viewNormal = normalize(mul(float4(n, 0.0), View).xyz);
     float3 reflection = reflect(normalize(output.viewPosition.xyz), viewNormal);
-    reflection.xz = -reflection.xz;
+    reflection.z = -reflection.z;
     reflection.x = -reflection.x;
     output.viewSpaceReflection = reflection;
 #endif
