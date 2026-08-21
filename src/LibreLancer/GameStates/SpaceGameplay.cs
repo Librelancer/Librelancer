@@ -332,6 +332,10 @@ namespace LibreLancer
 
             switch (obj)
             {
+                case InputAction.USER_CRUISE:
+                    steering.Cruise = !steering.Cruise;
+                    steering.EngineKill = false;
+                    break;
                 case InputAction.USER_MANEUVER_DOCK:
                     ManeuverSelect("Dock");
                     break;
@@ -1064,10 +1068,6 @@ namespace LibreLancer
 
             switch (action)
             {
-                case InputAction.USER_CRUISE:
-                    steering.Cruise = !steering.Cruise;
-                    steering.EngineKill = false;
-                    break;
                 case InputAction.USER_TURN_SHIP:
                     mouseFlight = !mouseFlight;
                     break;
