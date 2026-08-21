@@ -95,6 +95,13 @@ namespace LibreLancer.Server.Components
                 return false;
             }
 
+            // Story missions must remain on the scripted tradelane route.
+            if (Parent.TryGetComponent<SPlayerComponent>(out var player) &&
+                player.Player.Story?.CurrentMission != null)
+            {
+                return false;
+            }
+
             var body = Parent.PhysicsComponent?.Body;
             if (body == null)
             {
@@ -275,8 +282,8 @@ namespace LibreLancer.Server.Components
             manualExitTime += (float)time;
             var turnProgress = MathHelper.Clamp(manualExitTime / TradelaneMotion.ManualTurnDuration, 0, 1);
             var speedProgress = MathHelper.Clamp(manualExitTime / TradelaneMotion.ManualExitDuration, 0, 1);
-            var easedTurnProgress = turnProgress * turnProgress * (3 - 2 * turnProgress);
-            var orientation = Quaternion.Slerp(manualStartOrientation, manualTargetOrientation, easedTurnProgress);
+            var orientation = TradelaneMotion.ManualExitOrientation(
+                manualStartOrientation, manualTargetOrientation, turnProgress);
             var direction = TradelaneMotion.Forward(orientation);
             var speed = TradelaneMotion.ManualExitSpeed(speedProgress, manualStartSpeed, NormalThrottleSpeed());
 

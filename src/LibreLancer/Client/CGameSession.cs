@@ -95,6 +95,9 @@ public partial class CGameSession : IClientPlayer
 
     public bool IsManeuverEnabled(string maneuver)
     {
+        if (maneuver.Equals("FreeFlight", StringComparison.OrdinalIgnoreCase) && InTradelane)
+            return true;
+
         if (maneuversLocked)
             return false;
         if (maneuver.Equals("Dock", StringComparison.OrdinalIgnoreCase))

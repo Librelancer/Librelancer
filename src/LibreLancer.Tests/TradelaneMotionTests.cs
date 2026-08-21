@@ -9,7 +9,7 @@ public class TradelaneMotionTests
 {
     [Theory]
     [InlineData(0, 2500)]
-    [InlineData(0.5f, 1400)]
+    [InlineData(0.5f, 850)]
     [InlineData(1, 300)]
     public void SlowdownSpeedUsesTheFullThrottleTarget(float progress, float expected)
     {
@@ -26,6 +26,19 @@ public class TradelaneMotionTests
             Assert.True(current <= previous);
             previous = current;
         }
+    }
+
+    [Fact]
+    public void ManualExitDoesNotBankTheShip()
+    {
+        var start = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, MathHelper.DegreesToRadians(20));
+        var target = TradelaneMotion.TurnRight(start, TradelaneMotion.ManualTurnDegrees);
+        var orientation = TradelaneMotion.ManualExitOrientation(start, target, 0.5f);
+        var up = Vector3.Transform(Vector3.UnitY, orientation);
+
+        Assert.Equal(Vector3.UnitY.X, up.X, 3);
+        Assert.Equal(Vector3.UnitY.Y, up.Y, 3);
+        Assert.Equal(Vector3.UnitY.Z, up.Z, 3);
     }
 
     [Fact]

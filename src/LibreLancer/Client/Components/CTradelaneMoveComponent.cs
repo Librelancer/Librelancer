@@ -88,8 +88,8 @@ public class CTradelaneMoveComponent(GameObject parent) : GameComponent(parent)
         manualExitTime += (float)time;
         var turnProgress = MathHelper.Clamp(manualExitTime / manualTurnDuration, 0, 1);
         var speedProgress = MathHelper.Clamp(manualExitTime / manualExitDuration, 0, 1);
-        var easedTurnProgress = turnProgress * turnProgress * (3 - 2 * turnProgress);
-        var orientation = Quaternion.Slerp(manualStartOrientation, manualTargetOrientation, easedTurnProgress);
+        var orientation = TradelaneMotion.ManualExitOrientation(
+            manualStartOrientation, manualTargetOrientation, turnProgress);
         var speed = TradelaneMotion.ManualExitSpeed(speedProgress, manualStartSpeed, TargetSpeed);
 
         var body = Parent.PhysicsComponent!.Body;
@@ -119,3 +119,4 @@ public class CTradelaneMoveComponent(GameObject parent) : GameComponent(parent)
         }
     }
 }
++

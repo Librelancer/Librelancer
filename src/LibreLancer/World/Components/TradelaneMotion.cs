@@ -32,8 +32,30 @@ public static class TradelaneMotion
     {
         var target = MathF.Min(Speed, MathF.Max(0, normalThrottleSpeed));
         var t = MathHelper.Clamp(progress, 0, 1);
+        return Easing.Ease(EasingTypes.EaseOut, t, 0, 1, Speed, target);
+    }
+
+    public static Quaternion ManualExitOrientation(
+        Quaternion startOrientation, Quaternion targetOrientation, float progress)
+    {
+        var t = MathHelper.Clamp(progress, 0, 1);
         t *= t * (3 - 2 * t);
-        return MathHelper.Lerp(Speed, target, t);
+        var startForward = Forward(startOrientation);
+        var targetForward = Forward(targetOrientation);
+        startForward.Y = 0;
+        targetForward.Y = 0;
+
+        if (startForward.LengthSquared() <= float.Epsilon || targetForward.LengthSquared() <= float.Epsilon)
+        {
+            var turned = Quaternion.Slerp(startOrientation, targetOrientation, t);
+            return QuaternionEx.LookAt(Vector3.Zero, Forward(turned));
+        }
+
+        var forward = Vector3.Normalize(Vector3.Lerp(
+            Vector3.Normalize(startForward), Vector3.Normalize(targetForward), t));
+
+        // Keep the exit as a flat yaw turn
+        return QuaternionEx.LookAt(Vector3.Zero, forward);
     }
 
     public static float ManualExitSpeed(float progress, float currentSpeed, float normalThrottleSpeed)

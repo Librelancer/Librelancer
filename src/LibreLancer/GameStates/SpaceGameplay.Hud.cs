@@ -662,18 +662,20 @@ partial class SpaceGameplay
 
         private string activeManeuver = "FreeFlight";
 
-        public string GetActiveManeuver() => g.pilotComponent!.CurrentBehavior switch
-        {
-            AutopilotBehaviors.Dock => "Dock",
-            AutopilotBehaviors.Formation => "Formation",
-            AutopilotBehaviors.Goto => "Goto",
-            _ => "FreeFlight"
-        };
+        public string GetActiveManeuver() => g.session.InTradelane
+            ? "Dock"
+            : g.pilotComponent!.CurrentBehavior switch
+            {
+                AutopilotBehaviors.Dock => "Dock",
+                AutopilotBehaviors.Formation => "Formation",
+                AutopilotBehaviors.Goto => "Goto",
+                _ => "FreeFlight"
+            };
 
         public LuaCompatibleDictionary GetManeuversEnabled()
         {
             var dict = new LuaCompatibleDictionary();
-            dict.Set("FreeFlight", true);
+            dict.Set("FreeFlight", g.session.InTradelane || g.session.IsManeuverEnabled("FreeFlight"));
             dict.Set("Goto", g.Selection.Selected != null);
             dict.Set("Dock", g.Selection.Selected?.GetComponent<DockInfoComponent>() != null &&
                              g.session.DockAllowed(g.Selection.Selected));
