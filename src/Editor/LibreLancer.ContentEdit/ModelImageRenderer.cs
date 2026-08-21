@@ -10,7 +10,7 @@ namespace LibreLancer.ContentEdit;
 
 public class ModelImageRenderer
 {
-    static Lighting lighting;
+    public static Lighting lighting;
     static ModelImageRenderer()
     {
         lighting = Lighting.Create();
