@@ -207,9 +207,10 @@ namespace LibreLancer.Render.Materials
             var dxt1 = GetDxt1();
 
             bool envMapping = false;
-            if (Glass && !pbr)
+            string? envmaptex = Glass ? "envmapglass" : EnvMap;
+            if (!pbr)
             {
-                envMapping = (GetTexture(3, "envmapglass") != null);
+                envMapping = (GetTexture(3, envmaptex, false) is TextureCube);
             }
 
 
@@ -271,7 +272,7 @@ namespace LibreLancer.Render.Materials
 
             if (envMapping)
             {
-                BindTexture(rstate, 3, "envmapglass", 3, SamplerFlags.Default);
+                BindTexture(rstate, 3, envmaptex, 3, SamplerFlags.Default);
             }
 
             if (pbr)

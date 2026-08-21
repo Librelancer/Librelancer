@@ -2256,6 +2256,7 @@ public class GameItemDb
             var ship = new Ship
             {
                 ModelFile = ResolveDrawable(orig.MaterialLibraries, orig.DaArchetypeName),
+                EnvMapMaterial = orig.EnvmapMaterial,
                 LODRanges = orig.LodRanges,
                 HoldSize = orig.HoldSize,
                 Mass = orig.Mass,
@@ -2527,6 +2528,7 @@ public class GameItemDb
             obj.CRC = FLHash.CreateID(obj.Nickname);
             obj.LODRanges = arch.LODRanges;
             obj.ModelFile = ResolveDrawable(arch.MaterialPaths, arch.DaArchetypeName);
+            obj.EnvMapMaterial = arch.EnvmapMaterial;
             obj.Hitpoints = arch.Hitpoints ?? -1;
 
             if (!arch.Destructible ||

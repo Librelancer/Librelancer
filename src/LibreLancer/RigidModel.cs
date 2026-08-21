@@ -92,7 +92,7 @@ namespace LibreLancer
 
         public void DrawBuffer(int level, ResourceManager res, CommandBuffer buffer, Matrix4x4 world,
             ref Lighting lights, MaterialAnimCollection? mc, int userData = 0, Material? overrideMat = null,
-            float opacity = 1.0f)
+            float opacity = 1.0f, string? envMap = null)
         {
             if (Levels == null || Levels.Length <= level)
             {
@@ -162,7 +162,7 @@ namespace LibreLancer
                     l.Resource.VertexResource.StartIndex + dc.StartIndex,
                     dc.PrimitiveCount,
                     SortLayers.OBJECT,
-                    z, null, 0, userData
+                    z, null, 0, userData, envMap
                 );
             }
         }

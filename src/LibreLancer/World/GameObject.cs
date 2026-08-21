@@ -407,6 +407,10 @@ namespace LibreLancer.World
             else
             {
                 InitWithModel(arch.ModelFile?.LoadFile(res, flags), arch.SeparableParts, res, draw, phys);
+                if (RenderComponent is ModelRenderer mr)
+                {
+                    mr.EnvMapMaterial = arch.EnvMapMaterial;
+                }
             }
 
             if (arch.PhantomPhysics && PhysicsComponent != null)
@@ -441,6 +445,7 @@ namespace LibreLancer.World
             if (RenderComponent is ModelRenderer mr)
             {
                 mr.LODRanges = ship.LODRanges;
+                mr.EnvMapMaterial = ship.EnvMapMaterial;
             }
 
             if (PhysicsComponent != null)
