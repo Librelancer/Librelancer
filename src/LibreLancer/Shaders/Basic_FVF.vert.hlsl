@@ -93,7 +93,6 @@ Output main(VSInput input)
     float3 viewNormal = normalize(mul(float4(n, 0.0), View).xyz);
     float3 reflection = reflect(normalize(output.viewPosition.xyz), viewNormal);
     reflection.z = -reflection.z;
-    reflection.x = -reflection.x;
     output.viewSpaceReflection = reflection;
 #endif
     return output;
