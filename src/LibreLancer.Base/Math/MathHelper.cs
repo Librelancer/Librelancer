@@ -49,28 +49,6 @@ public static class MathHelper
     }
 
     /// <summary>
-    /// Convert degrees to radians
-    /// </summary>
-    /// <param name="degrees">An angle in degrees</param>
-    /// <returns>The angle expressed in radians</returns>
-    public static double DegreesToRadians(double degrees)
-    {
-        const double degToRad = Math.PI / 180.0;
-        return degrees * degToRad;
-    }
-
-    /// <summary>
-    /// Convert radians to degrees
-    /// </summary>
-    /// <param name="radians">An angle in radians</param>
-    /// <returns>The angle expressed in degrees</returns>
-    public static double RadiansToDegrees(double radians)
-    {
-        const double radToDeg = 180.0 / Math.PI;
-        return radians * radToDeg;
-    }
-
-    /// <summary>
     /// Clamps a number between a minimum and a maximum.
     /// </summary>
     /// <param name="n">The number to clamp.</param>
@@ -79,70 +57,12 @@ public static class MathHelper
     /// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Clamp<T>(T n, T min, T max) where T : IBinaryNumber<T>
-    {
-        return n < min ? min : n > max ? max : n;
-    }
-
-    /// <summary>
-    /// Clamps a number between a minimum and a maximum.
-    /// </summary>
-    /// <param name="n">The number to clamp.</param>
-    /// <param name="min">The minimum allowed value.</param>
-    /// <param name="max">The maximum allowed value.</param>
-    /// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float Clamp(float n, float min, float max)
-    {
-        if (Sse.IsSupported)
-        {
-            return Sse.MinScalar(
-                    Sse.MaxScalar(Vector128.CreateScalarUnsafe(n), Vector128.CreateScalarUnsafe(min)),
-                    Vector128.CreateScalarUnsafe(max))
-                .ToScalar();
-        }
-        if (AdvSimd.IsSupported)
-        {
-            return AdvSimd.MinNumberScalar(
-                AdvSimd.MaxNumberScalar(Vector64.CreateScalarUnsafe(n), Vector64.CreateScalarUnsafe(min)),
-                Vector64.CreateScalarUnsafe(max)).ToScalar();
-        }
-        return Clamp<float>(n, min, max);
-    }
-
-    /// <summary>
-    /// Clamps a number between a minimum and a maximum.
-    /// </summary>
-    /// <param name="n">The number to clamp.</param>
-    /// <param name="min">The minimum allowed value.</param>
-    /// <param name="max">The maximum allowed value.</param>
-    /// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static double Clamp(double n, double min, double max)
-    {
-        if (Sse2.IsSupported)
-        {
-            return Sse2.MinScalar(
-                    Sse2.MaxScalar(Vector128.CreateScalarUnsafe(n), Vector128.CreateScalarUnsafe(min)),
-                    Vector128.CreateScalarUnsafe(max))
-                .ToScalar();
-        }
-        if (AdvSimd.IsSupported)
-        {
-            return AdvSimd.MinNumberScalar(
-                AdvSimd.MaxNumberScalar(Vector64.CreateScalarUnsafe(n), Vector64.CreateScalarUnsafe(min)),
-                Vector64.CreateScalarUnsafe(max)).ToScalar();
-        }
-        return Clamp<double>(n, min, max);
-    }
+        => T.MinNative(T.MaxNative(n, min), max);
 
 
-    public static float Lerp(float value1, float value2, float amount)
-    {
-        if (Fma.IsSupported || AdvSimd.IsSupported)
-            return MathF.FusedMultiplyAdd(amount, value2 - value1, value1);
-        else
-            return value1 + (value2 - value1) * amount;
-    }
+    public static float Lerp(float value1, float value2, float amount) =>
+        float.MultiplyAddEstimate(amount, value2 - value1, value1);
+
 
     public static float Snap(float s, float step)
     {
