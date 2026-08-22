@@ -208,6 +208,8 @@ namespace LibreLancer.Server.Components
             if (Parent.TryGetComponent<AutopilotComponent>(out var ap))
             {
                 ap.Cancel();
+                if (Parent.Formation != null && Parent.Formation.LeadShip != Parent)
+                    ap.StartFormation();
             }
 
             if (TryGetMissionRuntime(out var msn, out var isPlayer))

@@ -148,6 +148,7 @@ namespace LibreLancer.Server
                 MissionRuntime.PlayerLaunch();
                 MissionRuntime.CheckMissionScript();
                 MissionRuntime.EnteredSpace();
+                MissionRuntime.CheckMissionScript();
             }
         }
 
