@@ -224,7 +224,7 @@ namespace LibreLancer
 
             public void ApplySettings(GameSettings settings)
             {
-                state.Game.Config.Settings = settings;
+                state.Game.Config.Settings.Apply(settings);
                 state.Game.Config.Save();
             }
 

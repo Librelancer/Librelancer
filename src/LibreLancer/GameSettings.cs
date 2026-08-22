@@ -101,6 +101,24 @@ namespace LibreLancer
             return gs;
         }
 
+        [WattleScriptHidden]
+        public void Apply(GameSettings other)
+        {
+            MasterVolume = other.MasterVolume;
+            SfxVolume = other.SfxVolume;
+            InterfaceVolume = other.InterfaceVolume;
+            VoiceVolume = other.VoiceVolume;
+            MusicVolume = other.MusicVolume;
+            FullScreen = other.FullScreen;
+            VSync = other.VSync;
+            Anisotropy = other.Anisotropy;
+            Antialias = other.Antialias;
+            LodMultiplier = other.LodMultiplier;
+            RenderContext = other.RenderContext;
+            Debug = other.Debug;
+            PerPixelLighting = other.PerPixelLighting;
+        }
+
         public void Validate()
         {
             var mode = (AntialiasMode)Antialias;

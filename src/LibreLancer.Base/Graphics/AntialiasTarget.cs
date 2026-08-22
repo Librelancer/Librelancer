@@ -26,6 +26,7 @@ public class AntialiasTarget : RenderTarget
         this.renderContext = renderContext;
         Width = width;
         Height = height;
+        Mode = mode;
         if (mode >= AntialiasMode.MSAA2x)
         {
             msaa = renderContext.Backend.CreateMultisampleTarget(width, height, mode switch
