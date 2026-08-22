@@ -72,6 +72,8 @@ namespace LancerEdit
         const int M_NORMALS = 3;
         const int M_NONE = 4;
 
+        Vector3 ambientColor = new(0.0f, 0.0f, 0.0f);
+
         static readonly Color4[] initialCmpColors = new Color4[] {
             Color4.White,
             Color4.Red,
@@ -244,6 +246,11 @@ namespace LancerEdit
                 ImGui.SameLine();
             }
             ImGuiExt.DropdownButton("View Mode", ref viewMode, ViewModes);
+            ImGui.SameLine();
+            if (viewMode == M_LIT && ImGui.ColorEdit3("Ambient Light", ref ambientColor, ImGuiColorEditFlags.NoInputs))
+            {
+                lighting.Ambient = new Color3f(ambientColor.X, ambientColor.Y, ambientColor.Z);
+            }
             ImGui.SameLine();
             using (var ct = Toolbar.Begin("#controls", true)) {
                 ct.CheckItem("Background", ref doBackground);
