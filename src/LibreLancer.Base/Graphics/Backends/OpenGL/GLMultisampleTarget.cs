@@ -19,6 +19,8 @@ internal class GLMultisampleTarget : GLRenderTarget, IMultisampleTarget
     private uint resolveTexID;
     private uint resolveFboID;
 
+    public override bool HasStencil => false;
+
     public GLMultisampleTarget(GLRenderContext context, int width, int height, int samples)
     {
         this.context = context;

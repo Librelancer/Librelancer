@@ -77,7 +77,7 @@ public class SystemEditorTab : GameContentTab
         SaveStrategy = new StarSystemSaveStrategy(this);
         this.Data = gameData;
         viewport = new Viewport3D(mw);
-        viewport.EnableMSAA = false; //MSAA handled by SystemRenderer
+        viewport.EnableAntiAliasing = false; //MSAA handled by SystemRenderer
         viewport.DefaultOffset = new Vector3(0, 0, 4);
         viewport.ModelScale = 1000f;
         cameraMode = mw.Config.DefaultSysEditCameraMode;

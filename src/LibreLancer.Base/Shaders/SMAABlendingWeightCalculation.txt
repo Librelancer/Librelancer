@@ -1,0 +1,4 @@
+vertex SMAABlendingWeightCalculation.vert.hlsl
+fragment SMAABlendingWeightCalculation.frag.hlsl
+feature SMAA_PRESET_A 1
+feature SMAA_PRESET_B 2

@@ -10,9 +10,9 @@ namespace LibreLancer.Graphics;
 public class DepthBuffer : IDisposable
 {
     internal IDepthBuffer Backing;
-    public DepthBuffer(RenderContext context, int width, int height)
+    public DepthBuffer(RenderContext context, int width, int height, bool stencil = false)
     {
-        Backing = context.Backend.CreateDepthBuffer(width, height);
+        Backing = context.Backend.CreateDepthBuffer(width, height, stencil);
     }
     public void Dispose()
     {

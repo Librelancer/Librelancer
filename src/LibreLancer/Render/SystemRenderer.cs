@@ -250,7 +250,7 @@ namespace LibreLancer.Render
             return null;
         }
 
-        private MultisampleTarget? msaa;
+        private AntialiasTarget? msaa;
         private int _mwidth = -1, _mheight = -1;
         public CommandBuffer Commands;
         private int _twidth = -1, _theight = -1;
@@ -290,14 +290,15 @@ namespace LibreLancer.Render
 
             RenderTarget? restoreTarget = rstate.RenderTarget;
 
-            if (Settings.SelectedMSAA > 0)
+            if (Settings.SelectedAA != AntialiasMode.None)
             {
-                if (_mwidth != renderWidth || _mheight != renderHeight)
+                if (_mwidth != renderWidth || _mheight != renderHeight ||
+                    Settings.SelectedAA != msaa?.Mode)
                 {
                     _mwidth = renderWidth;
                     _mheight = renderHeight;
                     msaa?.Dispose();
-                    msaa = new MultisampleTarget(rstate, renderWidth, renderHeight, Settings.SelectedMSAA);
+                    msaa = new AntialiasTarget(rstate, renderWidth, renderHeight, Settings.SelectedAA);
                 }
 
                 rstate.PushViewport(new Rectangle(0, 0, renderWidth, renderHeight));
@@ -497,7 +498,7 @@ namespace LibreLancer.Render
             debugLines = [];
             DebugRenderer.Render();
 
-            if (Settings.SelectedMSAA > 0)
+            if (Settings.SelectedAA != null)
             {
                 rstate.PopViewport();
                 rstate.PopScissor();

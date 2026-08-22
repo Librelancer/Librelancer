@@ -8,18 +8,25 @@ namespace LibreLancer.Graphics;
 
 public class RenderTarget2D : RenderTarget
 {
-    public DepthBuffer DepthBuffer { get; private set; }
+    public DepthBuffer? DepthBuffer { get; private set; }
     public Texture2D Texture { get; private set; }
     public int Width => Texture.Width;
     public int Height => Texture.Height;
 
     internal readonly IRenderTarget2D Backing;
-    public RenderTarget2D (RenderContext context, int width, int height)
+    private bool disposeDepth;
+    public RenderTarget2D (RenderContext context, int width, int height, DepthBuffer? depth, bool disposeDepth)
     {
         Texture = new Texture2D(context, width, height);
-        DepthBuffer = new DepthBuffer(context, width, height);
-        Backing = context.Backend.CreateRenderTarget2D(Texture.Backing, DepthBuffer.Backing);
+        DepthBuffer = depth;
+        Backing = context.Backend.CreateRenderTarget2D(Texture.Backing, DepthBuffer?.Backing);
         Target = Backing;
+        this.disposeDepth = disposeDepth;
+    }
+
+    public RenderTarget2D(RenderContext context, int width, int height)
+        : this(context, width, height, new DepthBuffer(context, width, height), true)
+    {
     }
 
     public void BlitToScreen() => Backing.BlitToScreen();
@@ -36,7 +43,8 @@ public class RenderTarget2D : RenderTarget
     public void Dispose(bool keepTexture)
     {
         Backing.Dispose();
-        DepthBuffer.Dispose();
+        if(disposeDepth)
+            DepthBuffer?.Dispose();
         if(!keepTexture)
             Texture.Dispose();
     }

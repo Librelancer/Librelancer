@@ -7,7 +7,7 @@ namespace LibreLancer.Graphics.Backends.Null;
 
 internal class NullRenderContext : IRenderContext
 {
-    public int MaxSamples => 0;
+    public AntialiasMode MaxAntialias => AntialiasMode.SMAAUltra;
     public int MaxAnisotropy => 0;
     public int AnisotropyLevel { get; set; }
     public bool SupportsWireframe => false;
@@ -98,10 +98,10 @@ internal class NullRenderContext : IRenderContext
     public ITextureCube CreateTextureCube(int size, bool mipMap, SurfaceFormat format) =>
         new NullTextureCube(size, format, 1, 256 * 256 * 6);
 
-    public IDepthBuffer CreateDepthBuffer(int width, int height) =>
+    public IDepthBuffer CreateDepthBuffer(int width, int height, bool stencil) =>
         new NullDepthBuffer();
 
-    public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer) =>
+    public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer? buffer) =>
         new NullRenderTarget2D(texture.Width, texture.Height);
 
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples) =>
