@@ -498,7 +498,7 @@ namespace LibreLancer.Render
             debugLines = [];
             DebugRenderer.Render();
 
-            if (Settings.SelectedAA != null)
+            if (Settings.SelectedAA != AntialiasMode.None)
             {
                 rstate.PopViewport();
                 rstate.PopScissor();
