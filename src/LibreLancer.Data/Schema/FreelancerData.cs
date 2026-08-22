@@ -42,6 +42,8 @@ public class FreelancerData
     public CameraIni Cameras = null!;
     public InfocardManager Infocards = null!;
     public EffectsIni Effects = null!;
+    public GateTunnelsIni GateTunnels = null!;
+    public JumpEffectsIni JumpEffects = null!;
     public ExplosionsIni Explosions = null!;
     public FuseIni Fuses = null!;
     public EquipmentIni? Equipment;
@@ -218,6 +220,15 @@ public class FreelancerData
             Effects = new EffectsIni();
             foreach (var fx in Freelancer.EffectPaths)
                 Effects.AddIni(fx, VFS, stringPool);
+        });
+        Run(() =>
+        {
+            GateTunnels = new GateTunnelsIni();
+            foreach (var tunnel in Freelancer.GateTunnelPaths)
+                GateTunnels.AddFile(tunnel, VFS, stringPool);
+            JumpEffects = new JumpEffectsIni();
+            foreach (var effect in Freelancer.JumpEffectPaths)
+                JumpEffects.AddFile(effect, VFS, stringPool);
         });
         Run(() =>
         {

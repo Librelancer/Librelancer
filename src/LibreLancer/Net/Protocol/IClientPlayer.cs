@@ -42,8 +42,14 @@ public interface IClientPlayer
     void DestroyPart(ObjNetId id, uint part);
     void DestroyEquipment(ObjNetId id, bool explode, string hardpoint);
     void RunMissionDialog(NetDlgLine[] lines);
-    void StartJumpTunnel();
-    void StartTradelane();
+    void JumpGateEffect(ObjNetId gate, JumpGateEffectPhase phase);
+    void StartJumpTunnel(
+        ObjNetId sourceGate,
+        string destinationSystem,
+        string exitObject,
+        uint exitSeed);
+    void StartTradelane(ObjNetId ring);
+    void TradelaneRing(ObjNetId ring);
     void TradelaneDisrupted();
     void EndTradelane();
     void Cloak(ObjNetId ship);

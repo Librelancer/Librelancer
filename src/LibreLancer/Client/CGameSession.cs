@@ -20,6 +20,7 @@ using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.Resources;
 using LibreLancer.Server;
 using LibreLancer.World;
+using LibreLancer.World.Components;
 
 namespace LibreLancer.Client;
 
@@ -46,6 +47,8 @@ public partial class CGameSession : IClientPlayer
     public Action<IPacket>? ExtraPackets;
     public FreelancerGame Game;
     private readonly Queue<Action> gameplayActions = new();
+    private readonly Queue<(ObjNetId Gate, JumpGateEffectPhase Phase)> pendingGateEffects = new();
+    private JumpClientTransition? jumpTransition;
 
 
     public SoldGood[] Goods = null!;
@@ -165,12 +168,15 @@ public partial class CGameSession : IClientPlayer
         Statistics.BattleshipsKilled = stats.BattleshipsKilled;
     }
 
-    void IClientPlayer.StartTradelane()
+    void IClientPlayer.StartTradelane(ObjNetId ring)
     {
         inTradelane = true;
         CompleteActiveTradelaneWaypoint(FLHash.CreateID(PlayerSystem));
-        RunSync(spaceGameplay!.StartTradelane);
+        RunSync(() => spaceGameplay!.StartTradelane(ring));
     }
+
+    void IClientPlayer.TradelaneRing(ObjNetId ring) =>
+        RunSync(() => spaceGameplay!.TradelaneRing(ring));
 
     void IClientPlayer.UpdateVisits(VisitBundle bundle)
     {
@@ -191,10 +197,87 @@ public partial class CGameSession : IClientPlayer
         Popups.Enqueue(new Popup { Title = title, Contents = contents, ID = id });
     }
 
-    void IClientPlayer.StartJumpTunnel()
+    void IClientPlayer.JumpGateEffect(ObjNetId gate, JumpGateEffectPhase phase)
+    {
+        if (spaceGameplay == null)
+        {
+            if (jumpTransition == null ||
+                jumpTransition.Phase == JumpClientPhase.Docking ||
+                phase == JumpGateEffectPhase.InboundBurst)
+                pendingGateEffects.Enqueue((gate, phase));
+            return;
+        }
+        RunSync(() => spaceGameplay?.ActivateJumpGateEffect(gate, phase));
+    }
+
+    void IClientPlayer.StartJumpTunnel(
+        ObjNetId sourceGate,
+        string destinationSystem,
+        string exitObject,
+        uint exitSeed)
     {
         inTradelane = false;
-        FLLog.Warning("Client", "Jump tunnel unimplemented");
+        if (jumpTransition != null)
+        {
+            FLLog.Info("Client", "Ignoring duplicate StartJumpTunnel");
+            return;
+        }
+
+        var gate = spaceGameplay?.world.GetObject(sourceGate);
+        var effect = Game.GameData.Items.ResolveJumpGateEffect(
+            gate?.SystemObject?.JumpEffect);
+        var tunnel = Game.GameData.Items.ResolveGateTunnel(
+            gate?.GetComponent<DockInfoComponent>()?.Action.Tunnel,
+            effect);
+        jumpTransition = new JumpClientTransition
+        {
+            SourceGate = sourceGate,
+            DestinationSystem = destinationSystem,
+            ExitObject = exitObject,
+            ExitSeed = exitSeed,
+            Effect = effect,
+            Tunnel = tunnel
+        };
+        RunSync(() => spaceGameplay?.StartJumpOut(jumpTransition));
+    }
+
+    internal void EnterJumpTunnel(JumpClientTransition transition)
+    {
+        if (!ReferenceEquals(jumpTransition, transition) ||
+            transition.Phase != JumpClientPhase.Docking)
+            return;
+        transition.Phase = JumpClientPhase.Tunnel;
+        spaceGameplay = null;
+        Game.ChangeState(new JumpTunnelState(Game, this, transition));
+    }
+
+    internal void DestinationPreloaded(JumpClientTransition transition)
+    {
+        if (!ReferenceEquals(jumpTransition, transition) ||
+            transition.Phase != JumpClientPhase.Tunnel)
+            return;
+        transition.Phase = JumpClientPhase.DestinationReady;
+        RpcServer.JumpTunnelReady();
+    }
+
+    internal bool ConsumePreloadedJump(string system)
+    {
+        if (jumpTransition is not { Phase: JumpClientPhase.DestinationReady } transition ||
+            !transition.DestinationSystem.Equals(system, StringComparison.OrdinalIgnoreCase))
+            return false;
+        transition.Phase = JumpClientPhase.Arrival;
+        return true;
+    }
+
+    internal JumpClientTransition? CurrentJumpArrival =>
+        jumpTransition is { Phase: JumpClientPhase.Arrival } ? jumpTransition : null;
+
+    internal void CompleteJumpIn(JumpClientTransition transition)
+    {
+        if (!ReferenceEquals(jumpTransition, transition))
+            return;
+        RpcServer.JumpInComplete();
+        jumpTransition = null;
     }
 
     void IClientPlayer.SetObjective(NetObjective objective, bool history)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.GameData;
+using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Missions;
 using LibreLancer.Server.Components;
@@ -269,7 +270,8 @@ public partial class SpacePopulationManager
         {
             var arrivalIndex = spawn.ArrivalIndex;
             var reservedArrival = false;
-            if (arrivalDockable != null)
+            if (arrivalDockable != null &&
+                arrivalDockable.Action.Kind != DockKinds.Jump)
             {
                 reservedArrival = spawn.ArrivalIndex == 0
                     ? arrivalDockable.TryReserveUndockIndex(out arrivalIndex)
