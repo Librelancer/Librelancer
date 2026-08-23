@@ -36,7 +36,7 @@ namespace LibreLancer.Interface
             Tint = tint;
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
+        protected override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
         {
             if (!Enabled || Image == null) return;
             if (!CanRender(context)) return;

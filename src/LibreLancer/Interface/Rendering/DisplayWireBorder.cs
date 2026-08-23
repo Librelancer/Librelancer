@@ -9,23 +9,23 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class DisplayWireBorder : DisplayElement
     {
-        public float Width { get; set; } = 1;
+        public float Thickness { get; set; } = 1;
         public InterfaceColor? Color { get; set; }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
+        protected override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
         {
             if(!Enabled) return;
             var color = (Color ?? InterfaceColor.White).GetColor(context.GlobalTime) * tint;
-            if (context.PointsToPixels(Width) <= 1) {
+            if (context.PointsToPixels(Thickness) <= 1) {
                 drawList.DrawRectangle(context.PointsToPixels(clientRectangle), color, 1);
             }
-            float w = Width / 3;
+            float w = Thickness / 3;
             // Left
             LR(context, drawList, clientRectangle, 0, w, 0, color);
             LR(context, drawList, clientRectangle, w, w, 1, color);
             LR(context, drawList, clientRectangle, 2 * w, w, 2, color);
             // Right
-            var rW = clientRectangle.Width - Width;
+            var rW = clientRectangle.Width - Thickness;
             LR(context, drawList, clientRectangle, rW, w, 0, color);
             LR(context, drawList, clientRectangle, rW + w, w, 1, color);
             LR(context, drawList, clientRectangle, rW + 2 * w, w, 2, color);
@@ -34,7 +34,7 @@ namespace LibreLancer.Interface
             TB(context, drawList, clientRectangle, w, w, 1, color);
             TB(context, drawList, clientRectangle, 2 * w, w, 2, color);
             // Bottom
-            var rH = clientRectangle.Height - Width;
+            var rH = clientRectangle.Height - Thickness;
             TB(context, drawList, clientRectangle, rH, w, 0, color);
             TB(context, drawList, clientRectangle, rH + w, w, 1, color);
             TB(context, drawList, clientRectangle, rH + 2 * w, w, 2, color);

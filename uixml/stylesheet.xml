@@ -45,7 +45,7 @@
         <DisplayModel model="inv_sellarrow.3db" tint="text" />
       </ButtonAppearance.Background>
       <ButtonAppearance.Border>
-        <DisplayWireBorder color="text" width="2"/>
+        <DisplayWireBorder color="text" thickness="2"/>
       </ButtonAppearance.Border>
     </ButtonStyle.Normal>
     <ButtonStyle.Hover TextColor="text_hover">
@@ -53,7 +53,7 @@
         <DisplayModel model="inv_sellarrow.3db" tint="text_hover" />
       </ButtonAppearance.Background>
       <ButtonAppearance.Border>
-        <DisplayWireBorder color="text_hover" width="2"/>
+        <DisplayWireBorder color="text_hover" thickness="2"/>
       </ButtonAppearance.Border>
     </ButtonStyle.Hover>
   </ButtonStyle>
@@ -84,7 +84,7 @@
         <DisplayModel model="inv_buyarrow.3db" tint="text" />
       </ButtonAppearance.Background>
       <ButtonAppearance.Border>
-        <DisplayWireBorder color="text" width="2"/>
+        <DisplayWireBorder color="text" thickness="2"/>
       </ButtonAppearance.Border>
     </ButtonStyle.Normal>
     <ButtonStyle.Hover TextColor="text_hover">
@@ -92,7 +92,7 @@
         <DisplayModel model="inv_buyarrow.3db" tint="text_hover" />
       </ButtonAppearance.Background>
       <ButtonAppearance.Border>
-        <DisplayWireBorder color="text_hover" width="2"/>
+        <DisplayWireBorder color="text_hover" thickness="2"/>
       </ButtonAppearance.Border>
     </ButtonStyle.Hover>
   </ButtonStyle>
@@ -668,6 +668,20 @@
       </ButtonStyle.Selected>
     </NavmapStyle.FriendlyZoneFilterButton>
   </NavmapStyle>
+  <!-- Checkbox -->
+  <CheckboxStyle Height="22" MouseEnterSound="ui_rollover">
+    <ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="13" HorizontalAlignment="left" FontFamily="$ButtonText" MarginLeft="100%h+3">
+      <ButtonAppearance.Background>
+        <DisplayColor Width="100%h" Height="100%h" Color="black"/>
+        <DisplayRectangle Width="100%h" Height="100%h" Color="text"/>
+      </ButtonAppearance.Background>
+    </ButtonStyle.Normal>
+    <ButtonStyle.Hover TextColor="text_hover"/>
+    <ButtonStyle.Disabled TextColor="#666"/>
+    <CheckboxStyle.Check>
+        <DisplayModel X="1" Y="1" Width="100%h-2" Height="100%h-2" Tint="green" model="check"/>
+    </CheckboxStyle.Check>
+  </CheckboxStyle>
   <!-- Menu -->
   <ButtonStyle Width="162" Height="43" Name="menubutton" MouseEnterSound="ui_rollover">
     <ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
@@ -682,12 +696,12 @@
   <ButtonStyle Width="162" Height="36" Name="wirebutton" MouseEnterSound="ui_rollover">
     <ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="16" FontFamily="$ButtonText">
       <ButtonAppearance.Background>
-        <DisplayWireBorder Width="4" Color="text"/>
+        <DisplayWireBorder Thickness="4" Color="text"/>
       </ButtonAppearance.Background>
     </ButtonStyle.Normal>
     <ButtonStyle.Hover TextColor="text_hover">
       <ButtonAppearance.Background>
-        <DisplayWireBorder Width="4" Color="text_hover"/>
+        <DisplayWireBorder Thickness="4" Color="text_hover"/>
       </ButtonAppearance.Background>
     </ButtonStyle.Hover>
     <ButtonStyle.Disabled TextColor="#666"/>
@@ -695,17 +709,17 @@
   <ButtonStyle Width="90" Height="20" Name="wirebutton_small" MouseEnterSound="ui_rollover">
     <ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="9" FontFamily="$ButtonText">
       <ButtonAppearance.Background>
-        <DisplayWireBorder Width="2" Color="text"/>
+        <DisplayWireBorder Thickness="2" Color="text"/>
       </ButtonAppearance.Background>
     </ButtonStyle.Normal>
     <ButtonStyle.Hover TextColor="text_hover">
       <ButtonAppearance.Background>
-        <DisplayWireBorder Width="2" Color="text_hover"/>
+        <DisplayWireBorder Thickness="2" Color="text_hover"/>
       </ButtonAppearance.Background>
     </ButtonStyle.Hover>
     <ButtonStyle.Selected TextColor="yellow">
       <ButtonAppearance.Background>
-        <DisplayWireBorder Width="2" Color="yellow"/>
+        <DisplayWireBorder Thickness="2" Color="yellow"/>
       </ButtonAppearance.Background>
     </ButtonStyle.Selected>
     <ButtonStyle.Disabled TextColor="#666"/>
@@ -713,12 +727,12 @@
   <ButtonStyle Width="127" Height="25" Name="wirebutton_navpanel" MouseEnterSound="ui_rollover">
     <ButtonStyle.Normal TextColor="text" TextShadow="black" TextSize="10" FontFamily="$ButtonText">
       <ButtonAppearance.Background>
-        <DisplayWireBorder Width="2" Color="text"/>
+        <DisplayWireBorder Thickness="2" Color="text"/>
       </ButtonAppearance.Background>
     </ButtonStyle.Normal>
     <ButtonStyle.Hover TextColor="text_hover">
       <ButtonAppearance.Background>
-        <DisplayWireBorder Width="2" Color="text_hover"/>
+        <DisplayWireBorder Thickness="2" Color="text_hover"/>
       </ButtonAppearance.Background>
     </ButtonStyle.Hover>
     <ButtonStyle.Disabled TextColor="#666"/>
@@ -827,7 +841,7 @@
       </ButtonStyle.Hover>
     </ScrollbarStyle.DownButton>
     <ScrollbarStyle.TrackArea>
-      <DisplayRectangle color="text" WidthPx="1"/>
+      <DisplayRectangle color="text" ThicknessPx="1"/>
     </ScrollbarStyle.TrackArea>
     <ScrollbarStyle.ThumbTop Height="1.5">
       <ButtonStyle.Normal>
@@ -920,7 +934,7 @@
       </ButtonStyle.Hover>
     </HSliderStyle.RightButton>
     <HSliderStyle.TrackArea>
-      <DisplayRectangle color="text" WidthPx="1"/>
+      <DisplayRectangle color="text" ThicknessPx="1"/>
     </HSliderStyle.TrackArea>
     <HSliderStyle.ThumbLeft Width="1.5">
       <ButtonStyle.Normal>

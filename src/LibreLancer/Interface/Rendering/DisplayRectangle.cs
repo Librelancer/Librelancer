@@ -12,11 +12,11 @@ namespace LibreLancer.Interface
         public float MarginBottom { get; set; }
         public float MarginLeft { get; set; }
         public float MarginRight { get; set; }
-        public float Width { get; set; } = 1;
-        public int WidthPx { get; set; }
+        public float Thickness { get; set; } = 1;
+        public int ThicknessPx { get; set; }
         public InterfaceColor? Color { get; set; }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
+        protected override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
         {
             if(!Enabled) return;
             var color = (Color ?? InterfaceColor.White).GetColor(context.GlobalTime) * tint;
@@ -27,8 +27,8 @@ namespace LibreLancer.Interface
                 clientRectangle.Height - MarginTop - MarginBottom
             );
             var rect = context.PointsToPixels(withMargins);
-            var width = WidthPx > 0 ? WidthPx : context.PointsToPixels(Width);
-            drawList.DrawRectangle(rect, color, width);
+            var thickness = ThicknessPx > 0 ? ThicknessPx : context.PointsToPixels(Thickness);
+            drawList.DrawRectangle(rect, color, thickness);
         }
     }
 }

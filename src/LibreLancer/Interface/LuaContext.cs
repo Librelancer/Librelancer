@@ -35,8 +35,10 @@ namespace LibreLancer.Interface
             UserData.RegisterType<VerticalAlignment>();
             UserData.RegisterType<AnchorKind>();
             UserData.RegisterType<ChatCategory>();
+            UserData.RegisterType<MetricUnit>();
             UserData.RegisterType(new WattleVector2());
             UserData.RegisterType(new WattleVector3());
+            UserData.RegisterType(new WattleMetric());
         }
 
         // Run static .cctor
@@ -65,7 +67,8 @@ namespace LibreLancer.Interface
                 {
                     ["HorizontalAlignment"] = UserData.CreateStatic<HorizontalAlignment>(),
                     ["VerticalAlignment"] = UserData.CreateStatic<VerticalAlignment>(),
-                    ["AnchorKind"] = UserData.CreateStatic<AnchorKind>()
+                    ["AnchorKind"] = UserData.CreateStatic<AnchorKind>(),
+                    ["MetricUnit"] = UserData.CreateStatic<MetricUnit>(),
                 }
             };
             var debugTable = DynValue.NewTable(script);
@@ -89,7 +92,7 @@ namespace LibreLancer.Interface
 
             foreach (var type in typeof(LuaContext).Assembly.GetTypes())
             {
-                if (type.GetCustomAttributes(false).OfType<WattleScriptUserDataAttribute>().Any())
+                if (type.IsClass && type.GetCustomAttributes(false).OfType<WattleScriptUserDataAttribute>().Any())
                 {
                     typeTable[type.FullName!.Replace(".", "_")] = type;
                 }
@@ -213,6 +216,7 @@ namespace LibreLancer.Interface
             public XmlStyle? GetStyle(string name) => c.uiContext.Data.Stylesheet?.Styles.Get(name);
             public string GetNavbarIconPath(string ico) => c.uiContext.Data.GetNavbarIconPath(ico);
             public Vector3 Vector3(float x, float y, float z) => new(x, y, z);
+            public Metric Metric(MetricUnit unit, float value, float constant) => new(unit, value, constant);
 
             public string StringFromID(int id) => c.uiContext.Data.Infocards!.GetStringResource(id);
 

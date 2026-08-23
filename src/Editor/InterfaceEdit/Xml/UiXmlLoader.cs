@@ -293,6 +293,10 @@ public class UiXmlLoader
                 {
                     value = attr.Value;
                 }
+                else if (ptype == typeof(Metric))
+                {
+                    value = Metric.Parse(attr.Value);
+                }
                 else
                 {
                     value = Convert.ChangeType(attr.Value, ptype, CultureInfo.InvariantCulture);

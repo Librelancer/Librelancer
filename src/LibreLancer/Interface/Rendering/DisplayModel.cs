@@ -120,7 +120,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
+        protected override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
         {
             if (!Enabled || Model == null)
             {
