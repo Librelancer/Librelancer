@@ -4,7 +4,6 @@
 
 using System.Globalization;
 using System.IO;
-using System.Xml.Serialization;
 using LibreLancer.Data.Ini;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
@@ -34,8 +33,8 @@ namespace LibreLancer
         public bool VSync = true;
         [Entry("anisotropy")]
         public int Anisotropy = 0;
-        [Entry("msaa")]
-        public int MSAA = 0;
+        [Entry("antialias")]
+        public int Antialias = 0;
         [Entry("lod_multiplier")]
         public float LodMultiplier = 1.3f;
         [Entry("debug")]
@@ -49,10 +48,11 @@ namespace LibreLancer
         int IRendererSettings.SelectedAnisotropy => Anisotropy;
         TextureFiltering IRendererSettings.SelectedFiltering =>
             Anisotropy == 0 ? TextureFiltering.Trilinear : TextureFiltering.Anisotropic;
-        int IRendererSettings.SelectedMSAA => MSAA;
+
+        AntialiasMode IRendererSettings.SelectedAA => (AntialiasMode)Antialias;
 
         public int[]? AnisotropyLevels() => RenderContext.GetAnisotropyLevels();
-        public int MaxMSAA() => RenderContext.MaxSamples;
+        public int MaxAALevel() => (int)RenderContext.MaxAntialias;
 
         [WattleScriptHidden]
         public void Write(TextWriter writer)
@@ -69,7 +69,7 @@ namespace LibreLancer
 
             writer.WriteLine($"vsync = {(VSync ? "true" : "false")}");
             writer.WriteLine($"anisotropy = {Anisotropy}");
-            writer.WriteLine($"msaa = {MSAA}");
+            writer.WriteLine($"antialias = {Antialias}");
             writer.WriteLine($"lod_multiplier = {Fmt(LodMultiplier)}");
             writer.WriteLine($"debug = {(Debug ? "true" : "false")}");
             writer.WriteLine($"per_pixel_lighting = {(PerPixelLighting ? "true" : "false")}");
@@ -91,7 +91,7 @@ namespace LibreLancer
                 FullScreen = FullScreen,
                 VSync = VSync,
                 Anisotropy = Anisotropy,
-                MSAA = MSAA,
+                Antialias = Antialias,
                 LodMultiplier = LodMultiplier,
                 RenderContext = RenderContext,
                 Debug = Debug,
@@ -101,12 +101,31 @@ namespace LibreLancer
             return gs;
         }
 
+        [WattleScriptHidden]
+        public void Apply(GameSettings other)
+        {
+            MasterVolume = other.MasterVolume;
+            SfxVolume = other.SfxVolume;
+            InterfaceVolume = other.InterfaceVolume;
+            VoiceVolume = other.VoiceVolume;
+            MusicVolume = other.MusicVolume;
+            FullScreen = other.FullScreen;
+            VSync = other.VSync;
+            Anisotropy = other.Anisotropy;
+            Antialias = other.Antialias;
+            LodMultiplier = other.LodMultiplier;
+            RenderContext = other.RenderContext;
+            Debug = other.Debug;
+            PerPixelLighting = other.PerPixelLighting;
+        }
+
         public void Validate()
         {
-            if (MSAA > RenderContext.MaxSamples)
+            var mode = (AntialiasMode)Antialias;
+            if (mode > RenderContext.MaxAntialias)
             {
-                FLLog.Info("Config", $"{MSAA}x MSAA not supported, disabling.");
-                MSAA = 0;
+                FLLog.Info("Config", $"{mode} not supported, disabling.");
+                Antialias = 0;
             }
             if (Anisotropy > RenderContext.MaxAnisotropy)
             {

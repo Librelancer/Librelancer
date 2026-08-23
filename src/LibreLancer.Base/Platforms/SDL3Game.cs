@@ -417,7 +417,7 @@ internal class SDL3Game : IGame
         //Init game state
         RenderContext = new RenderContext(renderBackend);
         FLLog.Info("Graphics", $"Max Anisotropy: {RenderContext.MaxAnisotropy}");
-        FLLog.Info("Graphics", $"Max AA: {RenderContext.MaxSamples}");
+        FLLog.Info("Graphics", $"Max AA: {RenderContext.MaxAntialias}");
         SDL3.SDL_GetWindowSize(sdlWin, out int windowWidth, out int windowHeight);
         var drawable = RenderContext.Backend.GetDrawableSize(sdlWin);
         Width = drawable.X;

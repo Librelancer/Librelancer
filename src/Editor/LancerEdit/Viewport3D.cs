@@ -21,7 +21,7 @@ namespace LancerEdit
         int rtWidth = -1, rtHeight = -1;
         int mrw = -1, mrh = -1, msamples = 0;
         public RenderTarget2D RenderTarget;
-        MultisampleTarget msaa;
+        AntialiasTarget msaa;
         public Vector3 DefaultOffset = new Vector3(0, 0, 200);
 
         public float ModelScale = 0.25f;
@@ -35,7 +35,7 @@ namespace LancerEdit
         public Vector3 CameraOffset = Vector3.Zero;
         public Color4 Background = Color4.CornflowerBlue * new Color4(0.3f, 0.3f, 0.3f, 1f);
         public CameraModes Mode = CameraModes.Arcball;
-        public bool EnableMSAA = true;
+        public bool EnableAntiAliasing = true;
         public bool ClearArea = true;
 
         MainWindow mw;
@@ -95,11 +95,12 @@ namespace LancerEdit
 
         bool CheckMSAA(int width, int height)
         {
-            bool msaaEnabled = EnableMSAA && mw.Config.MSAA != 0;
-            if (msaaEnabled && ((mrw != width) || (mrh != height) || (msamples != mw.Config.MSAA)))
+            var msaaConfig = (AntialiasMode)mw.Config.Antialias;
+            bool msaaEnabled = EnableAntiAliasing && msaaConfig != AntialiasMode.None;
+            if (msaaEnabled && ((mrw != width) || (mrh != height) || (msamples != mw.Config.Antialias)))
             {
                 if (msaa != null) msaa.Dispose();
-                msaa = new MultisampleTarget(rstate, width, height, mw.Config.MSAA);
+                msaa = new AntialiasTarget(rstate, width, height, msaaConfig);
                 mrw = width;
                 mrh = height;
             }

@@ -27,8 +27,20 @@ namespace LancerEdit
             "Linear", "Bilinear", "Trilinear"
         };
 
-        int[] msaaLevels;
-        string[] msaaStrings = {"None", "2x MSAA", "4x MSAA", "8x MSAA", "16x MSAA", "32x MSAA"};
+        int[] aaLevels;
+        string[] antialiasStrings =
+        {
+            "None",
+            "SMAA Low",
+            "SMAA Medium",
+            "SMAA High",
+            "SMAA Ultra",
+            "2x MSAA",
+            "4x MSAA",
+            "8x MSAA",
+            "16x MSAA",
+            "32x MSAA"
+        };
         string[] updateChannels = { "Stable", "Daily" };
         int cMsaa = 0;
         string[] filters;
@@ -64,33 +76,14 @@ namespace LancerEdit
                 }
             }
 
-            var msaa = new List<int> {0};
-            int a = 2;
-            while (a <= win.RenderContext.MaxSamples)
+            var aa = new List<int>();
+            for (int i = 0; i <= (int)win.RenderContext.MaxAntialias; i++)
             {
-                msaa.Add(a);
-                a *= 2;
+                aa.Add(i);
             }
 
-            msaaLevels = msaa.ToArray();
-            switch (config.MSAA)
-            {
-                case 2:
-                    cMsaa = 1;
-                    break;
-                case 4:
-                    cMsaa = 2;
-                    break;
-                case 8:
-                    cMsaa = 3;
-                    break;
-                case 16:
-                    cMsaa = 4;
-                    break;
-                case 32:
-                    cMsaa = 5;
-                    break;
-            }
+            aaLevels = aa.ToArray();
+            cMsaa = config.Antialias;
 
             filters = texturefilters.ToArray();
             cFilter = config.TextureFilter;
@@ -153,8 +146,8 @@ namespace LancerEdit
                 config.TextureFilter = cFilter;
             }
 
-            ImGui.Combo("Antialiasing", ref cMsaa, msaaStrings, Math.Min(msaaLevels.Length, msaaStrings.Length));
-            config.MSAA = msaaLevels[cMsaa];
+            ImGui.Combo("Antialiasing", ref cMsaa, antialiasStrings, Math.Min(aaLevels.Length, antialiasStrings.Length));
+            config.Antialias = aaLevels[cMsaa];
             ImGui.Checkbox("View Buttons", ref config.ViewButtons);
             ImGui.Checkbox("Pause When Unfocused", ref config.PauseWhenUnfocused);
             if (Controls.GradientButton("Viewport Background", config.Background, config.Background2,

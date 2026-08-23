@@ -164,7 +164,7 @@ public class ShaderBundleWriter
         WriteVarUInt32(writer, sh.Fragment.NumUniformBuffers);
         WriteUTF8(writer, sh.Fragment.EntryPoint);
         WriteVarUInt32(writer, (uint)sh.Fragment.Code.Length);
-        writer.Write(sh.Vertex.Code);
+        writer.Write(sh.Fragment.Code);
         return ms.ToArray();
     }
 
@@ -183,8 +183,9 @@ public class ShaderBundleWriter
         WriteVarUInt32(writer, (uint)gl.Textures.Count);
         foreach (var texture in gl.Textures)
         {
-            WriteVarUInt32(writer, (uint)texture.Location);
             WriteUTF8(writer, texture.Identifier);
+            WriteVarUInt32(writer, (uint)texture.Unit);
+            WriteVarUInt32(writer, (uint)texture.Sampler);
         }
 
         WriteVarUInt32(writer, (uint)gl.Buffers.Count);

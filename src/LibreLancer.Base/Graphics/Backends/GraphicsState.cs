@@ -11,6 +11,8 @@ internal struct GraphicsState
     public bool BlendEnabled;
     public bool CullEnabled;
     public CullFaces CullFaces;
+    public bool StencilEnabled;
+    public StencilTest Stencil;
     public bool ColorWrite;
     public bool DepthWrite;
     public bool ScissorEnabled;

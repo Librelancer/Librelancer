@@ -1,7 +1,11 @@
 require 'ids.lua'
 
-local msaa_levels = {
+local antialias_levels = {
 	"NONE",
+    "SMAA Low",
+    "SMAA Medium",
+    "SMAA High",
+    "SMAA Ultra",
 	"MSAA 2x",
 	"MSAA 4x",
 	"MSAA 8x"
@@ -26,25 +30,6 @@ local function val_selection(left, right, display, values, vmin, vmax, vcurrent)
 	right.OnClick(() => setval(state.vcurrent + 1));
 	setval(vcurrent)
 	return state
-}
-
-// Map strings to MSAA Amounts
-local function msaa_to_idx(i)
-{
-	if (i == 2) return 2;
-	if (i == 4) return 3;
-	if (i >= 8) return 4;
-	return 1
-}
-
-local function idx_to_msaa(i)
-{
-	switch(i) {
-		case 2: return 2;
-		case 3: return 4;
-		case 4: return 8;
-		default: return 0;
-	}
 }
 
 // Anisotropy Levels
@@ -110,7 +95,7 @@ class options : options_Designer with Modal
 		for (i in this.AnisotropyLevels)
 			table.insert(anisotropy, tostring(i) + "x AF");
 	
-		this.MSAA = val_selection(e.msaa_left, e.msaa_right, e.msaa_display, msaa_levels, 1, msaa_to_idx(this.opts.MaxMSAA()), msaa_to_idx(this.opts.MSAA))
+		this.Antialias = val_selection(e.msaa_left, e.msaa_right, e.msaa_display, antialias_levels, 1, this.opts.MaxAALevel() + 1, this.opts.Antialias + 1)
 		this.AF = val_selection(e.af_left, e.af_right, e.af_display, anisotropy, 1, anisotropy.length, anisotropy_to_idx(this.opts.Anisotropy))
 
 		this.controlcategories = { e.cat_ship, e.cat_ui, e.cat_mp }
@@ -127,7 +112,7 @@ class options : options_Designer with Modal
 		this.opts.SfxVolume = e.sfxvol.Value
 		this.opts.MusicVolume = e.musicvol.Value
 		this.opts.VoiceVolume = e.voicevol.Value
-		this.opts.MSAA = idx_to_msaa(this.MSAA.vcurrent)
+		this.opts.Antialias = this.Antialias.vcurrent - 1
 		this.opts.Anisotropy = idx_to_anisotropy(this.AF.vcurrent)
 		this.keymap.Save();
 		Game.ApplySettings(this.opts)

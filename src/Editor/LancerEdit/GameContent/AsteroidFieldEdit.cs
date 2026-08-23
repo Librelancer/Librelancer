@@ -57,7 +57,7 @@ public class AsteroidFieldEdit
             ZRange = new Vector2(3f, 10000000f)
         };
         viewport = new Viewport3D(mw);
-        viewport.EnableMSAA = false; //MSAA handled by SystemRenderer
+        viewport.EnableAntiAliasing = false; //MSAA handled by SystemRenderer
         viewport.DefaultOffset = new Vector3(0, 0, field.CubeSize * 1.2f);
         viewport.ModelScale = 8;
         viewport.Mode = CameraModes.Walkthrough;

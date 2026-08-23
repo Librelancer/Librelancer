@@ -40,7 +40,7 @@ public static class ShaderCompiler
                 : GLTranslator.TranslateProgram(shader.FriendlyName, variant.Vertex, variant.Fragment);
 
             var dxilCompiled = await DXILTranslator.TranslateProgram(reflected);
-            
+
             var mslCompiled = MSLTranslator.TranslateProgram(reflected);
 
             if (!string.IsNullOrWhiteSpace(dumpFolder))
@@ -70,6 +70,21 @@ public static class ShaderCompiler
                         glCompiled!.VertexSource);
                     await File.WriteAllTextAsync(Path.Combine(dumpFolder, $"{ident}.frag.glsl"),
                         glCompiled!.FragmentSource);
+                    var str = new StringBuilder();
+                    str.AppendLine("Storage Buffers:");
+                    foreach (var b in glCompiled.Buffers)
+                        str.AppendLine(b.ToString());
+                    str.AppendLine("Textures:");
+                    foreach (var t in glCompiled.Textures)
+                        str.AppendLine(t.ToString());
+                    str.AppendLine("Uniform Buffers:");
+                    foreach (var t in glCompiled.Uniforms)
+                        str.AppendLine(t.ToString());
+                    str.AppendLine("Inputs:");
+                    foreach (var i in glCompiled.Inputs)
+                        str.AppendLine(i.ToString());
+                    await File.WriteAllTextAsync(Path.Combine(dumpFolder, $"{ident}.glreflect.txt"),
+                        str.ToString());
                 }
             }
 

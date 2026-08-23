@@ -4,7 +4,7 @@ namespace LibreLancer.Render;
 
 public interface IRendererSettings
 {
-    int SelectedMSAA { get; }
+    AntialiasMode SelectedAA { get; }
     TextureFiltering SelectedFiltering { get; }
     int SelectedAnisotropy { get; }
     float LodMultiplier { get; }

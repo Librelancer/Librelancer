@@ -4,17 +4,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml.Serialization;
 using LibreLancer;
 using LibreLancer.Data;
 using LibreLancer.Data.Ini;
 using LibreLancer.Graphics;
 using LibreLancer.Render;
-using static System.FormattableString;
+
 namespace LancerEdit
 {
     public enum CameraModes
@@ -36,8 +34,8 @@ namespace LancerEdit
     {
         [Entry("tab_style")]
         public int TabStyle;
-        [Entry("msaa")]
-        public int MSAA;
+        [Entry("antialias")]
+        public int Antialias;
         [Entry("texture_filter")]
         public int TextureFilter;
         [Entry("view_buttons")]
@@ -113,7 +111,7 @@ namespace LancerEdit
         [EntryHandler("favorite", Multiline = true, MinComponents = 2)]
         void HandleFavorite(Entry e) => Favorites.Add(new BrowserFavorite(Decode(e[0].ToString()), Decode(e[1].ToString())));
 
-        int IRendererSettings.SelectedMSAA => MSAA;
+        AntialiasMode IRendererSettings.SelectedAA => (AntialiasMode)Antialias;
 
         float IRendererSettings.LodMultiplier => LodMultiplier;
         bool IRendererSettings.PerPixelLighting => PerPixelLighting;
@@ -151,7 +149,7 @@ namespace LancerEdit
             var b = new IniBuilder();
             var c = b.Section("Config")
                 .Entry("tab_style", TabStyle)
-                .Entry("msaa", MSAA)
+                .Entry("antialias", Antialias)
                 .Entry("texture_filter", TextureFilter)
                 .Entry("view_buttons", ViewButtons)
                 .Entry("pause_when_unfocused", PauseWhenUnfocused)
@@ -186,16 +184,16 @@ namespace LancerEdit
 
         public void Validate(RenderContext context)
         {
-            if (SelectedAnisotropy > context.MaxSamples)
+            if (SelectedAnisotropy > context.MaxAnisotropy)
             {
                 FLLog.Info("Config", $"{SelectedAnisotropy}x anisotropy not supported, disabling.");
                 TextureFilter = 2;
             }
-
-            if (MSAA > context.MaxSamples)
+            var mode = (AntialiasMode)Antialias;
+            if (mode > context.MaxAntialias)
             {
-                FLLog.Info("Config", $"{MSAA}x MSAA not supported, disabling.");
-                MSAA = 0;
+                FLLog.Info("Config", $"{mode} not supported, disabling.");
+                Antialias = 0;
             }
         }
 
