@@ -87,6 +87,7 @@ namespace LancerEdit
             aleViewport.Draw3D = DrawGL;
             buffer = main.Commands;
             debug = main.LineRenderer;
+            pool.Debug = debug;
             layout = new VerticalTabLayout(DrawLeft, DrawRight, DrawMiddle);
             layout.TabsLeft.Add(new(Icons.Tree, "Nodes", 0));
             layout.TabsRight.Add(new(Icons.Fire, "Effects", 0));
