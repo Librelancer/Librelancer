@@ -12,6 +12,7 @@ namespace LibreLancer.World.Components;
 public static class TradelaneMotion
 {
     public const float Speed = 2500f;
+    public const float SlowdownStartDistance = 3000f;
     public const float SpeedupDuration = 8f;
     public const float SlowdownDuration = 7.5f;
     public const float ExitSpeed = 400f;
@@ -36,6 +37,13 @@ public static class TradelaneMotion
     {
         var t = MathHelper.Clamp(elapsedTime / SlowdownDuration, 0, 1);
         return Easing.Ease(EasingTypes.EaseOut, t, 0, 1, Speed, ExitSpeed);
+    }
+
+    public static float SlowdownSpeed(float progress, float normalThrottleSpeed)
+    {
+        var target = MathF.Min(Speed, MathF.Max(0, normalThrottleSpeed));
+        var t = MathHelper.Clamp(progress, 0, 1);
+        return Easing.Ease(EasingTypes.EaseOut, t, 0, 1, Speed, target);
     }
 
     public static float SpeedupSpeed(float elapsedTime, float startingSpeed) =>
@@ -186,6 +194,14 @@ public static class TradelaneMotion
         bool nextIsFinal,
         bool enteredAtPenultimate = false) =>
         nextIsFinal && !enteredAtPenultimate;
+
+    public static bool CanStartAutomaticSlowdown(
+        float distanceToNextRing,
+        bool approachedFromFarEnough,
+        bool nextIsPenultimate) =>
+        approachedFromFarEnough &&
+        nextIsPenultimate &&
+        distanceToNextRing <= SlowdownStartDistance;
 
     public static Vector3 Forward(Quaternion orientation) =>
         Vector3.Transform(-Vector3.UnitZ, orientation).Normalized();
