@@ -288,11 +288,30 @@ namespace LibreLancer.Client
                     return categoryCompare;
                 }
 
-                var str1 = session.Game.GameData.GetString(x.IdsName) ?? "Z";
-                var str2 = session.Game.GameData.GetString(y.IdsName) ?? "Z";
-                return string.Compare(str1, str2, StringComparison.Ordinal);
+                var classCompare = GetEquipmentClass(session, x).CompareTo(GetEquipmentClass(session, y));
+                if (classCompare != 0)
+                {
+                    return classCompare;
+                }
+
+                var idCompare = GetSortId(x.IdsName).CompareTo(GetSortId(y.IdsName));
+                return idCompare != 0
+                    ? idCompare
+                    : string.CompareOrdinal(x.Good, y.Good);
             });
         }
+
+        private static int GetEquipmentClass(CGameSession session, UIInventoryItem item)
+        {
+            var hpType = item.Equipment?.HpType;
+            return hpType != null &&
+                   session.Game.GameData.Items.Ini.HpTypes.Types.TryGetValue(hpType, out var type)
+                ? type.Class
+                : 0;
+        }
+
+        private static uint GetSortId(int idsName) =>
+            idsName == -1 ? uint.MaxValue : unchecked((uint) idsName);
 
         private static int GetSortCategory(string? filter, UIInventoryItem item)
         {
