@@ -20,11 +20,28 @@ namespace LibreLancer.Render
         public bool LightOn = true;
         private static Random rnd = new();
 
+        public bool IsDockingLight => equip.DockingLight;
+
         public LightEquipRenderer(LightEquipment e)
         {
             equip = e;
             colorBulb = equip.Color;
             colorGlow = equip.GlowColor;
+        }
+
+        public void SetDockingLight(bool active)
+        {
+            if (LightOn == active)
+                return;
+
+            LightOn = active;
+            if (active)
+            {
+                timer = 0;
+                lt_on = true;
+                colorBulb = equip.Color;
+                colorGlow = equip.GlowColor;
+            }
         }
 
         private static TextureShape bulbshape = new(ResourceManager.NullTextureName, "", new RectangleF(0, 0, 1, 1));

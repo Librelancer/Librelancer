@@ -838,6 +838,21 @@ namespace LibreLancer.World
             }
         }
 
+        public void SetDockingLights(bool active)
+        {
+            if (RenderComponent is LightEquipRenderer rootLight && rootLight.IsDockingLight)
+                rootLight.SetDockingLight(active);
+
+            foreach (var child in Children)
+                child.SetDockingLights(active);
+
+            foreach (var renderer in ExtraRenderers)
+            {
+                if (renderer is LightEquipRenderer light && light.IsDockingLight)
+                    light.SetDockingLight(active);
+            }
+        }
+
         public void Register(GameWorld world)
         {
             foreach (var child in Children)

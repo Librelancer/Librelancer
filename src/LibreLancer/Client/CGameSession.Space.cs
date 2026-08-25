@@ -56,6 +56,8 @@ public partial class CGameSession
     private CircularBuffer<PlayerMoveState> moveState = new(128);
     private readonly CircularBuffer<SPUpdatePacket> oldPackets = new(1000);
     private readonly Queue<IPacket> updatePackets = new();
+    private readonly Dictionary<uint, byte> pendingTradelaneLanes = new();
+    private readonly HashSet<int> pendingDockingLights = [];
 
     private volatile bool processUpdatePackets;
     private int tickSyncCounter = 0;
@@ -815,13 +817,7 @@ public partial class CGameSession
     {
         gameplayActions.Enqueue(() =>
         {
-            if (!(spaceGameplay!.world.GetObject(id)?.TryGetComponent<CTradelaneComponent>(out var tl) ?? false))
-                return;
-
-            if (left)
-                tl.ActivateLeft();
-            else
-                tl.ActivateRight();
+            SetTradelaneLaneState(id, left, true);
         });
     }
 
@@ -829,14 +825,59 @@ public partial class CGameSession
     {
         gameplayActions.Enqueue(() =>
         {
-            if (!(spaceGameplay!.world.GetObject(id)?.TryGetComponent<CTradelaneComponent>(out var tl) ?? false))
-                return;
-
-            if (left)
-                tl.DeactivateLeft();
-            else
-                tl.DeactivateRight();
+            SetTradelaneLaneState(id, left, false);
         });
+    }
+
+    void IClientPlayer.SetDockingLights(ObjNetId id, bool active)
+    {
+        gameplayActions.Enqueue(() =>
+        {
+            var obj = spaceGameplay!.world.GetObject(id);
+            if (obj != null)
+            {
+                obj.SetDockingLights(active);
+            }
+            else if (active)
+            {
+                pendingDockingLights.Add(id.Value);
+            }
+            else
+            {
+                pendingDockingLights.Remove(id.Value);
+            }
+        });
+    }
+
+    private void SetTradelaneLaneState(uint id, bool left, bool active)
+    {
+        var obj = spaceGameplay!.world.GetObject(id);
+        if (obj?.TryGetComponent<CTradelaneComponent>(out var tradelane) == true)
+        {
+            tradelane.SetActive(left, active);
+            return;
+        }
+
+        var bit = left ? (byte)1 : (byte)2;
+        pendingTradelaneLanes.TryGetValue(id, out var state);
+        state = active ? (byte)(state | bit) : (byte)(state & ~bit);
+        if (state == 0)
+            pendingTradelaneLanes.Remove(id);
+        else
+            pendingTradelaneLanes[id] = state;
+    }
+
+    private void ApplyPendingTradelaneLanes(GameObject obj)
+    {
+        if (!pendingTradelaneLanes.TryGetValue(obj.NicknameCRC, out var state))
+            return;
+
+        if (obj.TryGetComponent<CTradelaneComponent>(out var tradelane))
+        {
+            if ((state & 1) != 0) tradelane.ActivateLeft();
+            if ((state & 2) != 0) tradelane.ActivateRight();
+            pendingTradelaneLanes.Remove(obj.NicknameCRC);
+        }
     }
 
     void IClientPlayer.ClearScan()
@@ -1209,6 +1250,9 @@ public partial class CGameSession
 
                 spaceGameplay!.world.AddObject(newObj);
                 newObj.Register(spaceGameplay.world);
+                ApplyPendingTradelaneLanes(newObj);
+                if (pendingDockingLights.Remove(newObj.NetID))
+                    newObj.SetDockingLights(true);
 
                 if ((objInfo.Flags & ObjectSpawnFlags.Debris) == ObjectSpawnFlags.Debris ||
                     (objInfo.Flags & ObjectSpawnFlags.Loot) == ObjectSpawnFlags.Loot)

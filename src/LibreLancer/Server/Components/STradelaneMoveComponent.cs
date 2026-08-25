@@ -2,6 +2,7 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using LibreLancer.Missions;
@@ -15,16 +16,18 @@ namespace LibreLancer.Server.Components
     {
         private GameObject currenttradelane;
         private readonly string lane;
+        private readonly bool skipAutomaticSlowdown;
+
+        private float entryOrientationTime;
+        private readonly Quaternion entryStartOrientation;
+        private readonly Quaternion entryTargetOrientation;
 
         private float totalTime;
         private TradelaneMoveState moveState = TradelaneMoveState.Transit;
-        private float targetSpeed = TradelaneMotion.Speed;
+        private float targetSpeed;
 
-        private GameObject? penultimateRing;
-        private GameObject? finalRing;
-        private float slowdownRouteDistance;
+        private float slowdownTime;
         private float slowdownProgress;
-        private bool automaticSlowdownArmed;
 
         private float manualExitTime;
         private float manualStartSpeed;
@@ -41,10 +44,19 @@ namespace LibreLancer.Server.Components
             _ => 0
         };
 
-        public STradelaneMoveComponent(GameObject parent, GameObject tradelane, string lane) : base(parent)
+        public STradelaneMoveComponent(
+            GameObject parent,
+            GameObject tradelane,
+            string lane,
+            Quaternion targetOrientation,
+            bool skipAutomaticSlowdown) : base(parent)
         {
             currenttradelane = tradelane;
             this.lane = lane;
+            this.skipAutomaticSlowdown = skipAutomaticSlowdown;
+            entryStartOrientation = parent.PhysicsComponent!.Body.Orientation;
+            entryTargetOrientation = targetOrientation;
+            targetSpeed = NormalThrottleSpeed();
         }
 
         private bool TryGetMissionRuntime([MaybeNullWhen(false)] out MissionRuntime msn, out bool player)
@@ -129,6 +141,8 @@ namespace LibreLancer.Server.Components
 
         public override void Update(double time, GameWorld world)
         {
+            UpdateEntryOrientation(time);
+
             if (moveState == TradelaneMoveState.ManualExit)
             {
                 UpdateManualExit(time);
@@ -144,8 +158,7 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            var (position, direction) = CalculateNextTradelane(tradelaneComponent);
-            var distanceToTradelane = direction.Length();
+            var (laneDirection, distanceToTradelane) = CalculateNextTradelane(tradelaneComponent);
 
             if (TradelaneDisrupted(distanceToTradelane, tradelaneComponent))
             {
@@ -170,92 +183,81 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            if (distanceToTradelane > TradelaneMotion.SlowdownStartDistance)
-            {
-                automaticSlowdownArmed = true;
-            }
-
-            TryBeginSlowdown(tradelaneComponent, distanceToTradelane, world);
+            TryBeginSlowdown(tradelaneComponent, world);
 
             if (distanceToTradelane < 200)
             {
-                // Ensure the final ring is reached at the target speed before
-                // handing the ship back to normal physics.
-                if (moveState == TradelaneMoveState.Slowdown && tradelaneComponent == finalRing)
-                {
-                    slowdownProgress = 1;
-                    targetSpeed = TradelaneMotion.SlowdownSpeed(1, NormalThrottleSpeed());
-                    MoveShip(CalculateCurrentTradelane(), position, direction);
-                }
-
                 currenttradelane = tradelaneComponent;
-                if (!LaneEntered())
+                if (NextRing(currenttradelane, world) != null &&
+                    Parent.TryGetComponent<SPlayerComponent>(out var player))
+                {
+                    player.Player.TradelaneRing(currenttradelane);
+                }
+                var laneContinues = LaneEntered();
+                if (!laneContinues)
                 {
                     ExitTradelane();
                 }
 
-                automaticSlowdownArmed = false;
                 return;
             }
 
-            UpdateSlowdownProgress(tradelaneComponent, distanceToTradelane);
-            MoveShip(CalculateCurrentTradelane(), position, direction);
+            UpdateSlowdownProgress(time);
+            MoveShip(time, laneDirection);
             totalTime += (float)time;
         }
 
-        private void TryBeginSlowdown(GameObject nextRing, float distanceToNextRing, GameWorld world)
+        private void TryBeginSlowdown(GameObject nextRing, GameWorld world)
         {
             if (moveState != TradelaneMoveState.Transit ||
                 !TradelaneMotion.CanStartAutomaticSlowdown(
-                    distanceToNextRing,
-                    automaticSlowdownArmed,
-                    IsPenultimate(nextRing, world)))
+                    IsFinal(nextRing, world),
+                    skipAutomaticSlowdown))
             {
                 return;
             }
 
-            var lastRing = NextRing(nextRing, world);
-            if (lastRing == null)
-            {
-                return;
-            }
-
-            penultimateRing = nextRing;
-            finalRing = lastRing;
-            var penultimatePosition = CalculateTradelanePosition(penultimateRing);
-            var finalPosition = CalculateTradelanePosition(finalRing);
-            slowdownRouteDistance = distanceToNextRing + Vector3.Distance(penultimatePosition, finalPosition);
-
-            if (slowdownRouteDistance > float.Epsilon)
-            {
-                moveState = TradelaneMoveState.Slowdown;
-            }
+            slowdownTime = 0;
+            moveState = TradelaneMoveState.Slowdown;
         }
 
-        private void UpdateSlowdownProgress(GameObject nextRing, float distanceToNextRing)
+        private void UpdateEntryOrientation(double time)
         {
-            if (moveState != TradelaneMoveState.Slowdown ||
-                penultimateRing == null ||
-                finalRing == null ||
-                slowdownRouteDistance <= float.Epsilon)
+            if (entryOrientationTime >= TradelaneMotion.EntryAlignmentDuration)
             {
                 return;
             }
 
-            var remaining = distanceToNextRing;
-            if (nextRing == penultimateRing)
+            entryOrientationTime = MathF.Min(
+                TradelaneMotion.EntryAlignmentDuration,
+                entryOrientationTime + (float)time);
+            var orientation = TradelaneMotion.EntryOrientation(
+                entryStartOrientation,
+                entryTargetOrientation,
+                entryOrientationTime);
+            var body = Parent.PhysicsComponent!.Body;
+            body.SetOrientation(orientation);
+            body.AngularVelocity = Vector3.Zero;
+            if (Parent.TryGetComponent<SPlayerComponent>(out var player))
             {
-                remaining += Vector3.Distance(
-                    CalculateTradelanePosition(penultimateRing),
-                    CalculateTradelanePosition(finalRing));
+                player.Player.Orientation = orientation;
             }
-
-            var progress = 1 - MathHelper.Clamp(remaining / slowdownRouteDistance, 0, 1);
-            slowdownProgress = progress;
-            targetSpeed = TradelaneMotion.SlowdownSpeed(progress, NormalThrottleSpeed());
         }
 
-        private void MoveShip(Vector3 sourcePoint, Vector3 targetPoint, Vector3 direction)
+        private void UpdateSlowdownProgress(double time)
+        {
+            if (moveState != TradelaneMoveState.Slowdown)
+            {
+                return;
+            }
+
+            slowdownTime += (float)time;
+            slowdownProgress = MathHelper.Clamp(
+                slowdownTime / TradelaneMotion.SlowdownDuration, 0, 1);
+            targetSpeed = TradelaneMotion.SlowdownSpeed(slowdownTime);
+        }
+
+        private void MoveShip(double time, Vector3 direction)
         {
             if (direction.LengthSquared() <= float.Epsilon)
             {
@@ -265,11 +267,13 @@ namespace LibreLancer.Server.Components
             direction.Normalize();
             var speed = moveState == TradelaneMoveState.Slowdown
                 ? targetSpeed
-                : Easing.Ease(EasingTypes.EaseIn, MathHelper.Clamp(totalTime, 0, 3), 0, 3, 0, TradelaneMotion.Speed);
+                : TradelaneMotion.SpeedupSpeed(totalTime, NormalThrottleSpeed());
 
-            Parent.PhysicsComponent!.Body.LinearVelocity = direction * speed;
-            Parent.PhysicsComponent.Body.AngularVelocity = Vector3.Zero;
-            Parent.PhysicsComponent.Body.SetOrientation(QuaternionEx.LookAt(sourcePoint, targetPoint));
+            targetSpeed = speed;
+
+            var body = Parent.PhysicsComponent!.Body;
+            body.LinearVelocity = direction * speed;
+            body.AngularVelocity = Vector3.Zero;
 
             if (Parent.TryGetComponent<SEngineComponent>(out var engine))
             {
@@ -302,8 +306,6 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        private Vector3 CalculateCurrentTradelane() => CalculateTradelanePosition(currenttradelane);
-
         private Vector3 CalculateTradelanePosition(GameObject tradelane)
         {
             var offset = Parent.Formation is not null
@@ -314,11 +316,14 @@ namespace LibreLancer.Server.Components
                 .Transform(offset);
         }
 
-        private (Vector3, Vector3) CalculateNextTradelane(GameObject tradelaneComponent)
+        private (Vector3 Direction, float Distance) CalculateNextTradelane(GameObject tradelaneComponent)
         {
             var targetPosition = CalculateTradelanePosition(tradelaneComponent);
-            var direction = targetPosition - Parent.PhysicsComponent!.Body.Position;
-            return (targetPosition, direction);
+            var laneDirection = targetPosition - CalculateTradelanePosition(currenttradelane);
+            var distanceToTarget = Vector3.Distance(
+                targetPosition,
+                Parent.PhysicsComponent!.Body.Position);
+            return (laneDirection, distanceToTarget);
         }
 
         private string? NextNickname(GameObject ring)
@@ -337,10 +342,9 @@ namespace LibreLancer.Server.Components
             return nickname == null ? null : world.GetObject(nickname);
         }
 
-        private bool IsPenultimate(GameObject ring, GameWorld world)
+        private bool IsFinal(GameObject ring, GameWorld world)
         {
-            var final = NextRing(ring, world);
-            return final != null && NextRing(final, world) == null;
+            return NextRing(ring, world) == null;
         }
 
         private float NormalThrottleSpeed()

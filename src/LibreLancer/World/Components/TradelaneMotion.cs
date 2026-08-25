@@ -12,10 +12,14 @@ namespace LibreLancer.World.Components;
 public static class TradelaneMotion
 {
     public const float Speed = 2500f;
-    public const float SlowdownStartDistance = 3000f;
+    public const float SpeedupDuration = 8f;
+    public const float SlowdownDuration = 7.5f;
+    public const float ExitSpeed = 400f;
     public const float ManualExitDuration = 0.75f;
     public const float ManualTurnDuration = 0.5f;
     public const float ManualTurnDegrees = 30f;
+    public const float EntryManeuverDistance = 500f;
+    public const float EntryAlignmentDuration = 0.5f;
 
     public static float NormalThrottleSpeed(Ship ship, EngineEquipment engine)
     {
@@ -28,11 +32,123 @@ public static class TradelaneMotion
         return MathF.Max(0, engine.Def.MaxForce / drag);
     }
 
-    public static float SlowdownSpeed(float progress, float normalThrottleSpeed)
+    public static float SlowdownSpeed(float elapsedTime)
     {
-        var target = MathF.Min(Speed, MathF.Max(0, normalThrottleSpeed));
+        var t = MathHelper.Clamp(elapsedTime / SlowdownDuration, 0, 1);
+        return Easing.Ease(EasingTypes.EaseOut, t, 0, 1, Speed, ExitSpeed);
+    }
+
+    public static float SpeedupSpeed(float elapsedTime, float startingSpeed) =>
+        Easing.Ease(
+            EasingTypes.EaseInOut,
+            MathHelper.Clamp(elapsedTime, 0, SpeedupDuration),
+            0,
+            SpeedupDuration,
+            MathHelper.Clamp(startingSpeed, 0, Speed),
+            Speed);
+
+    public static Vector3 EntryPathPoint(
+        Vector3 start,
+        Vector3 startControl,
+        Vector3 endControl,
+        Vector3 hardpoint,
+        float progress)
+    {
         var t = MathHelper.Clamp(progress, 0, 1);
-        return Easing.Ease(EasingTypes.EaseOut, t, 0, 1, Speed, target);
+        var inverse = 1 - t;
+        return inverse * inverse * inverse * start +
+               3 * inverse * inverse * t * startControl +
+               3 * inverse * t * t * endControl +
+               t * t * t * hardpoint;
+    }
+
+    public static Vector3 EntryPathTangent(
+        Vector3 start,
+        Vector3 startControl,
+        Vector3 endControl,
+        Vector3 hardpoint,
+        float progress)
+    {
+        var t = MathHelper.Clamp(progress, 0, 1);
+        var inverse = 1 - t;
+        return 3 * inverse * inverse * (startControl - start) +
+               6 * inverse * t * (endControl - startControl) +
+               3 * t * t * (hardpoint - endControl);
+    }
+
+    public static Quaternion EntryOrientation(
+        Quaternion startOrientation,
+        Quaternion targetOrientation,
+        float elapsedTime)
+    {
+        var t = MathHelper.Clamp(elapsedTime / EntryAlignmentDuration, 0, 1);
+        t *= t * (3 - 2 * t);
+        return Quaternion.Normalize(Quaternion.Slerp(startOrientation, targetOrientation, t));
+    }
+
+    public static Vector3 EntryCapturePoint(
+        Vector3 hardpointPosition,
+        Vector3 laneDirection,
+        float forwardTolerance)
+    {
+        if (laneDirection.LengthSquared() <= float.Epsilon)
+        {
+            return hardpointPosition;
+        }
+
+        return hardpointPosition -
+               Vector3.Normalize(laneDirection) * MathF.Max(0, forwardTolerance);
+    }
+
+    public static bool HasCrossedEntryPlane(
+        Vector3 shipPosition,
+        Vector3 hardpointPosition,
+        Vector3 laneDirection,
+        float lateralRadius,
+        float forwardTolerance)
+    {
+        if (laneDirection.LengthSquared() <= float.Epsilon)
+        {
+            return false;
+        }
+
+        var axis = Vector3.Normalize(laneDirection);
+        var offset = shipPosition - hardpointPosition;
+        var axialDistance = Vector3.Dot(offset, axis);
+        if (axialDistance < -MathF.Max(0, forwardTolerance) ||
+            axialDistance > EntryManeuverDistance)
+        {
+            return false;
+        }
+
+        var lateral = offset - axis * axialDistance;
+        return lateral.Length() <= lateralRadius;
+    }
+
+    public static Quaternion OrientationForDirection(
+        Vector3 direction,
+        Quaternion referenceOrientation)
+    {
+        if (direction.LengthSquared() <= float.Epsilon)
+        {
+            return referenceOrientation;
+        }
+
+        direction = Vector3.Normalize(direction);
+        var up = Vector3.Transform(Vector3.UnitY, referenceOrientation);
+        up -= direction * Vector3.Dot(up, direction);
+
+        if (up.LengthSquared() <= float.Epsilon)
+        {
+            up = Vector3.UnitY - direction * Vector3.Dot(Vector3.UnitY, direction);
+        }
+
+        if (up.LengthSquared() <= float.Epsilon)
+        {
+            up = Vector3.UnitX - direction * Vector3.Dot(Vector3.UnitX, direction);
+        }
+
+        return Quaternion.Normalize(QuaternionEx.LookRotation(-direction, Vector3.Normalize(up)));
     }
 
     public static Quaternion ManualExitOrientation(
@@ -67,10 +183,9 @@ public static class TradelaneMotion
     }
 
     public static bool CanStartAutomaticSlowdown(
-        float distanceToNextRing, bool approachedFromFarEnough, bool nextIsPenultimate) =>
-        approachedFromFarEnough &&
-        nextIsPenultimate &&
-        distanceToNextRing <= SlowdownStartDistance;
+        bool nextIsFinal,
+        bool enteredAtPenultimate = false) =>
+        nextIsFinal && !enteredAtPenultimate;
 
     public static Vector3 Forward(Quaternion orientation) =>
         Vector3.Transform(-Vector3.UnitZ, orientation).Normalized();

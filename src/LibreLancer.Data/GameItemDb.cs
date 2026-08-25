@@ -1247,6 +1247,11 @@ public class GameItemDb
             {
                 var tlequip = new TradelaneEquipment
                 {
+                    ShipEnter = Effects.Get(tl.TlShipEnter),
+                    ShipExit = Effects.Get(tl.TlShipExit),
+                    ShipDisrupt = Effects.Get(tl.TlShipDisrupt),
+                    PlayerTravel = Effects.Get(tl.TlPlayerTravel),
+                    PlayerSplash = Effects.Get(tl.TlPlayerSplash),
                     RingActive = Effects.Get(tl.TlRingActive)
                 };
                 equip = tlequip;

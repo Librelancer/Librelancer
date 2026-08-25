@@ -56,7 +56,8 @@ public class SpacePlayer : ISpacePlayer
         world.EnqueueAction(() => { World.Players[player].GetComponent<SPlayerComponent>()!.RunDirective(index, World.GameWorld); });
     }
 
-    public void RequestDock(ObjNetId id) => world.RequestDock(player, id);
+    public void RequestDock(ObjNetId id, string tradelaneHardpoint) =>
+        world.RequestDock(player, id, tradelaneHardpoint);
 
     public void FireMissiles(MissileFireCmd[] missiles) => world.FireMissiles(missiles, player);
 

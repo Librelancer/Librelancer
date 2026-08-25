@@ -13,7 +13,7 @@ namespace LibreLancer.Client.Components;
 public class CTradelaneMoveComponent(GameObject parent) : GameComponent(parent)
 {
     public TradelaneMoveState State { get; private set; } = TradelaneMoveState.Transit;
-    public float TargetSpeed { get; private set; } = TradelaneMotion.Speed;
+    public float TargetSpeed { get; private set; }
 
     private float manualExitTime;
     private float manualStartSpeed;
@@ -21,6 +21,16 @@ public class CTradelaneMoveComponent(GameObject parent) : GameComponent(parent)
     private float manualTurnDuration;
     private Quaternion manualStartOrientation;
     private Quaternion manualTargetOrientation;
+    private float entryOrientationTime = TradelaneMotion.EntryAlignmentDuration;
+    private Quaternion entryStartOrientation;
+    private Quaternion entryTargetOrientation;
+
+    public void BeginEntryOrientation(Quaternion targetOrientation)
+    {
+        entryOrientationTime = 0;
+        entryStartOrientation = Parent.PhysicsComponent!.Body.Orientation;
+        entryTargetOrientation = targetOrientation;
+    }
 
     public void ApplyState(PlayerAuthState auth)
     {
@@ -75,11 +85,17 @@ public class CTradelaneMoveComponent(GameObject parent) : GameComponent(parent)
             : body.LinearVelocity.Length();
 
         body.LinearVelocity = direction * speed;
-        if (direction.LengthSquared() > float.Epsilon)
-        {
-            body.SetOrientation(QuaternionEx.LookAt(body.Position, body.Position + direction));
-        }
         body.AngularVelocity = Vector3.Zero;
+        if (entryOrientationTime < TradelaneMotion.EntryAlignmentDuration)
+        {
+            entryOrientationTime = MathF.Min(
+                TradelaneMotion.EntryAlignmentDuration,
+                entryOrientationTime + (float)time);
+            body.SetOrientation(TradelaneMotion.EntryOrientation(
+                entryStartOrientation,
+                entryTargetOrientation,
+                entryOrientationTime));
+        }
         SetEngineSpeed(speed);
     }
 
@@ -119,4 +135,3 @@ public class CTradelaneMoveComponent(GameObject parent) : GameComponent(parent)
         }
     }
 }
-+

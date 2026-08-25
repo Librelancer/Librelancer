@@ -487,6 +487,10 @@ namespace LibreLancer.Server
             }
             foreach (var o in withAnimations)
                 UpdateAnimations(o, player);
+            foreach (var lane in activeTradelaneLanes)
+                player.RpcClient.TradelaneActivate(lane.Obj.NicknameCRC, lane.Left);
+            foreach (var dockingLight in dockingLights)
+                player.RpcClient.SetDockingLights(dockingLight, true);
             updatingObjects.Add(obj);
             return obj;
         }
@@ -521,7 +525,7 @@ namespace LibreLancer.Server
             }
         }
 
-        public void RequestDock(Player player, ObjNetId id)
+        public void RequestDock(Player player, ObjNetId id, string tradelaneHardpoint)
         {
             actions.Enqueue(() =>
             {
@@ -543,7 +547,11 @@ namespace LibreLancer.Server
                     }
                     else
                     {
-                        component.StartDock(obj, 0, world: GameWorld);
+                        component.StartDock(
+                            obj,
+                            0,
+                            world: GameWorld,
+                            requestedTradelaneHardpoint: tradelaneHardpoint);
                     }
                 }
             });
@@ -643,6 +651,7 @@ namespace LibreLancer.Server
 
         public void ActivateLane(GameObject obj, bool left)
         {
+            activeTradelaneLanes.Add((obj, left));
             foreach (var p in Players)
             {
                 p.Key.RpcClient.TradelaneActivate(obj.NicknameCRC, left);
@@ -651,6 +660,7 @@ namespace LibreLancer.Server
 
         public void DeactivateLane(GameObject obj, bool left)
         {
+            activeTradelaneLanes.Remove((obj, left));
             foreach (var p in Players)
             {
                 p.Key.RpcClient.TradelaneDeactivate(obj.NicknameCRC, left);
@@ -663,6 +673,24 @@ namespace LibreLancer.Server
         }
 
         private List<GameObject> withAnimations = [];
+        private readonly HashSet<(GameObject Obj, bool Left)> activeTradelaneLanes = [];
+        private readonly HashSet<GameObject> dockingLights = [];
+
+        public void SetDockingLights(GameObject obj, bool active)
+        {
+            if (active)
+            {
+                if (!dockingLights.Add(obj))
+                    return;
+            }
+            else if (!dockingLights.Remove(obj))
+            {
+                return;
+            }
+
+            foreach (var p in Players)
+                p.Key.RpcClient.SetDockingLights(obj, active);
+        }
 
         public void StartAnimation(GameObject obj)
         {
@@ -690,6 +718,8 @@ namespace LibreLancer.Server
             obj.Unregister(GameWorld);
             GameWorld.RemoveObject(obj);
             withAnimations.Remove(obj);
+            activeTradelaneLanes.RemoveWhere(x => x.Obj == obj);
+            dockingLights.Remove(obj);
             updatingObjects.Remove(obj);
         }
 
