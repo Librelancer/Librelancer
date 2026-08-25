@@ -99,9 +99,11 @@ namespace LibreLancer.Fx
                     {
                         case EmitterReference er when n2 is AppearanceReference ar:
                             er.Linked = ar;
+                            ar.SourceEmitter = er;
                             break;
                         case AppearanceReference ap when n2 is FieldReference fp:
                             ap.Linked.Add(fp);
+                            ap.AirFieldOwnsDirection |= fp.Field is FxAirField && fp.Field.Transform.HasTransform;
                             break;
                     }
                 }
@@ -114,6 +116,10 @@ namespace LibreLancer.Fx
                     nodesByIndex.Values.Where(x => x.Parent == null).ToList()
                 ));
             }
+
+            foreach (var appearance in Nodes.Values.OfType<FxParticleAppearance>())
+                appearance.LifeEffect = Effects.FirstOrDefault(x =>
+                    x.Nickname.Equals(appearance.LifeName, StringComparison.OrdinalIgnoreCase));
         }
 
         private static FxNode NodeFromAle(AlchemyNode ale) => ale.ClassName switch

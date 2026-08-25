@@ -28,6 +28,11 @@ namespace LibreLancer.Fx
 
         }
 
+        public virtual void Update(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx,
+            Matrix4x4 transform, float sparam, double delta)
+        {
+        }
+
         private static readonly AlchemyTransform[] transforms = new AlchemyTransform[32];
 
         public bool TransformParticle(NodeReference reference, float sparam, float t1, float t2, out Vector3 translate,

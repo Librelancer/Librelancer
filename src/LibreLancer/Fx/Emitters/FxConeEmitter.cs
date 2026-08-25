@@ -56,13 +56,15 @@ namespace LibreLancer.Fx
 			float s_min = MathHelper.DegreesToRadians(MinSpread.GetValue(sparam, 0));
 			float s_max = MathHelper.DegreesToRadians(MaxSpread.GetValue(sparam, 0));
 
-			var n = RandomInCone(s_min, s_max);
+			var localDirection = RandomInCone(s_min, s_max);
+			var n = localDirection;
 
             if (DoTransform(reference, sparam, globaltime, out var translate, out var rotate))
             {
                 n = Vector3.Transform(n, rotate);
             }
-            var p = n * radius + translate;
+			var p = (reference.Linked!.AirFieldOwnsDirection ? localDirection : n) * radius + translate;
+			particle.Normal = n.Normalized();
 			n *= Pressure!.GetValue(sparam, 0);
             particle.Position = p;
             particle.Velocity = n;

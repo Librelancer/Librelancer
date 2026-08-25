@@ -179,6 +179,33 @@ namespace LibreLancer.Fx
 
             ref EmitterState state = ref instance.Emitters[index];
 
+            if (!state.Initialized)
+            {
+                state.Initialized = true;
+                var initialCount = Math.Min(InitialParticles, maxCount);
+                var initialWindow = spawnMs > 0
+                    ? Math.Min(lifespan, spawnMs * initialCount)
+                    : 0;
+                var initialStep = initialCount > 0
+                    ? initialWindow / initialCount
+                    : 0;
+
+                for (var i = 0; i < initialCount; i++)
+                {
+                    var initialAge = i * initialStep;
+                    EmitParticle(reference, index, instance, ref transform, sparam,
+                        lifespan, initialAge, ref state);
+
+                    ref var particle = ref instance.Buffer[
+                        reference.AppBufIdx,
+                        instance.Buffer.GetCount(reference.AppBufIdx) - 1];
+                    particle.Position += particle.Velocity * (float)initialAge;
+                }
+
+                if (spawnMs > 0 && initialCount > 0)
+                    state.SpawnTimer = spawnMs;
+            }
+
             if (spawnMs > 0)
             {
                 if (state.SpawnTimer > spawnMs)
@@ -212,47 +239,62 @@ namespace LibreLancer.Fx
                         continue;
                     }
 
-                    // Emit
-                    ref var particle = ref instance.Buffer.Enqueue(reference.AppBufIdx, out var despawned);
-
-                    if (despawned != -1)
-                    {
-                        instance.Emitters[despawned].Count--;
-                        Debug.Assert(instance.Emitters[despawned].Count >= 0);
-                    }
-
-                    particle.LifeSpan = lifespan;
-                    particle.TimeAlive = (float) dt;
-                    particle.EmitterIndex = index;
-                    particle.Orientation = Quaternion.Identity;
-                    SetParticle(reference, ref particle, sparam, (float) instance.GlobalTime);
-                    state.Count++;
-
-                    // Put particle in world space if needed
-                    if (reference.Linked.Parent != null)
-                    {
-                        continue;
-                    }
-
-                    particle.Position = Vector3.Transform(
-                        particle.Position, transform);
-                    var len = particle.Velocity.Length();
-
-                    if (!(Math.Abs(len) > float.Epsilon))
-                    {
-                        continue;
-                    }
-
-                    var nr = particle.Velocity.Normalized();
-                    var transformed = Vector3.TransformNormal(nr, transform).Normalized();
-                    particle.Velocity = transformed * len;
-                    particle.Normal = nr;
+                    EmitParticle(reference, index, instance, ref transform, sparam,
+                        lifespan, dt, ref state);
                 }
             }
             else
             {
                 state.SpawnTimer = 0;
             }
+        }
+
+        private void EmitParticle(
+            EmitterReference reference,
+            int index,
+            ParticleEffectInstance instance,
+            ref Matrix4x4 transform,
+            float sparam,
+            float lifespan,
+            double timeAlive,
+            ref EmitterState state)
+        {
+            ref var particle = ref instance.Buffer.Enqueue(reference.AppBufIdx, out var despawned);
+
+            if (despawned != -1)
+            {
+                instance.Emitters[despawned].Count--;
+                Debug.Assert(instance.Emitters[despawned].Count >= 0);
+            }
+
+            particle.LifeSpan = lifespan;
+            particle.TimeAlive = (float)timeAlive;
+            particle.EmitterIndex = index;
+            particle.Id = instance.AllocateParticleId();
+            particle.Orientation = Quaternion.Identity;
+            SetParticle(reference, ref particle, sparam, (float)instance.GlobalTime);
+
+            if (particle.Normal.LengthSquared() <= float.Epsilon)
+            {
+                particle.Normal = particle.Velocity.LengthSquared() > float.Epsilon
+                    ? particle.Velocity.Normalized()
+                    : Vector3.UnitY;
+            }
+
+            state.Count++;
+
+            if (reference.Linked!.Parent != null)
+                return;
+
+            particle.Position = Vector3.Transform(particle.Position, transform);
+            var len = particle.Velocity.Length();
+            if (!(Math.Abs(len) > float.Epsilon))
+                return;
+
+            var nr = particle.Velocity.Normalized();
+            var transformed = Vector3.TransformNormal(nr, transform).Normalized();
+            particle.Velocity = transformed * len;
+            particle.Normal = transformed;
         }
     }
 }

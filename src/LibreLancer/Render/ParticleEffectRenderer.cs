@@ -40,6 +40,7 @@ namespace LibreLancer.Render
         public void Restart()
         {
             fx?.Reset();
+            Finished = false;
         }
 
         public override bool PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool forceCull)
@@ -85,8 +86,8 @@ namespace LibreLancer.Render
             }
 
             tr = transform;
-            fx.Update(time, transform, SParam);
             fx.DrawIndex = Index;
+            fx.Update(time, transform, SParam);
             if (fx.IsFinished())
             {
                 Finished = true;

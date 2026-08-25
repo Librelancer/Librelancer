@@ -3,7 +3,9 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
@@ -24,6 +26,7 @@ namespace LibreLancer.Fx
     {
         public double SpawnTimer;
         public int Count;
+        public bool Initialized;
     }
 
     public class ParticleEffectInstance
@@ -45,8 +48,9 @@ namespace LibreLancer.Fx
         public EmitterState[] Emitters;
         private double globaltime = 0;
         public double GlobalTime => globaltime;
-
         public ParticleBuffer Buffer;
+        private readonly Dictionary<(int Appearance, int Particle), ParticleEffectInstance> childEffects = [];
+        private int nextParticleId;
 
         public int CountAll()
         {
@@ -84,7 +88,39 @@ namespace LibreLancer.Fx
             globaltime = 0;
             Buffer.Reset();
             Array.Clear(Emitters);
+            childEffects.Clear();
         }
+
+        public ParticleEffectInstance GetOrCreateChildEffect(
+            int appearanceIndex,
+            int particleId,
+            ParticleEffect effect)
+        {
+            var key = (appearanceIndex, particleId);
+            if (!childEffects.TryGetValue(key, out var child) || child.Effect != effect)
+            {
+                child = new ParticleEffectInstance(effect);
+                childEffects[key] = child;
+            }
+
+            child.Pool = Pool;
+            child.Resources = Resources;
+            child.DrawIndex = DrawIndex;
+            return child;
+        }
+
+        public bool TryGetChildEffect(int appearanceIndex, int particleId,
+            [MaybeNullWhen(false)] out ParticleEffectInstance effect) =>
+            childEffects.TryGetValue((appearanceIndex, particleId), out effect);
+
+        public void RemoveUnusedChildEffects(int appearanceIndex, HashSet<int> activeParticles)
+        {
+            foreach (var key in childEffects.Keys.Where(x =>
+                         x.Appearance == appearanceIndex && !activeParticles.Contains(x.Particle)).ToArray())
+                childEffects.Remove(key);
+        }
+
+        public int AllocateParticleId() => ++nextParticleId;
 
         public double LastTime => lasttime;
 
@@ -152,6 +188,13 @@ namespace LibreLancer.Fx
                     r.Emitter.Update(r, i, this, delta, ref transform, sparam);
                 }
             }
+
+            for (var i = 0; i < Effect.Appearances.Count; i++)
+            {
+                var appearance = Effect.Appearances[i];
+                if (appearance.Enabled)
+                    appearance.Appearance.Update(this, appearance, i, transform, sparam, delta);
+            }
         }
 
         public void Draw(Matrix4x4 transform, float sparam)
@@ -175,4 +218,3 @@ namespace LibreLancer.Fx
         }
     }
 }
-

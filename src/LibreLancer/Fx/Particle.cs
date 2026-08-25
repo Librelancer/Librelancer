@@ -16,6 +16,6 @@ namespace LibreLancer.Fx
 		public float TimeAlive;
         public Quaternion Orientation;
         public int EmitterIndex;
-    }
+        public int Id;
+	}
 }
-
