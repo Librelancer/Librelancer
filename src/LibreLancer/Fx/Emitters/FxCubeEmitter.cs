@@ -45,7 +45,7 @@ namespace LibreLancer.Fx
             return n;
         }
 
-        protected override void SetParticle(EmitterReference reference, ref Particle particle, float sparam,
+        protected override void SetParticle(ParticleEffectInstance instance, EmitterReference reference, ref Particle particle, float sparam,
             float globaltime)
         {
             float w = Width.GetValue(sparam, 0) / 2;
@@ -61,10 +61,12 @@ namespace LibreLancer.Fx
             );
             var n = RandomInCone(s_min, s_max);
 
-            if (DoTransform(reference, sparam, globaltime, out var translate, out var rotate))
+            ref Matrix4x4 particleSpawnTransform = ref instance.EmitterParticleSpawnTransforms[reference.EmitterNodeIdx];
+            if (!particleSpawnTransform.IsIdentity)
             {
-                pos += translate;
-                n = Vector3.Transform(n, rotate);
+                //TODO: Opimize
+                pos=Vector3.Transform(pos, particleSpawnTransform);
+                n=Vector3.TransformNormal(n, particleSpawnTransform);
             }
 
             var pr = pos;

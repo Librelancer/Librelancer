@@ -103,6 +103,30 @@ namespace LibreLancer.Utf.Ale
             );
         }
 
+        //Calculates the Matrix4x4 for the current time and sparam
+        public Matrix4x4 GetTransform(float sparam, float t)
+        {
+            float x = RotatePitch.GetValue(sparam, t);
+            float y = RotateYaw.GetValue(sparam, t);
+            float z = RotateRoll.GetValue(sparam, t);
+            Matrix4x4 transform = MathHelper.MatrixFromEulerDegrees(x,y,z);
+
+            //Do not let the scale get to zero as it makes matrix inversion impossible
+            const float minScale = 0.00001f;
+            float scaleX= Math.Max(minScale,ScaleX.GetValue(sparam, t));
+            float scaleY= Math.Max(minScale,ScaleY.GetValue(sparam, t));
+            float scaleZ= Math.Max(minScale,ScaleZ.GetValue(sparam, t));
+            transform.M11*=scaleX;
+            transform.M22*=scaleY;
+            transform.M33*=scaleZ;
+
+            Vector3 translation = GetTranslation(sparam, t);
+            transform.M41=translation.X;
+            transform.M42=translation.Y;
+            transform.M43=translation.Z;
+            return transform;
+        }
+
         public AlchemyTransform()
         {
             HasTransform = false;

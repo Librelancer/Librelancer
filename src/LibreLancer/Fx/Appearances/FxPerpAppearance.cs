@@ -21,7 +21,7 @@ namespace LibreLancer.Fx
         {
             var count = instance.Buffer.GetCount(nodeIdx);
             TextureHandler.Update(Texture, instance.Resources);
-            var node_tr = GetAttachment(node, transform);
+            var node_tr = instance.NodeWorldTransforms[node.NodeIdx];
             for (int i = 0; i < count; i++)
             {
                 ref var particle = ref instance.Buffer[nodeIdx, i];
@@ -32,12 +32,12 @@ namespace LibreLancer.Fx
                 var q = particle.Orientation * Transform.GetDeltaRotation(sparam,
                     (float)instance.LastTime, (float)instance.GlobalTime);
                 particle.Orientation = q;
-                var p = Vector3.Transform(particle.Position, transform);
-                var p2 = Vector3.Transform(particle.Position + particle.Velocity, transform);
+                var p = Vector3.Transform(particle.Position, node_tr);
+                var p2 = Vector3.Transform(particle.Position + particle.Velocity, node_tr);
                 var n = (p - p2).Normalized();
                 instance.Pool.AddParticle(
                     TextureHandler,
-                    Vector3.Transform(particle.Position, transform),
+                    Vector3.Transform(particle.Position, node_tr),
                     new Vector2(Size.GetValue(sparam, time)),
                     new Color4(c, a),
                     GetFrame((float)instance.GlobalTime, sparam, ref particle),

@@ -13,6 +13,7 @@ namespace LibreLancer.Fx
     {
         public NodeReference? Parent;
         public List<NodeReference> Children = [];
+        public int NodeIdx;
 
         private int flags = (1 << 1); // Enabled
 
@@ -51,6 +52,7 @@ namespace LibreLancer.Fx
 
         public AppearanceReference? Linked;
         public int AppBufIdx; // Index of the particle buffer of the linked appearance
+        public int EmitterNodeIdx;
     }
 
     public class AppearanceReference(FxAppearance app) : NodeReference
@@ -80,14 +82,37 @@ namespace LibreLancer.Fx
         public int[] ParticleCounts = null!;
         public float Radius;
 
+        public int NodeCount;
+        public int EmitterNodeCount;
+
+        //Code suggested by Callum
+        void AssignNodeIds(NodeReference item)
+        {
+            item.NodeIdx = NodeCount;
+            NodeCount++;
+            foreach (var c in item.Children)
+            {
+                AssignNodeIds(c);
+            }
+        }
+
         public void CalculateInfo()
         {
+            //Code suggested by Callum
+            NodeCount = 0;
+            foreach(var n in Tree)
+                AssignNodeIds(n);
+
             ParticleCounts = new int[Appearances.Count];
             float radius = 0;
 
+            EmitterNodeCount = 0;
             foreach (var emitNode in Emitters)
             {
+                emitNode.EmitterNodeIdx = EmitterNodeCount;
+                EmitterNodeCount++;
                 var emitter = (FxEmitter) emitNode.Node;
+
                 if (emitNode.Linked == null) continue;
                 emitNode.AppBufIdx = Appearances.IndexOf(emitNode.Linked);
                 int maxParticles = 500;
