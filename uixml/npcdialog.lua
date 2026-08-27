@@ -9,10 +9,14 @@ class npcdialog : npcdialog_Designer with Modal
 
         local rumorOption = nil;
         local bribeOption = nil;
+        local knowledgeOption = nil;
         for (option in dialog.Options) {
             if (option.Kind == 3) {
                 bribeOption = option;
                 break;
+            }
+            if (option.Kind == 4 && knowledgeOption == nil) {
+                knowledgeOption = option;
             }
             if (option.Kind == 1) {
                 rumorOption = option;
@@ -33,8 +37,37 @@ class npcdialog : npcdialog_Designer with Modal
             e.accept.Visible = true;
             e.decline.Visible = true;
             e.accept.OnClick(() => {
-                Game.BaseNpcOption(bribeOption.Id);
+                if (this.Accepting) return;
+                this.Accepting = true;
+                e.accept.Enabled = false;
                 this.Close();
+                Game.BaseNpcOption(bribeOption.Id);
+            });
+            e.decline.OnClick(() => this.Close());
+            this.Widget.OnEscape(() => this.Close());
+            return;
+        }
+
+        if (knowledgeOption != nil) {
+            local infoText = knowledgeOption.Text != 0
+                ? Game.FormatBaseNpcKnowledge(knowledgeOption.Text, knowledgeOption.ObjectNames, knowledgeOption.Price)
+                : "";
+            e.contents.Visible = infoText != "";
+            if (infoText != "")
+                e.contents.SetString(infoText);
+            e.close.Visible = false;
+            e.accept.X = -68;
+            e.decline.X = 68;
+            e.accept.Y = 30;
+            e.decline.Y = 30;
+            e.accept.Visible = true;
+            e.decline.Visible = true;
+            e.accept.OnClick(() => {
+                if (this.Accepting) return;
+                this.Accepting = true;
+                e.accept.Enabled = false;
+                this.Close();
+                Game.BaseNpcOption(knowledgeOption.Id);
             });
             e.decline.OnClick(() => this.Close());
             this.Widget.OnEscape(() => this.Close());

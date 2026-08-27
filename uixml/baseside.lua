@@ -221,11 +221,29 @@ class baseside : baseside_Designer
     BaseNpcDialog(dialog)
     {
         if (dialog.FocusSystemHash != 0 && dialog.FocusObjectHash != 0) {
-            this.WindowManager.OpenWindow(this.Widget, this.Map, true);
-            this.Map.FocusSystemObject(dialog.FocusSystemHash, dialog.FocusObjectHash);
+            this.OpenNpcMap(dialog.FocusSystemHash, dialog.FocusObjectHash);
         } else {
             OpenModal(new npcdialog(dialog));
         }
+    }
+
+    OpenNpcMap(systemHash, objectHash)
+    {
+        if (!this.WindowManager.CanOpen && this.WindowManager.ActiveWindow != this.Map) {
+            Timer(0.05, () => this.OpenNpcMap(systemHash, objectHash));
+            return;
+        }
+        this.WindowManager.OpenWindow(this.Widget, this.Map, true);
+        this.FocusNpcMapWhenOpen(systemHash, objectHash);
+    }
+
+    FocusNpcMapWhenOpen(systemHash, objectHash)
+    {
+        if (!this.Map.Opened) {
+            Timer(0.05, () => this.FocusNpcMapWhenOpen(systemHash, objectHash));
+            return;
+        }
+        this.Map.FocusSystemObject(systemHash, objectHash);
     }
 
     OpenBaseAction(action)

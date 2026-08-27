@@ -18,6 +18,7 @@ using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Ini;
+using LibreLancer.Data.Schema.MBases;
 using LibreLancer.Data.Schema.Save;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Data.Schema.Ships;
@@ -390,9 +391,25 @@ namespace LibreLancer.Server
                 out var focusSystemHash,
                 out var focusObjectHash);
             if (optionId == 0)
-                contents = GetNextRumor(npc);
+                contents = GetNextKnowledge(npc)?.Ids2 ?? GetNextRumor(npc);
             if (!showDialog)
+            {
+                if (focusSystemHash != 0 && focusObjectHash != 0)
+                {
+                    FLLog.Info("NPC", $"Knowledge accepted: npc={npc.Nickname}, system={focusSystemHash}, object={focusObjectHash}");
+                    rpcClient.ShowBaseNpcDialog(new NetBaseNpcDialog
+                    {
+                        Npc = npc.Nickname,
+                        FocusSystemHash = focusSystemHash,
+                        FocusObjectHash = focusObjectHash
+                    });
+                }
+                else if (optionId >= 3000 && optionId < 4000)
+                {
+                    FLLog.Warning("NPC", $"Knowledge accepted without map focus: npc={npc.Nickname}, option={optionId}, objects={string.Join(",", npc.Know.ElementAtOrDefault(optionId - 3000)?.Objects ?? [])}");
+                }
                 return;
+            }
 
             var dialog = BuildNpcDialog(
                 npc,
@@ -418,16 +435,37 @@ namespace LibreLancer.Server
 
             if (contents != 0)
             {
-                var rumorIndex = npc.Rumors.FindIndex(x => x.Ids == contents);
-                if (rumorIndex >= 0)
+                var knowledgeIndex = npc.Know.FindIndex(x => x.Ids2 == contents);
+                if (knowledgeIndex >= 0)
                 {
-                    options.Add(new NetBaseNpcOption
+                    var know = npc.Know[knowledgeIndex];
+                    if (know.Ids1 != 0 && know.Ids2 != 0 &&
+                        !HasRumor(know.Ids2) && reputation >= know.RepThreshold)
                     {
-                        Id = 1000 + rumorIndex,
-                        Kind = BaseNpcOptionKind.Rumor,
-                        Text = contents,
-                        Contents = contents
-                    });
+                        options.Add(new NetBaseNpcOption
+                        {
+                            Id = 3000 + knowledgeIndex,
+                            Kind = BaseNpcOptionKind.Knowledge,
+                            Text = know.Ids1,
+                            Contents = know.Ids2,
+                            Price = know.Price,
+                            ObjectNames = GetKnowledgeObjectNames(know)
+                        });
+                    }
+                }
+                else
+                {
+                    var rumorIndex = npc.Rumors.FindIndex(x => x.Ids == contents);
+                    if (rumorIndex >= 0)
+                    {
+                        options.Add(new NetBaseNpcOption
+                        {
+                            Id = 1000 + rumorIndex,
+                            Kind = BaseNpcOptionKind.Rumor,
+                            Text = contents,
+                            Contents = contents
+                        });
+                    }
                 }
             }
 
@@ -460,7 +498,8 @@ namespace LibreLancer.Server
                 for (var i = 0; i < npc.Know.Count; i++)
                 {
                     var know = npc.Know[i];
-                    if (HasRumor(know.Ids2) || reputation < know.RepThreshold)
+                    if (know.Ids1 == 0 || know.Ids2 == 0 ||
+                        HasRumor(know.Ids2) || reputation < know.RepThreshold)
                         continue;
 
                     options.Add(new NetBaseNpcOption
@@ -469,7 +508,8 @@ namespace LibreLancer.Server
                         Kind = BaseNpcOptionKind.Knowledge,
                         Text = know.Ids1,
                         Contents = know.Ids2,
-                        Price = know.Price
+                        Price = know.Price,
+                        ObjectNames = GetKnowledgeObjectNames(know)
                     });
                 }
 
@@ -488,7 +528,10 @@ namespace LibreLancer.Server
             {
                 Npc = npc.Nickname,
                 IndividualName = npc.IndividualName,
-                Contents = contents,
+                // Info offers are prompts assembled from the knowledge option;
+                // leave dialog contents empty so accepting one uses the normal
+                // interaction request and can return map focus for knowdb.
+                Contents = options.Any(x => x.Kind == BaseNpcOptionKind.Knowledge) ? 0 : contents,
                 Options = options.ToArray(),
                 FocusSystemHash = focusSystemHash,
                 FocusObjectHash = focusObjectHash
@@ -505,6 +548,37 @@ namespace LibreLancer.Server
                                 reputation >= rumor.RepThreshold)
                 .ToArray();
             return rumors.Length == 0 ? 0 : rumors[Random.Shared.Next(rumors.Length)].Ids;
+        }
+
+        private NpcKnow? GetNextKnowledge(BaseNpc npc)
+        {
+            var reputation = Character?.Reputation.GetReputation(npc.Affiliation) ?? 0;
+            return npc.Know.FirstOrDefault(know =>
+                know.Ids1 != 0 &&
+                know.Ids2 != 0 &&
+                !HasRumor(know.Ids2) &&
+                reputation >= know.RepThreshold);
+        }
+
+        private string[] GetKnowledgeObjectNames(NpcKnow know)
+        {
+            var names = new List<string>();
+            foreach (var objectNickname in know.Objects)
+            {
+                var systemObject = Game.GameData.Items.Systems
+                    .SelectMany(system => system.Objects)
+                    .FirstOrDefault(obj => obj.Nickname.Equals(
+                        objectNickname,
+                        StringComparison.OrdinalIgnoreCase));
+                var objectName = systemObject == null
+                    ? ""
+                    : Game.GameData.GetString(systemObject.IdsName);
+                names.Add(string.IsNullOrWhiteSpace(objectName)
+                    ? objectNickname
+                    : objectName);
+            }
+
+            return names.ToArray();
         }
 
         private int ResolveNpcOption(
@@ -559,7 +633,17 @@ namespace LibreLancer.Server
                 {
                     var know = npc.Know[index];
                     var reputation = Character?.Reputation.GetReputation(npc.Affiliation) ?? 0;
-                    if (!HasRumor(know.Ids2) && reputation >= know.RepThreshold &&
+                    if (HasRumor(know.Ids2))
+                    {
+                        // A previous client/server version may have recorded the
+                        // knowledge before it managed to open the map. Make the
+                        // operation recoverable and never charge twice.
+                        (focusSystemHash, focusObjectHash) = RevealKnownObjects(know.Objects);
+                        FLLog.Info("NPC", $"Knowledge already known; restoring map focus: ids={know.Ids2}");
+                        return know.Ids2;
+                    }
+
+                    if (reputation >= know.RepThreshold &&
                         Character != null && Character.Credits >= know.Price)
                     {
                         using (var transaction = Character.BeginTransaction())
@@ -572,6 +656,8 @@ namespace LibreLancer.Server
                         (focusSystemHash, focusObjectHash) = RevealKnownObjects(know.Objects);
                         return know.Ids2;
                     }
+
+                    FLLog.Warning("NPC", $"Knowledge purchase rejected: npc={npc.Nickname}, ids={know.Ids2}, credits={Character?.Credits ?? 0}, price={know.Price}, reputation={reputation}, threshold={know.RepThreshold}");
                 }
             }
 
@@ -604,13 +690,26 @@ namespace LibreLancer.Server
                     continue;
                 }
 
+                if (targetObject.Archetype == null)
+                {
+                    FLLog.Warning("NPC", $"Known NPC location has no archetype: {objectName}");
+                    continue;
+                }
+
+                if (!targetObject.Archetype.CanVisit)
+                {
+                    FLLog.Warning("NPC", $"Known NPC location is not visitable: {objectName}, type={targetObject.Archetype.Type}");
+                    continue;
+                }
+
                 var objectHash = FLHash.CreateID(targetObject.Nickname);
                 VisitObject(targetSystem, targetObject, objectHash);
-                if (focusObjectHash == 0 &&
-                    (Character!.GetVisitFlags(objectHash) & VisitFlags.Visited) == VisitFlags.Visited)
+¡
+                if (focusObjectHash == 0)
                 {
                     focusSystemHash = targetSystem.CRC;
                     focusObjectHash = objectHash;
+                    FLLog.Info("NPC", $"Known NPC map focus resolved: object={targetObject.Nickname}, system={targetSystem.Nickname}, systemHash={focusSystemHash}, objectHash={focusObjectHash}");
                 }
             }
 

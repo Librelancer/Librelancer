@@ -195,7 +195,7 @@ public partial class CGameSession : IClientPlayer
 
     void IClientPlayer.ShowBaseNpcDialog(NetBaseNpcDialog dialog)
     {
-        FLLog.Info("NPC", $"NPC dialog received: npc={dialog.Npc}, contents={dialog.Contents}, options={dialog.Options.Length}");
+        FLLog.Info("NPC", $"NPC dialog received: npc={dialog.Npc}, contents={dialog.Contents}, options={dialog.Options.Length}, focusSystem={dialog.FocusSystemHash}, focusObject={dialog.FocusObjectHash}");
         BaseNpcDialog = dialog;
         if (OnBaseNpcDialog != null)
             uiActions.Enqueue(() => OnBaseNpcDialog(dialog));

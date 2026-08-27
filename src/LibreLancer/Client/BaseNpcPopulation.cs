@@ -77,6 +77,21 @@ public static class BaseNpcPopulation
         BaseNpcRumor? selectedRumor,
         BaseNpcBribe? selectedBribe)
     {
+        return GetInteractionCursor(
+            npc,
+            hasMissionOffer,
+            selectedRumor,
+            selectedBribe,
+            float.MaxValue);
+    }
+
+    public static string GetInteractionCursor(
+        BaseNpc npc,
+        bool hasMissionOffer,
+        BaseNpcRumor? selectedRumor,
+        BaseNpcBribe? selectedBribe,
+        float reputation)
+    {
         switch (GetServiceAction(npc))
         {
             case "trader":
@@ -91,7 +106,10 @@ public static class BaseNpcPopulation
             return "talk_mission";
         if (selectedBribe != null)
             return "talk_bribe";
-        if (npc.Know.Count > 0)
+        if (npc.Know.Any(x =>
+                x.Ids1 != 0 &&
+                x.Ids2 != 0 &&
+                reputation >= x.RepThreshold))
             return "talk_info";
         if (selectedRumor != null)
             return "talk_rumor";

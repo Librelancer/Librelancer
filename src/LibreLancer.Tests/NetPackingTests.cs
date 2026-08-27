@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using LibreLancer.Data;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Server;
@@ -164,6 +165,64 @@ public class NetPackingTests
         pw.Put(s);
         var pr = new PacketReader(new NetDataReader(pw.GetCopy()));
         Assert.Equal(s, pr.GetString());
+    }
+
+    [Fact]
+    public void BaseNpcKnowledgeOptionRoundTripsObjectNames()
+    {
+        var source = new NetBaseNpcOption
+        {
+            Id = 3000,
+            Kind = BaseNpcOptionKind.Knowledge,
+            Text = 251760,
+            Contents = 253608,
+            Price = 300,
+            ObjectNames = ["Detroit Munitions"]
+        };
+        var pw = new PacketWriter();
+        source.Put(pw);
+
+        var result = NetBaseNpcOption.Read(new PacketReader(new NetDataReader(pw.GetCopy())));
+
+        Assert.Equal(source.Id, result.Id);
+        Assert.Equal(source.Kind, result.Kind);
+        Assert.Equal(source.Text, result.Text);
+        Assert.Equal(source.Contents, result.Contents);
+        Assert.Equal(source.Price, result.Price);
+        Assert.Equal(source.ObjectNames, result.ObjectNames);
+    }
+
+    [Fact]
+    public void BaseNpcDialogRoundTripsMapFocus()
+    {
+        var source = new NetBaseNpcDialog
+        {
+            Npc = "li0101_ageira_001_f",
+            IndividualName = 220001,
+            FocusSystemHash = FLHash.CreateID("li01"),
+            FocusObjectHash = FLHash.CreateID("li01_10"),
+            Options =
+            [
+                new NetBaseNpcOption
+                {
+                    Id = 3000,
+                    Kind = BaseNpcOptionKind.Knowledge,
+                    Text = 251760,
+                    Contents = 253608,
+                    Price = 300,
+                    ObjectNames = ["Detroit Munitions"]
+                }
+            ]
+        };
+        var pw = new PacketWriter();
+        source.Put(pw);
+
+        var result = NetBaseNpcDialog.Read(new PacketReader(new NetDataReader(pw.GetCopy())));
+
+        Assert.Equal(source.Npc, result.Npc);
+        Assert.Equal(source.FocusSystemHash, result.FocusSystemHash);
+        Assert.Equal(source.FocusObjectHash, result.FocusObjectHash);
+        Assert.Equal(source.Options[0].ObjectNames, result.Options[0].ObjectNames);
     }
 
     [Theory]

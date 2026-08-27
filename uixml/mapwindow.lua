@@ -111,6 +111,7 @@ class mapwindow : mapwindow_Designer with ChildWindow
     {
         this.Elements.navmap.FocusSystemObject(systemHash, objectHash);
         this.SelectOverlay("physical");
+        PlaySound("hud_zoom_in");
     }
     Closing()
     {

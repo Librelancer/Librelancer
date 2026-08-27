@@ -20,6 +20,7 @@ public class NetBaseNpcOption
     public int Contents;
     public int Price;
     public int FactionIdsName;
+    public string[] ObjectNames = [];
 
     public static NetBaseNpcOption ForBribe(int index, BaseNpcBribe bribe) => new()
     {
@@ -39,17 +40,29 @@ public class NetBaseNpcOption
         message.PutVariableInt32(Contents);
         message.PutVariableInt32(Price);
         message.PutVariableInt32(FactionIdsName);
+        message.PutVariableUInt32((uint)ObjectNames.Length);
+        foreach (var objectName in ObjectNames)
+            message.Put(objectName);
     }
 
-    public static NetBaseNpcOption Read(PacketReader message) => new()
+    public static NetBaseNpcOption Read(PacketReader message)
     {
-        Id = message.GetVariableInt32(),
-        Kind = message.GetVariableInt32(),
-        Text = message.GetVariableInt32(),
-        Contents = message.GetVariableInt32(),
-        Price = message.GetVariableInt32(),
-        FactionIdsName = message.GetVariableInt32()
-    };
+        var option = new NetBaseNpcOption
+        {
+            Id = message.GetVariableInt32(),
+            Kind = message.GetVariableInt32(),
+            Text = message.GetVariableInt32(),
+            Contents = message.GetVariableInt32(),
+            Price = message.GetVariableInt32(),
+            FactionIdsName = message.GetVariableInt32()
+        };
+
+        var objectCount = message.GetVariableUInt32();
+        option.ObjectNames = new string[(int)objectCount];
+        for (var i = 0; i < option.ObjectNames.Length; i++)
+            option.ObjectNames[i] = message.GetString() ?? "";
+        return option;
+    }
 }
 
 [WattleScriptUserData]

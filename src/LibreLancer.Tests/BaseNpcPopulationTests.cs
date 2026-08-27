@@ -197,6 +197,20 @@ public class BaseNpcPopulationTests
     }
 
     [Fact]
+    public void InteractionCursorPrioritizesKnowledgeOverSelectedRumors()
+    {
+        var npc = new BaseNpc("npc")
+        {
+            Know = { new NpcKnow(1, 2, 100, 0) },
+            Rumors = { new BaseNpcRumor { Ids = 3 } }
+        };
+
+        Assert.Equal(
+            "talk_info",
+            BaseNpcPopulation.GetInteractionCursor(npc, false, npc.Rumors[0]));
+    }
+
+    [Fact]
     public void SelectRandomRumorReturnsOnlyRumorsFromTheNpc()
     {
         var expected = new BaseNpcRumor { Ids = 101 };
