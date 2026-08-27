@@ -33,6 +33,7 @@ public interface IClientPlayer
     void UpdateThns(NetThnInfo thns);
     void SetObjective(NetObjective objective, bool history);
     void SetActiveRandomMission(NetMissionOffer offer);
+    void ShowBaseNpcDialog(NetBaseNpcDialog dialog);
     void SetManeuverLock(bool locked);
     void SetManeuverEnabled(ManeuverType maneuver, bool enabled);
     void Killed();

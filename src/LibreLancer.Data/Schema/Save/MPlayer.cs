@@ -12,6 +12,8 @@ namespace LibreLancer.Data.Schema.Save;
 
 public record SaveItemCount(HashValue Item, int Count);
 
+public record SaveRumor(HashValue Item, int State);
+
 public record VNPC(HashValue ItemA, HashValue ItemB, int Unknown1, int Unknown2);
 
 public record TlException(HashValue ItemA, HashValue ItemB);
@@ -41,10 +43,15 @@ public partial class MPlayer : IWriteSection
     public List<SaveItemCount> ShipTypeKilled = [];
     public List<SaveItemCount> RmCompleted = [];
     public List<VNPC> VNPCs = [];
+    public List<SaveRumor> Rumors = [];
 
     [EntryHandler("vnpc", MinComponents = 4, Multiline = true)]
     private void HandleVNPC(Entry e) =>
         VNPCs.Add(new VNPC(new HashValue(e[0]), new HashValue(e[1]), e[2].ToInt32(), e[3].ToInt32()));
+
+    [EntryHandler("rumor", MinComponents = 1, Multiline = true)]
+    private void HandleRumor(Entry e) =>
+        Rumors.Add(new SaveRumor(new HashValue(e[0]), e.Count > 1 ? e[1].ToInt32() : 1));
 
     [EntryHandler("ship_type_killed", MinComponents = 2, Multiline = true)]
     private void HandleShipKill(Entry e) => ShipTypeKilled.Add(new SaveItemCount(new HashValue(e[0]), e[1].ToInt32()));
@@ -88,5 +95,9 @@ public partial class MPlayer : IWriteSection
             sec.Entry("base_visited", (uint) b);
         foreach (var h in HolesVisited)
             sec.Entry("holes_visited", (uint) h);
+        foreach (var rumor in Rumors)
+        {
+            sec.Entry("rumor", (uint)rumor.Item, rumor.State);
+        }
     }
 }

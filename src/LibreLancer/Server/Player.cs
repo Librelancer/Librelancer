@@ -67,6 +67,7 @@ namespace LibreLancer.Server
         public string SaveFolder = null!;
         public string System = null!;
         public string? Base;
+        private string? locationRoom;
         public Vector3 Position;
         public Quaternion Orientation;
         public NetObjective Objective;
@@ -296,6 +297,16 @@ namespace LibreLancer.Server
             msnRuntime?.StoryNPCSelect(name, room, _base);
         }
 
+        void IServerPlayer.BaseNpcInteract(string _base, string room, string npc, int optionId)
+        {
+            HandleBaseNpcInteraction(_base, room, npc, optionId);
+        }
+
+        void IServerPlayer.BaseNpcAccept(string _base, string room, string npc, int optionId)
+        {
+            HandleBaseNpcInteraction(_base, room, npc, optionId, false);
+        }
+
         void IServerPlayer.AcceptMissionOffer(int seed)
         {
             Baseside?.AcceptMissionOffer(seed);
@@ -313,12 +324,328 @@ namespace LibreLancer.Server
 
         void IServerPlayer.OnLocationEnter(string _base, string room)
         {
+            locationRoom = room;
             msnRuntime?.EnterLocation(room, _base);
         }
 
         void IServerPlayer.OnLocationExit(string _base, string room)
         {
+            if (locationRoom?.Equals(room, StringComparison.OrdinalIgnoreCase) == true)
+                locationRoom = null;
             msnRuntime?.ExitLocation(room, _base);
+        }
+
+        private void HandleBaseNpcInteraction(string _base, string room, string npcName, int optionId,
+            bool showDialog = true)
+        {
+            FLLog.Info("NPC", $"NPC interaction request: base={_base}, room={room}, npc={npcName}, option={optionId}, currentBase={Base}, currentRoom={locationRoom}");
+
+            if (Base != null && !string.Equals(Base, _base, StringComparison.OrdinalIgnoreCase))
+            {
+                FLLog.Warning("NPC", $"Ignoring NPC interaction outside current base: requested={_base}, current={Base}");
+                return;
+            }
+
+            var baseName = Base ?? _base;
+            var baseData = Game.GameData.Items.Bases.Get(baseName) ?? Game.GameData.Items.Bases.Get(_base);
+            if (baseData == null)
+            {
+                FLLog.Warning("NPC", $"NPC interaction base data not found: {_base}");
+                return;
+            }
+
+            // The client sends the virtual room when one is active. The NPCs
+            // being rendered can still belong to the physical room (usually
+            // Bar), so prefer the requested room but fall back to the current
+            // server location and then to the room containing this NPC.
+            var roomData = baseData.Rooms.Get(room) ?? baseData.Rooms.Get(locationRoom);
+            var npc = roomData?.Npcs.FirstOrDefault(x =>
+                x.Nickname.Equals(npcName, StringComparison.OrdinalIgnoreCase));
+
+            if (npc == null)
+            {
+                roomData = baseData.Rooms.FirstOrDefault(x => x.Npcs.Any(n =>
+                    n.Nickname.Equals(npcName, StringComparison.OrdinalIgnoreCase)));
+                npc = roomData?.Npcs.FirstOrDefault(x =>
+                    x.Nickname.Equals(npcName, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (npc == null)
+            {
+                FLLog.Warning("NPC", $"NPC not found in base data: base={_base}, requestedRoom={room}, currentRoom={locationRoom}, npc={npcName}");
+                // Keep the interaction visible even if client and server have
+                // temporarily disagreed about the room's NPC population.
+                rpcClient.ShowBaseNpcDialog(new NetBaseNpcDialog { Npc = npcName });
+                return;
+            }
+
+            var interactionRoom = roomData!.Nickname;
+            if (optionId == 0 || !showDialog)
+                IncrementNpcTalk(npc, baseName, interactionRoom);
+            var contents = ResolveNpcOption(
+                npc,
+                baseName,
+                interactionRoom,
+                optionId,
+                out var focusSystemHash,
+                out var focusObjectHash);
+            if (optionId == 0)
+                contents = GetNextRumor(npc);
+            if (!showDialog)
+                return;
+
+            var dialog = BuildNpcDialog(
+                npc,
+                _base,
+                interactionRoom,
+                contents,
+                focusSystemHash,
+                focusObjectHash);
+            FLLog.Info("NPC", $"Sending NPC dialog: npc={npc.Nickname}, room={interactionRoom}, contents={dialog.Contents}, options={dialog.Options.Length}");
+            rpcClient.ShowBaseNpcDialog(dialog);
+        }
+
+        private NetBaseNpcDialog BuildNpcDialog(
+            BaseNpc npc,
+            string _base,
+            string room,
+            int contents,
+            uint focusSystemHash = 0,
+            uint focusObjectHash = 0)
+        {
+            var options = new List<NetBaseNpcOption>();
+            var reputation = Character?.Reputation.GetReputation(npc.Affiliation) ?? 0;
+
+            if (contents != 0)
+            {
+                var rumorIndex = npc.Rumors.FindIndex(x => x.Ids == contents);
+                if (rumorIndex >= 0)
+                {
+                    options.Add(new NetBaseNpcOption
+                    {
+                        Id = 1000 + rumorIndex,
+                        Kind = BaseNpcOptionKind.Rumor,
+                        Text = contents,
+                        Contents = contents
+                    });
+                }
+            }
+
+            if (options.Count == 0)
+            {
+                for (var i = 0; i < npc.Rumors.Count; i++)
+                {
+                    var rumor = npc.Rumors[i];
+                    if (HasRumor(rumor.Ids) || !RumorAvailable(rumor) || reputation < rumor.RepThreshold)
+                        continue;
+
+                    options.Add(new NetBaseNpcOption
+                    {
+                        Id = 1000 + i,
+                        Kind = BaseNpcOptionKind.Rumor,
+                        Text = rumor.Ids,
+                        Contents = rumor.Ids
+                    });
+                }
+
+                for (var i = 0; i < npc.Bribes.Count; i++)
+                {
+                    var bribe = npc.Bribes[i];
+                    if (Character == null || !BaseNpcRules.IsBribeAvailable(bribe, Character.Reputation))
+                        continue;
+
+                    options.Add(NetBaseNpcOption.ForBribe(i, bribe));
+                }
+
+                for (var i = 0; i < npc.Know.Count; i++)
+                {
+                    var know = npc.Know[i];
+                    if (HasRumor(know.Ids2) || reputation < know.RepThreshold)
+                        continue;
+
+                    options.Add(new NetBaseNpcOption
+                    {
+                        Id = 3000 + i,
+                        Kind = BaseNpcOptionKind.Knowledge,
+                        Text = know.Ids1,
+                        Contents = know.Ids2,
+                        Price = know.Price
+                    });
+                }
+
+                if (npc.Mission != null && Baseside?.NetMissionOffers.Length > 0)
+                {
+                    options.Add(new NetBaseNpcOption
+                    {
+                        Id = 4000,
+                        Kind = BaseNpcOptionKind.Mission,
+                        Text = 1350
+                    });
+                }
+            }
+
+            return new NetBaseNpcDialog
+            {
+                Npc = npc.Nickname,
+                IndividualName = npc.IndividualName,
+                Contents = contents,
+                Options = options.ToArray(),
+                FocusSystemHash = focusSystemHash,
+                FocusObjectHash = focusObjectHash
+            };
+        }
+
+        private int GetNextRumor(BaseNpc npc)
+        {
+            var reputation = Character?.Reputation.GetReputation(npc.Affiliation) ?? 0;
+            var rumors = npc.Rumors
+                .Where(rumor => rumor.Ids != 0 &&
+                                !HasRumor(rumor.Ids) &&
+                                RumorAvailable(rumor) &&
+                                reputation >= rumor.RepThreshold)
+                .ToArray();
+            return rumors.Length == 0 ? 0 : rumors[Random.Shared.Next(rumors.Length)].Ids;
+        }
+
+        private int ResolveNpcOption(
+            BaseNpc npc,
+            string _base,
+            string room,
+            int optionId,
+            out uint focusSystemHash,
+            out uint focusObjectHash)
+        {
+            focusSystemHash = 0;
+            focusObjectHash = 0;
+
+            if (optionId >= 1000 && optionId < 2000)
+            {
+                var index = optionId - 1000;
+                if (index >= 0 && index < npc.Rumors.Count)
+                {
+                    var rumor = npc.Rumors[index];
+                    var reputation = Character?.Reputation.GetReputation(npc.Affiliation) ?? 0;
+                    if (!HasRumor(rumor.Ids) && RumorAvailable(rumor) && reputation >= rumor.RepThreshold)
+                    {
+                        MPlayer.Rumors.Add(new SaveRumor(new HashValue(rumor.Ids), 1));
+                        return rumor.Ids;
+                    }
+                }
+            }
+            else if (optionId >= 2000 && optionId < 3000)
+            {
+                var index = optionId - 2000;
+                if (index >= 0 && index < npc.Bribes.Count)
+                {
+                    var bribe = npc.Bribes[index];
+                    if (Character != null &&
+                        BaseNpcRules.IsBribeAvailable(bribe, Character.Reputation) &&
+                        Character.Credits >= bribe.Price)
+                    {
+                        using var transaction = Character.BeginTransaction();
+                        transaction.UpdateCredits(Character.Credits - bribe.Price);
+                        var current = Character.Reputation.GetReputation(bribe.Faction!);
+                        transaction.UpdateReputation(bribe.Faction!, Math.Clamp(current + 0.1f, -1, 1));
+                        UpdateCurrentInventory();
+                        UpdateCurrentReputations();
+                        return bribe.Ids;
+                    }
+                }
+            }
+            else if (optionId >= 3000 && optionId < 4000)
+            {
+                var index = optionId - 3000;
+                if (index >= 0 && index < npc.Know.Count)
+                {
+                    var know = npc.Know[index];
+                    var reputation = Character?.Reputation.GetReputation(npc.Affiliation) ?? 0;
+                    if (!HasRumor(know.Ids2) && reputation >= know.RepThreshold &&
+                        Character != null && Character.Credits >= know.Price)
+                    {
+                        using (var transaction = Character.BeginTransaction())
+                        {
+                            transaction.UpdateCredits(Character.Credits - know.Price);
+                            MPlayer.Rumors.Add(new SaveRumor(new HashValue(know.Ids2), 1));
+                        }
+
+                        UpdateCurrentInventory();
+                        (focusSystemHash, focusObjectHash) = RevealKnownObjects(know.Objects);
+                        return know.Ids2;
+                    }
+                }
+            }
+
+            return 0;
+        }
+
+        private (uint SystemHash, uint ObjectHash) RevealKnownObjects(IEnumerable<string> objectNames)
+        {
+            uint focusSystemHash = 0;
+            uint focusObjectHash = 0;
+
+            foreach (var objectName in objectNames)
+            {
+                StarSystem? targetSystem = null;
+                SystemObject? targetObject = null;
+                foreach (var system in Game.GameData.Items.Systems)
+                {
+                    targetObject = system.Objects.FirstOrDefault(obj =>
+                        obj.Nickname.Equals(objectName, StringComparison.OrdinalIgnoreCase));
+                    if (targetObject == null)
+                        continue;
+
+                    targetSystem = system;
+                    break;
+                }
+
+                if (targetSystem == null || targetObject == null)
+                {
+                    FLLog.Warning("NPC", $"Known NPC location not found: {objectName}");
+                    continue;
+                }
+
+                var objectHash = FLHash.CreateID(targetObject.Nickname);
+                VisitObject(targetSystem, targetObject, objectHash);
+                if (focusObjectHash == 0 &&
+                    (Character!.GetVisitFlags(objectHash) & VisitFlags.Visited) == VisitFlags.Visited)
+                {
+                    focusSystemHash = targetSystem.CRC;
+                    focusObjectHash = objectHash;
+                }
+            }
+
+            return (focusSystemHash, focusObjectHash);
+        }
+
+        private bool RumorAvailable(BaseNpcRumor rumor)
+        {
+            var mission = Story?.MissionNum ?? 0;
+            if (rumor.Start != null && mission < rumor.Start.Index)
+                return false;
+            if (rumor.End != null && mission > rumor.End.Index)
+                return false;
+            return true;
+        }
+
+        private bool HasRumor(int ids)
+        {
+            var hash = new HashValue(ids);
+            return MPlayer.Rumors.Any(x => x.Item == hash);
+        }
+
+        private void IncrementNpcTalk(BaseNpc npc, string _base, string room)
+        {
+            var npcHash = new HashValue(npc.Nickname);
+            var locationHash = new HashValue(FLHash.CreateLocationID(_base, room));
+            var index = MPlayer.VNPCs.FindIndex(x => x.ItemA == npcHash && x.ItemB == locationHash);
+            if (index < 0)
+            {
+                MPlayer.VNPCs.Add(new VNPC(npcHash, locationHash, 1, 0));
+                return;
+            }
+
+            var old = MPlayer.VNPCs[index];
+            MPlayer.VNPCs[index] = old with { Unknown1 = old.Unknown1 + 1 };
         }
 
         public ulong GetShipWorth()
@@ -1135,7 +1462,7 @@ namespace LibreLancer.Server
                 lock (thns)
                 {
                     sg = SaveWriter.CreateSave(Character!, description, ids, timeStamp, Game.GameData, thns.Rtcs,
-                        thns.Ambients, Story);
+                        thns.Ambients, Story, MPlayer);
                 }
 
                 string path;

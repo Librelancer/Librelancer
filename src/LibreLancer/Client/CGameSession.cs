@@ -69,6 +69,8 @@ public partial class CGameSession : IClientPlayer
     private NetMissionOffer? activeRandomMissionOffer;
     public long NextLevelWorth;
     public Action? ObjectiveUpdated;
+    public Action<NetBaseNpcDialog>? OnBaseNpcDialog;
+    public NetBaseNpcDialog? BaseNpcDialog;
 
     public Action? OnUpdateInventory;
     public Action? OnUpdatePlayerShip;
@@ -189,6 +191,16 @@ public partial class CGameSession : IClientPlayer
     {
         FLLog.Debug("CGameSession", "Enqueuing popup");
         Popups.Enqueue(new Popup { Title = title, Contents = contents, ID = id });
+    }
+
+    void IClientPlayer.ShowBaseNpcDialog(NetBaseNpcDialog dialog)
+    {
+        FLLog.Info("NPC", $"NPC dialog received: npc={dialog.Npc}, contents={dialog.Contents}, options={dialog.Options.Length}");
+        BaseNpcDialog = dialog;
+        if (OnBaseNpcDialog != null)
+            uiActions.Enqueue(() => OnBaseNpcDialog(dialog));
+        else
+            FLLog.Warning("NPC", "NPC dialog received without an active room UI callback");
     }
 
     void IClientPlayer.StartJumpTunnel()

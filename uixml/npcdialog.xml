@@ -1,0 +1,18 @@
+<Scene>
+    <Panel Anchor="Center" Width="500" Height="390">
+        <Panel.Background>
+            <DisplayModel model="errorexplanation.cmp"/>
+        </Panel.Background>
+        <TextBlock id="title" Anchor="TopCenter" Y="12" Width="470" Height="28" TextSize="14" TextColor="text" TextShadow="black"/>
+        <InfocardDisplay id="contents" Anchor="TopCenter" Y="45" Width="450" Height="120"/>
+        <Button id="option1" Anchor="TopCenter" Y="175" Width="390" Height="27" Style="wirebutton" Visible="false"/>
+        <Button id="option2" Anchor="TopCenter" Y="205" Width="390" Height="27" Style="wirebutton" Visible="false"/>
+        <Button id="option3" Anchor="TopCenter" Y="235" Width="390" Height="27" Style="wirebutton" Visible="false"/>
+        <Button id="option4" Anchor="TopCenter" Y="265" Width="390" Height="27" Style="wirebutton" Visible="false"/>
+        <Button id="option5" Anchor="TopCenter" Y="295" Width="390" Height="27" Style="wirebutton" Visible="false"/>
+        <Button id="option6" Anchor="TopCenter" Y="325" Width="390" Height="27" Style="wirebutton" Visible="false"/>
+        <Button id="accept" Anchor="BottomCenter" Y="30" Width="120" Height="27" Style="wirebutton" Text="ACCEPT" Strid="1197" Visible="false"/>
+        <Button id="decline" Anchor="BottomCenter" X="68" Y="30" Width="120" Height="27" Style="wirebutton" Text="DECLINE" Strid="1352" Visible="false"/>
+        <Button id="close" Anchor="BottomCenter" Y="12" Width="100" Height="27" Style="wirebutton" Text="CLOSE" Strid="1041"/>
+    </Panel>
+</Scene>

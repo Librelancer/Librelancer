@@ -217,4 +217,24 @@ class baseside : baseside_Designer
     Popup(title,contents,id) => OpenModal(new popup(title, contents, 'ok', () => Game.PopupFinish(id)));
     
     MissionOffer(mission) => OpenModal(new popup(STRID_MISSION, mission, 'accept', (result) => Game.MissionResponse(result)));
+
+    BaseNpcDialog(dialog)
+    {
+        if (dialog.FocusSystemHash != 0 && dialog.FocusObjectHash != 0) {
+            this.WindowManager.OpenWindow(this.Widget, this.Map, true);
+            this.Map.FocusSystemObject(dialog.FocusSystemHash, dialog.FocusObjectHash);
+        } else {
+            OpenModal(new npcdialog(dialog));
+        }
+    }
+
+    OpenBaseAction(action)
+    {
+        if (action == "mission" && this.JobBoard != nil)
+            this.WindowManager.OpenWindow(this.Widget, this.JobBoard);
+        elseif ((action == "trader" || action == "Equipment") && this.CommodityTrader != nil)
+            this.WindowManager.OpenWindow(this.Widget, this.CommodityTrader);
+        elseif (action == "ShipDealer" && this.ShipDealer != nil)
+            this.WindowManager.OpenWindow(this.Widget, this.ShipDealer);
+    }
 }

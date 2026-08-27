@@ -39,7 +39,7 @@ public class Cutscene : IDisposable
     private double currentTime = 0;
 
     private Dictionary<string, ThnSceneObject> sceneObjects = new(StringComparer.OrdinalIgnoreCase);
-    private Dictionary<string, ThnScriptInstance> fidgets = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, ThnScriptLayer> fidgets = new(StringComparer.OrdinalIgnoreCase);
     private Game game;
     private ThnCamera camera;
     private bool spawnObjects = true;
@@ -55,6 +55,7 @@ public class Cutscene : IDisposable
 
     private ThnScriptContext scriptContext;
     private List<ThnScriptInstance> instances = [];
+    private readonly List<ThnScriptLayer> scriptLayers = [];
     private ThnSceneObject[] starSphereObjects = [];
     public event Action<ThnScript>? ScriptFinished;
 
@@ -151,7 +152,7 @@ public class Cutscene : IDisposable
         }
         if (fidgets.TryGetValue(obj.Name, out var fidget))
         {
-            instances.Remove(fidget);
+            fidget.Dispose();
             fidgets.Remove(obj.Name);
         }
         sceneObjects.Remove(obj.Name);
@@ -165,6 +166,60 @@ public class Cutscene : IDisposable
         SceneSetup(scripts);
     }
 
+    /// <summary>
+    /// Runs a THN without rebuilding the room set. Bound aliases are added to
+    /// the shared scene-object table before entity references are resolved.
+    /// </summary>
+    public ThnScriptLayer RunLayer(
+        ThnScript script,
+        IReadOnlyDictionary<string, ThnSceneObject>? bindings = null,
+        bool spawnObjects = false)
+    {
+        ArgumentNullException.ThrowIfNull(script);
+
+        var existingNames = new HashSet<string>(sceneObjects.Keys, StringComparer.OrdinalIgnoreCase);
+        var previous = new Dictionary<string, ThnLayerBinding>(StringComparer.OrdinalIgnoreCase);
+        if (bindings != null)
+        {
+            foreach (var binding in bindings)
+            {
+                if (string.IsNullOrWhiteSpace(binding.Key) || binding.Value == null)
+                    continue;
+
+                previous[binding.Key] = new(
+                    GetObject(binding.Key),
+                    binding.Value);
+                sceneObjects[binding.Key] = binding.Value;
+            }
+        }
+
+        try
+        {
+            var instance = SceneSetup([script], resetObjects: false, spawnLayerObjects: spawnObjects)[0];
+            var createdObjects = new Dictionary<string, ThnSceneObject>(StringComparer.OrdinalIgnoreCase);
+            foreach (var item in sceneObjects)
+            {
+                if (!existingNames.Contains(item.Key) && !previous.ContainsKey(item.Key))
+                    createdObjects[item.Key] = item.Value;
+            }
+
+            var layer = new ThnScriptLayer(this, instance, previous, createdObjects);
+            scriptLayers.Add(layer);
+            return layer;
+        }
+        catch
+        {
+            foreach (var item in sceneObjects.ToArray())
+            {
+                if (!existingNames.Contains(item.Key) && !previous.ContainsKey(item.Key))
+                    RemoveObject(item.Value);
+            }
+
+            RestoreBindings(previous);
+            throw;
+        }
+    }
+
     public void FidgetScript(ThnScript scene, string targetObject)
     {
         var targeted = new ThnScript() { Duration = scene.Duration };
@@ -173,14 +228,29 @@ public class Cutscene : IDisposable
             targeted.Events.Add(ev.Clone(targetObject));
         }
 
-        fidgets[targetObject] = SceneSetup([targeted], false)[0];
+        if (fidgets.TryGetValue(targetObject, out var previous))
+            previous.Dispose();
+
+        fidgets[targetObject] = RunLayer(targeted);
     }
 
 
-    private ThnScriptInstance[] SceneSetup(ThnScript[] scripts, bool resetObjects = true)
+    private ThnScriptInstance[] SceneSetup(
+        ThnScript[] scripts,
+        bool resetObjects = true,
+        bool spawnLayerObjects = false)
     {
-        hasScene = false;
-        currentTime = 0;
+        if (resetObjects)
+        {
+            var layers = scriptLayers.ToArray();
+            for (var i = layers.Length - 1; i >= 0; i--)
+                layers[i].Dispose();
+            fidgets.Clear();
+
+            hasScene = false;
+            currentTime = 0;
+        }
+
         if (resetObjects)
         {
             sceneObjects = new Dictionary<string, ThnSceneObject>(StringComparer.OrdinalIgnoreCase);
@@ -221,7 +291,7 @@ public class Cutscene : IDisposable
         {
             var script = scripts[i];
             var ts = new ThnScriptInstance(this, script);
-            ts.ConstructEntities(sceneObjects, spawnObjects && resetObjects);
+            ts.ConstructEntities(sceneObjects, spawnObjects && (resetObjects || spawnLayerObjects));
             instances.Add(ts);
             newInstances[i] = ts;
         }
@@ -369,6 +439,37 @@ public class Cutscene : IDisposable
         return sceneObjects.TryGetValue(name, out var o) ? o : null;
     }
 
+    internal void RemoveLayer(ThnScriptLayer layer)
+    {
+        if (!scriptLayers.Remove(layer))
+            return;
+
+        instances.Remove(layer.Instance);
+        layer.Instance.Cleanup();
+        foreach (var created in layer.CreatedObjects)
+        {
+            if (sceneObjects.TryGetValue(created.Key, out var current) &&
+                ReferenceEquals(current, created.Value))
+                RemoveObject(current);
+        }
+        RestoreBindings(layer.Bindings);
+    }
+
+    private void RestoreBindings(IReadOnlyDictionary<string, ThnLayerBinding> bindings)
+    {
+        foreach (var binding in bindings)
+        {
+            if (!sceneObjects.TryGetValue(binding.Key, out var current) ||
+                !ReferenceEquals(current, binding.Value.Bound))
+                continue;
+
+            if (binding.Value.Previous == null)
+                sceneObjects.Remove(binding.Key);
+            else
+                sceneObjects[binding.Key] = binding.Value.Previous;
+        }
+    }
+
     public IEnumerable<ThnSceneObject> AllObjects => sceneObjects.Values;
 
     public void SetCamera(string name)
@@ -380,6 +481,16 @@ public class Cutscene : IDisposable
 
     public void Dispose()
     {
+        var layers = scriptLayers.ToArray();
+        for (var i = layers.Length - 1; i >= 0; i--)
+            layers[i].Dispose();
+        scriptLayers.Clear();
+        fidgets.Clear();
+
+        foreach (var instance in instances)
+            instance.Cleanup();
+        instances.Clear();
+
         foreach (var obj in spawnedObjects.ToArray())
         {
             World.RemoveObject(obj);
