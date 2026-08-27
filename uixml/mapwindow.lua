@@ -87,11 +87,10 @@ class mapwindow : mapwindow_Designer with ChildWindow
         });
         this.Elements.knownbases_table.OnItemSelected(() => {
             if (this.knownBases == nil || !this.knownBases.ValidSelection()) return;
-            this.Elements.navmap.FocusSystemObject(
+            this.FocusSystemObject(
                 this.knownBases.SelectedSystemHash,
                 this.knownBases.SelectedObjectHash);
             PlaySound("ui_item_select");
-            this.SelectOverlay("physical");
         });
         this.Elements.clear_waypoints.OnClick(() => {
             Game.ClearUserWaypoints();
@@ -107,6 +106,12 @@ class mapwindow : mapwindow_Designer with ChildWindow
         this.Elements.knownbases_table.SetData(this.knownBases);
         this.Elements.knownbases_table.ActiveSortColumn = "name";
         this.UpdateWaypointPanels();
+    }
+    FocusSystemObject(systemHash, objectHash)
+    {
+        this.Elements.navmap.FocusSystemObject(systemHash, objectHash);
+        this.SelectOverlay("physical");
+        PlaySound("hud_zoom_in");
     }
     Closing()
     {
