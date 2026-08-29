@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using LibreLancer.Data;
 using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Interface;
@@ -264,6 +265,11 @@ namespace LibreLancer.Client
 
         public static void SortGoods(CGameSession session, List<UIInventoryItem> item, string? filter = null)
         {
+            foreach (var uiItem in item)
+            {
+                uiItem.EquipmentClass = GetDisplayEquipmentClass(session, uiItem);
+            }
+
             item.Sort((x, y) =>
             {
                 if (x.Hardpoint != null && y.Hardpoint == null)
@@ -294,9 +300,15 @@ namespace LibreLancer.Client
                     return classCompare;
                 }
 
-                var idCompare = GetSortId(x.IdsName).CompareTo(GetSortId(y.IdsName));
-                return idCompare != 0
-                    ? idCompare
+                var priceCompare = x.Price.CompareTo(y.Price);
+                if (priceCompare != 0)
+                {
+                    return priceCompare;
+                }
+
+                var goodCompare = GetGoodSortId(x.Good).CompareTo(GetGoodSortId(y.Good));
+                return goodCompare != 0
+                    ? goodCompare
                     : string.CompareOrdinal(x.Good, y.Good);
             });
         }
@@ -310,8 +322,13 @@ namespace LibreLancer.Client
                 : 0;
         }
 
-        private static uint GetSortId(int idsName) =>
-            idsName == -1 ? uint.MaxValue : unchecked((uint) idsName);
+        private static int GetDisplayEquipmentClass(CGameSession session, UIInventoryItem item) =>
+            item.Equipment is GunEquipment or MissileLauncherEquipment or ShieldEquipment
+                ? GetEquipmentClass(session, item)
+                : 0;
+
+        private static uint GetGoodSortId(string? good) =>
+            string.IsNullOrEmpty(good) ? uint.MaxValue : FLHash.CreateID(good);
 
         private static int GetSortCategory(string? filter, UIInventoryItem item)
         {
