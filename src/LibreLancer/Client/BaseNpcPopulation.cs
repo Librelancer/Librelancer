@@ -222,9 +222,6 @@ public static class BaseNpcPopulation
 
         var maxCount = Math.Min(Math.Max(room.MaxCharacters, 0),
             Math.Min(dynamicSpots.Length, ambientNpcs.Length));
-        // character_density is the maximum number of ambient NPCs in the
-        // room. Fixtures remain fixed, while the ambient part may leave
-        // dynamic spots empty on each room entry.
         var count = maxCount == 0 ? 0 : random.Next(maxCount + 1);
 
         for (var i = 0; i < count; i++)

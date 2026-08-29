@@ -223,7 +223,7 @@ class baseside : baseside_Designer
         if (dialog.FocusSystemHash != 0 && dialog.FocusObjectHash != 0) {
             this.OpenNpcMap(dialog.FocusSystemHash, dialog.FocusObjectHash);
         } else {
-            OpenModal(new npcdialog(dialog));
+            OpenModal(new popup(0, 0, 'npc', nil, dialog));
         }
     }
 

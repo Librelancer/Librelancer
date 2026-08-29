@@ -234,6 +234,8 @@ namespace LibreLancer
 
             baseNpcBribes.TryGetValue(npc.Nickname, out var bribe);
             baseNpcRumors.TryGetValue(npc.Nickname, out var rumor);
+            if (!BaseNpcRules.CanHearRumors(npc.Affiliation, session.PlayerReputations))
+                rumor = null;
             var reputation = session.PlayerReputations.GetReputation(npc.Affiliation);
             var interaction = BaseNpcPopulation.GetInteractionCursor(
                 npc,
@@ -250,7 +252,9 @@ namespace LibreLancer
             {
                 options.Add(new NetBaseNpcOption
                 {
-                    Id = 1000 + npc.Rumors.IndexOf(rumor),
+                    Id = BaseNpcOptionId.Encode(
+                        npc.Rumors.IndexOf(rumor),
+                        BaseNpcOptionType.Rumor),
                     Kind = BaseNpcOptionKind.Rumor,
                     Text = rumor.Ids,
                     Contents = rumor.Ids
@@ -266,7 +270,7 @@ namespace LibreLancer
                         continue;
                     options.Add(new NetBaseNpcOption
                     {
-                        Id = 3000 + i,
+                        Id = BaseNpcOptionId.Encode(i, BaseNpcOptionType.Knowledge),
                         Kind = BaseNpcOptionKind.Knowledge,
                         Text = know.Ids1,
                         Contents = know.Ids2,
@@ -280,7 +284,7 @@ namespace LibreLancer
             {
                 options.Add(new NetBaseNpcOption
                 {
-                    Id = 4000,
+                    Id = 0,
                     Kind = BaseNpcOptionKind.Mission,
                     Text = 1350
                 });
@@ -290,10 +294,6 @@ namespace LibreLancer
             {
                 Npc = npc.Nickname,
                 IndividualName = npc.IndividualName,
-                // Rumors use the dialog contents to distinguish an already-open
-                // accept prompt. Info offers are local prompts and use the
-                // explicit accept route so the server can return only the
-                // revealed object's map focus after accepting.
                 Contents = interaction == "talk_rumor" ? rumor?.Ids ?? 0 : 0,
                 Options = options.ToArray()
             };
@@ -1111,6 +1111,8 @@ namespace LibreLancer
 
             baseNpcRumors.TryGetValue(npc.Nickname, out var rumor);
             baseNpcBribes.TryGetValue(npc.Nickname, out var bribe);
+            if (!BaseNpcRules.CanHearRumors(npc.Affiliation, session.PlayerReputations))
+                rumor = null;
             var reputation = session.PlayerReputations.GetReputation(npc.Affiliation);
             var name = BaseNpcPopulation.GetInteractionCursor(
                 npc,

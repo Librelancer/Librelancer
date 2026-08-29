@@ -355,10 +355,6 @@ namespace LibreLancer.Server
                 return;
             }
 
-            // The client sends the virtual room when one is active. The NPCs
-            // being rendered can still belong to the physical room (usually
-            // Bar), so prefer the requested room but fall back to the current
-            // server location and then to the room containing this NPC.
             var roomData = baseData.Rooms.Get(room) ?? baseData.Rooms.Get(locationRoom);
             var npc = roomData?.Npcs.FirstOrDefault(x =>
                 x.Nickname.Equals(npcName, StringComparison.OrdinalIgnoreCase));
@@ -374,8 +370,6 @@ namespace LibreLancer.Server
             if (npc == null)
             {
                 FLLog.Warning("NPC", $"NPC not found in base data: base={_base}, requestedRoom={room}, currentRoom={locationRoom}, npc={npcName}");
-                // Keep the interaction visible even if client and server have
-                // temporarily disagreed about the room's NPC population.
                 rpcClient.ShowBaseNpcDialog(new NetBaseNpcDialog { Npc = npcName });
                 return;
             }
@@ -385,8 +379,6 @@ namespace LibreLancer.Server
                 IncrementNpcTalk(npc, baseName, interactionRoom);
             var contents = ResolveNpcOption(
                 npc,
-                baseName,
-                interactionRoom,
                 optionId,
                 out var focusSystemHash,
                 out var focusObjectHash);
@@ -404,9 +396,10 @@ namespace LibreLancer.Server
                         FocusObjectHash = focusObjectHash
                     });
                 }
-                else if (optionId >= 3000 && optionId < 4000)
+                else if (BaseNpcOptionId.Type(optionId) == BaseNpcOptionType.Knowledge)
                 {
-                    FLLog.Warning("NPC", $"Knowledge accepted without map focus: npc={npc.Nickname}, option={optionId}, objects={string.Join(",", npc.Know.ElementAtOrDefault(optionId - 3000)?.Objects ?? [])}");
+                    var index = BaseNpcOptionId.Index(optionId);
+                    FLLog.Warning("NPC", $"Knowledge accepted without map focus: npc={npc.Nickname}, option={optionId}, objects={string.Join(",", npc.Know.ElementAtOrDefault(index)?.Objects ?? [])}");
                 }
                 return;
             }
@@ -432,6 +425,7 @@ namespace LibreLancer.Server
         {
             var options = new List<NetBaseNpcOption>();
             var reputation = Character?.Reputation.GetReputation(npc.Affiliation) ?? 0;
+            var rumorThreshold = BaseNpcRules.RumorReputationThreshold(npc.Affiliation);
 
             if (contents != 0)
             {
@@ -444,7 +438,9 @@ namespace LibreLancer.Server
                     {
                         options.Add(new NetBaseNpcOption
                         {
-                            Id = 3000 + knowledgeIndex,
+                            Id = BaseNpcOptionId.Encode(
+                                knowledgeIndex,
+                                BaseNpcOptionType.Knowledge),
                             Kind = BaseNpcOptionKind.Knowledge,
                             Text = know.Ids1,
                             Contents = know.Ids2,
@@ -460,7 +456,9 @@ namespace LibreLancer.Server
                     {
                         options.Add(new NetBaseNpcOption
                         {
-                            Id = 1000 + rumorIndex,
+                            Id = BaseNpcOptionId.Encode(
+                                rumorIndex,
+                                BaseNpcOptionType.Rumor),
                             Kind = BaseNpcOptionKind.Rumor,
                             Text = contents,
                             Contents = contents
@@ -474,12 +472,12 @@ namespace LibreLancer.Server
                 for (var i = 0; i < npc.Rumors.Count; i++)
                 {
                     var rumor = npc.Rumors[i];
-                    if (HasRumor(rumor.Ids) || !RumorAvailable(rumor) || reputation < rumor.RepThreshold)
+                    if (HasRumor(rumor.Ids) || !RumorAvailable(rumor) || reputation < rumorThreshold)
                         continue;
 
                     options.Add(new NetBaseNpcOption
                     {
-                        Id = 1000 + i,
+                        Id = BaseNpcOptionId.Encode(i, BaseNpcOptionType.Rumor),
                         Kind = BaseNpcOptionKind.Rumor,
                         Text = rumor.Ids,
                         Contents = rumor.Ids
@@ -504,7 +502,7 @@ namespace LibreLancer.Server
 
                     options.Add(new NetBaseNpcOption
                     {
-                        Id = 3000 + i,
+                        Id = BaseNpcOptionId.Encode(i, BaseNpcOptionType.Knowledge),
                         Kind = BaseNpcOptionKind.Knowledge,
                         Text = know.Ids1,
                         Contents = know.Ids2,
@@ -517,7 +515,7 @@ namespace LibreLancer.Server
                 {
                     options.Add(new NetBaseNpcOption
                     {
-                        Id = 4000,
+                        Id = 0,
                         Kind = BaseNpcOptionKind.Mission,
                         Text = 1350
                     });
@@ -528,9 +526,6 @@ namespace LibreLancer.Server
             {
                 Npc = npc.Nickname,
                 IndividualName = npc.IndividualName,
-                // Info offers are prompts assembled from the knowledge option;
-                // leave dialog contents empty so accepting one uses the normal
-                // interaction request and can return map focus for knowdb.
                 Contents = options.Any(x => x.Kind == BaseNpcOptionKind.Knowledge) ? 0 : contents,
                 Options = options.ToArray(),
                 FocusSystemHash = focusSystemHash,
@@ -541,11 +536,12 @@ namespace LibreLancer.Server
         private int GetNextRumor(BaseNpc npc)
         {
             var reputation = Character?.Reputation.GetReputation(npc.Affiliation) ?? 0;
+            var rumorThreshold = BaseNpcRules.RumorReputationThreshold(npc.Affiliation);
             var rumors = npc.Rumors
                 .Where(rumor => rumor.Ids != 0 &&
                                 !HasRumor(rumor.Ids) &&
                                 RumorAvailable(rumor) &&
-                                reputation >= rumor.RepThreshold)
+                                reputation >= rumorThreshold)
                 .ToArray();
             return rumors.Length == 0 ? 0 : rumors[Random.Shared.Next(rumors.Length)].Ids;
         }
@@ -583,8 +579,6 @@ namespace LibreLancer.Server
 
         private int ResolveNpcOption(
             BaseNpc npc,
-            string _base,
-            string room,
             int optionId,
             out uint focusSystemHash,
             out uint focusObjectHash)
@@ -592,23 +586,25 @@ namespace LibreLancer.Server
             focusSystemHash = 0;
             focusObjectHash = 0;
 
-            if (optionId >= 1000 && optionId < 2000)
+            var type = BaseNpcOptionId.Type(optionId);
+            var index = BaseNpcOptionId.Index(optionId);
+
+            if (type == BaseNpcOptionType.Rumor)
             {
-                var index = optionId - 1000;
                 if (index >= 0 && index < npc.Rumors.Count)
                 {
                     var rumor = npc.Rumors[index];
                     var reputation = Character?.Reputation.GetReputation(npc.Affiliation) ?? 0;
-                    if (!HasRumor(rumor.Ids) && RumorAvailable(rumor) && reputation >= rumor.RepThreshold)
+                    if (!HasRumor(rumor.Ids) && RumorAvailable(rumor) &&
+                        reputation >= BaseNpcRules.RumorReputationThreshold(npc.Affiliation))
                     {
                         MPlayer.Rumors.Add(new SaveRumor(new HashValue(rumor.Ids), 1));
                         return rumor.Ids;
                     }
                 }
             }
-            else if (optionId >= 2000 && optionId < 3000)
+            else if (type == BaseNpcOptionType.Bribe)
             {
-                var index = optionId - 2000;
                 if (index >= 0 && index < npc.Bribes.Count)
                 {
                     var bribe = npc.Bribes[index];
@@ -618,26 +614,21 @@ namespace LibreLancer.Server
                     {
                         using var transaction = Character.BeginTransaction();
                         transaction.UpdateCredits(Character.Credits - bribe.Price);
-                        var current = Character.Reputation.GetReputation(bribe.Faction!);
-                        transaction.UpdateReputation(bribe.Faction!, Math.Clamp(current + 0.1f, -1, 1));
+                        transaction.UpdateReputation(bribe.Faction!, BaseNpcRules.BribeReputation);
                         UpdateCurrentInventory();
                         UpdateCurrentReputations();
                         return bribe.Ids;
                     }
                 }
             }
-            else if (optionId >= 3000 && optionId < 4000)
+            else if (type == BaseNpcOptionType.Knowledge)
             {
-                var index = optionId - 3000;
                 if (index >= 0 && index < npc.Know.Count)
                 {
                     var know = npc.Know[index];
                     var reputation = Character?.Reputation.GetReputation(npc.Affiliation) ?? 0;
                     if (HasRumor(know.Ids2))
                     {
-                        // A previous client/server version may have recorded the
-                        // knowledge before it managed to open the map. Make the
-                        // operation recoverable and never charge twice.
                         (focusSystemHash, focusObjectHash) = RevealKnownObjects(know.Objects);
                         FLLog.Info("NPC", $"Knowledge already known; restoring map focus: ids={know.Ids2}");
                         return know.Ids2;
@@ -704,7 +695,6 @@ namespace LibreLancer.Server
 
                 var objectHash = FLHash.CreateID(targetObject.Nickname);
                 VisitObject(targetSystem, targetObject, objectHash);
-¡
                 if (focusObjectHash == 0)
                 {
                     focusSystemHash = targetSystem.CRC;

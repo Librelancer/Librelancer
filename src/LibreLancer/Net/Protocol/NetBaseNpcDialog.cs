@@ -11,6 +11,25 @@ public static class BaseNpcOptionKind
     public const int Knowledge = 4;
 }
 
+public enum BaseNpcOptionType
+{
+    Invalid,
+    Rumor,
+    Bribe,
+    Knowledge
+}
+
+public static class BaseNpcOptionId
+{
+    public static int Encode(int index, BaseNpcOptionType type) =>
+        (index << 2) | (int)type;
+
+    public static BaseNpcOptionType Type(int id) =>
+        (BaseNpcOptionType)(id & 0x3);
+
+    public static int Index(int id) => id >> 2;
+}
+
 [WattleScriptUserData]
 public class NetBaseNpcOption
 {
@@ -24,7 +43,7 @@ public class NetBaseNpcOption
 
     public static NetBaseNpcOption ForBribe(int index, BaseNpcBribe bribe) => new()
     {
-        Id = 2000 + index,
+        Id = BaseNpcOptionId.Encode(index, BaseNpcOptionType.Bribe),
         Kind = BaseNpcOptionKind.Bribe,
         Text = bribe.Ids,
         Contents = bribe.Ids,
