@@ -115,10 +115,49 @@ partial class SpaceGameplay
         );
     }
 
-    private void DrawShipReticle(double delta, GameObject obj, Vector2 pos, UiContext context,
-        RectangleF parentRectangle)
+    private const float ShipReticleRange = 2500f;
+    private const float ShipReticleFadeStart = 1000f;
+    private const float ShipReticleFadeEnd = 2400f;
+    private const float ShipReticleSize = 12f;
+    private const float ShipReticleCornerLength = 3.5f;
+    private const float ShipReticleThickness = 0.9f;
+
+    private void DrawShipReticle(GameObject obj, Vector2 pos, float distance, UiContext context,
+        DrawList2D drawList)
     {
-        // var rep = GetRepToPlayer(obj);
+        var colorName = GetRepToPlayer(obj) switch
+        {
+            RepAttitude.Friendly => "color_friendly",
+            RepAttitude.Hostile => "color_hostile",
+            _ => "color_neutral"
+        };
+        var color = context.Data.GetColor(colorName).GetColor(context.GlobalTime);
+        var opacity = distance <= ShipReticleFadeStart
+            ? 1f
+            : distance <= ShipReticleFadeEnd
+                ? MathHelper.Lerp(1f, 0.25f,
+                    (distance - ShipReticleFadeStart) / (ShipReticleFadeEnd - ShipReticleFadeStart))
+                : MathHelper.Lerp(0.25f, 0f,
+                    (distance - ShipReticleFadeEnd) / (ShipReticleRange - ShipReticleFadeEnd));
+        color.A *= opacity;
+
+        var scale = context.PointsToPixelsF(Vector2.One).X;
+        var halfSize = (ShipReticleSize / 2f) * scale;
+        var cornerLength = ShipReticleCornerLength * scale;
+        var thickness = MathF.Max(1.5f, ShipReticleThickness * scale);
+
+        void DrawCorner(Vector2 corner, float horizontalDirection, float verticalDirection)
+        {
+            drawList.DrawLine(color, corner,
+                corner + new Vector2(cornerLength * horizontalDirection, 0), thickness);
+            drawList.DrawLine(color, corner,
+                corner + new Vector2(0, cornerLength * verticalDirection), thickness);
+        }
+
+        DrawCorner(pos + new Vector2(-halfSize, -halfSize), 1, 1);
+        DrawCorner(pos + new Vector2(halfSize, -halfSize), -1, 1);
+        DrawCorner(pos + new Vector2(-halfSize, halfSize), 1, -1);
+        DrawCorner(pos + new Vector2(halfSize, halfSize), -1, -1);
     }
 
     private void DrawSteeringArrows(UiContext context, DrawList2D drawList)
@@ -212,7 +251,7 @@ partial class SpaceGameplay
 
         foreach (var obj in world.Objects)
         {
-            if (obj == Selection.Selected)
+            if (obj == Selection.Selected || obj == player)
             {
                 // Draw last
             }
@@ -226,8 +265,12 @@ partial class SpaceGameplay
                                     (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important:
                         DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
                         break;
-                    case true:
-                        DrawShipReticle(delta, obj, pos, context, clientRectangle);
+                    case true when (obj.Flags & GameObjectFlags.Hidden) == 0:
+                        var distance = Vector3.Distance(player.WorldTransform.Position, obj.WorldTransform.Position);
+                        if (distance <= ShipReticleRange)
+                        {
+                            DrawShipReticle(obj, pos, distance, context, drawList);
+                        }
                         break;
                 }
             }
@@ -359,13 +402,8 @@ partial class SpaceGameplay
             ScanHandler = handler;
         }
 
-        public Closure PlayerInventoryHandler;
-
-        public void OnUpdatePlayerInventory(Closure handler)
-        {
-            PlayerInventoryHandler = handler;
-            g.session.OnUpdateInventory = () => PlayerInventoryHandler?.Call();
-        }
+        public void OnUpdatePlayerInventory(Closure handler) =>
+            g.session.OnUpdateInventory += () => handler.Call();
 
         public void JettisonInventoryItem(UIInventoryItem item, int count)
         {
@@ -554,7 +592,8 @@ partial class SpaceGameplay
                 : $"{distance / 1000f:0.0}-K";
         }
 
-        public TargetShipWireframe? SelectionWireframe() => g.Selection.Selected != null ? g.targetWireframe : null;
+        public TargetShipWireframe? SelectionWireframe() =>
+            g.Selection.Selected?.Model != null ? g.targetWireframe : null;
 
         public bool SelectionVisible()
         {
