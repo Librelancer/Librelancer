@@ -998,6 +998,7 @@ namespace LancerEdit
                 {
                     using var stream = File.OpenRead(file);
                     dfmAnimFile = new Anm.AnmFile(file, stream);
+                    dfmAnimFile.Buffer.Commit();
                     dfmExports = new BitArray(dfmAnimFile.Scripts.Count);
                 });
             }
