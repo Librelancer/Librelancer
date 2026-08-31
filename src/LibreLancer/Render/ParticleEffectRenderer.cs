@@ -40,6 +40,7 @@ namespace LibreLancer.Render
         public void Restart()
         {
             fx?.Reset();
+            Finished = false;
         }
 
         public override bool PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool forceCull)

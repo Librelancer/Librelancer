@@ -16,7 +16,9 @@ using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Graphics;
 using LibreLancer.Input;
 using LibreLancer.Interface;
+using LibreLancer.Media;
 using LibreLancer.Net;
+using LibreLancer.Net.Protocol;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
 using LibreLancer.Resources;
@@ -67,6 +69,16 @@ namespace LibreLancer
         private CPlayerCargoComponent cargo = null!;
         private bool loading = true;
         private LoadingScreen? loader;
+        private JumpGateEffectController? jumpGateEffects;
+        private JumpClientTransition? jumpOutTransition;
+        private JumpClientTransition? jumpArrival;
+        private Vector3[] jumpOutPath = [];
+        private Vector3[] jumpArrivalPath = [];
+        private double jumpPhaseElapsed;
+        private bool jumpArrivalEffectStarted;
+        private readonly List<ParticleEffectRenderer> transientShipEffects = [];
+        private TradelaneEquipment? activeTradelaneEquipment;
+        private SoundInstance? tradelaneTravelSound;
         public Cutscene? Thn;
 
         private bool pausemenu = false;
@@ -112,11 +124,15 @@ namespace LibreLancer
         public SpaceGameplay(FreelancerGame g, CGameSession session) : base(g)
         {
             FLLog.Info("Game", "Entering system " + session.PlayerSystem);
-            g.ResourceManager.ClearTextures(); // Do before loading things
-            g.ResourceManager.ClearMeshes();
-            Game.Ui.MeshDisposeVersion++;
             this.session = session;
             sys = g.GameData.Items.Systems.Get(session.PlayerSystem)!;
+            var preloadedJump = session.ConsumePreloadedJump(sys.Nickname);
+            if (!preloadedJump)
+            {
+                g.ResourceManager.ClearTextures(); // Do before loading things
+                g.ResourceManager.ClearMeshes();
+                Game.Ui.MeshDisposeVersion++;
+            }
             CreateHud();
             nextObjectiveUpdate = session.CurrentObjective.Ids;
             session.ObjectiveUpdated = () =>
@@ -126,8 +142,21 @@ namespace LibreLancer
                 UpdateObjectiveRoute();
             };
             session.OnUpdateInventory = session.OnUpdatePlayerShip = null; // we should clear these handlers better
-            loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys)!);
-            loader.Init();
+            if (preloadedJump)
+            {
+                loader = new LoadingScreen(g, EmptySystemLoader());
+                loader.Init();
+            }
+            else
+            {
+                loader = new LoadingScreen(g, g.GameData.LoadSystemResources(sys)!);
+                loader.Init();
+            }
+        }
+
+        private static IEnumerator<object> EmptySystemLoader()
+        {
+            yield break;
         }
 
         private void FinishLoad()
@@ -230,6 +259,7 @@ namespace LibreLancer
             world = new GameWorld(sysrender, Game.Sound, Game.ResourceManager, () => session.WorldTime);
             // Game.GameData.PreloadObjects(session.Preloads);
             world.LoadSystem(sys, Game.ResourceManager, Game.Sound, false);
+            jumpGateEffects = new JumpGateEffectController(Game, world);
             session.WorldReady();
             world.AddObject(player);
             player.Register(world);
@@ -248,7 +278,11 @@ namespace LibreLancer
             Game.Sound.ResetListenerVelocity();
             contactList = new ContactList(this);
             ui.OpenScene("hud");
-            FadeIn(0.5, 0.5);
+            jumpArrival = session.CurrentJumpArrival;
+            if (jumpArrival != null)
+                StartJumpArrival(jumpArrival);
+            else
+                FadeIn(0.5, 0.5);
             GC.Collect();
             updateStartDelay = 3;
         }
@@ -674,8 +708,322 @@ namespace LibreLancer
             Game.Keyboard.TextInput -= Game_TextInput;
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;
             Game.Mouse.MouseDown -= Mouse_MouseDown;
+            foreach (var effect in transientShipEffects)
+                player?.ExtraRenderers.Remove(effect);
+            transientShipEffects.Clear();
+            StopTradelaneEffects(null);
+            jumpGateEffects?.Dispose();
             sysrender?.Dispose();
             world?.Dispose();
+        }
+
+        internal void ActivateJumpGateEffect(ObjNetId gate, JumpGateEffectPhase phase) =>
+            jumpGateEffects?.Activate(gate, phase);
+
+        private (ParticleEffectRenderer? Renderer, SoundInstance? Sound)
+            AttachShipEffect(
+                ResolvedFx? effect,
+                bool loopSound = false,
+                bool playVisual = true)
+        {
+            if (effect == null)
+                return (null, null);
+            ParticleEffectRenderer? renderer = null;
+            if (playVisual)
+            {
+                var particle = effect.GetEffect(Game.ResourceManager);
+                if (particle != null)
+                {
+                    renderer = new ParticleEffectRenderer(particle);
+                    player.ExtraRenderers.Add(renderer);
+                }
+            }
+            SoundInstance? sound = null;
+            if (effect.Sound != null)
+            {
+                sound = Game.Sound.GetInstance(
+                    effect.Sound.Nickname,
+                    0,
+                    -1,
+                    -1,
+                    null);
+                sound?.Play(loopSound);
+            }
+            return (renderer, sound);
+        }
+
+        private void AttachTransientShipEffect(
+            ResolvedFx? effect,
+            bool playVisual = true)
+        {
+            var attached = AttachShipEffect(
+                effect,
+                playVisual: playVisual);
+            if (attached.Renderer != null)
+                transientShipEffects.Add(attached.Renderer);
+        }
+
+        private TradelaneEquipment? GetTradelaneEquipment(ObjNetId ring)
+        {
+            var obj = world.GetObject(ring);
+            if (obj?.TryGetComponent<CTradelaneComponent>(out var lane) ?? false)
+                return lane.Def;
+
+            // Some server/client object configurations do not instantiate the
+            // lane component even though the solar loadout contains the
+            // TradeLane equipment. Resolve that loadout directly before using
+            // the vanilla equipment fallback.
+            var fromLoadout = obj?.SystemObject?.Loadout?.Items
+                .Select(x => x.Equipment)
+                .OfType<TradelaneEquipment>()
+                .FirstOrDefault();
+            return fromLoadout ??
+                   Game.GameData.Items.Equipment.Get("basic_trade_lane_eq")
+                       as TradelaneEquipment;
+        }
+
+        private void StopTradelaneEffects(ResolvedFx? endEffect)
+        {
+            tradelaneTravelSound?.Stop();
+            tradelaneTravelSound = null;
+            activeTradelaneEquipment = null;
+            if (endEffect != null && player != null)
+                AttachTransientShipEffect(endEffect, playVisual: false);
+        }
+
+        internal void StartJumpOut(JumpClientTransition? transition)
+        {
+            if (transition == null || jumpOutTransition != null || jumpArrival != null)
+                return;
+            jumpOutTransition = transition;
+            jumpPhaseElapsed = 0;
+            jumpOutPath = BuildJumpOutPath(transition);
+            ShowHud = false;
+            SetJumpCollision(false);
+            shipInput.Throttle = 1;
+            AttachTransientShipEffect(Game.GameData.Items.ShipJumpEffect.JumpOutEffect);
+            UpdateJumpOutTransform();
+        }
+
+        private Vector3[] BuildJumpOutPath(JumpClientTransition transition)
+        {
+            var current = player.WorldTransform.Position;
+            var gate = world.GetObject(transition.SourceGate);
+            if (!(gate?.TryGetComponent<DockInfoComponent>(out var docking) ?? false))
+                return [current];
+
+            var hardpoints = docking.GetDockHardpoints(current)
+                .Select(x => (x.Transform * gate.WorldTransform).Position)
+                .ToArray();
+            if (hardpoints.Length == 0)
+                return [current];
+
+            var final = hardpoints[^1];
+            var currentDistance = Vector3.Distance(current, final);
+            var path = new List<Vector3> { current };
+            foreach (var point in hardpoints)
+            {
+                // Do not send a client that has already passed an outer docking
+                // point backwards. Retain only hardpoints still between it and
+                // the final dock mount.
+                if (Vector3.Distance(point, final) < currentDistance - 0.5f &&
+                    Vector3.Distance(path[^1], point) > 0.5f)
+                    path.Add(point);
+            }
+            if (Vector3.Distance(path[^1], final) > 0.5f)
+                path.Add(final);
+
+            // Freelancer's actual tunnel-entry point is jump_out_hp, not the
+            // docking sphere at HpDockMount. For the vanilla jump gate this is
+            // HpFX7, beyond the last normal docking hardpoint.
+            var jumpOutHpName = gate.SystemObject?.Archetype?.JumpOutHp;
+            if (!string.IsNullOrWhiteSpace(jumpOutHpName))
+            {
+                var jumpOutHp = gate.GetHardpoint(jumpOutHpName);
+                if (jumpOutHp != null)
+                {
+                    var jumpOutPoint =
+                        (jumpOutHp.Transform * gate.WorldTransform).Position;
+                    if (Vector3.Distance(path[^1], jumpOutPoint) > 0.5f)
+                        path.Add(jumpOutPoint);
+                }
+                else
+                {
+                    FLLog.Warning(
+                        "Jump",
+                        $"{gate.Nickname} is missing jump_out_hp {jumpOutHpName}");
+                }
+            }
+            return path.ToArray();
+        }
+
+        private void SetJumpCollision(bool collidable)
+        {
+            if (player.PhysicsComponent is not { } physics)
+                return;
+            physics.Collidable = collidable;
+            physics.Body.Collidable = collidable;
+        }
+
+        private void SetJumpTransform(JumpPathSample sample, Vector3 velocity)
+        {
+            player.SetLocalTransform(new Transform3D(
+                sample.Position,
+                QuaternionEx.LookAt(sample.Position, sample.Position + sample.Direction)));
+            if (player.PhysicsComponent?.Body is not { } body)
+                return;
+            body.LinearVelocity = velocity;
+            body.AngularVelocity = Vector3.Zero;
+        }
+
+        private void UpdateJumpOutTransform()
+        {
+            if (jumpOutTransition == null || jumpOutPath.Length < 2)
+                return;
+            var duration = jumpOutTransition.Effect?.JumpOutTime ?? 0;
+            var linear = duration <= 0
+                ? 1
+                : Math.Clamp((float)(jumpPhaseElapsed / duration), 0, 1);
+            // The final docking leg is an acceleration into the gate.
+            var sample = JumpTunnelMotion.SamplePath(jumpOutPath, linear * linear);
+            SetJumpTransform(sample, Vector3.Zero);
+        }
+
+        private void StartJumpArrival(JumpClientTransition transition)
+        {
+            var gate = world.GetObject(transition.ExitObject);
+            transition.Effect = Game.GameData.Items.ResolveJumpGateEffect(
+                gate?.SystemObject?.JumpEffect) ?? transition.Effect;
+            if (gate?.TryGetComponent<DockInfoComponent>(out var docking) ?? false)
+            {
+                jumpArrivalPath = docking.GetDockHardpoints(
+                        player.WorldTransform.Position)
+                    .Reverse()
+                    .Select(x => (x.Transform * gate.WorldTransform).Position)
+                    .ToArray();
+                jumpArrivalPath = JumpTunnelMotion.BuildJumpExitPath(
+                    gate.WorldTransform.Position,
+                    gate.WorldTransform.Orientation,
+                    jumpArrivalPath,
+                    transition.ExitSeed);
+            }
+            if (jumpArrivalPath.Length >= 2 &&
+                Vector3.Distance(
+                    player.WorldTransform.Position,
+                    jumpArrivalPath[^1]) <= 5)
+            {
+                transition.ForcedArrival = true;
+            }
+            jumpPhaseElapsed = 0;
+            jumpArrivalEffectStarted = false;
+            ShowHud = false;
+            dockCameraInfo = null;
+            activeCamera = _chaseCamera;
+            SetJumpCollision(false);
+            if (transition.ForcedArrival)
+            {
+                jumpArrival = null;
+                FinishJumpArrival(transition);
+                return;
+            }
+            UpdateJumpArrivalTransform();
+            // Input processing is deliberately skipped during the cinematic.
+            // Do not leave the chase rig following a stale mouse-flight offset
+            // from before the system load, or it will orbit around the ship as
+            // the gate exit path advances.
+            cruiseCameraLag = 0;
+            cruiseCameraLagVelocity = 0;
+            _chaseCamera.MouseFlight = false;
+            _chaseCamera.MousePosition = new Vector2(
+                Game.RenderContext.CurrentViewport.Width * 0.5f,
+                Game.RenderContext.CurrentViewport.Height * 0.5f);
+            _chaseCamera.ChasePosition = player.LocalTransform.Position;
+            _chaseCamera.ChaseOrientation =
+                Matrix4x4.CreateFromQuaternion(player.LocalTransform.Orientation);
+            _chaseCamera.Reset();
+            _chaseCamera.Update(0);
+        }
+
+        private void FinishJumpArrival(JumpClientTransition transition)
+        {
+            ShowHud = true;
+            shipInput.Throttle = 0;
+            shipInput.AutopilotThrottle = 0;
+            dockCameraInfo = null;
+            SetJumpCollision(true);
+            if (player.PhysicsComponent?.Body is { } body)
+            {
+                body.LinearVelocity = Vector3.Zero;
+                body.AngularVelocity = Vector3.Zero;
+            }
+            session.CompleteJumpIn(transition);
+        }
+
+        private void UpdateJumpArrivalTransform()
+        {
+            if (jumpArrival == null || jumpArrivalPath.Length < 2)
+                return;
+            var progress = Math.Clamp(
+                (float)(jumpPhaseElapsed / JumpTunnelMotion.JumpArrivalDuration),
+                0,
+                1);
+            var sample = JumpTunnelMotion.SamplePath(jumpArrivalPath, progress);
+            SetJumpTransform(
+                sample,
+                progress < 1
+                    ? sample.Direction * JumpTunnelMotion.JumpArrivalSpeed
+                    : Vector3.Zero);
+            // jump_in_effect is the tradelane-style exit splash. Play it when
+            // the ship crosses the gate plane, not at the start of the
+            // 2000-unit approach while the screen is still white.
+            var gateCrossingTime =
+                (JumpTunnelMotion.JumpArrivalTravelDistance -
+                 JumpTunnelMotion.GateExitBehindDistance) /
+                JumpTunnelMotion.JumpArrivalSpeed;
+            if (!jumpArrivalEffectStarted &&
+                jumpPhaseElapsed >= gateCrossingTime)
+            {
+                jumpArrivalEffectStarted = true;
+                AttachTransientShipEffect(Game.GameData.Items.ShipJumpEffect.JumpInEffect);
+            }
+        }
+
+        private bool UpdateJumpCinematic(double delta)
+        {
+            jumpGateEffects?.Update(delta);
+            for (var i = transientShipEffects.Count - 1; i >= 0; i--)
+            {
+                if (!transientShipEffects[i].Finished)
+                    continue;
+                player.ExtraRenderers.Remove(transientShipEffects[i]);
+                transientShipEffects.RemoveAt(i);
+            }
+            if (jumpOutTransition != null)
+            {
+                jumpPhaseElapsed += delta;
+                shipInput.Throttle = 1;
+                if (jumpPhaseElapsed >= (jumpOutTransition.Effect?.JumpOutTime ?? 0))
+                {
+                    UpdateJumpOutTransform();
+                    var transition = jumpOutTransition;
+                    jumpOutTransition = null;
+                    jumpOutPath = [];
+                    session.EnterJumpTunnel(transition);
+                    return true;
+                }
+            }
+            else if (jumpArrival != null)
+            {
+                jumpPhaseElapsed += delta;
+                if (jumpPhaseElapsed >= JumpTunnelMotion.JumpArrivalDuration)
+                {
+                    UpdateJumpArrivalTransform();
+                    var transition = jumpArrival;
+                    jumpArrival = null;
+                    FinishJumpArrival(transition);
+                }
+            }
+            return false;
         }
 
         private void Keyboard_KeyDown(KeyEventArgs e)
@@ -787,6 +1135,14 @@ namespace LibreLancer
                     return;
                 }
 
+                // Docking physics and authoritative snapshots can otherwise
+                // move the ship between two cinematic samples, producing a
+                // visible stop-start motion on the final gate approach.
+                if (jumpOutTransition != null)
+                    UpdateJumpOutTransform();
+                else if (jumpArrival != null)
+                    UpdateJumpArrivalTransform();
+
                 if (updateStartDelay == 0)
                 {
                     session.GameplayUpdate(this, FixedDelta);
@@ -820,6 +1176,12 @@ namespace LibreLancer
             var fraction = accum / updateInterval;
 
             world.UpdateInterpolation((float)fraction);
+            // Apply the time-driven pose after interpolation as well, so the
+            // rendered transform is never a blend with normal flight physics.
+            if (jumpOutTransition != null)
+                UpdateJumpOutTransform();
+            else if (jumpArrival != null)
+                UpdateJumpArrivalTransform();
             UpdateCamera(delta);
         }
 
@@ -911,6 +1273,8 @@ namespace LibreLancer
                 return;
             }
 
+            if (UpdateJumpCinematic(delta))
+                return;
             contactList.Update(delta);
             if (ShowHud && !IsSpecialCamera())
             {
@@ -1219,6 +1583,15 @@ namespace LibreLancer
 
         private void ProcessInput(double delta)
         {
+            if (jumpOutTransition != null || jumpArrival != null)
+            {
+                current_cur = cur_arrow;
+                shipInput.Throttle = 1;
+                shipInput.Reverse = false;
+                steering.Thrust = false;
+                steering.CurrentStrafe = StrafeControls.None;
+                return;
+            }
             if (Dead)
             {
                 current_cur = cur_arrow;
@@ -1442,21 +1815,54 @@ namespace LibreLancer
             });
         }
 
-        public void StartTradelane()
+        public void StartTradelane(ObjNetId ring)
         {
+            StopTradelaneEffects(null);
+            activeTradelaneEquipment = GetTradelaneEquipment(ring);
+            if (activeTradelaneEquipment != null)
+            {
+                AttachTransientShipEffect(
+                    activeTradelaneEquipment.ShipEnter,
+                    playVisual: false);
+                // Keep the vanilla player travel sound, but do not render the
+                // trade-lane travel ALE.
+                tradelaneTravelSound = AttachShipEffect(
+                    activeTradelaneEquipment.PlayerTravel,
+                    loopSound: true,
+                    playVisual: false).Sound;
+            }
             player.GetComponent<ShipPhysicsComponent>()!.Active = false;
             player.GetComponent<WeaponControlComponent>()!.Enabled = false;
             pilotComponent?.Cancel();
             RefreshActiveUserWaypoint(false);
         }
 
+        public void TradelaneRing(ObjNetId ring)
+        {
+            activeTradelaneEquipment ??= GetTradelaneEquipment(ring);
+            // Player-only sounds are non-positional: proj_ast_coll has a
+            // 50-unit range, shorter than some chase-camera offsets.
+            AttachTransientShipEffect(
+                activeTradelaneEquipment?.PlayerSplash,
+                playVisual: false);
+        }
+
         public void TradelaneDisrupted()
         {
             Game.Sound.PlayVoiceLine(VoiceLines.NnVoiceName, VoiceLines.NnVoice.TradeLaneDisrupted);
-            EndTradelane();
+            var disruptEffect = activeTradelaneEquipment?.ShipDisrupt;
+            StopTradelaneEffects(disruptEffect);
+            RestoreAfterTradelane();
         }
 
         public void EndTradelane()
+        {
+            var exitEffect = activeTradelaneEquipment?.ShipExit;
+            StopTradelaneEffects(exitEffect);
+            RestoreAfterTradelane();
+        }
+
+        private void RestoreAfterTradelane()
         {
             player.GetComponent<ShipPhysicsComponent>()!.Active = true;
             player.GetComponent<WeaponControlComponent>()!.Enabled = true;
@@ -1874,6 +2280,18 @@ namespace LibreLancer
             sysrender.DebugRenderer.StartFrame(Game.RenderContext);
 
             sysrender.Draw(Game.RenderContext.CurrentViewport.Width, Game.RenderContext.CurrentViewport.Height);
+
+            if (jumpArrival != null)
+            {
+                var fadeDuration = Math.Min(
+                    0.75,
+                    Math.Max(0.01, jumpArrival.Effect?.JumpInTime ?? 0.75));
+                var alpha = (float)Math.Clamp(
+                    1 - (jumpPhaseElapsed / fadeDuration),
+                    0,
+                    1);
+                Game.RenderContext.TintViewport(new Color4(1, 1, 1, alpha));
+            }
 
             sysrender.DebugRenderer.Render();
 

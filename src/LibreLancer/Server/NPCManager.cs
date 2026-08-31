@@ -108,10 +108,6 @@ namespace LibreLancer.Server
         public GameObject SpawnJumper(JumperNpc jumper, MissionRuntime msn, string jumpObject)
         {
             var jumpPoint = World.GameWorld.GetObject(jumpObject);
-            var pos = jumpPoint!.WorldTransform.Position;
-            var orient = jumpPoint.WorldTransform.Orientation;
-            pos = Vector3.Transform(new Vector3(rand.Next(-50, 50), rand.Next(-50, 50), rand.Next(-300, -100)),
-                orient) + pos;
             var newObj = DoSpawn(
                 jumper.Name,
                 jumper.Nickname,
@@ -120,9 +116,9 @@ namespace LibreLancer.Server
                 jumper.SpaceCostume,
                 jumper.Loadout,
                 jumper.Pilot,
-                pos,
-                orient,
-                null, 0,
+                jumpPoint!.WorldTransform.Position,
+                jumpPoint.WorldTransform.Orientation,
+                jumpObject, 0,
                 msn);
             msn.SystemEnter(World.System.Nickname, jumper.Nickname);
             return newObj;
@@ -147,38 +143,44 @@ namespace LibreLancer.Server
             )
         {
             var ship = World.Server.GameData.Items.Ships.Get(loadout.Archetype);
-            GameObject spawnPoint = World.GameWorld.GetObject(arrivalObj)!;
+            var spawnPoint = World.GameWorld.GetObject(arrivalObj);
             SDockableComponent? sdock = null;
+            Vector3[]? jumpArrivalPath = null;
             if (spawnPoint?.TryGetComponent<SDockableComponent>(out sdock) ?? false)
             {
-                var reservedHere = arrivalIndexReserved;
-                if (!reservedHere)
+                if (sdock.Action.Kind == DockKinds.Jump)
                 {
-                    var reserved = arrivalIndex == 0
-                        ? sdock.TryReserveUndockIndex(out arrivalIndex)
-                        : sdock.TryReserveUndockIndex(arrivalIndex);
-                    if (!reserved)
+                    if (arrivalIndexReserved)
+                        sdock.ReleaseUndockIndex(arrivalIndex);
+                    var seed = unchecked((uint)rand.NextInt64(1, 1L << 32));
+                    jumpArrivalPath = sdock.GetJumpExitPath(arrivalIndex, seed);
+                    position = jumpArrivalPath[0];
+                    orient = QuaternionEx.LookAt(
+                        jumpArrivalPath[0],
+                        jumpArrivalPath[1]);
+                }
+                else
+                {
+                    if (!arrivalIndexReserved &&
+                        !(arrivalIndex == 0
+                            ? sdock.TryReserveUndockIndex(out arrivalIndex)
+                            : sdock.TryReserveUndockIndex(arrivalIndex)))
                     {
                         FLLog.Warning("NPC", $"Could not reserve spawn point for {arrivalObj}");
                         sdock = null;
                     }
-                    else
-                    {
-                        reservedHere = true;
-                    }
-                }
 
-                if (sdock != null && sdock.TryGetSpawnPoint(arrivalIndex, out var p))
-                {
-                    position = p.Position;
-                    orient = p.Orientation;
-                }
-                else if (sdock != null)
-                {
-                    if (reservedHere)
+                    if (sdock != null && sdock.TryGetSpawnPoint(arrivalIndex, out var p))
+                    {
+                        position = p.Position;
+                        orient = p.Orientation;
+                    }
+                    else if (sdock != null)
+                    {
                         sdock.ReleaseUndockIndex(arrivalIndex);
-                    FLLog.Warning("NPC", $"Could not get spawn point {arrivalIndex} for {arrivalObj}");
-                    sdock = null;
+                        FLLog.Warning("NPC", $"Could not get spawn point {arrivalIndex} for {arrivalObj}");
+                        sdock = null;
+                    }
                 }
             }
             var obj = new GameObject(ship!, World.Server.Resources, false, true)
@@ -226,8 +228,27 @@ namespace LibreLancer.Server
             {
                 cloak.SetInitCloaked();
             }
+            if (jumpArrivalPath != null && spawnPoint != null)
+            {
+                var arrivalGate = spawnPoint;
+                World.BeginJumpGateTransit(
+                    arrivalGate,
+                    JumpGateEffectPhase.InboundBurst);
+                obj.AddComponent(new SJumpInComponent(
+                    obj,
+                    jumpArrivalPath,
+                    JumpTunnelMotion.JumpArrivalDuration,
+                    arrived => FinishNpcJumpArrival(obj, arrivalGate, arrived)));
+            }
             World.OnNPCSpawn(obj);
-            if (sdock != null)
+            if (jumpArrivalPath != null)
+            {
+                obj.PhysicsComponent!.Collidable = false;
+                obj.PhysicsComponent.Body.Collidable = false;
+                if (obj.TryGetComponent<SHealthComponent>(out var health))
+                    health.Invulnerable = true;
+            }
+            else if (sdock != null)
             {
                 sdock.UndockShip(obj, World.GameWorld, arrivalIndex);
                 obj.GetComponent<AutopilotComponent>()!.Undock(spawnPoint!, arrivalIndex);
@@ -237,6 +258,36 @@ namespace LibreLancer.Server
                 missionNPCs[nickname] = obj;
             }
             return obj;
+        }
+
+        private void FinishNpcJumpArrival(
+            GameObject obj,
+            GameObject arrivalGate,
+            bool arrived)
+        {
+            if (arrived)
+            {
+                if (obj.PhysicsComponent?.Body != null)
+                {
+                    obj.PhysicsComponent.Collidable = true;
+                    obj.PhysicsComponent.Body.Collidable = true;
+                    obj.PhysicsComponent.Body.LinearVelocity = Vector3.Zero;
+                    obj.PhysicsComponent.Body.AngularVelocity = Vector3.Zero;
+                }
+                if (obj.TryGetComponent<SHealthComponent>(out var health))
+                    health.Invulnerable = false;
+                if (obj.TryGetComponent<ShipSteeringComponent>(out var steering))
+                {
+                    steering.InThrottle = 0;
+                    steering.Cruise = false;
+                }
+                if (obj.TryGetComponent<ShipPhysicsComponent>(out var physics))
+                {
+                    physics.EnginePower = 0;
+                    physics.StopCruise();
+                }
+            }
+            World.EndJumpGateTransit(arrivalGate);
         }
     }
 }

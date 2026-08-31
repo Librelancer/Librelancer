@@ -16,6 +16,7 @@ public class Archetype : IdentifiableItem
     public string? NavmapIcon;
     public ObjectLoadout? Loadout;
     public ArchetypeType Type;
+    public string? JumpOutHp;
     public List<DockSphere> DockSpheres = [];
     public float[]? LODRanges;
     public List<SeparablePart> SeparableParts = [];

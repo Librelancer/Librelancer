@@ -32,6 +32,8 @@ public class FreelancerIni
     public List<string> SoundPaths { get; private set; }
     public List<string> GraphPaths { get; private set; }
     public List<string> EffectPaths { get; private set; }
+    public List<string> GateTunnelPaths { get; private set; }
+    public List<string> JumpEffectPaths { get; private set; }
 
     public List<string> ExplosionPaths { get; private set; }
     public List<string> AsteroidPaths { get; private set; }
@@ -111,6 +113,8 @@ public class FreelancerIni
         SoundPaths = [];
         GraphPaths = [];
         EffectPaths = [];
+        GateTunnelPaths = [];
+        JumpEffectPaths = [];
         ExplosionPaths = [];
         AsteroidPaths = [];
         RichFontPaths = [];
@@ -260,6 +264,12 @@ public class FreelancerIni
                                 break;
                             case "effects":
                                 EffectPaths.Add(DataPath + e[0]);
+                                break;
+                            case "gate_tunnels":
+                                GateTunnelPaths.Add(DataPath + e[0]);
+                                break;
+                            case "jump_effect":
+                                JumpEffectPaths.Add(DataPath + e[0]);
                                 break;
                             case "explosions":
                                 ExplosionPaths.Add(DataPath + e[0]);

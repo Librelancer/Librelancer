@@ -41,6 +41,16 @@ namespace LibreLancer.Server
         private ConcurrentQueue<(Action, double)> delayedActions = new();
         private bool paused = false;
         private Dictionary<GameObject, List<string>> solarDestroyedHardpoints = new();
+        private int pendingJumpTransfers;
+
+        private sealed class JumpGateOpenState
+        {
+            public bool Docking;
+            public int Transits;
+            public bool IsOpen => Docking || Transits > 0;
+        }
+
+        private readonly Dictionary<int, JumpGateOpenState> jumpGateStates = [];
 
         public bool Paused => paused;
 
@@ -124,6 +134,79 @@ namespace LibreLancer.Server
                 p.Key.RpcClient.Uncloak(obj);
             }
         }
+
+        private void BroadcastJumpGate(GameObject gate, JumpGateEffectPhase phase)
+        {
+            foreach (var player in Players.Keys)
+                player.RpcClient.JumpGateEffect(gate, phase);
+        }
+
+        private JumpGateOpenState GetJumpGateState(GameObject gate)
+        {
+            if (!jumpGateStates.TryGetValue(gate.NetID, out var state))
+            {
+                state = new JumpGateOpenState();
+                jumpGateStates.Add(gate.NetID, state);
+            }
+            return state;
+        }
+
+        public bool IsJumpGateOpen(GameObject gate) =>
+            jumpGateStates.TryGetValue(gate.NetID, out var state) && state.IsOpen;
+
+        public void SetJumpGateDocking(GameObject gate, bool docking)
+        {
+            if (!docking && !jumpGateStates.TryGetValue(gate.NetID, out _))
+                return;
+            var state = GetJumpGateState(gate);
+            var wasOpen = state.IsOpen;
+            state.Docking = docking;
+            if (!wasOpen && state.IsOpen)
+                BroadcastJumpGate(gate, JumpGateEffectPhase.OutboundCharge);
+            else if (wasOpen)
+                CloseJumpGateIfIdle(gate, state);
+        }
+
+        public void BeginJumpGateTransit(GameObject gate, JumpGateEffectPhase phase)
+        {
+            var state = GetJumpGateState(gate);
+            var wasOpen = state.IsOpen;
+            state.Transits++;
+            if (!wasOpen)
+                BroadcastJumpGate(gate, phase);
+        }
+
+        public void EndJumpGateTransit(GameObject gate)
+        {
+            if (!jumpGateStates.TryGetValue(gate.NetID, out var state))
+                return;
+            state.Transits = Math.Max(0, state.Transits - 1);
+            CloseJumpGateIfIdle(gate, state);
+        }
+
+        private void CloseJumpGateIfIdle(GameObject gate, JumpGateOpenState state)
+        {
+            if (state.IsOpen)
+                return;
+            BroadcastJumpGate(gate, JumpGateEffectPhase.Closed);
+            gate.GetComponent<SDockableComponent>()?.CloseAfterJump(GameWorld);
+            jumpGateStates.Remove(gate.NetID);
+        }
+
+        public void AcquireJumpTransfer() =>
+            Interlocked.Increment(ref pendingJumpTransfers);
+
+        public void ReleaseJumpTransfer()
+        {
+            if (Interlocked.Decrement(ref pendingJumpTransfers) < 0)
+            {
+                Interlocked.Exchange(ref pendingJumpTransfers, 0);
+                FLLog.Error("Server", $"Unbalanced jump-transfer hold in {System.Nickname}");
+            }
+        }
+
+        public bool CanShutdown =>
+            PlayerCount <= 0 && Volatile.Read(ref pendingJumpTransfers) <= 0;
 
 
         public void PickupObject(GameObject obj, GameObject pickup)
@@ -1211,7 +1294,7 @@ namespace LibreLancer.Server
             }
 
             // Despawn after 2 seconds of nothing
-            if (PlayerCount == 0)
+            if (CanShutdown)
             {
                 noPlayersTime += delta;
                 return (noPlayersTime < maxNoPlayers);

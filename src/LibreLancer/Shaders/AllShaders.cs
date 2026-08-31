@@ -17,6 +17,7 @@ public static class AllShaders
     public static ShaderBundle DetailMap2Dm1Msk2PassMaterial = null!;
     public static ShaderBundle DetailMapMaterial = null!;
     public static ShaderBundle IllumDetailMapMaterial = null!;
+    public static ShaderBundle JumpTunnel = null!;
     public static ShaderBundle Masked2DetailMapMaterial = null!;
     public static ShaderBundle Navmap = null!;
     public static ShaderBundle NebulaExtPuff = null!;
@@ -63,6 +64,7 @@ public static class AllShaders
         DetailMap2Dm1Msk2PassMaterial ??= Compile(context, "DetailMap2Dm1Msk2PassMaterial");
         DetailMapMaterial ??= Compile(context, "DetailMapMaterial");
         IllumDetailMapMaterial ??= Compile(context, "IllumDetailMapMaterial");
+        JumpTunnel ??= Compile(context, "JumpTunnel");
         Masked2DetailMapMaterial ??= Compile(context, "Masked2DetailMapMaterial");
         Navmap ??= Compile(context, "Navmap");
         NebulaExtPuff ??= Compile(context, "NebulaExtPuff");

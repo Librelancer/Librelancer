@@ -54,7 +54,6 @@ namespace LibreLancer.Server
         private MissionRuntime? msnRuntime;
         private PreloadObject[] msnPreload = null!;
         private readonly DynamicThn thns = new();
-        private bool jumpPending;
 
         private ConcurrentQueue<Action> saveActions = new();
 
@@ -177,10 +176,16 @@ namespace LibreLancer.Server
 
         public bool InTradelane;
 
-        public void StartTradelane()
+        public void StartTradelane(GameObject ring)
         {
-            rpcClient.StartTradelane();
+            rpcClient.StartTradelane(ring);
             InTradelane = true;
+        }
+
+        public void TradelaneRing(GameObject ring)
+        {
+            if (InTradelane)
+                rpcClient.TradelaneRing(ring);
         }
 
         public void TradelaneDisrupted()
@@ -1172,6 +1177,7 @@ namespace LibreLancer.Server
 
         private void LoggedOut()
         {
+            CancelPendingJump();
             if (Character != null)
             {
                 using var c = Character.BeginTransaction();
@@ -1222,18 +1228,90 @@ namespace LibreLancer.Server
             LoggedOut();
         }
 
-        public void JumpTo(string system, string target, JumperNpc[] jumpers)
+        private sealed class PendingJump
         {
-            if (jumpPending)
+            public required string DestinationSystem;
+            public required string ExitObject;
+            public required uint ExitSeed;
+            public required JumperNpc[] Jumpers;
+            public ServerWorld? DestinationWorld;
+            public GameObject? ExitGate;
+            public Vector3[] ExitPath = [];
+            public GameObject? Ship;
+            public float TunnelTime;
+            public int WorldHold;
+            public bool GateTransitOpen;
+            public readonly JumpTransferGuard Guard = new();
+        }
+
+        private PendingJump? pendingJump;
+
+        public void BeginJump(GameObject sourceGate, DockAction action, JumperNpc[] jumpers)
+        {
+            if (pendingJump != null)
             {
-                FLLog.Info("Player", $"Ignoring duplicate jump request to {system} - {target}");
+                FLLog.Info("Player",
+                    $"Ignoring duplicate jump request to {action.Target} - {action.Exit}");
                 return;
             }
 
-            jumpPending = true;
-            rpcClient.StartJumpTunnel();
-            FLLog.Debug("Player", $"Jumping to {system} - {target}");
+            var gateEffect = Game.GameData.Items.ResolveJumpGateEffect(sourceGate.SystemObject?.JumpEffect);
+            var jumpOutTime = gateEffect?.JumpOutTime ?? 0;
+            var jump = pendingJump = new PendingJump
+            {
+                DestinationSystem = action.Target!,
+                ExitObject = action.Exit!,
+                ExitSeed = unchecked((uint)Random.Shared.NextInt64(
+                    1,
+                    1L << 32)),
+                Jumpers = jumpers,
+                TunnelTime = (gateEffect?.JumpOutTunnelTime ?? 0) +
+                             (gateEffect?.JumpInTunnelTime ?? 0)
+            };
+            rpcClient.StartJumpTunnel(
+                sourceGate,
+                action.Target!,
+                action.Exit!,
+                jump.ExitSeed);
+            FLLog.Debug("Player",
+                $"Beginning jump to {action.Target} - {action.Exit}");
 
+            var sourceWorld = Space?.World;
+            if (sourceWorld == null)
+            {
+                PrepareJumpDestination(jump);
+                return;
+            }
+
+            if (sourceWorld.Players.TryGetValue(this, out var sourceShip))
+            {
+                sourceShip.PhysicsComponent!.Collidable = false;
+                sourceShip.PhysicsComponent.Body.Collidable = false;
+                if (sourceShip.TryGetComponent<SHealthComponent>(out var sourceHealth))
+                    sourceHealth.Invulnerable = true;
+            }
+            sourceWorld.BeginJumpGateTransit(
+                sourceGate,
+                JumpGateEffectPhase.OutboundCharge);
+            sourceWorld.DelayAction(
+                () =>
+                {
+                    sourceWorld.EndJumpGateTransit(sourceGate);
+                    PrepareJumpDestination(jump);
+                },
+                Math.Max(0, jumpOutTime));
+        }
+
+        private static void ReleaseDestinationWorld(PendingJump jump)
+        {
+            if (Interlocked.Exchange(ref jump.WorldHold, 0) == 1)
+                jump.DestinationWorld?.ReleaseJumpTransfer();
+        }
+
+        private void PrepareJumpDestination(PendingJump jump)
+        {
+            if (!ReferenceEquals(pendingJump, jump))
+                return;
             if (Space != null)
             {
                 msnRuntime?.SystemExit(System, "Player");
@@ -1242,51 +1320,232 @@ namespace LibreLancer.Server
 
             Space = null;
             ClearScan();
-            var sys = Game.GameData.Items.Systems.Get(system)!
-                ;
+            var sys = Game.GameData.Items.Systems.Get(jump.DestinationSystem);
+            if (sys == null)
+            {
+                FLLog.Error("Server",
+                    $"Can't find destination system {jump.DestinationSystem}");
+                pendingJump = null;
+                return;
+            }
             Game.Worlds.RequestWorld(sys, (world) =>
             {
-                var obj = sys.Objects.FirstOrDefault((o) =>
-                    o.Nickname.Equals(target, StringComparison.OrdinalIgnoreCase));
+                if (!ReferenceEquals(pendingJump, jump))
+                    return;
+                jump.DestinationWorld = world;
+                world.AcquireJumpTransfer();
+                Interlocked.Exchange(ref jump.WorldHold, 1);
 
-                System = system;
-                Base = null;
+                var obj = sys.Objects.FirstOrDefault((o) =>
+                    o.Nickname.Equals(jump.ExitObject, StringComparison.OrdinalIgnoreCase));
+
+                System = jump.DestinationSystem;
                 Position = Vector3.Zero;
                 Orientation = Quaternion.Identity;
 
                 if (obj == null)
                 {
-                    FLLog.Error("Server", $"Can't find target {target} to spawn player in {system}");
+                    FLLog.Error("Server",
+                        $"Can't find target {jump.ExitObject} to spawn player in {jump.DestinationSystem}");
                 }
                 else
                 {
                     Position = obj.Position;
                     Orientation = obj.Rotation;
-                    Position = Vector3.Transform(new Vector3(0, 0, 500), Orientation) +
-                               obj.Position; // TODO: This is bad
                 }
 
                 Baseside = null;
                 Base = null;
                 world.EnqueueAction(() =>
                 {
-                    try
+                    if (!ReferenceEquals(pendingJump, jump))
                     {
-                        Space = new SpacePlayer(world, this);
-                        rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
-                            Orientation, world.CurrentTick);
-                        var pship = world.SpawnPlayer(this, Position, Orientation);
-                        world.Population.PopulateInitialAroundPlayer(pship);
-                        HandleSpaceEntry();
-                        msnRuntime?.SystemEnter(system, "Player");
+                        ReleaseDestinationWorld(jump);
+                        return;
                     }
-                    finally
+                    jump.Guard.DestinationReady();
+                    jump.ExitGate = world.GameWorld.GetObject(jump.ExitObject);
+                    if (jump.ExitGate?.GetComponent<SDockableComponent>() is { } exitDock)
                     {
-                        jumpPending = false;
+                        jump.ExitPath = exitDock.GetJumpExitPath(
+                            0,
+                            jump.ExitSeed);
+                        if (jump.ExitPath.Length >= 2)
+                        {
+                            Position = jump.ExitPath[0];
+                            Orientation = QuaternionEx.LookAt(
+                                jump.ExitPath[0],
+                                jump.ExitPath[1]);
+                        }
                     }
+                    TrySpawnPendingJump(jump);
                 });
-                world.DelayAction(() => { world.SpawnJumpers(target, jumpers); }, 4);
+                world.DelayAction(() =>
+                {
+                    if (!ReferenceEquals(pendingJump, jump) || jump.Guard.Spawned)
+                        return;
+                    FLLog.Warning("Player",
+                        $"Jump tunnel readiness timed out for {Name}; snapping to {jump.ExitObject}");
+                    TrySpawnPendingJump(jump, true);
+                }, Math.Max(30, jump.TunnelTime + 10));
             }, msnPreload);
+        }
+
+        private void TrySpawnPendingJump(PendingJump jump, bool timeout = false)
+        {
+            var world = jump.DestinationWorld;
+            if (world == null || !jump.Guard.TryScheduleSpawn(timeout))
+                return;
+            world.EnqueueAction(() =>
+            {
+                if (!ReferenceEquals(pendingJump, jump))
+                {
+                    ReleaseDestinationWorld(jump);
+                    return;
+                }
+                if (!jump.Guard.MarkSpawned())
+                    return;
+                if (timeout && jump.ExitPath.Length >= 2)
+                {
+                    Position = jump.ExitPath[^1];
+                    Orientation = QuaternionEx.LookAt(
+                        jump.ExitPath[^2],
+                        jump.ExitPath[^1]);
+                }
+
+                Space = new SpacePlayer(world, this);
+                if (jump.ExitGate != null)
+                {
+                    world.BeginJumpGateTransit(
+                        jump.ExitGate,
+                        JumpGateEffectPhase.InboundBurst);
+                    jump.GateTransitOpen = true;
+                }
+                rpcClient.SpawnPlayer(
+                    ID,
+                    System,
+                    world.GameWorld.CrcTranslation.ToArray(),
+                    Objective,
+                    Position,
+                    Orientation,
+                    world.CurrentTick);
+                GameObject ship;
+                try
+                {
+                    ship = world.SpawnPlayer(this, Position, Orientation);
+                }
+                finally
+                {
+                    // PlayerCount is incremented at the beginning of SpawnPlayer,
+                    // so the transfer hold can now be released without allowing
+                    // the destination world to spin down.
+                    ReleaseDestinationWorld(jump);
+                }
+                jump.Ship = ship;
+                if (jump.ExitGate != null)
+                    rpcClient.JumpGateEffect(
+                        jump.ExitGate,
+                        JumpGateEffectPhase.InboundBurst);
+                ship.PhysicsComponent!.Collidable = false;
+                ship.PhysicsComponent.Body.Collidable = false;
+                if (ship.TryGetComponent<SHealthComponent>(out var health))
+                    health.Invulnerable = true;
+                world.Population.PopulateInitialAroundPlayer(ship);
+
+                if (!timeout && jump.ExitPath.Length >= 2)
+                {
+                    ship.AddComponent(new SJumpInComponent(
+                        ship,
+                        jump.ExitPath,
+                        JumpTunnelMotion.JumpArrivalDuration));
+                }
+
+                world.DelayAction(
+                    () => world.SpawnJumpers(jump.ExitObject, jump.Jumpers),
+                    4);
+                world.DelayAction(() =>
+                {
+                    if (ReferenceEquals(pendingJump, jump) && !jump.Guard.Completed)
+                    {
+                        FLLog.Warning("Player",
+                            $"Jump-in acknowledgement timed out for {Name}; completing at exit endpoint");
+                        FinishPendingJump(jump, true);
+                    }
+                }, Math.Max(10, JumpTunnelMotion.JumpArrivalDuration + 5));
+            });
+        }
+
+        private void FinishPendingJump(PendingJump jump, bool timeout)
+        {
+            if (!ReferenceEquals(pendingJump, jump) || !jump.Guard.TryComplete())
+                return;
+            var ship = jump.Ship;
+            if (ship != null && (ship.Flags & GameObjectFlags.Exists) != 0)
+            {
+                if (ship.TryGetComponent<SJumpInComponent>(out var jumpIn))
+                    ship.RemoveComponent(jumpIn);
+                if (timeout && jump.ExitPath.Length >= 2)
+                {
+                    Position = jump.ExitPath[^1];
+                    Orientation = QuaternionEx.LookAt(
+                        jump.ExitPath[^2],
+                        jump.ExitPath[^1]);
+                    ship.SetLocalTransform(new Transform3D(Position, Orientation));
+                }
+                else
+                {
+                    Position = ship.WorldTransform.Position;
+                    Orientation = ship.WorldTransform.Orientation;
+                }
+                ship.PhysicsComponent!.Collidable = true;
+                ship.PhysicsComponent.Body.Collidable = true;
+                ship.PhysicsComponent.Body.LinearVelocity = Vector3.Zero;
+                ship.PhysicsComponent.Body.AngularVelocity = Vector3.Zero;
+                if (ship.TryGetComponent<SHealthComponent>(out var health))
+                    health.Invulnerable = false;
+            }
+            if (jump.GateTransitOpen && jump.ExitGate != null)
+            {
+                jump.DestinationWorld?.EndJumpGateTransit(jump.ExitGate);
+                jump.GateTransitOpen = false;
+            }
+            ReleaseDestinationWorld(jump);
+            HandleSpaceEntry();
+            msnRuntime?.SystemEnter(jump.DestinationSystem, "Player");
+            pendingJump = null;
+        }
+
+        private void CancelPendingJump()
+        {
+            var jump = pendingJump;
+            pendingJump = null;
+            if (jump == null)
+                return;
+            if (jump.GateTransitOpen &&
+                jump.DestinationWorld is { } world &&
+                jump.ExitGate is { } gate)
+            {
+                jump.GateTransitOpen = false;
+                world.EnqueueAction(() => world.EndJumpGateTransit(gate));
+            }
+            ReleaseDestinationWorld(jump);
+        }
+
+        void IServerPlayer.JumpTunnelReady()
+        {
+            var jump = pendingJump;
+            if (jump == null)
+                return;
+            jump.Guard.ClientReady();
+            TrySpawnPendingJump(jump);
+        }
+
+        void IServerPlayer.JumpInComplete()
+        {
+            var jump = pendingJump;
+            if (jump == null || !jump.Guard.Spawned)
+                return;
+            jump.DestinationWorld?.EnqueueAction(() => FinishPendingJump(jump, false));
         }
 
         public void LaunchFromBase()
