@@ -14,6 +14,7 @@ namespace LibreLancer.Interface
         public string? Good; // good nickname - for selling
         public string? Icon; // 3db file - from good
         public int IdsName; // from item def
+        public int EquipmentClass; // display class for weapons, missiles, turrets, and shields
         public int IdsInfo;
         public double Price; // price per unit
         public double Volume; // cargo volume per unit

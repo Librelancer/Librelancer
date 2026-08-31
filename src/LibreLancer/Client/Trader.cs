@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using LibreLancer.Data;
 using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Interface;
@@ -264,6 +265,11 @@ namespace LibreLancer.Client
 
         public static void SortGoods(CGameSession session, List<UIInventoryItem> item, string? filter = null)
         {
+            foreach (var uiItem in item)
+            {
+                uiItem.EquipmentClass = GetDisplayEquipmentClass(session, uiItem);
+            }
+
             item.Sort((x, y) =>
             {
                 if (x.Hardpoint != null && y.Hardpoint == null)
@@ -288,11 +294,41 @@ namespace LibreLancer.Client
                     return categoryCompare;
                 }
 
-                var str1 = session.Game.GameData.GetString(x.IdsName) ?? "Z";
-                var str2 = session.Game.GameData.GetString(y.IdsName) ?? "Z";
-                return string.Compare(str1, str2, StringComparison.Ordinal);
+                var classCompare = GetEquipmentClass(session, x).CompareTo(GetEquipmentClass(session, y));
+                if (classCompare != 0)
+                {
+                    return classCompare;
+                }
+
+                var priceCompare = x.Price.CompareTo(y.Price);
+                if (priceCompare != 0)
+                {
+                    return priceCompare;
+                }
+
+                var goodCompare = GetGoodSortId(x.Good).CompareTo(GetGoodSortId(y.Good));
+                return goodCompare != 0
+                    ? goodCompare
+                    : string.CompareOrdinal(x.Good, y.Good);
             });
         }
+
+        private static int GetEquipmentClass(CGameSession session, UIInventoryItem item)
+        {
+            var hpType = item.Equipment?.HpType;
+            return hpType != null &&
+                   session.Game.GameData.Items.Ini.HpTypes.Types.TryGetValue(hpType, out var type)
+                ? type.Class
+                : 0;
+        }
+
+        private static int GetDisplayEquipmentClass(CGameSession session, UIInventoryItem item) =>
+            item.Equipment is GunEquipment or MissileLauncherEquipment or ShieldEquipment
+                ? GetEquipmentClass(session, item)
+                : 0;
+
+        private static uint GetGoodSortId(string? good) =>
+            string.IsNullOrEmpty(good) ? uint.MaxValue : FLHash.CreateID(good);
 
         private static int GetSortCategory(string? filter, UIInventoryItem item)
         {
