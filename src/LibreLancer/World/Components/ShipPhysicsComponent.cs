@@ -32,6 +32,8 @@ namespace LibreLancer.World.Components
 
         public Ship Ship;
         public bool ThrustEnabled = false;
+        public bool ThrustRequested = false;
+        private bool thrustDepleted;
         private bool cruiseEnabled = false;
         private bool previousCruiseEnabled = false;
         public override bool CruiseEnabled
@@ -190,22 +192,33 @@ namespace LibreLancer.World.Components
             float totalDrag = Ship.LinearDrag;
             float thrusterForce = 0;
 
+            var thrustCapacityWasEmpty = power.CurrentThrustCapacity <= 0;
             power.CurrentThrustCapacity += power.Equip.ThrustChargeRate * (float)(time);
             power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
             foreach (var thruster in Parent.GetChildComponents<ThrusterComponent>())
             {
                 thruster.Enabled = false;
             }
-            if (ThrustEnabled && EngineState <= EngineStates.EngineKill)
+            if (!ThrustRequested)
+                thrustDepleted = false;
+            else if (thrustCapacityWasEmpty)
+                thrustDepleted = true;
+
+            ThrustEnabled = false;
+            if (ThrustRequested && !thrustDepleted && EngineState <= EngineStates.EngineKill &&
+                power.CurrentThrustCapacity > 0)
             {
                 foreach (var thruster in Parent.GetChildComponents<ThrusterComponent>())
                 {
                     thrusterForce += thruster.Equip.Force;
                     thruster.Enabled = true;
+                    ThrustEnabled = true;
                     power.CurrentThrustCapacity -= (float)(thruster.Equip.Drain * time);
                     power.CurrentThrustCapacity = MathHelper.Clamp(power.CurrentThrustCapacity, 0, power.Equip.ThrustCapacity);
-                    if (power.CurrentThrustCapacity == 0) ThrustEnabled = false;
                 }
+
+                if (power.CurrentThrustCapacity <= 0)
+                    thrustDepleted = true;
             }
 
             if (EngineState == EngineStates.EngineKill)
