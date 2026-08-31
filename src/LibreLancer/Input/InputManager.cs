@@ -85,7 +85,14 @@ namespace LibreLancer.Input
 
         private void Keyboard_KeyDown(KeyEventArgs e)
         {
-            if (KeyCaptureContext.Capturing(KeyCapture)) return;
+            if (KeyCaptureContext.Capturing(KeyCapture))
+            {
+                if (e.Key == Keys.Escape || e.Key == Keys.F1)
+                    KeyCapture.Cancel();
+                else if (!IsModifierKey(e.Key))
+                    KeyCapture.Set(UserInput.FromKey(e.Modifiers, e.Key));
+                return;
+            }
             var input = UserInput.FromKey(e.Modifiers, e.Key);
 			if (e.IsRepeat) return;
             if (game.TextInputEnabled && !AllowedWhenTextInput(input))
@@ -123,13 +130,18 @@ namespace LibreLancer.Input
             return false;
         }
 
+        private static bool IsModifierKey(Keys key) => key is
+            Keys.LeftShift or Keys.RightShift or
+            Keys.LeftControl or Keys.RightControl or
+            Keys.LeftAlt or Keys.RightAlt;
+
         private void Keyboard_KeyUp(KeyEventArgs e)
         {
             if (KeyCaptureContext.Capturing(KeyCapture))
             {
                 if(e.Key == Keys.Escape || e.Key == Keys.F1)
                     KeyCapture.Cancel();
-                else
+                else if (IsModifierKey(e.Key))
                 {
                     KeyCapture.Set(UserInput.FromKey(e.Modifiers, e.Key));
                 }
