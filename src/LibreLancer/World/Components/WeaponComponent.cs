@@ -45,29 +45,11 @@ namespace LibreLancer.World.Components
 
             if (hp.Revolute != null)
             {
-                var target = x;
-                var current = hp.CurrentRevolution;
-
-                if (current > target)
-                {
-                    current -= delta;
-                    if (current <= target)
-                    {
-                        current = target;
-                    }
-                }
-
-                if (current < target)
-                {
-                    current += delta;
-                    if (current >= target)
-                    {
-                        current = target;
-                    }
-                }
+                var target = MathHelper.Clamp(x, hp.Revolute.Min, hp.Revolute.Max);
+                var current = MoveTowards(hp.CurrentRevolution, target, delta);
 
                 hp.Revolve(current);
-                Angles.X = current;
+                Angles.X = hp.CurrentRevolution;
             }
 
             // TODO: Finding barrel construct properly?
@@ -82,31 +64,21 @@ namespace LibreLancer.World.Components
 
             if (barrel != null)
             {
-                var target = y;
-                var current = barrel.Current;
+                var target = MathHelper.Clamp(y, barrel.Min, barrel.Max);
+                var current = MoveTowards(barrel.Current, target, delta);
 
-                if (current > target)
-                {
-                    current -= delta;
-                    if (current <= target)
-                    {
-                        current = target;
-                    }
-                }
-
-                if (current < target)
-                {
-                    current += delta;
-                    if (current >= target)
-                    {
-                        current = target;
-                    }
-                }
-
-                barrel.Update(target, Quaternion.Identity);
-                Angles.Y = current;
+                barrel.Update(current, Quaternion.Identity);
+                Angles.Y = barrel.Current;
                 Parent.Model.RigidModel.UpdateTransform();
             }
+        }
+
+        private static float MoveTowards(float current, float target, float maxDelta)
+        {
+            var difference = target - current;
+            if (MathF.Abs(difference) <= maxDelta)
+                return target;
+            return current + MathF.CopySign(maxDelta, difference);
         }
 
         private float _targetX = -1000;
