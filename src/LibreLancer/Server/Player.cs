@@ -1006,6 +1006,11 @@ namespace LibreLancer.Server
 
         public void Killed()
         {
+            if (Character != null)
+            {
+                using var characterTransaction = Character.BeginTransaction();
+                characterTransaction.ClearDestroyedParts();
+            }
             Space?.Leave(true);
             Space = null;
             Dead = true;

@@ -90,7 +90,17 @@ namespace LibreLancer.Server
         public uint[] GetHolesVisited() => holesVisited.ToArray();
         public uint[] GetDestroyedParts() => destroyedParts.Order().ToArray();
 
-        public void MarkPartDestroyed(uint part) => destroyedParts.Add(part);
+        public void MarkPartDestroyed(uint part)
+        {
+            if (destroyedParts.Add(part))
+                PersistDestroyedParts();
+        }
+
+        private void PersistDestroyedParts()
+        {
+            var parts = GetDestroyedParts();
+            dbChar?.Update(c => c.DestroyedParts = parts, false);
+        }
 
         public void SetDestroyedParts(IEnumerable<uint> parts)
         {
@@ -205,9 +215,11 @@ namespace LibreLancer.Server
 
             public void UpdateShip(Ship? ship)
             {
-                nc.destroyedParts.Clear();
+                ClearDestroyedParts();
                 nc.Ship = ship;
             }
+
+            public void ClearDestroyedParts() => nc.destroyedParts.Clear();
 
             private string? _costume;
             private string? _comCostume;
@@ -286,6 +298,7 @@ namespace LibreLancer.Server
                 c.RotationW = nc.Orientation.W;
                 c.Money = nc.Credits;
                 c.Ship = nc.Ship?.Nickname;
+                c.DestroyedParts = nc.GetDestroyedParts();
                 c.Costume = _costume;
                 c.ComCostume = _comCostume;
                 c.Rank = nc.Rank;
@@ -508,6 +521,7 @@ namespace LibreLancer.Server
             nc.Position = new Vector3(c.X, c.Y, c.Z);
             nc.Orientation = new Quaternion(c.RotationX, c.RotationY, c.RotationZ, c.RotationW);
             nc.Ship = game.GameData.Items.Ships.Get(c.Ship);
+            nc.SetDestroyedParts(c.DestroyedParts);
             nc.Credits = c.Money;
             nc.Items = [];
             nc.statistics = new()
