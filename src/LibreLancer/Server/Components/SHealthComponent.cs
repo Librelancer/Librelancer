@@ -209,7 +209,7 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        public void Damage(float hullDamage, float energyDamage, GameObject? attacker, GameObject? child)
+        public RigidModelPart? Damage(float hullDamage, float energyDamage, GameObject? attacker, object? hitObject)
         {
             if (energyDamage <= 0)
             {
@@ -220,10 +220,52 @@ namespace LibreLancer.Server.Components
 
             if (shield is not null && shield.Damage(energyDamage))
             {
-                return;
+                return null;
             }
 
-            HandleHullDamage(hullDamage, attacker, child);
+            var model = Parent.Model;
+            if (hitObject is RigidModelPart modelPart &&
+                model?.TryGetCollisionGroup(modelPart, out var collisionGroup) == true)
+            {
+                if (InfiniteHealth)
+                {
+                    return null;
+                }
+
+                var destroyed = model.DamagePart(collisionGroup, hullDamage, Invulnerable);
+                if (Parent.TryGetComponent<SSolarComponent>(out var solar))
+                {
+                    solar.SendPartsUpdate = true;
+                }
+
+                var fuseRunner = Parent.GetComponent<SFuseRunnerComponent>();
+                if (fuseRunner != null)
+                {
+                    foreach (var fuse in collisionGroup.Definition.Fuses)
+                    {
+                        if (fuse.Fuse != null &&
+                            collisionGroup.CurrentHealth < fuse.Threshold &&
+                            collisionGroup.RunningFuses.Add(fuse.Fuse))
+                        {
+                            fuseRunner.Run(fuse.Fuse);
+                        }
+                    }
+                }
+
+                if (collisionGroup.Definition.RootHealthProxy)
+                {
+                    HandleHullDamage(hullDamage, attacker, null);
+                }
+                else if (Parent.TryGetComponent<SNPCComponent>(out var npc))
+                {
+                    npc.TakingDamage(hullDamage);
+                }
+
+                return destroyed ? modelPart : null;
+            }
+
+            HandleHullDamage(hullDamage, attacker, hitObject as GameObject);
+            return null;
         }
 
         public void DamageZone(float damage)

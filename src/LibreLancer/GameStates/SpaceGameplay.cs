@@ -146,6 +146,7 @@ namespace LibreLancer
             pilotComponent = new AutopilotComponent(player) { LocalPlayer = true };
             steering = new ShipSteeringComponent(player);
             Selection = new SelectedTargetComponent(player);
+            targetWireframe.PartSelected = part => Selection.SelectedPart = part;
             Directives = new DirectiveRunnerComponent(player);
             player.AddComponent(Selection);
 
@@ -186,6 +187,11 @@ namespace LibreLancer
             {
                 EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, Game.Sound,
                     EquipmentType.LocalPlayer, equipment.Hardpoint, equipment.Equipment!);
+            }
+
+            foreach (var part in session.PlayerDestroyedParts)
+            {
+                player.DisableCmpPart(part, null, Game.ResourceManager, out _);
             }
 
             if (!player.TryGetComponent(out powerCore!))
@@ -1175,14 +1181,34 @@ namespace LibreLancer
 
             var myPos = player.WorldTransform.Position;
             var myVel = player.PhysicsComponent!.Body.LinearVelocity;
-            var otherPos = Selection.Selected.WorldTransform.Position;
+            var otherPos = GetSelectedTargetPosition();
             var otherVel = Selection.Selected.PhysicsComponent.Body.LinearVelocity;
+            var offset = otherPos - Selection.Selected.WorldTransform.Position;
+            otherVel += Vector3.Cross(Selection.Selected.PhysicsComponent.Body.AngularVelocity, offset);
             var speed = weapons.GetAverageGunSpeed();
+            if (speed <= 0)
+                return false;
             Aiming.GetTargetLeading(otherPos - myPos, otherVel - myVel, speed, out var t);
             worldPos = (otherPos + otherVel * t);
             bool vis;
             (screenPos, vis) = ScreenPosition(worldPos);
             return vis;
+        }
+
+        private Vector3 GetSelectedTargetPosition()
+        {
+            var selected = Selection.Selected!;
+            if (Selection.SelectedPart is uint partCrc &&
+                selected.Model?.TryGetCollisionGroup(partCrc, out var collisionGroup) == true &&
+                collisionGroup.ModelPart.Active)
+            {
+                var part = collisionGroup.ModelPart;
+                var localPosition = part.LocalTransform.Transform(part.Mesh?.Center ?? Vector3.Zero);
+                return selected.WorldTransform.Transform(localPosition);
+            }
+
+            Selection.SelectedPart = null;
+            return selected.WorldTransform.Position;
         }
 
         private Vector3 GetAimPoint()
@@ -1812,14 +1838,34 @@ namespace LibreLancer
                 Thn.UpdateViewport(Game.RenderContext.CurrentViewport, (float)Game.Width / Game.Height);
             }
 
-            if (Selection.Selected != null)
+            if (Selection.Selected?.Model != null)
             {
-                targetWireframe.Model = Selection.Selected.Model!.RigidModel;
+                targetWireframe.Model = Selection.Selected.Model.RigidModel;
                 var lookAt = Matrix4x4.CreateLookAt(player.LocalTransform.Position,
                     Vector3.Transform(Vector3.UnitZ * 4, player.LocalTransform.Matrix()), Vector3.UnitY);
 
                 targetWireframe.Matrix = (lookAt * Selection.Selected.LocalTransform.Matrix()).ClearTranslation();
                 targetWireframe.ChildModels.Clear();
+                targetWireframe.Parts.Clear();
+
+                foreach (var collisionGroup in Selection.Selected.Model.CollisionGroups)
+                {
+                    if (!collisionGroup.ModelPart.Active)
+                    {
+                        continue;
+                    }
+
+                    targetWireframe.Parts[collisionGroup.ModelPart] = new TargetShipWireframe.PartModel(
+                        collisionGroup.CRC,
+                        collisionGroup.HealthFraction,
+                        Selection.SelectedPart == collisionGroup.CRC);
+                }
+
+                if (Selection.SelectedPart is uint selectedPart &&
+                    targetWireframe.Parts.Values.All(x => x.CRC != selectedPart))
+                {
+                    Selection.SelectedPart = null;
+                }
 
                 foreach (var child in Selection.Selected.Children)
                 {
@@ -1846,6 +1892,13 @@ namespace LibreLancer
                         childMatrix * targetWireframe.Matrix,
                         healthPct));
                 }
+            }
+            else
+            {
+                targetWireframe.Model = null;
+                targetWireframe.ChildModels.Clear();
+                targetWireframe.Parts.Clear();
+                Selection.SelectedPart = null;
             }
 
             if (updateStartDelay > 0)

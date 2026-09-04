@@ -498,6 +498,7 @@ namespace LibreLancer.Net.Protocol
     public class PlayerInventoryDiff
     {
         public byte Header;
+        public bool ResetDestroyedParts => (Header & (1 << 6)) != 0;
         public long CreditDiff;
         public long ShipWorthDiff;
         public long NetWorthDiff;
@@ -583,7 +584,8 @@ namespace LibreLancer.Net.Protocol
             return d;
         }
 
-        public static PlayerInventoryDiff Create(PlayerInventory a, PlayerInventory b)
+        public static PlayerInventoryDiff Create(PlayerInventory a, PlayerInventory b,
+            bool resetDestroyedParts = false)
         {
             byte header = 0;
             if (a.Credits != b.Credits)
@@ -620,6 +622,11 @@ namespace LibreLancer.Net.Protocol
             if(a.Loadout.ArchetypeCrc != b.Loadout.ArchetypeCrc)
             {
                 header |= (1 << 3);
+            }
+
+            if (resetDestroyedParts)
+            {
+                header |= (1 << 6);
             }
 
             var diff = new PlayerInventoryDiff()

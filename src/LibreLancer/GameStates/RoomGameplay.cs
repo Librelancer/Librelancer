@@ -697,7 +697,7 @@ namespace LibreLancer
                 return;
             }
 
-            playerShip.Children.Clear();
+            playerShip.Children.RemoveAll(x => x.TryGetComponent<EquipmentComponent>(out _));
 
             foreach (var mount in session.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
             {
@@ -755,6 +755,10 @@ namespace LibreLancer
                     Game.ResourceManager, true,
                     false);
                 CreatePlayerEquipment();
+                foreach (var part in session.PlayerDestroyedParts)
+                {
+                    playerShip.DisableCmpPart(part, null, Game.ResourceManager, out _);
+                }
             }
             else
             {

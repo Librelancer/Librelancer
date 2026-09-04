@@ -644,7 +644,7 @@ public class BasesidePlayer : IBasesidePlayer
             c.UpdateCredits(Player.Character.Credits - shipPrice);
         }
 
-        Player.UpdateCurrentInventory();
+        Player.UpdateCurrentInventory(resetDestroyedParts: true);
         // Success
         return Task.FromResult(shipPrice < 0 ? ShipPurchaseStatus.SuccessGainCredits : ShipPurchaseStatus.Success);
     }

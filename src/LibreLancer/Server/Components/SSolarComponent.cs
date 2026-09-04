@@ -21,7 +21,9 @@ namespace LibreLancer.Server.Components
             {
                 if (Parent.TryGetComponent<SHealthComponent>(out var health))
                 {
-                    if (health.EquipmentHealths.Count == 0)
+                    var hasDamagedCollisionGroup = Parent.Model?.CollisionGroups.Any(x =>
+                        x.ModelPart.Active && x.CurrentHealth < x.MaxHealth) == true;
+                    if (health.EquipmentHealths.Count == 0 && !hasDamagedCollisionGroup)
                     {
                         stopPartsUpdateTimer--;
                         if (stopPartsUpdateTimer <= 0)

@@ -45,6 +45,7 @@ namespace LibreLancer.Server
         public ReputationCollection Reputation = new();
 
         public Ship? Ship { get; private set; }
+        private readonly HashSet<uint> destroyedParts = [];
         public List<NetCargo> Items = [];
         private Dictionary<uint, VisitFlags> visited = new();
         private HashSet<uint> basesVisited = [];
@@ -87,6 +88,25 @@ namespace LibreLancer.Server
         public uint[] GetSystemsVisited() => systemsVisited.ToArray();
         public uint[] GetBasesVisited() => basesVisited.ToArray();
         public uint[] GetHolesVisited() => holesVisited.ToArray();
+        public uint[] GetDestroyedParts() => destroyedParts.Order().ToArray();
+
+        public void MarkPartDestroyed(uint part)
+        {
+            if (destroyedParts.Add(part))
+                PersistDestroyedParts();
+        }
+
+        private void PersistDestroyedParts()
+        {
+            var parts = GetDestroyedParts();
+            dbChar?.Update(c => c.DestroyedParts = parts, false);
+        }
+
+        public void SetDestroyedParts(IEnumerable<uint> parts)
+        {
+            destroyedParts.Clear();
+            destroyedParts.UnionWith(parts);
+        }
 
         public CharacterTransaction BeginTransaction()
         {
@@ -195,8 +215,11 @@ namespace LibreLancer.Server
 
             public void UpdateShip(Ship? ship)
             {
+                ClearDestroyedParts();
                 nc.Ship = ship;
             }
+
+            public void ClearDestroyedParts() => nc.destroyedParts.Clear();
 
             private string? _costume;
             private string? _comCostume;
@@ -275,6 +298,7 @@ namespace LibreLancer.Server
                 c.RotationW = nc.Orientation.W;
                 c.Money = nc.Credits;
                 c.Ship = nc.Ship?.Nickname;
+                c.DestroyedParts = nc.GetDestroyedParts();
                 c.Costume = _costume;
                 c.ComCostume = _comCostume;
                 c.Rank = nc.Rank;
@@ -396,6 +420,7 @@ namespace LibreLancer.Server
             c.UpdateName(sg.Player!.Name!);
             c.UpdateCredits(sg.Player.Money);
             c.UpdateShip(game.GameData.Items.Ships.Get(sg.Player.ShipArchetype));
+            nc.SetDestroyedParts(sg.Player.DestroyedParts);
             c.UpdateCostume(sg.Player.Costume!);
             c.UpdateComCostume(sg.Player.ComCostume!);
             c.UpdatePosition(sg.Player.Base, sg.Player.System!, sg.Player.Position, Quaternion.Identity);
@@ -496,6 +521,7 @@ namespace LibreLancer.Server
             nc.Position = new Vector3(c.X, c.Y, c.Z);
             nc.Orientation = new Quaternion(c.RotationX, c.RotationY, c.RotationZ, c.RotationW);
             nc.Ship = game.GameData.Items.Ships.Get(c.Ship);
+            nc.SetDestroyedParts(c.DestroyedParts);
             nc.Credits = c.Money;
             nc.Items = [];
             nc.statistics = new()

@@ -171,6 +171,7 @@ class hud : hud_Designer
         navbox.PositionAction(this.CruiseButton, this.CruiseBox, 1)
 		local weaplist = this.Elements.weapons_list;
 		this.RefreshWeaponsList();
+		Game.OnUpdatePlayerInventory(() => this.RefreshWeaponsList());
 		weaplist.OnSelectedIndexChanged(() => {
 			Game.ToggleWeapon(weaplist.SelectedIndex);
 			this.RefreshWeaponsList();

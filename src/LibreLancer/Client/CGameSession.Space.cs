@@ -404,6 +404,11 @@ public partial class CGameSession
 
         foreach (var ph in update.DamagedParts)
         {
+            if (obj.Model?.SetPartHealth(ph.Hardpoint, ph.Health / 255f) == true)
+            {
+                continue;
+            }
+
             var hp = obj.GetHardpoint(ph.Hardpoint);
             var child = hp == null
                 ? null
@@ -623,10 +628,38 @@ public partial class CGameSession
 
     void IClientPlayer.DestroyPart(ObjNetId id, uint part)
     {
+        var isPlayer = id.Value == PlayerNetID;
+        if (isPlayer)
+        {
+            PlayerDestroyedParts.Add(part);
+        }
+
         RunSync(() =>
         {
-            spaceGameplay!.world.GetObject(id)
-                ?.DisableCmpPart(part, spaceGameplay!.world, Game.ResourceManager, out _);
+            var obj = spaceGameplay!.world.GetObject(id);
+            if (obj == null)
+            {
+                return;
+            }
+
+            var effectPosition = obj.WorldTransform.Position;
+            ResolvedFx? separationEffect = null;
+            if (obj.Model?.TryGetCollisionGroup(part, out var collisionGroup) == true)
+            {
+                var modelPart = collisionGroup.ModelPart;
+                effectPosition = obj.WorldTransform.Transform(
+                    modelPart.LocalTransform.Transform(modelPart.Mesh?.Center ?? Vector3.Zero));
+                separationEffect = collisionGroup.Definition.SeparationExplosion?.Effect;
+            }
+
+            if (obj.DisableCmpPart(part, spaceGameplay.world, Game.ResourceManager, out _))
+            {
+                spaceGameplay.world.SpawnTempFx(separationEffect, effectPosition);
+                if (isPlayer && OnUpdateInventory != null)
+                {
+                    uiActions.Enqueue(OnUpdateInventory);
+                }
+            }
         });
     }
 
@@ -1314,10 +1347,12 @@ public partial class CGameSession
     }
 
     void IClientPlayer.SpawnPlayer(int ID, string system, CrcIdMap[] crcMap, NetObjective objective,
-        Vector3 position, Quaternion orientation, uint tick)
+        Vector3 position, Quaternion orientation, uint[] destroyedParts, uint tick)
     {
         enterCount++;
         PlayerNetID = ID;
+        PlayerDestroyedParts.Clear();
+        PlayerDestroyedParts.UnionWith(destroyedParts);
         PlayerBase = null;
         CurrentObjective = objective;
         FLLog.Info("Client", $"Spawning in {system}");
