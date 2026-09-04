@@ -47,7 +47,7 @@ namespace LibreLancer.World.Components
         public void UpdateNetWeapons()
         {
             NetOrderWeapons = Parent.GetChildComponents<WeaponComponent>()!
-                .OrderBy(x => x.Parent.Attachment?.Name.ToLowerInvariant())
+                .OrderBy(x => x.Parent.Attachment?.Name, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
             GetWeapons();
         }
@@ -68,7 +68,14 @@ namespace LibreLancer.World.Components
 
         private WeaponComponent[] GetWeapons()
         {
-            var weapons = Parent.GetChildComponents<WeaponComponent>().ToArray();
+            var weapons = Parent.GetChildComponents<WeaponComponent>()
+                .OrderBy(x => x switch
+                {
+                    MineLauncherComponent => 1,
+                    CountermeasureLauncherComponent => 2,
+                    _ => 0
+                })
+                .ToArray();
             foreach (var weapon in weapons)
                 activatedWeapons.TryAdd(weapon, IsDefaultWeaponEnabled(weapon));
             foreach (var weapon in activatedWeapons.Keys.Except(weapons).ToArray())
@@ -148,28 +155,30 @@ namespace LibreLancer.World.Components
         public void FireIndex(int index, GameWorld world)
         {
             if (!CanFireWeapons(world)) return;
-            var wp = Parent?.GetChildComponents<WeaponComponent>()
+            var wp = GetWeapons()
                 .Skip(index).FirstOrDefault();
             wp?.Fire(AimPoint, world);
         }
 
         public void FireMissiles(GameWorld world)
-        {
-            if (!CanFireWeapons(world)) return;
+            => FireWeapons<MissileLauncherComponent>(world, AimPoint);
 
-            foreach (var wp in Parent?.GetChildComponents<MissileLauncherComponent>()!)
-            {
-                wp?.Fire(AimPoint, world);
-            }
-        }
+        public void FireCountermeasures(GameWorld world)
+            => FireWeapons<CountermeasureLauncherComponent>(world, Vector3.Zero);
+
+        public void FireMines(GameWorld world)
+            => FireWeapons<MineLauncherComponent>(world, Vector3.Zero);
 
         public void FireGuns(GameWorld world)
+            => FireWeapons<GunComponent>(world, AimPoint);
+
+        private void FireWeapons<T>(GameWorld world, Vector3 point) where T : WeaponComponent
         {
             if (!CanFireWeapons(world)) return;
 
-            foreach (var wp in Parent?.GetChildComponents<GunComponent>()!)
+            foreach (var wp in Parent.GetChildComponents<T>())
             {
-                wp?.Fire(AimPoint, world);
+                wp.Fire(point, world);
             }
         }
 
@@ -187,7 +196,8 @@ namespace LibreLancer.World.Components
         public IEnumerable<UiEquippedWeapon> GetUiElements()
         {
             return from wp in GetWeapons()
-                select new UiEquippedWeapon(IsWeaponEnabled(wp), wp.IdsName);
+                select new UiEquippedWeapon(IsWeaponEnabled(wp), wp.IdsName,
+                    wp is MunitionLauncherComponent { UsesAmmo: true } launcher ? launcher.AmmoCount : -1);
         }
     }
 }

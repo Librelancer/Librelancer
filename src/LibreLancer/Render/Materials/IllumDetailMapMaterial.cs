@@ -61,7 +61,7 @@ namespace LibreLancer.Render.Materials
 		{
             rstate.DepthEnabled = true;
             rstate.BlendMode = BlendMode.Opaque;
-            var sh = AllShaders.IllumDetailMapMaterial.Get(rstate.HasFeature(GraphicsFeature.GLES) ? 1U : 0U);
+            var sh = AllShaders.IllumDetailMapMaterial.Get(VertexLighting ? 1U : 0U);
             SetWorld(sh);
             sh.SetUniformBlock(3, ref parameters);
             Vector4 noAnim = new Vector4(0, 0, 1, 1);

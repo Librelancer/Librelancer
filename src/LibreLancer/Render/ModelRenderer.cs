@@ -14,6 +14,7 @@ namespace LibreLancer.Render
         public Matrix4x4 World { get; private set; }
         public RigidModel? Model { get; private set; }
         public Color4? ColorOverride;
+        public string? EnvMapMaterial;
         public float RenderScale = 1f;
 
         public NebulaRenderer? Nebula;
@@ -258,7 +259,7 @@ namespace LibreLancer.Render
                     {
                         var userData = ColorOverride is { } color ? BasicMaterial.SetDc(color) : 0;
                         part.Mesh.DrawBuffer(lvl, sysr.ResourceManager, commands, w, ref lighting, Model.MaterialAnims,
-                            userData, null, OpacityMultiplier);
+                            userData, null, OpacityMultiplier, EnvMapMaterial);
                     }
                 }
             }

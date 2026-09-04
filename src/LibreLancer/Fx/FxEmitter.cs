@@ -94,7 +94,7 @@ namespace LibreLancer.Fx
             return n;
         }
 
-        protected virtual void SetParticle(EmitterReference reference, ref Particle particle, float sparam,
+        protected virtual void SetParticle(ParticleEffectInstance instance, EmitterReference reference, ref Particle particle, float sparam,
             float globaltime)
         {
         }
@@ -225,7 +225,7 @@ namespace LibreLancer.Fx
                     particle.TimeAlive = (float) dt;
                     particle.EmitterIndex = index;
                     particle.Orientation = Quaternion.Identity;
-                    SetParticle(reference, ref particle, sparam, (float) instance.GlobalTime);
+                    SetParticle(instance, reference, ref particle, sparam, (float) instance.GlobalTime);
                     state.Count++;
 
                     // Put particle in world space if needed
@@ -234,8 +234,6 @@ namespace LibreLancer.Fx
                         continue;
                     }
 
-                    particle.Position = Vector3.Transform(
-                        particle.Position, transform);
                     var len = particle.Velocity.Length();
 
                     if (!(Math.Abs(len) > float.Epsilon))
@@ -244,8 +242,6 @@ namespace LibreLancer.Fx
                     }
 
                     var nr = particle.Velocity.Normalized();
-                    var transformed = Vector3.TransformNormal(nr, transform).Normalized();
-                    particle.Velocity = transformed * len;
                     particle.Normal = nr;
                 }
             }

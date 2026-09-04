@@ -7,7 +7,7 @@ using WattleScript.Interpreter;
 
 namespace LibreLancer.Interface;
 
-internal sealed class NavmapBaseListItem
+public sealed class NavmapBaseListItem
 {
     public string Name = "";
     public string SystemName = "";
@@ -20,7 +20,7 @@ public sealed class KnownNavmapBaseList : ITableData
 {
     private readonly NavmapBaseListItem[] items;
 
-    internal KnownNavmapBaseList(NavmapBaseListItem[] items)
+    public KnownNavmapBaseList(NavmapBaseListItem[] items)
     {
         this.items = items is { Length: > 0 } ? (NavmapBaseListItem[])items.Clone() : [];
         Sort("name");

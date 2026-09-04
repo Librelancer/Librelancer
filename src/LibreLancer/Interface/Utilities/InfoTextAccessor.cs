@@ -73,7 +73,7 @@ namespace LibreLancer.Interface
                 _idsTried = true;
                 var xml = context.Data.Infocards.GetXmlResource(InfoId);
                 if (xml == null) return Text;
-                var icard = Infocards.RDLParse.Parse(xml, context.Data.Fonts);
+                var icard = Infocards.RDLParse.Parse(xml);
                 _idsText = icard.ExtractText().TrimEnd();
                 _idsText = _idsText.ToUpper();
                 return _idsText;

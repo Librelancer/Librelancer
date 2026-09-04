@@ -10,6 +10,8 @@ namespace LibreLancer.World;
 
 public static class CargoUtilities
 {
+    public const int MaxAmmoPerType = 50;
+
     public static float GetUsedVolume(List<NetCargo> items) => items.Select(x => x.Count * x.Equipment!.Volume).Sum();
 
     public static int ItemCount(List<NetCargo> items, Equipment e) =>
@@ -73,10 +75,9 @@ public static class CargoUtilities
             if (ship.MaxShieldBatteries < maxAmount)
                 maxAmount = (ship.MaxShieldBatteries - ItemCount<ShieldBatteryEquipment>(items));
         }
-        else if (equipment is MissileEquip)
+        else if (equipment is MissileEquip or MunitionEquip)
         {
-            if (maxAmount > 50)
-                maxAmount = (50 - ItemCount(items, equipment));
+            maxAmount = Math.Min(maxAmount, MaxAmmoPerType - ItemCount(items, equipment));
         }
         return maxAmount < 0 ? 0 : maxAmount;
     }

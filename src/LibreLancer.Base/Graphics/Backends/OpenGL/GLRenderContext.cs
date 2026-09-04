@@ -10,7 +10,7 @@ internal class GLRenderContext : IRenderContext
 {
     public bool SupportsWireframe => !GL.GLES;
 
-    public int MaxSamples { get; private set; }
+    public AntialiasMode MaxAntialias { get; private set; }
     public int MaxAnisotropy { get; private set; }
 
     private int anisotropy;
@@ -23,13 +23,6 @@ internal class GLRenderContext : IRenderContext
             anisotropy = value;
             lastTextureApply = 7;
         }
-    }
-
-
-    class TextureSlot
-    {
-        public GLTexture? Texture;
-        public SamplerState SamplerState = SamplerState.LinearRepeat;
     }
 
     // Used by the backend
@@ -48,8 +41,33 @@ internal class GLRenderContext : IRenderContext
     Queue<SyncPoint> frameSyncs = new();
     SyncPoint currentFrame = new();
     private List<(IntPtr Fence, Action Callback)> Fences = new();
-    private TextureSlot[] slots = new TextureSlot[8];
+    private GLTexture?[] textures = new GLTexture?[8];
+    private SamplerState[] samplers = new SamplerState[8];
     private int lastTextureApply = 0;
+
+    private static int[] stencilFuncs =
+    [
+        GL.GL_NEVER,
+        GL.GL_LESS,
+        GL.GL_LEQUAL,
+        GL.GL_GREATER,
+        GL.GL_GEQUAL,
+        GL.GL_EQUAL,
+        GL.GL_NOTEQUAL,
+        GL.GL_ALWAYS
+    ];
+
+    private static int[] stencilOps =
+    [
+        GL.GL_KEEP,
+        GL.GL_ZERO,
+        GL.GL_REPLACE,
+        GL.GL_INCR,
+        GL.GL_INCR_WRAP,
+        GL.GL_DECR,
+        GL.GL_DECR_WRAP,
+        GL.GL_INVERT
+    ];
 
     private GLRenderContext(IntPtr glContext)
     {
@@ -78,9 +96,6 @@ internal class GLRenderContext : IRenderContext
 
         string storageTarget = SSBO ? "SSBOs" : FencedUBO ? "Fenced UBOs" : "UBOs";
         FLLog.Info("GL", $"Storage target: {storageTarget}");
-
-        for (int i = 0; i < slots.Length; i++)
-            slots[i] = new TextureSlot();
     }
 
     public static GLRenderContext? Create(IntPtr sdlWindow)
@@ -189,7 +204,13 @@ internal class GLRenderContext : IRenderContext
         GL.GenVertexArrays(1, out NullVAO);
         int ms;
         GL.GetIntegerv(GL.GL_MAX_SAMPLES, out ms);
-        MaxSamples = ms;
+        MaxAntialias = ms switch
+        {
+            >= 8 => AntialiasMode.MSAA8x,
+            >= 4 => AntialiasMode.MSAA4x,
+            >= 2 => AntialiasMode.MSAA2x,
+            _ => AntialiasMode.SMAAUltra
+        };
         if (GLExtensions.Anisotropy)
         {
             int af;
@@ -215,6 +236,8 @@ internal class GLRenderContext : IRenderContext
         applied.DepthRange = new Vector2(0, 1);
         applied.ColorWrite = true;
         applied.DepthWrite = true;
+        applied.StencilEnabled = false;
+        applied.Stencil = StencilTest.Default;
         requested = applied;
     }
 
@@ -240,14 +263,13 @@ internal class GLRenderContext : IRenderContext
 
     public void SetTextureSlot(int slot, Texture? texture)
     {
-        slots[slot].Texture = texture?.Backing as GLTexture;
+        textures[slot] = texture?.Backing as GLTexture;
         lastTextureApply = slot;
     }
 
     public void SetSamplerState(int slot, SamplerState state)
     {
-        slots[slot].SamplerState = state;
-        lastTextureApply = slot;
+        samplers[slot] = state;
     }
 
     internal void BindToIndex(int target, int binding, IntPtr startPtr, IntPtr length, GLCycledBuffer storageBuffer)
@@ -325,18 +347,22 @@ internal class GLRenderContext : IRenderContext
             shader.SetUniformBlock(1, ref matrices);
         }
 
-        ((GLShader)shader).UseProgram();
+        var gShader = (GLShader)shader;
+        gShader.UseProgram();
+        for (int i = 0; i < gShader.Textures.Length; i++)
+        {
+            var unit = gShader.Textures[i].Unit;
+            var sampler = gShader.Textures[i].Sampler;
+            var t = textures[unit];
+            if (t != null && !t.IsDisposed)
+                t.SetSamplerState(unit, samplers[sampler]);
+        }
         applied.Shader = shader;
     }
 
 
     public void ApplyState(ref GraphicsState requested)
     {
-        if (requested.Shader is not null)
-        {
-            ApplyShader(requested.Shader);
-        }
-
         if (requested.ClearColor != applied.ClearColor)
         {
             GL.ClearColor(requested.ClearColor.R, requested.ClearColor.G, requested.ClearColor.B,
@@ -383,6 +409,23 @@ internal class GLRenderContext : IRenderContext
             GL.CullFace(requested.CullFaces == CullFaces.Back ? GL.GL_BACK : GL.GL_FRONT);
         }
 
+        if (requested.StencilEnabled != applied.StencilEnabled)
+        {
+            if (requested.StencilEnabled)
+                GL.Enable(GL.GL_STENCIL_TEST);
+            else
+                GL.Disable(GL.GL_STENCIL_TEST);
+            applied.StencilEnabled = requested.StencilEnabled;
+        }
+
+        if (requested.StencilEnabled && (requested.Stencil != applied.Stencil))
+        {
+            var s = requested.Stencil;
+            GL.StencilFunc(stencilFuncs[(int)s.Function], s.Reference, s.Mask);
+            GL.StencilOp(stencilOps[(int)s.Fail], stencilOps[(int)s.DepthFail], stencilOps[(int)s.Pass]);
+            requested.Stencil = applied.Stencil;
+        }
+
         if (requested.ColorWrite != applied.ColorWrite)
         {
             applied.ColorWrite = requested.ColorWrite;
@@ -415,11 +458,10 @@ internal class GLRenderContext : IRenderContext
         // unit for modifying texture data.
         for (int i = 0; i <= lastTextureApply; i++)
         {
-            var t = slots[i].Texture;
+            var t = textures[i];
             if (t != null && !t.IsDisposed)
             {
                 t.BindTo(i);
-                t.SetSamplerState(i, slots[i].SamplerState);
             }
             else
             {
@@ -427,6 +469,11 @@ internal class GLRenderContext : IRenderContext
             }
         }
         lastTextureApply = 0;
+
+        if (requested.Shader is not null)
+        {
+            ApplyShader(requested.Shader);
+        }
     }
 
     private int lastHeight = 768;
@@ -542,9 +589,13 @@ internal class GLRenderContext : IRenderContext
         }
     }
 
+    private int DepthBit => (applied.RenderTarget?.HasStencil ?? false)
+        ? GL.GL_DEPTH_BUFFER_BIT | GL.GL_STENCIL_BUFFER_BIT
+        : GL.GL_DEPTH_BUFFER_BIT;
+
     public void ClearAll()
     {
-        GL.Clear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        GL.Clear(GL.GL_COLOR_BUFFER_BIT | DepthBit);
     }
 
     public void ClearColorOnly()
@@ -554,7 +605,7 @@ internal class GLRenderContext : IRenderContext
 
     public void ClearDepth()
     {
-        GL.Clear(GL.GL_DEPTH_BUFFER_BIT);
+        GL.Clear(DepthBit);
     }
 
     public void MemoryBarrier()
@@ -658,8 +709,8 @@ internal class GLRenderContext : IRenderContext
     public IVertexBuffer CreateVertexBuffer(IVertexType type, int length, bool isStream = false) =>
         new GLVertexBuffer(this, type, length, isStream);
 
-    public IDepthBuffer CreateDepthBuffer(int width, int height) =>
-        new GLDepthBuffer(width, height);
+    public IDepthBuffer CreateDepthBuffer(int width, int height, bool stencil) =>
+        new GLDepthBuffer(width, height, stencil);
 
     public ITexture2D CreateTexture2D(int width, int height, bool hasMipMaps, SurfaceFormat format) =>
         new GLTexture2D(this, width, height, hasMipMaps, format);
@@ -667,8 +718,8 @@ internal class GLRenderContext : IRenderContext
     public ITextureCube CreateTextureCube(int size, bool mipMap, SurfaceFormat format) =>
         new GLTextureCube(this, size, mipMap, format);
 
-    public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer) =>
-        new GLRenderTarget2D(this, (GLTexture2D)texture, (GLDepthBuffer)buffer);
+    public IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer? buffer) =>
+        new GLRenderTarget2D(this, (GLTexture2D)texture, buffer as GLDepthBuffer);
 
     public IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples)
         => new GLMultisampleTarget(this, width, height, samples);

@@ -101,7 +101,7 @@ local function NavbarAction(hotspot)
 	return obj
 }
 
-local function weapon_list_item(index, name, enabled)
+local function weapon_list_item(index, name, enabled, ammo)
 {
 	local textColor = GetColor(enabled ? "color_friendly" : "text")
 	local li = NewObject("ListItem")
@@ -121,10 +121,24 @@ local function weapon_list_item(index, name, enabled)
 	tb.HorizontalAlignment = HorizontalAlignment.Left
 	tb.TextColor = textColor
 	tb.TextShadow = GetColor("black")
-	tb.Fill = true
+	tb.Fill = false
+	tb.Width = 105
+	tb.Height = 11
 	tb.Strid = name
 	tb.MarginX = 3
 	li.ItemB.Children.Add(tb)
+	if(ammo != nil && ammo >= 0) then
+		local ab = NewObject("TextBlock")
+		ab.TextSize = 8
+		ab.HorizontalAlignment = HorizontalAlignment.Right
+		ab.TextColor = textColor
+		ab.TextShadow = GetColor("black")
+		ab.Width = 20
+		ab.Height = 11
+		ab.Anchor = AnchorKind.TopRight
+		ab.Text = tostring(ammo)
+		li.ItemB.Children.Add(ab)
+	end
 	return li;
 }
 
@@ -235,7 +249,6 @@ class hud : hud_Designer
 		e.nn_inventory.ClearClick();
 		e.nn_inventory.OnClick(() => {
 			this.ScanCargo.OpenForPlayer();
-			this.ScanCargo.construct_inventory();
 			this.WindowManager.OpenWindow(this.Widget, this.ScanCargo, true);
 		});
 
@@ -263,10 +276,20 @@ class hud : hud_Designer
 	RefreshWeaponsList()
 	{
 		local weaplist = this.Elements.weapons_list;
+		local weapons = Game.GetWeapons();
+		local signature = "";
+		for (index, weapon in ipairs(weapons)) {
+			signature = signature + tostring(weapon.Strid) + ":" +
+				tostring(weapon.Enabled) + ":" + tostring(weapon.Ammo) + ";";
+		}
+		if(this.WeaponsSignature == signature) then
+			return;
+		end
+		this.WeaponsSignature = signature;
 		weaplist.Children.Clear();
 		weaplist.SelectedIndex = -1;
-		for (index, weapon in ipairs(Game.GetWeapons())) {
-			weaplist.Children.Add(weapon_list_item(index, weapon.Strid, weapon.Enabled));
+		for (index, weapon in ipairs(weapons)) {
+			weaplist.Children.Add(weapon_list_item(index, weapon.Strid, weapon.Enabled, weapon.Ammo));
 		}
 	}
 
@@ -354,7 +377,9 @@ class hud : hud_Designer
     Update(delta)
     {
         this.UpdateManeuverState()
+		this.RefreshWeaponsList()
 	    local e = this.Elements
+        e.radiationalert.Visible = Game.RadiationWarning() && (math.floor(delta) % 2 == 0)
         e.speedText.Text = Game.Speed() + ""
         e.thrustText.Text = Game.ThrustPercent() + "%"
 		e.repairKitCount.Text = Game.RepairKitCount() + ""

@@ -509,7 +509,7 @@ public class GameItemDb
                     {
                         var good = new ResolvedGood()
                         {
-                            Nickname = g.Nickname, Equipment = equip!, Ini = g, CRC = CrcTool.FLModelCrc(g.Nickname)
+                            Nickname = g.Nickname, Equipment = equip!, Ini = g, CRC = FLHash.CreateID(g.Nickname)
                         };
 
                         equip!.Good = good;
@@ -1003,10 +1003,12 @@ public class GameItemDb
             equip.IdsName = val.IdsName;
             equip.IdsInfo = val.IdsInfo;
             equip.Volume = val.Volume;
+            equip.Hitpoints = val.Hitpoints;
+            equip.UnitsPerContainer = val.UnitsPerContainer;
         }
 
         //Process munitions first
-        foreach (var mn in flData.Equipment.Munitions)
+        foreach (var mn in flData.Equipment.Munitions.Cast<Munition>().Concat(flData.Equipment.Mines))
         {
             Equipment equip;
 
@@ -1035,9 +1037,23 @@ public class GameItemDb
                 var mequip = new MunitionEquip()
                 {
                     Def = mn,
+                    ModelFile = mn is Mine
+                        ? ResolveDrawable(mn.MaterialLibrary, mn.DaArchetype)
+                        : null,
                     ConstEffect_Spear = effect?.Spear,
                     ConstEffect_Bolt = effect?.Bolt,
                 };
+
+                if (mn is Mine mine && !string.IsNullOrWhiteSpace(mine.ExplosionArch))
+                {
+                    mequip.Explosion = flData.Equipment.Explosions.FirstOrDefault(x =>
+                        x.Nickname.Equals(mine.ExplosionArch, StringComparison.OrdinalIgnoreCase));
+                    if (!string.IsNullOrWhiteSpace(mequip.Explosion?.Effect))
+                    {
+                        mequip.ExplosionFx = Effects.Get(mequip.Explosion.Effect);
+                    }
+                }
+
                 equip = mequip;
             }
 
@@ -1078,14 +1094,26 @@ public class GameItemDb
                 equip = eqp;
             }
 
+            if (val is Countermeasure countermeasure)
+            {
+                var effect = Effects.Get(countermeasure.ConstEffect);
+                var eqp = new MunitionEquip
+                {
+                    Def = countermeasure,
+                    ModelFile = ResolveDrawable(countermeasure.MaterialLibrary, countermeasure.DaArchetype),
+                    ConstEffect_Spear = effect?.Spear,
+                    ConstEffect_Bolt = effect?.Bolt
+                };
+                equip = eqp;
+            }
+
             if (val is CountermeasureDropper cms)
             {
-                Equipment.TryGetValue(cms.ProjectileArchetype, out Equipment? countermeasureEquip);
                 var eqp = new CountermeasureEquipment
                 {
                     HpType = "hp_countermeasure_dropper",
                     Def = cms,
-                    Munition = countermeasureEquip as MunitionEquip,
+                    FlashEffect = Effects.Get(cms.FlashParticleName),
                     ModelFile = ResolveDrawable(cms.MaterialLibrary, cms.DaArchetype)
                 };
                 equip = eqp;
@@ -1215,8 +1243,7 @@ public class GameItemDb
                 var eq = new LootCrateEquipment
                 {
                     ModelFile = ResolveDrawable(lc.MaterialLibrary, lc.DaArchetype),
-                    Mass = lc.Mass,
-                    Hitpoints = lc.Hitpoints
+                    Mass = lc.Mass
                 };
                 equip = eq;
             }
@@ -1226,8 +1253,7 @@ public class GameItemDb
                 var eq = new CargoPodEquipment
                 {
                     ModelFile = ResolveDrawable(cp.MaterialLibrary, cp.DaArchetype),
-                    Explosion = cp.ExplosionArch is not null ? Explosions.Get(cp.ExplosionArch) : null,
-                    Hitpoints = cp.Hitpoints
+                    Explosion = cp.ExplosionArch is not null ? Explosions.Get(cp.ExplosionArch) : null
                 };
                 equip = eq;
             }
@@ -1267,6 +1293,11 @@ public class GameItemDb
             Equipment.Add(equip);
         }
 
+        foreach (var countermeasure in Equipment.OfType<CountermeasureEquipment>())
+        {
+            countermeasure.Munition = Equipment.Get(countermeasure.Def.ProjectileArchetype) as MunitionEquip;
+        }
+
         //Resolve light inheritance
         foreach (var lt in lights.Values)
         {
@@ -1288,7 +1319,9 @@ public class GameItemDb
         }
 
         // LootCrateEquipment references
-        foreach (var val in flData.Equipment.Equip)
+        foreach (var val in flData.Equipment.Equip
+                     .Concat<AbstractEquipment>(flData.Equipment.Munitions)
+                     .Concat(flData.Equipment.Mines))
         {
             var eq = Equipment.Get(val.Nickname);
 
@@ -1365,7 +1398,7 @@ public class GameItemDb
                 Nickname = inisys.Nickname,
                 Visit = (VisitFlags)inisys.Visit
             };
-            sys.CRC = CrcTool.FLModelCrc(sys.Nickname);
+            sys.CRC = FLHash.CreateID(sys.Nickname);
             sys.MsgIdPrefix = inisys.MsgIdPrefix;
             sys.BackgroundColor = inisys.Info?.SpaceColor ?? Color4.Black;
             sys.MusicSpace = inisys.Music?.Space;
@@ -2220,7 +2253,7 @@ public class GameItemDb
                 HullDamage = orig.HullDamage,
                 EnergyDamage = orig.EnergyDamage
             };
-            ex.CRC = CrcTool.FLModelCrc(ex.Nickname);
+            ex.CRC = FLHash.CreateID(ex.Nickname);
             Explosions.Add(ex);
         }
     }
@@ -2234,6 +2267,7 @@ public class GameItemDb
             var ship = new Ship
             {
                 ModelFile = ResolveDrawable(orig.MaterialLibraries, orig.DaArchetypeName),
+                EnvMapMaterial = orig.EnvmapMaterial,
                 LODRanges = orig.LodRanges,
                 HoldSize = orig.HoldSize,
                 Mass = orig.Mass,
@@ -2343,7 +2377,7 @@ public class GameItemDb
             {
                 FLLog.Error("Asteroids", $"Explosion arch '{ast.ExplosionArch}' not found for mine '{ast.Nickname}'");
             }
-            asteroid.CRC = CrcTool.FLModelCrc(asteroid.Nickname);
+            asteroid.CRC = FLHash.CreateID(asteroid.Nickname);
             Asteroids.Add(asteroid);
         }
 
@@ -2352,9 +2386,10 @@ public class GameItemDb
             var dyn = new DynamicAsteroid
             {
                 Nickname = dynast.Nickname,
-                ModelFile = ResolveDrawable(dynast.MaterialLibrary ?? "", dynast.DaArchetype)
+                ModelFile = ResolveDrawable(dynast.MaterialLibrary ?? "", dynast.DaArchetype),
+                Explosion = Explosions.Get(dynast.ExplosionArch)
             };
-            dyn.CRC = CrcTool.FLModelCrc(dyn.Nickname);
+            dyn.CRC = FLHash.CreateID(dyn.Nickname);
             DynamicAsteroids.Add(dyn);
         }
     }
@@ -2504,6 +2539,7 @@ public class GameItemDb
             obj.CRC = FLHash.CreateID(obj.Nickname);
             obj.LODRanges = arch.LODRanges;
             obj.ModelFile = ResolveDrawable(arch.MaterialPaths, arch.DaArchetypeName);
+            obj.EnvMapMaterial = arch.EnvmapMaterial;
             obj.Hitpoints = arch.Hitpoints ?? -1;
 
             if (!arch.Destructible ||
@@ -2675,6 +2711,7 @@ public class GameItemDb
             Color = lt.Color ?? Color3f.White,
             MinColor = lt.MinColor ?? Color3f.Black
         };
+        equip.FlareCone = lt.FlareCone;
         equip.GlowColor = lt.GlowColor ?? equip.Color;
         equip.BulbSize = lt.BulbSize ?? 1f;
         equip.GlowSize = lt.GlowSize ?? 1f;

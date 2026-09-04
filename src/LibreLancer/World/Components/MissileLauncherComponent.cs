@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Runtime.InteropServices.JavaScript;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData.Items;
+using LibreLancer.Data.Schema.Equipment;
 
 namespace LibreLancer.World.Components
 {
@@ -19,37 +20,36 @@ namespace LibreLancer.World.Components
         public override float MaxRange => maxRange;
         public override int IdsName => Object.IdsName;
 
+        internal static float CalculateRange(float lifetime, float muzzleVelocity, Motor? motor)
+        {
+            if (motor == null)
+                return lifetime * muzzleVelocity;
+
+            var range = motor.Delay * muzzleVelocity;
+            var accelerationEnd = MathF.Min(motor.Lifetime + motor.Delay, lifetime);
+            var accelerationTime = accelerationEnd - motor.Delay;
+            if (accelerationTime > 0)
+            {
+                range += accelerationTime * muzzleVelocity +
+                         0.5f * motor.Accel * accelerationTime * accelerationTime;
+
+                var maxSpeedTime = lifetime - accelerationEnd;
+                if (maxSpeedTime > 0)
+                {
+                    var maxSpeed = muzzleVelocity + accelerationTime * motor.Accel;
+                    range += maxSpeed * maxSpeedTime;
+                }
+            }
+
+            return range;
+        }
+
         public MissileLauncherComponent(GameObject parent, MissileLauncherEquipment Def) : base(parent)
         {
             Object = Def;
 
-            var lt = Object.Munition.Def.Lifetime;
-
-            if (Object.Munition.Motor != null)
-            {
-                maxRange = Object.Munition.Motor.Delay * Object.Def.MuzzleVelocity; // initial time + initial accel
-                var accelEndTime = Object.Munition.Motor.Lifetime + Object.Munition.Motor.Delay;
-                if (accelEndTime > lt)
-                    accelEndTime = lt;
-                var t = (accelEndTime - Object.Munition.Motor.Delay);
-
-                if (t > 0)
-                {
-                    maxRange += (t * Object.Def.MuzzleVelocity) + 0.5f * Object.Munition.Motor.Accel * (t * t);
-                }
-
-                var maxSpeedTime = lt - accelEndTime;
-
-                if (maxSpeedTime > 0 && t > 0)
-                {
-                    var newVel = Object.Def.MuzzleVelocity + (t * Object.Munition.Motor.Accel);
-                    maxRange += newVel * maxSpeedTime;
-                }
-            }
-            else
-            {
-                maxRange = Object.Munition.Def.Lifetime * Object.Def.MuzzleVelocity;
-            }
+            maxRange = CalculateRange(Object.Munition.Def.Lifetime, Object.Def.MuzzleVelocity,
+                Object.Munition.Motor);
 
             FLLog.Debug("Missile", $"{Def.Nickname} {maxRange}");
         }

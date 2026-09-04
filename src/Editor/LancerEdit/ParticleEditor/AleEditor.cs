@@ -87,6 +87,7 @@ namespace LancerEdit
             aleViewport.Draw3D = DrawGL;
             buffer = main.Commands;
             debug = main.LineRenderer;
+            pool.Debug = debug;
             layout = new VerticalTabLayout(DrawLeft, DrawRight, DrawMiddle);
             layout.TabsLeft.Add(new(Icons.Tree, "Nodes", 0));
             layout.TabsRight.Add(new(Icons.Fire, "Effects", 0));
@@ -176,6 +177,8 @@ alchemy = FILE_PATH_HERE
             {
                 paused = !paused;
             }
+            ImGui.SameLine();
+            ImGui.Checkbox("Draw Debug", ref pool.DrawDebug);
             ImGui.SameLine();
             ImGui.Text($"T: {instance.GlobalTime:0.000}, Particle Count: {instance.CountAll()}");
         }

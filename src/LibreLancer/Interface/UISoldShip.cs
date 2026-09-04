@@ -14,6 +14,9 @@ namespace LibreLancer.Interface
     {
         public int IdsName;
         public int IdsInfo;
+        public int IdsInfo1;
+        public int IdsInfo2;
+        public int IdsInfo3;
         public int ShipClass;
         public string? Icon;
         public string? Model;

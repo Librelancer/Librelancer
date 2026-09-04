@@ -159,6 +159,31 @@ namespace LibreLancer.Interface
 
     [UiLoadable]
     [WattleScriptUserData]
+    public class CheckboxStyle : ButtonStyle
+    {
+        private StyledProperty<UiRenderable?> check = new("Check");
+
+        public UiRenderable? Check
+        {
+            get => check.Value;
+            set => check.Set(value);
+        }
+
+        public override void Set(StyleResolver resolver)
+        {
+            base.Set(resolver);
+            resolver.Add(check);
+        }
+
+        public override void Create(StyleResolver resolver)
+        {
+            base.Create(resolver);
+            resolver.Query(check);
+        }
+    }
+
+    [UiLoadable]
+    [WattleScriptUserData]
     public class ButtonStyle : ElementStyle
     {
         private StyledProperty<string> mouseEnterSound = new("MouseEnterSound");
@@ -243,8 +268,8 @@ namespace LibreLancer.Interface
         private StyledProperty<UiRenderable?> background = new("Background");
         private StyledProperty<UiRenderable?> border = new("Border");
         private StyledProperty<float> textSize = new("TextSize");
-        private StyledProperty<float> marginLeft = new("MarginLeft");
-        private StyledProperty<float> marginRight = new("MarginRight");
+        private StyledProperty<Metric> marginLeft = new("MarginLeft");
+        private StyledProperty<Metric> marginRight = new("MarginRight");
         private StyledProperty<string> fontFamily = new("FontFamily");
         private StyledProperty<HorizontalAlignment> horizontalAlignment = new("HorizontalAlignment");
         private StyledProperty<VerticalAlignment> verticalAlignment = new("VerticalAlignment");
@@ -293,13 +318,13 @@ namespace LibreLancer.Interface
             set => textSize.Set(value);
         }
 
-        public float MarginLeft
+        public Metric MarginLeft
         {
             get => marginLeft.Value;
             set => marginLeft.Set(value);
         }
 
-        public float MarginRight
+        public Metric MarginRight
         {
             get => marginRight.Value;
             set => marginRight.Set(value);
@@ -699,6 +724,86 @@ namespace LibreLancer.Interface
         {
             get => trackMarginY.Value;
             set => trackMarginY.Set(value);
+        }
+    }
+
+    [UiLoadable]
+    [WattleScriptUserData]
+    public class InfocardStyle : ElementStyle
+    {
+        private StyledProperty<bool> bold = new("Bold");
+        private StyledProperty<bool> italic = new("Italic");
+        private StyledProperty<bool> underline = new("Underline");
+        private StyledProperty<int> fontIndex = new ("FontIndex");
+        private StyledProperty<InterfaceColor?> textColor = new("TextColor", InterfaceColor.White);
+        private StyledProperty<InterfaceColor?> textShadow = new("TextShadow");
+        private StyledProperty<HorizontalAlignment> textAlignment = new("TextAlignment");
+
+        public override void Set(StyleResolver resolver)
+        {
+            base.Set(resolver);
+            resolver.Add(bold)
+                .Add(italic)
+                .Add(underline)
+                .Add(fontIndex)
+                .Add(textColor)
+                .Add(textShadow)
+                .Add(textAlignment);
+        }
+
+        public override void Create(StyleResolver resolver)
+        {
+            base.Create(resolver);
+            resolver
+                .Query(bold)
+                .Query(italic)
+                .Query(underline)
+                .Query(fontIndex)
+                .Query(textColor)
+                .Query(textShadow)
+                .Query(textAlignment);
+        }
+
+        public bool Bold
+        {
+            get => bold.Value;
+            set => bold.Set(value);
+        }
+
+        public bool Italic
+        {
+            get => italic.Value;
+            set => italic.Set(value);
+        }
+
+        public bool Underline
+        {
+            get => underline.Value;
+            set => underline.Set(value);
+        }
+
+        public int FontIndex
+        {
+            get => fontIndex.Value;
+            set => fontIndex.Set(value);
+        }
+
+        public InterfaceColor? TextColor
+        {
+            get => textColor.Value;
+            set => textColor.Set(value);
+        }
+
+        public InterfaceColor? TextShadow
+        {
+            get => textShadow.Value;
+            set => textShadow.Set(value);
+        }
+
+        public HorizontalAlignment TextAlignment
+        {
+            get => textAlignment.Value;
+            set => textAlignment.Set(value);
         }
     }
 

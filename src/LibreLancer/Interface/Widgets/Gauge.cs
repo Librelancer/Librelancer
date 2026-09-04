@@ -14,6 +14,7 @@ namespace LibreLancer.Interface
     {
         public UiRenderable? Fill { get; set; }
         public float PercentFilled { get; set; }
+        public float PercentStart { get; set; }
 
         public bool Reverse { get; set; }
 
@@ -22,9 +23,12 @@ namespace LibreLancer.Interface
             if (!Visible) return;
             Background?.Draw(context, drawList, ClientRectangle);
             var fillRect = ClientRectangle;
-            fillRect.Width *= PercentFilled;
+            var start = MathHelper.Clamp(PercentStart, 0, 1);
+            var amount = MathHelper.Clamp(PercentFilled, 0, 1 - start);
+            fillRect.X += ClientRectangle.Width * start;
+            fillRect.Width = ClientRectangle.Width * amount;
             if (Reverse) {
-                fillRect.X = ClientRectangle.X + Width - fillRect.Width;
+                fillRect.X = ClientRectangle.X + Width - ClientRectangle.Width * start - fillRect.Width;
             }
             Fill?.DrawWithClip(context, drawList, ClientRectangle, fillRect);
             Border?.Draw(context, drawList, ClientRectangle);

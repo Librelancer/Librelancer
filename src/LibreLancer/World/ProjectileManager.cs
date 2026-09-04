@@ -59,6 +59,7 @@ namespace LibreLancer.World
                         Projectiles[i].Position,
                         dir,
                         length,
+                        true,
                         out var contactPoint,
                         out var po,
                         out var tag))

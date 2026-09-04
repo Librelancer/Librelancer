@@ -46,6 +46,9 @@ namespace LibreLancer.World
 
         private Func<double>? timeSource;
         private readonly ResourceManager? resources;
+        int atmosphereVersion = 0;
+        int atmosphereSetVersion = -1;
+        private BoundingSphere[] atmospheres = null!;
 
         static GameWorld()
         {
@@ -312,6 +315,11 @@ namespace LibreLancer.World
                 netIDLookup.Add(obj.NetID, obj);
             }
 
+            if(obj.SystemObject != null)
+            {
+                atmosphereVersion++;
+            }
+
             SpatialLookup.AddObject(obj, obj.WorldTransform.Position);
         }
 
@@ -320,6 +328,11 @@ namespace LibreLancer.World
             if (obj.NetID != 0)
             {
                 netIDLookup.Remove(obj.NetID);
+            }
+
+            if(obj.SystemObject != null)
+            {
+                atmosphereVersion++;
             }
 
             objects.Remove(obj);
@@ -349,6 +362,30 @@ namespace LibreLancer.World
             return nickname == null
                 ? null
                 : objects.FirstOrDefault(obj => nickname.Equals(obj.Nickname, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public float ZoneDamageAt(Vector3 position)
+        {
+            float damage = 0;
+            Zones?.ZonesAtPosition(position, z => damage += z.Damage);
+            return damage;
+        }
+
+        public bool InAtmosphere(Vector3 position)
+        {
+            if (atmosphereSetVersion != atmosphereVersion)
+            {
+                atmospheres = objects.Where(x => x.SystemObject != null && x.SystemObject.AtmosphereRange > 0)
+                    .Select(x => new BoundingSphere(x.LocalTransform.Position, x.SystemObject!.AtmosphereRange))
+                    .ToArray();
+                atmosphereSetVersion = atmosphereVersion;
+            }
+            for (int i = 0; i < atmospheres.Length; i++)
+            {
+                if (atmospheres[i].Contains(position) != ContainmentType.Disjoint)
+                    return true;
+            }
+            return false;
         }
 
         public void RegisterAll()
@@ -433,7 +470,8 @@ namespace LibreLancer.World
                     continue;
                 }
 
-                if (rb.Tag is GameObject { Kind: GameObjectKind.Debris })
+                if (rb.Tag is GameObject go &&
+                    (go.Kind == GameObjectKind.Debris || go.Kind == GameObjectKind.DynamicAsteroid))
                 {
                     continue;
                 }

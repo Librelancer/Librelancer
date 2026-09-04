@@ -20,4 +20,5 @@ public class LightEquipment : Equipment
     public bool DockingLight;
     public float EmitRange;
     public Vector3 EmitAttenuation;
+    public Vector2? FlareCone;
 }

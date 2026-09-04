@@ -161,6 +161,8 @@
       <A>1</A>
     </Color>
   </Color>
+  <Model name="cargo_empty" path="INTERFACE/MULTIPLAYER/TRADE/trade_cargoempty.3db" x="0" y="0" xscale="16.4" yscale="123" xz-plane="false" />
+  <Model name="cargo_full" path="INTERFACE/MULTIPLAYER/TRADE/trade_cargofull.3db" x="0" y="0" xscale="16.4" yscale="123" xz-plane="false" />
   <Model name="fullbutton_animating" path="INTERFACE/NEURONET/INVENTORY/front_button.cmp" x="0" y="0" xscale="7.8" yscale="31" xz-plane="false" />
   <Model name="hullgauge" path="INTERFACE/HUD/hud_hullgauge.3db" x="0" y="0" xscale="11.7" yscale="249" xz-plane="false" />
   <Model name="shieldgauge" path="INTERFACE/HUD/hud_shieldgauge.3db" x="0" y="0" xscale="11.7" yscale="249" xz-plane="false" />
@@ -262,7 +264,6 @@
   <Model name="hud_hailship" path="INTERFACE/HUD/hud_communication.3db" x="0" y="0" xscale="65" yscale="65" xz-plane="false" />
   <Model name="hud_contactall" path="INTERFACE/HUD/hud_contactall.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
   <Model name="hud_contactlist" path="INTERFACE/HUD/hud_contactlist.3db" x="0" y="0" xscale="64" yscale="64" xz-plane="false" />
-
   <Model name="hud_contactloot" path="INTERFACE/HUD/hud_contactloot.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
   <Model name="hud_contactotherplayers" path="INTERFACE/HUD/hud_contactotherplayers.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
   <Model name="hud_contactlootabledepot" path="INTERFACE/HUD/hud_contactlootabledepot.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
@@ -277,7 +278,6 @@
   <Model name="hud_contactplanet" path="INTERFACE/HUD/hud_contactplanet.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
   <Model name="hud_contactship" path="INTERFACE/HUD/hud_contactship.3db" x="0" y="0" xscale="86" yscale="96" xz-plane="false" />
   <Model name="hud_contactstation" path="INTERFACE/HUD/hud_contactstation.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
-
   <Model name="hud_contactimportant" path="INTERFACE/HUD/hud_contactimportant.3db" x="0" y="0" xscale="86" yscale="86" xz-plane="false" />
   <Model name="hud_targetedobject" path="INTERFACE/HUD/hud_targetedobject.3db" x="0" y="0" xscale="76" yscale="76" xz-plane="false" />
   <Model name="hud_shieldbatteries" path="INTERFACE/HUD/hud_shieldgaugeicon.3db" x="0" y="0" xscale="75" yscale="75" xz-plane="false" />
@@ -288,6 +288,7 @@
   <Model name="nn_request.3db" path="INTERFACE/NEURONET/ICONS/nn_request.3db" x="0" y="0" xscale="67" yscale="49" xz-plane="false" />
   <Model name="chat_background" path="INTERFACE/NEURONET/CHAT/chat_background.cmp" x="0" y="0" xscale="2.125" yscale="4.9" xz-plane="false" />
   <Model name="hud_scanship" path="INTERFACE/HUD/hud_scanshipinactive.3db" x="0" y="0" xscale="64.5" yscale="64.5" xz-plane="false" />
+  <Model name="check" path="INTERFACE/TEXTOFFER/check.3db" x="0" y="0" xscale="88" yscale="88" xz-plane="false" />
   <Image name="sliderarrow_up" texname="HUD_sliderarrow" texpath="" type="Triangle" rot="None" originx="0" originy="0" angle="0" flip="false" animu="0" animv="0">
     <TexCoords>
       <X0>0.086419754</X0>
@@ -773,28 +774,136 @@
     </DisplayCoords>
   </Image>
   <Image name="mission_preview_destroy" texname="MIS_destroy" texpath="" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="true" animu="0" animv="0">
-    <TexCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></TexCoords>
-    <DisplayCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></DisplayCoords>
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
   </Image>
   <Image name="mission_preview_destroyinstallation" texname="MIS_destroyinstallation" texpath="" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="true" animu="0" animv="0">
-    <TexCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></TexCoords>
-    <DisplayCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></DisplayCoords>
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
   </Image>
   <Image name="mission_preview_destroycontraband" texname="MIS_destroycontraband" texpath="" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="true" animu="0" animv="0">
-    <TexCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></TexCoords>
-    <DisplayCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></DisplayCoords>
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
   </Image>
   <Image name="mission_preview_bountyoffer" texname="MIS_bountyoffer" texpath="" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="true" animu="0" animv="0">
-    <TexCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></TexCoords>
-    <DisplayCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></DisplayCoords>
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
   </Image>
   <Image name="mission_preview_assassinate" texname="MIS_assassinate" texpath="" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="true" animu="0" animv="0">
-    <TexCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></TexCoords>
-    <DisplayCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></DisplayCoords>
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
   </Image>
   <Image name="mission_preview_retrievemissingitem" texname="MIS_retrievemissingitem" texpath="" type="Normal" rot="None" originx="0" originy="0" angle="0" flip="true" animu="0" animv="0">
-    <TexCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></TexCoords>
-    <DisplayCoords><X0>0</X0><Y0>0</Y0><X1>1</X1><Y1>0</Y1><X2>0</X2><Y2>1</Y2><X3>1</X3><Y3>1</Y3></DisplayCoords>
+    <TexCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </TexCoords>
+    <DisplayCoords>
+      <X0>0</X0>
+      <Y0>0</Y0>
+      <X1>1</X1>
+      <Y1>0</Y1>
+      <X2>0</X2>
+      <Y2>1</Y2>
+      <X3>1</X3>
+      <Y3>1</Y3>
+    </DisplayCoords>
   </Image>
   <LibraryFile>INTERFACE/interface.generic.vms</LibraryFile>
   <LibraryFile>INTERFACE/UI/uitextures.txm</LibraryFile>

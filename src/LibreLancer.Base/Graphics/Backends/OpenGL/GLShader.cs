@@ -10,13 +10,17 @@ using System.Runtime.InteropServices;
 
 namespace LibreLancer.Graphics.Backends.OpenGL;
 
+internal record struct GLTextureInfo(string Identifier, int Unit, int Sampler);
+
 internal class GLShader : IShader
 {
     private const int MAX_UNIFORM_LOC = 280;
     private uint programID = 0;
     private GLRenderContext context;
 
-    private record struct GLBindingInfo(int Location, string Identifier);
+    private record struct GLInputInfo(int Location, string Identifier);
+
+
 
     private record struct UniformBlockDescription(int Location, int SizeBytes, bool Integer, string Identifier);
 
@@ -40,6 +44,7 @@ internal class GLShader : IShader
     private int blocksInteger = 0;
     private UniformBlock[] blocks;
     private ulong[] tags;
+    public GLTextureInfo[] Textures;
 
     public List<int> UsedStorageBindings = [];
 
@@ -65,15 +70,15 @@ internal class GLShader : IShader
         reader.Offset += 4;
         if (!sig.SequenceEqual("\0GL\0"u8))
             throw new Exception("GLSL shader corrupt");
-        var inputs = new GLBindingInfo[reader.ReadVarUInt32()];
+        var inputs = new GLInputInfo[reader.ReadVarUInt32()];
         for (int i = 0; i < inputs.Length; i++)
         {
             inputs[i] = new((int)reader.ReadVarUInt32(), reader.ReadUTF8());
         }
-        var textures = new GLBindingInfo[reader.ReadVarUInt32()];
-        for (int i = 0; i < textures.Length; i++)
+        Textures = new GLTextureInfo[reader.ReadVarUInt32()];
+        for (int i = 0; i < Textures.Length; i++)
         {
-            textures[i] = new((int)reader.ReadVarUInt32(), reader.ReadUTF8());
+            Textures[i] = new(reader.ReadUTF8(), (int)reader.ReadVarUInt32(), (int)reader.ReadVarUInt32());
         }
         var buffers = new GLStorageBuffer[reader.ReadVarUInt32()];
         for (int i = 0; i < buffers.Length; i++)
@@ -195,9 +200,9 @@ internal class GLShader : IShader
 
         // Bind Textures
         context.ApplyShader(this);
-        foreach (var binding in textures)
+        foreach (var binding in Textures)
         {
-            GL.Uniform1i(GetLocation(binding.Identifier), binding.Location);
+            GL.Uniform1i(GetLocation(binding.Identifier), binding.Unit);
         }
 
         // Bind storage

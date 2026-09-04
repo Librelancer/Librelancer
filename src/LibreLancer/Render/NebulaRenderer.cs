@@ -121,7 +121,7 @@ namespace LibreLancer.Render
                     interiorPuffs[i].Shape = sprites.GetShape(Nebula.InteriorCloudShapes!.GetNext(rand));
                     interiorPuffs[i].Position = sysr.Camera.Position + RandomPointSphere(Nebula.InteriorCloudMaxDistance);
                     interiorPuffs[i].Spawned = true;
-                    interiorPuffs[i].Velocity = RandomDirection() * Nebula.InteriorCloudDrift;
+                    interiorPuffs[i].Velocity = rand.NextUnitVector() * Nebula.InteriorCloudDrift;
                 }
                 interiorPuffs[i].Position += interiorPuffs[i].Velocity * (float)elapsed;
             }
@@ -501,17 +501,6 @@ namespace LibreLancer.Render
 					);
 				}
 			}
-		}
-
-        private Vector3 RandomDirection()
-		{
-			var v = new Vector3(
-				-1f + (float)(rand.NextDouble() * 2),
-				-1f + (float)(rand.NextDouble() * 2),
-				-1f + (float)(rand.NextDouble() * 2)
-			);
-			v.Normalize();
-			return v;
 		}
 
         private Vector3 RandomPointSphere(float radius)

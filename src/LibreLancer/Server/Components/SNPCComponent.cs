@@ -411,18 +411,7 @@ namespace LibreLancer.Server.Components
 
             Vector3 dir = Vector3.Normalize(target - myPos);
 
-            Vector3 randomVec;
-
-            do
-            {
-                randomVec = new Vector3(
-                    random.NextFloat(-1f, 1f),
-                    random.NextFloat(-1f, 1f),
-                    random.NextFloat(-1f, 1f)
-                );
-            } while (randomVec.LengthSquared() < 0.01f);
-
-            randomVec = Vector3.Normalize(randomVec);
+            Vector3 randomVec = random.NextUnitVector();
 
             float dot = Vector3.Dot(dir, randomVec);
             float currentAngle = MathF.Acos(dot);
@@ -709,8 +698,7 @@ namespace LibreLancer.Server.Components
             }
             else if (e == StateGraphEntry.Buzz)
             {
-                buzzDirection = new Vector3(random.NextSingle(),
-                    random.NextSingle(), random.NextSingle()).Normalized();
+                buzzDirection = random.NextUnitVector();
             }
         }
 

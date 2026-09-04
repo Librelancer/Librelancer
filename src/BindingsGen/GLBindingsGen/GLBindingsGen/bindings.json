@@ -48,6 +48,14 @@
         "name": "DepthRange"
     },
     {
+        "function": "void glStencilFunc(int func, int reference, uint mask)",
+        "name": "StencilFunc"
+    },
+    {
+        "function": "void glStencilOp(int fail, int dpfail, int dppass)",
+        "name": "StencilOp"
+    },
+    {
         "function": "void glPolygonMode(int faces, int mode)",
         "name": "PolygonMode"
     },

@@ -275,15 +275,15 @@ public class GameDataManager
     public string? GetInfocardText(int id, FontManager fonts)
     {
         var res = Items.Ini.Infocards.GetXmlResource(id);
-        return res == null ? null : Infocards.RDLParse.Parse(res, fonts).ExtractText();
+        return res == null ? null : Infocards.RDLParse.Parse(res).ExtractText();
     }
 
-    public Infocards.Infocard GetInfocard(int id, FontManager fonts)
+    public Infocards.Infocard GetInfocard(int id)
     {
-        return Infocards.RDLParse.Parse(Items.Ini.Infocards.GetXmlResource(id), fonts);
+        return Infocards.RDLParse.Parse(Items.Ini.Infocards.GetXmlResource(id));
     }
 
-    public bool GetRelatedInfocard(int ogId, FontManager fonts, [MaybeNullWhen(false)] out Infocards.Infocard ic)
+    public bool GetRelatedInfocard(int ogId, [MaybeNullWhen(false)] out Infocards.Infocard ic)
     {
         ic = null;
 
@@ -292,7 +292,7 @@ public class GameDataManager
             return false;
         }
 
-        ic = GetInfocard(newId, fonts);
+        ic = GetInfocard(newId);
         return true;
 
     }

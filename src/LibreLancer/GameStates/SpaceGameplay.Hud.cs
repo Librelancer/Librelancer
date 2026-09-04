@@ -115,10 +115,49 @@ partial class SpaceGameplay
         );
     }
 
-    private void DrawShipReticle(double delta, GameObject obj, Vector2 pos, UiContext context,
-        RectangleF parentRectangle)
+    private const float ShipReticleRange = 2500f;
+    private const float ShipReticleFadeStart = 1000f;
+    private const float ShipReticleFadeEnd = 2400f;
+    private const float ShipReticleSize = 12f;
+    private const float ShipReticleCornerLength = 3.5f;
+    private const float ShipReticleThickness = 0.9f;
+
+    private void DrawShipReticle(GameObject obj, Vector2 pos, float distance, UiContext context,
+        DrawList2D drawList)
     {
-        // var rep = GetRepToPlayer(obj);
+        var colorName = GetRepToPlayer(obj) switch
+        {
+            RepAttitude.Friendly => "color_friendly",
+            RepAttitude.Hostile => "color_hostile",
+            _ => "color_neutral"
+        };
+        var color = context.Data.GetColor(colorName).GetColor(context.GlobalTime);
+        var opacity = distance <= ShipReticleFadeStart
+            ? 1f
+            : distance <= ShipReticleFadeEnd
+                ? MathHelper.Lerp(1f, 0.25f,
+                    (distance - ShipReticleFadeStart) / (ShipReticleFadeEnd - ShipReticleFadeStart))
+                : MathHelper.Lerp(0.25f, 0f,
+                    (distance - ShipReticleFadeEnd) / (ShipReticleRange - ShipReticleFadeEnd));
+        color.A *= opacity;
+
+        var scale = context.PointsToPixelsF(Vector2.One).X;
+        var halfSize = (ShipReticleSize / 2f) * scale;
+        var cornerLength = ShipReticleCornerLength * scale;
+        var thickness = MathF.Max(1.5f, ShipReticleThickness * scale);
+
+        void DrawCorner(Vector2 corner, float horizontalDirection, float verticalDirection)
+        {
+            drawList.DrawLine(color, corner,
+                corner + new Vector2(cornerLength * horizontalDirection, 0), thickness);
+            drawList.DrawLine(color, corner,
+                corner + new Vector2(0, cornerLength * verticalDirection), thickness);
+        }
+
+        DrawCorner(pos + new Vector2(-halfSize, -halfSize), 1, 1);
+        DrawCorner(pos + new Vector2(halfSize, -halfSize), -1, 1);
+        DrawCorner(pos + new Vector2(-halfSize, halfSize), 1, -1);
+        DrawCorner(pos + new Vector2(halfSize, halfSize), -1, -1);
     }
 
     private void DrawSteeringArrows(UiContext context, DrawList2D drawList)
@@ -212,7 +251,7 @@ partial class SpaceGameplay
 
         foreach (var obj in world.Objects)
         {
-            if (obj == Selection.Selected)
+            if (obj == Selection.Selected || obj == player)
             {
                 // Draw last
             }
@@ -226,8 +265,12 @@ partial class SpaceGameplay
                                     (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important:
                         DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
                         break;
-                    case true:
-                        DrawShipReticle(delta, obj, pos, context, clientRectangle);
+                    case true when (obj.Flags & GameObjectFlags.Hidden) == 0:
+                        var distance = Vector3.Distance(player.WorldTransform.Position, obj.WorldTransform.Position);
+                        if (distance <= ShipReticleRange)
+                        {
+                            DrawShipReticle(obj, pos, distance, context, drawList);
+                        }
                         break;
                 }
             }
@@ -307,6 +350,21 @@ partial class SpaceGameplay
 
         public UIInventoryItem[] GetScannedInventory(string filter) => g.session.GetScannedInventory(filter);
         public UIInventoryItem[] GetPlayerInventory(string filter) => g.session.GetPlayerInventory(filter);
+        public Infocard?[]? GetEquipmentStats(UIInventoryItem item) => new Trader(g.session).GetEquipmentStats(item);
+
+        public float GetCargoHoldSize() => g.session.GetCargoHoldSize();
+        public float GetUsedCargoHoldSpace() => g.session.GetUsedCargoHoldSpace();
+        public Infocard? GetPlayerShipInfocard() => g.session.GetPlayerShipInfocard();
+
+        public Infocard?[]? GetShipInfocards(bool playerShip)
+        {
+            if (playerShip)
+                return g.session.GetShipInfocards(g.session.PlayerShip);
+
+            return g.Selection.Selected?.TryGetComponent<ShipComponent>(out var ship) == true
+                ? g.session.GetShipInfocards(ship.Ship)
+                : null;
+        }
 
         public Infocard? GetScannedShipInfocard()
         {
@@ -317,7 +375,7 @@ partial class SpaceGameplay
 
             if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
             {
-                return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo, g.Game.Fonts);
+                return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo);
             }
 
             return null;
@@ -419,7 +477,7 @@ partial class SpaceGameplay
 
         public void ApplySettings(GameSettings settings)
         {
-            g.Game.Config.Settings = settings;
+            g.Game.Config.Settings.Apply(settings);
             g.Game.Config.Save();
         }
 
@@ -506,7 +564,7 @@ partial class SpaceGameplay
             }
 
             var ids = g.Selection.Selected.SystemObject.IdsInfo;
-            return g.Game.GameData.GetInfocard(ids, g.Game.Fonts);
+            return g.Game.GameData.GetInfocard(ids);
         }
 
         public string? CurrentInfoString() => g.Selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);
@@ -638,6 +696,12 @@ partial class SpaceGameplay
         public double GetCredits() => g.session.Credits;
 
         public float GetPlayerHealth() => g.playerHealth.CurrentHealth / g.playerHealth.MaxHealth;
+
+        public bool RadiationWarning()
+        {
+            var position = g.player.WorldTransform.Position;
+            return g.world.ZoneDamageAt(position) > 0 && !g.world.InAtmosphere(position);
+        }
 
         public float GetPlayerShield()
         {

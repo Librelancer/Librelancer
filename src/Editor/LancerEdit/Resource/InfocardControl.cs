@@ -21,16 +21,21 @@ namespace LancerEdit
         private int renderWidth = -1, renderHeight = -1;
         private ImTextureRef rid;
         public string InfocardText { get; private set; }
-        public InfocardControl(MainWindow win, Infocard infocard, float initWidth)
+        private FontManager fonts;
+
+
+
+        public InfocardControl(MainWindow win, Infocard infocard, FontManager fonts, float initWidth)
         {
             window = win;
-            icard = win.RichText.BuildText(infocard.Nodes, (int)initWidth, 0.7f * ImGuiHelper.Scale);
+            this.fonts = fonts;
+            icard = win.RichText.BuildText(infocard.CreateDisplayNodes(InfocardDisplayStyle.Default, fonts), (int)initWidth, 0.7f * ImGuiHelper.Scale);
         }
         public void SetInfocard(Infocard infocard)
         {
             icard.Dispose();
             InfocardText = infocard.ExtractText();
-            icard = window.RichText.BuildText(infocard.Nodes, renderWidth > 0 ? renderWidth : 400, 0.7f * ImGuiHelper.Scale);
+            icard = window.RichText.BuildText(infocard.CreateDisplayNodes(InfocardDisplayStyle.Default, fonts), renderWidth > 0 ? renderWidth : 400, 0.7f * ImGuiHelper.Scale);
         }
         public unsafe void Draw(float width)
         {

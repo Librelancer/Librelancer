@@ -267,5 +267,26 @@ namespace LibreLancer.Server.Components
             HandleHullDamage(hullDamage, attacker, hitObject as GameObject);
             return null;
         }
+
+        public void DamageZone(float damage)
+        {
+            if (damage <= 0)
+                return;
+
+            // Environmental damage bypasses shields and affects mounted equipment,
+            // but Freelancer damage zones do not damage weapons.
+            HandleHullDamage(damage, null, null);
+            foreach (var child in Parent.Children)
+            {
+                if (!child.TryGetComponent<EquipmentComponent>(out var equipment) ||
+                    equipment.Equipment is GunEquipment or MissileLauncherEquipment or MineDropperEquipment ||
+                    !child.TryGetComponent<SHealthComponent>(out var equipmentHealth))
+                    continue;
+
+                equipmentHealth.HandleHullDamage(damage, null, null);
+                if (child.Attachment is { } hardpoint)
+                    EquipmentHealths[hardpoint] = equipmentHealth.CurrentHealth / equipmentHealth.MaxHealth;
+            }
+        }
     }
 }

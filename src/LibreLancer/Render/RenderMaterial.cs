@@ -36,6 +36,7 @@ namespace LibreLancer.Render
         public float FadeNear = 0;
         public float FadeFar = 0;
         public float OpacityMultiplier = 1;
+        public string? EnvMap;
         public StorageBuffer? Bones;
         public int BufferOffset;
         public abstract void Use(RenderContext rstate, IVertexType vertextype, ref Lighting lights, int userData);
@@ -186,11 +187,11 @@ namespace LibreLancer.Render
             shader.SetUniformBlock<ShaderLighting>(2, ref data, false, szCount);
         }
 
-        protected Texture? GetTexture(int cacheIndex, string? tex)
+        protected Texture? GetTexture(int cacheIndex, string? tex, bool bindNull = true)
         {
             if (tex == null || Library is null)
             {
-                return Library?.FindTexture(ResourceManager.NullTextureName);
+                return bindNull ? Library?.FindTexture(ResourceManager.NullTextureName) : null;
             }
 
             textures[cacheIndex] ??= Library.FindTexture(tex);

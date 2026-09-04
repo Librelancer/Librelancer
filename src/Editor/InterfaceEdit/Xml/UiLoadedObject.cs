@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Collections;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection.Emit;
@@ -266,7 +267,7 @@ internal abstract class UiLoadedProperty
 
     private static string LiteralFloat(float f)
     {
-        return f.ToString("0.###############");
+        return f.ToString("0.###############", CultureInfo.InvariantCulture);
     }
 
     protected static object ObjToString(object o)
@@ -279,6 +280,8 @@ internal abstract class UiLoadedProperty
         else if (o is InterfaceColor clr) valuestr = $"GetColor({ToLiteral(clr.ToString())})";
         else if (o is InterfaceImage img) valuestr = $"GetImage({ToLiteral(img.Name)})";
         else if (o is XmlStyle style) valuestr = $"GetStyle({ToLiteral(style.Name)})";
+        else if (o is Metric metric)
+            valuestr = $"Metric(MetricUnit.{metric.Unit}, {LiteralFloat(metric.Value)}, {LiteralFloat(metric.Constant)})";
         else if (o is Vector3 vec)
             valuestr = $"Vector3({LiteralFloat(vec.X)}, {LiteralFloat(vec.Y)}, {LiteralFloat(vec.Z)})";
         else if (o.GetType().IsEnum) valuestr = $"{o.GetType().Name}.{o}";

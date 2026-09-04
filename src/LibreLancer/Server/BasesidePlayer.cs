@@ -214,8 +214,22 @@ public class BasesidePlayer : IBasesidePlayer
         return false;
     }
 
+    private static Equipment? GetBundledAmmo(Equipment equipment)
+    {
+        if (equipment is MissileLauncherEquipment launcher && launcher.Munition.Def.RequiresAmmo)
+            return launcher.Munition;
+
+        if (equipment is MineDropperEquipment mine && mine.Mine?.Def.RequiresAmmo == true)
+            return mine.Mine!;
+
+        return null;
+    }
+
     public Task<bool> PurchaseGood(string item, int count)
     {
+        if (count <= 0)
+            return Task.FromResult(false);
+
         if (BaseData == null)
         {
             return Task.FromResult(false);
@@ -229,6 +243,11 @@ public class BasesidePlayer : IBasesidePlayer
             return Task.FromResult(false);
         }
 
+        var equipment = g.Good.Equipment;
+        var bundledAmmo = GetBundledAmmo(equipment);
+        const int bundledAmmoPerLauncher = 10;
+        var bundledAmmoCount = 0;
+
         var cost = (long) (g.Price * (ulong) count);
 
         if (Player.Character!.Credits < cost)
@@ -237,26 +256,53 @@ public class BasesidePlayer : IBasesidePlayer
         }
 
         var hp = count == 1
-            ? FirstAvailableHardpoint(g.Good.Equipment.HpType)
+            ? FirstAvailableHardpoint(equipment.HpType)
             : null;
 
         if (hp == null &&
-            count > CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship!, g.Good.Equipment))
+            count > CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship!, equipment))
         {
             FLLog.Error("Player", $"{Player.Name} tried to overfill cargo hold");
             return Task.FromResult(false);
+        }
+
+        if (bundledAmmo != null)
+        {
+            var ammoCount = (long) bundledAmmoPerLauncher * count;
+            if (ammoCount > int.MaxValue)
+                return Task.FromResult(false);
+
+            var itemsAfterLauncher = Player.Character.Items;
+            if (hp == null)
+            {
+                itemsAfterLauncher = new List<NetCargo>(Player.Character.Items)
+                {
+                    new NetCargo { Equipment = equipment, Count = count }
+                };
+            }
+
+            bundledAmmoCount = (int) ammoCount;
+            if (bundledAmmoCount > CargoUtilities.GetItemLimit(
+                    itemsAfterLauncher, Player.Character.Ship!, bundledAmmo))
+            {
+                FLLog.Error("Player", $"{Player.Name} tried to overfill cargo hold with bundled ammunition");
+                return Task.FromResult(false);
+            }
         }
 
         using (var c = Player.Character.BeginTransaction())
         {
             if (hp != null)
             {
-                c.AddCargo(g.Good.Equipment, hp, 1);
+                c.AddCargo(equipment, hp, 1);
             }
             else
             {
-                c.AddCargo(g.Good.Equipment, null, count);
+                c.AddCargo(equipment, null, count);
             }
+
+            if (bundledAmmo != null)
+                c.AddCargo(bundledAmmo, null, bundledAmmoCount);
 
             c.UpdateCredits(Player.Character.Credits - cost);
         }
@@ -535,7 +581,7 @@ public class BasesidePlayer : IBasesidePlayer
             volume += item.Equipment!.Volume * (item.Count - soldAmount);
         }
 
-        volume += included.OfType<PackageAddon>().Sum(item => item.Equipment.Volume * item.Amount);
+        volume += included.OfType<SaleAddon>().Sum(item => item.Equipment.Volume * item.Amount);
 
         if (volume > resolved.Ship.HoldSize)
         {

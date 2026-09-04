@@ -7,6 +7,7 @@ using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Infocards;
 using LibreLancer.Interface;
 using LibreLancer.Missions;
 using LibreLancer.Net;
@@ -444,7 +445,7 @@ public partial class CGameSession
         physComponent.CruiseEnabled = moveState[i].CruiseEnabled;
         physComponent.CruiseSpeedOffset = moveState[i].CruiseEnabled ? moveState[i].CruiseSpeedOffset : 0;
         physComponent.Steering = moveState[i].Steering;
-        physComponent.ThrustEnabled = moveState[i].Thrust;
+        physComponent.ThrustRequested = moveState[i].Thrust;
         physComponent.EngineKillEnabled = moveState[i].EngineKill;
         physComponent.Update(1 / 60.0f, gameplay.world);
         gameplay.player.PhysicsComponent!.Body!.PredictionStep(1 / 60.0f);
@@ -476,19 +477,38 @@ public partial class CGameSession
 
     #region Despawning
 
-    void IClientPlayer.DestroyMissile(int id, bool explode)
+    void IClientPlayer.DestroyMissile(int id, bool explode, Vector3 position, uint explosionEffect)
     {
         RunSync(() =>
         {
             var despawn = spaceGameplay!.world.GetNetObject(id);
 
+            if (explode)
+            {
+                var explosionFx = explosionEffect == 0
+                    ? null
+                    : Game.GameData.Items.Effects.Get(explosionEffect);
+                if (explosionFx == null && despawn != null &&
+                    despawn.TryGetComponent<CDeployedMunitionComponent>(out var projectile))
+                {
+                    explosionFx = projectile.Munition?.ExplosionFx;
+                    if (explosionFx == null && projectile.Munition?.Explosion?.Effect is { } effectName)
+                    {
+
+                        explosionFx = Game.GameData.Items.Effects.Get(effectName);
+                    }
+
+                    if (explosionFx == null && projectile is CMissileComponent missile)
+                        explosionFx = missile.Missile.ExplodeFx;
+
+                }
+
+                if (explosionFx != null)
+                    spaceGameplay.world.SpawnTempFx(explosionFx, position);
+            }
+
             if (despawn != null)
             {
-                if (explode && despawn.TryGetComponent<CMissileComponent>(out var ms)
-                            && ms.Missile?.ExplodeFx != null)
-                {
-                    spaceGameplay.world.SpawnTempFx(ms.Missile.ExplodeFx, despawn.LocalTransform.Position);
-                }
                 despawn.Unregister(spaceGameplay.world);
                 spaceGameplay.world.RemoveObject(despawn);
                 FLLog.Debug("Client", $"Destroyed missile {id}");
@@ -1023,6 +1043,31 @@ public partial class CGameSession
         return items.ToArray();
     }
 
+    public float GetCargoHoldSize() => PlayerShip?.HoldSize ?? 0;
+    public float GetUsedCargoHoldSpace() => CargoUtilities.GetUsedVolume(Items);
+
+    public Infocard? GetPlayerShipInfocard()
+    {
+        var ids = PlayerShip?.IdsInfo ?? 0;
+        return ids > 0 ? Game.GameData.GetInfocard(ids) : null;
+    }
+
+    public Infocard?[]? GetShipInfocards(Ship? ship)
+    {
+        if (ship == null)
+            return null;
+
+        var extraIdsInfo = ship.ExtraIdsInfo ?? [];
+        var shipInfo = extraIdsInfo.Length > 0 && extraIdsInfo[0] > 0
+            ? Game.GameData.GetInfocard(extraIdsInfo[0])
+            : null;
+        var stats = ship.IdsInfo > 0
+            ? Game.GameData.GetInfocard(ship.IdsInfo)
+            : null;
+
+        return shipInfo == null && stats == null ? null : [shipInfo, stats];
+    }
+
     private UIInventoryItem[] BuildScanList(NetLoadout loadout)
     {
         var list = loadout.Items
@@ -1111,15 +1156,26 @@ public partial class CGameSession
                     newObj = new GameObject(model, Game.ResourceManager)
                     {
                         Kind = GameObjectKind.Loot,
-                        PhysicsComponent =
-                        {
-                            Mass = crate.Mass
-                        },
                         ArchetypeName = crate.Nickname
                     };
+                    newObj.PhysicsComponent!.Mass = crate.Mass;
                     newObj.AddComponent(new CHealthComponent(newObj)
                         { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
                     newObj.Name = new LootName(newObj);
+                }
+                else if ((objInfo.Flags & ObjectSpawnFlags.DynamicAsteroid) == ObjectSpawnFlags.DynamicAsteroid)
+                {
+                    var asteroid = Game.GameData.Items.DynamicAsteroids.Get(objInfo.Loadout.ArchetypeCrc)!;
+                    var model = asteroid.ModelFile!.LoadFile(Game.ResourceManager)!;
+                    newObj = new GameObject(model, Game.ResourceManager)
+                    {
+                        Kind = GameObjectKind.DynamicAsteroid,
+                        ArchetypeName = asteroid.Nickname
+                    };
+                    newObj.PhysicsComponent!.Mass = AsteroidFieldShared.DynamicAsteroidMass;
+                    newObj.AddComponent(new DynamicAsteroidComponent(newObj, objInfo.MaxVelocities.X, objInfo.MaxVelocities.Y, 0, 0, null, null));
+                    if(asteroid.Explosion != null)
+                        newObj.AddComponent(new CExplosionComponent(newObj, asteroid.Explosion));
                 }
                 else
                 {
@@ -1321,25 +1377,40 @@ public partial class CGameSession
         {
             var eq = Game.GameData.Items.Equipment.Get(equip);
 
-            if (eq is not MissileEquip mn)
+            if (eq is not MissileEquip && eq is not MunitionEquip)
                 return;
 
-            var go = new GameObject(mn.ModelFile!.LoadFile(Game.ResourceManager)!,
+            if (eq.ModelFile == null)
+                return;
+
+            var model = eq.ModelFile.LoadFile(Game.ResourceManager);
+            if (model == null)
+                return;
+
+            var go = new GameObject(model,
                 Game.ResourceManager);
             go.SetLocalTransform(new Transform3D(position, orientation));
             go.NetID = id;
             go.Kind = GameObjectKind.Missile;
             go.PhysicsComponent?.Mass = 1;
 
-            if (mn.Def.ConstEffect != null)
+            var def = eq is MissileEquip missileEquip ? missileEquip.Def : ((MunitionEquip)eq).Def;
+            if (playSound && !string.IsNullOrWhiteSpace(def.OneShotSound))
             {
-                var fx = Game.GameData.Items.Effects.Get(mn.Def.ConstEffect)?
+                Game.Sound.GetInstance(def.OneShotSound, 0, -1, -1, position)?.Play();
+            }
+            if (def.ConstEffect != null)
+            {
+                var fx = Game.GameData.Items.Effects.Get(def.ConstEffect)?
                     .GetEffect(Game.ResourceManager);
-                var ren = new ParticleEffectRenderer(fx) { Attachment = go.GetHardpoint(mn.Def.HpTrailParent) };
+                var ren = new ParticleEffectRenderer(fx) { Attachment = go.GetHardpoint(def.HpTrailParent) };
                 go.ExtraRenderers.Add(ren);
             }
 
-            go.AddComponent(new CMissileComponent(go, mn));
+            if (eq is MissileEquip mn)
+                go.AddComponent(new CMissileComponent(go, mn));
+            else
+                go.AddComponent(new CDeployedMunitionComponent(go, (MunitionEquip)eq));
             spaceGameplay!.world.AddObject(go);
             go.Register(spaceGameplay!.world);
         });

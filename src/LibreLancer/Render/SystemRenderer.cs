@@ -43,6 +43,7 @@ namespace LibreLancer.Render
         public bool DrawStarsphere = true;
 
         // Global Renderer Options
+        public bool AllowPerPixelLighting = true;
         public bool ExtraLights = false; // See comments in Draw() before enabling
 
         public RigidModel[] StarSphereModels;
@@ -92,13 +93,14 @@ namespace LibreLancer.Render
             AsteroidFields = [];
             Nebulae = [];
             StarSphereModels = [];
-            FxPool = new ParticleEffectPool(resources.GLWindow.RenderContext, Commands);
             rstate = resources.GLWindow.RenderContext;
             resman = resources;
             Polyline = new PolylineRender(rstate, Commands);
             QuadBuffer = new QuadBuffer(rstate);
             dot = (Texture2D) resources.FindTexture(ResourceManager.WhiteTextureName)!;
             DebugRenderer = new LineRenderer(rstate);
+            FxPool = new ParticleEffectPool(resources.GLWindow.RenderContext, Commands);
+            FxPool.Debug = DebugRenderer;
             Beams = new BeamsBuffer(resources, rstate);
         }
 
@@ -248,7 +250,7 @@ namespace LibreLancer.Render
             return null;
         }
 
-        private MultisampleTarget? msaa;
+        private AntialiasTarget? msaa;
         private int _mwidth = -1, _mheight = -1;
         public CommandBuffer Commands;
         private int _twidth = -1, _theight = -1;
@@ -288,14 +290,15 @@ namespace LibreLancer.Render
 
             RenderTarget? restoreTarget = rstate.RenderTarget;
 
-            if (Settings.SelectedMSAA > 0)
+            if (Settings.SelectedAA != AntialiasMode.None)
             {
-                if (_mwidth != renderWidth || _mheight != renderHeight)
+                if (_mwidth != renderWidth || _mheight != renderHeight ||
+                    Settings.SelectedAA != msaa?.Mode)
                 {
                     _mwidth = renderWidth;
                     _mheight = renderHeight;
                     msaa?.Dispose();
-                    msaa = new MultisampleTarget(rstate, renderWidth, renderHeight, Settings.SelectedMSAA);
+                    msaa = new AntialiasTarget(rstate, renderWidth, renderHeight, Settings.SelectedAA);
                 }
 
                 rstate.PushViewport(new Rectangle(0, 0, renderWidth, renderHeight));
@@ -303,6 +306,7 @@ namespace LibreLancer.Render
                 rstate.RenderTarget = msaa;
             }
 
+            RenderMaterial.VertexLighting = !(AllowPerPixelLighting && Settings.PerPixelLighting);
             rstate.PreferredFilterLevel = Settings.SelectedFiltering;
             rstate.AnisotropyLevel = Settings.SelectedAnisotropy;
             var nr = CheckNebulae(); // are we in a nebula?
@@ -494,7 +498,7 @@ namespace LibreLancer.Render
             debugLines = [];
             DebugRenderer.Render();
 
-            if (Settings.SelectedMSAA > 0)
+            if (Settings.SelectedAA != AntialiasMode.None)
             {
                 rstate.PopViewport();
                 rstate.PopScissor();

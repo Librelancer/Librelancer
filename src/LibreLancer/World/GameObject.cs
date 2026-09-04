@@ -33,7 +33,8 @@ namespace LibreLancer.World
         Missile,
         Waypoint,
         Debris,
-        Loot
+        Loot,
+        DynamicAsteroid
     }
 
     public class TradelaneName : ObjectName
@@ -312,12 +313,27 @@ namespace LibreLancer.World
 
         public void AddComponent<T>(T component) where T : GameComponent
         {
-            componentLookup.TryAdd(typeof(T), component);
             components.Add(component);
+            RegisterComponentTypes(component);
+        }
 
-            if (typeof(T).BaseType != typeof(GameComponent))
+        private void RegisterComponentTypes(GameComponent component)
+        {
+
+            for (var componentType = component.GetType();
+                 componentType != null && componentType != typeof(GameComponent);
+                 componentType = componentType.BaseType)
             {
-                componentLookup.TryAdd(typeof(T).BaseType!, component);
+                componentLookup.TryAdd(componentType, component);
+            }
+        }
+
+        private void RebuildComponentLookup()
+        {
+            componentLookup.Clear();
+            foreach (var component in components)
+            {
+                RegisterComponentTypes(component);
             }
         }
 
@@ -342,12 +358,10 @@ namespace LibreLancer.World
 
         public void RemoveComponent<T>(T component) where T : GameComponent
         {
-            components.Remove(component);
-            componentLookup.Remove(typeof(T));
-
-            if (typeof(T).BaseType != typeof(GameComponent))
+            if (components.Remove(component))
             {
-                componentLookup.Remove(typeof(T).BaseType!);
+
+                RebuildComponentLookup();
             }
         }
 
@@ -393,6 +407,10 @@ namespace LibreLancer.World
             else
             {
                 InitWithModel(arch.ModelFile?.LoadFile(res, flags), arch.SeparableParts, res, draw, phys);
+                if (RenderComponent is ModelRenderer mr)
+                {
+                    mr.EnvMapMaterial = arch.EnvMapMaterial;
+                }
             }
 
             if (arch.PhantomPhysics && PhysicsComponent != null)
@@ -427,6 +445,7 @@ namespace LibreLancer.World
             if (RenderComponent is ModelRenderer mr)
             {
                 mr.LODRanges = ship.LODRanges;
+                mr.EnvMapMaterial = ship.EnvMapMaterial;
             }
 
             if (PhysicsComponent != null)

@@ -16,78 +16,118 @@ namespace LibreLancer.Interface
     [WattleScriptUserData]
     public class Button : UiWidget
     {
-        private StyledProperty<string> fontFamily = new("FontFamily");
-        private StyledProperty<float> marginLeft = new ("MarginLeft");
-        private StyledProperty<float> marginRight = new ("MarginRight");
-        private StyledProperty<float> textSize = new("TextSize");
-        private StyledProperty<string?> mouseEnterSound = new("MouseEnterSound");
-        private StyledProperty<string> mouseDownSound = new("MouseDownSound");
-        private StyledProperty<HorizontalAlignment> horizontalAlignment = new("HorizontalAlignment");
-        private StyledProperty<VerticalAlignment> verticalAlignment = new("VerticalAlignment");
-        private StyledProperty<InterfaceColor?> textColor = new("TextColor");
-        private StyledProperty<InterfaceColor?> textShadow = new("TextShadow");
+        protected StyledProperty<string> fontFamily = new("FontFamily");
+        protected StyledProperty<Metric> marginLeft = new("MarginLeft");
+        protected StyledProperty<Metric> marginRight = new("MarginRight");
+        protected StyledProperty<float> textSize = new("TextSize");
+        protected StyledProperty<string?> mouseEnterSound = new("MouseEnterSound");
+        protected StyledProperty<string> mouseDownSound = new("MouseDownSound");
+        protected StyledProperty<HorizontalAlignment> horizontalAlignment = new("HorizontalAlignment");
+        protected StyledProperty<VerticalAlignment> verticalAlignment = new("VerticalAlignment");
+        protected StyledProperty<InterfaceColor?> textColor = new("TextColor");
+        protected StyledProperty<InterfaceColor?> textShadow = new("TextShadow");
 
         public bool Selected { get; set; }
 
         public float TextSize
         {
             get => textSize.Value;
-            set => textSize.Set(value);
+            set
+            {
+                textSize.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public string? FontFamily
         {
             get => fontFamily.Value;
-            set => fontFamily.Set(value);
+            set
+            {
+                fontFamily.Set(value);
+                StyleDirty = true;
+            }
         }
 
-        public float MarginLeft
+        public Metric MarginLeft
         {
             get => marginLeft.Value;
-            set => marginLeft.Set(value);
+            set
+            {
+                marginLeft.Set(value);
+                StyleDirty = true;
+            }
         }
 
-        public float MarginRight
+        public Metric MarginRight
         {
             get => marginRight.Value;
-            set => marginRight.Set(value);
+            set
+            {
+                marginRight.Set(value);
+                StyleDirty = true;
+            }
         }
 
 
         public string? MouseEnterSound
         {
             get => mouseEnterSound.Value;
-            set => mouseEnterSound.Set(value);
+            set
+            {
+                mouseEnterSound.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public string? MouseDownSound
         {
             get => mouseDownSound.Value;
-            set => mouseDownSound.Set(value);
+            set
+            {
+                mouseDownSound.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public HorizontalAlignment HorizontalAlignment
         {
             get => horizontalAlignment.Value;
-            set => horizontalAlignment.Set(value);
+            set
+            {
+                horizontalAlignment.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public VerticalAlignment VerticalAlignment
         {
             get => verticalAlignment.Value;
-            set => verticalAlignment.Set(value);
+            set
+            {
+                verticalAlignment.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public InterfaceColor? TextColor
         {
             get => textColor.Value;
-            set => textColor.Set(value);
+            set
+            {
+                textColor.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public InterfaceColor? TextShadow
         {
             get => textShadow.Value;
-            set => textShadow.Set(value);
+            set
+            {
+                textShadow.Set(value);
+                StyleDirty = true;
+            }
         }
 
         public bool DrawText { get; set; } = true;
@@ -118,10 +158,10 @@ namespace LibreLancer.Interface
         private string GetText(UiContext context) => txtAccess.GetText(context);
 
         private CachedRenderString? textCache;
-        private ButtonStyle btnStyle = new();
-        private StyledButton appearance = new();
+        protected ButtonStyle ButtonStyle = new();
+        protected StyledButton Appearance = new();
 
-        enum ButtonState
+        protected enum ButtonState
         {
             Normal,
             Selected,
@@ -130,7 +170,7 @@ namespace LibreLancer.Interface
             Disabled
         }
 
-        ButtonState State
+        protected ButtonState State
         {
             get;
             set
@@ -141,11 +181,11 @@ namespace LibreLancer.Interface
             }
         }
 
-        class StyledButton : ElementStyle
+        protected class StyledButton : ElementStyle
         {
             private StyledProperty<float> textSize = new("TextSize");
-            private StyledProperty<float> marginLeft = new("MarginLeft");
-            private StyledProperty<float> marginRight = new("MarginRight");
+            private StyledProperty<Metric> marginLeft = new("MarginLeft");
+            private StyledProperty<Metric> marginRight = new("MarginRight");
             private StyledProperty<string> fontFamily = new("FontFamily");
             private StyledProperty<HorizontalAlignment> horizontalAlignment = new("HorizontalAlignment");
             private StyledProperty<VerticalAlignment> verticalAlignment = new("VerticalAlignment");
@@ -153,8 +193,8 @@ namespace LibreLancer.Interface
             private StyledProperty<InterfaceColor?> textShadow = new("TextShadow");
 
             public float TextSize => textSize.Value;
-            public float MarginLeft => marginLeft.Value;
-            public float MarginRight => marginRight.Value;
+            public Metric MarginLeft => marginLeft.Value;
+            public Metric MarginRight => marginRight.Value;
             public string FontFamily => fontFamily.Value ?? "$Normal";
             public HorizontalAlignment HorizontalAlignment => horizontalAlignment.Value;
             public VerticalAlignment VerticalAlignment => verticalAlignment.Value;
@@ -192,7 +232,7 @@ namespace LibreLancer.Interface
 
         protected override ElementStyle OnRestyle(UiContext context)
         {
-            btnStyle = new StyleResolver()
+            ButtonStyle = new StyleResolver()
                 .Add(context.Data.Stylesheet?.Styles.DefaultStyle<ButtonStyle>())
                 .Add(Style)
                 .Add(WidthProperty)
@@ -202,16 +242,16 @@ namespace LibreLancer.Interface
                 .Create<ButtonStyle>();
             var stateApp = State switch
             {
-                ButtonState.Selected => btnStyle.Selected,
-                ButtonState.Hover => btnStyle.Hover,
-                ButtonState.Pressed => btnStyle.Pressed,
-                ButtonState.Disabled => btnStyle.Disabled,
+                ButtonState.Selected => ButtonStyle.Selected,
+                ButtonState.Hover => ButtonStyle.Hover,
+                ButtonState.Pressed => ButtonStyle.Pressed,
+                ButtonState.Disabled => ButtonStyle.Disabled,
                 _ => null
             };
 
             var res = new StyleResolver()
-                .Add(btnStyle)
-                .Add(btnStyle.Normal)
+                .Add(ButtonStyle)
+                .Add(ButtonStyle.Normal)
                 .Add(stateApp)
                 .Add(marginLeft)
                 .Add(marginRight)
@@ -223,11 +263,12 @@ namespace LibreLancer.Interface
                 .Add(textShadow)
                 .Add(BackgroundProperty)
                 .Add(BorderProperty);
-            appearance = res.Create<StyledButton>();
-            return appearance;
+            Appearance = res.Create<StyledButton>();
+            return Appearance;
         }
 
-        internal void Draw(UiContext context, DrawList2D drawList, RectangleF myRectangle, bool hover, bool pressed, bool selected,
+        internal void Draw(UiContext context, DrawList2D drawList, RectangleF myRectangle, bool hover, bool pressed,
+            bool selected,
             bool enabled)
         {
             var s = ButtonState.Normal;
@@ -241,8 +282,8 @@ namespace LibreLancer.Interface
                 s = ButtonState.Selected;
             State = s;
             CheckStyle(context);
-            appearance.Background?.Draw(context, drawList, myRectangle);
-            appearance.Border?.Draw(context, drawList, myRectangle);
+            Appearance.Background?.Draw(context, drawList, myRectangle);
+            Appearance.Border?.Draw(context, drawList, myRectangle);
         }
 
         public override void Update(UiContext context, double delta)
@@ -254,9 +295,9 @@ namespace LibreLancer.Interface
 
                 if (!lastFrameMouseInside)
                 {
-                    if (!string.IsNullOrWhiteSpace(btnStyle.MouseEnterSound))
+                    if (!string.IsNullOrWhiteSpace(ButtonStyle.MouseEnterSound))
                     {
-                        context.PlaySound(btnStyle.MouseEnterSound);
+                        context.PlaySound(ButtonStyle.MouseEnterSound);
                     }
                 }
 
@@ -313,13 +354,15 @@ namespace LibreLancer.Interface
                 context.SetRollover(Strid);
             }
 
-            appearance.Background?.Draw(context, drawList, ClientRectangle);
+            Appearance.Background?.Draw(context, drawList, ClientRectangle);
 
             if (DrawText && !string.IsNullOrWhiteSpace(txt))
             {
                 var textRect = ClientRectangle;
-                textRect.X += appearance.MarginLeft;
-                textRect.Width -= appearance.MarginLeft + appearance.MarginRight;
+                var ml = Appearance.MarginLeft.ToPoint(ClientRectangle, MetricAxis.X);
+                var mr = Appearance.MarginRight.ToPoint(ClientRectangle, MetricAxis.X);
+                textRect.X += ml;
+                textRect.Width -= ml + mr;
 
                 if (DebugTextFrame)
                 {
@@ -331,17 +374,18 @@ namespace LibreLancer.Interface
                     drawList,
                     ref textCache,
                     textRect,
-                    appearance.TextSize,
-                    appearance.FontFamily,
-                    appearance.TextColor,
-                    appearance.TextShadow,
-                    appearance.HorizontalAlignment,
-                    appearance.VerticalAlignment,
+                    Appearance.TextSize,
+                    Appearance.FontFamily,
+                    Appearance.TextColor,
+                    Appearance.TextShadow,
+                    Appearance.HorizontalAlignment,
+                    Appearance.VerticalAlignment,
                     true,
                     txt
                 );
             }
-            appearance.Border?.Draw(context, drawList, ClientRectangle);
+
+            Appearance.Border?.Draw(context, drawList, ClientRectangle);
         }
 
 
@@ -358,7 +402,7 @@ namespace LibreLancer.Interface
             if (ClientRectangle.Contains(context.MouseX, context.MouseY))
             {
                 // While we don't have better cascade
-                var sound = btnStyle.MouseDownSound;
+                var sound = ButtonStyle.MouseDownSound;
 
                 if (!string.IsNullOrWhiteSpace(sound))
                 {

@@ -12,6 +12,7 @@ namespace LibreLancer.Data.GameData;
 public class Archetype : IdentifiableItem
 {
     public ResolvedModel? ModelFile;
+    public string? EnvMapMaterial;
     public string? NavmapIcon;
     public ObjectLoadout? Loadout;
     public ArchetypeType Type;

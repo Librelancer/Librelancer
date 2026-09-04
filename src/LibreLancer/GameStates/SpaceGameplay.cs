@@ -338,6 +338,10 @@ namespace LibreLancer
 
             switch (obj)
             {
+                case InputAction.USER_CRUISE:
+                    steering.Cruise = !steering.Cruise;
+                    steering.EngineKill = false;
+                    break;
                 case InputAction.USER_MANEUVER_DOCK:
                     ManeuverSelect("Dock");
                     break;
@@ -1070,10 +1074,6 @@ namespace LibreLancer
 
             switch (action)
             {
-                case InputAction.USER_CRUISE:
-                    steering.Cruise = !steering.Cruise;
-                    steering.EngineKill = false;
-                    break;
                 case InputAction.USER_TURN_SHIP:
                     mouseFlight = !mouseFlight;
                     break;
@@ -1234,7 +1234,7 @@ namespace LibreLancer
             var dir = (end - start).Normalized();
             var tgt = start + (dir * 400);
 
-            if (world.Physics!.PointRaycast(player.PhysicsComponent!.Body, start, dir, 1000, out var contactPoint,
+            if (world.Physics!.PointRaycast(player.PhysicsComponent!.Body, start, dir, 1000, true, out var contactPoint,
                     out _, out _))
             {
                 return contactPoint;
@@ -1368,6 +1368,16 @@ namespace LibreLancer
             if (Input.IsActionDown(InputAction.USER_LAUNCH_MISSILES))
             {
                 weapons.FireMissiles(world);
+            }
+
+            if (Input.IsActionDown(InputAction.USER_LAUNCH_COUNTERMEASURES))
+            {
+                weapons.FireCountermeasures(world);
+            }
+
+            if (Input.IsActionDown(InputAction.USER_LAUNCH_MINES))
+            {
+                weapons.FireMines(world);
             }
 
             for (int i = 0; i < 10; i++)
@@ -1807,8 +1817,6 @@ namespace LibreLancer
 
         public override unsafe void Draw(double delta)
         {
-            RenderMaterial.VertexLighting = false;
-
             if (loading)
             {
                 loader!.Draw(delta);

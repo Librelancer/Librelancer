@@ -16,18 +16,15 @@ public class ZoneLookup : IDisposable
     private bool isDisposed = false;
 
     public const float PopulationZoneVisitDistance = 5_000f;
-    private const float SizeModifierZoneVisit = PopulationZoneVisitDistance + 200f;
 
     private Tree tree;
     private BufferPool pool;
 
-    private Tree farLookupTree;
-
     private List<Zone> zones;
 
-    private static void ComputeBounds(Zone zone, float sizeMod, out Vector3 min, out Vector3 max)
+    private static void ComputeBounds(Zone zone, out Vector3 min, out Vector3 max)
     {
-        var sz = zone.Size + new Vector3(sizeMod);
+        var sz = zone.Size;
         switch (zone.Shape)
         {
             case ShapeKind.Box:
@@ -35,7 +32,7 @@ public class ZoneLookup : IDisposable
                 b.ComputeBounds(zone.RotationMatrix.ExtractRotation(), out min, out max);
                 break;
             case ShapeKind.Ellipsoid:
-                var sz2 = zone.Size * 2 + new Vector3(sizeMod);
+                var sz2 = zone.Size * 2;
                 var b2 = new Box(sz2.X, sz2.Y, sz2.Z);
                 b2.ComputeBounds(zone.RotationMatrix.ExtractRotation(), out min, out max);
                 break;
@@ -55,12 +52,12 @@ public class ZoneLookup : IDisposable
         max += zone.Position;
     }
 
-    private static void FillSubtreesForChildren(List<Zone> children, Span<NodeChild> subtrees, float sizeMod)
+    private static void FillSubtreesForChildren(List<Zone> children, Span<NodeChild> subtrees)
     {
         for (int i = 0; i < children.Count; ++i)
         {
             ref var subtree = ref subtrees[i];
-            ComputeBounds(children[i], sizeMod, out subtree.Min, out subtree.Max);
+            ComputeBounds(children[i], out subtree.Min, out subtree.Max);
             subtree.LeafCount = 1;
             subtree.Index = Tree.Encode(i);
         }
@@ -85,19 +82,8 @@ public class ZoneLookup : IDisposable
             LeafCount = zones.Count
         };
         pool.Take(zones.Count, out Buffer<NodeChild> subtrees);
-        FillSubtreesForChildren(zones, subtrees, 0);
+        FillSubtreesForChildren(zones, subtrees);
         tree.BinnedBuild(subtrees, pool);
-        pool.Return(ref subtrees);
-
-        farLookupTree = new Tree(pool, zones.Count)
-        {
-            NodeCount = int.Max(1, zones.Count - 1),
-            LeafCount = zones.Count
-        };
-
-        pool.Take(zones.Count, out subtrees);
-        FillSubtreesForChildren(zones, subtrees, SizeModifierZoneVisit);
-        farLookupTree.BinnedBuild(subtrees, pool);
         pool.Return(ref subtrees);
     }
 
@@ -165,7 +151,8 @@ public class ZoneLookup : IDisposable
             return;
         }
         var iterator = new DistanceIterator(callback, this, position);
-        tree.GetOverlaps(new BepuUtilities.BoundingBox(position, position), pool, ref iterator);
+        tree.GetOverlaps(new BepuUtilities.BoundingBox(position - new Vector3(PopulationZoneVisitDistance + 100),
+            position + new Vector3(PopulationZoneVisitDistance + 100f)), pool, ref iterator);
     }
 
     public void Dispose()

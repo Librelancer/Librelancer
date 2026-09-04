@@ -123,17 +123,40 @@ namespace LibreLancer.ContentEdit
 
                 Dictionary<string, int> stringOffsets = new Dictionary<string, int>();
                 List<string> strings = new List<string>();
+                var dataSection = new DataSection();
+                int nodeCount = 0;
+                foreach (var node in Root.IterateAll())
+                {
+                    nodeCount++;
+                    if (!strings.Contains(node.Name)) strings.Add(node.Name);
+                    if (!dataSection.AddNode(node))
+                    {
+                        return EditResult<UtfStatistics>.Error("UTF file cannot contain >2gb of data");
+                    }
+                }
+
+                byte[] nodeBlock;
+                using (var mem = new MemoryStream())
+                {
+                    var res = WriteNode(Root, new BinaryWriter(mem), stringOffsets, dataSection, true);
+                    if (res.IsError)
+                        return new EditResult<UtfStatistics>(default, res.Messages);
+                    nodeBlock = mem.ToArray();
+                }
+                long strBlockLength = 0;
+                foreach (var str in strings)
+                {
+                    strBlockLength += 1 + (int)str.Length;
+                }
+
+                if (nodeBlock.Length + strBlockLength + dataSection.MemorySize +
+                    56 + 4 >= int.MaxValue)
+                {
+                    return EditResult<UtfStatistics>.Error("UTF file size cannot exceed 2gb");
+                }
+
                 using (var writer = new BinaryWriter(File.Create(filename)))
                 {
-                    var dataSection = new DataSection();
-                    int nodeCount = 0;
-                    foreach (var node in Root.IterateAll())
-                    {
-                        nodeCount++;
-                        if (!strings.Contains(node.Name)) strings.Add(node.Name);
-                        dataSection.AddNode(node);
-                    }
-
                     byte[] stringBlock;
                     using (var mem = new MemoryStream())
                     {
@@ -152,14 +175,6 @@ namespace LibreLancer.ContentEdit
                         stringBlock = mem.ToArray();
                     }
 
-                    byte[] nodeBlock;
-                    using (var mem = new MemoryStream())
-                    {
-                        var res = WriteNode(Root, new BinaryWriter(mem), stringOffsets, dataSection, true);
-                        if (res.IsError)
-                            return new EditResult<UtfStatistics>(default, res.Messages);
-                        nodeBlock = mem.ToArray();
-                    }
 
                     int strAlloc = stringBlock.Length + 3 & ~3;
                     /*write signature*/
@@ -214,6 +229,9 @@ namespace LibreLancer.ContentEdit
             private Dictionary<LUtfNode, int> dataOffsets = new();
             private Dictionary<ulong, List<(byte[] Data, int Offset)>> allocated = new();
             private int currentDataOffset = 0;
+            private long memorySize = 0;
+
+            public long MemorySize => memorySize;
 
             public int Length => currentDataOffset;
 
@@ -225,11 +243,15 @@ namespace LibreLancer.ContentEdit
                 return hash;
             }
 
-            public void AddNode(LUtfNode node)
+            public bool AddNode(LUtfNode node)
             {
                 if (node.Data == null)
-                    return;
+                    return true;
                 int dataAlloc = node.Data.Length + 3 & ~3;
+                if (memorySize + dataAlloc > int.MaxValue)
+                    return false;
+                memorySize += dataAlloc;
+
                 node.Write = true;
                 var hash = FNV1A64(node.Data);
                 if (allocated.TryGetValue(hash, out var nodeList))
@@ -263,6 +285,8 @@ namespace LibreLancer.ContentEdit
                     dataOffsets[node] = currentDataOffset;
                     currentDataOffset += dataAlloc;
                 }
+
+                return true;
             }
 
             public int GetOffset(LUtfNode node) => dataOffsets[node];

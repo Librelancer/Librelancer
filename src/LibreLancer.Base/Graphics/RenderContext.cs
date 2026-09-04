@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Graphics.Backends;
 using LibreLancer.Graphics.Backends.OpenGL;
+using LibreLancer.Graphics.Vertices;
 
 namespace LibreLancer.Graphics;
 
@@ -23,6 +24,12 @@ public class RenderContext
     public long FrameNumber => frameNumber;
     private long frameNumber = 0;
     private Shader tintShader;
+    internal Texture2D SMAAAreaTex;
+    internal Texture2D SMAASearchTex;
+    internal ShaderBundle SMAAEdgeDetection;
+    internal ShaderBundle SMAABlendingWeightCalculation;
+    internal ShaderBundle SMAANeighborhoodBlending;
+    internal VertexBuffer FullScreenTriangle;
 
     internal static RenderContext Instance = null!;
 
@@ -64,7 +71,7 @@ public class RenderContext
     }
 
     public int MaxAnisotropy => impl.MaxAnisotropy;
-    public int MaxSamples => impl.MaxSamples;
+    public AntialiasMode MaxAntialias => impl.MaxAntialias;
 
     public int AnisotropyLevel
     {
@@ -163,6 +170,19 @@ public class RenderContext
         set => requested.CullFaces = value;
     }
 
+    public bool StencilEnabled
+    {
+        get => requested.StencilEnabled;
+        set => requested.StencilEnabled = value;
+    }
+
+    public StencilTest Stencil
+    {
+        get => requested.Stencil;
+        set => requested.Stencil = value;
+    }
+
+
     public void SetIdentityCamera() => Backend.SetIdentityCamera();
     public void SetCamera(ICamera camera) => Backend.SetCamera(camera);
 
@@ -188,6 +208,25 @@ public class RenderContext
         Samplers = new(this);
         SetIdentityCamera();
         tintShader = ShaderBundle.FromResource<RenderContext>(this, "FSTint.bin").Get(0);
+        SMAAEdgeDetection = ShaderBundle.FromResource<RenderContext>(this, "SMAAEdgeDetection.bin");
+        SMAABlendingWeightCalculation = ShaderBundle.FromResource<RenderContext>(this, "SMAABlendingWeightCalculation.bin");
+        SMAANeighborhoodBlending = ShaderBundle.FromResource<RenderContext>(this, "SMAANeighborhoodBlending.bin");
+        using (var stream = typeof(RenderContext).Assembly.GetManifestResourceStream("LibreLancer.Shaders.AreaTexDX10.dds")!)
+        {
+            SMAAAreaTex = (Texture2D)ImageLib.DDS.FromStream(this, stream);
+        }
+        using (var stream = typeof(RenderContext).Assembly.GetManifestResourceStream("LibreLancer.Shaders.SearchTex.dds")!)
+        {
+            SMAASearchTex = (Texture2D)ImageLib.DDS.FromStream(this, stream);
+        }
+
+        FullScreenTriangle = new VertexBuffer(this, typeof(VertexPositionTexture), 3);
+        FullScreenTriangle.SetData(new VertexPositionTexture[]
+        {
+            new(new(-1f, -1f, 0f), new(0f, 0f)),
+            new(new(-1f, 3f, 0f), new(0f, 2f)),
+            new(new(3f, -1f, 0f), new(2f, 0f))
+        });
     }
 
     public Rectangle CurrentViewport => requested.Viewport;

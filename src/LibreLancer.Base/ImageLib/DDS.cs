@@ -205,6 +205,8 @@ public static class DDS
                 return width * height * 2;
             case SurfaceFormat.Bgra8:
                 return width * height * 4;
+            case SurfaceFormat.R8:
+                return width * height;
             default:
                 throw new NotSupportedException(header.ddspf.dwFourCC.ToString());
         }
@@ -254,6 +256,16 @@ public static class DDS
             header.ddspf.dwABitMask == 0xf000)
         {
             return SurfaceFormat.Bgra4444;
+        }
+        // R8 (single channel)
+        if (header.ddspf.dwFlags == 0x20000 &&
+            header.ddspf.dwRGBBitCount == 8 &&
+            header.ddspf.dwRBitMask == 0xFF &&
+            header.ddspf.dwGBitMask == 0 &&
+            header.ddspf.dwBBitMask == 0 &&
+            header.ddspf.dwABitMask == 0)
+        {
+            return SurfaceFormat.R8;
         }
         //Uncompressed 32-bit and 24-bit formats
         if ((header.ddspf.dwFlags == 0x41 || header.ddspf.dwFlags == 0x40) &&
