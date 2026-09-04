@@ -45,7 +45,7 @@ public partial class CGameSession : IClientPlayer
 
     public Action<IPacket>? ExtraPackets;
     public FreelancerGame Game;
-    private readonly Queue<Action> gameplayActions = new();
+    private readonly ConcurrentQueue<Action> gameplayActions = new();
 
 
     public SoldGood[] Goods = null!;
@@ -96,6 +96,9 @@ public partial class CGameSession : IClientPlayer
 
     public bool IsManeuverEnabled(string maneuver)
     {
+        if (maneuver.Equals("FreeFlight", StringComparison.OrdinalIgnoreCase) && InTradelane)
+            return true;
+
         if (maneuversLocked)
             return false;
         if (maneuver.Equals("Dock", StringComparison.OrdinalIgnoreCase))
@@ -166,11 +169,16 @@ public partial class CGameSession : IClientPlayer
         Statistics.BattleshipsKilled = stats.BattleshipsKilled;
     }
 
-    void IClientPlayer.StartTradelane()
+    void IClientPlayer.StartTradelane(ObjNetId ring, Quaternion orientation)
     {
         inTradelane = true;
         CompleteActiveTradelaneWaypoint(FLHash.CreateID(PlayerSystem));
-        RunSync(spaceGameplay!.StartTradelane);
+        RunSync(() => spaceGameplay?.StartTradelane(ring, orientation));
+    }
+
+    void IClientPlayer.TradelaneRing(ObjNetId ring)
+    {
+        RunSync(() => spaceGameplay?.TradelaneRing(ring));
     }
 
     void IClientPlayer.UpdateVisits(VisitBundle bundle)

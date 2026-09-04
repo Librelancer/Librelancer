@@ -177,10 +177,16 @@ namespace LibreLancer.Server
 
         public bool InTradelane;
 
-        public void StartTradelane()
+        public void StartTradelane(GameObject ring, Quaternion orientation)
         {
-            rpcClient.StartTradelane();
+            rpcClient.StartTradelane(ring, orientation);
             InTradelane = true;
+        }
+
+        public void TradelaneRing(GameObject ring)
+        {
+            if (InTradelane)
+                rpcClient.TradelaneRing(ring);
         }
 
         public void TradelaneDisrupted()

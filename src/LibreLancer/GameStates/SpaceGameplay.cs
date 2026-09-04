@@ -16,6 +16,7 @@ using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Graphics;
 using LibreLancer.Input;
 using LibreLancer.Interface;
+using LibreLancer.Media;
 using LibreLancer.Net;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
@@ -67,6 +68,10 @@ namespace LibreLancer
         private CPlayerCargoComponent cargo = null!;
         private bool loading = true;
         private LoadingScreen? loader;
+        private readonly List<ParticleEffectRenderer> transientShipEffects = [];
+        private TradelaneEquipment? activeTradelaneEquipment;
+        private ParticleEffectRenderer? tradelaneTravelRenderer;
+        private SoundInstance? tradelaneTravelSound;
         public Cutscene? Thn;
 
         private bool pausemenu = false;
@@ -680,8 +685,86 @@ namespace LibreLancer
             Game.Keyboard.TextInput -= Game_TextInput;
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;
             Game.Mouse.MouseDown -= Mouse_MouseDown;
+            foreach (var effect in transientShipEffects)
+                player?.ExtraRenderers.Remove(effect);
+            transientShipEffects.Clear();
+            StopTradelaneEffects(null);
             sysrender?.Dispose();
             world?.Dispose();
+        }
+
+        private (ParticleEffectRenderer? Renderer, SoundInstance? Sound)
+            AttachShipEffect(
+                ResolvedFx? effect,
+                bool loopSound = false)
+        {
+            if (effect == null)
+                return (null, null);
+
+            var particle = effect.GetEffect(Game.ResourceManager);
+            var renderer = particle == null
+                ? null
+                : new ParticleEffectRenderer(particle);
+            if (renderer != null)
+            {
+                player.ExtraRenderers.Add(renderer);
+            }
+
+            SoundInstance? sound = null;
+            if (effect.Sound != null)
+            {
+                sound = Game.Sound.GetInstance(effect.Sound.Nickname, 0, -1, -1, null);
+                sound?.Play(loopSound);
+            }
+
+            return (renderer, sound);
+        }
+
+        private void AttachTransientShipEffect(ResolvedFx? effect)
+        {
+            var attached = AttachShipEffect(effect);
+            if (attached.Renderer != null)
+                transientShipEffects.Add(attached.Renderer);
+        }
+
+        private TradelaneEquipment? GetTradelaneEquipment(ObjNetId ring)
+        {
+            var obj = world.GetObject(ring);
+            if (obj?.TryGetComponent<CTradelaneComponent>(out var lane) ?? false)
+                return lane.Def;
+
+            var fromLoadout = obj?.SystemObject?.Loadout?.Items
+                .Select(x => x.Equipment)
+                .OfType<TradelaneEquipment>()
+                .FirstOrDefault();
+            return fromLoadout ??
+                   Game.GameData.Items.Equipment.Get("basic_trade_lane_eq")
+                       as TradelaneEquipment;
+        }
+
+        private void StopTradelaneEffects(ResolvedFx? endEffect)
+        {
+            if (tradelaneTravelRenderer != null)
+            {
+                player?.ExtraRenderers.Remove(tradelaneTravelRenderer);
+                tradelaneTravelRenderer = null;
+            }
+            tradelaneTravelSound?.Stop();
+            tradelaneTravelSound = null;
+            activeTradelaneEquipment = null;
+            if (endEffect != null && player != null)
+                AttachTransientShipEffect(endEffect);
+        }
+
+        private void UpdateTransientShipEffects()
+        {
+            for (var i = transientShipEffects.Count - 1; i >= 0; i--)
+            {
+                if (!transientShipEffects[i].Finished)
+                    continue;
+                player.ExtraRenderers.Remove(transientShipEffects[i]);
+                transientShipEffects.RemoveAt(i);
+            }
         }
 
         private void Keyboard_KeyDown(KeyEventArgs e)
@@ -731,6 +814,11 @@ namespace LibreLancer
             switch (e)
             {
                 case "FreeFlight":
+                    if (session.InTradelane)
+                    {
+                        session.SpaceRpc.ExitTradelane();
+                    }
+
                     pilotComponent!.Cancel();
                     return true;
                 case "Dock":
@@ -750,14 +838,25 @@ namespace LibreLancer
                         return false;
                     }
 
-                    pilotComponent!.StartDock(Selection.Selected, GotoKind.Goto);
+                    var tradelaneHardpoint = string.Empty;
+                    if (dock.Action.Kind == DockKinds.Tradelane)
+                    {
+                        tradelaneHardpoint = dock.GetDockHardpoints(
+                                player.PhysicsComponent!.Body.Position)
+                            .FirstOrDefault()?.Name ?? string.Empty;
+                    }
+
+                    pilotComponent!.StartDock(
+                        Selection.Selected,
+                        GotoKind.Goto,
+                        tradelaneHardpoint: tradelaneHardpoint);
                     var dockCam = dock.GetDockCamera(0);
                     if (dockCam != null)
                     {
                         SetDockCam(dockCam);
                     }
                     session.RegisterRouteDock(Selection.Selected.NicknameCRC, sys.CRC);
-                    session.SpaceRpc.RequestDock(Selection.Selected);
+                    session.SpaceRpc.RequestDock(Selection.Selected, tradelaneHardpoint);
                     return true;
 
                 case "Goto":
@@ -787,6 +886,7 @@ namespace LibreLancer
                 double FixedDelta = 1 / 60.0;
 
                 world.Update(paused ? 0 : FixedDelta);
+                UpdateTransientShipEffects();
 
                 if (session.Update())
                 {
@@ -1468,24 +1568,65 @@ namespace LibreLancer
             });
         }
 
-        public void StartTradelane()
+        public void StartTradelane(ObjNetId ring, Quaternion orientation)
         {
+            StopTradelaneEffects(null);
+            activeTradelaneEquipment = GetTradelaneEquipment(ring);
+            if (activeTradelaneEquipment != null)
+            {
+                AttachTransientShipEffect(activeTradelaneEquipment.ShipEnter);
+                var travel = AttachShipEffect(
+                    activeTradelaneEquipment.PlayerTravel,
+                    loopSound: true);
+                tradelaneTravelRenderer = travel.Renderer;
+                tradelaneTravelSound = travel.Sound;
+            }
+
+            var body = player.PhysicsComponent!.Body;
+            var speed = body.LinearVelocity.Length();
+            body.LinearVelocity = TradelaneMotion.Forward(orientation) * speed;
+            body.AngularVelocity = Vector3.Zero;
             player.GetComponent<ShipPhysicsComponent>()!.Active = false;
             player.GetComponent<WeaponControlComponent>()!.Enabled = false;
+            if (!player.TryGetComponent<CTradelaneMoveComponent>(out var tradelane))
+            {
+                tradelane = new CTradelaneMoveComponent(player);
+                player.AddComponent(tradelane);
+            }
+            tradelane.BeginEntryOrientation(orientation);
             pilotComponent?.Cancel();
             RefreshActiveUserWaypoint(false);
+        }
+
+        public void TradelaneRing(ObjNetId ring)
+        {
+            activeTradelaneEquipment ??= GetTradelaneEquipment(ring);
+            AttachTransientShipEffect(activeTradelaneEquipment?.PlayerSplash);
         }
 
         public void TradelaneDisrupted()
         {
             Game.Sound.PlayVoiceLine(VoiceLines.NnVoiceName, VoiceLines.NnVoice.TradeLaneDisrupted);
-            EndTradelane();
+            var disruptEffect = activeTradelaneEquipment?.ShipDisrupt;
+            StopTradelaneEffects(disruptEffect);
+            RestoreAfterTradelane();
         }
 
         public void EndTradelane()
         {
+            var exitEffect = activeTradelaneEquipment?.ShipExit;
+            StopTradelaneEffects(exitEffect);
+            RestoreAfterTradelane();
+        }
+
+        private void RestoreAfterTradelane()
+        {
             player.GetComponent<ShipPhysicsComponent>()!.Active = true;
             player.GetComponent<WeaponControlComponent>()!.Enabled = true;
+            if (player.TryGetComponent<CTradelaneMoveComponent>(out var tradelane))
+            {
+                player.RemoveComponent(tradelane);
+            }
         }
 
         private void GetCameraMatrices(out Matrix4x4 view, out Matrix4x4 projection)

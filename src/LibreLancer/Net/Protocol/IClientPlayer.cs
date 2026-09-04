@@ -44,7 +44,8 @@ public interface IClientPlayer
     void DestroyEquipment(ObjNetId id, bool explode, string hardpoint);
     void RunMissionDialog(NetDlgLine[] lines);
     void StartJumpTunnel();
-    void StartTradelane();
+    void StartTradelane(ObjNetId ring, Quaternion orientation);
+    void TradelaneRing(ObjNetId ring);
     void TradelaneDisrupted();
     void EndTradelane();
     void Cloak(ObjNetId ship);
@@ -56,6 +57,7 @@ public interface IClientPlayer
     void UpdateFormation(NetFormation formation);
     void TradelaneActivate(uint id, bool left);
     void TradelaneDeactivate(uint id, bool left);
+    void SetDockingLights(ObjNetId id, bool active);
     void MarkImportant(int objId, bool important);
     [Channel(1)]
     void ReceiveChatMessage(ChatCategory category, BinaryChatMessage player, BinaryChatMessage message);

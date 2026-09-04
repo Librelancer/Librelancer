@@ -56,7 +56,8 @@ public class SpacePlayer : ISpacePlayer
         world.EnqueueAction(() => { World.Players[player].GetComponent<SPlayerComponent>()!.RunDirective(index, World.GameWorld); });
     }
 
-    public void RequestDock(ObjNetId id) => world.RequestDock(player, id);
+    public void RequestDock(ObjNetId id, string tradelaneHardpoint) =>
+        world.RequestDock(player, id, tradelaneHardpoint);
 
     public void FireMissiles(MissileFireCmd[] missiles) => world.FireMissiles(missiles, player);
 
@@ -97,6 +98,23 @@ public class SpacePlayer : ISpacePlayer
             player.MissionRuntime?.PlayerManeuver(ManeuverType.Formation, "inverse");
             if (obj.Formation != null && obj.Formation.LeadShip != obj)
                 obj.Formation.Remove(obj);
+        });
+    }
+
+    public void ExitTradelane()
+    {
+        world.EnqueueAction(() =>
+        {
+            if (!player.InTradelane)
+            {
+                return;
+            }
+
+            var obj = world.Players[player];
+            if (obj.TryGetComponent<STradelaneMoveComponent>(out var tradelane))
+            {
+                tradelane.RequestFreeFlight();
+            }
         });
     }
 
