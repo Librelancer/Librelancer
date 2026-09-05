@@ -113,6 +113,8 @@ namespace LibreLancer
         private bool isLeftDown = false;
         private double leftDownTimer = 0;
         private bool mouseFlight = false;
+        // Closest to vanilla mouse-flight activation timing.
+        private const double MouseFlightActivationDelay = 0.155;
 
         public SpaceGameplay(FreelancerGame g, CGameSession session) : base(g)
         {
@@ -897,11 +899,6 @@ namespace LibreLancer
                 {
                     session.GameplayUpdate(this, FixedDelta);
 
-                    if (isLeftDown)
-                    {
-                        leftDownTimer -= FixedDelta;
-                    }
-
                     if (musicTriggered)
                     {
                         if (RtcMusicOneShot && !Game.Sound.MusicPlaying)
@@ -1196,17 +1193,10 @@ namespace LibreLancer
 
             if (!(Game.Debug.CaptureMouse) && !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
             {
-                var newSelection = GetMouseSelection();
-
-                if (newSelection != null)
-                {
-                    Selection.Selected = newSelection;
-                }
-
                 if (!isLeftDown)
                 {
                     isLeftDown = true;
-                    leftDownTimer = 0.25;
+                    leftDownTimer = MouseFlightActivationDelay;
                 }
             }
             else
@@ -1220,6 +1210,16 @@ namespace LibreLancer
         {
             if ((e.Buttons & MouseButtons.Left) > 0)
             {
+                if (isLeftDown && leftDownTimer >= 0 && !mouseFlight &&
+                    !Game.Debug.CaptureMouse && !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y))
+                {
+                    var newSelection = GetMouseSelection();
+                    if (newSelection != null)
+                    {
+                        Selection.Selected = newSelection;
+                    }
+                }
+
                 leftDownTimer = 0;
                 isLeftDown = false;
             }
@@ -1354,6 +1354,11 @@ namespace LibreLancer
             if (paused)
             {
                 return;
+            }
+
+            if (isLeftDown)
+            {
+                leftDownTimer -= delta;
             }
 
             Input.Update();
