@@ -183,7 +183,7 @@ public class BaseNpcEditorTab : GameContentTab
             roomCutscene.BeginScene(previewRoom.OpenScene());
             roomCutscene.Update(0.1);
 
-            var markers = ThnRoomHandler.GetSpots(room)
+            var markers = ThnRoomHandler.GetSpots(previewRoom)
                 .Select(e => (e, roomCutscene!.GetObject(e.Nickname)))
                 .OrderBy(x => x.Item1.Nickname)
                 .ToArray();
@@ -215,58 +215,33 @@ public class BaseNpcEditorTab : GameContentTab
 
         if (selectedBase == null || selectedRoom == null || roomSpots.Length == 0) return;
 
-        Dictionary<string, BaseNpc> fixedNpcs = new();
-        HashSet<string> used = new(StringComparer.OrdinalIgnoreCase);
+        var spots = roomSpots.Select(x => x.Spot).ToArray();
+        var assignments = BaseNpcPopulation.Select(
+            selectedRoom,
+            spots,
+            Data.GameData.Items,
+            new Random(randomSeed));
 
-        foreach (var n in selectedRoom.Npcs)
+        var markerObjects = roomSpots.ToDictionary(x => x.Spot.Nickname, x => x.Obj,
+            StringComparer.OrdinalIgnoreCase);
+
+        foreach (var assignment in assignments)
         {
-            if (n.Placement != null)
-            {
-                fixedNpcs[n.Placement.Spot] = n;
-                used.Add(n.Placement.Spot);
-            }
-        }
-
-        foreach (var spot in roomSpots)
-        {
-            if (!fixedNpcs.TryGetValue(spot.Obj.Name, out var npc))
-                continue;
-
-            CreatePreviewNpcObject(npc, spot.Obj, npc.Placement!.FidgetScript);
-        }
-
-        var dynSpots = roomSpots.Where(x => x.Spot.Dynamic).ToArray();
-        var npcs = selectedRoom.Npcs.Where(x => x.Placement == null).ToArray();
-
-        var r = new Random(randomSeed);
-        r.Shuffle(dynSpots);
-        r.Shuffle(npcs);
-
-        int spawnCount = 0;
-        for (int i = 0; i < dynSpots.Length; i++)
-        {
-            if (spawnCount >= npcs.Length || spawnCount >= selectedRoom.MaxCharacters)
-                break;
-            if (used.Contains(dynSpots[i].Spot.Nickname))
-                continue;
-            var spot = dynSpots[i];
-            var npc = npcs[spawnCount];
-            var fidgetScripts = Data.GameData.Items.GetGCSScripts("fidget",
-                npc.Body?.Sex ?? FLGender.male, spot.Spot.Posture);
-            CreatePreviewNpcObject(npc, spot.Obj, fidgetScripts[0]);
-            spawnCount++;
+            if (markerObjects.TryGetValue(assignment.SceneSpot, out var marker) && marker != null)
+                CreatePreviewNpcObject(assignment.Npc, marker, assignment.FidgetScript);
         }
     }
 
     private void CreatePreviewNpcObject(BaseNpc npc, ThnSceneObject spot, ResolvedThn? fidget)
     {
-        var body = npc.Body ?? npc.BaseAppr?.Body;
-        var head = npc.Head ?? npc.BaseAppr?.Head;
-        var leftHand = npc.LeftHand ?? npc.BaseAppr?.LeftHand;
-        var rightHand = npc.RightHand ?? npc.BaseAppr?.RightHand;
-        var accessory = npc.Accessory ?? npc.BaseAppr?.Accessory;
+        var appearance = BaseNpcPopulation.ResolveAppearance(npc);
+        var body = appearance.Body;
+        var head = appearance.Head;
+        var leftHand = appearance.LeftHand;
+        var rightHand = appearance.RightHand;
+        var accessory = appearance.Accessory;
 
-        if (body == null && head == null && leftHand == null && rightHand == null)
+        if (body == null)
             return;
 
         FLLog.Debug("NPC", $"Spawning {npc.Nickname}");

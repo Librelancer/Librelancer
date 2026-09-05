@@ -15,6 +15,7 @@ using LibreLancer.Client.Components;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Utf.Dfm;
+using LibreLancer.Data.Schema.MBases;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Graphics.Text;
 using LibreLancer.ImUI.NodeEditor;
@@ -52,12 +53,15 @@ namespace LibreLancer
         private BaseRoom currentRoom;
         private Cutscene? scene;
         private UiContext ui;
+        private Action<NetBaseNpcDialog>? baseNpcDialogHandler;
 
         private CGameSession session;
         private string baseId;
         private string? active;
         private Cursor cursor;
         private Cursor talk_story;
+        private readonly Dictionary<string, Cursor> npcCursors =
+            new(StringComparer.OrdinalIgnoreCase);
         private string? virtualRoom;
         private List<BaseHotspot> tophotspots;
         private ThnScript[] sceneScripts = [];
@@ -78,6 +82,16 @@ namespace LibreLancer
         private HashSet<string> processedPaths = [];
         private Queue<StoryCutsceneIni> toPlay = new();
         private bool didLaunch = false;
+        private readonly Dictionary<string, ThnSceneObject> baseNpcObjects =
+            new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, BaseNpc> baseNpcData =
+            new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, BaseNpcRumor?> baseNpcRumors =
+            new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, BaseNpcBribe> baseNpcBribes =
+            new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> consumedBaseNpcInteractions =
+            new(StringComparer.OrdinalIgnoreCase);
 
         private enum ScriptState
         {
@@ -126,13 +140,33 @@ namespace LibreLancer
             Game.Keyboard.TextInput += Game_TextInput;
             Game.Keyboard.KeyDown += Keyboard_KeyDown;
             Game.Mouse.MouseDown += MouseOnMouseDown;
+            Game.GameData.PopulateCursors();
             cursor = Game.ResourceManager.GetCursor("arrow")!;
             talk_story = Game.ResourceManager.GetCursor("talk_story")!;
+            foreach (var name in new[]
+                     {
+                         "talk_blowoff",
+                         "talk_mission",
+                         "talk_bribe",
+                         "talk_info",
+                         "talk_rumor",
+                         "talk_equip_dealer",
+                         "talk_commodity_dealer",
+                         "talk_ship_dealer"
+                     })
+            {
+                var interactionCursor = Game.ResourceManager.GetCursor(name);
+                if (interactionCursor != null)
+                    npcCursors[name] = interactionCursor;
+            }
             ui = Game.Ui;
             nextObjectiveUpdate = session.CurrentObjective.Ids;
             session.ObjectiveUpdated = () => nextObjectiveUpdate = session.CurrentObjective.Ids;
             ui.GameApi = new BaseUiApi(this);
             ui.OpenScene("baseside");
+
+            baseNpcDialogHandler = dialog => ui.Event("BaseNpcDialog", dialog);
+            session.OnBaseNpcDialog = baseNpcDialogHandler;
 
             // Setup thorn scene
             SwitchToRoom(room == null && session.PlayerShip != null);
@@ -162,15 +196,132 @@ namespace LibreLancer
 
         private void MouseOnMouseDown(MouseEventArgs e)
         {
+            if (ui.HasModal || ui.MouseWanted(e.X, e.Y))
+                return;
+
             RTCHotspot? hp = GetHotspot(e.X, e.Y);
 
-            if (hp == null)
+            if (hp != null)
             {
+                PlayScript(hp.ini, CutsceneState.Regular);
+                session.RpcServer.StoryNPCSelect(hp.npc, currentRoom.Nickname, currentBase.Nickname);
                 return;
             }
 
-            PlayScript(hp.ini, CutsceneState.Regular);
-            session.RpcServer.StoryNPCSelect(hp.npc, currentRoom.Nickname, currentBase.Nickname);
+            var npc = GetBaseNpcHotspot(e.X, e.Y);
+            if (npc == null)
+                return;
+
+            if (consumedBaseNpcInteractions.Contains(npc.Nickname))
+                return;
+
+            FLLog.Info("NPC", $"NPC clicked: base={currentBase.Nickname}, room={currentRoom.Nickname}, virtual={virtualRoom ?? "NONE"}, npc={npc.Nickname}");
+
+            var action = BaseNpcPopulation.GetServiceAction(npc);
+            if (action != null)
+            {
+                ui.Event("OpenBaseAction", action);
+            }
+            else
+            {
+                OpenBaseNpcDialog(npc);
+            }
+        }
+
+        private void OpenBaseNpcDialog(BaseNpc npc)
+        {
+            var options = new List<NetBaseNpcOption>();
+
+            baseNpcBribes.TryGetValue(npc.Nickname, out var bribe);
+            baseNpcRumors.TryGetValue(npc.Nickname, out var rumor);
+            if (!BaseNpcRules.CanHearRumors(npc.Affiliation, session.PlayerReputations))
+                rumor = null;
+            var reputation = session.PlayerReputations.GetReputation(npc.Affiliation);
+            var interaction = BaseNpcPopulation.GetInteractionCursor(
+                npc,
+                session.MissionOffers.Length > 0,
+                rumor,
+                bribe,
+                reputation);
+
+            if (interaction == "talk_bribe" && bribe != null)
+            {
+                options.Add(NetBaseNpcOption.ForBribe(npc.Bribes.IndexOf(bribe), bribe));
+            }
+            else if (interaction == "talk_rumor" && rumor != null)
+            {
+                options.Add(new NetBaseNpcOption
+                {
+                    Id = BaseNpcOptionId.Encode(
+                        npc.Rumors.IndexOf(rumor),
+                        BaseNpcOptionType.Rumor),
+                    Kind = BaseNpcOptionKind.Rumor,
+                    Text = rumor.Ids,
+                    Contents = rumor.Ids
+                });
+            }
+            else if (interaction == "talk_info")
+            {
+                for (var i = 0; i < npc.Know.Count; i++)
+                {
+                    var know = npc.Know[i];
+                    if (know.Ids1 == 0 || know.Ids2 == 0 ||
+                        reputation < know.RepThreshold)
+                        continue;
+                    options.Add(new NetBaseNpcOption
+                    {
+                        Id = BaseNpcOptionId.Encode(i, BaseNpcOptionType.Knowledge),
+                        Kind = BaseNpcOptionKind.Knowledge,
+                        Text = know.Ids1,
+                        Contents = know.Ids2,
+                        Price = know.Price,
+                        ObjectNames = GetKnowledgeObjectNames(know)
+                    });
+                }
+            }
+
+            if (interaction == "talk_mission" && npc.Mission != null && session.MissionOffers.Length > 0)
+            {
+                options.Add(new NetBaseNpcOption
+                {
+                    Id = 0,
+                    Kind = BaseNpcOptionKind.Mission,
+                    Text = 1350
+                });
+            }
+
+            var dialog = new NetBaseNpcDialog
+            {
+                Npc = npc.Nickname,
+                IndividualName = npc.IndividualName,
+                Contents = interaction == "talk_rumor" ? rumor?.Ids ?? 0 : 0,
+                Options = options.ToArray()
+            };
+
+            session.BaseNpcDialog = dialog;
+            FLLog.Info("NPC", $"Opening local NPC dialog: npc={npc.Nickname}, interaction={interaction}, rumor={dialog.Contents}, bribe={(bribe != null ? bribe.Ids : 0)}, knowledge={dialog.Options.Count(x => x.Kind == BaseNpcOptionKind.Knowledge)}, options={dialog.Options.Length}");
+            ui.Event("BaseNpcDialog", dialog);
+        }
+
+        private string[] GetKnowledgeObjectNames(NpcKnow know)
+        {
+            var names = new List<string>();
+            foreach (var objectNickname in know.Objects)
+            {
+                var systemObject = Game.GameData.Items.Systems
+                    .SelectMany(system => system.Objects)
+                    .FirstOrDefault(obj => obj.Nickname.Equals(
+                        objectNickname,
+                        StringComparison.OrdinalIgnoreCase));
+                var objectName = systemObject == null
+                    ? ""
+                    : Game.GameData.GetString(systemObject.IdsName);
+                names.Add(string.IsNullOrWhiteSpace(objectName)
+                    ? objectNickname
+                    : objectName);
+            }
+
+            return names.ToArray();
         }
 
         private void MissionAccepted()
@@ -297,11 +448,95 @@ namespace LibreLancer
             {
                 g.session.RpcServer.AcceptMissionOffer(id);
             }
+            public void BaseNpcOption(int optionId)
+            {
+                var npc = g.session.BaseNpcDialog?.Npc;
+                if (string.IsNullOrEmpty(npc))
+                    return;
+                var dialog = g.session.BaseNpcDialog;
+                var option = dialog?.Options.FirstOrDefault(x => x.Id == optionId);
+                FLLog.Info("NPC", $"NPC option accepted: npc={npc}, option={optionId}, kind={option?.Kind ?? 0}, contents={dialog?.Contents ?? 0}");
+                if (option?.Kind is BaseNpcOptionKind.Bribe or BaseNpcOptionKind.Knowledge)
+                {
+                    if (g.session.Credits >= option.Price)
+                        g.consumedBaseNpcInteractions.Add(npc);
+                    g.session.RpcServer.BaseNpcAccept(
+                        g.currentBase.Nickname,
+                        g.virtualRoom ?? g.currentRoom.Nickname,
+                        npc,
+                        optionId);
+                }
+                else if (dialog?.Contents != 0)
+                {
+                    g.session.RpcServer.BaseNpcAccept(
+                        g.currentBase.Nickname,
+                        g.virtualRoom ?? g.currentRoom.Nickname,
+                        npc,
+                        optionId);
+                }
+                else
+                {
+                    g.session.RpcServer.BaseNpcInteract(
+                        g.currentBase.Nickname,
+                        g.virtualRoom ?? g.currentRoom.Nickname,
+                        npc,
+                        optionId);
+                }
+            }
+            public void OpenBaseAction(string action) => g.ui.Event("OpenBaseAction", action);
             public bool IsMultiplayer() => g.session.Multiplayer;
             public void HotspotPressed(string item) => g.Hud_OnManeuverSelected(item);
             public string ActiveNavbarButton() => g.active ?? "";
 
             public Infocard CurrentInfocard() => g.roomInfocard;
+
+            public string FormatBaseNpcBribe(int ids, int factionIdsName, int price)
+            {
+                var format = g.Game.GameData.GetString(ids);
+                var items = new List<IdsFormatItem>
+                {
+                    new('F', 0, factionIdsName),
+                    new('d', 0, price.ToString())
+                };
+
+                var faction = g.Game.GameData.Items.Factions
+                    .FirstOrDefault(x => x.IdsName == factionIdsName);
+                if (faction != null)
+                {
+                    var index = 1;
+                    foreach (var empathy in faction.FactionEmpathy)
+                    {
+                        if (empathy.Multiplier >= 0 || empathy.Other?.IdsName is not > 0)
+                            continue;
+                        items.Add(new IdsFormatItem('F', index++, empathy.Other.IdsName));
+                    }
+                }
+
+                return IdsFormatting.Format(
+                    format,
+                    g.Game.GameData.Items.Ini.Infocards,
+                    items.ToArray());
+            }
+
+            public string FormatBaseNpcKnowledge(int ids, string[] objectNames, int price)
+            {
+                var format = g.Game.GameData.GetString(ids);
+                var items = new List<IdsFormatItem>();
+                for (var i = 0; i < objectNames.Length; i++)
+                    items.Add(new IdsFormatItem('s', i, objectNames[i]));
+                items.Add(new IdsFormatItem('d', 0, price.ToString()));
+
+                var result = IdsFormatting.Format(
+                    format,
+                    g.Game.GameData.Items.Ini.Infocards,
+                    items.ToArray());
+
+
+                if (!format.Contains("%d", StringComparison.Ordinal))
+                    result = $"{result.TrimEnd()} for {price:N0} credits.";
+
+                return result;
+            }
 
             public string? CurrentInfoString() => null;
 
@@ -462,6 +697,11 @@ namespace LibreLancer
             Game.Keyboard.TextInput -= Game_TextInput;
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;
             Game.Mouse.MouseDown -= MouseOnMouseDown;
+            if (ReferenceEquals(session.OnBaseNpcDialog, baseNpcDialogHandler))
+                session.OnBaseNpcDialog = null;
+            session.BaseNpcDialog = null;
+            baseNpcObjects.Clear();
+            baseNpcData.Clear();
             scene?.Dispose();
         }
 
@@ -841,6 +1081,54 @@ namespace LibreLancer
             return null;
         }
 
+        private BaseNpc? GetBaseNpcHotspot(int mX, int mY)
+        {
+            BaseNpc? closest = null;
+            var closestDistance = float.PositiveInfinity;
+
+            foreach (var entry in baseNpcObjects)
+            {
+                var screen = ScreenPosition(entry.Value.GetTransform().Position);
+                if (!baseNpcData.TryGetValue(entry.Key, out var npc))
+                    continue;
+
+                var dx = mX - screen.X;
+                var dy = mY - screen.Y;
+                var distance = (dx * dx) + (dy * dy);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closest = npc;
+                }
+            }
+
+            return closestDistance <= 300 * 300 ? closest : null;
+        }
+
+        private Cursor GetBaseNpcCursor(BaseNpc npc)
+        {
+            if (consumedBaseNpcInteractions.Contains(npc.Nickname) &&
+                npcCursors.TryGetValue("talk_blowoff", out var consumedCursor))
+            {
+                return consumedCursor;
+            }
+
+            baseNpcRumors.TryGetValue(npc.Nickname, out var rumor);
+            baseNpcBribes.TryGetValue(npc.Nickname, out var bribe);
+            if (!BaseNpcRules.CanHearRumors(npc.Affiliation, session.PlayerReputations))
+                rumor = null;
+            var reputation = session.PlayerReputations.GetReputation(npc.Affiliation);
+            var name = BaseNpcPopulation.GetInteractionCursor(
+                npc,
+                session.MissionOffers.Length > 0,
+                rumor,
+                bribe,
+                reputation);
+            return npcCursors.TryGetValue(name, out var interactionCursor)
+                ? interactionCursor
+                : talk_story;
+        }
+
         private void ProcessNextCutscene()
         {
             var ct = toPlay.Dequeue();
@@ -960,6 +1248,82 @@ namespace LibreLancer
             return objects.OfType<IEnumerable<ThnScript?>>().SelectMany(obj => obj).OfType<ThnScript>();
         }
 
+        private void PopulateRoomNpcs()
+        {
+            baseNpcObjects.Clear();
+            baseNpcData.Clear();
+            baseNpcRumors.Clear();
+            baseNpcBribes.Clear();
+
+            if (scene == null || currentRoom.SetScript == null)
+                return;
+
+            RoomNpcSpot[] spots;
+            try
+            {
+                spots = ThnRoomHandler.GetSpots(currentRoom);
+            }
+            catch (Exception ex)
+            {
+                FLLog.Error("NPC", ex.Message);
+                return;
+            }
+
+            var random = new Random();
+            var assignments = BaseNpcPopulation.Select(
+                currentRoom,
+                spots,
+                Game.GameData.Items,
+                random);
+
+            foreach (var assignment in assignments)
+            {
+                var marker = scene.GetObject(assignment.SceneSpot);
+                if (marker == null)
+                    continue;
+
+                var appearance = BaseNpcPopulation.ResolveAppearance(assignment.Npc);
+                if (!appearance.HasBody)
+                    continue;
+
+                try
+                {
+                    var npcObject = ThnRoomHandler.AddNpc(
+                        scene,
+                        Game.ResourceManager,
+                        Game.GameData.GetCharacterAnimations(),
+                        assignment.Npc.Nickname,
+                        assignment.SceneSpot,
+                        assignment.Npc.Voice,
+                        appearance.Head,
+                        appearance.Body,
+                        appearance.RightHand,
+                        appearance.LeftHand,
+                        appearance.Accessory,
+                        assignment.FidgetScript);
+
+                    baseNpcObjects[assignment.Npc.Nickname] = npcObject;
+                    baseNpcData[assignment.Npc.Nickname] = assignment.Npc;
+                    baseNpcRumors[assignment.Npc.Nickname] = assignment.SelectedRumor;
+                }
+                catch (Exception ex)
+                {
+                    FLLog.Error("NPC", ex.Message);
+                }
+            }
+
+            var spawnedAssignments = assignments
+                .Where(x => baseNpcData.ContainsKey(x.Npc.Nickname))
+                .ToArray();
+            foreach (var entry in BaseNpcPopulation.SelectBribes(
+                         spawnedAssignments,
+                         session.PlayerReputations,
+                         random))
+            {
+                baseNpcBribes[entry.Key] = entry.Value;
+            }
+        }
+
         private void SetRoomCameraAndShip()
         {
             Debug.Assert(scene != null, nameof(scene) + " != null");
@@ -996,6 +1360,7 @@ namespace LibreLancer
 
             waitingForFinish = sc;
             scene!.BeginScene(Scripts(sceneScripts, [sc]));
+            PopulateRoomNpcs();
             string[] ships = [];
 
             if (session.Ships != null)
@@ -1150,9 +1515,13 @@ namespace LibreLancer
             if (ui.Visible || ui.HasModal || Game.Debug.Enabled)
             {
                 var dlist = Game.RenderContext.Renderer2D.CreateDrawList();
-                if (GetHotspot(Game.Mouse.X, Game.Mouse.Y) != null)
+                if (GetHotspot(Game.Mouse.X, Game.Mouse.Y) is not null)
                 {
                     talk_story.Draw(dlist, Game.Mouse, Game.TotalTime);
+                }
+                else if (GetBaseNpcHotspot(Game.Mouse.X, Game.Mouse.Y) is { } npc)
+                {
+                    GetBaseNpcCursor(npc).Draw(dlist, Game.Mouse, Game.TotalTime);
                 }
                 else
                 {

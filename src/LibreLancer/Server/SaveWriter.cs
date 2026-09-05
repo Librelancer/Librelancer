@@ -24,7 +24,8 @@ namespace LibreLancer.Server
             GameDataManager? gameData,
             IEnumerable<MissionRtc>? rtcs,
             IEnumerable<AmbientInfo>? ambients,
-            StoryProgress? story)
+            StoryProgress? story,
+            MPlayer? interactionState = null)
         {
             var sg = new SaveGame();
             sg.Player = new SavePlayer();
@@ -81,6 +82,12 @@ namespace LibreLancer.Server
             foreach (var kc in ch.GetShipKillCounts())
             {
                 sg.MPlayer.ShipTypeKilled.Add(new SaveItemCount(kc.Ship, kc.Count));
+            }
+
+            if (interactionState != null)
+            {
+                sg.MPlayer.VNPCs.AddRange(interactionState.VNPCs);
+                sg.MPlayer.Rumors.AddRange(interactionState.Rumors);
             }
 
             if (story != null)

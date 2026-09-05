@@ -217,4 +217,42 @@ class baseside : baseside_Designer
     Popup(title,contents,id) => OpenModal(new popup(title, contents, 'ok', () => Game.PopupFinish(id)));
     
     MissionOffer(mission) => OpenModal(new popup(STRID_MISSION, mission, 'accept', (result) => Game.MissionResponse(result)));
+
+    BaseNpcDialog(dialog)
+    {
+        if (dialog.FocusSystemHash != 0 && dialog.FocusObjectHash != 0) {
+            this.OpenNpcMap(dialog.FocusSystemHash, dialog.FocusObjectHash);
+        } else {
+            OpenModal(new popup(0, 0, 'npc', nil, dialog));
+        }
+    }
+
+    OpenNpcMap(systemHash, objectHash)
+    {
+        if (!this.WindowManager.CanOpen && this.WindowManager.ActiveWindow != this.Map) {
+            Timer(0.05, () => this.OpenNpcMap(systemHash, objectHash));
+            return;
+        }
+        this.WindowManager.OpenWindow(this.Widget, this.Map, true);
+        this.FocusNpcMapWhenOpen(systemHash, objectHash);
+    }
+
+    FocusNpcMapWhenOpen(systemHash, objectHash)
+    {
+        if (!this.Map.Opened) {
+            Timer(0.05, () => this.FocusNpcMapWhenOpen(systemHash, objectHash));
+            return;
+        }
+        this.Map.FocusSystemObject(systemHash, objectHash);
+    }
+
+    OpenBaseAction(action)
+    {
+        if (action == "mission" && this.JobBoard != nil)
+            this.WindowManager.OpenWindow(this.Widget, this.JobBoard);
+        elseif ((action == "trader" || action == "Equipment") && this.CommodityTrader != nil)
+            this.WindowManager.OpenWindow(this.Widget, this.CommodityTrader);
+        elseif (action == "ShipDealer" && this.ShipDealer != nil)
+            this.WindowManager.OpenWindow(this.Widget, this.ShipDealer);
+    }
 }
