@@ -245,6 +245,15 @@ namespace LibreLancer.Missions
             return null;
         }
 
+        public bool IsMissionSolarBase(string? baseName)
+        {
+            if (string.IsNullOrWhiteSpace(baseName))
+                return false;
+
+            return Script.Solars.Values.Any(x =>
+                baseName.Equals(x.Base, StringComparison.OrdinalIgnoreCase));
+        }
+
         public void ActivateTrigger(string trigger)
         {
             var t = Script.AvailableTriggers[trigger];
