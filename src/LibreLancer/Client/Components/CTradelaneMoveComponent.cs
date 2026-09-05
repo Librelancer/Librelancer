@@ -117,14 +117,14 @@ public class CTradelaneMoveComponent(GameObject parent) : GameComponent(parent)
 
     private void ResetManualExit(PlayerAuthState auth)
     {
-        var remaining = 1 - MathHelper.Clamp(auth.TradelaneProgress, 0, 1);
+        var remaining = 1 - MathHelper.Clamp((float)auth.TradelaneProgress, 0, 1);
         manualExitTime = 0;
         manualStartSpeed = auth.LinearVelocity.Length();
         manualExitDuration = MathF.Max(1 / 60f, TradelaneMotion.ManualExitDuration * remaining);
         manualTurnDuration = MathF.Max(1 / 60f, TradelaneMotion.ManualTurnDuration * remaining);
-        manualStartOrientation = auth.Orientation;
+        manualStartOrientation = auth.Orientation.Quaternion;
         manualTargetOrientation = TradelaneMotion.TurnRight(
-            auth.Orientation, TradelaneMotion.ManualTurnDegrees * remaining);
+            auth.Orientation.Quaternion, TradelaneMotion.ManualTurnDegrees * remaining);
     }
 
     private void SetEngineSpeed(float speed)

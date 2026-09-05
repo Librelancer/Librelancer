@@ -312,20 +312,20 @@ public partial class CGameSession
                 continue;
 
             var errorPos = state.Position - moveState[i].Position;
-            var errorQuat = MathHelper.QuatError(state.Orientation, moveState[i].Orientation);
+            var errorQuat = MathHelper.QuatError(state.Orientation.Quaternion, moveState[i].Orientation);
             var phys = gp.player.GetComponent<ShipPhysicsComponent>()!;
 
-            if (p.PlayerState.CruiseAccelPct > 0 || p.PlayerState.CruiseChargePct > 0)
+            if ((float)p.PlayerState.CruiseAccelPct > 0 || (float)p.PlayerState.CruiseChargePct > 0)
             {
-                phys.ResyncChargePercent(p.PlayerState.CruiseChargePct,
+                phys.ResyncChargePercent((float)p.PlayerState.CruiseChargePct,
                     1 / 60.0f * (moveState.Count - i));
-                phys.ResyncCruiseAccel(p.PlayerState.CruiseAccelPct, 1 / 60.0f * (moveState.Count - i));
+                phys.ResyncCruiseAccel((float)p.PlayerState.CruiseAccelPct, 1 / 60.0f * (moveState.Count - i));
             }
 
             bool errorAccumulated = errorPos.Length() > 2f || errorQuat > 0.05f;
             bool slowVelocity = state.LinearVelocity.Length() < 1f &&
-                                state.CruiseAccelPct < float.Epsilon &&
-                                state.CruiseChargePct < float.Epsilon;
+                               (float)state.CruiseAccelPct < float.Epsilon &&
+                               (float)state.CruiseChargePct < float.Epsilon;
             for (int j = i; j >= 0; j--)
             {
                 if (moveState[i].Throttle > 0.1f ||
@@ -348,16 +348,16 @@ public partial class CGameSession
                 var predictedPos = transform.Position;
                 var predictedOrient = transform.Orientation;
                 moveState[i].Position = state.Position;
-                moveState[i].Orientation = state.Orientation;
+                moveState[i].Orientation = state.Orientation.Quaternion;
                 // Set states
-                gp.player.SetLocalTransform(new Transform3D(state.Position, state.Orientation));
+                gp.player.SetLocalTransform(new Transform3D(state.Position, state.Orientation.Quaternion));
                 gp.player.PhysicsComponent!.Body!.LinearVelocity = state.LinearVelocity;
                 gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
                 if (gp.player.TryGetComponent<CTradelaneMoveComponent>(out var authoritativeTradelane))
                 {
                     authoritativeTradelane.ResetToAuthoritative(state);
                 }
-                phys.SetCruiseState(state.CruiseChargePct, state.CruiseAccelPct);
+                phys.SetCruiseState((float)state.CruiseChargePct, (float)state.CruiseAccelPct);
 
                 for (i = i + 1; i < moveState.Count; i++)
                     Resimulate(i, gp);
@@ -394,8 +394,6 @@ public partial class CGameSession
                 CruiseThrustState.Cruising => EngineStates.Cruise,
                 _ => update.EngineKill ? EngineStates.EngineKill : EngineStates.Standard
             });
-            sca.Steering = new(update.Pitch, update.Yaw, update.Roll);
-            sca.CurrentStrafe = update.Strafe;
             sca.EnginePower = MathHelper.Clamp(update.ThrottleFloat / 0.9f, 0, 1);
         }
 

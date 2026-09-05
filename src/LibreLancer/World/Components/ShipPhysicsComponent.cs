@@ -45,6 +45,8 @@ namespace LibreLancer.World.Components
         public bool EngineKillEnabled = false;
         public float ChargePercent;
         public float CruiseAccelPct = 0;
+        public Vector3 Steering;
+        public StrafeControls CurrentStrafe = StrafeControls.None;
 
         public ShipPhysicsComponent(GameObject parent, Ship ship) : base(parent)
         {

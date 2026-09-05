@@ -34,7 +34,7 @@ public class PlayerAuthStateTests
         for (int i = 1; i < ogs.Length; i++)
         {
             var rot = new Vector3(rand.NextFloat(-1f, 1f), rand.NextFloat(-1f, 1f), rand.NextFloat(-1f, 1f));
-            var orient = Quaternion.CreateFromYawPitchRoll(rot.X, rot.Y, rot.Z) * ogs[i - 1].Orientation;
+            var orient = Quaternion.CreateFromYawPitchRoll(rot.X, rot.Y, rot.Z) * ogs[i - 1].Orientation.Quaternion;
             ogs[i] = new PlayerAuthState() {
                 AngularVelocity = ogs[i - 1].AngularVelocity + Permutation(rand),
                 LinearVelocity = ogs[i - 1].LinearVelocity + Permutation(rand),
@@ -51,10 +51,8 @@ public class PlayerAuthStateTests
         var read = new PlayerAuthState[ogs.Length];
         for (int i = 0; i < ogs.Length; i++)
         {
-            var bw = new BitWriter();
-            ogs[i].Write(ref bw, i > 0 ? ogs[i - 1] : new PlayerAuthState(), (uint)(i + 1));
-            var br = new BitReader(bw.GetCopy(), 0);
-            read[i] = PlayerAuthState.Read(ref br, i > 0 ? ogs[i - 1] : new PlayerAuthState());
+            var encoded = ogs[i].Encode(i > 0 ? ogs[i - 1] : new PlayerAuthState());
+            read[i] = PlayerAuthState.Decode(encoded, i > 0 ? ogs[i - 1] : new PlayerAuthState());
             Assert.True((ogs[i].Position - read[i].Position).Length() < 0.001f, $"Position differs {i} " +
                 $"({ogs[i].Position} != {read[i].Position})");
             Assert.True((ogs[i].LinearVelocity - read[i].LinearVelocity).Length() < 0.001f, $"LinearVelocity differs {i} " +
@@ -63,7 +61,7 @@ public class PlayerAuthStateTests
                 $"({ogs[i].AngularVelocity} != {read[i].AngularVelocity})");
             Assert.Equal(ogs[i].TradelaneState, read[i].TradelaneState);
             Assert.Equal(ogs[i].TradelaneTargetSpeed, read[i].TradelaneTargetSpeed);
-            Assert.Equal(ogs[i].TradelaneProgress, read[i].TradelaneProgress, 3);
+            Assert.Equal(ogs[i].TradelaneProgress, read[i].TradelaneProgress);
         }
 
     }

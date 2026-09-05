@@ -78,9 +78,6 @@ World Time: {12:F2}
                 if (Selection.Selected.TryGetComponent<ShipControlAccessComponent>(out var sca))
                 {
                     ImGui.Text($"selected throttle: {sca.EnginePower}");
-                    ImGui.Text("received controls (if ship is in a formation)");
-                    ImGui.Text($"steering: {sca.Steering}");
-                    ImGui.Text($"strafe: {sca.CurrentStrafe}");
                     ImGui.Text($"engine state: {sca.EngineState}");
                 }
 

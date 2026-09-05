@@ -12,18 +12,6 @@ namespace LibreLancer.Tests;
 
 public class NetPackingTests
 {
-    [Fact]
-    public void DeltaBits()
-    {
-        var baseValue = 2000U;
-        for (int i = -64; i <= 63; i++)
-        {
-            var newValue = (uint) (baseValue + i);
-            Assert.True(NetPacking.TryDelta(newValue, baseValue, 7, out var d));
-            Assert.Equal(newValue, NetPacking.ApplyDelta(d, baseValue, 7));
-        }
-    }
-
     [Theory]
     [InlineData(2)]
     [InlineData(3)]

@@ -4,8 +4,6 @@ namespace LibreLancer.World.Components;
 
 public class ShipControlAccessComponent(GameObject parent) : GameComponent(parent)
 {
-    public Vector3 Steering;
-    public StrafeControls CurrentStrafe = StrafeControls.None;
     public virtual bool CruiseEnabled { get; set; }
     public EngineStates EngineState { get; protected set; }
     // from 0 to 1

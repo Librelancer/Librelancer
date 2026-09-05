@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace LibreLancer.Net.Protocol
 {
-	public static partial class NetPacking
+	public static class NetPacking
 	{
         public const int BITS_COMPONENT = 10;
         public const float UNIT_MIN = -0.707106829f;
@@ -32,6 +32,16 @@ namespace LibreLancer.Net.Protocol
         }
 
         public static int ByteCountInt64(long l) => ByteCountUInt64(Zig64(l));
+
+        public static uint ZigZagDelta(uint updated, uint old) => Zig32(unchecked((int)(updated - old)));
+
+        public static uint ApplyZigZagDelta(uint old, uint delta) => unchecked(old + (uint)Zag32(delta));
+
+        public static ushort Delta16(ushort updated, ushort old)
+            => unchecked((ushort)(updated - old));
+
+        public static ushort ApplyDelta16(ushort old, ushort delta)
+            => unchecked((ushort)(old + delta));
 
         public static uint Zig32(int value)
         {
@@ -73,27 +83,6 @@ namespace LibreLancer.Net.Protocol
             return (min + (u * (max - min)));
         }
 
-        public static uint ApplyDelta(uint d, uint src, int deltaBits)
-        {
-            var deltaOffset = 2 << (deltaBits - 2);
-            var diff = ((int) d) - deltaOffset;
-            return (uint) ((int) src + diff);
-        }
-
-        public static bool TryDelta(uint a, uint src, int deltaBits, out uint delta)
-        {
-            var deltaOffset = 2 << (deltaBits - 2);
-            var deltaMin = -deltaOffset;
-            var deltaMax = deltaOffset - 1;
-            var diff = (int) a - (int) src;
-            if (diff >= deltaMin && diff <= deltaMax) {
-                delta = (uint) (diff + deltaOffset);
-                return true;
-            }
-            delta = 0;
-            return false;
-        }
-
         public static Quaternion UnpackQuaternion(int precision, uint max, uint a, uint b, uint c)
         {
             var fa = UnquantizeFloat(a, UNIT_MIN, UNIT_MAX, precision);
@@ -117,6 +106,7 @@ namespace LibreLancer.Net.Protocol
 
         public static void PackQuaternion(Quaternion q, int precision, out uint maxIndex, out uint a, out uint b, out uint c)
         {
+            q = Quaternion.Normalize(q);
             maxIndex = 0;
             var maxValue = Math.Abs(q.X);
             var sign = 1f;
@@ -178,12 +168,6 @@ namespace LibreLancer.Net.Protocol
         {
             var wrapped = WrapMinMax(angle, ANGLE_MIN, ANGLE_MAX);
             return QuantizeFloat(wrapped, ANGLE_MIN, ANGLE_MAX, bits);
-        }
-
-        public static bool QuantizedEqual(float a, float b, float min, float max, int bits)
-        {
-            return QuantizeFloat(a, min, max, bits) ==
-                   QuantizeFloat(b, min, max, bits);
         }
     }
 }

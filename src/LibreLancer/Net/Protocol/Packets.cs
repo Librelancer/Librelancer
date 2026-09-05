@@ -6,7 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Net.DataTypes;
 using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.World;
 using LibreLancer.World.Components;
@@ -874,137 +876,174 @@ namespace LibreLancer.Net.Protocol
     public struct PlayerAuthState
     {
         public Vector3 Position;
-        public Quaternion Orientation;
+        public Quaternion50 Orientation;
         public Vector3 LinearVelocity;
         public Vector3 AngularVelocity;
 
         public float Health;
         public float Shield;
-        public float CruiseChargePct;
-        public float CruiseAccelPct;
         public TradelaneMoveState TradelaneState;
         public float TradelaneTargetSpeed;
-        public float TradelaneProgress;
-        public static PlayerAuthState Read(ref BitReader reader, PlayerAuthState src)
+        public Norm12 CruiseChargePct;
+        public Norm12 CruiseAccelPct;
+        public Norm12 TradelaneProgress;
+
+        static void DeltaFloats(NetRleWriter writer, Span<float> floats, Span<float> originals)
         {
-            var pa = new PlayerAuthState
+            Span<uint> deltas = stackalloc uint[floats.Length];
+            for (int i = 0; i < floats.Length; i++)
             {
-                Position = DecodeVector3(ref reader, src.Position),
-                // Extra precision
-                Orientation = reader.GetQuaternion(18),
-                LinearVelocity = DecodeVector3(ref reader, src.LinearVelocity),
-                AngularVelocity = DecodeVector3(ref reader, src.AngularVelocity),
-                Health = reader.GetBool() ? reader.GetFloat() : src.Health,
-                Shield = reader.GetBool() ? reader.GetFloat() : src.Shield,
-                CruiseChargePct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseChargePct,
-                CruiseAccelPct = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.CruiseAccelPct,
-                TradelaneState = reader.GetBool() ? (TradelaneMoveState)reader.GetUInt(2) : src.TradelaneState,
-                TradelaneTargetSpeed = reader.GetBool() ? reader.GetFloat() : src.TradelaneTargetSpeed,
-                TradelaneProgress = reader.GetBool() ? reader.GetRangedFloat(0, 1, 12) : src.TradelaneProgress
+                var f = Unsafe.BitCast<float, uint>(floats[i]);
+                var o = Unsafe.BitCast<float, uint>(originals[i]);
+                deltas[i] = f ^ o;
+            }
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                writer.Write0(deltas[i]);
+            }
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                writer.Write1(deltas[i]);
+            }
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                writer.Write2(deltas[i]);
+            }
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                writer.Write3(deltas[i]);
+            }
+        }
+
+        static void UndeltaFloats(NetRleReader reader, Span<float> floats, Span<float> originals)
+        {
+            Span<uint> deltas = stackalloc uint[floats.Length];
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                reader.Read0(ref deltas[i]);
+            }
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                reader.Read1(ref deltas[i]);
+            }
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                reader.Read2(ref deltas[i]);
+            }
+            for (int i = 0; i < deltas.Length; i++)
+            {
+                reader.Read3(ref deltas[i]);
+                var o = Unsafe.BitCast<float, uint>(originals[i]);
+                floats[i] = Unsafe.BitCast<uint, float>(o ^ deltas[i]);
+            }
+        }
+
+        static void FillFloats(PlayerAuthState a, Span<float> floats)
+        {
+            floats[0] = a.Position.X;
+            floats[1] = a.Position.Y;
+            floats[2] = a.Position.Z;
+            floats[3] = a.LinearVelocity.X;
+            floats[4] = a.LinearVelocity.Y;
+            floats[5] = a.LinearVelocity.Z;
+            floats[6] = a.AngularVelocity.X;
+            floats[7] = a.AngularVelocity.Y;
+            floats[8] = a.AngularVelocity.Z;
+            floats[9] = a.Health;
+            floats[10] = a.Shield;
+            floats[11] = a.TradelaneTargetSpeed;
+        }
+
+        public byte[] Encode(PlayerAuthState prev)
+        {
+            var netRle = new NetRleWriter(new byte[72]);
+
+            Span<float> floats = stackalloc float[12];
+            Span<float> ogFloats = stackalloc float[12];
+            FillFloats(this, floats);
+            FillFloats(prev, ogFloats);
+            DeltaFloats(netRle, floats, ogFloats);
+
+            netRle.Write((byte)NetPacking.ZigZagDelta(Orientation.Largest, prev.Orientation.Largest));
+
+            var dX = NetPacking.Delta16(Orientation.Component1, prev.Orientation.Component1);
+            var dY = NetPacking.Delta16(Orientation.Component2, prev.Orientation.Component2);
+            var dZ = NetPacking.Delta16(Orientation.Component3, prev.Orientation.Component3);
+
+            netRle.Write((byte)((dX >> 8) & 0xFF));
+            netRle.Write((byte)((dY >> 8) & 0xFF));
+            netRle.Write((byte)((dZ >> 8) & 0xFF));
+            netRle.Write((byte)(dX & 0xFF));
+            netRle.Write((byte)(dY & 0xFF));
+            netRle.Write((byte)(dZ & 0xFF));
+
+            var crChg = CruiseChargePct.GetDelta(prev.CruiseChargePct);
+            var crAccel = CruiseAccelPct.GetDelta(prev.CruiseAccelPct);
+            var tlProg = TradelaneProgress.GetDelta(prev.TradelaneProgress);
+            netRle.Write2(crChg);
+            netRle.Write2(crAccel);
+            netRle.Write2(tlProg);
+            netRle.Write3(crChg);
+            netRle.Write3(crAccel);
+            netRle.Write3(tlProg);
+            var state = (byte)((byte)TradelaneState - (byte)prev.TradelaneState);
+            netRle.Write(state);
+            return netRle.GetCopy();
+        }
+
+        public static PlayerAuthState Decode(byte[] data, PlayerAuthState prev)
+        {
+            var netRle = new NetRleReader(data);
+
+            Span<float> floats = stackalloc float[12];
+            Span<float> ogFloats = stackalloc float[12];
+            FillFloats(prev, ogFloats);
+            UndeltaFloats(netRle, floats, ogFloats);
+
+            var pa = new PlayerAuthState();
+            pa.Position = new(floats[0], floats[1], floats[2]);
+            pa.LinearVelocity = new(floats[3], floats[4], floats[5]);
+            pa.AngularVelocity = new(floats[6], floats[7], floats[8]);
+            pa.Health = floats[9];
+            pa.Shield = floats[10];
+            pa.TradelaneTargetSpeed = floats[11];
+
+            var lg = NetPacking.ApplyZigZagDelta(prev.Orientation.Largest,netRle.ReadByte());
+
+            var dXh = netRle.ReadByte();
+            var dYh = netRle.ReadByte();
+            var dZh = netRle.ReadByte();
+            var dXl = netRle.ReadByte();
+            var dYl = netRle.ReadByte();
+            var dZl = netRle.ReadByte();
+
+            var dX = ((ushort)((dXh << 8) | dXl));
+            var dY = ((ushort)((dYh << 8) | dYl));
+            var dZ = ((ushort)((dZh << 8) | dZl));
+
+            pa.Orientation = new()
+            {
+                Largest = lg,
+                Component1 = NetPacking.ApplyDelta16(prev.Orientation.Component1, dX),
+                Component2 = NetPacking.ApplyDelta16(prev.Orientation.Component2, dY),
+                Component3 = NetPacking.ApplyDelta16(prev.Orientation.Component3, dZ)
             };
+
+            uint crChg = 0, crAccel = 0, tlProg = 0;
+            netRle.Read2(ref crChg);
+            netRle.Read2(ref crAccel);
+            netRle.Read2(ref tlProg);
+            netRle.Read3(ref crChg);
+            netRle.Read3(ref crAccel);
+            netRle.Read3(ref tlProg);
+
+            var state = (byte)((byte)prev.TradelaneState + netRle.ReadByte());
+            pa.TradelaneState = (TradelaneMoveState)state;
+
+            pa.CruiseChargePct = Norm12.ApplyDelta(prev.CruiseChargePct, crChg);
+            pa.CruiseAccelPct = Norm12.ApplyDelta(prev.CruiseAccelPct, crAccel);
+            pa.TradelaneProgress = Norm12.ApplyDelta(prev.TradelaneProgress, tlProg);
             return pa;
-        }
-
-        private static void EncodeFloat(ref BitWriter writer, float old, float current, bool force)
-        {
-            var diff = current - old;
-            if (!force && diff >= -32 && diff < 31) {
-                writer.PutBool(true);
-                writer.PutRangedFloat(diff, -32, 31, 24);
-            }
-            else {
-                writer.PutBool(false);
-                writer.PutFloat(current);
-            }
-        }
-
-        private static void EncodeVec3(ref BitWriter writer, Vector3 old, Vector3 current, bool force)
-        {
-            EncodeFloat(ref writer, old.X, current.X, force);
-            EncodeFloat(ref writer, old.Y, current.Y, force);
-            EncodeFloat(ref writer, old.Z, current.Z, force);
-        }
-
-        private static float DecodeFloat(ref BitReader reader, float old) =>
-            reader.GetBool()
-                ? old + reader.GetRangedFloat(-32, 31, 24)
-                : reader.GetFloat();
-
-        private static Vector3 DecodeVector3(ref BitReader reader, Vector3 old) =>
-            new(DecodeFloat(ref reader, old.X), DecodeFloat(ref reader, old.Y), DecodeFloat(ref reader, old.Z));
-
-        [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
-        public void Write(ref BitWriter writer, PlayerAuthState prev, uint tick)
-        {
-            uint forced = tick % 15;
-            EncodeVec3(ref writer, prev.Position, Position, forced == 1);
-            // Extra precision
-            writer.PutQuaternion(Orientation, 18);
-            EncodeVec3(ref writer, prev.LinearVelocity, LinearVelocity, forced == 3);
-            EncodeVec3(ref writer, prev.AngularVelocity, AngularVelocity, forced == 5);
-
-            if (forced != 7 && Health == prev.Health) {
-                writer.PutBool(false);
-            }
-            else {
-                writer.PutBool(true);
-                writer.PutFloat(Health);
-            }
-            if (forced != 9 && Shield == prev.Shield) {
-                writer.PutBool(false);
-            }
-            else {
-                writer.PutBool(true);
-                writer.PutFloat(Shield);
-            }
-            if(forced != 11 && NetPacking.QuantizedEqual(CruiseChargePct, prev.CruiseChargePct, 0, 1, 12))
-            {
-                writer.PutBool(false);
-            }
-            else
-            {
-                writer.PutBool(true);
-                writer.PutRangedFloat(CruiseChargePct, 0, 1, 12);
-            }
-            if(forced != 13 && NetPacking.QuantizedEqual(CruiseAccelPct, prev.CruiseAccelPct, 0, 1, 12))
-            {
-                writer.PutBool(false);
-            }
-            else
-            {
-                writer.PutBool(true);
-                writer.PutRangedFloat(CruiseAccelPct, 0, 1, 12);
-            }
-
-            if (forced != 0 && TradelaneState == prev.TradelaneState)
-            {
-                writer.PutBool(false);
-            }
-            else
-            {
-                writer.PutBool(true);
-                writer.PutUInt((uint)TradelaneState, 2);
-            }
-
-            if (forced != 2 && TradelaneTargetSpeed == prev.TradelaneTargetSpeed)
-            {
-                writer.PutBool(false);
-            }
-            else
-            {
-                writer.PutBool(true);
-                writer.PutFloat(TradelaneTargetSpeed);
-            }
-
-            if (forced != 4 && NetPacking.QuantizedEqual(TradelaneProgress, prev.TradelaneProgress, 0, 1, 12))
-            {
-                writer.PutBool(false);
-            }
-            else
-            {
-                writer.PutBool(true);
-                writer.PutRangedFloat(TradelaneProgress, 0, 1, 12);
-            }
         }
     }
 
