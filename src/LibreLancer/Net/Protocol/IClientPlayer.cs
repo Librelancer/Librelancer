@@ -13,7 +13,8 @@ public interface IClientPlayer
     void ListPlayers(bool isAdmin);
     void UpdateWeaponGroups(NetWeaponGroup[] wg);
 
-    void SpawnPlayer(int id, string system, CrcIdMap[] crcMap, NetObjective objective, Vector3 position, Quaternion orientation, uint tick);
+    void SpawnPlayer(int id, string system, CrcIdMap[] crcMap, NetObjective objective, Vector3 position,
+        Quaternion orientation, uint[] destroyedParts, uint tick);
     void UpdateEffects(ObjNetId id, SpawnedEffect[] effects);
     void UpdateAttitude(ObjNetId id, RepAttitude attitude);
     void SpawnProjectiles(ProjectileSpawn[] projectiles);
@@ -29,7 +30,7 @@ public interface IClientPlayer
     void SpawnMissile(int id, bool playSound, uint equip, Vector3 position, Quaternion orientation);
     void DestroyMissile(int id, bool explode, Vector3 position, uint explosionEffect);
     void BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news, SoldGood[] goods,
-        NetSoldShip[] ships, NetMissionOffer[] missionOffers);
+        NetSoldShip[] ships, NetMissionOffer[] missionOffers, uint[] destroyedParts);
     void UpdateThns(NetThnInfo thns);
     void SetObjective(NetObjective objective, bool history);
     void SetActiveRandomMission(NetMissionOffer offer);
@@ -44,7 +45,8 @@ public interface IClientPlayer
     void DestroyEquipment(ObjNetId id, bool explode, string hardpoint);
     void RunMissionDialog(NetDlgLine[] lines);
     void StartJumpTunnel();
-    void StartTradelane();
+    void StartTradelane(ObjNetId ring, Quaternion orientation);
+    void TradelaneRing(ObjNetId ring);
     void TradelaneDisrupted();
     void EndTradelane();
     void Cloak(ObjNetId ship);
@@ -56,6 +58,7 @@ public interface IClientPlayer
     void UpdateFormation(NetFormation formation);
     void TradelaneActivate(uint id, bool left);
     void TradelaneDeactivate(uint id, bool left);
+    void SetDockingLights(ObjNetId id, bool active);
     void MarkImportant(int objId, bool important);
     [Channel(1)]
     void ReceiveChatMessage(ChatCategory category, BinaryChatMessage player, BinaryChatMessage message);

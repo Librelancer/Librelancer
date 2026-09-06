@@ -137,6 +137,13 @@ namespace LibreLancer.Physics
             var compound = new BigCompound(childBuilder.Span.Slice(0, childBuilder.Count), world.Simulation.Shapes, world.BufferPool);
             Handle = simulation.Shapes.Add(compound);
             childBuilder = new QuickList<CompoundChild>();
+            // The builder preserves logical order. Rebuild this mapping in case parts
+            // were removed before the collider was registered with the simulation.
+            childIndices.Clear();
+            for (var i = 0; i < compound.Children.Length; i++)
+            {
+                childIndices.Add(i);
+            }
         }
 
         private ref BigCompound BepuBigCompound()
@@ -173,10 +180,20 @@ namespace LibreLancer.Physics
 
         internal object? GetTag(int childIndex)
         {
+            // Bepu removes compound children by moving the last physical child into
+            // the vacated slot. childIndices maps our stable logical order to those
+            // physical indices, so a raycast index must be translated before looking
+            // up the owning collision part.
+            var logicalIndex = childIndices.IndexOf(childIndex);
+            if (logicalIndex < 0)
+            {
+                return null;
+            }
+
             for (int i = 0; i < children.Count; i++)
             {
                 int end = children[i].Index + children[i].Count;
-                if (childIndex >= children[i].Index && childIndex < end)
+                if (logicalIndex >= children[i].Index && logicalIndex < end)
                 {
                     return children[i].Tag;
                 }

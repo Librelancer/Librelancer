@@ -116,7 +116,7 @@ namespace LibreLancer.World.Components
                 count++;
             }
 
-            return count == 0 ? 0 : accum / count;
+            return count > 0 ? accum / count : 0;
         }
 
         public float GetGunMaxRange()

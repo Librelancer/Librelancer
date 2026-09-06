@@ -10,8 +10,10 @@ public class CTradelaneComponent : GameComponent
 {
     public TradelaneEquipment Def;
 
-    private ParticleEffectRenderer leftLane = null!;
-    private ParticleEffectRenderer rightLane = null!;
+    private ParticleEffectRenderer? leftLane;
+    private ParticleEffectRenderer? rightLane;
+    private bool leftActive;
+    private bool rightActive;
 
     public CTradelaneComponent(GameObject parent, TradelaneEquipment tl) : base(parent)
     {
@@ -37,17 +39,33 @@ public class CTradelaneComponent : GameComponent
             return;
         }
 
-        leftLane = new ParticleEffectRenderer(laneFx) {Attachment = leftHp, Active = false, SParam = 1 };
-        rightLane = new ParticleEffectRenderer(laneFx) {Attachment = rightHp, Active = false, SParam = 1};
+        leftLane = new ParticleEffectRenderer(laneFx)
+        {
+            Attachment = leftHp,
+            Active = leftActive,
+            SParam = 1
+        };
+        rightLane = new ParticleEffectRenderer(laneFx)
+        {
+            Attachment = rightHp,
+            Active = rightActive,
+            SParam = 1
+        };
         Parent?.ExtraRenderers.Add(leftLane);
         Parent?.ExtraRenderers.Add(rightLane);
     }
 
-    public void ActivateLeft() => leftLane.Active = true;
+    public void SetActive(bool left, bool active)
+    {
+        ref var state = ref (left ? ref leftActive : ref rightActive);
+        var renderer = left ? leftLane : rightLane;
+        if (active && !state) renderer?.Restart();
+        state = active;
+        if (renderer != null) renderer.Active = active;
+    }
 
-    public void ActivateRight() => rightLane.Active = true;
-
-    public void DeactivateLeft() => leftLane.Active = false;
-
-    public void DeactivateRight() => rightLane.Active = false;
+    public void ActivateLeft() => SetActive(true, true);
+    public void ActivateRight() => SetActive(false, true);
+    public void DeactivateLeft() => SetActive(true, false);
+    public void DeactivateRight() => SetActive(false, false);
 }

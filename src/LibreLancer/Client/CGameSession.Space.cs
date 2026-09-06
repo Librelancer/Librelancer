@@ -56,6 +56,8 @@ public partial class CGameSession
     private CircularBuffer<PlayerMoveState> moveState = new(128);
     private readonly CircularBuffer<SPUpdatePacket> oldPackets = new(1000);
     private readonly Queue<IPacket> updatePackets = new();
+    private readonly Dictionary<uint, byte> pendingTradelaneLanes = new();
+    private readonly HashSet<int> pendingDockingLights = [];
 
     private volatile bool processUpdatePackets;
     private int tickSyncCounter = 0;
@@ -289,6 +291,11 @@ public partial class CGameSession
         var hp = gp.player.GetComponent<CHealthComponent>();
         var state = p.PlayerState;
 
+        if (gp.player.TryGetComponent<CTradelaneMoveComponent>(out var tradelane))
+        {
+            tradelane.ApplyState(state);
+        }
+
         if (hp != null)
         {
             hp.CurrentHealth = state.Health;
@@ -305,20 +312,20 @@ public partial class CGameSession
                 continue;
 
             var errorPos = state.Position - moveState[i].Position;
-            var errorQuat = MathHelper.QuatError(state.Orientation, moveState[i].Orientation);
+            var errorQuat = MathHelper.QuatError(state.Orientation.Quaternion, moveState[i].Orientation);
             var phys = gp.player.GetComponent<ShipPhysicsComponent>()!;
 
-            if (p.PlayerState.CruiseAccelPct > 0 || p.PlayerState.CruiseChargePct > 0)
+            if ((float)p.PlayerState.CruiseAccelPct > 0 || (float)p.PlayerState.CruiseChargePct > 0)
             {
-                phys.ResyncChargePercent(p.PlayerState.CruiseChargePct,
+                phys.ResyncChargePercent((float)p.PlayerState.CruiseChargePct,
                     1 / 60.0f * (moveState.Count - i));
-                phys.ResyncCruiseAccel(p.PlayerState.CruiseAccelPct, 1 / 60.0f * (moveState.Count - i));
+                phys.ResyncCruiseAccel((float)p.PlayerState.CruiseAccelPct, 1 / 60.0f * (moveState.Count - i));
             }
 
             bool errorAccumulated = errorPos.Length() > 2f || errorQuat > 0.05f;
             bool slowVelocity = state.LinearVelocity.Length() < 1f &&
-                                state.CruiseAccelPct < float.Epsilon &&
-                                state.CruiseChargePct < float.Epsilon;
+                               (float)state.CruiseAccelPct < float.Epsilon &&
+                               (float)state.CruiseChargePct < float.Epsilon;
             for (int j = i; j >= 0; j--)
             {
                 if (moveState[i].Throttle > 0.1f ||
@@ -341,12 +348,16 @@ public partial class CGameSession
                 var predictedPos = transform.Position;
                 var predictedOrient = transform.Orientation;
                 moveState[i].Position = state.Position;
-                moveState[i].Orientation = state.Orientation;
+                moveState[i].Orientation = state.Orientation.Quaternion;
                 // Set states
-                gp.player.SetLocalTransform(new Transform3D(state.Position, state.Orientation));
+                gp.player.SetLocalTransform(new Transform3D(state.Position, state.Orientation.Quaternion));
                 gp.player.PhysicsComponent!.Body!.LinearVelocity = state.LinearVelocity;
                 gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
-                phys.SetCruiseState(state.CruiseChargePct, state.CruiseAccelPct);
+                if (gp.player.TryGetComponent<CTradelaneMoveComponent>(out var authoritativeTradelane))
+                {
+                    authoritativeTradelane.ResetToAuthoritative(state);
+                }
+                phys.SetCruiseState((float)state.CruiseChargePct, (float)state.CruiseAccelPct);
 
                 for (i = i + 1; i < moveState.Count; i++)
                     Resimulate(i, gp);
@@ -383,8 +394,6 @@ public partial class CGameSession
                 CruiseThrustState.Cruising => EngineStates.Cruise,
                 _ => update.EngineKill ? EngineStates.EngineKill : EngineStates.Standard
             });
-            sca.Steering = new(update.Pitch, update.Yaw, update.Roll);
-            sca.CurrentStrafe = update.Strafe;
             sca.EnginePower = MathHelper.Clamp(update.ThrottleFloat / 0.9f, 0, 1);
         }
 
@@ -404,6 +413,11 @@ public partial class CGameSession
 
         foreach (var ph in update.DamagedParts)
         {
+            if (obj.Model?.SetPartHealth(ph.Hardpoint, ph.Health / 255f) == true)
+            {
+                continue;
+            }
+
             var hp = obj.GetHardpoint(ph.Hardpoint);
             var child = hp == null
                 ? null
@@ -433,6 +447,15 @@ public partial class CGameSession
 
     private void Resimulate(int i, SpaceGameplay gameplay)
     {
+        if (gameplay.player.TryGetComponent<CTradelaneMoveComponent>(out var tradelane) &&
+            tradelane.State != TradelaneMoveState.None)
+        {
+            tradelane.Predict(1 / 60.0);
+            moveState[i].Position = gameplay.player.PhysicsComponent!.Body!.Position;
+            moveState[i].Orientation = gameplay.player.PhysicsComponent.Body.Orientation;
+            return;
+        }
+
         var physComponent = gameplay.player.GetComponent<ShipPhysicsComponent>();
         var player = gameplay.player;
         physComponent!.CurrentStrafe = moveState[i].Strafe;
@@ -440,7 +463,7 @@ public partial class CGameSession
         physComponent.CruiseEnabled = moveState[i].CruiseEnabled;
         physComponent.CruiseSpeedOffset = moveState[i].CruiseEnabled ? moveState[i].CruiseSpeedOffset : 0;
         physComponent.Steering = moveState[i].Steering;
-        physComponent.ThrustEnabled = moveState[i].Thrust;
+        physComponent.ThrustRequested = moveState[i].Thrust;
         physComponent.EngineKillEnabled = moveState[i].EngineKill;
         physComponent.Update(1 / 60.0f, gameplay.world);
         gameplay.player.PhysicsComponent!.Body!.PredictionStep(1 / 60.0f);
@@ -623,10 +646,38 @@ public partial class CGameSession
 
     void IClientPlayer.DestroyPart(ObjNetId id, uint part)
     {
+        var isPlayer = id.Value == PlayerNetID;
+        if (isPlayer)
+        {
+            PlayerDestroyedParts.Add(part);
+        }
+
         RunSync(() =>
         {
-            spaceGameplay!.world.GetObject(id)
-                ?.DisableCmpPart(part, spaceGameplay!.world, Game.ResourceManager, out _);
+            var obj = spaceGameplay!.world.GetObject(id);
+            if (obj == null)
+            {
+                return;
+            }
+
+            var effectPosition = obj.WorldTransform.Position;
+            ResolvedFx? separationEffect = null;
+            if (obj.Model?.TryGetCollisionGroup(part, out var collisionGroup) == true)
+            {
+                var modelPart = collisionGroup.ModelPart;
+                effectPosition = obj.WorldTransform.Transform(
+                    modelPart.LocalTransform.Transform(modelPart.Mesh?.Center ?? Vector3.Zero));
+                separationEffect = collisionGroup.Definition.SeparationExplosion?.Effect;
+            }
+
+            if (obj.DisableCmpPart(part, spaceGameplay.world, Game.ResourceManager, out _))
+            {
+                spaceGameplay.world.SpawnTempFx(separationEffect, effectPosition);
+                if (isPlayer && OnUpdateInventory != null)
+                {
+                    uiActions.Enqueue(OnUpdateInventory);
+                }
+            }
         });
     }
 
@@ -816,13 +867,7 @@ public partial class CGameSession
     {
         gameplayActions.Enqueue(() =>
         {
-            if (!(spaceGameplay!.world.GetObject(id)?.TryGetComponent<CTradelaneComponent>(out var tl) ?? false))
-                return;
-
-            if (left)
-                tl.ActivateLeft();
-            else
-                tl.ActivateRight();
+            SetTradelaneLaneState(id, left, true);
         });
     }
 
@@ -830,14 +875,59 @@ public partial class CGameSession
     {
         gameplayActions.Enqueue(() =>
         {
-            if (!(spaceGameplay!.world.GetObject(id)?.TryGetComponent<CTradelaneComponent>(out var tl) ?? false))
-                return;
-
-            if (left)
-                tl.DeactivateLeft();
-            else
-                tl.DeactivateRight();
+            SetTradelaneLaneState(id, left, false);
         });
+    }
+
+    void IClientPlayer.SetDockingLights(ObjNetId id, bool active)
+    {
+        gameplayActions.Enqueue(() =>
+        {
+            var obj = spaceGameplay!.world.GetObject(id);
+            if (obj != null)
+            {
+                obj.SetDockingLights(active);
+            }
+            else if (active)
+            {
+                pendingDockingLights.Add(id.Value);
+            }
+            else
+            {
+                pendingDockingLights.Remove(id.Value);
+            }
+        });
+    }
+
+    private void SetTradelaneLaneState(uint id, bool left, bool active)
+    {
+        var obj = spaceGameplay!.world.GetObject(id);
+        if (obj?.TryGetComponent<CTradelaneComponent>(out var tradelane) == true)
+        {
+            tradelane.SetActive(left, active);
+            return;
+        }
+
+        var bit = left ? (byte)1 : (byte)2;
+        pendingTradelaneLanes.TryGetValue(id, out var state);
+        state = active ? (byte)(state | bit) : (byte)(state & ~bit);
+        if (state == 0)
+            pendingTradelaneLanes.Remove(id);
+        else
+            pendingTradelaneLanes[id] = state;
+    }
+
+    private void ApplyPendingTradelaneLanes(GameObject obj)
+    {
+        if (!pendingTradelaneLanes.TryGetValue(obj.NicknameCRC, out var state))
+            return;
+
+        if (obj.TryGetComponent<CTradelaneComponent>(out var tradelane))
+        {
+            if ((state & 1) != 0) tradelane.ActivateLeft();
+            if ((state & 2) != 0) tradelane.ActivateRight();
+            pendingTradelaneLanes.Remove(obj.NicknameCRC);
+        }
     }
 
     void IClientPlayer.ClearScan()
@@ -1226,6 +1316,9 @@ public partial class CGameSession
 
                 spaceGameplay!.world.AddObject(newObj);
                 newObj.Register(spaceGameplay.world);
+                ApplyPendingTradelaneLanes(newObj);
+                if (pendingDockingLights.Remove(newObj.NetID))
+                    newObj.SetDockingLights(true);
 
                 if ((objInfo.Flags & ObjectSpawnFlags.Debris) == ObjectSpawnFlags.Debris ||
                     (objInfo.Flags & ObjectSpawnFlags.Loot) == ObjectSpawnFlags.Loot)
@@ -1314,14 +1407,18 @@ public partial class CGameSession
     }
 
     void IClientPlayer.SpawnPlayer(int ID, string system, CrcIdMap[] crcMap, NetObjective objective,
-        Vector3 position, Quaternion orientation, uint tick)
+        Vector3 position, Quaternion orientation, uint[] destroyedParts, uint tick)
     {
         enterCount++;
         PlayerNetID = ID;
+        var previousSystem = PlayerSystem;
+        systemEntryAnnouncementPending = !string.IsNullOrWhiteSpace(previousSystem) &&
+            !string.Equals(previousSystem, system, StringComparison.OrdinalIgnoreCase);
+        PlayerDestroyedParts.Clear();
+        PlayerDestroyedParts.UnionWith(destroyedParts);
         PlayerBase = null;
         CurrentObjective = objective;
         FLLog.Info("Client", $"Spawning in {system}");
-        var previousSystem = PlayerSystem;
         PlayerSystem = system;
         if (!string.IsNullOrWhiteSpace(previousSystem) &&
             !string.Equals(previousSystem, system, StringComparison.OrdinalIgnoreCase))
@@ -1334,6 +1431,13 @@ public partial class CGameSession
         WorldTick = tick + connection.EstimateTickDelay();
         totalTimeForTick = Game.TotalTime;
         this.crcMap = crcMap;
+    }
+
+    public bool ConsumeSystemEntryAnnouncement()
+    {
+        var pending = systemEntryAnnouncementPending;
+        systemEntryAnnouncementPending = false;
+        return pending;
     }
 
     void IClientPlayer.SpawnMissile(int id, bool playSound, uint equip, Vector3 position, Quaternion orientation)

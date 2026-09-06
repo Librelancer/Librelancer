@@ -895,7 +895,7 @@ public class GameItemDb
             }
         }, baseTask);
         var goodsTask = tasks.Begin(InitGoods, equipmentTask);
-        var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask);
+        var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask, explosionTask, fusesTask);
         var starsTask = tasks.Begin(InitStars);
         var astsTask = tasks.Begin(InitAsteroids, explosionTask);
         tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
@@ -1274,6 +1274,11 @@ public class GameItemDb
             {
                 var tlequip = new TradelaneEquipment
                 {
+                    ShipEnter = Effects.Get(tl.TlShipEnter),
+                    ShipExit = Effects.Get(tl.TlShipExit),
+                    ShipDisrupt = Effects.Get(tl.TlShipDisrupt),
+                    PlayerTravel = Effects.Get(tl.TlPlayerTravel),
+                    PlayerSplash = Effects.Get(tl.TlPlayerSplash),
                     RingActive = Effects.Get(tl.TlRingActive)
                 };
                 equip = tlequip;
@@ -2216,13 +2221,24 @@ public class GameItemDb
         var sp = new SeparablePart
         {
             Part = cg.obj,
+            HitPoints = cg.HitPts,
+            Separable = cg.Separable,
+            RootHealthProxy = cg.RootHealthProxy,
+            ParentImpulse = cg.ParentImpulse,
+            Type = cg.Type,
             ChildDamageCapHardpoint = cg.GroupDmgHp,
             ChildDamageCap = SimpleObjects.Get(cg.GroupDmgObj),
             ParentDamageCapHardpoint = cg.DmgHp,
             ParentDamageCap = SimpleObjects.Get(cg.DmgObj),
             Mass = cg.Mass <= 0 ? 1 : cg.Mass,
             ChildImpulse = cg.ChildImpulse,
-            DebrisType = Debris.Get(cg.DebrisType)
+            DebrisType = Debris.Get(cg.DebrisType),
+            SeparationExplosion = Explosions.Get(cg.SeparationExplosion),
+            Fuses = cg.Fuses.Select(x => new DamageFuse
+            {
+                Fuse = Fuses.Get(x.Fuse),
+                Threshold = x.Threshold
+            }).ToList()
         };
 
         return sp;

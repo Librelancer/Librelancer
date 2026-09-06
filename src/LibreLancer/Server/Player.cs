@@ -179,10 +179,16 @@ namespace LibreLancer.Server
 
         public bool InTradelane;
 
-        public void StartTradelane()
+        public void StartTradelane(GameObject ring, Quaternion orientation)
         {
-            rpcClient.StartTradelane();
+            rpcClient.StartTradelane(ring, orientation);
             InTradelane = true;
+        }
+
+        public void TradelaneRing(GameObject ring)
+        {
+            if (InTradelane)
+                rpcClient.TradelaneRing(ring);
         }
 
         public void TradelaneDisrupted()
@@ -857,7 +863,7 @@ namespace LibreLancer.Server
                 world.EnqueueAction(() =>
                 {
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
-                        Orientation, world.CurrentTick);
+                        Orientation, Character!.GetDestroyedParts(), world.CurrentTick);
                     var pship = world.SpawnPlayer(this, Position, Orientation);
                     world.Population.PopulateInitialAroundPlayer(pship);
 
@@ -930,7 +936,8 @@ namespace LibreLancer.Server
                         Rank = x.Rank,
                         Rep = x.Rep,
                         ForSale = x.ForSale
-                    }).ToArray(), GetSoldShips().ToArray(), Baseside.NetMissionOffers);
+                    }).ToArray(), GetSoldShips().ToArray(), Baseside.NetMissionOffers,
+                    Character.GetDestroyedParts());
             }
         }
 
@@ -1385,7 +1392,7 @@ namespace LibreLancer.Server
 
         private PlayerInventory lastInventory = new();
 
-        public void UpdateCurrentInventory()
+        public void UpdateCurrentInventory(bool resetDestroyedParts = false)
         {
             PlayerInventory newInventory = new()
             {
@@ -1395,7 +1402,7 @@ namespace LibreLancer.Server
                 Loadout = Character.EncodeLoadout()
             };
 
-            var diff = PlayerInventoryDiff.Create(lastInventory, newInventory);
+            var diff = PlayerInventoryDiff.Create(lastInventory, newInventory, resetDestroyedParts);
             lastInventory = newInventory;
 
             if (diff.Header != 0)
@@ -1421,6 +1428,11 @@ namespace LibreLancer.Server
 
         public void Killed()
         {
+            if (Character != null)
+            {
+                using var characterTransaction = Character.BeginTransaction();
+                characterTransaction.ClearDestroyedParts();
+            }
             Space?.Leave(true);
             Space = null;
             Dead = true;
@@ -1690,7 +1702,7 @@ namespace LibreLancer.Server
                     {
                         Space = new SpacePlayer(world, this);
                         rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
-                            Orientation, world.CurrentTick);
+                            Orientation, Character!.GetDestroyedParts(), world.CurrentTick);
                         var pship = world.SpawnPlayer(this, Position, Orientation);
                         world.Population.PopulateInitialAroundPlayer(pship);
                         HandleSpaceEntry();
@@ -1792,7 +1804,7 @@ namespace LibreLancer.Server
                     }
 
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
-                        Orientation, world.CurrentTick);
+                        Orientation, Character!.GetDestroyedParts(), world.CurrentTick);
                     var pship = world.SpawnPlayer(this, Position, Orientation);
                     world.Population.PopulateInitialAroundPlayer(pship);
 

@@ -121,39 +121,21 @@ public class StarSystem : NamedItem
         other.Spacedust = Spacedust;
         other.SpacedustMaxParticles = SpacedustMaxParticles;
 
-        foreach (var z in Zones)
+        other.Zones = Zones.Select(z => z.Clone()).ToList();
+        other.ZoneDict = new (StringComparer.OrdinalIgnoreCase);
+        foreach (var z in other.Zones)
         {
-            var cloned = z.Clone();
-            other.Zones.Add(cloned);
-            other.ZoneDict[cloned.Nickname] = cloned;
+            other.ZoneDict[z.Nickname] = z;
         }
 
-        foreach (var a in AsteroidFields)
-        {
-            other.AsteroidFields.Add(a.Clone(other.ZoneDict));
-        }
-
-        foreach (var n in Nebulae)
-        {
-            other.Nebulae.Add(n.Clone(other.ZoneDict));
-        }
-
-        foreach (var o in Objects)
-        {
-            other.Objects.Add(o.Clone());
-        }
-
-        foreach (var lt in LightSources)
-        {
-            other.LightSources.Add(lt.Clone());
-        }
-
-        foreach (var ep in EncounterParameters)
-        {
-            other.EncounterParameters.Add(ep);
-        }
-
+        other.AsteroidFields = AsteroidFields.Select(a => a.Clone(other.ZoneDict)).ToList();
+        other.Nebulae = Nebulae.Select(n => n.Clone(other.ZoneDict)).ToList();
+        other.Objects = Objects.Select(o => o.Clone()).ToList();
+        other.LightSources = LightSources.Select(l => l.Clone()).ToList();
+        other.EncounterParameters = EncounterParameters.ToList();
         other.TexturePanelsFiles = TexturePanelsFiles.ToList();
+        other.ResourceFiles = new();
+
         foreach (var rf in ResourceFiles)
             other.ResourceFiles.Add(rf);
         if (Preloads is { Length: > 0 })

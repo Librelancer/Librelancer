@@ -17,6 +17,7 @@ using LibreLancer.Data.GameData.World;
 using LibreLancer.Utf.Dfm;
 using LibreLancer.Data.Schema.MBases;
 using LibreLancer.Data.Schema.Missions;
+using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Graphics.Text;
 using LibreLancer.ImUI.NodeEditor;
 using LibreLancer.Infocards;
@@ -92,6 +93,9 @@ namespace LibreLancer
             new(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> consumedBaseNpcInteractions =
             new(StringComparer.OrdinalIgnoreCase);
+        private readonly bool isPlanet;
+        private bool hasLandingAnimation;
+        private double locationAnnouncementDelay = -1;
 
         private enum ScriptState
         {
@@ -117,6 +121,7 @@ namespace LibreLancer
             starSystem = g.GameData.Items.Systems.Get(currentBase.System) ??
                          throw new DataException($"Could not find system: {currentBase.System}");
             var systemObject = starSystem.Objects.FirstOrDefault((o) => o.Base == currentBase);
+            isPlanet = systemObject?.Archetype?.Type == ArchetypeType.planet;
 
             // Find infocard
             var ids = systemObject?.IdsInfo ?? 0;
@@ -694,6 +699,7 @@ namespace LibreLancer
 
         protected override void OnUnload()
         {
+            Game.Typewriter.Clear();
             Game.Keyboard.TextInput -= Game_TextInput;
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;
             Game.Mouse.MouseDown -= MouseOnMouseDown;
@@ -937,7 +943,7 @@ namespace LibreLancer
                 return;
             }
 
-            playerShip.Children.Clear();
+            playerShip.Children.RemoveAll(x => x.TryGetComponent<EquipmentComponent>(out _));
 
             foreach (var mount in session.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
             {
@@ -995,6 +1001,10 @@ namespace LibreLancer
                     Game.ResourceManager, true,
                     false);
                 CreatePlayerEquipment();
+                foreach (var part in session.PlayerDestroyedParts)
+                {
+                    playerShip.DisableCmpPart(part, null, Game.ResourceManager, out _);
+                }
             }
             else
             {
@@ -1020,7 +1030,8 @@ namespace LibreLancer
 
             sceneScripts = currentRoom.OpenScene().Concat(GetMsnAmbients()).ToArray();
 
-            if (dolanding && !string.IsNullOrEmpty(currentRoom.LandScript?.DataPath))
+            hasLandingAnimation = dolanding && !string.IsNullOrEmpty(currentRoom.LandScript?.DataPath);
+            if (hasLandingAnimation)
             {
                 RoomDoSceneScript(currentRoom.LandScript.LoadScript(), ScriptState.Enter);
             }
@@ -1032,6 +1043,9 @@ namespace LibreLancer
             {
                 RoomDoSceneScript(null, ScriptState.None);
             }
+
+            if (dolanding && !hasLandingAnimation)
+                locationAnnouncementDelay = 5;
         }
 
         private Vector2 ScreenPosition(Vector3 worldPos)
@@ -1233,6 +1247,8 @@ namespace LibreLancer
             }
             else
             {
+                if (hasLandingAnimation && currentState == ScriptState.Enter && locationAnnouncementDelay >= 0)
+                    locationAnnouncementDelay = 5;
                 currentState = ScriptState.None;
                 SetRoomCameraAndShip();
                 animatingLetterbox = true;
@@ -1355,6 +1371,8 @@ namespace LibreLancer
             }
 
             waitingForFinish = sc;
+            if (hasLandingAnimation && state == ScriptState.Enter && sc != null)
+                locationAnnouncementDelay = Math.Max(0, sc.Duration - 8);
             scene!.BeginScene(Scripts(sceneScripts, [sc]));
             PopulateRoomNpcs();
             string[] ships = [];
@@ -1414,6 +1432,20 @@ namespace LibreLancer
             }
 
             session.Update();
+
+            if (!paused && locationAnnouncementDelay >= 0)
+            {
+                locationAnnouncementDelay -= delta;
+                if (locationAnnouncementDelay <= 0)
+                {
+                    locationAnnouncementDelay = -1;
+                    var location = Game.GameData.GetString(currentBase.IdsName);
+                    var system = Game.GameData.GetString(starSystem.IdsName);
+                    var prefix = isPlanet ? "PLANET " : string.Empty;
+                    Game.Typewriter.PlayString($"{prefix}{location}, {system} SYSTEM.",
+                        TypewriterStyle.LocationEntry);
+                }
+            }
 
             if (ProcessCutscenes())
             {

@@ -16,6 +16,7 @@ using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Graphics;
 using LibreLancer.Input;
 using LibreLancer.Interface;
+using LibreLancer.Media;
 using LibreLancer.Net;
 using LibreLancer.Render;
 using LibreLancer.Render.Cameras;
@@ -67,6 +68,10 @@ namespace LibreLancer
         private CPlayerCargoComponent cargo = null!;
         private bool loading = true;
         private LoadingScreen? loader;
+        private readonly List<ParticleEffectRenderer> transientShipEffects = [];
+        private TradelaneEquipment? activeTradelaneEquipment;
+        private ParticleEffectRenderer? tradelaneTravelRenderer;
+        private SoundInstance? tradelaneTravelSound;
         public Cutscene? Thn;
 
         private bool pausemenu = false;
@@ -75,6 +80,7 @@ namespace LibreLancer
         private bool objectiveObjectsDirty = true;
 
         private int updateStartDelay = -1;
+        private double systemAnnouncementDelay = -1;
         private DockCameraInfo? dockCameraInfo = null;
         private bool fadeToRoom;
         public AutopilotComponent? pilotComponent = null;
@@ -146,6 +152,7 @@ namespace LibreLancer
             pilotComponent = new AutopilotComponent(player) { LocalPlayer = true };
             steering = new ShipSteeringComponent(player);
             Selection = new SelectedTargetComponent(player);
+            targetWireframe.PartSelected = part => Selection.SelectedPart = part;
             Directives = new DirectiveRunnerComponent(player);
             player.AddComponent(Selection);
 
@@ -186,6 +193,11 @@ namespace LibreLancer
             {
                 EquipmentObjectManager.InstantiateEquipment(player, Game.ResourceManager, Game.Sound,
                     EquipmentType.LocalPlayer, equipment.Hardpoint, equipment.Equipment!);
+            }
+
+            foreach (var part in session.PlayerDestroyedParts)
+            {
+                player.DisableCmpPart(part, null, Game.ResourceManager, out _);
             }
 
             if (!player.TryGetComponent(out powerCore!))
@@ -249,6 +261,8 @@ namespace LibreLancer
             contactList = new ContactList(this);
             ui.OpenScene("hud");
             FadeIn(0.5, 0.5);
+            if (session.ConsumeSystemEntryAnnouncement())
+                systemAnnouncementDelay = 5;
             GC.Collect();
             updateStartDelay = 3;
         }
@@ -332,6 +346,10 @@ namespace LibreLancer
 
             switch (obj)
             {
+                case InputAction.USER_CRUISE:
+                    steering.Cruise = !steering.Cruise;
+                    steering.EngineKill = false;
+                    break;
                 case InputAction.USER_MANEUVER_DOCK:
                     ManeuverSelect("Dock");
                     break;
@@ -650,6 +668,7 @@ namespace LibreLancer
             if (oldBehavior == AutopilotBehaviors.Undock)
             {
                 shipInput.Throttle = 1;
+                systemAnnouncementDelay = 5;
             }
         }
 
@@ -670,8 +689,86 @@ namespace LibreLancer
             Game.Keyboard.TextInput -= Game_TextInput;
             Game.Keyboard.KeyDown -= Keyboard_KeyDown;
             Game.Mouse.MouseDown -= Mouse_MouseDown;
+            foreach (var effect in transientShipEffects)
+                player?.ExtraRenderers.Remove(effect);
+            transientShipEffects.Clear();
+            StopTradelaneEffects(null);
             sysrender?.Dispose();
             world?.Dispose();
+        }
+
+        private (ParticleEffectRenderer? Renderer, SoundInstance? Sound)
+            AttachShipEffect(
+                ResolvedFx? effect,
+                bool loopSound = false)
+        {
+            if (effect == null)
+                return (null, null);
+
+            var particle = effect.GetEffect(Game.ResourceManager);
+            var renderer = particle == null
+                ? null
+                : new ParticleEffectRenderer(particle);
+            if (renderer != null)
+            {
+                player.ExtraRenderers.Add(renderer);
+            }
+
+            SoundInstance? sound = null;
+            if (effect.Sound != null)
+            {
+                sound = Game.Sound.GetInstance(effect.Sound.Nickname, 0, -1, -1, null);
+                sound?.Play(loopSound);
+            }
+
+            return (renderer, sound);
+        }
+
+        private void AttachTransientShipEffect(ResolvedFx? effect)
+        {
+            var attached = AttachShipEffect(effect);
+            if (attached.Renderer != null)
+                transientShipEffects.Add(attached.Renderer);
+        }
+
+        private TradelaneEquipment? GetTradelaneEquipment(ObjNetId ring)
+        {
+            var obj = world.GetObject(ring);
+            if (obj?.TryGetComponent<CTradelaneComponent>(out var lane) ?? false)
+                return lane.Def;
+
+            var fromLoadout = obj?.SystemObject?.Loadout?.Items
+                .Select(x => x.Equipment)
+                .OfType<TradelaneEquipment>()
+                .FirstOrDefault();
+            return fromLoadout ??
+                   Game.GameData.Items.Equipment.Get("basic_trade_lane_eq")
+                       as TradelaneEquipment;
+        }
+
+        private void StopTradelaneEffects(ResolvedFx? endEffect)
+        {
+            if (tradelaneTravelRenderer != null)
+            {
+                player?.ExtraRenderers.Remove(tradelaneTravelRenderer);
+                tradelaneTravelRenderer = null;
+            }
+            tradelaneTravelSound?.Stop();
+            tradelaneTravelSound = null;
+            activeTradelaneEquipment = null;
+            if (endEffect != null && player != null)
+                AttachTransientShipEffect(endEffect);
+        }
+
+        private void UpdateTransientShipEffects()
+        {
+            for (var i = transientShipEffects.Count - 1; i >= 0; i--)
+            {
+                if (!transientShipEffects[i].Finished)
+                    continue;
+                player.ExtraRenderers.Remove(transientShipEffects[i]);
+                transientShipEffects.RemoveAt(i);
+            }
         }
 
         private void Keyboard_KeyDown(KeyEventArgs e)
@@ -721,6 +818,11 @@ namespace LibreLancer
             switch (e)
             {
                 case "FreeFlight":
+                    if (session.InTradelane)
+                    {
+                        session.SpaceRpc.ExitTradelane();
+                    }
+
                     pilotComponent!.Cancel();
                     return true;
                 case "Dock":
@@ -740,14 +842,25 @@ namespace LibreLancer
                         return false;
                     }
 
-                    pilotComponent!.StartDock(Selection.Selected, GotoKind.Goto);
+                    var tradelaneHardpoint = string.Empty;
+                    if (dock.Action.Kind == DockKinds.Tradelane)
+                    {
+                        tradelaneHardpoint = dock.GetDockHardpoints(
+                                player.PhysicsComponent!.Body.Position)
+                            .FirstOrDefault()?.Name ?? string.Empty;
+                    }
+
+                    pilotComponent!.StartDock(
+                        Selection.Selected,
+                        GotoKind.Goto,
+                        tradelaneHardpoint: tradelaneHardpoint);
                     var dockCam = dock.GetDockCamera(0);
                     if (dockCam != null)
                     {
                         SetDockCam(dockCam);
                     }
                     session.RegisterRouteDock(Selection.Selected.NicknameCRC, sys.CRC);
-                    session.SpaceRpc.RequestDock(Selection.Selected);
+                    session.SpaceRpc.RequestDock(Selection.Selected, tradelaneHardpoint);
                     return true;
 
                 case "Goto":
@@ -777,6 +890,7 @@ namespace LibreLancer
                 double FixedDelta = 1 / 60.0;
 
                 world.Update(paused ? 0 : FixedDelta);
+                UpdateTransientShipEffects();
 
                 if (session.Update())
                 {
@@ -905,6 +1019,17 @@ namespace LibreLancer
                 }
 
                 return;
+            }
+
+            if (systemAnnouncementDelay >= 0)
+            {
+                systemAnnouncementDelay -= delta;
+                if (systemAnnouncementDelay <= 0)
+                {
+                    systemAnnouncementDelay = -1;
+                    Game.Typewriter.PlayString($"{Game.GameData.GetString(sys.IdsName)} SYSTEM.",
+                        TypewriterStyle.LocationEntry);
+                }
             }
 
             contactList.Update(delta);
@@ -1064,10 +1189,6 @@ namespace LibreLancer
 
             switch (action)
             {
-                case InputAction.USER_CRUISE:
-                    steering.Cruise = !steering.Cruise;
-                    steering.EngineKill = false;
-                    break;
                 case InputAction.USER_TURN_SHIP:
                     mouseFlight = !mouseFlight;
                     break;
@@ -1175,14 +1296,34 @@ namespace LibreLancer
 
             var myPos = player.WorldTransform.Position;
             var myVel = player.PhysicsComponent!.Body.LinearVelocity;
-            var otherPos = Selection.Selected.WorldTransform.Position;
+            var otherPos = GetSelectedTargetPosition();
             var otherVel = Selection.Selected.PhysicsComponent.Body.LinearVelocity;
+            var offset = otherPos - Selection.Selected.WorldTransform.Position;
+            otherVel += Vector3.Cross(Selection.Selected.PhysicsComponent.Body.AngularVelocity, offset);
             var speed = weapons.GetAverageGunSpeed();
+            if (speed <= 0)
+                return false;
             Aiming.GetTargetLeading(otherPos - myPos, otherVel - myVel, speed, out var t);
             worldPos = (otherPos + otherVel * t);
             bool vis;
             (screenPos, vis) = ScreenPosition(worldPos);
             return vis;
+        }
+
+        private Vector3 GetSelectedTargetPosition()
+        {
+            var selected = Selection.Selected!;
+            if (Selection.SelectedPart is uint partCrc &&
+                selected.Model?.TryGetCollisionGroup(partCrc, out var collisionGroup) == true &&
+                collisionGroup.ModelPart.Active)
+            {
+                var part = collisionGroup.ModelPart;
+                var localPosition = part.LocalTransform.Transform(part.Mesh?.Center ?? Vector3.Zero);
+                return selected.WorldTransform.Transform(localPosition);
+            }
+
+            Selection.SelectedPart = null;
+            return selected.WorldTransform.Position;
         }
 
         private Vector3 GetAimPoint()
@@ -1442,24 +1583,65 @@ namespace LibreLancer
             });
         }
 
-        public void StartTradelane()
+        public void StartTradelane(ObjNetId ring, Quaternion orientation)
         {
+            StopTradelaneEffects(null);
+            activeTradelaneEquipment = GetTradelaneEquipment(ring);
+            if (activeTradelaneEquipment != null)
+            {
+                AttachTransientShipEffect(activeTradelaneEquipment.ShipEnter);
+                var travel = AttachShipEffect(
+                    activeTradelaneEquipment.PlayerTravel,
+                    loopSound: true);
+                tradelaneTravelRenderer = travel.Renderer;
+                tradelaneTravelSound = travel.Sound;
+            }
+
+            var body = player.PhysicsComponent!.Body;
+            var speed = body.LinearVelocity.Length();
+            body.LinearVelocity = TradelaneMotion.Forward(orientation) * speed;
+            body.AngularVelocity = Vector3.Zero;
             player.GetComponent<ShipPhysicsComponent>()!.Active = false;
             player.GetComponent<WeaponControlComponent>()!.Enabled = false;
+            if (!player.TryGetComponent<CTradelaneMoveComponent>(out var tradelane))
+            {
+                tradelane = new CTradelaneMoveComponent(player);
+                player.AddComponent(tradelane);
+            }
+            tradelane.BeginEntryOrientation(orientation);
             pilotComponent?.Cancel();
             RefreshActiveUserWaypoint(false);
+        }
+
+        public void TradelaneRing(ObjNetId ring)
+        {
+            activeTradelaneEquipment ??= GetTradelaneEquipment(ring);
+            AttachTransientShipEffect(activeTradelaneEquipment?.PlayerSplash);
         }
 
         public void TradelaneDisrupted()
         {
             Game.Sound.PlayVoiceLine(VoiceLines.NnVoiceName, VoiceLines.NnVoice.TradeLaneDisrupted);
-            EndTradelane();
+            var disruptEffect = activeTradelaneEquipment?.ShipDisrupt;
+            StopTradelaneEffects(disruptEffect);
+            RestoreAfterTradelane();
         }
 
         public void EndTradelane()
         {
+            var exitEffect = activeTradelaneEquipment?.ShipExit;
+            StopTradelaneEffects(exitEffect);
+            RestoreAfterTradelane();
+        }
+
+        private void RestoreAfterTradelane()
+        {
             player.GetComponent<ShipPhysicsComponent>()!.Active = true;
             player.GetComponent<WeaponControlComponent>()!.Enabled = true;
+            if (player.TryGetComponent<CTradelaneMoveComponent>(out var tradelane))
+            {
+                player.RemoveComponent(tradelane);
+            }
         }
 
         private void GetCameraMatrices(out Matrix4x4 view, out Matrix4x4 projection)
@@ -1812,14 +1994,34 @@ namespace LibreLancer
                 Thn.UpdateViewport(Game.RenderContext.CurrentViewport, (float)Game.Width / Game.Height);
             }
 
-            if (Selection.Selected != null)
+            if (Selection.Selected?.Model != null)
             {
-                targetWireframe.Model = Selection.Selected.Model!.RigidModel;
+                targetWireframe.Model = Selection.Selected.Model.RigidModel;
                 var lookAt = Matrix4x4.CreateLookAt(player.LocalTransform.Position,
                     Vector3.Transform(Vector3.UnitZ * 4, player.LocalTransform.Matrix()), Vector3.UnitY);
 
                 targetWireframe.Matrix = (lookAt * Selection.Selected.LocalTransform.Matrix()).ClearTranslation();
                 targetWireframe.ChildModels.Clear();
+                targetWireframe.Parts.Clear();
+
+                foreach (var collisionGroup in Selection.Selected.Model.CollisionGroups)
+                {
+                    if (!collisionGroup.ModelPart.Active)
+                    {
+                        continue;
+                    }
+
+                    targetWireframe.Parts[collisionGroup.ModelPart] = new TargetShipWireframe.PartModel(
+                        collisionGroup.CRC,
+                        collisionGroup.HealthFraction,
+                        Selection.SelectedPart == collisionGroup.CRC);
+                }
+
+                if (Selection.SelectedPart is uint selectedPart &&
+                    targetWireframe.Parts.Values.All(x => x.CRC != selectedPart))
+                {
+                    Selection.SelectedPart = null;
+                }
 
                 foreach (var child in Selection.Selected.Children)
                 {
@@ -1846,6 +2048,13 @@ namespace LibreLancer
                         childMatrix * targetWireframe.Matrix,
                         healthPct));
                 }
+            }
+            else
+            {
+                targetWireframe.Model = null;
+                targetWireframe.ChildModels.Clear();
+                targetWireframe.Parts.Clear();
+                Selection.SelectedPart = null;
             }
 
             if (updateStartDelay > 0)

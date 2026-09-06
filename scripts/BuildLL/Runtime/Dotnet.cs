@@ -33,9 +33,9 @@ namespace BuildLL
             RunCommand("dotnet", $"build -c Release {Verbosity} {M()}  -p:UseArtifactsOutput=true -p:ArtifactsPath={P(artifactsDir)} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
 
-        public static void Clean(string project)
+        public static void Clean(string project, string config = "Release")
         {
-            RunCommand("dotnet", $"clean {M()} {Verbosity} -c Release -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
+            RunCommand("dotnet", $"clean {M()} {Verbosity} -c {config} -p:RestoreUseStaticGraphEvaluation=true /nr:false {P(project)}");
         }
         public static void Run(string project, string artifactsDir, string? args = null)
         {

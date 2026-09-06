@@ -85,6 +85,7 @@ namespace LibreLancer.Server.Components
 
         public DockingPoint[] DockPoints;
         private readonly DockHardpoints hardpoints;
+        private bool dockingLightsOn;
 
         public SDockableComponent(GameObject parent, DockAction action, DockSphere[] dockSpheres) : base(parent)
         {
@@ -96,7 +97,11 @@ namespace LibreLancer.Server.Components
         private bool HasDockAnimation(int i) =>
             Parent.GetComponent<AnimationComponent>()?.HasAnimation(DockPoints[i].DockSphere.Script) == true;
 
-        private void TryTriggerAnimation(int i, GameObject obj, GameWorld world)
+        private void TryTriggerAnimation(
+            int i,
+            GameObject obj,
+            GameWorld world,
+            string? tradelaneHardpoint = null)
         {
             if (i < 0 || i >= DockPoints.Length)
             {
@@ -111,14 +116,18 @@ namespace LibreLancer.Server.Components
 
             var rad = obj.PhysicsComponent?.Body.Collider.Radius ?? 15;
             var pos = obj.WorldTransform.Position;
-            var hp = hardpoints.GetDockHardpoints(Parent, i, Vector3.Zero, false).FirstOrDefault();
+            var hp = Action.Kind == DockKinds.Tradelane && tradelaneHardpoint != null
+                ? Parent.GetHardpoint(tradelaneHardpoint)
+                : hardpoints.GetDockHardpoints(Parent, i, obj.WorldTransform.Position, false).FirstOrDefault();
             if (hp == null)
             {
                 return;
             }
 
-            var targetPos = (hp.Transform * Parent.WorldTransform).Position;
-            var dist = (targetPos - pos).Length();
+            var targetPos = (Action.Kind == DockKinds.Tradelane
+                    ? hp.TransformNoRotate
+                    : hp.Transform) * Parent.WorldTransform;
+            var dist = (targetPos.Position - pos).Length();
 
             var forceAnimation = HasDockAnimation(i) &&
                                  DockPoints[i].Open &&
@@ -126,8 +135,23 @@ namespace LibreLancer.Server.Components
             if ((!DockPoints[i].Open || forceAnimation) &&
                 dist < animRadius + rad)
             {
-                TriggerAnimation(i, world, forceAnimation);
+                TriggerAnimation(i, world, forceAnimation, tradelaneHardpoint);
             }
+        }
+
+        private int GetTradelaneDockIndex(string hardpoint, int fallback)
+        {
+            for (var i = 0; i < DockPoints.Length; i++)
+            {
+                if (DockPoints[i].DockSphere.Hardpoint.Equals(
+                        hardpoint,
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return i;
+                }
+            }
+
+            return fallback;
         }
 
         private bool IsDockingRingIndex(int index) =>
@@ -158,13 +182,42 @@ namespace LibreLancer.Server.Components
             return true; // NPCs can always tradelane
         }
 
-        private bool CanDock(int i, GameObject obj, string? tlHP = null)
+        private bool CanDock(int i, GameObject obj, GameWorld world, string? tlHP = null)
         {
             var rad = obj.PhysicsComponent?.Body.Collider.Radius ?? 15;
-            var pos = obj.WorldTransform.Position;
+            var pos = obj.PhysicsComponent?.Body.Position ?? obj.WorldTransform.Position;
 
             var hp = Parent.GetHardpoint(tlHP ?? DockPoints[i].DockSphere.Hardpoint);
-            var targetPos = (hp!.Transform * Parent.WorldTransform).Position;
+            if (hp == null)
+            {
+                return false;
+            }
+
+            var targetPos = ((Action.Kind == DockKinds.Tradelane
+                    ? hp.TransformNoRotate
+                    : hp.Transform) * Parent.WorldTransform).Position;
+
+            if (Action.Kind == DockKinds.Tradelane && tlHP != null)
+            {
+                var nextNickname = tlHP.Equals(
+                    "HpRightLane",
+                    StringComparison.OrdinalIgnoreCase)
+                    ? Action.Target
+                    : Action.TargetLeft;
+                var nextRing = nextNickname == null ? null : world.GetObject(nextNickname);
+                var nextHardpoint = nextRing?.GetHardpoint(tlHP);
+                if (nextRing != null && nextHardpoint != null)
+                {
+                    var nextPosition =
+                        (nextHardpoint.TransformNoRotate * nextRing.WorldTransform).Position;
+                    return TradelaneMotion.HasCrossedEntryPlane(
+                        pos,
+                        targetPos,
+                        nextPosition - targetPos,
+                        DockPoints[i].DockSphere.Radius + rad,
+                        rad);
+                }
+            }
 
             if ((targetPos - pos).Length() < (DockPoints[i].DockSphere.Radius + rad))
             {
@@ -196,16 +249,21 @@ namespace LibreLancer.Server.Components
         private int inactiveTicksRight = 0;
         private const int INACTIVE_TIME = 16;
 
-        private void TriggerAnimation(int i, GameWorld world, bool force = false)
+        private void TriggerAnimation(
+            int i,
+            GameWorld world,
+            bool force = false,
+            string? tradelaneHardpoint = null)
         {
+            var laneHardpoint = tradelaneHardpoint ?? DockPoints[i].DockSphere.Hardpoint;
             if (Action.Kind == DockKinds.Tradelane &&
-                DockPoints[i].DockSphere.Hardpoint.Equals("hpleftlane", StringComparison.OrdinalIgnoreCase))
+                laneHardpoint.Equals("hpleftlane", StringComparison.OrdinalIgnoreCase))
             {
                 world.Server!.ActivateLane(Parent, true);
                 inactiveTicksLeft = INACTIVE_TIME;
             }
             else if (Action.Kind == DockKinds.Tradelane &&
-                     DockPoints[i].DockSphere.Hardpoint.Equals("hprightlane", StringComparison.OrdinalIgnoreCase))
+                     laneHardpoint.Equals("hprightlane", StringComparison.OrdinalIgnoreCase))
             {
                 world.Server!.ActivateLane(Parent, false);
                 inactiveTicksRight = INACTIVE_TIME;
@@ -273,7 +331,12 @@ namespace LibreLancer.Server.Components
         public bool IsQueuedForDock(GameObject ship) =>
             dockQueue.Any(x => x.Ship == ship);
 
-        public void StartDock(GameObject obj, int index, GotoKind kind = GotoKind.Goto, GameWorld? world = null)
+        public void StartDock(
+            GameObject obj,
+            int index,
+            GotoKind kind = GotoKind.Goto,
+            GameWorld? world = null,
+            string? requestedTradelaneHardpoint = null)
         {
             if (activeDockings.Any(x => x.Ship == obj) || IsQueuedForDock(obj))
                 return;
@@ -295,20 +358,40 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            StartDockNow(obj, dockIndex, kind, world);
+            StartDockNow(obj, dockIndex, kind, world, requestedTradelaneHardpoint);
         }
 
-        private void StartDockNow(GameObject obj, int index, GotoKind kind, GameWorld? world)
+        private static string? ValidTradelaneHardpoint(string? hardpoint)
+        {
+            if (hardpoint?.Equals("HpLeftLane", StringComparison.OrdinalIgnoreCase) == true)
+                return "HpLeftLane";
+
+            if (hardpoint?.Equals("HpRightLane", StringComparison.OrdinalIgnoreCase) == true)
+                return "HpRightLane";
+
+            return null;
+        }
+
+        private void StartDockNow(
+            GameObject obj,
+            int index,
+            GotoKind kind,
+            GameWorld? world,
+            string? requestedTradelaneHardpoint = null)
         {
             var pos = obj.WorldTransform.Position;
+            string? tradelaneHardpoint = null;
 
             if (Action.Kind == DockKinds.Tradelane)
             {
+                tradelaneHardpoint = ValidTradelaneHardpoint(requestedTradelaneHardpoint) ??
+                                     hardpoints.GetDockHardpoints(Parent, index, pos, false).First().Name;
+                index = GetTradelaneDockIndex(tradelaneHardpoint, index);
                 activeDockings.Add(new DockingAction()
                 {
                     Dock = index,
                     Ship = obj,
-                    TLHardpoint = hardpoints.GetDockHardpoints(Parent, index, pos, false).First().Name
+                    TLHardpoint = tradelaneHardpoint
                 });
             }
             else
@@ -318,11 +401,11 @@ namespace LibreLancer.Server.Components
 
             if (world != null)
             {
-                TryTriggerAnimation(index, obj, world);
+                TryTriggerAnimation(index, obj, world, tradelaneHardpoint);
             }
 
             if (obj.TryGetComponent<AutopilotComponent>(out var ap))
-                ap.StartDock(Parent, kind, index);
+                ap.StartDock(Parent, kind, index, tradelaneHardpoint);
         }
 
         private void QueueDock(GameObject ship, int requestedIndex, GotoKind kind)
@@ -442,15 +525,71 @@ namespace LibreLancer.Server.Components
             FLLog.Debug("Docking", $"{dock.Ship} entering docking ring {DockPoints[dock.Dock].DockSphere.Hardpoint}");
         }
 
-        private void StartTradelane(GameObject ship, string tlHardpoint)
+        private static Vector3 FormationOffset(GameObject ship) =>
+            ship.Formation is not null
+                ? ship.Formation.GetShipOffset(ship)
+                : Vector3.Zero;
+
+        private static Vector3 TradelanePoint(GameObject ring, string hardpoint, GameObject ship)
         {
-            var movement = new STradelaneMoveComponent(ship, Parent, tlHardpoint);
+            var transform = ring.GetHardpoint(hardpoint)!.TransformNoRotate * ring.WorldTransform;
+            return transform.Transform(FormationOffset(ship));
+        }
+
+        private void StartTradelane(GameObject ship, string tlHardpoint, GameWorld world)
+        {
+            var entryHardpoint = Parent.GetHardpoint(tlHardpoint)!;
+            var entryTransform = entryHardpoint.TransformNoRotate * Parent.WorldTransform;
+            var entryPosition = TradelanePoint(Parent, tlHardpoint, ship);
+            var nextNickname = tlHardpoint.Equals(
+                "HpRightLane",
+                StringComparison.OrdinalIgnoreCase)
+                ? Action.Target
+                : Action.TargetLeft;
+            var nextRing = nextNickname == null ? null : world.GetObject(nextNickname);
+            var nextHardpoint = nextRing?.GetHardpoint(tlHardpoint);
+            var orientation = ship.PhysicsComponent!.Body.Orientation;
+            var enteredAtPenultimate = false;
+            if (nextRing != null && nextHardpoint != null)
+            {
+                var nextPosition = TradelanePoint(nextRing, tlHardpoint, ship);
+                var direction = nextPosition - entryPosition;
+                if (direction.LengthSquared() > float.Epsilon)
+                {
+                    orientation = TradelaneMotion.OrientationForDirection(
+                        direction,
+                        entryTransform.Orientation);
+                    var speed = ship.PhysicsComponent.Body.LinearVelocity.Length();
+                    ship.PhysicsComponent.Body.LinearVelocity =
+                        Vector3.Normalize(direction) * speed;
+                    ship.PhysicsComponent.Body.AngularVelocity = Vector3.Zero;
+                }
+
+                if (nextRing.TryGetComponent<SDockableComponent>(out var nextDock))
+                {
+                    var ringAfterNext = tlHardpoint.Equals(
+                        "HpRightLane",
+                        StringComparison.OrdinalIgnoreCase)
+                        ? nextDock.Action.Target
+                        : nextDock.Action.TargetLeft;
+                    enteredAtPenultimate = string.IsNullOrWhiteSpace(ringAfterNext);
+                }
+            }
+
+            var movement = new STradelaneMoveComponent(
+                ship,
+                Parent,
+                tlHardpoint,
+                orientation,
+                enteredAtPenultimate);
             ship.AddComponent(movement);
 
-            if (Parent.TryGetComponent<ShipPhysicsComponent>(out var component))
+            if (ship.TryGetComponent<ShipPhysicsComponent>(out var component))
             {
                 component.Active = false;
             }
+
+            ship.GetComponent<AutopilotComponent>()?.Cancel();
 
             if (ship.TryGetComponent<SNPCComponent>(out var npc))
             {
@@ -458,7 +597,7 @@ namespace LibreLancer.Server.Components
             }
             else if (ship.TryGetComponent<SPlayerComponent>(out var player))
             {
-                player.Player.StartTradelane();
+                player.Player.StartTradelane(Parent, orientation);
             }
 
             movement.LaneEntered();
@@ -670,7 +809,7 @@ namespace LibreLancer.Server.Components
                     }
                 }
 
-                TryTriggerAnimation(dock.Dock, dock.Ship, world);
+                TryTriggerAnimation(dock.Dock, dock.Ship, world, dock.TLHardpoint);
                 if (IsDockingRingIndex(dock.Dock) &&
                     !dock.RingDocking &&
                     DistanceToDockMount(dock.Dock, dock.Ship) <= GetRingFlyThroughRange(dock.Dock, dock.Ship))
@@ -682,7 +821,7 @@ namespace LibreLancer.Server.Components
                     continue;
                 }
 
-                if (!CanDock(dock.Dock, dock.Ship, dock.TLHardpoint))
+                if (!CanDock(dock.Dock, dock.Ship, world, dock.TLHardpoint))
                 {
                     continue;
                 }
@@ -741,13 +880,13 @@ namespace LibreLancer.Server.Components
                 else if (Action.Kind == DockKinds.Tradelane)
                 {
                     var tlHardpoint = dock.TLHardpoint!;
-                    StartTradelane(dock.Ship, tlHardpoint);
+                    StartTradelane(dock.Ship, tlHardpoint, world);
 
                     if (dock.Ship.Formation != null &&
                         dock.Ship.Formation.LeadShip == dock.Ship)
                     {
                         foreach (var ship in dock.Ship.Formation.Followers)
-                            StartTradelane(ship, tlHardpoint);
+                            StartTradelane(ship, tlHardpoint, world);
                     }
                 }
 
@@ -756,6 +895,13 @@ namespace LibreLancer.Server.Components
 
             foreach (var dp in DockPoints)
                 dp.Update(Parent, world, (float) time);
+
+            var shouldShowDockingLights = DockPoints.Any(x => x.Open);
+            if (shouldShowDockingLights != dockingLightsOn)
+            {
+                dockingLightsOn = shouldShowDockingLights;
+                world.Server!.SetDockingLights(Parent, dockingLightsOn);
+            }
 
             ProcessDockQueue(world);
 

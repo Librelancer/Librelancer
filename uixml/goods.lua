@@ -85,8 +85,12 @@ function good_list_item(good, purpose, preview, onmount)
 	tb.Width = 200
 	tb.Height = 13
 	if (good.IdsName != 0) {
-		tb.InfoId = good.IdsName
-		tb.Strid = good.IdsName
+		if (good.EquipmentClass != nil && good.EquipmentClass > 0) {
+			tb.Text = StringFromID(good.IdsName) + " (Class " + tostring(good.EquipmentClass) + ")"
+		} else {
+			tb.InfoId = good.IdsName
+			tb.Strid = good.IdsName
+		}
 	}
 	tb.MarginX = 3
 	li.ItemB.Children.Add(tb)
@@ -161,4 +165,3 @@ function good_list_item(good, purpose, preview, onmount)
 	}
 	return li
 }
-

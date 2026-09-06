@@ -48,6 +48,9 @@ namespace LibreLancer.Fx
 
         public ParticleBuffer Buffer;
 
+        public Matrix4x4[] NodeWorldTransforms;
+        public Matrix4x4[] EmitterParticleSpawnTransforms;
+
         public int CountAll()
         {
             int total = 0;
@@ -77,6 +80,13 @@ namespace LibreLancer.Fx
             Emitters = new EmitterState[fx.Emitters.Count];
             Buffer = new ParticleBuffer(fx.ParticleCounts);
             Effect = fx;
+
+            //Code suggested by Callum
+            NodeWorldTransforms = new Matrix4x4[fx.NodeCount];
+            NodeWorldTransforms.AsSpan().Fill(Matrix4x4.Identity);
+
+            EmitterParticleSpawnTransforms = new Matrix4x4[fx.EmitterNodeCount];
+            EmitterParticleSpawnTransforms.AsSpan().Fill(Matrix4x4.Identity);
         }
 
         public void Reset()
@@ -84,6 +94,10 @@ namespace LibreLancer.Fx
             globaltime = 0;
             Buffer.Reset();
             Array.Clear(Emitters);
+
+            //Code suggested by Callum
+            NodeWorldTransforms.AsSpan().Fill(Matrix4x4.Identity);
+            EmitterParticleSpawnTransforms.AsSpan().Fill(Matrix4x4.Identity);
         }
 
         public double LastTime => lasttime;
@@ -114,6 +128,34 @@ namespace LibreLancer.Fx
             Position = Vector3.Transform(Vector3.Zero, transform);
             lasttime = globaltime;
             globaltime += delta;
+
+            //Traverses the transformation tree recursively starting from "currentNodeReference" node, updating each transform for every node
+            void TraverseTree(Matrix4x4 currentTransform, NodeReference currentNodeReference)
+            {
+                if (!currentNodeReference.IsAttachmentNode)
+                {
+                    if(currentNodeReference.Node.Transform.HasTransform)
+                    {
+                        Matrix4x4 otherTransform=currentNodeReference.Node.Transform.GetTransform(sparam, (float) globaltime);
+                        if (!otherTransform.IsIdentity)
+                            currentTransform = otherTransform*currentTransform;
+                    }
+                    NodeWorldTransforms[currentNodeReference.NodeIdx]=currentTransform;
+                }
+
+                //Traverse children
+                foreach (NodeReference currentChildNodeReference in currentNodeReference.Children)
+                {
+                    TraverseTree(currentTransform, currentChildNodeReference);
+                }
+            }
+
+            //Update transformation tree
+            foreach (NodeReference currentNodeReference in Effect.Tree)
+            {
+                Matrix4x4 currentTransform = currentNodeReference.IsAttachmentNode ? transform : Matrix4x4.Identity;
+                TraverseTree(currentTransform, currentNodeReference);
+            }
 
             // Update particles
             for (var i = 0; i < Effect.Appearances.Count; i++)
@@ -149,6 +191,21 @@ namespace LibreLancer.Fx
                 var r = Effect.Emitters[i];
                 if(r.Enabled)
                 {
+                    if (r.Linked != null)
+                    {
+
+                        ref Matrix4x4 linkedAppearanceWorldTransform=ref NodeWorldTransforms[r.Linked.NodeIdx];
+                        if(!linkedAppearanceWorldTransform.IsIdentity)
+                        {
+                            //TODO: Use optimized inversion
+                            Matrix4x4 linkedAppearanceInverseWorldTransform;
+                            Matrix4x4.Invert(linkedAppearanceWorldTransform,out linkedAppearanceInverseWorldTransform);
+                            //To get into the same space as the particle node first go from the emitter node into world space and then back to the particle node space
+                            EmitterParticleSpawnTransforms[r.EmitterNodeIdx]= NodeWorldTransforms[r.NodeIdx] * linkedAppearanceInverseWorldTransform;
+                        }
+                        else
+                            EmitterParticleSpawnTransforms[r.EmitterNodeIdx]= NodeWorldTransforms[r.NodeIdx];
+                    }
                     r.Emitter.Update(r, i, this, delta, ref transform, sparam);
                 }
             }

@@ -413,7 +413,7 @@ namespace LibreLancer.Client
                 });
             }
 
-            Trader.SortGoods(session, traderGoods);
+            Trader.SortGoods(session, traderGoods, filter);
             return traderGoods.ToArray();
         }
 

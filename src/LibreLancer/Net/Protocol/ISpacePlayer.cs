@@ -4,10 +4,11 @@ namespace LibreLancer.Net.Protocol;
 
 public interface ISpacePlayer
 {
-    void RequestDock(ObjNetId id);
+    void RequestDock(ObjNetId id, string tradelaneHardpoint);
     void FireMissiles(MissileFireCmd[] missiles);
     void EnterFormation(int ship);
     void LeaveFormation();
+    void ExitTradelane();
     void UseRepairKits();
     void UseShieldBatteries();
     void Tractor(ObjNetId target);

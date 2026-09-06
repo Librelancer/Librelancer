@@ -45,7 +45,7 @@ public partial class CGameSession : IClientPlayer
 
     public Action<IPacket>? ExtraPackets;
     public FreelancerGame Game;
-    private readonly Queue<Action> gameplayActions = new();
+    private readonly ConcurrentQueue<Action> gameplayActions = new();
 
 
     public SoldGood[] Goods = null!;
@@ -76,7 +76,9 @@ public partial class CGameSession : IClientPlayer
     public Action? OnUpdatePlayerShip;
     private bool paused;
     public string? PlayerBase;
+    private bool systemEntryAnnouncementPending;
     public int PlayerNetID;
+    public readonly HashSet<uint> PlayerDestroyedParts = [];
     public Quaternion PlayerOrientation;
     public Vector3 PlayerPosition;
     public ReputationCollection PlayerReputations = new();
@@ -97,6 +99,9 @@ public partial class CGameSession : IClientPlayer
 
     public bool IsManeuverEnabled(string maneuver)
     {
+        if (maneuver.Equals("FreeFlight", StringComparison.OrdinalIgnoreCase) && InTradelane)
+            return true;
+
         if (maneuversLocked)
             return false;
         if (maneuver.Equals("Dock", StringComparison.OrdinalIgnoreCase))
@@ -167,11 +172,16 @@ public partial class CGameSession : IClientPlayer
         Statistics.BattleshipsKilled = stats.BattleshipsKilled;
     }
 
-    void IClientPlayer.StartTradelane()
+    void IClientPlayer.StartTradelane(ObjNetId ring, Quaternion orientation)
     {
         inTradelane = true;
         CompleteActiveTradelaneWaypoint(FLHash.CreateID(PlayerSystem));
-        RunSync(spaceGameplay!.StartTradelane);
+        RunSync(() => spaceGameplay?.StartTradelane(ring, orientation));
+    }
+
+    void IClientPlayer.TradelaneRing(ObjNetId ring)
+    {
+        RunSync(() => spaceGameplay?.TradelaneRing(ring));
     }
 
     void IClientPlayer.UpdateVisits(VisitBundle bundle)
@@ -267,6 +277,10 @@ public partial class CGameSession : IClientPlayer
 
     void IClientPlayer.UpdateInventory(PlayerInventoryDiff diff)
     {
+        if (diff.ResetDestroyedParts)
+        {
+            PlayerDestroyedParts.Clear();
+        }
         lastInventory = diff.Apply(lastInventory);
         Credits = lastInventory.Credits;
         ShipWorth = lastInventory.ShipWorth;
@@ -312,7 +326,7 @@ public partial class CGameSession : IClientPlayer
 
 
     void IClientPlayer.BaseEnter(string _base, NetObjective objective, NetThnInfo thns, NewsArticle[] news,
-        SoldGood[] goods, NetSoldShip[] ships, NetMissionOffer[] missionOffers)
+        SoldGood[] goods, NetSoldShip[] ships, NetMissionOffer[] missionOffers, uint[] destroyedParts)
     {
         if (enterCount > 0 && connection is EmbeddedServer es)
         {
@@ -328,6 +342,8 @@ public partial class CGameSession : IClientPlayer
         Goods = goods;
         Ships = ships;
         MissionOffers = missionOffers;
+        PlayerDestroyedParts.Clear();
+        PlayerDestroyedParts.UnionWith(destroyedParts);
         SceneChangeRequired();
         CutsceneUpdate(thns);
     }

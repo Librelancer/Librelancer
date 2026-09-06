@@ -391,7 +391,7 @@ namespace LibreLancer.Server.Components
                         phys.CurrentStrafe = StrafeControls.None;
                         phys.EnginePower = 0;
                         phys.CruiseSpeedOffset = 0;
-                        phys.ThrustEnabled = false;
+                        phys.ThrustRequested = false;
                         phys.CruiseEnabled = false;
                         phys.EngineKillEnabled = false;
                     }
@@ -402,7 +402,7 @@ namespace LibreLancer.Server.Components
                         phys.CurrentStrafe = input.Strafe;
                         phys.EnginePower = input.Throttle;
                         phys.CruiseSpeedOffset = cruise ? input.CruiseSpeedOffset : 0;
-                        phys.ThrustEnabled = input.Thrust;
+                        phys.ThrustRequested = input.Thrust;
                         phys.CruiseEnabled = cruise;
                         phys.EngineKillEnabled = input.EngineKill;
                         if (input.FireCommand != null)

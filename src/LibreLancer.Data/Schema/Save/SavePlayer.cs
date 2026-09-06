@@ -132,6 +132,7 @@ public partial class SavePlayer : IWriteSection
 
     public List<PlayerEquipment> Equip = [];
     public List<PlayerCargo> Cargo = [];
+    public List<uint> DestroyedParts = [];
     public List<VisitEntry> Visit = [];
     public List<LogEntry> Log = [];
 
@@ -152,6 +153,15 @@ public partial class SavePlayer : IWriteSection
 
     [EntryHandler("equip", MinComponents = 1, Multiline = true)]
     private void HandleEquip(Entry e) => Equip.Add(new PlayerEquipment(e));
+
+    [EntryHandler("destroyed_part", MinComponents = 1, Multiline = true)]
+    private void HandleDestroyedPart(Entry e)
+    {
+        if (e[0].TryToInt32(out var value))
+            DestroyedParts.Add(unchecked((uint)value));
+        else if (uint.TryParse(e[0].ToString(), out var unsigned))
+            DestroyedParts.Add(unsigned);
+    }
 
     [Entry("interface")] public int Interface;
 
@@ -249,6 +259,8 @@ public partial class SavePlayer : IWriteSection
                 : "";
             sec.Entry("cargo", c.Item, c.Count, hstr, "", (c.IsMissionCargo ? 1 : 0));
         }
+        foreach (var part in DestroyedParts)
+            sec.Entry("destroyed_part", part);
 
         foreach (var v in Visit)
             sec.Entry("visit", v.Obj, v.Visit);
