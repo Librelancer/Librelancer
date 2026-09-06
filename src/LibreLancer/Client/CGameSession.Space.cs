@@ -1411,12 +1411,14 @@ public partial class CGameSession
     {
         enterCount++;
         PlayerNetID = ID;
+        var previousSystem = PlayerSystem;
+        systemEntryAnnouncementPending = !string.IsNullOrWhiteSpace(previousSystem) &&
+            !string.Equals(previousSystem, system, StringComparison.OrdinalIgnoreCase);
         PlayerDestroyedParts.Clear();
         PlayerDestroyedParts.UnionWith(destroyedParts);
         PlayerBase = null;
         CurrentObjective = objective;
         FLLog.Info("Client", $"Spawning in {system}");
-        var previousSystem = PlayerSystem;
         PlayerSystem = system;
         if (!string.IsNullOrWhiteSpace(previousSystem) &&
             !string.Equals(previousSystem, system, StringComparison.OrdinalIgnoreCase))
@@ -1429,6 +1431,13 @@ public partial class CGameSession
         WorldTick = tick + connection.EstimateTickDelay();
         totalTimeForTick = Game.TotalTime;
         this.crcMap = crcMap;
+    }
+
+    public bool ConsumeSystemEntryAnnouncement()
+    {
+        var pending = systemEntryAnnouncementPending;
+        systemEntryAnnouncementPending = false;
+        return pending;
     }
 
     void IClientPlayer.SpawnMissile(int id, bool playSound, uint equip, Vector3 position, Quaternion orientation)
