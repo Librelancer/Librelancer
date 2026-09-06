@@ -106,7 +106,7 @@ namespace LibreLancer.Fx
         {
             var count = instance.Buffer.GetCount(nodeIdx);
             TextureHandler.Update(Texture, instance.Resources!);
-            var nodeTr = GetAttachment(node, transform);
+            var nodeTr = instance.NodeWorldTransforms[node.NodeIdx];
 
             for (var i = 0; i < count; i++)
             {

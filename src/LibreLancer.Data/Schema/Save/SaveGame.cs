@@ -44,6 +44,9 @@ public partial class SaveGame
     [Section("locked_gates")]
     public LockedGates? LockedGates;
 
+    [Section("RandomMission")]
+    public SaveRandomMission? RandomMission;
+
     [Section("nnobjective")]
     public List<SavedObjective> Objectives = [];
 
@@ -52,6 +55,7 @@ public partial class SaveGame
         var builder = new IniBuilder();
         Player?.WriteTo(builder);
         MPlayer?.WriteTo(builder);
+        RandomMission?.WriteTo(builder);
         MissionState?.WriteTo(builder);
         foreach(var ts in TriggerSave) ts.WriteTo(builder);
         builder.Section("BStoryMissionDone");

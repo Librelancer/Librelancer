@@ -47,6 +47,7 @@ namespace LibreLancer
 
         private const string LAUNCH_ACTION = "$LAUNCH";
         private const string INVALID_ACTION = "$INVALID";
+        private const string JOB_BOARD_ACTION = "$JOB_BOARD";
         private Base currentBase;
         private StarSystem starSystem;
         private BaseRoom currentRoom;
@@ -110,11 +111,11 @@ namespace LibreLancer
 
             // Find infocard
             var ids = systemObject?.IdsInfo ?? 0;
-            roomInfocard = g.GameData.GetInfocard(ids, g.Fonts);
+            roomInfocard = g.GameData.GetInfocard(ids);
 
-            if (g.GameData.GetRelatedInfocard(ids, g.Fonts, out var ic2))
+            if (g.GameData.GetRelatedInfocard(ids, out var ic2))
             {
-                roomInfocard.Nodes.Add(new RichTextParagraphNode());
+                roomInfocard.Nodes.Add(new InfocardParagraphNode());
                 roomInfocard.Nodes.AddRange(ic2.Nodes);
             }
 
@@ -241,7 +242,7 @@ namespace LibreLancer
 
             public void ApplySettings(GameSettings settings)
             {
-                g.Game.Config.Settings = settings;
+                g.Game.Config.Settings.Apply(settings);
                 g.Game.Config.Save();
             }
 
@@ -296,6 +297,11 @@ namespace LibreLancer
             }
 
             public NewsArticle[] GetNewsArticles() => articles;
+            public NetMissionOffer[] GetMissionOffers() => g.session.MissionOffers;
+            public void AcceptMissionOffer(int id)
+            {
+                g.session.RpcServer.AcceptMissionOffer(id);
+            }
             public bool IsMultiplayer() => g.session.Multiplayer;
             public void HotspotPressed(string item) => g.Hud_OnManeuverSelected(item);
             public string ActiveNavbarButton() => g.active ?? "";
@@ -306,6 +312,13 @@ namespace LibreLancer
 
             public double GetCredits() => g.session.Credits;
 
+            public UIInventoryItem[] GetPlayerInventory(string filter) => g.session.GetPlayerInventory(filter);
+            public Infocard?[]? GetEquipmentStats(UIInventoryItem item) => Trader.GetEquipmentStats(item);
+
+            public float GetCargoHoldSize() => g.session.GetCargoHoldSize();
+            public float GetUsedCargoHoldSpace() => g.session.GetUsedCargoHoldSpace();
+            public Infocard? GetPlayerShipInfocard() => g.session.GetPlayerShipInfocard();
+
             public Trader Trader;
             public ShipDealer ShipDealer;
 
@@ -313,9 +326,14 @@ namespace LibreLancer
 
             public void PopulateNavmap(Navmap navmap)
             {
-                navmap.PopulateIcons(g.ui, g.starSystem);
                 navmap.SetUniverse(g.Game.GameData.Items);
                 navmap.SetVisitFunction(g.session.IsVisited);
+                navmap.SetFactionRelationFunction(factionName =>
+                {
+                    var faction = g.Game.GameData.Items.Factions.Get(factionName);
+                    return g.session.PlayerReputations.GetReputation(faction);
+                });
+                navmap.PopulateIcons(g.ui, g.starSystem);
                 navmap.SetAddWaypointFunction(null);
                 navmap.SetBestPathFunction((destinationSystem, destinationPosition) =>
                 {
@@ -326,14 +344,31 @@ namespace LibreLancer
                         destinationPosition,
                         300f);
                 });
-                navmap.SetPlayerPositionProvider(null);
-                navmap.SetPlayerSystemProvider(() => FLHash.CreateID(g.session.PlayerSystem));
+                var dockedObject = g.starSystem.Objects.FirstOrDefault(x => x.Base == g.currentBase);
+                navmap.SetPlayerPositionProvider(() => dockedObject?.Position ?? g.session.PlayerPosition);
+                navmap.SetPlayerOrientationProvider(() => Quaternion.Identity);
+                navmap.SetPlayerSystemProvider(() => g.starSystem.CRC);
                 navmap.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
             }
+
+            public KnownNavmapBaseList GetKnownNavmapBases() =>
+                KnownNavmapBaseListBuilder.Build(g.Game.GameData, g.session);
 
             public int UserWaypointCount() => g.session.UserWaypointCount;
 
             public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index);
+
+            public bool HasActiveRandomMission() => g.session.HasActiveRandomMission;
+
+            public string ActiveRandomMissionDescription() =>
+                g.session.ActiveRandomMissionDescription ?? "";
+
+            public Infocard?[]? GetShipInfocards(bool playerShip)
+            {
+                if (playerShip)
+                    return g.session.GetShipInfocards(g.session.PlayerShip);
+                return [];
+            }
 
             public void ClearUserWaypoints()
             {
@@ -387,6 +422,10 @@ namespace LibreLancer
                         if (g.session.News?.Length > 0)
                         {
                             actions.Add(new NavbarButtonInfo(INVALID_ACTION, "IDS_HOTSPOT_NEWSVENDOR"));
+                        }
+                        if (g.session.MissionOffers.Length > 0)
+                        {
+                            actions.Add(new NavbarButtonInfo(JOB_BOARD_ACTION, "IDS_HOTSPOT_MISSIONVENDOR"));
                         }
 
                         break;
@@ -664,7 +703,7 @@ namespace LibreLancer
                 return;
             }
 
-            playerShip.Children.Clear();
+            playerShip.Children.RemoveAll(x => x.TryGetComponent<EquipmentComponent>(out _));
 
             foreach (var mount in session.Items.Where(x => !string.IsNullOrEmpty(x.Hardpoint)))
             {
@@ -722,6 +761,10 @@ namespace LibreLancer
                     Game.ResourceManager, true,
                     false);
                 CreatePlayerEquipment();
+                foreach (var part in session.PlayerDestroyedParts)
+                {
+                    playerShip.DisableCmpPart(part, null, Game.ResourceManager, out _);
+                }
             }
             else
             {

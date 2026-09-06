@@ -17,6 +17,7 @@ internal static partial class GL
     //clear buffers
     public const int GL_COLOR_BUFFER_BIT = 0x00004000;
     public const int GL_DEPTH_BUFFER_BIT = 0x00000100;
+    public const int GL_STENCIL_BUFFER_BIT = 0x00000400;
     //Shaders
     public const int GL_FRAGMENT_SHADER = 0x8B30;
     public const int GL_COMPUTE_SHADER = 0x91B9;
@@ -123,6 +124,7 @@ internal static partial class GL
 
     public const int GL_BLEND = 0x0BE2;
     public const int GL_DEPTH_TEST = 0x0B71;
+    public const int GL_STENCIL_TEST = 0xb90;
     public const int GL_SCISSOR_TEST = 0x0C11;
     public const int GL_SRC_ALPHA = 0x0302;
     public const int GL_ONE_MINUS_SRC_ALPHA = 0x0303;
@@ -133,9 +135,6 @@ internal static partial class GL
     public const int GL_ZERO = 0;
     public const int GL_ONE = 1;
 
-    public const int GL_EQUAL = 0x0202;
-    public const int GL_LEQUAL = 0x0203;
-
     public const int GL_NUM_EXTENSIONS = 0x821D;
     public const int GL_EXTENSIONS = 0x1F03;
 
@@ -145,9 +144,11 @@ internal static partial class GL
     public const int GL_RENDERBUFFER = 0x8D41;
     public const int GL_DEPTH_COMPONENT16 = 0x81A5;
     public const int GL_DEPTH_COMPONENT24 = 0x81A6;
+    public const int GL_DEPTH24_STENCIL8 = 0x88f0;
     public const int GL_DEPTH_COMPONENT = 0x1902;
     public const int GL_DEPTH_ATTACHMENT = 0x8D00;
     public const int GL_COLOR_ATTACHMENT0 = 0x8CE0;
+    public const int GL_DEPTH_STENCIL_ATTACHMENT = 0x821A;
 
     public const int GL_MULTISAMPLE = 0x809D;
 
@@ -182,4 +183,22 @@ internal static partial class GL
     public const int GL_CONDITION_SATISFIED = 0x911C;
 
     public const int GL_MAX_VERTEX_SHADER_STORAGE_BLOCKS = 0x90d6;
+
+    //Stencil Ops
+    public const int GL_KEEP = 0x1e00;
+    public const int GL_REPLACE = 0x1e01;
+    public const int GL_INCR = 0x1e02;
+    public const int GL_INCR_WRAP = 0x8507;
+    public const int GL_DECR = 0x1e03;
+    public const int GL_DECR_WRAP = 0x8508;
+    public const int GL_INVERT = 0x150a;
+    //Stencil/Depth Functions
+    public const int GL_NEVER = 0x200;
+    public const int GL_LESS = 0x201;
+    public const int GL_EQUAL = 0x202;
+    public const int GL_LEQUAL = 0x203;
+    public const int GL_GREATER = 0x204;
+    public const int GL_GEQUAL = 0x206;
+    public const int GL_NOTEQUAL = 0x205;
+    public const int GL_ALWAYS = 0x207;
 }

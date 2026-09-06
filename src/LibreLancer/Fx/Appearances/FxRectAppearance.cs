@@ -66,32 +66,36 @@ namespace LibreLancer.Fx
         public override void Draw(ParticleEffectInstance instance, AppearanceReference node, int nodeIdx,
             Matrix4x4 transform, float sparam)
         {
-            var node_tr = GetAttachment(node, transform);
+            var node_tr = instance.NodeWorldTransforms[node.NodeIdx];
             var count = instance.Buffer.GetCount(nodeIdx);
             TextureHandler.Update(Texture, instance.Resources!);
 
             for (int i = 0; i < count; i++)
             {
                 ref var particle = ref instance.Buffer[nodeIdx, i];
+                particle.Normal = particle.Velocity.Normalized();
+
                 var time = particle.TimeAlive / particle.LifeSpan;
                 var src_pos = particle.Position;
                 var l = Length!.GetValue(sparam, time);
                 var w = Width!.GetValue(sparam, time);
                 var sc = Scale!.GetValue(sparam, time);
+
+                const float particleBaseSize=2.0f;
                 if (!CenterOnPos)
                 {
-                    src_pos += particle.Normal * (l * sc * 0.25f);
+                    src_pos += particle.Normal * (l * sc * 0.5f * particleBaseSize);
                 }
 
                 var p = Vector3.Transform(src_pos, node_tr);
                 var c = Color!.GetValue(sparam, time);
                 var a = Alpha!.GetValue(sparam, time);
-                var n = Vector3.TransformNormal(particle.Normal, transform).Normalized();
+                var n = Vector3.TransformNormal(particle.Normal, node_tr);
 
                 instance.Pool.AddParticle(
                     TextureHandler,
                     p,
-                    new Vector2(l, w) * sc * 0.5f,
+                    new Vector2(l, w) * sc * particleBaseSize,
                     new Color4(c, a),
                     GetFrame((float)instance.GlobalTime, sparam, ref particle),
                     n,
@@ -99,7 +103,7 @@ namespace LibreLancer.Fx
                     FlipHorizontal, FlipVertical
                 );
 
-                if (DrawNormals)
+                if (DrawDebug)
                 {
                     Debug?.DrawLine(p - (n * 12), p + (n * 12), Color4.Red);
                 }

@@ -46,6 +46,36 @@ local function NavbarAction(hotspot)
 	return obj
 }
 
+local function CustomNavbarAction(path, hotspot)
+{
+	local model = NewObject('InterfaceModel')
+	model.Path = path
+	model.X = 0
+	model.Y = 0
+	model.XScale = 35.0
+	model.YScale = 35.0
+	local button = NewObject('Button')
+	local style = NewObject('ButtonStyle')
+	style.Width = 38
+	style.Height = 38
+	local regAppearance = NewObject('ButtonAppearance')
+	regAppearance.Background = ModelRenderable(model, GetColor('text'))
+	style.Normal = regAppearance
+	local hoverAppearance = NewObject('ButtonAppearance')
+	hoverAppearance.Background = ModelRenderable(model, GetColor('text_hover'))
+	style.Hover = hoverAppearance
+	local selectedAppearance = NewObject('ButtonAppearance')
+	selectedAppearance.Background = ModelRenderable(model, GetColor('yellow'))
+	style.Selected = selectedAppearance
+	button.ID = hotspot
+	button.Style = style
+	button.Width = 33
+	button.Height = 33
+	return button
+}
+
+local function MissionVendorAction() => CustomNavbarAction("INTERFACE/BASESIDE/mission_vendor.3db", "IDS_HOTSPOT_MISSIONVENDOR")
+
 local navbox = require 'navbox.lua'
 
 class baseside : baseside_Designer
@@ -76,6 +106,8 @@ class baseside : baseside_Designer
 
 	    local has_news = false
 	    local news_button = {}
+	    local has_missions = false
+	    local missions_button = {}
 
 	    local has_commodity = false
 	    local has_equipment = false
@@ -86,11 +118,15 @@ class baseside : baseside_Designer
 	
         local actionbox = navbox.GetActionBox(this.Widget, container, btns, actions, activeIDS)
         for (index, action in ipairs(actions)) {
-            local obj = NavbarAction(action.IconName)
+            local obj = action.IconName == "IDS_HOTSPOT_MISSIONVENDOR" ? MissionVendorAction() : NavbarAction(action.IconName)
             switch(action.IconName) {
                 case "IDS_HOTSPOT_NEWSVENDOR":
                     has_news = true;
                     news_button = obj;
+                    break;
+                case "IDS_HOTSPOT_MISSIONVENDOR":
+                    has_missions = true;
+                    missions_button = obj;
                     break;
                 case "IDS_HOTSPOT_COMMODITYTRADER":
                     has_commodity = true;
@@ -127,6 +163,7 @@ class baseside : baseside_Designer
 	    this.InfoWindow = new infowindow()
 	    this.Map = new mapwindow()
 		this.PlayerStatus = new playerstatus()
+		this.ScanCargo = new scancargo("docked")
 	    this.Map.InitMap()
 	    this.CommodityTrader = new commodity()
 		this.ChatHistory = new chathistory()
@@ -134,11 +171,16 @@ class baseside : baseside_Designer
 		    { this.Elements.nn_map, this.Map },
 		    { this.Elements.nn_info, this.InfoWindow },
 			{ this.Elements.nn_playerstatus, this.PlayerStatus },
+			{ this.Elements.nn_inventory, this.ScanCargo },
 			{ this.Elements.nn_chat, this.ChatHistory }
 	    }
 	    if (has_news) {
 		    this.News = new news();
 		    table.insert(windows, { news_button, this.News })
+	    }
+	    if (has_missions) {
+		    this.JobBoard = new jobboard();
+		    table.insert(windows, { missions_button, this.JobBoard })
 	    }
 	    if (has_commodity) {
 		    this.CommodityTrader = new commodity("commodity")
@@ -176,8 +218,3 @@ class baseside : baseside_Designer
     
     MissionOffer(mission) => OpenModal(new popup(STRID_MISSION, mission, 'accept', (result) => Game.MissionResponse(result)));
 }
-
-
-
-
-

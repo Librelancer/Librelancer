@@ -27,6 +27,7 @@
 				<TableColumn Label="date" Data="date" InitialWidthPercent="11" Clip="false" TextAlignment="Right">
 				</TableColumn>
 			</DataTable.Columns>
+      <DataTable.Scrollbar Style="scrollbar_large"/>
 		</DataTable>
 		</Panel>
 		<Panel X="18" Y="302" Width="167" Height="125">

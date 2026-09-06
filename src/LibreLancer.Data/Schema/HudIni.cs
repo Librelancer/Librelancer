@@ -12,6 +12,7 @@ namespace LibreLancer.Data.Schema;
 public class HudIni
 {
     public List<HudManeuver> Maneuvers = [];
+    public HudSteer Steer = new();
     public HudIni()
     {
     }
@@ -24,6 +25,9 @@ public class HudIni
                 case "maneuvers":
                     foreach (var e in section)
                         Maneuvers.Add(new HudManeuver(e));
+                    break;
+                case "steer":
+                    Steer = new HudSteer(section);
                     break;
             }
         }

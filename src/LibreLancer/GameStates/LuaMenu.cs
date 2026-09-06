@@ -118,14 +118,13 @@ namespace LibreLancer
                 return;
             }
 
-            if (e.Key != Keys.Escape &&
-                e.Key != Keys.F1)
-            {
-                keyCapture.Set(UserInput.FromKey(e.Modifiers, e.Key));
-            }
-            else
+            if (e.Key == Keys.Escape || e.Key == Keys.F1)
             {
                 keyCapture.Cancel();
+            }
+            else if (IsModifierKey(e.Key))
+            {
+                keyCapture.Set(UserInput.FromKey(e.Modifiers, e.Key));
             }
         }
 
@@ -139,6 +138,10 @@ namespace LibreLancer
         {
             if (KeyCaptureContext.Capturing(keyCapture))
             {
+                if (e.Key == Keys.Escape || e.Key == Keys.F1)
+                    keyCapture.Cancel();
+                else if (!IsModifierKey(e.Key))
+                    keyCapture.Set(UserInput.FromKey(e.Modifiers, e.Key));
                 return;
             }
 
@@ -149,6 +152,11 @@ namespace LibreLancer
 
             ui.OnKeyDown(e.Key, (e.Modifiers & KeyModifiers.Control) != 0);
         }
+
+        private static bool IsModifierKey(Keys key) => key is
+            Keys.LeftShift or Keys.RightShift or
+            Keys.LeftControl or Keys.RightControl or
+            Keys.LeftAlt or Keys.RightAlt;
 
         [WattleScriptUserData]
         public class ServerList : ITableData
@@ -224,7 +232,7 @@ namespace LibreLancer
 
             public void ApplySettings(GameSettings settings)
             {
-                state.Game.Config.Settings = settings;
+                state.Game.Config.Settings.Apply(settings);
                 state.Game.Config.Save();
             }
 
@@ -442,7 +450,6 @@ namespace LibreLancer
 
         public override void Draw(double delta)
         {
-            RenderMaterial.VertexLighting = true;
             scene?.Draw(delta, Game.Width, Game.Height);
             ui.RenderWidget(delta);
             DoFade(delta);
@@ -485,6 +492,11 @@ namespace LibreLancer
                         break;
                     case Keys.D3:
                         LoadSpecific(2);
+                        break;
+                    case Keys.D:
+                        var p = scene?.Renderer?.FxPool;
+                        if (p != null)
+                            p.DrawDebug = !p.DrawDebug;
                         break;
                 }
             }

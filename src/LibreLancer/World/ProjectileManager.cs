@@ -59,6 +59,7 @@ namespace LibreLancer.World
                         Projectiles[i].Position,
                         dir,
                         length,
+                        true,
                         out var contactPoint,
                         out var po,
                         out var tag))
@@ -69,7 +70,7 @@ namespace LibreLancer.World
 
                     if (po?.Tag is GameObject go)
                     {
-                        world.Server?.ProjectileHit(go, tag as GameObject, contactPoint, Projectiles[i].Owner,
+                        world.Server?.ProjectileHit(go, tag, contactPoint, Projectiles[i].Owner,
                             Projectiles[i].Data.Munition);
                     }
 

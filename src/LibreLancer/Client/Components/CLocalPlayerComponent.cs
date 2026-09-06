@@ -22,6 +22,6 @@ public class CLocalPlayerComponent : GameComponent
 
     public void Dock(GameObject obj)
     {
-        session.SpaceRpc.RequestDock(obj);
+        session.SpaceRpc.RequestDock(obj, string.Empty);
     }
 }

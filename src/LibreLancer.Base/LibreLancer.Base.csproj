@@ -38,10 +38,26 @@
   <ItemGroup>
     <Shader Include="Shaders\Shader2D.txt" />
     <Shader Include="Shaders\FSTint.txt"/>
+    <Shader Include="Shaders\SMAAEdgeDetection.txt"/>
+    <Shader Include="Shaders\SMAABlendingWeightCalculation.txt"/>
+    <Shader Include="Shaders\SMAANeighborhoodBlending.txt"/>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="StbImageSharp" Version="2.30.15" />
     <PackageReference Include="ZstdSharp.Port" Version="0.8.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Shaders\AreaTexDX10.dds" />
+    <EmbeddedResource Include="Shaders\SearchTex.dds" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClCompile Include="Shaders\SMAABlendingWeightCalculation.frag.hlsl" />
+    <ClCompile Include="Shaders\SMAABlendingWeightCalculation.vert.hlsl" />
+    <ClCompile Include="Shaders\SMAAIntegration.hlsl" />
+    <ClCompile Include="Shaders\SMAANeighborhoodBlending.frag.hlsl" />
+    <ClCompile Include="Shaders\SMAANeighborhoodBlending.vert.hlsl" />
   </ItemGroup>
 </Project>

@@ -312,6 +312,22 @@ public class ImportedModel
 
     static bool IsWire(ModelNode mn) => mn.Geometry != null && mn.Geometry.Kind == GeometryKind.Lines;
 
+    static ModelNode TransformedLeafNode(ModelNode mn)
+    {
+        if (mn.Geometry == null ||
+            mn.Transform == Matrix4x4.Identity)
+            return mn;
+
+        return new()
+        {
+            Name = mn.Name,
+            Children = [],
+            Geometry = mn.Geometry.CreateTransformedCopy(mn.Transform),
+            Properties = mn.Properties,
+            Skin = mn.Skin,
+            Transform = Matrix4x4.Identity
+        };
+    }
 
     static EditResult<bool> AutodetectTree(ModelNode obj, List<ImportedModelNode> parent, string parentName, Dictionary<string,ModelNode[]> autodetect)
     {
@@ -342,7 +358,7 @@ public class ImportedModel
             {
                 if (mdl.Wire != null)
                     return EditResult<bool>.Error($"Node {obj.Name} has more than one wireframe child");
-                mdl.Wire = child;
+                mdl.Wire = TransformedLeafNode(child);
             }
             else if (GetHardpoint(child, out var hp))
                 mdl.Hardpoints.Add(hp);
@@ -352,6 +368,7 @@ public class ImportedModel
         parent.Add(mdl);
         return true.AsResult();
     }
+
     static EditResult<bool> GetLods(ModelNode obj, Dictionary<string,ModelNode[]> autodetect)
     {
         string objn;

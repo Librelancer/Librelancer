@@ -186,7 +186,7 @@ namespace LibreLancer.Utf.Mat
 
             if (drawable && SideMaterials.Length >= 6)
             {
-                var sphere = resources.GetQuadSphere(26);
+                var sphere = resources.GetQuadSphere(24);
 
                 for (int i = 0; i < 6; i++)
                 {

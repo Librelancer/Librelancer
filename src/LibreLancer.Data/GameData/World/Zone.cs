@@ -85,9 +85,9 @@ public class Zone : NicknameItem
                 break;
             case ShapeKind.Ring:
             case ShapeKind.Cylinder:
-                _shape.CylRing.P1 = Vector3.Transform(data.Position - new Vector3(0, data.Size.Y * 0.5f, 0),
+                _shape.CylRing.P1 = data.Position - Vector3.Transform(new Vector3(0, data.Size.Y * 0.5f, 0),
                     data.RotationMatrix);
-                _shape.CylRing.P2 = Vector3.Transform(data.Position + new Vector3(0, data.Size.Y * 0.5f, 0),
+                _shape.CylRing.P2 = data.Position + Vector3.Transform(new Vector3(0, data.Size.Y * 0.5f, 0),
                     data.RotationMatrix);
                 _shape.CylRing.SZ2 = data.Size * data.Size;
                 break;
@@ -220,6 +220,49 @@ public class Zone : NicknameItem
             }
             default:
                 throw new InvalidOperationException();
+        }
+    }
+
+    public float DistanceToEdge(Vector3 point)
+    {
+        if (ContainsPoint(point))
+            return 0;
+
+        if (data.Shape == ShapeKind.Sphere)
+            return MathF.Max(0, Vector3.Distance(point, data.Position) - data.Size.X);
+
+        var local = Vector3.Transform(point - data.Position, Matrix4x4.Transpose(data.RotationMatrix));
+        switch (data.Shape)
+        {
+            case ShapeKind.Box:
+            {
+                var outside = Vector3.Max(Vector3.Abs(local) - data.Size * 0.5f, Vector3.Zero);
+                return outside.Length();
+            }
+            case ShapeKind.Ellipsoid:
+            {
+                var length = local.Length();
+                if (length < float.Epsilon)
+                    return 0;
+                var direction = local / length;
+                var denominator = MathF.Sqrt(
+                    direction.X * direction.X / (data.Size.X * data.Size.X) +
+                    direction.Y * direction.Y / (data.Size.Y * data.Size.Y) +
+                    direction.Z * direction.Z / (data.Size.Z * data.Size.Z));
+                return denominator <= 0 ? 0 : MathF.Max(0, length - 1 / denominator);
+            }
+            case ShapeKind.Cylinder:
+            case ShapeKind.Ring:
+            {
+                var radialDistance = MathF.Sqrt(local.X * local.X + local.Z * local.Z);
+                var radial = data.Shape == ShapeKind.Ring && radialDistance < data.Size.Z
+                    ? data.Size.Z - radialDistance
+                    : MathF.Max(0, radialDistance - data.Size.X);
+                var vertical = MathF.Max(0, MathF.Abs(local.Y) - data.Size.Y * 0.5f);
+                return MathF.Sqrt(radial * radial + vertical * vertical);
+            }
+            default:
+                return float.MaxValue;
         }
     }
 
@@ -613,6 +656,14 @@ public class Zone : NicknameItem
     public string? VignetteType;
     public Encounter[]? Encounters;
     public DensityRestriction[]? DensityRestrictions;
+
+    public bool IsPopulationZone =>
+        Shape is ShapeKind.Sphere or ShapeKind.Ellipsoid &&
+        Encounters is { Length: > 0 };
+
+    public bool IsPatrolPathZone =>
+        PathLabel is { Length: >= 2 } &&
+        Encounters is { Length: > 0 };
 
     public Zone()
     {

@@ -376,9 +376,9 @@ public static class GLTranslator
             var sn = Spvc.compiler_get_name(compiler, samplers[i].sampler_id);
             var samplerName = $"SAMPLER_{tn}_{sn}";
             Spvc.compiler_set_name(compiler, samplers[i].combined_id, samplerName);
-            var binding =
-                Spvc.compiler_get_decoration(compiler, samplers[i].sampler_id, SpvDecoration.SpvDecorationBinding);
-            compiled.Textures.Add(new((int)binding, samplerName));
+            var textureBinding = Spvc.compiler_get_decoration(compiler, samplers[i].image_id, SpvDecoration.SpvDecorationBinding);
+            var samplerBinding = Spvc.compiler_get_decoration(compiler, samplers[i].sampler_id, SpvDecoration.SpvDecorationBinding);
+            compiled.Textures.Add(new(samplerName, (int)textureBinding, (int)samplerBinding));
         }
 
 

@@ -313,6 +313,8 @@ public class TestingApi
     }
 
     public int UserWaypointCount() => 0;
+    public bool HasActiveRandomMission() => false;
+    public string ActiveRandomMissionDescription() => "";
 
 
     public Infocard _Infocard = null!;
@@ -364,6 +366,8 @@ public class TestingApi
         };
     }
 
+    public bool ToggleWeapon(int index) => true;
+
     public bool ConnectAddress(string address)
     {
         return false;
@@ -374,6 +378,8 @@ public class TestingApi
     }
 
     public int CruiseCharge() => 25;
+
+    public bool CruiseEnabled() => false;
 
     public void PopulateNavmap(Navmap nav)
     {
@@ -616,6 +622,8 @@ public class TestingApi
         public UIInventoryItem[] GetPlayerGoods(string filter) => pitems;
         public UIInventoryItem[] GetTraderGoods(string filter) => titems;
 
+        public Infocard?[]? GetEquipmentStats(UIInventoryItem item) => null;
+
         public float GetHoldSize() => 60;
 
         public float GetUsedHoldSpace() => 30;
@@ -756,6 +764,9 @@ public class TestingApi
     {
     }
 
+    public KnownNavmapBaseList GetKnownNavmapBases() =>
+        new([new() { Name = "My Base", ObjectHash = 0x123, SystemHash = 0x456, SystemName = "Da System" }]);
+
 
     public bool CanScanSelected() => contacts.SelectedIndex == 0;
 
@@ -793,6 +804,16 @@ public class TestingApi
     public UIInventoryItem[] GetScannedInventory(string filter) => scanitems;
 
     public UIInventoryItem[] GetPlayerInventory(string filter) => scanitems;
+
+    public float GetCargoHoldSize() => Trader.GetHoldSize();
+
+    public float GetUsedCargoHoldSpace() => Trader.GetUsedHoldSpace();
+
+    public Infocard GetPlayerShipInfocard() => _ScannedInfocard;
+
+    public Infocard?[]? GetShipInfocards(bool playerShip) => null;
+
+    public Infocard?[]? GetEquipmentStats(UIInventoryItem item) => null;
 
     private Closure scanHandler = null!;
 
@@ -845,6 +866,8 @@ public class FakeShipDealer
         Model = @"DATA\ships\civilian\cv_starflier\cv_starflier.cmp",
         Icon = @"DATA\Equipment\models\commodities\nn_icons\cv_starflier.3db",
     };
+
+    public Infocard?[]? GetSelectedShipInfocards() => null;
 
     public void StartPurchase(UISoldShip ship, Closure callback)
     {

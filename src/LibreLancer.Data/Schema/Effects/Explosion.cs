@@ -10,6 +10,9 @@ public partial class Explosion
     [Entry("nickname", Required = true)] public string Nickname = null!;
     [Entry("lifetime")] public Vector2 Lifetime;
     [Entry("process")] public string? Process;
+    [Entry("radius")] public float Radius;
+    [Entry("hull_damage")] public float HullDamage;
+    [Entry("energy_damage")] public float EnergyDamage;
     [Entry("num_child_pieces")] public int NumChildPieces;
     [Entry("debris_impulse")] public float DebrisImpulse;
     [Entry("innards_debris_start_time")] public float InnardsDebrisStartTime;

@@ -14,6 +14,7 @@ namespace LibreLancer.Render
         public Matrix4x4 World { get; private set; }
         public RigidModel? Model { get; private set; }
         public Color4? ColorOverride;
+        public string? EnvMapMaterial;
         public float RenderScale = 1f;
 
         public NebulaRenderer? Nebula;
@@ -165,7 +166,8 @@ namespace LibreLancer.Render
 
             this.sysr = sys;
 
-            if (sys.DrawNebulae && Nebula != null && nr != Nebula || (forceCull && InheritCull))
+            if ((sys.DrawNebulae && nr != null && nr.FogTransitionOpacity() >= 1f && Nebula != nr) ||
+                (forceCull && InheritCull))
             {
                 return false;
             }
@@ -248,14 +250,16 @@ namespace LibreLancer.Render
 
                     var lighting = RenderHelpers.ApplyLights(lights, LightGroup, center, part.GetRadius(), nr,
                         LitAmbient, LitDynamic, NoFog);
+                    var canFogCullPart = lighting.FogMode == FogModes.Linear &&
+                                         (nr == null || nr.FogTransitionOpacity() >= 1f || Nebula == nr);
                     var r = part.GetRadius() + lighting.FogRange.Y;
 
-                    if (lighting.FogMode != FogModes.Linear ||
+                    if (!canFogCullPart ||
                         Vector3.DistanceSquared(camera.Position, center) <= (r * r))
                     {
                         var userData = ColorOverride is { } color ? BasicMaterial.SetDc(color) : 0;
                         part.Mesh.DrawBuffer(lvl, sysr.ResourceManager, commands, w, ref lighting, Model.MaterialAnims,
-                            userData, null, OpacityMultiplier);
+                            userData, null, OpacityMultiplier, EnvMapMaterial);
                     }
                 }
             }

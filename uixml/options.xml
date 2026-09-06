@@ -1,59 +1,61 @@
 <Scene ID="options">
- 	<ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" ID="fllogo" Width="640" Height="480"/>
- 	<Scene Visible="false" id="backdrop"><Scene.Background><DisplayColor color="rgba(0,0,0,0.25)"/></Scene.Background></Scene>
-	<Panel Width="640" Height="480" Anchor="Center">
-		<Button X="33" Y="89" Style="menubutton" ID="general" Text="GENERAL" Enabled="false" />
-		<Button X="33" Y="141" Style="menubutton" ID="controls" Text="CONTROLS" />
-		<Button X="33" Y="193" Style="menubutton" ID="performance" Text="PERFORMANCE"/>
-		<Button X="33" Y="246" Style="menubutton" ID="audio" Text="AUDIO"/>
-		<Button X="33" Y="298" Style="menubutton" ID="credits" Text="CREDITS" Enabled="false" />
-		<Button X="33" Y="407" Style="menubutton" ID="goback" Text="MAIN MENU"/>
-		<Panel Width="390" Height="380" X="30" Y="32" Anchor="CenterRight">
-			<Panel.Background><DisplayModel model="framewithdipdown"/></Panel.Background>
-			<Panel Width="390" Height="380" ID="win_audio" Visible="false">
-				<TextBlock Text="AUDIO OPTIONS" Strid="1679" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
-				<!-- Dialogue Volume -->
-				<TextBlock X="18" Y="29" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1409"/>
-				<HSlider Width="175" Height="12" X="196" Y="34" id="voicevol"/>
-				<!-- SFX Volume -->
-				<TextBlock X="18" Y="59" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1336"/>
-				<HSlider Width="175" Height="12" X="196" Y="64" id="sfxvol"/>
-				<!-- Music Volume -->
-				<TextBlock X="18" Y="89" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1337"/>
-				<HSlider Width="175" Height="12" X="196" Y="94" id="musicvol"/>
-			</Panel>
-			<Panel Width="390" Height="480" ID="win_controls" Visible="true">
-				<TextBlock Text="Control Options" Strid="1681" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
-				<Button id="cat_ship" style="wirebutton_small" Text="Ship Controls" Strid="1902" X="37" Y="29" Selected="true"/>
-				<Button id="cat_ui" style="wirebutton_small" Text="Ui" Strid="1903" Y="29" X="146" />
-				<Button id="cat_mp" style="wirebutton_small" Text="mp" Strid="1904" Y="29" X="255" />
-				<Button id="ctrl_default" style="wirebutton_small" Text="def" Strid="1508" Y="331" X="45" />
-				<Button id="ctrl_cancel" style="wirebutton_small" Text="canc" Strid="1597" Y="331" X="240" />
-				<DataTable id="listtable" X="26" Y="64" Width="339" Height="249" Visible="true"
-        			DisplayRowCount="14" BodyFont="$Normal" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
-         			BodyColor="text" BodyTextSize="9" BodyHover="text_hover" SelectedColor="yellow" HeaderTextSize="10" ShowHeaders="true" ShowColumnBorders="true">
-					<DataTable.Columns>
-						<TableColumn Label="" Data="key" InitialWidthPercent="40" TextAlignment="left"/>
-						<TableColumn Strid="1891" Label="primary" Data="primary" InitialWidthPercent="30"/>
-						<TableColumn Strid="1892" Label="secondary" Data="secondary" InitialWidthPercent="30"/>
-					</DataTable.Columns>
-				</DataTable>
-			</Panel>
-			<Panel Width="390" Height="480" ID="win_performance" Visible="false">
-				<TextBlock Text="PERFORMANCE OPTIONS" Strid="1677" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
-				<!-- MSAA -->
-				<TextBlock X="18" Y="30" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Text="ANTI-ALIASING"/>
-				<Button id="msaa_left" style="sel_left" X="200" Y="37"/>
-				<Button id="msaa_right" style="sel_right" X="350" Y="37"/>
-				<TextBlock id="msaa_display" X="204" Y="30" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="12" Text="MSAA SELECTION"/>
-				<!-- ANISOTROPY -->
-				<TextBlock X="18" Y="60" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Text="ANISOTROPIC FILTERING"/>
-				<Button id="af_left" style="sel_left" X="200" Y="67"/>
-				<Button id="af_right" style="sel_right" X="350" Y="67"/>
-				<TextBlock id="af_display" X="204" Y="60" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="12" Text="AF SELECTION"/>
-			</Panel>
-		</Panel>
-	</Panel>
+    <ImageFile Path="INTERFACE/INTRO/IMAGES/front_freelancerlogo.tga" ID="fllogo" Width="640" Height="480"/>
+    <Scene Visible="false" id="backdrop"><Scene.Background><DisplayColor color="rgba(0,0,0,0.25)"/></Scene.Background></Scene>
+    <Panel Width="640" Height="480" Anchor="Center">
+        <Button X="33" Y="89" Style="menubutton" ID="general" Text="GENERAL" Enabled="false" />
+        <Button X="33" Y="141" Style="menubutton" ID="controls" Text="CONTROLS" />
+        <Button X="33" Y="193" Style="menubutton" ID="performance" Text="PERFORMANCE"/>
+        <Button X="33" Y="246" Style="menubutton" ID="audio" Text="AUDIO"/>
+        <Button X="33" Y="298" Style="menubutton" ID="credits" Text="CREDITS" Enabled="false" />
+        <Button X="33" Y="407" Style="menubutton" ID="goback" Text="MAIN MENU"/>
+        <Panel Width="390" Height="380" X="30" Y="32" Anchor="CenterRight">
+            <Panel.Background><DisplayModel model="framewithdipdown"/></Panel.Background>
+            <Panel Width="390" Height="380" ID="win_audio" Visible="false">
+                <TextBlock Text="AUDIO OPTIONS" Strid="1679" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
+                <!-- Dialogue Volume -->
+                <TextBlock X="18" Y="29" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1409"/>
+                <HSlider Width="175" Height="12" X="196" Y="34" id="voicevol"/>
+                <!-- SFX Volume -->
+                <TextBlock X="18" Y="59" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1336"/>
+                <HSlider Width="175" Height="12" X="196" Y="64" id="sfxvol"/>
+                <!-- Music Volume -->
+                <TextBlock X="18" Y="89" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Strid="1337"/>
+                <HSlider Width="175" Height="12" X="196" Y="94" id="musicvol"/>
+            </Panel>
+            <Panel Width="390" Height="480" ID="win_controls" Visible="true">
+                <TextBlock Text="Control Options" Strid="1681" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
+                <Button id="cat_ship" style="wirebutton_small" Text="Ship Controls" Strid="1902" X="37" Y="29" Selected="true"/>
+                <Button id="cat_ui" style="wirebutton_small" Text="Ui" Strid="1903" Y="29" X="146" />
+                <Button id="cat_mp" style="wirebutton_small" Text="mp" Strid="1904" Y="29" X="255" />
+                <Button id="ctrl_default" style="wirebutton_small" Text="def" Strid="1508" Y="331" X="45" />
+                <Button id="ctrl_cancel" style="wirebutton_small" Text="canc" Strid="1597" Y="331" X="240" />
+                <DataTable id="listtable" X="26" Y="64" Width="339" Height="249" Visible="true"
+                    DisplayRowCount="14" BodyFont="$Normal" LineColor="text" LineHover="text_hover" LineDown="yellow" HeaderColor="text"
+                    BodyColor="text" BodyTextSize="9" BodyHover="text_hover" SelectedColor="yellow" HeaderTextSize="10" ShowHeaders="true" ShowColumnBorders="true">
+                    <DataTable.Columns>
+                        <TableColumn Label="" Data="key" InitialWidthPercent="40" TextAlignment="left"/>
+                        <TableColumn Strid="1891" Label="primary" Data="primary" InitialWidthPercent="30"/>
+                        <TableColumn Strid="1892" Label="secondary" Data="secondary" InitialWidthPercent="30"/>
+                    </DataTable.Columns>
+                </DataTable>
+            </Panel>
+            <Panel Width="390" Height="480" ID="win_performance" Visible="false">
+                <TextBlock Text="PERFORMANCE OPTIONS" Strid="1677" Width="390" Height="22" Y="-22"  Anchor="TopCenter" TextColor="text" TextShadow="black" TextSize="13"/>
+                <!-- MSAA -->
+                <TextBlock X="18" Y="30" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Text="ANTI-ALIASING"/>
+                <Button id="msaa_left" style="sel_left" X="200" Y="37"/>
+                <Button id="msaa_right" style="sel_right" X="350" Y="37"/>
+                <TextBlock id="msaa_display" X="204" Y="30" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="12" Text="MSAA SELECTION"/>
+                <!-- ANISOTROPY -->
+                <TextBlock X="18" Y="60" HorizontalAlignment="Left" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="13" Text="ANISOTROPIC FILTERING"/>
+                <Button id="af_left" style="sel_left" X="200" Y="67"/>
+                <Button id="af_right" style="sel_right" X="350" Y="67"/>
+                <TextBlock id="af_display" X="204" Y="60" Height="22" Width="150" TextColor="text" TextShadow="black" TextSize="12" Text="AF SELECTION"/>
+                <!-- Toggles -->
+                <Checkbox id="ppl" X="18" Y="92" Width="200" Text="PER-PIXEL LIGHTING"/>
+            </Panel>
+        </Panel>
+    </Panel>
 </Scene> 
 
 

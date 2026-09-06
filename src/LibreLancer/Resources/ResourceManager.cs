@@ -21,7 +21,7 @@ namespace LibreLancer.Resources;
 // TODO: Allow for disposing and all that Jazz
 public abstract class ResourceManager
 {
-    private Dictionary<string, SurFile> surs = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, RuntimeSurFile> surs = new(StringComparer.OrdinalIgnoreCase);
 
     public abstract VertexResource AllocateVertices(FVFVertex format, byte[] vertices, ushort[] indices);
     public abstract QuadSphere GetQuadSphere(int slices);
@@ -48,7 +48,7 @@ public abstract class ResourceManager
     public abstract bool TryGetShape(string name, out TextureShape? textureShape);
     public abstract bool TryGetFrameAnimation(string name, [MaybeNullWhen(false)] out TexFrameAnimation anim);
 
-    public ConvexMeshCollection ConvexCollection { get; protected set; } = null!;
+    public ConvexShapeCollection ConvexCollection { get; protected set; } = null!;
 
     protected FileSystem VFS;
     protected ResourceManager(FileSystem vfs)
@@ -56,7 +56,7 @@ public abstract class ResourceManager
         VFS = vfs;
     }
 
-    protected SurFile GetSur(string filename)
+    protected RuntimeSurFile GetSur(string filename)
     {
         // This shouldn't be needed?
         lock (surs)
@@ -65,7 +65,7 @@ public abstract class ResourceManager
             {
                 using (var stream = VFS.Open(filename))
                 {
-                    sur = SurFile.Read(stream);
+                    sur = SurFile.Read(stream).Convert();
                 }
                 surs.Add(filename, sur);
             }

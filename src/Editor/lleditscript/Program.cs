@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -324,36 +325,30 @@ internal class Program
             }
             else
             {
-                var p = Cache.GetCacheItem(scriptText);
-                if (p == null)
+                if (TryGetCachedAssembly(scriptText, out var asm))
                 {
-                    var sc = CompileScript(filePath, scriptText);
-                    var compilation = sc?.GetCompilation();
+                    return RunAssembly(asm, globals);
+                }
+                var sc = CompileScript(filePath, scriptText);
+                if (sc != null)
+                {
+                    var compilation = sc.GetCompilation();
                     var output = new MemoryStream();
-                    using(var comp = new ZstdSharp.CompressionStream(output, 9))
+                    using (var comp = new ZstdSharp.CompressionStream(output, 9))
                     {
-                        compilation?.Emit(comp);
+                        compilation.Emit(comp);
                     }
-
                     Cache.WriteCacheItem(scriptText, output.ToArray());
                     var tk = sc?.RunAsync(globals);
                     tk?.Wait();
-                    if (tk?.Result.Exception != null)
-                    {
+                    if (tk?.Result.Exception != null) {
                         LogException(tk.Result.Exception);
                         return 1;
                     }
                 }
                 else
                 {
-                    MemoryStream asm = new MemoryStream();
-                    {
-                        using var input = new MemoryStream(p);
-                        using var decomp = new ZstdSharp.DecompressionStream(input);
-                        decomp.CopyTo(asm);
-                    }
-                    var loaded = Assembly.Load(asm.ToArray());
-                    return RunAssembly(loaded, globals);
+                    return 1;
                 }
             }
         }
@@ -365,6 +360,31 @@ internal class Program
 
         return 0;
     }
+
+    static bool TryGetCachedAssembly(string scriptText, [NotNullWhen(true)] out Assembly? assembly)
+    {
+        assembly = null;
+        var p = Cache.GetCacheItem(scriptText);
+        if (p == null)
+            return false;
+        try
+        {
+            MemoryStream asm = new MemoryStream();
+            {
+                using var input = new MemoryStream(p);
+                using var decomp = new ZstdSharp.DecompressionStream(input);
+                decomp.CopyTo(asm);
+            }
+            assembly = Assembly.Load(asm.ToArray());
+            return true;
+        }
+        catch
+        {
+            // Cache load failure is not worth logging
+            return false;
+        }
+    }
+
 
     private static bool IsPEFile(string path)
     {

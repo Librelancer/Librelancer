@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using LibreLancer.Client.Components;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Render;
 using LibreLancer.Resources;
+using LibreLancer.Server.Components;
 using LibreLancer.Sounds;
 using LibreLancer.World.Components;
 
@@ -53,6 +55,26 @@ namespace LibreLancer.World
             obj.Parent = parent;
             var component = new EquipmentComponent(equip, obj);
             obj.AddComponent(component);
+            if (equip.Hitpoints > 0)
+            {
+                if (type == EquipmentType.Server && !obj.TryGetComponent<SHealthComponent>(out _))
+                {
+                    obj.AddComponent(new SHealthComponent(obj)
+                    {
+                        MaxHealth = equip.Hitpoints,
+                        CurrentHealth = equip.Hitpoints
+                    });
+                }
+                else if (type is EquipmentType.LocalPlayer or EquipmentType.RemoteObject &&
+                         !obj.TryGetComponent<CHealthComponent>(out _))
+                {
+                    obj.AddComponent(new CHealthComponent(obj)
+                    {
+                        MaxHealth = equip.Hitpoints,
+                        CurrentHealth = equip.Hitpoints
+                    });
+                }
+            }
             parent.Children.Add(obj);
             if (equip.LODRanges != null && obj.RenderComponent is ModelRenderer mrender)
                 mrender.LODRanges = equip.LODRanges;

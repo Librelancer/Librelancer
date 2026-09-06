@@ -42,6 +42,7 @@ namespace LibreLancer.Server
             sg.Time = new SaveTime() { Seconds = (float)ch.Time };
             if (ch.Ship != null)
                 sg.Player.ShipArchetype = new HashValue(ch.Ship.Nickname);
+            sg.Player.DestroyedParts.AddRange(ch.GetDestroyedParts());
             foreach (var item in ch.Items) {
                 if (!string.IsNullOrEmpty(item.Hardpoint))
                 {

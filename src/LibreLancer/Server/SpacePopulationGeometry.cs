@@ -53,6 +53,9 @@ public partial class SpacePopulationManager
         }
 
         var candidate = SamplePatrolPathSpawnPoint(candidateInfo, players, maxDistance);
+        if (IsInsideRandomMissionNoSpawnZone(candidate))
+            return false;
+
         var approachTarget = ClosestPointOnSegment(
             candidateInfo.Start,
             candidateInfo.End,
@@ -254,7 +257,9 @@ public partial class SpacePopulationManager
         {
             var playerPosition = GetNearestPlayer(point, players).WorldTransform.Position;
             var distance = Vector3.Distance(point, playerPosition);
-            if (distance + 1 >= PatrolPathSpawnMinDistance && distance <= maxDistance)
+            if (distance + 1 >= PatrolPathSpawnMinDistance &&
+                distance <= maxDistance &&
+                !IsInsideRandomMissionNoSpawnZone(point))
                 return point;
 
             point = MovePatrolSpawnIntoRange(
@@ -315,9 +320,10 @@ public partial class SpacePopulationManager
         {
             var player = players[random.Next(players.Length)];
             var distance = Lerp(minDistance, maxDistance, random.NextSingle());
-            var candidate = player.WorldTransform.Position + RandomUnitVector() * distance;
+            var candidate = player.WorldTransform.Position + random.NextUnitVector() * distance;
             candidate = ClampSpawnHeight(candidate, player.WorldTransform.Position);
-            if (zone.ContainsPoint(candidate))
+            if (zone.ContainsPoint(candidate) &&
+                !IsInsideRandomMissionNoSpawnZone(candidate))
             {
                 point = candidate;
                 return true;
@@ -332,7 +338,8 @@ public partial class SpacePopulationManager
             var distance = DistanceToNearestPlayer(candidate, players);
             if (distance >= minDistance &&
                 distance <= maxDistance * 1.5f &&
-                zone.ContainsPoint(candidate))
+                zone.ContainsPoint(candidate) &&
+                !IsInsideRandomMissionNoSpawnZone(candidate))
             {
                 point = candidate;
                 return true;
@@ -402,8 +409,8 @@ public partial class SpacePopulationManager
     {
         return zone.Shape switch
         {
-            ShapeKind.Sphere => zone.Position + RandomUnitVector() * (zone.Size.X * MathF.Cbrt(random.NextSingle())),
-            ShapeKind.Ellipsoid => TransformZoneLocal(zone, RandomUnitVector() * MathF.Cbrt(random.NextSingle()) * zone.Size),
+            ShapeKind.Sphere => zone.Position + random.NextUnitVector() * (zone.Size.X * MathF.Cbrt(random.NextSingle())),
+            ShapeKind.Ellipsoid => TransformZoneLocal(zone, random.NextUnitVector() * MathF.Cbrt(random.NextSingle()) * zone.Size),
             ShapeKind.Box => TransformZoneLocal(zone, new Vector3(
                 (random.NextSingle() - 0.5f) * zone.Size.X,
                 (random.NextSingle() - 0.5f) * zone.Size.Y,
@@ -541,14 +548,6 @@ public partial class SpacePopulationManager
         return MathF.Min(
             Vector3.DistanceSquared(point, start),
             Vector3.DistanceSquared(point, end));
-    }
-
-    private Vector3 RandomUnitVector()
-    {
-        var z = random.NextSingle() * 2f - 1f;
-        var angle = random.NextSingle() * MathF.PI * 2f;
-        var radius = MathF.Sqrt(MathF.Max(0, 1f - z * z));
-        return new Vector3(MathF.Cos(angle) * radius, z, MathF.Sin(angle) * radius);
     }
 
     private static Quaternion LookRotation(Vector3 direction)

@@ -453,7 +453,7 @@ namespace LibreLancer.Missions.Actions
                     p.Character.Items = [];
                 }
 
-                runtime.Player.UpdateCurrentInventory();
+                runtime.Player.UpdateCurrentInventory(resetDestroyedParts: true);
             }
             else
             {
@@ -480,7 +480,7 @@ namespace LibreLancer.Missions.Actions
 
                 }
 
-                runtime.Player.UpdateCurrentInventory();
+                runtime.Player.UpdateCurrentInventory(resetDestroyedParts: true);
             }
         }
     }
@@ -580,7 +580,7 @@ namespace LibreLancer.Missions.Actions
         public override void Invoke(MissionRuntime runtime, MissionScript script)
         {
             if (!Reset)
-                runtime.Player.RpcClient.PlayMusic(Motif == "" ? Battle : Motif, Fade);
+                runtime.Player.RpcClient.PlayMusic(Motif == "" ? Battle : Motif, Fade, Unknown);
         }
     }
 

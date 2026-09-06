@@ -22,4 +22,6 @@ internal class NullMultisampleTarget : IMultisampleTarget
     public void BlitToRenderTarget(IRenderTarget2D rTarget)
     {
     }
+
+    public bool HasStencil => false;
 }

@@ -6,30 +6,34 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using System.Threading.Tasks;
+using LibreLancer.Physics;
 
 namespace LibreLancer.Sur
 {
     public class SurfacePart
     {
+        //Format
+        private const uint SURF = 0x66727573; //"surf"
+        private const uint EXTS = 0x73747865; //"exts"
+        private const uint NOT_FIXED = 0x64786621; //!fxd
+        private const uint HPID = 0x64697068; //"hpid"
+        private const uint SHAPES_MAGIC = 0x45504853; //"SHPE" for detecting librelancer data
+        //Freelancer
+        public uint Crc;
         public Vector3 Center;
         public Vector3 Inertia;
         public Vector3 Minimum;
         public Vector3 Maximum;
         public Vector3 Unknown;
         public float Radius;
-        public uint Crc;
         public float Scale; // Scale of sphere without hardpoints
         public List<SurfacePoint> Points = [];
         public List<uint> HardpointIds = [];
-
         public SurfaceNode Root = null!;
-
         public bool Dynamic = false;
-
-        private const uint SURF = 0x66727573; //"surf"
-        private const uint EXTS = 0x73747865; //"exts"
-        private const uint NOT_FIXED = 0x64786621; //!fxd
-        private const uint HPID = 0x64697068;
+        //Librelancer
+        public List<(uint SubId, ConvexShape[] Shapes)>? Shapes;
 
         public SurfaceHull[] GetHulls(bool wrap)
         {
@@ -52,6 +56,48 @@ namespace LibreLancer.Sur
             }
 
             return hulls.ToArray();
+        }
+
+        public void ConvertShapes()
+        {
+            Dictionary<uint, List<ConvexShape>> shapes = new();
+            shapes[0] = new();
+            foreach (var hp in HardpointIds)
+                shapes[hp] = new();
+            var hulls = GetHulls(false);
+            var vertices = new Vector3[Points.Count];
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] = Points[i].Point;
+            }
+            Parallel.ForEach(hulls, (triHull, _) =>
+            {
+                if (triHull.Type == 5 ||
+                    (triHull.HullId != Crc &&
+                     !HardpointIds.Contains(triHull.HullId)))
+                {
+                    return;
+                }
+                var target = triHull.HullId == Crc ?
+                    shapes[0] : shapes[triHull.HullId];
+                var indices = new List<int>();
+                foreach (var tri in triHull.Faces)
+                {
+                    indices.Add(tri.Points.A);
+                    indices.Add(tri.Points.B);
+                    indices.Add(tri.Points.C);
+                }
+                var shape = new ConvexShape(new ConvexMesh(vertices, indices.ToArray()));
+                lock(target) { target.Add(shape);}
+            });
+            Shapes = new();
+            foreach (var kv in shapes)
+            {
+                if (kv.Value.Count > 0)
+                {
+                    Shapes.Add(new(kv.Key, kv.Value.ToArray()));
+                }
+            }
         }
 
         public static SurfacePart Read(BinaryReader reader)
@@ -191,6 +237,22 @@ namespace LibreLancer.Sur
                     queue.Push((0, currentNode.Left));
             }
 
+            var bitsEnd = (int) writer.BaseStream.Position;
+            if (Shapes != null)
+            {
+                writer.Write(SHAPES_MAGIC);
+                writer.Write(Shapes.Count);
+                foreach (var sh in Shapes)
+                {
+                    writer.Write(sh.SubId);
+                    writer.Write(sh.Shapes.Length);
+                    foreach (var cv in sh.Shapes)
+                    {
+                        writer.Write(cv.Data.Length);
+                        writer.Write(cv.Data);
+                    }
+                }
+            }
             var endOffset = (int) writer.BaseStream.Position;
 
             writer.BaseStream.Seek(startOffset - 4, SeekOrigin.Begin);
@@ -205,7 +267,7 @@ namespace LibreLancer.Sur
             writer.Write(Inertia.Z);
             writer.Write(Radius);
             var scaleByte = (byte) (Scale * 0xFA);
-            writer.Write((endOffset - startOffset) << 8 | scaleByte);
+            writer.Write((bitsEnd - startOffset) << 8 | scaleByte);
             writer.Write(nodesStartOffset - startOffset);
             writer.Write(Unknown.X);
             writer.Write(Unknown.Y);
@@ -291,6 +353,28 @@ namespace LibreLancer.Sur
             while (reader.BaseStream.Position < nodesStartOffset)
             {
                 Points.Add(SurfacePoint.Read(reader));
+            }
+
+            if (size > bitsEnd)
+            {
+                reader.BaseStream.Seek(nodesEndOffset, SeekOrigin.Begin);
+                if (reader.ReadUInt32() == SHAPES_MAGIC)
+                {
+                    int shapeCount = reader.ReadInt32();
+                    Shapes = new(shapeCount);
+                    while (shapeCount-- > 0)
+                    {
+                        var subId = reader.ReadUInt32();
+                        var count = reader.ReadInt32();
+                        var cvs = new ConvexShape[count];
+                        for (int i = 0; i < cvs.Length; i++)
+                        {
+                            var len = reader.ReadInt32();
+                            cvs[i] = new ConvexShape(reader.ReadBytes(len));
+                        }
+                        Shapes.Add((subId, cvs));
+                    }
+                }
             }
 
             reader.BaseStream.Seek(endOffset, SeekOrigin.Begin);

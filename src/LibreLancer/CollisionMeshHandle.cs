@@ -4,8 +4,7 @@ namespace LibreLancer;
 
 public struct CollisionMeshHandle
 {
-    public SurFile Sur;
     public uint FileId;
 
-    public bool Valid => Sur != null && FileId != 0;
+    public bool Valid => FileId != 0;
 }

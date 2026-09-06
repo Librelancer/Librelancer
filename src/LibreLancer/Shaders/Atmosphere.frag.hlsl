@@ -35,8 +35,8 @@ float4 main(Input input) : SV_Target0
 
     float4 tex = DtTexture.Sample(DtSampler, float2(facingRatio, 0.0));
 #ifdef VERTEX_LIGHTING
-    float4 lit = ApplyVertexLighting(ac, ec, Dc * input.color,
-        DtTexture.Sample(DtSampler, input.texCoord),
+    float4 lit = ApplyVertexLighting(Ac, 0, Dc,
+        1,
         input.viewPosition,
         input.frontFacing ? input.diffuseTermFront : input.diffuseTermBack,
         input.frontFacing ? input.ambientTermFront : input.ambientTermBack);

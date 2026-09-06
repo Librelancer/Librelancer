@@ -9,8 +9,8 @@ public class DynamicAsteroids : ICloneable, IDataEquatable<DynamicAsteroids>
     public int Count;
     public int PlacementRadius;
     public int PlacementOffset;
-    public int MaxVelocity;
-    public int MaxAngularVelocity;
+    public int? MaxVelocity;
+    public int? MaxAngularVelocity;
     public Vector3 ColorShift;
 
     object ICloneable.Clone() => MemberwiseClone();

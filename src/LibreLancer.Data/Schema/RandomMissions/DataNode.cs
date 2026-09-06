@@ -16,7 +16,7 @@ public partial class DataNode : VignetteNode
     public Vector2? Difficulty;
 
     [Entry("weight")]
-    public int? Weight;
+    public float? Weight;
 
     [Entry("allowable_zone_types")]
     public string[]? AllowableZoneTypes;

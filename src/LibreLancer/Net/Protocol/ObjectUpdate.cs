@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using LibreLancer.Net.DataTypes;
 using LibreLancer.World.Components;
 
 namespace LibreLancer.Net.Protocol;
@@ -32,7 +33,7 @@ public class PackedUpdatePacket : IPacket
         NetPacking.ByteCountUInt64(Tick) + // Header
         NetPacking.ByteCountInt64((int) ((long) OldTick - Tick)) +
         NetPacking.ByteCountInt64(((int) ((long) InputSequence - Tick))) +
-        (AuthState?.Length ?? 0) + // Auth State serialized
+        1 + (AuthState?.Length ?? 0) + // Auth State serialized
         (Updates?.Length ?? 0); // Updates serialized
 
     public void WriteContents(PacketWriter outPacket)
@@ -40,6 +41,7 @@ public class PackedUpdatePacket : IPacket
         outPacket.PutVariableUInt32(Tick);
         outPacket.PutVariableInt32((int) ((long) OldTick - Tick));
         outPacket.PutVariableInt32((int) ((long) InputSequence - Tick));
+        outPacket.Put((byte)(AuthState?.Length ?? 0));
         outPacket.Put(AuthState!, 0, AuthState!.Length);
         outPacket.Put(Updates!, 0, Updates!.Length);
     }
@@ -52,6 +54,7 @@ public class PackedUpdatePacket : IPacket
         };
         p.OldTick = (uint) (p.Tick + message.GetVariableInt32());
         p.InputSequence = (uint) (p.Tick + message.GetVariableInt32());
+        p.AuthState = message.GetBytes(message.GetByte());
         p.Updates = message.GetRemainingBytes();
         return p;
     }
@@ -59,8 +62,8 @@ public class PackedUpdatePacket : IPacket
     public (PlayerAuthState AuthState, ObjectUpdate[] Updates) GetUpdates(PlayerAuthState origAuth,
         Func<uint, int, ObjectUpdate> getSource)
     {
-        var reader = new BitReader(Updates, 0);
-        var pa = PlayerAuthState.Read(ref reader, origAuth);
+        var reader = new BitReader(Updates!, 0);
+        var pa = PlayerAuthState.Decode(AuthState!, origAuth);
         reader.Align();
         var count = reader.GetByte();
         int[] ids = new int[count];
@@ -77,7 +80,7 @@ public class PackedUpdatePacket : IPacket
 
         reader.Align();
 
-        var rle = new NetRleReader(Updates, reader.Position >> 3);
+        var rle = new NetRleReader(Updates!, reader.Position >> 3);
 
         var updates = new ObjectUpdate[count];
         for (int i = 0; i < count; i++)
@@ -89,12 +92,9 @@ public class PackedUpdatePacket : IPacket
         return (pa, updates);
     }
 
-    public void SetAuthState(PlayerAuthState newAuth, PlayerAuthState origAuth, uint tick)
+    public void SetAuthState(PlayerAuthState newAuth, PlayerAuthState origAuth)
     {
-        var writer = new BitWriter();
-        newAuth.Write(ref writer, origAuth, tick);
-        writer.Align();
-        AuthState = writer.GetCopy();
+        AuthState = newAuth.Encode(origAuth);
     }
 }
 
@@ -128,147 +128,6 @@ public enum CruiseThrustState
     Cruising = 1,
     CruiseCharging = 2,
     Thrusting = 3
-}
-
-public struct UpdateQuaternion : IEquatable<UpdateQuaternion>
-{
-    public uint Largest;
-    public uint Component1;
-    public uint Component2;
-    public uint Component3;
-
-    public static implicit operator UpdateQuaternion(Quaternion q)
-    {
-        var uq = new UpdateQuaternion();
-        NetPacking.PackQuaternion(q, 10, out uq.Largest, out uq.Component1, out uq.Component2, out uq.Component3);
-        return uq;
-    }
-
-    public Quaternion Quaternion => NetPacking.UnpackQuaternion(10, Largest, Component1, Component2, Component3);
-
-    public bool Equals(UpdateQuaternion other)
-    {
-        return Largest == other.Largest && Component1 == other.Component1 && Component2 == other.Component2 && Component3 == other.Component3;
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is UpdateQuaternion other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(Largest, Component1, Component2, Component3);
-    }
-
-    public static bool operator ==(UpdateQuaternion left, UpdateQuaternion right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(UpdateQuaternion left, UpdateQuaternion right)
-    {
-        return !left.Equals(right);
-    }
-}
-
-
-[StructLayout(LayoutKind.Sequential)]
-public struct Fix22d10 : IEquatable<Fix22d10>
-{
-    public int Value;
-
-    public Fix22d10(float value)
-    {
-        Value = (int)MathHelper.Clamp((double)value * 1024.0, int.MinValue, int.MaxValue);
-    }
-
-    public float ToFloat()
-    {
-        return (float)((double)Value / 1024.0);
-    }
-
-    public bool Equals(Fix22d10 other)
-    {
-        return Value == other.Value;
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is Fix22d10 other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return Value;
-    }
-
-    public static bool operator ==(Fix22d10 left, Fix22d10 right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(Fix22d10 left, Fix22d10 right)
-    {
-        return !left.Equals(right);
-    }
-}
-
-
-[StructLayout(LayoutKind.Sequential)]
-public struct Vec3Fix22d10 : IEquatable<Vec3Fix22d10>
-{
-    public Fix22d10 X;
-    public Fix22d10 Y;
-    public Fix22d10 Z;
-
-    public Vec3Fix22d10(Vector3 v)
-    {
-        X = new(v.X);
-        Y = new(v.Y);
-        Z = new(v.Z);
-    }
-
-    public Vector3 ToVector3() => new(X.ToFloat(), Y.ToFloat(), Z.ToFloat());
-
-    public static Vec3Fix22d10 operator +(Vec3Fix22d10 v1, Vec3Fix22d10 v2) => new()
-    {
-        X = new Fix22d10() { Value = v1.X.Value + v2.X.Value },
-        Y = new Fix22d10() { Value = v1.Y.Value + v2.Y.Value },
-        Z = new Fix22d10() { Value = v1.Z.Value + v2.Z.Value }
-    };
-
-    public static Vec3Fix22d10 operator -(Vec3Fix22d10 v1, Vec3Fix22d10 v2) => new()
-    {
-        X = new Fix22d10() { Value = v1.X.Value - v2.X.Value },
-        Y = new Fix22d10() { Value = v1.Y.Value - v2.Y.Value },
-        Z = new Fix22d10() { Value = v1.Z.Value - v2.Z.Value }
-    };
-
-    public static bool operator ==(Vec3Fix22d10 left, Vec3Fix22d10 right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(Vec3Fix22d10 left, Vec3Fix22d10 right)
-    {
-        return !left.Equals(right);
-    }
-
-    public bool Equals(Vec3Fix22d10 other)
-    {
-        return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z);
-    }
-
-    public override bool Equals(object? obj)
-    {
-        return obj is Vec3Fix22d10 other && Equals(other);
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(X, Y, Z);
-    }
 }
 
 [StructLayout(LayoutKind.Explicit)]
@@ -309,11 +168,7 @@ public class ObjectUpdate
     public Vec3Fix22d10 Position;
     public Vec3Fix22d10 LinearVelocity;
     public Vec3Fix22d10 AngularVelocity;
-    public UpdateQuaternion Orientation = Quaternion.Identity;
-    public StrafeControls Strafe;
-    private byte pitchControl;
-    private byte yawControl;
-    private byte rollControl;
+    public Quaternion32 Orientation = Quaternion.Identity;
     public int Hull;
     public int Shield;
     private byte throttle;
@@ -322,24 +177,6 @@ public class ObjectUpdate
     {
         get => Unsafe.BitCast<byte,sbyte>(throttle) / 127f;
         set => throttle = Unsafe.BitCast<sbyte, byte>((sbyte)(value * 127.0f));
-    }
-
-    public float Pitch
-    {
-        get => Unsafe.BitCast<byte,sbyte>(pitchControl) / 127f;
-        set => pitchControl = Unsafe.BitCast<sbyte, byte>((sbyte)(value * 127.0f));
-    }
-
-    public float Yaw
-    {
-        get => Unsafe.BitCast<byte,sbyte>(yawControl) / 127f;
-        set => yawControl = Unsafe.BitCast<sbyte, byte>((sbyte)(value * 127.0f));
-    }
-
-    public float Roll
-    {
-        get => Unsafe.BitCast<byte,sbyte>(rollControl) / 127f;
-        set => rollControl = Unsafe.BitCast<sbyte, byte>((sbyte)(value * 127.0f));
     }
 
     public byte Flags;
@@ -448,14 +285,11 @@ public class ObjectUpdate
         msg.Write(avDelta.Data[11]);
         msg.Write(lvDelta.Data[11]);
 
-        msg.Write((byte)(Orientation.Largest - src.Orientation.Largest));
+        msg.Write((byte)NetPacking.ZigZagDelta(Orientation.Largest, src.Orientation.Largest));
 
-        long dXs = (long)Orientation.Component1 - src.Orientation.Component1;
-        long dYs = (long)Orientation.Component2 - src.Orientation.Component2;
-        long dZs = (long)Orientation.Component3 - src.Orientation.Component3;
-        var dX = NetPacking.Zig64(dXs);
-        var dY = NetPacking.Zig64(dYs);
-        var dZ = NetPacking.Zig64(dZs);
+        var dX = NetPacking.Delta16(Orientation.Component1, src.Orientation.Component1);
+        var dY = NetPacking.Delta16(Orientation.Component2, src.Orientation.Component2);
+        var dZ = NetPacking.Delta16(Orientation.Component3, src.Orientation.Component3);
 
         msg.Write((byte)((dX >> 8) & 0xFF));
         msg.Write((byte)((dY >> 8) & 0xFF));
@@ -466,9 +300,6 @@ public class ObjectUpdate
 
         msg.Write((byte)(Flags - src.Flags));
         msg.Write((byte)(throttle - src.throttle));
-        msg.Write((byte)(pitchControl - src.pitchControl));
-        msg.Write((byte)(yawControl - src.yawControl));
-        msg.Write((byte)((byte)Strafe - (byte)src.Strafe));
 
         var dHull = NetPacking.Zig32(Hull - src.Hull);
         var dShield = NetPacking.Zig32(Shield - src.Shield);
@@ -491,8 +322,8 @@ public class ObjectUpdate
                 var o = src.Guns != null && src.Guns.Length > i
                     ? src.Guns[i]
                     : new() { AnglePitch = 0, AngleRot = 0 };
-                diffP[i] = (ushort)NetPacking.Zig32(Guns[i].Pitch16 - o.Pitch16);
-                diffR[i] = (ushort)NetPacking.Zig32(Guns[i].Rot16 - o.Rot16);
+                diffP[i] = NetPacking.Delta16(Guns[i].Pitch16, o.Pitch16);
+                diffR[i] = NetPacking.Delta16(Guns[i].Rot16, o.Rot16);
             }
             for (int i = 0; i < diffP.Length; i++)
             {
@@ -588,7 +419,7 @@ public class ObjectUpdate
         avDelta.Data[11] = msg.ReadByte();
         lvDelta.Data[11] = msg.ReadByte();
 
-        var lg = (byte)(src.Orientation.Largest + msg.ReadByte());
+        var lg = NetPacking.ApplyZigZagDelta(src.Orientation.Largest,  msg.ReadByte());
 
         var dXh = msg.ReadByte();
         var dYh = msg.ReadByte();
@@ -597,9 +428,9 @@ public class ObjectUpdate
         var dYl = msg.ReadByte();
         var dZl = msg.ReadByte();
 
-        var dX = NetPacking.Zag64((ulong)((dXh << 8) | dXl));
-        var dY = NetPacking.Zag64((ulong)((dYh << 8) | dYl));
-        var dZ = NetPacking.Zag64((ulong)((dZh << 8) | dZl));
+        var dX = ((ushort)((dXh << 8) | dXl));
+        var dY = ((ushort)((dYh << 8) | dYl));
+        var dZ = ((ushort)((dZh << 8) | dZl));
 
         od.Position = src.Position + posDelta.Zag();
         od.AngularVelocity = src.AngularVelocity + avDelta.Zag();
@@ -608,17 +439,13 @@ public class ObjectUpdate
         od.Orientation = new()
         {
             Largest = lg,
-            Component1 = (uint)(src.Orientation.Component1 + dX),
-            Component2 = (uint)(src.Orientation.Component2 + dY),
-            Component3 = (uint)(src.Orientation.Component3 + dZ)
+            Component1 = NetPacking.ApplyDelta16(src.Orientation.Component1, dX),
+            Component2 = NetPacking.ApplyDelta16(src.Orientation.Component2, dY),
+            Component3 = NetPacking.ApplyDelta16(src.Orientation.Component3, dZ)
         };
 
         od.Flags = (byte)(src.Flags + msg.ReadByte());
         od.throttle = (byte)(src.throttle + msg.ReadByte());
-        od.pitchControl = (byte)(src.pitchControl + msg.ReadByte());
-        od.yawControl = (byte)(src.yawControl + msg.ReadByte());
-        var srcS = (byte)src.Strafe;
-        od.Strafe = (StrafeControls)(byte)(srcS + msg.ReadByte());
 
         uint dHull = 0;
         uint dShield = 0;
@@ -653,8 +480,8 @@ public class ObjectUpdate
         for (int i = 0; i < od.Guns.Length; i++)
         {
             var s = i < src.Guns.Length ? src.Guns[i] : new() { AnglePitch = 0, AngleRot = 0};
-            var p = (ushort)(s.Pitch16 + NetPacking.Zag64(dPitch[i]));
-            var r = (ushort)(s.Rot16 + NetPacking.Zag64(dRoll[i]));
+            var p = (ushort)NetPacking.ApplyDelta16(s.Pitch16, dPitch[i]);
+            var r = (ushort)NetPacking.ApplyDelta16(s.Rot16, dRoll[i]);
             od.Guns[i] = new(p, r);
         }
 

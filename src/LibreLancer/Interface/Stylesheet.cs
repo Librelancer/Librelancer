@@ -159,6 +159,31 @@ namespace LibreLancer.Interface
 
     [UiLoadable]
     [WattleScriptUserData]
+    public class CheckboxStyle : ButtonStyle
+    {
+        private StyledProperty<UiRenderable?> check = new("Check");
+
+        public UiRenderable? Check
+        {
+            get => check.Value;
+            set => check.Set(value);
+        }
+
+        public override void Set(StyleResolver resolver)
+        {
+            base.Set(resolver);
+            resolver.Add(check);
+        }
+
+        public override void Create(StyleResolver resolver)
+        {
+            base.Create(resolver);
+            resolver.Query(check);
+        }
+    }
+
+    [UiLoadable]
+    [WattleScriptUserData]
     public class ButtonStyle : ElementStyle
     {
         private StyledProperty<string> mouseEnterSound = new("MouseEnterSound");
@@ -243,8 +268,8 @@ namespace LibreLancer.Interface
         private StyledProperty<UiRenderable?> background = new("Background");
         private StyledProperty<UiRenderable?> border = new("Border");
         private StyledProperty<float> textSize = new("TextSize");
-        private StyledProperty<float> marginLeft = new("MarginLeft");
-        private StyledProperty<float> marginRight = new("MarginRight");
+        private StyledProperty<Metric> marginLeft = new("MarginLeft");
+        private StyledProperty<Metric> marginRight = new("MarginRight");
         private StyledProperty<string> fontFamily = new("FontFamily");
         private StyledProperty<HorizontalAlignment> horizontalAlignment = new("HorizontalAlignment");
         private StyledProperty<VerticalAlignment> verticalAlignment = new("VerticalAlignment");
@@ -293,13 +318,13 @@ namespace LibreLancer.Interface
             set => textSize.Set(value);
         }
 
-        public float MarginLeft
+        public Metric MarginLeft
         {
             get => marginLeft.Value;
             set => marginLeft.Set(value);
         }
 
-        public float MarginRight
+        public Metric MarginRight
         {
             get => marginRight.Value;
             set => marginRight.Set(value);
@@ -704,6 +729,86 @@ namespace LibreLancer.Interface
 
     [UiLoadable]
     [WattleScriptUserData]
+    public class InfocardStyle : ElementStyle
+    {
+        private StyledProperty<bool> bold = new("Bold");
+        private StyledProperty<bool> italic = new("Italic");
+        private StyledProperty<bool> underline = new("Underline");
+        private StyledProperty<int> fontIndex = new ("FontIndex");
+        private StyledProperty<InterfaceColor?> textColor = new("TextColor", InterfaceColor.White);
+        private StyledProperty<InterfaceColor?> textShadow = new("TextShadow");
+        private StyledProperty<HorizontalAlignment> textAlignment = new("TextAlignment");
+
+        public override void Set(StyleResolver resolver)
+        {
+            base.Set(resolver);
+            resolver.Add(bold)
+                .Add(italic)
+                .Add(underline)
+                .Add(fontIndex)
+                .Add(textColor)
+                .Add(textShadow)
+                .Add(textAlignment);
+        }
+
+        public override void Create(StyleResolver resolver)
+        {
+            base.Create(resolver);
+            resolver
+                .Query(bold)
+                .Query(italic)
+                .Query(underline)
+                .Query(fontIndex)
+                .Query(textColor)
+                .Query(textShadow)
+                .Query(textAlignment);
+        }
+
+        public bool Bold
+        {
+            get => bold.Value;
+            set => bold.Set(value);
+        }
+
+        public bool Italic
+        {
+            get => italic.Value;
+            set => italic.Set(value);
+        }
+
+        public bool Underline
+        {
+            get => underline.Value;
+            set => underline.Set(value);
+        }
+
+        public int FontIndex
+        {
+            get => fontIndex.Value;
+            set => fontIndex.Set(value);
+        }
+
+        public InterfaceColor? TextColor
+        {
+            get => textColor.Value;
+            set => textColor.Set(value);
+        }
+
+        public InterfaceColor? TextShadow
+        {
+            get => textShadow.Value;
+            set => textShadow.Set(value);
+        }
+
+        public HorizontalAlignment TextAlignment
+        {
+            get => textAlignment.Value;
+            set => textAlignment.Set(value);
+        }
+    }
+
+    [UiLoadable]
+    [WattleScriptUserData]
     public class NavmapStyle : ElementStyle
     {
         private StyledProperty<ButtonStyle?> zoomInButton = new("ZoomInButton");
@@ -711,11 +816,19 @@ namespace LibreLancer.Interface
         private StyledProperty<ButtonStyle?> selectorButton = new("SelectorButton");
         private StyledProperty<ButtonStyle?> addWaypointButton = new("AddWaypointButton");
         private StyledProperty<ButtonStyle?> bestPathButton = new("BestPathButton");
+        private StyledProperty<ButtonStyle?> neutralZoneFilterButton = new("NeutralZoneFilterButton");
+        private StyledProperty<ButtonStyle?> hostileZoneFilterButton = new("HostileZoneFilterButton");
+        private StyledProperty<ButtonStyle?> friendlyZoneFilterButton = new("FriendlyZoneFilterButton");
         private StyledProperty<float> userWaypointSize = new("UserWaypointSize", 28);
         private StyledProperty<float> userWaypointDigitWidth = new("UserWaypointDigitWidth", 6);
         private StyledProperty<float> userWaypointDigitHeight = new("UserWaypointDigitHeight", 10);
         private StyledProperty<int> userWaypointRouteThickness = new("UserWaypointRouteThickness", 2);
-
+        private StyledProperty<float> systemPlayerShipSize = new("SystemPlayerShipSize", 14);
+        private StyledProperty<float> sectorPlayerShipSize = new("SectorPlayerShipSize", 14);
+        private StyledProperty<float> zoneFilterButtonSize = new("ZoneFilterButtonSize", 13);
+        private StyledProperty<float> zoneFilterButtonSpacing = new("ZoneFilterButtonSpacing", 7);
+        private StyledProperty<float> zoneFilterButtonMarginX = new("ZoneFilterButtonMarginX", 12);
+        private StyledProperty<float> zoneFilterButtonMarginY = new("ZoneFilterButtonMarginY", 8);
         private StyledProperty<InterfaceColor> userWaypointColor =
             new("UserWaypointColor", new Color4(1f, 0.2f, 1f, 1f));
 
@@ -730,10 +843,19 @@ namespace LibreLancer.Interface
                 .Add(selectorButton)
                 .Add(addWaypointButton)
                 .Add(bestPathButton)
+                .Add(neutralZoneFilterButton)
+                .Add(hostileZoneFilterButton)
+                .Add(friendlyZoneFilterButton)
                 .Add(userWaypointSize)
                 .Add(userWaypointDigitWidth)
                 .Add(userWaypointDigitHeight)
                 .Add(userWaypointRouteThickness)
+                .Add(systemPlayerShipSize)
+                .Add(sectorPlayerShipSize)
+                .Add(zoneFilterButtonSize)
+                .Add(zoneFilterButtonSpacing)
+                .Add(zoneFilterButtonMarginX)
+                .Add(zoneFilterButtonMarginY)
                 .Add(userWaypointColor)
                 .Add(userWaypointDigitColor);
         }
@@ -747,10 +869,19 @@ namespace LibreLancer.Interface
                 .Query(selectorButton)
                 .Query(addWaypointButton)
                 .Query(bestPathButton)
+                .Query(neutralZoneFilterButton)
+                .Query(hostileZoneFilterButton)
+                .Query(friendlyZoneFilterButton)
                 .Query(userWaypointSize)
                 .Query(userWaypointDigitWidth)
                 .Query(userWaypointDigitHeight)
                 .Query(userWaypointRouteThickness)
+                .Query(systemPlayerShipSize)
+                .Query(sectorPlayerShipSize)
+                .Query(zoneFilterButtonSize)
+                .Query(zoneFilterButtonSpacing)
+                .Query(zoneFilterButtonMarginX)
+                .Query(zoneFilterButtonMarginY)
                 .Query(userWaypointColor)
                 .Query(userWaypointDigitColor);
         }
@@ -785,6 +916,24 @@ namespace LibreLancer.Interface
             set => bestPathButton.Set(value);
         }
 
+        public ButtonStyle? NeutralZoneFilterButton
+        {
+            get => neutralZoneFilterButton.Value;
+            set => neutralZoneFilterButton.Set(value);
+        }
+
+        public ButtonStyle? HostileZoneFilterButton
+        {
+            get => hostileZoneFilterButton.Value;
+            set => hostileZoneFilterButton.Set(value);
+        }
+
+        public ButtonStyle? FriendlyZoneFilterButton
+        {
+            get => friendlyZoneFilterButton.Value;
+            set => friendlyZoneFilterButton.Set(value);
+        }
+
         public float UserWaypointSize
         {
             get => userWaypointSize.Value;
@@ -807,6 +956,42 @@ namespace LibreLancer.Interface
         {
             get => userWaypointRouteThickness.Value;
             set => userWaypointRouteThickness.Set(value);
+        }
+
+        public float SystemPlayerShipSize
+        {
+            get => systemPlayerShipSize.Value;
+            set => systemPlayerShipSize.Set(value);
+        }
+
+        public float SectorPlayerShipSize
+        {
+            get => sectorPlayerShipSize.Value;
+            set => sectorPlayerShipSize.Set(value);
+        }
+
+        public float ZoneFilterButtonSize
+        {
+            get => zoneFilterButtonSize.Value;
+            set => zoneFilterButtonSize.Set(value);
+        }
+
+        public float ZoneFilterButtonSpacing
+        {
+            get => zoneFilterButtonSpacing.Value;
+            set => zoneFilterButtonSpacing.Set(value);
+        }
+
+        public float ZoneFilterButtonMarginX
+        {
+            get => zoneFilterButtonMarginX.Value;
+            set => zoneFilterButtonMarginX.Set(value);
+        }
+
+        public float ZoneFilterButtonMarginY
+        {
+            get => zoneFilterButtonMarginY.Value;
+            set => zoneFilterButtonMarginY.Set(value);
         }
 
         public InterfaceColor UserWaypointColor

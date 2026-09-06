@@ -4,6 +4,8 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Client;
 using LibreLancer.Client.Components;
+using LibreLancer.Data;
+using LibreLancer.Data.GameData;
 using LibreLancer.Graphics;
 using LibreLancer.Infocards;
 using LibreLancer.Interface;
@@ -19,6 +21,7 @@ partial class SpaceGameplay
     public bool ShowHud = true;
     private UiContext ui;
     private LuaAPI uiApi;
+    private UiRenderable? steerArrow;
 
 
     private void CreateHud()
@@ -26,6 +29,16 @@ partial class SpaceGameplay
         ui = Game.Ui;
         ui.GameApi = uiApi = new LuaAPI(this);
         uiApi.IndicatorLayer.OnRender += IndicatorLayerOnRender;
+    }
+
+    private UiRenderable SteerArrow()
+    {
+        return steerArrow ??= [
+            new DisplayModel(new InterfaceModel { Path = @"interface\hud\hud_steeringarrow.3db" })
+            {
+                BaseRadius = 1f
+            }
+        ];
     }
 
     private (Vector2, float) ArrowPosition(Vector2 pos)
@@ -102,10 +115,104 @@ partial class SpaceGameplay
         );
     }
 
-    private void DrawShipReticle(double delta, GameObject obj, Vector2 pos, UiContext context,
-        RectangleF parentRectangle)
+    private const float ShipReticleRange = 2500f;
+    private const float ShipReticleFadeStart = 1000f;
+    private const float ShipReticleFadeEnd = 2400f;
+    private const float ShipReticleSize = 12f;
+    private const float ShipReticleCornerLength = 3.5f;
+    private const float ShipReticleThickness = 0.9f;
+
+    private void DrawShipReticle(GameObject obj, Vector2 pos, float distance, UiContext context,
+        DrawList2D drawList)
     {
-        // var rep = GetRepToPlayer(obj);
+        var colorName = GetRepToPlayer(obj) switch
+        {
+            RepAttitude.Friendly => "color_friendly",
+            RepAttitude.Hostile => "color_hostile",
+            _ => "color_neutral"
+        };
+        var color = context.Data.GetColor(colorName).GetColor(context.GlobalTime);
+        var opacity = distance <= ShipReticleFadeStart
+            ? 1f
+            : distance <= ShipReticleFadeEnd
+                ? MathHelper.Lerp(1f, 0.25f,
+                    (distance - ShipReticleFadeStart) / (ShipReticleFadeEnd - ShipReticleFadeStart))
+                : MathHelper.Lerp(0.25f, 0f,
+                    (distance - ShipReticleFadeEnd) / (ShipReticleRange - ShipReticleFadeEnd));
+        color.A *= opacity;
+
+        var scale = context.PointsToPixelsF(Vector2.One).X;
+        var halfSize = (ShipReticleSize / 2f) * scale;
+        var cornerLength = ShipReticleCornerLength * scale;
+        var thickness = MathF.Max(1.5f, ShipReticleThickness * scale);
+
+        void DrawCorner(Vector2 corner, float horizontalDirection, float verticalDirection)
+        {
+            drawList.DrawLine(color, corner,
+                corner + new Vector2(cornerLength * horizontalDirection, 0), thickness);
+            drawList.DrawLine(color, corner,
+                corner + new Vector2(0, cornerLength * verticalDirection), thickness);
+        }
+
+        DrawCorner(pos + new Vector2(-halfSize, -halfSize), 1, 1);
+        DrawCorner(pos + new Vector2(halfSize, -halfSize), -1, 1);
+        DrawCorner(pos + new Vector2(-halfSize, halfSize), 1, -1);
+        DrawCorner(pos + new Vector2(halfSize, halfSize), -1, -1);
+    }
+
+    private void DrawSteeringArrows(UiContext context, DrawList2D drawList)
+    {
+        var steeringActive = ((isLeftDown && leftDownTimer < 0) || mouseFlight) &&
+                             control.Active &&
+                             !ui.MouseWanted(Game.Mouse.X, Game.Mouse.Y);
+        if (!steeringActive || isTurretView)
+        {
+            return;
+        }
+
+        var steer = Game.GameData.Items.Ini.Hud.Steer;
+        if (steer.Radius <= 0 || steer.Range <= 0 || steer.Size <= 0)
+        {
+            return;
+        }
+
+        var mouse = ui.PixelsToPoints(new Vector2(Game.Mouse.X, Game.Mouse.Y));
+        var center = new Vector2(ui.ScreenWidth, 480) / 2f;
+        var offset = mouse - center;
+        var distance = offset.Length();
+        if (distance < steer.Radius)
+        {
+            return;
+        }
+
+        var direction = offset / distance;
+        var maxCount = Math.Max(1, (int)MathF.Floor(steer.Range / steer.Radius));
+        var count = Math.Min(maxCount, (int)MathF.Floor(distance / steer.Radius));
+        var angle = MathF.Atan2(direction.Y, direction.X) + (MathF.PI / 2f);
+        var arrow = SteerArrow();
+        var textColor = context.Data.GetColor("text").GetColor(context.GlobalTime);
+
+        if (arrow.GetElement(0) is DisplayModel model)
+        {
+            model.Rotate = new Vector3(0, 0, -angle);
+        }
+
+        for (int i = 1; i <= count; i++)
+        {
+            var t = maxCount <= 1 ? 1f : (i - 1) / (float)(maxCount - 1);
+            var size = MathHelper.Lerp(steer.Size * 1.1f, steer.Size * 3.0f, t);
+            var alpha = MathHelper.Lerp(0.55f, 1f, t);
+            var color = textColor;
+            color.A *= alpha;
+            var point = center + (direction * (steer.Radius * i));
+            var rect = new RectangleF(
+                point.X - (size / 2f),
+                point.Y - (size / 2f),
+                size,
+                size
+            );
+            arrow.Draw(context, drawList, rect, color);
+        }
     }
 
     private void DrawWaypoint(double delta, GameObject obj, Vector2 pos, UiContext context, DrawList2D drawList,
@@ -140,9 +247,11 @@ partial class SpaceGameplay
     private void IndicatorLayerOnRender(UiContext context, double delta, DrawList2D drawList,
         RectangleF clientRectangle)
     {
+        DrawSteeringArrows(context, drawList);
+
         foreach (var obj in world.Objects)
         {
-            if (obj == Selection.Selected)
+            if (obj == Selection.Selected || obj == player)
             {
                 // Draw last
             }
@@ -156,8 +265,12 @@ partial class SpaceGameplay
                                     (obj.Flags & GameObjectFlags.Important) == GameObjectFlags.Important:
                         DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
                         break;
-                    case true:
-                        DrawShipReticle(delta, obj, pos, context, clientRectangle);
+                    case true when (obj.Flags & GameObjectFlags.Hidden) == 0:
+                        var distance = Vector3.Distance(player.WorldTransform.Position, obj.WorldTransform.Position);
+                        if (distance <= ShipReticleRange)
+                        {
+                            DrawShipReticle(obj, pos, distance, context, drawList);
+                        }
                         break;
                 }
             }
@@ -237,6 +350,21 @@ partial class SpaceGameplay
 
         public UIInventoryItem[] GetScannedInventory(string filter) => g.session.GetScannedInventory(filter);
         public UIInventoryItem[] GetPlayerInventory(string filter) => g.session.GetPlayerInventory(filter);
+        public Infocard?[]? GetEquipmentStats(UIInventoryItem item) => new Trader(g.session).GetEquipmentStats(item);
+
+        public float GetCargoHoldSize() => g.session.GetCargoHoldSize();
+        public float GetUsedCargoHoldSpace() => g.session.GetUsedCargoHoldSpace();
+        public Infocard? GetPlayerShipInfocard() => g.session.GetPlayerShipInfocard();
+
+        public Infocard?[]? GetShipInfocards(bool playerShip)
+        {
+            if (playerShip)
+                return g.session.GetShipInfocards(g.session.PlayerShip);
+
+            return g.Selection.Selected?.TryGetComponent<ShipComponent>(out var ship) == true
+                ? g.session.GetShipInfocards(ship.Ship)
+                : null;
+        }
 
         public Infocard? GetScannedShipInfocard()
         {
@@ -247,7 +375,7 @@ partial class SpaceGameplay
 
             if (g.Selection.Selected.TryGetComponent<ShipComponent>(out var ship))
             {
-                return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo, g.Game.Fonts);
+                return g.Game.GameData.GetInfocard(ship.Ship.IdsInfo);
             }
 
             return null;
@@ -274,13 +402,8 @@ partial class SpaceGameplay
             ScanHandler = handler;
         }
 
-        public Closure PlayerInventoryHandler;
-
-        public void OnUpdatePlayerInventory(Closure handler)
-        {
-            PlayerInventoryHandler = handler;
-            g.session.OnUpdateInventory = () => PlayerInventoryHandler?.Call();
-        }
+        public void OnUpdatePlayerInventory(Closure handler) =>
+            g.session.OnUpdateInventory += () => handler.Call();
 
         public void JettisonInventoryItem(UIInventoryItem item, int count)
         {
@@ -354,7 +477,7 @@ partial class SpaceGameplay
 
         public void ApplySettings(GameSettings settings)
         {
-            g.Game.Config.Settings = settings;
+            g.Game.Config.Settings.Apply(settings);
             g.Game.Config.Save();
         }
 
@@ -441,7 +564,7 @@ partial class SpaceGameplay
             }
 
             var ids = g.Selection.Selected.SystemObject.IdsInfo;
-            return g.Game.GameData.GetInfocard(ids, g.Game.Fonts);
+            return g.Game.GameData.GetInfocard(ids);
         }
 
         public string? CurrentInfoString() => g.Selection.Selected?.Name?.GetName(g.Game.GameData, Vector3.Zero);
@@ -469,7 +592,8 @@ partial class SpaceGameplay
                 : $"{distance / 1000f:0.0}-K";
         }
 
-        public TargetShipWireframe? SelectionWireframe() => g.Selection.Selected != null ? g.targetWireframe : null;
+        public TargetShipWireframe? SelectionWireframe() =>
+            g.Selection.Selected?.Model != null ? g.targetWireframe : null;
 
         public bool SelectionVisible()
         {
@@ -538,19 +662,33 @@ partial class SpaceGameplay
 
         public void PopulateNavmap(Navmap nav)
         {
-            nav.PopulateIcons(g.ui, g.sys);
             nav.SetUniverse(g.Game.GameData.Items);
             nav.SetVisitFunction(g.session.IsVisited);
+            nav.SetFactionRelationFunction(factionName =>
+            {
+                var faction = g.Game.GameData.Items.Factions.Get(factionName);
+                return g.session.PlayerReputations.GetReputation(faction);
+            });
+            nav.PopulateIcons(g.ui, g.sys);
             nav.SetAddWaypointFunction(g.CreateUserWaypoint);
             nav.SetBestPathFunction(g.ComputeBestPathToSelection);
             nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);
+            nav.SetPlayerOrientationProvider(() => g.player.WorldTransform.Orientation);
             nav.SetPlayerSystemProvider(() => g.sys.CRC);
             nav.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
         }
 
+        public KnownNavmapBaseList GetKnownNavmapBases() =>
+            KnownNavmapBaseListBuilder.Build(g.Game.GameData, g.session);
+
         public int UserWaypointCount() => g.session.UserWaypointCount;
 
         public string UserWaypointPanelText(int index) => g.session.GetUserWaypointPanelText(index);
+
+        public bool HasActiveRandomMission() => g.session.HasActiveRandomMission;
+
+        public string ActiveRandomMissionDescription() =>
+            g.session.ActiveRandomMissionDescription ?? "";
 
         public void ClearUserWaypoints() => g.ClearUserWaypoints();
 
@@ -558,6 +696,12 @@ partial class SpaceGameplay
         public double GetCredits() => g.session.Credits;
 
         public float GetPlayerHealth() => g.playerHealth.CurrentHealth / g.playerHealth.MaxHealth;
+
+        public bool RadiationWarning()
+        {
+            var position = g.player.WorldTransform.Position;
+            return g.world.ZoneDamageAt(position) > 0 && !g.world.InAtmosphere(position);
+        }
 
         public float GetPlayerShield()
         {
@@ -568,18 +712,20 @@ partial class SpaceGameplay
 
         private string activeManeuver = "FreeFlight";
 
-        public string GetActiveManeuver() => g.pilotComponent!.CurrentBehavior switch
-        {
-            AutopilotBehaviors.Dock => "Dock",
-            AutopilotBehaviors.Formation => "Formation",
-            AutopilotBehaviors.Goto => "Goto",
-            _ => "FreeFlight"
-        };
+        public string GetActiveManeuver() => g.session.InTradelane
+            ? "Dock"
+            : g.pilotComponent!.CurrentBehavior switch
+            {
+                AutopilotBehaviors.Dock => "Dock",
+                AutopilotBehaviors.Formation => "Formation",
+                AutopilotBehaviors.Goto => "Goto",
+                _ => "FreeFlight"
+            };
 
         public LuaCompatibleDictionary GetManeuversEnabled()
         {
             var dict = new LuaCompatibleDictionary();
-            dict.Set("FreeFlight", true);
+            dict.Set("FreeFlight", g.session.InTradelane || g.session.IsManeuverEnabled("FreeFlight"));
             dict.Set("Goto", g.Selection.Selected != null);
             dict.Set("Dock", g.Selection.Selected?.GetComponent<DockInfoComponent>() != null &&
                              g.session.DockAllowed(g.Selection.Selected));
@@ -589,6 +735,18 @@ partial class SpaceGameplay
 
         public void HotspotPressed(string e)
         {
+            if (e.Equals("Cruise", StringComparison.OrdinalIgnoreCase))
+            {
+                if (GetActiveManeuver() == "Formation")
+                {
+                    return;
+                }
+
+                g.steering.Cruise = !g.steering.Cruise;
+                g.steering.EngineKill = false;
+                return;
+            }
+
             g.ManeuverSelect(e);
         }
 
@@ -598,6 +756,10 @@ partial class SpaceGameplay
         }
 
         public UiEquippedWeapon[] GetWeapons() => g.weapons.GetUiElements().ToArray();
+
+        public bool ToggleWeapon(int index) => g.weapons.ToggleWeaponEnabled(index);
+
+        public bool CruiseEnabled() => g.steering.Cruise;
 
         internal void SetManeuver(string m)
         {

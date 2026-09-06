@@ -27,6 +27,7 @@ using LibreLancer.Data.Schema.Goods;
 using LibreLancer.Data.Schema.MBases;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.Data.Schema.Pilots;
+using LibreLancer.Data.Schema.RandomMissions;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Data.Schema.Universe;
 using LibreLancer.Data.Schema.Voices;
@@ -85,6 +86,7 @@ public class GameItemDb
     public GameItemCollection<Voice> Voices = [];
     public GameItemCollection<ResolvedFx> VisEffects = [];
     public VignetteTree VignetteTree = null!;
+    public DifficultyInfo VignetteDifficulty = new();
 
     // Backing Fields
     private FreelancerData flData;
@@ -431,6 +433,7 @@ public class GameItemDb
                     OffersMissions = fac.OffersMissions,
                     Missions = fac.Missions.Select(m => new BaseMissionOffer
                     {
+                        Type = m.Type,
                         MinDiff = m.MinDiff,
                         MaxDiff = m.MaxDiff,
                         Weight = m.Weight,
@@ -506,7 +509,7 @@ public class GameItemDb
                     {
                         var good = new ResolvedGood()
                         {
-                            Nickname = g.Nickname, Equipment = equip!, Ini = g, CRC = CrcTool.FLModelCrc(g.Nickname)
+                            Nickname = g.Nickname, Equipment = equip!, Ini = g, CRC = FLHash.CreateID(g.Nickname)
                         };
 
                         equip!.Good = good;
@@ -597,15 +600,20 @@ public class GameItemDb
     {
         FLLog.Info("Voices", $"Initing {flData.Voices.Voices.Count} voices");
         Dictionary<string, VoiceProp> voiceProps = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, MsnVoiceProperties> msnVoiceProps = new(StringComparer.OrdinalIgnoreCase);
         foreach (var vp in flData.Voices.VoiceProps)
         {
             voiceProps[vp.Voice] = vp;
         }
+        foreach (var msn in flData.MsnVoiceProps.VoiceProps)
+        {
+            msnVoiceProps[msn.Voice] = msn;
+        }
 
         foreach (var v in flData.Voices.Voices.Values)
         {
-            if (!voiceProps.TryGetValue(v.Nickname, out var p))
-                p = new();
+            var p = voiceProps.GetValueOrDefault(v.Nickname) ?? new();
+            var mp = msnVoiceProps.GetValueOrDefault(v.Nickname) ?? new();
             var n = new Voice()
             {
                 Nickname = v.Nickname,
@@ -619,7 +627,16 @@ public class GameItemDb
                 n.Lines[line.Message] = info;
                 n.LinesByHash[FLHash.CreateID(line.Message)] = info;
             }
-
+            foreach (var perm in mp.PermutationCounts)
+            {
+                var permuted = new uint[perm.Count];
+                for (int i = 0; i < permuted.Length; i++)
+                {
+                    var newLine = $"{perm.Line}_{(i + 1):D2}-";
+                    permuted[i] = FLHash.CreateID(newLine);
+                }
+                n.Permutations[FLHash.CreateID(perm.Line)] = permuted;
+            }
             Voices.Add(n);
         }
     }
@@ -640,7 +657,7 @@ public class GameItemDb
                     x.Affiliation.Equals(f.Nickname, StringComparison.OrdinalIgnoreCase))
             };
             fac.Hidden = flData.Freelancer.HiddenFactions.Contains(fac.Nickname, StringComparer.OrdinalIgnoreCase);
-            fac.CRC = CrcTool.FLModelCrc(fac.Nickname);
+            fac.CRC = FLHash.CreateID(fac.Nickname);
             if (fac.Properties != null)
             {
                 foreach (var v in fac.Properties.Voice)
@@ -718,10 +735,38 @@ public class GameItemDb
         }
     }
 
-    private void InitVignetteTree()
+    private void InitVignetteInfo()
     {
         VignetteTree = VignetteTree.FromIni(Ini.VignetteParams!);
         Ini.VignetteParams = null;
+        if (Ini.Diff2Money.Graph != null)
+        {
+            VignetteDifficulty.MoneyGraph.AddRange(Ini.Diff2Money.Graph.Graph);
+            VignetteDifficulty.MoneyGraph.Sort((x, y) => x.Difficulty.CompareTo(y.Difficulty));
+        }
+        if (Ini.RankDiff.Graph != null)
+        {
+            foreach (var item in Ini.RankDiff.Graph.Graph)
+            {
+                var rank = Story.FirstOrDefault(x =>
+                    x.Item.Nickname.Equals(item.Rank, StringComparison.OrdinalIgnoreCase));
+                if (rank != null)
+                    VignetteDifficulty.StoryGraph.Add((rank, item.Difficulty));
+            }
+            VignetteDifficulty.StoryGraph.Sort((x, y) => x.Index.Index.CompareTo(y.Index.Index));
+        }
+        FLLog.Info("RandomMissions", "Inited RandomMission data");
+    }
+
+    public List<RandomMissionOffer> GetRandomMissionOffers(
+        Base sourceBase,
+        float? difficulty = null,
+        string? roomNickname = null,
+        IReadOnlyCollection<string>? allowableZoneTypes = null)
+    {
+        Systems.TryGetValue(sourceBase.System, out var sourceSystem);
+        return RandomMissionOfferBuilder.GetOffers(
+            sourceBase, sourceSystem, difficulty, roomNickname, allowableZoneTypes);
     }
 
     private void InitStory()
@@ -850,9 +895,9 @@ public class GameItemDb
             }
         }, baseTask);
         var goodsTask = tasks.Begin(InitGoods, equipmentTask);
-        var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask);
+        var archetypesTask = tasks.Begin(InitArchetypes, loadoutsTask, debrisTask, explosionTask, fusesTask);
         var starsTask = tasks.Begin(InitStars);
-        var astsTask = tasks.Begin(InitAsteroids);
+        var astsTask = tasks.Begin(InitAsteroids, explosionTask);
         tasks.Begin(InitMarkets, baseTask, goodsTask, archetypesTask);
         tasks.Begin(InitNews, baseTask);
         tasks.Begin(() => InitSystems(tasks),
@@ -866,7 +911,7 @@ public class GameItemDb
             astsTask,
             starsTask
         );
-        tasks.Begin(InitVignetteTree);
+        tasks.Begin(InitVignetteInfo, storyTask);
         tasks.Begin(InitGCSScripts);
         tasks.WaitAll();
         flData.Universe = null; //Free universe ini!
@@ -958,10 +1003,12 @@ public class GameItemDb
             equip.IdsName = val.IdsName;
             equip.IdsInfo = val.IdsInfo;
             equip.Volume = val.Volume;
+            equip.Hitpoints = val.Hitpoints;
+            equip.UnitsPerContainer = val.UnitsPerContainer;
         }
 
         //Process munitions first
-        foreach (var mn in flData.Equipment.Munitions)
+        foreach (var mn in flData.Equipment.Munitions.Cast<Munition>().Concat(flData.Equipment.Mines))
         {
             Equipment equip;
 
@@ -990,9 +1037,23 @@ public class GameItemDb
                 var mequip = new MunitionEquip()
                 {
                     Def = mn,
+                    ModelFile = mn is Mine
+                        ? ResolveDrawable(mn.MaterialLibrary, mn.DaArchetype)
+                        : null,
                     ConstEffect_Spear = effect?.Spear,
                     ConstEffect_Bolt = effect?.Bolt,
                 };
+
+                if (mn is Mine mine && !string.IsNullOrWhiteSpace(mine.ExplosionArch))
+                {
+                    mequip.Explosion = flData.Equipment.Explosions.FirstOrDefault(x =>
+                        x.Nickname.Equals(mine.ExplosionArch, StringComparison.OrdinalIgnoreCase));
+                    if (!string.IsNullOrWhiteSpace(mequip.Explosion?.Effect))
+                    {
+                        mequip.ExplosionFx = Effects.Get(mequip.Explosion.Effect);
+                    }
+                }
+
                 equip = mequip;
             }
 
@@ -1033,14 +1094,26 @@ public class GameItemDb
                 equip = eqp;
             }
 
+            if (val is Countermeasure countermeasure)
+            {
+                var effect = Effects.Get(countermeasure.ConstEffect);
+                var eqp = new MunitionEquip
+                {
+                    Def = countermeasure,
+                    ModelFile = ResolveDrawable(countermeasure.MaterialLibrary, countermeasure.DaArchetype),
+                    ConstEffect_Spear = effect?.Spear,
+                    ConstEffect_Bolt = effect?.Bolt
+                };
+                equip = eqp;
+            }
+
             if (val is CountermeasureDropper cms)
             {
-                Equipment.TryGetValue(cms.ProjectileArchetype, out Equipment? countermeasureEquip);
                 var eqp = new CountermeasureEquipment
                 {
                     HpType = "hp_countermeasure_dropper",
                     Def = cms,
-                    Munition = countermeasureEquip as MunitionEquip,
+                    FlashEffect = Effects.Get(cms.FlashParticleName),
                     ModelFile = ResolveDrawable(cms.MaterialLibrary, cms.DaArchetype)
                 };
                 equip = eqp;
@@ -1170,8 +1243,7 @@ public class GameItemDb
                 var eq = new LootCrateEquipment
                 {
                     ModelFile = ResolveDrawable(lc.MaterialLibrary, lc.DaArchetype),
-                    Mass = lc.Mass,
-                    Hitpoints = lc.Hitpoints
+                    Mass = lc.Mass
                 };
                 equip = eq;
             }
@@ -1181,8 +1253,7 @@ public class GameItemDb
                 var eq = new CargoPodEquipment
                 {
                     ModelFile = ResolveDrawable(cp.MaterialLibrary, cp.DaArchetype),
-                    Explosion = cp.ExplosionArch is not null ? Explosions.Get(cp.ExplosionArch) : null,
-                    Hitpoints = cp.Hitpoints
+                    Explosion = cp.ExplosionArch is not null ? Explosions.Get(cp.ExplosionArch) : null
                 };
                 equip = eq;
             }
@@ -1203,6 +1274,11 @@ public class GameItemDb
             {
                 var tlequip = new TradelaneEquipment
                 {
+                    ShipEnter = Effects.Get(tl.TlShipEnter),
+                    ShipExit = Effects.Get(tl.TlShipExit),
+                    ShipDisrupt = Effects.Get(tl.TlShipDisrupt),
+                    PlayerTravel = Effects.Get(tl.TlPlayerTravel),
+                    PlayerSplash = Effects.Get(tl.TlPlayerSplash),
                     RingActive = Effects.Get(tl.TlRingActive)
                 };
                 equip = tlequip;
@@ -1220,6 +1296,11 @@ public class GameItemDb
 
             SetCommonFields(equip, val);
             Equipment.Add(equip);
+        }
+
+        foreach (var countermeasure in Equipment.OfType<CountermeasureEquipment>())
+        {
+            countermeasure.Munition = Equipment.Get(countermeasure.Def.ProjectileArchetype) as MunitionEquip;
         }
 
         //Resolve light inheritance
@@ -1243,7 +1324,9 @@ public class GameItemDb
         }
 
         // LootCrateEquipment references
-        foreach (var val in flData.Equipment.Equip)
+        foreach (var val in flData.Equipment.Equip
+                     .Concat<AbstractEquipment>(flData.Equipment.Munitions)
+                     .Concat(flData.Equipment.Mines))
         {
             var eq = Equipment.Get(val.Nickname);
 
@@ -1320,7 +1403,7 @@ public class GameItemDb
                 Nickname = inisys.Nickname,
                 Visit = (VisitFlags)inisys.Visit
             };
-            sys.CRC = CrcTool.FLModelCrc(sys.Nickname);
+            sys.CRC = FLHash.CreateID(sys.Nickname);
             sys.MsgIdPrefix = inisys.MsgIdPrefix;
             sys.BackgroundColor = inisys.Info?.SpaceColor ?? Color4.Black;
             sys.MusicSpace = inisys.Music?.Space;
@@ -2138,13 +2221,24 @@ public class GameItemDb
         var sp = new SeparablePart
         {
             Part = cg.obj,
+            HitPoints = cg.HitPts,
+            Separable = cg.Separable,
+            RootHealthProxy = cg.RootHealthProxy,
+            ParentImpulse = cg.ParentImpulse,
+            Type = cg.Type,
             ChildDamageCapHardpoint = cg.GroupDmgHp,
             ChildDamageCap = SimpleObjects.Get(cg.GroupDmgObj),
             ParentDamageCapHardpoint = cg.DmgHp,
             ParentDamageCap = SimpleObjects.Get(cg.DmgObj),
             Mass = cg.Mass <= 0 ? 1 : cg.Mass,
             ChildImpulse = cg.ChildImpulse,
-            DebrisType = Debris.Get(cg.DebrisType)
+            DebrisType = Debris.Get(cg.DebrisType),
+            SeparationExplosion = Explosions.Get(cg.SeparationExplosion),
+            Fuses = cg.Fuses.Select(x => new DamageFuse
+            {
+                Fuse = Fuses.Get(x.Fuse),
+                Threshold = x.Threshold
+            }).ToList()
         };
 
         return sp;
@@ -2156,10 +2250,15 @@ public class GameItemDb
 
         foreach (var orig in flData.Explosions.Explosions)
         {
-            var ex = new Explosion() { Nickname = orig.Nickname };
-            ex.CRC = CrcTool.FLModelCrc(ex.Nickname);
-            ex.Effect = Effects.Get(orig.Effect);
-
+            var ex = new Explosion
+            {
+                Nickname = orig.Nickname,
+                Effect = Effects.Get(orig.Effect),
+                Radius = orig.Radius,
+                HullDamage = orig.HullDamage,
+                EnergyDamage = orig.EnergyDamage
+            };
+            ex.CRC = FLHash.CreateID(ex.Nickname);
             Explosions.Add(ex);
         }
     }
@@ -2173,6 +2272,7 @@ public class GameItemDb
             var ship = new Ship
             {
                 ModelFile = ResolveDrawable(orig.MaterialLibraries, orig.DaArchetypeName),
+                EnvMapMaterial = orig.EnvmapMaterial,
                 LODRanges = orig.LodRanges,
                 HoldSize = orig.HoldSize,
                 Mass = orig.Mass,
@@ -2271,9 +2371,18 @@ public class GameItemDb
             var asteroid = new Asteroid
             {
                 Nickname = ast.Nickname,
-                ModelFile = ResolveDrawable(ast.MaterialLibrary ?? "", ast.DaArchetype)
+                ModelFile = ResolveDrawable(ast.MaterialLibrary ?? "", ast.DaArchetype),
+                MineExplosion = ast.IsMine ? Explosions.Get(ast.ExplosionArch) : null,
+                MineDetectRadius = ast.DetectRadius,
+                MineExplosionOffset = ast.ExplosionOffset,
+                MineRechargeTime = ast.RechargeTime,
+                PhantomPhysics = ast.PhantomPhysics
             };
-            asteroid.CRC = CrcTool.FLModelCrc(asteroid.Nickname);
+            if (ast.IsMine && asteroid.MineExplosion == null)
+            {
+                FLLog.Error("Asteroids", $"Explosion arch '{ast.ExplosionArch}' not found for mine '{ast.Nickname}'");
+            }
+            asteroid.CRC = FLHash.CreateID(asteroid.Nickname);
             Asteroids.Add(asteroid);
         }
 
@@ -2282,9 +2391,10 @@ public class GameItemDb
             var dyn = new DynamicAsteroid
             {
                 Nickname = dynast.Nickname,
-                ModelFile = ResolveDrawable(dynast.MaterialLibrary ?? "", dynast.DaArchetype)
+                ModelFile = ResolveDrawable(dynast.MaterialLibrary ?? "", dynast.DaArchetype),
+                Explosion = Explosions.Get(dynast.ExplosionArch)
             };
-            dyn.CRC = CrcTool.FLModelCrc(dyn.Nickname);
+            dyn.CRC = FLHash.CreateID(dyn.Nickname);
             DynamicAsteroids.Add(dyn);
         }
     }
@@ -2389,7 +2499,8 @@ public class GameItemDb
                 Type = arch.Type,
                 Loadout = GetLoadout(arch.LoadoutName),
                 NavmapIcon = arch.ShapeName,
-                SolarRadius = arch.SolarRadius ?? 0
+                SolarRadius = arch.SolarRadius ?? 0,
+                PhantomPhysics = arch.PhantomPhysics ?? false
             };
 
             foreach (var dockSphere in arch.DockingSpheres)
@@ -2433,6 +2544,7 @@ public class GameItemDb
             obj.CRC = FLHash.CreateID(obj.Nickname);
             obj.LODRanges = arch.LODRanges;
             obj.ModelFile = ResolveDrawable(arch.MaterialPaths, arch.DaArchetypeName);
+            obj.EnvMapMaterial = arch.EnvmapMaterial;
             obj.Hitpoints = arch.Hitpoints ?? -1;
 
             if (!arch.Destructible ||
@@ -2604,6 +2716,7 @@ public class GameItemDb
             Color = lt.Color ?? Color3f.White,
             MinColor = lt.MinColor ?? Color3f.Black
         };
+        equip.FlareCone = lt.FlareCone;
         equip.GlowColor = lt.GlowColor ?? equip.Color;
         equip.BulbSize = lt.BulbSize ?? 1f;
         equip.GlowSize = lt.GlowSize ?? 1f;

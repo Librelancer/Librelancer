@@ -22,7 +22,7 @@ namespace LancerEdit
         private string warning = "";
         private Texture2D teximportprev;
         private ImTextureRef teximportid;
-        private bool compress = false;
+        private bool compress = true;
         private bool error = false;
         private MainWindow win;
         private bool doOpen = false;

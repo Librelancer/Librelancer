@@ -16,6 +16,7 @@ namespace LibreLancer.Interface
         public BasicMaterial Mat = mat;
         public Color4 Dc = dc;
         public string Dt = dt;
+        public ushort? OriginalBlendMode = mat.BlendModeOverride;
     }
 
     public class MaterialModification
@@ -66,6 +67,7 @@ namespace LibreLancer.Interface
         public InterfaceModel? Model { get; set; }
         public InterfaceColor? Tint { get; set; }
         public bool ForceTint { get; set; } = false;
+        public bool OneInvSrcColor { get; set; } = false;
 
         public Vector3 Rotate { get; set; }
         public Vector3 RotateAnimation { get; set; }
@@ -118,7 +120,7 @@ namespace LibreLancer.Interface
             }
         }
 
-        public override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
+        protected override void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 tint)
         {
             if (!Enabled || Model == null)
             {
@@ -141,9 +143,9 @@ namespace LibreLancer.Interface
             {
                 matColor = tint;
             }
-            if (matColor != null && !materialsSetup)
+            if ((matColor != null || OneInvSrcColor) && !materialsSetup)
             {
-                mats = MaterialModification.Setup(model!, context.Data.ResourceManager, ForceTint);
+                mats = MaterialModification.Setup(model!, context.Data.ResourceManager, ForceTint || OneInvSrcColor);
                 materialsSetup = true;
             }
 
@@ -191,15 +193,21 @@ namespace LibreLancer.Interface
                         for (int i = 0; i < mats.Count; i++)
                             mats[i].Mat.Dc = color;
                     }
+                    if (OneInvSrcColor)
+                    {
+                        for (int i = 0; i < mats.Count; i++)
+                            mats[i].Mat.BlendModeOverride = BlendMode.OneInvSrcColor;
+                    }
 
                     model.DrawImmediate(rc, context.Data.ResourceManager, transform,
                         ref Lighting.Empty, 0, null, tint.A);
 
-                    if (matColor != null)
+                    if (matColor != null || OneInvSrcColor)
                     {
                         for (int i = 0; i < mats.Count; i++)
                         {
                             mats[i].Mat.Dc = mats[i].Dc;
+                            mats[i].Mat.BlendModeOverride = mats[i].OriginalBlendMode;
                         }
                     }
                 }
@@ -252,9 +260,9 @@ namespace LibreLancer.Interface
                     return false;
                 }
 
-                if (Tint != null && !materialsSetup)
+                if ((Tint != null || OneInvSrcColor) && !materialsSetup)
                 {
-                    mats = MaterialModification.Setup(model, context.Data.ResourceManager, ForceTint);
+                    mats = MaterialModification.Setup(model, context.Data.ResourceManager, ForceTint || OneInvSrcColor);
                     materialsSetup = true;
                 }
             }

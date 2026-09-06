@@ -82,8 +82,11 @@ public class FreelancerData
     public KeyListIni KeyList = null!;
     public RolloverIni Rollover = null!;
     public VoicesIni Voices = null!;
+    public VoicePropertiesIni MsnVoiceProps = new();
     public ShipClassesIni ShipClasses = null!;
     public StorylineIni Storyline = null!;
+    public Diff2MoneyIni Diff2Money = null!;
+    public RankDiffIni RankDiff = null!;
     public VignetteParamsIni? VignetteParams;
     public GenericScriptsIni GenericScripts;
     public string? DataVersion;
@@ -287,6 +290,13 @@ public class FreelancerData
         });
         Run(() =>
         {
+            if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\voice_properties.ini"))
+            {
+                MsnVoiceProps.AddIni(Freelancer.DataPath + "MISSIONS\\voice_properties.ini", VFS, stringPool);
+            }
+        });
+        Run(() =>
+        {
             News = new NewsIni();
             if (VFS.FileExists(Freelancer.DataPath + "MISSIONS\\news.ini"))
             {
@@ -385,6 +395,22 @@ public class FreelancerData
             {
                 VignetteParams = new();
                 VignetteParams.AddFile(Freelancer.DataPath + "randommissions\\vignetteparams.ini", VFS);
+            }
+        });
+        Run(() =>
+        {
+            Diff2Money = new();
+            if (VFS.FileExists(Freelancer.DataPath + "randommissions\\diff2money.ini"))
+            {
+                Diff2Money.AddFile(Freelancer.DataPath + "randommissions\\diff2money.ini", VFS);
+            }
+        });
+        Run(() =>
+        {
+            RankDiff = new();
+            if (VFS.FileExists(Freelancer.DataPath + "missions\\rankdiff.ini"))
+            {
+                RankDiff.AddFile(Freelancer.DataPath + "missions\\rankdiff.ini", VFS);
             }
         });
         Run(() =>

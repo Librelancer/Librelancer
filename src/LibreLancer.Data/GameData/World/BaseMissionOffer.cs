@@ -6,6 +6,7 @@ namespace LibreLancer.Data.GameData.World;
 
 public class BaseMissionOffer
 {
+    public string Type = "";
     public float MinDiff;
     public float MaxDiff;
     public float Weight;

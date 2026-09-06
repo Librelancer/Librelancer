@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using ImGuiNET;
 using LibreLancer;
@@ -31,7 +32,7 @@ public class VmsMaterialEditor : PopupWindow
             ImGui.PushID(id);
             ImGuiExt.ButtonDivided("lred", "CRC", "Name", ref isCrcEdit);
             ImGui.SameLine();
-            ImGui.PushItemWidth(250);
+            ImGui.PushItemWidth(250 * ImGuiHelper.Scale);
             if (isCrcEdit)
             {
                 var val = MaterialCRC;
@@ -87,12 +88,22 @@ public class VmsMaterialEditor : PopupWindow
     }
 
     public override string Title { get; set; } = "Materials";
+
+    public override Vector2 InitSize => new Vector2(400, 300) * ImGuiHelper.Scale;
+
     public override void Draw(bool appearing)
     {
-        int idx = 0;
-        foreach (var e in materials) {
-            e.Draw((idx++).ToString(), res);
+
+        if (ImGui.BeginChild("materials",
+                new(0, ImGui.GetContentRegionAvail().Y - ImGui.GetFrameHeightWithSpacing() - 4 * ImGuiHelper.Scale)))
+        {
+            int idx = 0;
+            foreach (var e in materials) {
+                e.Draw((idx++).ToString(), res);
+            }
+            ImGui.EndChild();
         }
+        ImGui.Separator();
         if (ImGui.Button("Apply"))
         {
             for (int i = 0; i < materials.Count; i++) {

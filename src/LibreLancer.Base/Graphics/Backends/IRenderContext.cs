@@ -5,7 +5,7 @@ namespace LibreLancer.Graphics.Backends;
 
 internal interface IRenderContext
 {
-    int MaxSamples { get; }
+    AntialiasMode MaxAntialias { get; }
     int MaxAnisotropy { get; }
     int AnisotropyLevel { get; set; }
     bool SupportsWireframe { get; }
@@ -35,9 +35,9 @@ internal interface IRenderContext
 
     ITextureCube CreateTextureCube(int size, bool mipMap, SurfaceFormat format);
 
-    IDepthBuffer CreateDepthBuffer(int width, int height);
+    IDepthBuffer CreateDepthBuffer(int width, int height, bool stencil);
 
-    IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer buffer);
+    IRenderTarget2D CreateRenderTarget2D(ITexture2D texture, IDepthBuffer? buffer);
 
     IMultisampleTarget CreateMultisampleTarget(int width, int height, int samples);
 

@@ -111,7 +111,7 @@ public static class UiXmlReflection
                 if (ptype.IsPrimitive || ptype.IsEnum ||
                     ptype == typeof(string) || ptype == typeof(InterfaceColor) ||
                     ptype ==typeof(InterfaceModel) || ptype == typeof(InterfaceImage) ||
-                    ptype == typeof(Vector3))
+                    ptype == typeof(Vector3) || ptype == typeof(Metric))
                 {
                     if (property.SetMethod == null)
                         continue;

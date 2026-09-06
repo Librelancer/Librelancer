@@ -9,7 +9,7 @@ public class CommentPopup : PopupWindow
 {
     public override string Title { get; set; } = "Comment";
 
-    public override Vector2 InitSize => new(400, 300);
+    public override Vector2 InitSize => new Vector2(400, 300) * ImGuiHelper.Scale;
 
     private string commentText;
     private Action<string> onSet;

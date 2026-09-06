@@ -33,7 +33,8 @@ namespace LibreLancer.World
         Missile,
         Waypoint,
         Debris,
-        Loot
+        Loot,
+        DynamicAsteroid
     }
 
     public class TradelaneName : ObjectName
@@ -312,12 +313,27 @@ namespace LibreLancer.World
 
         public void AddComponent<T>(T component) where T : GameComponent
         {
-            componentLookup.TryAdd(typeof(T), component);
             components.Add(component);
+            RegisterComponentTypes(component);
+        }
 
-            if (typeof(T).BaseType != typeof(GameComponent))
+        private void RegisterComponentTypes(GameComponent component)
+        {
+
+            for (var componentType = component.GetType();
+                 componentType != null && componentType != typeof(GameComponent);
+                 componentType = componentType.BaseType)
             {
-                componentLookup.TryAdd(typeof(T).BaseType!, component);
+                componentLookup.TryAdd(componentType, component);
+            }
+        }
+
+        private void RebuildComponentLookup()
+        {
+            componentLookup.Clear();
+            foreach (var component in components)
+            {
+                RegisterComponentTypes(component);
             }
         }
 
@@ -342,12 +358,10 @@ namespace LibreLancer.World
 
         public void RemoveComponent<T>(T component) where T : GameComponent
         {
-            components.Remove(component);
-            componentLookup.Remove(typeof(T));
-
-            if (typeof(T).BaseType != typeof(GameComponent))
+            if (components.Remove(component))
             {
-                componentLookup.Remove(typeof(T).BaseType!);
+
+                RebuildComponentLookup();
             }
         }
 
@@ -393,6 +407,15 @@ namespace LibreLancer.World
             else
             {
                 InitWithModel(arch.ModelFile?.LoadFile(res, flags), arch.SeparableParts, res, draw, phys);
+                if (RenderComponent is ModelRenderer mr)
+                {
+                    mr.EnvMapMaterial = arch.EnvMapMaterial;
+                }
+            }
+
+            if (arch.PhantomPhysics && PhysicsComponent != null)
+            {
+                PhysicsComponent.Collidable = false;
             }
         }
 
@@ -422,6 +445,7 @@ namespace LibreLancer.World
             if (RenderComponent is ModelRenderer mr)
             {
                 mr.LODRanges = ship.LODRanges;
+                mr.EnvMapMaterial = ship.EnvMapMaterial;
             }
 
             if (PhysicsComponent != null)
@@ -472,12 +496,12 @@ namespace LibreLancer.World
             PhysicsComponent?.UpdateParts();
         }
 
-        public bool DisableCmpPart(uint part, GameWorld world, ResourceManager res, out GameObject[] children)
+        public bool DisableCmpPart(uint part, GameWorld? world, ResourceManager res, out GameObject[] children)
         {
             if (Model != null && Model.DestroyPart(part, out var destroyed))
             {
                 PhysicsComponent?.DisablePart(destroyed);
-                world.Server?.PartDisabled(this, part);
+                world?.Server?.PartDisabled(this, part);
                 var removedChildren = new List<GameObject>();
 
                 for (int i = Children.Count - 1; i >= 0; i--)
@@ -523,6 +547,7 @@ namespace LibreLancer.World
                     Children.Add(cap);
                 }
 
+                GetComponent<WeaponControlComponent>()?.UpdateNetWeapons();
                 children = removedChildren.ToArray();
                 return true;
             }
@@ -531,7 +556,7 @@ namespace LibreLancer.World
             return false;
         }
 
-        public bool DisableCmpPart(string part, GameWorld world, ResourceManager res, out GameObject[] children) =>
+        public bool DisableCmpPart(string part, GameWorld? world, ResourceManager res, out GameObject[] children) =>
             DisableCmpPart(CrcTool.FLModelCrc(part), world, res, out children);
 
         public void SpawnDebris(string part, GameWorld world, ResourceManager res)
@@ -564,6 +589,7 @@ namespace LibreLancer.World
             {
                 mass = sp.Mass;
                 initialforce = sp.ChildImpulse;
+                PhysicsComponent?.Body.Impulse(-vec * sp.ParentImpulse);
             }
 
             world.Server.SpawnDebris(Kind, ArchetypeName!, part, tr, children, alreadyDestroyed, mass,
@@ -829,6 +855,21 @@ namespace LibreLancer.World
             foreach (var child in ExtraRenderers)
             {
                 child.Update(time, WorldTransform.Position, world);
+            }
+        }
+
+        public void SetDockingLights(bool active)
+        {
+            if (RenderComponent is LightEquipRenderer rootLight && rootLight.IsDockingLight)
+                rootLight.SetDockingLight(active);
+
+            foreach (var child in Children)
+                child.SetDockingLights(active);
+
+            foreach (var renderer in ExtraRenderers)
+            {
+                if (renderer is LightEquipRenderer light && light.IsDockingLight)
+                    light.SetDockingLight(active);
             }
         }
 

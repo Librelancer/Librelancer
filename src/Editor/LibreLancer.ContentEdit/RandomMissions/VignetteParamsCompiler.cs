@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
-using LibreLancer.Data.GameData.RandomMissions;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema.RandomMissions;
 
@@ -103,17 +102,17 @@ public class VignetteParamsCompiler
                 throw new CompileErrorException(lexer, $"Expected {exp}");
         }
 
-        public abstract void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context);
+        public abstract void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context);
 
-        protected AstData NewData(VignetteAst parent, VignetteTree tree)
+        protected AstData NewData(VignetteAst parent, VignetteAstTree astTree)
         {
             if (parent is AstDecision dec && dec.Children.Count >= 2)
             {
                 throw new CompileErrorException(Source, Def.Column, Def.Line, "Control flow cannot continue past if");
             }
-            var id = tree.NextId();
+            var id = astTree.NextId();
             var n = new AstData(id, new DataNode());
-            tree.Nodes[id] = n;
+            astTree.Nodes[id] = n;
             parent.Children.Add(n);
             return n;
         }
@@ -158,7 +157,7 @@ public class VignetteParamsCompiler
             Parse(lexer, "failure_text");
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat && dat.KindMatch(DataNodeKind.None, DataNodeKind.Objective))
             {
@@ -166,7 +165,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var n = NewData(node, tree);
+                var n = NewData(node, astTree);
                 n.Data.FailureText = String;
                 node = n;
             }
@@ -185,7 +184,7 @@ public class VignetteParamsCompiler
             Parse(lexer, "reward_text");
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat && dat.KindMatch(DataNodeKind.None, DataNodeKind.Objective))
             {
@@ -193,7 +192,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var n = NewData(node, tree);
+                var n = NewData(node, astTree);
                 n.Data.RewardText = String;
                 node = n;
             }
@@ -216,7 +215,7 @@ public class VignetteParamsCompiler
             Parse(lexer, tgt);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat && dat.KindMatch(DataNodeKind.None, DataNodeKind.Objective))
             {
@@ -224,7 +223,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var n = NewData(node, tree);
+                var n = NewData(node, astTree);
                 n.Data.ObjectiveTexts.Add(String);
                 node = n;
             }
@@ -257,7 +256,7 @@ public class VignetteParamsCompiler
             AssertNext(lexer, TokenKind.Semicolon);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             throw new InvalidOperationException("Compile() called on VGroup");
         }
@@ -286,7 +285,7 @@ public class VignetteParamsCompiler
             lexer.Next();
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             throw new InvalidOperationException("Compile() called on VSub");
         }
@@ -309,7 +308,7 @@ public class VignetteParamsCompiler
             AssertNext(lexer, TokenKind.Semicolon);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             node.Children.Add(context.Subs[Target]);
         }
@@ -332,12 +331,12 @@ public class VignetteParamsCompiler
             AssertNext(lexer, TokenKind.Semicolon);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             var p = node;
-            var id = tree.NextId();
+            var id = astTree.NextId();
             var d = new AstDoc(id, new DocumentationNode() { Documentation = Doc });
-            tree.Nodes[id] = d;
+            astTree.Nodes[id] = d;
             node = d;
             p?.Children?.Add(d);
         }
@@ -355,7 +354,7 @@ public class VignetteParamsCompiler
             AssertNext(lexer, TokenKind.Semicolon);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat)
             {
@@ -363,7 +362,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var d = NewData(node, tree);
+                var d = NewData(node, astTree);
                 d.Data.Implemented = false;
                 node = d;
             }
@@ -417,7 +416,7 @@ public class VignetteParamsCompiler
             };
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat && dat.KindMatch(DataNodeKind.None, DataNodeKind.CommSequence))
             {
@@ -425,7 +424,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var n = NewData(node, tree);
+                var n = NewData(node, astTree);
                 n.Data.CommSequences.Add(CommSequence);
                 node = n;
             }
@@ -453,7 +452,7 @@ public class VignetteParamsCompiler
             AssertNext(lexer, TokenKind.Semicolon);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat && dat.KindMatch(DataNodeKind.None, DataNodeKind.Difficulty))
             {
@@ -461,7 +460,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var n = NewData(node, tree);
+                var n = NewData(node, astTree);
                 n.Data.Difficulty = Difficulty;
                 node = n;
             }
@@ -485,7 +484,7 @@ public class VignetteParamsCompiler
             AssertNext(lexer, TokenKind.Semicolon);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat && dat.GetKind() == DataNodeKind.None)
             {
@@ -493,7 +492,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var n = NewData(node, tree);
+                var n = NewData(node, astTree);
                 n.Data.Weight = Weight;
                 node = n;
             }
@@ -590,7 +589,7 @@ public class VignetteParamsCompiler
             return blk;
         }
 
-        void CompileBlock(VignetteAst parent, IfBlock block, VignetteTree tree, CompilerData context)
+        void CompileBlock(VignetteAst parent, IfBlock block, VignetteAstTree astTree, CompilerData context)
         {
             if (block.Kind != BlockKind.Group &&
                 block.Statements[0] is VIfElse ie)
@@ -601,46 +600,46 @@ public class VignetteParamsCompiler
                         block.Statements[1].Def.Line,
                         "Control flow cannot continue past if");
                 }
-                ie.Compile(ref parent, tree, context);
+                ie.Compile(ref parent, astTree, context);
             }
             else
             {
-                var dn = NewData(parent, tree);
+                var dn = NewData(parent, astTree);
                 if (block.Kind == BlockKind.Group) {
                     dn.Data.OfferGroup = context.Groups[block.Condition];
                 }
                 VignetteAst top = dn;
                 foreach(var s in block.Statements)
-                    s.Compile(ref top, tree, context);
+                    s.Compile(ref top, astTree, context);
             }
         }
 
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
-            int mainId = tree.NextId();
+            int mainId = astTree.NextId();
             AstDecision dec = new AstDecision(mainId, new DecisionNode());
             dec.Decision.Nickname = Blocks[0].Kind == BlockKind.Group ? "branch" : Blocks[0].Condition;
-            tree.Nodes[mainId] = dec;
+            astTree.Nodes[mainId] = dec;
             node.Children.Add(dec);
             node = dec;
 
-            CompileBlock(dec, Blocks[0], tree, context);
+            CompileBlock(dec, Blocks[0], astTree, context);
 
             for (int i = 1; i < Blocks.Count; i++)
             {
                 if (i == Blocks.Count - 1)
                 {
-                    CompileBlock(dec, Blocks[i], tree, context);
+                    CompileBlock(dec, Blocks[i], astTree, context);
                 }
                 else
                 {
-                    var newId = tree.NextId();
+                    var newId = astTree.NextId();
                     var newDec = new AstDecision(newId, new DecisionNode());
                     newDec.Decision.Nickname = Blocks[i].Kind == BlockKind.Group ? "branch" : Blocks[i].Condition;
-                    tree.Nodes[newId] = newDec;
+                    astTree.Nodes[newId] = newDec;
                     dec.Children.Add(newDec);
-                    CompileBlock(newDec, Blocks[i], tree, context);
+                    CompileBlock(newDec, Blocks[i], astTree, context);
                     dec = newDec;
                 }
             }
@@ -666,7 +665,7 @@ public class VignetteParamsCompiler
             AssertNext(lexer, TokenKind.Semicolon);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat && dat.GetKind() == DataNodeKind.None)
             {
@@ -674,7 +673,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var n = NewData(node, tree);
+                var n = NewData(node, astTree);
                 n.Data.AllowableZoneTypes = Types.ToArray();
                 node = n;
             }
@@ -696,7 +695,7 @@ public class VignetteParamsCompiler
             AssertNext(lexer, TokenKind.Semicolon);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat && dat.GetKind() == DataNodeKind.None)
             {
@@ -704,7 +703,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var n = NewData(node, tree);
+                var n = NewData(node, astTree);
                 n.Data.OfferGroup = context.Groups[Group];
                 node = n;
             }
@@ -726,7 +725,7 @@ public class VignetteParamsCompiler
             AssertNext(lexer, TokenKind.Semicolon);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat && dat.GetKind() == DataNodeKind.None)
             {
@@ -734,7 +733,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var n = NewData(node, tree);
+                var n = NewData(node, astTree);
                 n.Data.HostileGroup = context.Groups[Group];
                 node = n;
             }
@@ -807,7 +806,7 @@ public class VignetteParamsCompiler
             AssertNext(lexer, TokenKind.Semicolon);
         }
 
-        public override void Compile(ref VignetteAst node, VignetteTree tree, CompilerData context)
+        public override void Compile(ref VignetteAst node, VignetteAstTree astTree, CompilerData context)
         {
             if (node is AstData dat && dat.GetKind() == DataNodeKind.None)
             {
@@ -815,7 +814,7 @@ public class VignetteParamsCompiler
             }
             else
             {
-                var n = NewData(node, tree);
+                var n = NewData(node, astTree);
                 n.Data.OfferTexts = Entries;
                 node = n;
             }
@@ -916,7 +915,7 @@ public class VignetteParamsCompiler
     public static List<Section> Compile(string text, string source)
     {
         var lex = new Lexer(text, source);
-        var tree = new VignetteTree();
+        var tree = new VignetteAstTree();
         var data = new CompilerData();
 
         // Parse top level statements
@@ -970,7 +969,7 @@ public class VignetteParamsCompiler
 
         tree.FlattenEmptyNodes(rootNode);
 
-        if (VignetteTree.IsEmptyData(rootNode) &&
+        if (VignetteAstTree.IsEmptyData(rootNode) &&
             rootNode.Children.Count == 1)
         {
             //Flatten root, specifically setting ID to 2

@@ -23,7 +23,7 @@ public class InfocardBrowserTab : GameContentTab
 
     private readonly Infocard blankInfocard = new()
     {
-        Nodes = new List<RichTextNode>(new[] {new RichTextTextNode {FontName = "Arial", FontSize = 12, Contents = ""}})
+        Nodes = [new InfocardTextNode() { Contents = "" }]
     };
 
     private int currentInfocard = -1;
@@ -55,7 +55,7 @@ public class InfocardBrowserTab : GameContentTab
         Manager = gameData.Infocards;
         ResetListContent();
         Title = "Infocard Browser";
-        display = new InfocardControl(win, blankInfocard, 100);
+        display = new InfocardControl(win, blankInfocard, fonts, 100);
         SaveStrategy = new InfocardSaveStrategy(this);
     }
 
@@ -96,7 +96,7 @@ public class InfocardBrowserTab : GameContentTab
             return;
         }
 
-        display.SetInfocard(RDLParse.Parse(Manager.GetXmlResource(infocardsIds[currentInfocard]), fonts));
+        display.SetInfocard(RDLParse.Parse(Manager.GetXmlResource(infocardsIds[currentInfocard])));
     }
 
     private void DisplayInfoString()
@@ -116,16 +116,13 @@ public class InfocardBrowserTab : GameContentTab
 
         var infocard = new Infocard
         {
-            Nodes = new List<RichTextNode>()
+            Nodes = new()
         };
         foreach (var ln in str.Split('\n'))
         {
             if (!string.IsNullOrWhiteSpace(ln))
-                infocard.Nodes.Add(new RichTextTextNode
-                {
-                    Contents = ln, FontName = "Arial", FontSize = 22
-                });
-            infocard.Nodes.Add(new RichTextParagraphNode());
+                infocard.Nodes.Add(new InfocardTextNode() { Contents = ln });
+            infocard.Nodes.Add(new InfocardParagraphNode());
         }
 
         display.SetInfocard(infocard);
@@ -390,13 +387,13 @@ public class InfocardBrowserTab : GameContentTab
         if (xmlPreviewText != xmlEditText ||
             previewInfocard == null)
         {
-            previewInfocard = RDLParse.Parse(xmlEditText, fonts);
+            previewInfocard = RDLParse.Parse(xmlEditText);
             xmlPreviewText = xmlEditText;
             xmlEditPreview?.SetInfocard(previewInfocard);
         }
 
         if (xmlEditPreview == null)
-            xmlEditPreview = new InfocardControl(win, previewInfocard, ImGui.GetColumnWidth());
+            xmlEditPreview = new InfocardControl(win, previewInfocard, fonts, ImGui.GetColumnWidth());
         xmlEditPreview?.Draw(ImGui.GetColumnWidth() - 2 * ImGuiHelper.Scale);
         ImGui.EndChild();
         ImGui.Columns(1);

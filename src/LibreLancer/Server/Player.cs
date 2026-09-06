@@ -26,6 +26,7 @@ using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Net.Protocol.RpcPackets;
 using LibreLancer.Server.Components;
+using LibreLancer.Server.RandomMissions;
 using LibreLancer.World;
 using LiteNetLib;
 using DisconnectReason = LibreLancer.Net.DisconnectReason;
@@ -37,7 +38,7 @@ namespace LibreLancer.Server
 {
     public class Player : IServerPlayer
     {
-        private const float DefaultVisitDistance = 10000f;
+        public const float DefaultVisitDistance = 10000f;
 
         // ID
         public int ID = 0;
@@ -69,6 +70,7 @@ namespace LibreLancer.Server
         public Vector3 Position;
         public Quaternion Orientation;
         public NetObjective Objective;
+        public Vector3? ActiveRandomMissionPosition;
 
         public StoryProgress Story = null!;
 
@@ -175,10 +177,16 @@ namespace LibreLancer.Server
 
         public bool InTradelane;
 
-        public void StartTradelane()
+        public void StartTradelane(GameObject ring, Quaternion orientation)
         {
-            rpcClient.StartTradelane();
+            rpcClient.StartTradelane(ring, orientation);
             InTradelane = true;
+        }
+
+        public void TradelaneRing(GameObject ring)
+        {
+            if (InTradelane)
+                rpcClient.TradelaneRing(ring);
         }
 
         public void TradelaneDisrupted()
@@ -195,6 +203,14 @@ namespace LibreLancer.Server
 
         public void MissionSuccess()
         {
+            if (Story?.CurrentMission == null)
+            {
+                msnRuntime = null;
+                ActiveRandomMissionPosition = null;
+                SetObjective(new NetObjective(), false);
+                return;
+            }
+
             loadTriggers = [];
             Story.Advance(this);
         }
@@ -217,6 +233,17 @@ namespace LibreLancer.Server
         }
 
         public MissionRuntime? MissionRuntime => msnRuntime;
+
+        public void StartRandomMission(GeneratedRandomMission mission, NetMissionOffer netOffer)
+        {
+            ActiveRandomMissionPosition = mission.Parameters.TargetPosition;
+            msnRuntime = new MissionRuntime(mission.CreateScript(), this, []);
+            rpcClient.SetActiveRandomMission(netOffer);
+            // Keep the objective in the mission runtime as well as on the client. This
+            // makes the accepted offer a real active mission and lets the normal space
+            // gameplay objective handler build the best-path route on launch.
+            msnRuntime.SetCurrentObjective(GeneratedRandomMission.TargetObjectiveNickname, false);
+        }
 
         public bool AllowFreetimePopulation =>
             Story?.CurrentStory == null ||
@@ -273,6 +300,11 @@ namespace LibreLancer.Server
         void IServerPlayer.StoryNPCSelect(string name, string room, string _base)
         {
             msnRuntime?.StoryNPCSelect(name, room, _base);
+        }
+
+        void IServerPlayer.AcceptMissionOffer(int seed)
+        {
+            Baseside?.AcceptMissionOffer(seed);
         }
 
         void IServerPlayer.ClosedPopup(string id)
@@ -415,7 +447,7 @@ namespace LibreLancer.Server
                 world.EnqueueAction(() =>
                 {
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
-                        Orientation, world.CurrentTick);
+                        Orientation, Character!.GetDestroyedParts(), world.CurrentTick);
                     var pship = world.SpawnPlayer(this, Position, Orientation);
                     world.Population.PopulateInitialAroundPlayer(pship);
 
@@ -483,12 +515,13 @@ namespace LibreLancer.Server
                 rpcClient.BaseEnter(Base!, Objective, thns.Pack(), news.ToArray(), Baseside.BaseData.SoldGoods
                     .Select(x => new SoldGood()
                     {
-                        GoodCRC = CrcTool.FLModelCrc(x.Good.Ini.Nickname),
+                        GoodCRC = FLHash.CreateID(x.Good.Ini.Nickname),
                         Price = x.Price,
                         Rank = x.Rank,
                         Rep = x.Rep,
                         ForSale = x.ForSale
-                    }).ToArray(), GetSoldShips().ToArray());
+                    }).ToArray(), GetSoldShips().ToArray(), Baseside.NetMissionOffers,
+                    Character.GetDestroyedParts());
             }
         }
 
@@ -676,7 +709,7 @@ namespace LibreLancer.Server
         }
 
         public bool SinglePlayer => Client is LocalPacketClient;
-        
+
         public void SendSPUpdate(SPUpdatePacket update) =>
             Client.SendPacket(update, PacketDeliveryMethod.SequenceA);
 
@@ -943,7 +976,7 @@ namespace LibreLancer.Server
 
         private PlayerInventory lastInventory = new();
 
-        public void UpdateCurrentInventory()
+        public void UpdateCurrentInventory(bool resetDestroyedParts = false)
         {
             PlayerInventory newInventory = new()
             {
@@ -953,7 +986,7 @@ namespace LibreLancer.Server
                 Loadout = Character.EncodeLoadout()
             };
 
-            var diff = PlayerInventoryDiff.Create(lastInventory, newInventory);
+            var diff = PlayerInventoryDiff.Create(lastInventory, newInventory, resetDestroyedParts);
             lastInventory = newInventory;
 
             if (diff.Header != 0)
@@ -979,6 +1012,11 @@ namespace LibreLancer.Server
 
         public void Killed()
         {
+            if (Character != null)
+            {
+                using var characterTransaction = Character.BeginTransaction();
+                characterTransaction.ClearDestroyedParts();
+            }
             Space?.Leave(true);
             Space = null;
             Dead = true;
@@ -1248,7 +1286,7 @@ namespace LibreLancer.Server
                     {
                         Space = new SpacePlayer(world, this);
                         rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
-                            Orientation, world.CurrentTick);
+                            Orientation, Character!.GetDestroyedParts(), world.CurrentTick);
                         var pship = world.SpawnPlayer(this, Position, Orientation);
                         world.Population.PopulateInitialAroundPlayer(pship);
                         HandleSpaceEntry();
@@ -1350,7 +1388,7 @@ namespace LibreLancer.Server
                     }
 
                     rpcClient.SpawnPlayer(ID, System, world.GameWorld.CrcTranslation.ToArray(), Objective, Position,
-                        Orientation, world.CurrentTick);
+                        Orientation, Character!.GetDestroyedParts(), world.CurrentTick);
                     var pship = world.SpawnPlayer(this, Position, Orientation);
                     world.Population.PopulateInitialAroundPlayer(pship);
 

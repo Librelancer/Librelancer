@@ -8,6 +8,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using LibreLancer.Data;
+using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Solar;
 using LibreLancer.Graphics;
@@ -65,6 +66,9 @@ public partial class Navmap : UiWidget
     private readonly List<RectangleF> placedLabels = [];
 
     private readonly Button selectorButton = new();
+    private readonly Button neutralZoneFilterButton = new();
+    private readonly Button hostileZoneFilterButton = new();
+    private readonly Button friendlyZoneFilterButton = new();
     private readonly Dictionary<int, UiRenderable> userWaypointDigits = [];
     private readonly List<NavmapWaypoint> userWaypoints = [];
     private readonly Button zoomInButton = new();
@@ -74,6 +78,7 @@ public partial class Navmap : UiWidget
     private bool draggingMap;
 
     private Func<uint, bool> isVisited = _ => true;
+    private Func<string?, float> factionRelation = _ => 0;
     private Vector2 lastMousePosition;
 
     private readonly CachedRenderString[] letterCache = new CachedRenderString[16];
@@ -92,7 +97,12 @@ public partial class Navmap : UiWidget
     public float OffsetY;
     private StarSystem? pendingSectorSystem;
     private Func<Vector3>? playerPositionProvider;
+    private Func<Quaternion>? playerOrientationProvider;
     private Func<uint>? playerSystemProvider;
+    private UiRenderable? systemPlayerShipIcon;
+    private DisplayModel? systemPlayerShipDisplay;
+    private UiRenderable? sectorPlayerShipIcon;
+    private DisplayModel? sectorPlayerShipDisplay;
     private UiRenderable? sectorBackground;
 
     private readonly List<SectorConnection> sectorConnections = [];
@@ -104,6 +114,7 @@ public partial class Navmap : UiWidget
     private Vector2? selectorMapPosition;
 
     private readonly Panel selectorMenu = new();
+    private readonly Panel zoneFilterMenu = new();
     private Vector2 startOffset;
     private float startZoom = 1f;
     private string systemName = "";
@@ -112,12 +123,17 @@ public partial class Navmap : UiWidget
     private float targetZoom = 1f;
 
     private List<Tradelanes> tradelanes = [];
+    private List<DrawZone> politicalZones = [];
+    private List<DrawZone> miningZones = [];
+    private List<PatrolPath> patrolPaths = [];
+    private ZoneRelationship zoneRelationshipFilter = ZoneRelationship.Neutral;
     private UiRenderable? userWaypointDiamond;
     private Action<StarSystem, List<NavmapWaypoint>>? userWaypointProvider;
 
     private readonly ViewStateMachine<SectorViewState> viewState = new(SectorViewState.System);
 
     private List<DrawZone> zones = [];
+    private Vector3? pendingFocusPosition;
 
     public float Zoom = 1f;
     private float zoomAnimationTime = ZoomAnimationDuration;
@@ -131,14 +147,43 @@ public partial class Navmap : UiWidget
         selectorMenu.Children.Add(zoomOutButton);
         selectorMenu.Children.Add(selectorButton);
 
+        zoneFilterMenu.Children.Add(neutralZoneFilterButton);
+        zoneFilterMenu.Children.Add(hostileZoneFilterButton);
+        zoneFilterMenu.Children.Add(friendlyZoneFilterButton);
+
         zoomInButton.OnClick(OnZoomIn);
         zoomOutButton.OnClick(OnZoomOut);
         addWaypointButton.OnClick(OnAddWaypoint);
         bestPathButton.OnClick(OnBestPath);
+        neutralZoneFilterButton.OnClick(_ =>
+        {
+            zoneRelationshipFilter = ZoneRelationship.Neutral;
+            selectorMapPosition = null;
+        });
+        hostileZoneFilterButton.OnClick(_ =>
+        {
+            zoneRelationshipFilter = ZoneRelationship.Hostile;
+            selectorMapPosition = null;
+        });
+        friendlyZoneFilterButton.OnClick(_ =>
+        {
+            zoneRelationshipFilter = ZoneRelationship.Friendly;
+            selectorMapPosition = null;
+        });
     }
 
     public bool AcceptInput { get; set; } = true;
+    public bool MapVisible { get; set; } = true;
     public bool SectorViewActive => viewState.Active(SectorViewState.Sector);
+    public bool ShowLabels { get; set; } = true;
+    public NavmapOverlayMode OverlayMode { get; private set; } = NavmapOverlayMode.Physical;
+    public string OverlayModeName => OverlayMode switch
+    {
+        NavmapOverlayMode.Political => "political",
+        NavmapOverlayMode.Patrol => "patrol",
+        NavmapOverlayMode.Mining => "mining",
+        _ => "physical"
+    };
 
     public bool LetterMargin { get; set; } = false;
 
@@ -153,6 +198,26 @@ public partial class Navmap : UiWidget
     public void SetVisitFunction(Func<uint, bool> isVisited)
     {
         this.isVisited = isVisited;
+    }
+
+    public void SetLabelsVisible(bool visible)
+    {
+        ShowLabels = visible;
+    }
+
+    public void SetOverlayMode(string mode)
+    {
+        var oldMode = OverlayMode;
+        OverlayMode = mode?.ToLowerInvariant() switch
+        {
+            "political" => NavmapOverlayMode.Political,
+            "patrol" or "patrols" => NavmapOverlayMode.Patrol,
+            "mining" or "miningfilter" => NavmapOverlayMode.Mining,
+            _ => NavmapOverlayMode.Physical
+        };
+        if (oldMode != OverlayMode)
+            ResetZoneRelationshipFilter();
+        selectorMapPosition = null;
     }
 
     [WattleScriptHidden]
@@ -204,6 +269,26 @@ public partial class Navmap : UiWidget
         sectorConnections.AddRange(visibleConnections.Values);
     }
 
+    public void FocusSystemObject(uint systemHash, uint objectHash)
+    {
+        if (!universeSystems.TryGetValue(systemHash, out var system))
+            return;
+        var obj = system.Objects.FirstOrDefault(x => FLHash.CreateID(x.Nickname) == objectHash);
+        if (obj == null)
+            return;
+        pendingFocusPosition = obj.Position;
+        selectorMapPosition = null;
+        selectorMenu.Visible = false;
+        if (viewState.Active(SectorViewState.System) && currentDisplaySystem == system)
+        {
+            pendingSectorSystem = null;
+        }
+        else
+        {
+            EnterSystemView(system);
+        }
+    }
+
     [WattleScriptHidden]
     public void SetAddWaypointFunction(Action<StarSystem, Vector3>? addWaypoint)
     {
@@ -223,6 +308,12 @@ public partial class Navmap : UiWidget
     }
 
     [WattleScriptHidden]
+    public void SetPlayerOrientationProvider(Func<Quaternion>? playerOrientationProvider)
+    {
+        this.playerOrientationProvider = playerOrientationProvider;
+    }
+
+    [WattleScriptHidden]
     public void SetPlayerSystemProvider(Func<uint>? playerSystemProvider)
     {
         this.playerSystemProvider = playerSystemProvider;
@@ -234,6 +325,12 @@ public partial class Navmap : UiWidget
         this.userWaypointProvider = userWaypointProvider;
         if (userWaypointProvider == null)
             userWaypoints.Clear();
+    }
+
+    [WattleScriptHidden]
+    public void SetFactionRelationFunction(Func<string?, float> factionRelation)
+    {
+        this.factionRelation = factionRelation;
     }
 
     private class DrawObject
@@ -276,20 +373,29 @@ public partial class Navmap : UiWidget
     private class DrawZone
     {
         public readonly uint Hash;
+        public readonly ZoneRelationship Relationship;
         public readonly float Sort;
         public readonly string Texture;
         public readonly Color4 Tint;
         public readonly Zone Zone;
 
-        public DrawZone(Zone zone, Color4 tint, string texture, float sort)
+        public DrawZone(Zone zone, Color4 tint, string texture, float sort,
+            ZoneRelationship relationship = ZoneRelationship.Neutral)
         {
             Hash = FLHash.CreateID(zone.Nickname);
+            Relationship = relationship;
             Zone = zone;
             Tint = tint;
             Texture = texture;
             Sort = sort;
         }
     }
+
+    private readonly record struct PatrolPath(
+        Vector2 Start,
+        Vector2 End,
+        ZoneRelationship Relationship,
+        uint ZoneHash);
 
     private struct Tradelanes
     {
@@ -301,6 +407,21 @@ public partial class Navmap : UiWidget
     {
         System,
         Sector
+    }
+
+    private enum ZoneRelationship
+    {
+        Neutral,
+        Friendly,
+        Hostile
+    }
+
+    public enum NavmapOverlayMode
+    {
+        Physical,
+        Political,
+        Patrol,
+        Mining
     }
 
     private struct ZoneVertex : IVertexType

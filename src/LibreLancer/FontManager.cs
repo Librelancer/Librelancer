@@ -13,11 +13,7 @@ using LibreLancer.Graphics;
 
 namespace LibreLancer
 {
-    public class FontDescription
-    {
-        public string? FontName;
-        public required float FontSize;
-    }
+    public record FontDescription(string FontName, float FontSize);
 
     public class FontManager
 	{
@@ -28,7 +24,7 @@ namespace LibreLancer
 
         public void ConstructDefaultFonts()
         {
-            var v = new FontDescription() { FontName = "Arial", FontSize = 16 };
+            var v = new FontDescription("Arial", 16);
             nicknames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
                 ["normal"] = "Arial"
@@ -69,12 +65,12 @@ namespace LibreLancer
             }
 
             infocardFonts = new Dictionary<int, FontDescription>();
-            var v = new FontDescription() { FontName = "Agency FB", FontSize = 16 };
+            var v = new FontDescription("Agency FB", 16);
             infocardFonts.Add(-1, v);
 
             foreach (var f in rf.Fonts)
             {
-                var desc = new FontDescription() { FontName = f.Name, FontSize = f.Size };
+                var desc = new FontDescription(f.Name ?? "Arial", f.Size);
                 infocardFonts.Add(f.Index, desc);
             }
 

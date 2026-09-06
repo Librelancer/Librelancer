@@ -20,6 +20,7 @@ public partial class SpacePopulationManager
     private const float CombatEngageDistance = 2500f;
     private const float BattlePersistDistance = 7500f;
     private const float ZoneSpawnEdgeDistance = 2000f;
+    private const float RandomMissionNoSpawnRadius = 10000f;
     private const double BattleCooldownSeconds = 10.0;
 
     private readonly ServerWorld world;
@@ -144,7 +145,7 @@ public partial class SpacePopulationManager
     private bool IsPopulationZoneActive(ZoneState state, Vector3 position)
     {
         if (!state.Zone.ContainsPoint(position) &&
-            DistanceToZoneEdge(state.Zone, position) > ZoneSpawnEdgeDistance)
+            state.Zone.DistanceToEdge(position) > ZoneSpawnEdgeDistance)
         {
             return false;
         }
@@ -152,54 +153,11 @@ public partial class SpacePopulationManager
         return true;
     }
 
-    private static float DistanceToZoneEdge(Zone zone, Vector3 position)
-    {
-        if (zone.ContainsPoint(position))
-            return 0;
-
-        var offset = position - zone.Position;
-        return zone.Shape switch
-        {
-            ShapeKind.Sphere => MathF.Max(0, offset.Length() - zone.Size.X),
-            ShapeKind.Box => DistanceToBoxEdge(zone, position),
-            ShapeKind.Ellipsoid => DistanceToEllipsoidEdge(zone, position),
-            ShapeKind.Cylinder or ShapeKind.Ring => DistanceToCylinderEdge(zone, position),
-            _ => float.MaxValue
-        };
-    }
-
-    private static float DistanceToBoxEdge(Zone zone, Vector3 position)
-    {
-        var local = Vector3.Transform(position - zone.Position, Matrix4x4.Transpose(zone.RotationMatrix));
-        var outside = Vector3.Max(Vector3.Abs(local) - zone.Size * 0.5f, Vector3.Zero);
-        return outside.Length();
-    }
-
-    private static float DistanceToEllipsoidEdge(Zone zone, Vector3 position)
-    {
-        var local = Vector3.Transform(position - zone.Position, Matrix4x4.Transpose(zone.RotationMatrix));
-        var length = local.Length();
-        if (length < 1)
-            return 0;
-
-        var direction = local / length;
-        var denominator = MathF.Sqrt(
-            (direction.X * direction.X) / (zone.Size.X * zone.Size.X) +
-            (direction.Y * direction.Y) / (zone.Size.Y * zone.Size.Y) +
-            (direction.Z * direction.Z) / (zone.Size.Z * zone.Size.Z));
-        return denominator <= 0 ? 0 : MathF.Max(0, length - (1 / denominator));
-    }
-
-    private static float DistanceToCylinderEdge(Zone zone, Vector3 position)
-    {
-        var local = Vector3.Transform(position - zone.Position, Matrix4x4.Transpose(zone.RotationMatrix));
-        var radial = MathF.Max(0, MathF.Sqrt(local.X * local.X + local.Z * local.Z) - zone.Size.X);
-        var vertical = MathF.Max(0, MathF.Abs(local.Y) - zone.Size.Y * 0.5f);
-        return MathF.Sqrt(radial * radial + vertical * vertical);
-    }
-
     private bool AllowsPopulationSpawn(Zone zone, Vector3 position)
     {
+        if (IsInsideRandomMissionNoSpawnZone(position))
+            return false;
+
         if (zone.PopulationAdditive != false)
             return true;
 
@@ -213,6 +171,27 @@ public partial class SpacePopulationManager
 
         return true;
     }
+
+    private bool IsInsideRandomMissionNoSpawnZone(Vector3 position)
+    {
+        var radiusSquared = RandomMissionNoSpawnRadius * RandomMissionNoSpawnRadius;
+        foreach (var player in world.Players.Keys)
+        {
+            if (player.ActiveRandomMissionPosition is not { } missionPosition)
+                continue;
+            if (Vector3.DistanceSquared(position, missionPosition) <= radiusSquared)
+                return true;
+        }
+        return false;
+    }
+
+    private GameObject[] ActiveRandomMissionPlayerObjects() =>
+        world.Players
+            .Where(x =>
+                x.Key.ActiveRandomMissionPosition.HasValue &&
+                Alive(x.Value))
+            .Select(x => x.Value)
+            .ToArray();
 
     private static bool Alive(GameObject obj) =>
         (obj.Flags & GameObjectFlags.Exists) == GameObjectFlags.Exists;

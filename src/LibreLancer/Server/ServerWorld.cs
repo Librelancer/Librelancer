@@ -14,6 +14,7 @@ using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.World;
+using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Physics;
@@ -34,7 +35,6 @@ namespace LibreLancer.Server
         public NPCManager NPCs;
         public SpacePopulationManager Population;
         private Random debrisRandom = new();
-        private object _idLock = new();
 
         public NetIDGenerator IdGenerator = new();
         private UpdatePacker packer = new();
@@ -78,24 +78,27 @@ namespace LibreLancer.Server
                 return;
             }
 
+            void HandleMissileCollision(GameObject projectile, GameObject other)
+            {
+                var msl = projectile.GetComponent<SMissileComponent>();
+
+                if (msl?.Target == other)
+                {
+                    ExplodeMissile(projectile);
+                }
+                else if (projectile.TryGetComponent<SDeployableComponent>(out var deployable) &&
+                         deployable.Munition.Def is Mine && !deployable.IsCollisionSafe &&
+                         (!deployable.IsOwner(other) || !deployable.IsOwnerSafe) &&
+                         other.Kind == GameObjectKind.Ship)
+                {
+                    ExplodeMissile(projectile, true);
+                }
+            }
+
             if (g1.Kind == GameObjectKind.Missile)
-            {
-                var msl = g1.GetComponent<SMissileComponent>();
-
-                if (msl?.Target == g2)
-                {
-                    ExplodeMissile(g1);
-                }
-            }
-            else if (g2.Kind == GameObjectKind.Missile)
-            {
-                var msl = g2.GetComponent<SMissileComponent>();
-
-                if (msl?.Target == g1)
-                {
-                    ExplodeMissile(g2);
-                }
-            }
+                HandleMissileCollision(g1, g2);
+            if (g2.Kind == GameObjectKind.Missile)
+                HandleMissileCollision(g2, g1);
         }
 
         public void StartTractor(GameObject obj, GameObject target)
@@ -188,7 +191,7 @@ namespace LibreLancer.Server
             }
         }
 
-        public void ExplodeMissile(GameObject obj)
+        public void ExplodeMissile(GameObject obj, bool explode = true)
         {
             if ((obj.Flags & GameObjectFlags.Exists) == 0)
             {
@@ -196,30 +199,90 @@ namespace LibreLancer.Server
             }
 
             var missile = obj.GetComponent<SMissileComponent>();
-            var pos = obj.LocalTransform.Position;
+            var deployable = obj.GetComponent<SDeployableComponent>();
+            var pos = obj.PhysicsComponent?.Body?.Position ?? obj.LocalTransform.Position;
+            var explosion = missile?.Missile.Explosion ?? deployable?.Munition.Explosion;
+            var explosionFx = missile?.Missile.ExplodeFx ?? deployable?.Munition.ExplosionFx;
+            var explosionEffect = explosionFx?.CRC ?? 0;
+            if (explosionEffect == 0 && explosion?.Effect is { } effectName)
+            {
+                explosionEffect = FLHash.CreateID(effectName);
+            }
             obj.Unregister(GameWorld);
             GameWorld.RemoveObject(obj);
             updatingObjects.Remove(obj);
             IdGenerator.Free(obj.NetID);
             foreach (var p in Players)
             {
-                p.Key.RpcClient.DestroyMissile(obj.NetID, true);
+                p.Key.RpcClient.DestroyMissile(obj.NetID, explode, pos, explosionEffect);
             }
 
-            if (missile?.Missile.Explosion == null)
+            var owner = missile?.Owner ?? deployable?.Owner;
+            if (!explode || explosion == null || owner == null)
             {
                 return;
             }
 
-            foreach (var other in GameWorld.Physics!.SphereTest(pos, missile.Missile.Explosion.Radius))
+            foreach (var other in GameWorld.Physics!.SphereTest(pos, explosion.Radius))
             {
                 if (other?.Tag is GameObject g && g.TryGetComponent<SHealthComponent>(out var health))
                 {
-                    health.DamageExplosion(missile.Missile.Explosion.HullDamage, missile.Missile.Explosion.EnergyDamage,
-                            missile.Owner, pos, missile.Missile.Explosion.Radius);
-                    health.OnProjectileHit(missile.Owner);
+                    health.DamageExplosion(explosion.HullDamage, explosion.EnergyDamage,
+                            owner, pos, explosion.Radius);
+                    health.OnProjectileHit(owner);
                 }
             }
+        }
+
+        public bool TryDivertMissile(SMissileComponent missile)
+        {
+            if (missile.Target == null || missile.Target.Kind != GameObjectKind.Ship)
+            {
+                return false;
+            }
+
+
+            var seekerRange = missile.Missile.Def.SeekerRange;
+            if (string.IsNullOrWhiteSpace(missile.Missile.Def.Seeker) || seekerRange <= 0)
+            {
+                return false;
+            }
+
+            var seekerRangeSquared = seekerRange * seekerRange;
+
+            var missilePosition = missile.Parent.PhysicsComponent?.Body.Position ?? missile.Parent.LocalTransform.Position;
+
+            foreach (var obj in GameWorld.SpatialLookup.GetNearbyObjects(missile.Parent,
+                         missilePosition, seekerRange))
+            {
+                if (!obj.Flags.HasFlag(GameObjectFlags.Exists) ||
+                    !obj.TryGetComponent<SDeployableComponent>(out var deployable) ||
+                    deployable.Munition.Def is not Countermeasure countermeasure ||
+                    obj.PhysicsComponent?.Body == null)
+                {
+                    continue;
+                }
+
+                if (Vector3.DistanceSquared(missilePosition, obj.PhysicsComponent.Body.Position) > seekerRangeSquared)
+                {
+                    continue;
+                }
+
+                // Test each countermeasure once. New countermeasures launched
+                // later still get their own diversion roll.
+                if (!missile.CheckCountermeasure(obj))
+                {
+                    continue;
+                }
+
+                if (Random.Shared.NextDouble() * 100 < countermeasure.DiversionPercentage)
+                {
+                    missile.Target = obj;
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void LaunchComplete(GameObject obj)
@@ -390,6 +453,13 @@ namespace LibreLancer.Server
                 info.Flags |= ObjectSpawnFlags.Loot;
                 info.Loadout.ArchetypeCrc = FLHash.CreateID(obj.ArchetypeName!);
             }
+            else if (obj.Kind == GameObjectKind.DynamicAsteroid)
+            {
+                info.Flags |= ObjectSpawnFlags.DynamicAsteroid;
+                info.Loadout.ArchetypeCrc = FLHash.CreateID(obj.ArchetypeName!);
+                var vel = obj.GetComponent<DynamicAsteroidComponent>()!;
+                info.MaxVelocities = new(vel.MaxVelocity, vel.MaxAngularVelocity);
+            }
             else
             {
                 // Shouldn't occur
@@ -442,6 +512,11 @@ namespace LibreLancer.Server
             obj.AddComponent(new SFuseRunnerComponent(obj) { DamageFuses = player.Character.Ship.Fuses });
             obj.AddComponent(new ShipPhysicsComponent(obj, player.Character.Ship));
             obj.AddComponent(new SDestroyableComponent(obj, this));
+            var destroyedParts = player.Character.GetDestroyedParts();
+            foreach (var part in destroyedParts)
+            {
+                obj.DisableCmpPart(part, null, Server.Resources, out _);
+            }
 
             if (player == Server.LocalPlayer)
             {
@@ -481,6 +556,10 @@ namespace LibreLancer.Server
             }
             foreach (var o in withAnimations)
                 UpdateAnimations(o, player);
+            foreach (var lane in activeTradelaneLanes)
+                player.RpcClient.TradelaneActivate(lane.Obj.NicknameCRC, lane.Left);
+            foreach (var dockingLight in dockingLights)
+                player.RpcClient.SetDockingLights(dockingLight, true);
             updatingObjects.Add(obj);
             return obj;
         }
@@ -501,16 +580,39 @@ namespace LibreLancer.Server
             }
         }
 
-        public void ProjectileHit(GameObject obj, GameObject? child, Vector3 hitPoint, GameObject owner, MunitionEquip munition)
+        public void ProjectileHit(GameObject obj, object? hitObject, Vector3 hitPoint, GameObject owner,
+            MunitionEquip munition)
         {
-            if (obj.TryGetComponent<SHealthComponent>(out var health))
+            if (obj.Kind == GameObjectKind.DynamicAsteroid)
             {
-                health.Damage(munition.Def.HullDamage, munition.Def.EnergyDamage, owner, child);
+                RemoveSpawnedObject(obj, true);
+                // Loot spawn required
+            }
+            else if (obj.TryGetComponent<SHealthComponent>(out var health))
+            {
+                var destroyedPart = health.Damage(
+                    munition.Def.HullDamage,
+                    munition.Def.EnergyDamage,
+                    owner,
+                    hitObject);
                 health.OnProjectileHit(owner);
+
+                if (destroyedPart != null &&
+                    obj.Model!.TryGetCollisionGroup(destroyedPart, out var collisionGroup))
+                {
+                    if (collisionGroup.Definition.Separable)
+                    {
+                        obj.SpawnDebris(destroyedPart.Name!, GameWorld, Server.Resources);
+                    }
+                    else
+                    {
+                        obj.DisableCmpPart(destroyedPart.Name!, GameWorld, Server.Resources, out _);
+                    }
+                }
             }
         }
 
-        public void RequestDock(Player player, ObjNetId id)
+        public void RequestDock(Player player, ObjNetId id, string tradelaneHardpoint)
         {
             actions.Enqueue(() =>
             {
@@ -532,7 +634,11 @@ namespace LibreLancer.Server
                     }
                     else
                     {
-                        component.StartDock(obj, 0, world: GameWorld);
+                        component.StartDock(
+                            obj,
+                            0,
+                            world: GameWorld,
+                            requestedTradelaneHardpoint: tradelaneHardpoint);
                     }
                 }
             });
@@ -568,6 +674,68 @@ namespace LibreLancer.Server
                 foreach (var p in Players)
                 {
                     p.Key.RpcClient.SpawnMissile(go.NetID, p.Value != owner, missile.CRC, transform.Position,
+                        transform.Orientation);
+                }
+            });
+        }
+
+        public void FireDeployable(Transform3D transform, MunitionEquip munition, float muzzleVelocity,
+            GameObject owner)
+        {
+            actions.Enqueue(() =>
+            {
+                if (munition.ModelFile == null || owner.PhysicsComponent?.Body == null)
+                {
+                    return;
+                }
+
+                var model = munition.ModelFile.LoadFile(Server.Resources);
+                if (model == null)
+                {
+                    return;
+                }
+
+                var go = new GameObject(model, Server.Resources, false, true)
+                {
+                    Kind = GameObjectKind.Missile,
+                    NetID = IdGenerator.Allocate()
+                };
+                if (go.PhysicsComponent == null)
+                {
+                    IdGenerator.Free(go.NetID);
+                    return;
+                }
+
+                go.SetLocalTransform(transform);
+                var physics = go.PhysicsComponent;
+                physics.Mass = munition.Def.Mass > 0 ? munition.Def.Mass : 1;
+                physics.Collidable = false;
+
+                // Freelancer's forward axis is -Z. Deployables are ejected
+                // backwards from the hardpoint, so use the opposite axis.
+                var launchVelocity = Vector3.Transform(Vector3.UnitZ, transform.Orientation) * muzzleVelocity;
+                go.AddComponent(new SDeployableComponent(go, munition, owner));
+
+                GameWorld.AddObject(go);
+                go.Register(GameWorld);
+                // The physics body is created by Register(); keep it
+                // non-collidable during the launch-safe window.
+                var body = physics.Body;
+                if (body == null)
+                {
+                    go.Unregister(GameWorld);
+                    GameWorld.RemoveObject(go);
+                    IdGenerator.Free(go.NetID);
+                    return;
+                }
+
+                body.Collidable = false;
+                body.LinearVelocity = owner.PhysicsComponent.Body.LinearVelocity + launchVelocity;
+                updatingObjects.Add(go);
+
+                foreach (var p in Players)
+                {
+                    p.Key.RpcClient.SpawnMissile(go.NetID, p.Value != owner, munition.CRC, transform.Position,
                         transform.Orientation);
                 }
             });
@@ -622,9 +790,13 @@ namespace LibreLancer.Server
                 {
                     var x = go.Children.FirstOrDefault(c => m.Hardpoint == c.Attachment?.CRC);
 
-                    if (x?.TryGetComponent<MissileLauncherComponent>(out var ml) ?? false)
+                    if (x?.TryGetComponent<MissileLauncherComponent>(out var missileLauncher) ?? false)
                     {
-                        ml.Fire(Vector3.Zero, GameWorld, GetObject(m.Target));
+                        missileLauncher.Fire(Vector3.Zero, GameWorld, GetObject(m.Target));
+                    }
+                    else if (x?.TryGetComponent<MunitionLauncherComponent>(out var deployableLauncher) ?? false)
+                    {
+                        deployableLauncher.Fire(Vector3.Zero, GameWorld);
                     }
                 }
             });
@@ -632,6 +804,7 @@ namespace LibreLancer.Server
 
         public void ActivateLane(GameObject obj, bool left)
         {
+            activeTradelaneLanes.Add((obj, left));
             foreach (var p in Players)
             {
                 p.Key.RpcClient.TradelaneActivate(obj.NicknameCRC, left);
@@ -640,6 +813,7 @@ namespace LibreLancer.Server
 
         public void DeactivateLane(GameObject obj, bool left)
         {
+            activeTradelaneLanes.Remove((obj, left));
             foreach (var p in Players)
             {
                 p.Key.RpcClient.TradelaneDeactivate(obj.NicknameCRC, left);
@@ -652,6 +826,24 @@ namespace LibreLancer.Server
         }
 
         private List<GameObject> withAnimations = [];
+        private readonly HashSet<(GameObject Obj, bool Left)> activeTradelaneLanes = [];
+        private readonly HashSet<GameObject> dockingLights = [];
+
+        public void SetDockingLights(GameObject obj, bool active)
+        {
+            if (active)
+            {
+                if (!dockingLights.Add(obj))
+                    return;
+            }
+            else if (!dockingLights.Remove(obj))
+            {
+                return;
+            }
+
+            foreach (var p in Players)
+                p.Key.RpcClient.SetDockingLights(obj, active);
+        }
 
         public void StartAnimation(GameObject obj)
         {
@@ -671,9 +863,16 @@ namespace LibreLancer.Server
                 return;
             }
 
+            if (obj.TryGetComponent<DynamicAsteroidComponent>(out var dynast))
+            {
+                dynast.ParentField!.DespawnedDynamicAsteroid(dynast);
+            }
+
             obj.Unregister(GameWorld);
             GameWorld.RemoveObject(obj);
             withAnimations.Remove(obj);
+            activeTradelaneLanes.RemoveWhere(x => x.Obj == obj);
+            dockingLights.Remove(obj);
             updatingObjects.Remove(obj);
         }
 
@@ -763,6 +962,10 @@ namespace LibreLancer.Server
             {
                 gameobj.AddComponent(new SHealthComponent(gameobj)
                     { CurrentHealth = arch.Hitpoints, MaxHealth = arch.Hitpoints });
+                if (arch.SeparableParts.Any(x => x.Fuses.Count > 0))
+                {
+                    gameobj.AddComponent(new SFuseRunnerComponent(gameobj));
+                }
                 gameobj.AddComponent(new SDestroyableComponent(gameobj, this));
             }
 
@@ -810,13 +1013,49 @@ namespace LibreLancer.Server
                     go.PhysicsComponent.Body.Impulse(initialImpulse.Value);
                 spawnedObjects.Add(go);
                 go.AddComponent(new SHealthComponent(go)
-                    { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
+                { MaxHealth = crate.Hitpoints, CurrentHealth = crate.Hitpoints });
                 go.AddComponent(new SDestroyableComponent(go, this));
                 var lt = new LootComponent(go);
                 lt.Cargo.Add(new BasicCargo(good, count));
                 go.AddComponent(lt);
 
                 // Spawn debris
+                foreach (var p in Players)
+                {
+                    p.Key.RpcClient.SpawnObjects([BuildSpawnInfo(go, p.Value)]);
+                }
+            });
+        }
+
+        public void SpawnDynamicAsteroid(
+            DynamicAsteroid asteroid,
+            AsteroidFieldComponent component,
+            GameObject player,
+            Transform3D transform,
+            float maxLinearVelocity,
+            float maxAngularVelocity,
+            float despawnDistance,
+            ulong spawnGroup
+        )
+        {
+            actions.Enqueue(() =>
+            {
+                var mdl = asteroid.ModelFile!.LoadFile(Server.Resources)!;
+                var go = new GameObject(mdl, Server.Resources, false);
+                go.ArchetypeName = asteroid.Nickname;
+                go.NetID = IdGenerator.Allocate();
+                go.Kind = GameObjectKind.DynamicAsteroid;
+                go.PhysicsComponent!.Mass = AsteroidFieldShared.DynamicAsteroidMass;
+                go.AddComponent(new DynamicAsteroidComponent(go, maxLinearVelocity, maxAngularVelocity, despawnDistance, spawnGroup, component, player));
+                go.SetLocalTransform(transform);
+                GameWorld.AddObject(go);
+                updatingObjects.Add(go);
+                go.Register(GameWorld);
+                spawnedObjects.Add(go);
+                // Apply some kind of random movement
+                go.PhysicsComponent.Body.LinearVelocity = debrisRandom.NextUnitVector() * (maxLinearVelocity * 0.5f);
+                go.PhysicsComponent.Body.AngularVelocity = debrisRandom.NextUnitVector() * (maxAngularVelocity * 0.5f);
+                // Spawn on clients
                 foreach (var p in Players)
                 {
                     p.Key.RpcClient.SpawnObjects([BuildSpawnInfo(go, p.Value)]);
@@ -854,7 +1093,7 @@ namespace LibreLancer.Server
                 }
 
                 var collider = src.Collision;
-                var mdl = ((IRigidModelFile) src.Drawable).CreateRigidModel(false, Server.Resources);
+                var mdl = ((IRigidModelFile)src.Drawable).CreateRigidModel(false, Server.Resources);
                 var newmodel = mdl.Parts[part].CloneAsRoot(mdl);
                 var id = IdGenerator.Allocate();
                 var go = new GameObject(newmodel, collider, part, mass, false)
@@ -925,6 +1164,10 @@ namespace LibreLancer.Server
 
         public void PartDisabled(GameObject obj, uint part)
         {
+            if (obj.TryGetComponent<SPlayerComponent>(out var player))
+            {
+                player.Player.Character?.MarkPartDestroyed(part);
+            }
             foreach (Player p in Players.Keys)
                 p.RpcClient.DestroyPart(obj, part);
         }
@@ -1004,6 +1247,7 @@ namespace LibreLancer.Server
             NPCs.FrameStart();
             Population.Update(delta);
             GameWorld.Update(delta);
+            ApplyDamageZones(delta);
 
             // projectiles
             if (GameWorld.Projectiles!.HasQueued)
@@ -1037,6 +1281,21 @@ namespace LibreLancer.Server
             {
                 noPlayersTime = 0;
                 return true;
+            }
+        }
+
+        private void ApplyDamageZones(double delta)
+        {
+            for (var i = updatingObjects.Count - 1; i >= 0; i--)
+            {
+                var obj = updatingObjects[i];
+                if (obj.Kind != GameObjectKind.Ship ||
+                    !obj.TryGetComponent<SHealthComponent>(out var health))
+                    continue;
+
+                var damagePerSecond = GameWorld.ZoneDamageAt(obj.WorldTransform.Position);
+                if (damagePerSecond > 0)
+                    health.DamageZone(damagePerSecond * (float)delta);
             }
         }
 
@@ -1134,30 +1393,31 @@ namespace LibreLancer.Server
                             update.CruiseThrust = CruiseThrustState.Thrusting;
                             break;
                     }
-                    // Not needed when an object is not in a formation
-                    if (obj.Formation != null)
-                    {
-                        update.Strafe = objPhysics.CurrentStrafe;
-                        update.Pitch = objPhysics.Steering.X;
-                        update.Yaw = objPhysics.Steering.Y;
-                        update.Roll = objPhysics.Steering.Z;
-                    }
                 }
 
                 if (obj.TryGetComponent<SHealthComponent>(out var health))
                 {
-                    update.Hull = (int) health.CurrentHealth;
+                    update.Hull = (int)health.CurrentHealth;
                     var sh = obj.GetFirstChildComponent<SShieldComponent>();
 
                     if (sh != null)
                     {
-                        update.Shield = (int) sh.Health;
+                        update.Shield = (int)sh.Health;
                     }
-                    if (health.EquipmentHealths.Count > 0)
+                    var damagedParts = health.EquipmentHealths
+                        .Select(x => new PartHealth(
+                            FLHash.CreateID(x.Key.Name),
+                            (byte)(MathHelper.Clamp(x.Value, 0, 1) * 255f)))
+                        .Concat(obj.Model?.CollisionGroups
+                            .Where(x => x.ModelPart.Active && x.CurrentHealth < x.MaxHealth)
+                            .Select(x => new PartHealth(
+                                x.CRC,
+                                (byte)(x.HealthFraction * 255f))) ?? [])
+                        .OrderBy(x => x.Hardpoint)
+                        .ToArray();
+                    if (damagedParts.Length > 0)
                     {
-                        update.DamagedParts = health.EquipmentHealths
-                            .Select(x => new PartHealth(FLHash.CreateID(x.Key.Name), (byte)(x.Value * 255f)))
-                            .ToArray();
+                        update.DamagedParts = damagedParts;
                     }
                 }
 
@@ -1186,6 +1446,7 @@ namespace LibreLancer.Server
 
                 var selfPlayer = player.Value.GetComponent<SPlayerComponent>();
                 var phys = player.Value.GetComponent<ShipPhysicsComponent>();
+                var hasTradelane = player.Value.TryGetComponent<STradelaneMoveComponent>(out var tradelane);
                 var state = new PlayerAuthState
                 {
                     Health = phealth,
@@ -1195,7 +1456,10 @@ namespace LibreLancer.Server
                     LinearVelocity = player.Value.PhysicsComponent!.Body.LinearVelocity,
                     AngularVelocity = MathHelper.ApplyEpsilon(player.Value.PhysicsComponent.Body.AngularVelocity),
                     CruiseAccelPct = phys!.CruiseAccelPct,
-                    CruiseChargePct = phys.ChargePercent
+                    CruiseChargePct = phys.ChargePercent,
+                    TradelaneState = hasTradelane ? tradelane.MoveState : TradelaneMoveState.None,
+                    TradelaneTargetSpeed = hasTradelane ? tradelane.TargetSpeed : 0,
+                    TradelaneProgress = hasTradelane ? tradelane.Progress : 0
                 };
 
                 if (player.Key.SinglePlayer)

@@ -39,7 +39,7 @@ public class ThnPlayerTab : GameContentTab
         this.gameData = gameData;
         this.win = mw;
         viewport = new Viewport3D(mw);
-        viewport.EnableMSAA = false;
+        viewport.EnableAntiAliasing = false;
         viewport.Draw3D = DrawGL;
     }
 

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.World;
@@ -14,6 +15,7 @@ public class SMissileComponent : GameComponent
 
     private PIDController pitchControl = new() { P = 1 };
     private PIDController yawControl = new() { P = 1 };
+    private readonly HashSet<GameObject> checkedCountermeasures = [];
 
     public SMissileComponent(GameObject parent, MissileEquip missile, GameObject? target, GameObject owner,
         float speed) : base(parent)
@@ -45,6 +47,11 @@ public class SMissileComponent : GameComponent
 
         if (Target != null)
         {
+            world.Server!.TryDivertMissile(this);
+        }
+
+        if (Target != null)
+        {
             TurnTowards(time, Target.LocalTransform.Position);
         }
 
@@ -60,6 +67,8 @@ public class SMissileComponent : GameComponent
             world.Server!.ExplodeMissile(Parent); // Todo: does this do damage?
         }
     }
+
+    public bool CheckCountermeasure(GameObject countermeasure) => checkedCountermeasures.Add(countermeasure);
 
     private void TurnTowards(double dt, Vector3 targetPoint)
     {

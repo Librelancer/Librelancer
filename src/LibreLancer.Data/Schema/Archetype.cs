@@ -39,7 +39,6 @@ public partial class Archetype
     public bool Destructible;
     [Entry("type")]
     public ArchetypeType Type;
-    //TODO: I don't know what this is or what it does
     [Entry("phantom_physics")]
     public bool? PhantomPhysics;
     [Entry("loadout")]

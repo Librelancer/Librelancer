@@ -19,6 +19,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<int,int,void> _glBlendFunc;
         private static delegate* unmanaged<int,int,int,int,void> _glBlendFuncSeparate;
         private static delegate* unmanaged<float,float,void> _glDepthRangef;
+        private static delegate* unmanaged<int,int,uint,void> _glStencilFunc;
+        private static delegate* unmanaged<int,int,int,void> _glStencilOp;
         private static delegate* unmanaged<int,int,void> _glPolygonMode;
         private static delegate* unmanaged<float,void> _glLineWidth;
         private static delegate* unmanaged<int,void> _glDepthFunc;
@@ -117,7 +119,7 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         private static delegate* unmanaged<IntPtr,void> _glDeleteSync;
         private static delegate* unmanaged<IntPtr,uint,ulong,uint> _glClientWaitSync;
         private static delegate* unmanaged<void> _glFlush;
-
+        
         public static void Load(Func<string,IntPtr> getProcAddress, bool isGles)
         {
             _glEnable = (delegate* unmanaged<int,void>)getProcAddress("glEnable");
@@ -132,6 +134,8 @@ namespace LibreLancer.Graphics.Backends.OpenGL
             _glBlendFunc = (delegate* unmanaged<int,int,void>)getProcAddress("glBlendFunc");
             _glBlendFuncSeparate = (delegate* unmanaged<int,int,int,int,void>)getProcAddress("glBlendFuncSeparate");
             _glDepthRangef = (delegate* unmanaged<float,float,void>)getProcAddress("glDepthRangef");
+            _glStencilFunc = (delegate* unmanaged<int,int,uint,void>)getProcAddress("glStencilFunc");
+            _glStencilOp = (delegate* unmanaged<int,int,int,void>)getProcAddress("glStencilOp");
             _glPolygonMode = (delegate* unmanaged<int,int,void>)getProcAddress("glPolygonMode");
             _glLineWidth = (delegate* unmanaged<float,void>)getProcAddress("glLineWidth");
             _glDepthFunc = (delegate* unmanaged<int,void>)getProcAddress("glDepthFunc");
@@ -298,6 +302,16 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         public static void DepthRange(float near, float far)
         {
             _glDepthRangef(near, far);
+            ErrorCheck();
+        }
+        public static void StencilFunc(int func, int reference, uint mask)
+        {
+            _glStencilFunc(func, reference, mask);
+            ErrorCheck();
+        }
+        public static void StencilOp(int fail, int dpfail, int dppass)
+        {
+            _glStencilOp(fail, dpfail, dppass);
             ErrorCheck();
         }
         public static void PolygonMode(int faces, int mode)
@@ -849,3 +863,4 @@ namespace LibreLancer.Graphics.Backends.OpenGL
         }
     }
 }
+

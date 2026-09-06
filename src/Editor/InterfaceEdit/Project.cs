@@ -134,8 +134,8 @@ public class Project
         window.Fonts.LoadFontsFromIni(flIni, window.RenderContext, UiData.FileSystem);
         //unioners infocard
         var im = new InfocardManager(flIni.Resources);
-        TestingInfocard = RDLParse.Parse(im.GetXmlResource(65546), window.Fonts);
-        ShipInfocard = RDLParse.Parse(im.GetXmlResource(66598), window.Fonts);
+        TestingInfocard = RDLParse.Parse(im.GetXmlResource(65546));
+        ShipInfocard = RDLParse.Parse(im.GetXmlResource(66598));
     }
 
     public bool Open(string projectpath)

@@ -191,7 +191,7 @@ public class UniverseEditorTab : GameContentTab
         {
             Nickname = nickname,
             SourceFile = $"systems\\{nickname}\\{nickname}.ini",
-            CRC = CrcTool.FLModelCrc(nickname),
+            CRC = FLHash.CreateID(nickname),
             BackgroundColor = Color4.Black,
             FarClip = 20000,
             NavMapScale = 1f,

@@ -32,4 +32,6 @@ internal class NullRenderTarget2D : IRenderTarget2D
 
     public int Width { get; }
     public int Height { get; }
+
+    public bool HasStencil => false;
 }

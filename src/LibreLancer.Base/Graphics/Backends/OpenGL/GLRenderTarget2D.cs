@@ -18,6 +18,7 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
     public int Height => texture.Height;
 
     private bool isDisposed = false;
+    private bool stencil = false;
 
     public GLRenderTarget2D (GLRenderContext context, GLTexture2D texture, GLDepthBuffer? depth)
     {
@@ -30,8 +31,9 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
         if (depth != null)
         {
             GL.FramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
-                GL.GL_DEPTH_ATTACHMENT,
+                depth.HasStencil ? GL.GL_DEPTH_STENCIL_ATTACHMENT : GL.GL_DEPTH_ATTACHMENT,
                 GL.GL_RENDERBUFFER, depth.ID);
+            stencil = depth.HasStencil;
         }
         //bind the texture
         GL.FramebufferTexture2D (GL.GL_FRAMEBUFFER,
@@ -40,6 +42,8 @@ internal class GLRenderTarget2D : GLRenderTarget, IRenderTarget2D
         //unbind the FBO
         GL.BindFramebuffer (GL.GL_FRAMEBUFFER, 0);
     }
+
+    public override bool HasStencil => stencil;
 
     internal override void BindFramebuffer()
     {

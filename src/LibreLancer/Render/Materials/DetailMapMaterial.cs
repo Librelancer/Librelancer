@@ -57,7 +57,7 @@ namespace LibreLancer.Render.Materials
 			rstate.DepthEnabled = true;
 			rstate.BlendMode = BlendMode.Opaque;
 
-            var sh = AllShaders.DetailMapMaterial.Get(rstate.HasFeature(GraphicsFeature.GLES) ? 1U : 0U);
+            var sh = AllShaders.DetailMapMaterial.Get(VertexLighting ? 1U : 0U);
             SetWorld(sh);
 			sh.SetUniformBlock(3, ref parameters);
 

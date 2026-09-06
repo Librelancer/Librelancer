@@ -77,6 +77,7 @@ namespace BuildLL
         static void Clean()
         {
             Dotnet.Clean("LibreLancer.sln");
+            Dotnet.Clean("src/LLShaderCompiler/LLShaderCompiler.csproj", "Debug");
             RmDir("./obj/");
             RmDir("./bin/");
         }
@@ -284,6 +285,11 @@ namespace BuildLL
                     File.WriteAllText("./src/CommonVersion.props", commonVersion);
                     Console.WriteLine("Updated version file ./src/CommonVersion.props");
                 }
+            });
+
+            Target("GenerateInterface", DependsOn("GenerateVersion", "ShaderDependencies"), () =>
+            {
+                Dotnet.Run("src/Editor/InterfaceEdit/InterfaceEdit.csproj","obj/interface", "--compile");
             });
 
             Target("ShaderDependencies", () =>

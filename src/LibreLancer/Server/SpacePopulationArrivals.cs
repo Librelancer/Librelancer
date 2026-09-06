@@ -77,6 +77,11 @@ public partial class SpacePopulationManager
              (arrivalTargets & (ArrivalTargets.Cruise | ArrivalTargets.Buzz)) != 0) &&
             TryFindPatrolPathSpawnLocation(state, players, zoneCreationDistance, out spawn))
         {
+            if (IsInsideRandomMissionNoSpawnZone(spawn.Position))
+            {
+                spawn = default;
+                return false;
+            }
             return true;
         }
 
@@ -165,6 +170,7 @@ public partial class SpacePopulationManager
                 obj.SystemObject == null ||
                 !Alive(obj) ||
                 !zone.ContainsPoint(obj.WorldTransform.Position) ||
+                IsInsideRandomMissionNoSpawnZone(obj.WorldTransform.Position) ||
                 !obj.TryGetComponent<SDockableComponent>(out var dockable) ||
                 dockable.DockPoints.Length == 0 ||
                 !dockable.TryGetUndockIndex(out var dockIndex) ||

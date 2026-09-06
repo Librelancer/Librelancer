@@ -147,18 +147,45 @@ namespace LibreLancer.World.Components
 
         protected bool TurnTowards(double time, Vector3 targetPoint)
         {
-            // Orientation
-            var dt = time;
             var vec = Parent.InverseTransformPoint(targetPoint);
-            // normalize it
+            return TurnTowardsLocalDirection(time, vec);
+        }
+
+        protected bool TurnTowardsDirection(double time, Vector3 worldDirection)
+        {
+            if (worldDirection.LengthSquared() <= float.Epsilon)
+            {
+                Component.OutYaw = 0;
+                Component.OutPitch = 0;
+                return true;
+            }
+
+            var localDirection = Vector3.Transform(
+                Vector3.Normalize(worldDirection),
+                Quaternion.Conjugate(Parent.WorldTransform.Orientation));
+            return TurnTowardsLocalDirection(time, localDirection);
+        }
+
+        private bool TurnTowardsLocalDirection(double time, Vector3 vec)
+        {
+            if (vec.LengthSquared() <= float.Epsilon)
+            {
+                Component.OutYaw = 0;
+                Component.OutPitch = 0;
+                return true;
+            }
+
             vec.Normalize();
 
-            var directionSatisfied = (Math.Abs(vec.X) < 0.0015f && Math.Abs(vec.Y) < 0.0015f);
+            var directionSatisfied = vec.Z < 0 &&
+                                     Math.Abs(vec.X) < 0.0015f &&
+                                     Math.Abs(vec.Y) < 0.0015f;
 
             if (!directionSatisfied)
             {
-                Component.OutYaw = MathHelper.Clamp((float)Component.YawControl.Update(0, vec.X, dt), -1, 1);
-                Component.OutPitch = MathHelper.Clamp((float)Component.PitchControl.Update(0, -vec.Y, dt), -1, 1);
+                var yawError = Math.Abs(vec.X) < 0.0015f && vec.Z > 0 ? 1 : vec.X;
+                Component.OutYaw = MathHelper.Clamp((float)Component.YawControl.Update(0, yawError, time), -1, 1);
+                Component.OutPitch = MathHelper.Clamp((float)Component.PitchControl.Update(0, -vec.Y, time), -1, 1);
                 return false;
             }
 
@@ -177,7 +204,8 @@ namespace LibreLancer.World.Components
             ShipSteeringComponent control,
             ShipInputComponent? input,
             GameWorld world,
-            bool includeTargetRadius = true)
+            bool includeTargetRadius = true,
+            Vector3? turnDirection = null)
         {
             float targetPower = 0;
             // Bring ship to within GotoRange metres of target
@@ -222,7 +250,9 @@ namespace LibreLancer.World.Components
                 Component.SetAutopilotStrafe(avoidancePlan.Strafe, avoidancePlan.StrafeVector);
             }
 
-            var directionSatisfied = TurnTowards(time, point);
+            var directionSatisfied = turnDirection is { } direction
+                ? TurnTowardsDirection(time, direction)
+                : TurnTowards(time, point);
 
 
             return distanceSatisfied && directionSatisfied;
@@ -230,7 +260,10 @@ namespace LibreLancer.World.Components
 
     }
 
-    internal sealed class DockBehavior(AutopilotComponent c, int dockIndex) : AutopilotBehavior(c)
+    internal sealed class DockBehavior(
+        AutopilotComponent c,
+        int dockIndex,
+        string? selectedTradelaneHardpoint) : AutopilotBehavior(c)
     {
         public override AutopilotBehaviors Behavior => AutopilotBehaviors.Dock;
         public override bool DockCameraActive => ringDocking;
@@ -238,12 +271,118 @@ namespace LibreLancer.World.Components
         private int lastTargetHp = 0;
         private bool ringDocking = false;
         private double ringDockTime = 0;
+        private string? tradelaneHardpoint = selectedTradelaneHardpoint;
+        private bool tradelaneEntryPathActive;
+        private float tradelaneEntryPathProgress;
+        private Vector3 tradelaneEntryStart;
+        private Vector3 tradelaneEntryStartControl;
+        private Vector3 tradelaneEntryEndControl;
+        private Vector3 tradelaneEntryEnd;
+        private Vector3 tradelaneEntryAxis;
 
         private static bool IsDockingRingIndex(DockInfoComponent docking, int index) =>
             docking.Action.Kind == DockKinds.Base &&
             index == 0 &&
             index < docking.Spheres.Length &&
             docking.Spheres[index].Type == Data.Schema.Solar.DockSphereType.ring;
+
+        private bool TryGetTradelaneDirection(
+            DockInfoComponent docking,
+            Hardpoint entryHardpoint,
+            GameWorld world,
+            out Vector3 direction)
+        {
+            direction = default;
+            var nextNickname = entryHardpoint.Name.Equals(
+                "HpRightLane",
+                StringComparison.OrdinalIgnoreCase)
+                ? docking.Action.Target
+                : docking.Action.TargetLeft;
+            if (nextNickname == null || TargetObject == null)
+            {
+                return false;
+            }
+
+            var nextRing = world.GetObject(nextNickname);
+            var nextHardpoint = nextRing?.GetHardpoint(entryHardpoint.Name);
+            if (nextRing == null || nextHardpoint == null)
+            {
+                return false;
+            }
+
+            var entryPosition = (entryHardpoint.TransformNoRotate * TargetObject.WorldTransform).Position;
+            var nextPosition = (nextHardpoint.TransformNoRotate * nextRing.WorldTransform).Position;
+            direction = nextPosition - entryPosition;
+            return direction.LengthSquared() > float.Epsilon;
+        }
+
+        private void BeginTradelaneEntryPath(Vector3 hardpoint, Vector3 laneDirection, float distance)
+        {
+            var body = Parent.PhysicsComponent!.Body;
+            tradelaneEntryAxis = Vector3.Normalize(laneDirection);
+            tradelaneEntryEnd = TradelaneMotion.EntryCapturePoint(
+                hardpoint,
+                tradelaneEntryAxis,
+                body.Collider.Radius);
+            tradelaneEntryStart = body.Position;
+
+            var startForward = TradelaneMotion.Forward(body.Orientation);
+            var handleLength = MathHelper.Clamp(distance * 0.45f, 50, 225);
+            tradelaneEntryStartControl = tradelaneEntryStart + startForward * handleLength;
+            tradelaneEntryEndControl = tradelaneEntryEnd - tradelaneEntryAxis * handleLength;
+            tradelaneEntryPathProgress = 0;
+            tradelaneEntryPathActive = true;
+        }
+
+        private Vector3 FollowTradelaneEntryPath(Vector3 shipPosition)
+        {
+            const int samples = 24;
+            var closestProgress = tradelaneEntryPathProgress;
+            var closestDistance = float.MaxValue;
+
+            for (var i = 0; i <= samples; i++)
+            {
+                var sampleProgress = MathHelper.Lerp(
+                    tradelaneEntryPathProgress,
+                    1,
+                    i / (float)samples);
+                var sample = TradelaneMotion.EntryPathPoint(
+                    tradelaneEntryStart,
+                    tradelaneEntryStartControl,
+                    tradelaneEntryEndControl,
+                    tradelaneEntryEnd,
+                    sampleProgress);
+                var distance = Vector3.DistanceSquared(shipPosition, sample);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestProgress = sampleProgress;
+                }
+            }
+
+            tradelaneEntryPathProgress = MathF.Max(tradelaneEntryPathProgress, closestProgress);
+            var lookAheadProgress = MathF.Min(1, tradelaneEntryPathProgress + 0.08f);
+            var target = TradelaneMotion.EntryPathPoint(
+                tradelaneEntryStart,
+                tradelaneEntryStartControl,
+                tradelaneEntryEndControl,
+                tradelaneEntryEnd,
+                lookAheadProgress);
+            var direction = target - shipPosition;
+            if (direction.LengthSquared() <= float.Epsilon)
+            {
+                direction = TradelaneMotion.EntryPathTangent(
+                    tradelaneEntryStart,
+                    tradelaneEntryStartControl,
+                    tradelaneEntryEndControl,
+                    tradelaneEntryEnd,
+                    lookAheadProgress);
+            }
+
+            return direction.LengthSquared() > float.Epsilon
+                ? Vector3.Normalize(direction)
+                : tradelaneEntryAxis;
+        }
 
         private void StartRingFlyThrough(ShipSteeringComponent control, ShipInputComponent? input)
         {
@@ -286,7 +425,10 @@ namespace LibreLancer.World.Components
             }
 
             var dock = docking!;
-            var hp = GetTargetHardpoint(dock, false, lastTargetHp, dockIndex);
+            var isTradelane = dock.Action.Kind == DockKinds.Tradelane;
+            var hp = isTradelane && tradelaneHardpoint != null
+                ? TargetObject!.GetHardpoint(tradelaneHardpoint)
+                : GetTargetHardpoint(dock, false, lastTargetHp, dockIndex);
 
             if (hp == null)
             {
@@ -295,9 +437,15 @@ namespace LibreLancer.World.Components
                 return true; // finished
             }
 
-            var isTradelane = dock.Action.Kind == DockKinds.Tradelane;
+            if (isTradelane)
+            {
+                tradelaneHardpoint ??= hp.Name;
+            }
+
             var radius = isTradelane || lastTargetHp == 2 ? dock.GetTriggerRadius(dockIndex) : 5;
-            var targetPoint = (hp.Transform * TargetObject!.WorldTransform).Position;
+            var targetPoint = ((isTradelane
+                    ? hp.TransformNoRotate
+                    : hp.Transform) * TargetObject!.WorldTransform).Position;
             var isDockingRing = IsDockingRingIndex(dock, dockIndex);
 
             var d2 = (targetPoint - Parent.PhysicsComponent!.Body!.Position).Length();
@@ -310,14 +458,70 @@ namespace LibreLancer.World.Components
                 return false;
             }
 
-            var maxSpeed = lastTargetHp > 0 || d2 < 80 ? 0.3f : 1f;
-            if (!MoveToPoint(time, targetPoint, radius, 0, maxSpeed, true, control, input, world, false))
+            var maxSpeed = isTradelane
+                ? 1f
+                : lastTargetHp > 0 || d2 < 80
+                    ? 0.3f
+                    : 1f;
+            if (isTradelane && d2 < TradelaneMotion.EntryManeuverDistance)
+            {
+                control.Cruise = false;
+            }
+            Vector3? entryDirection = null;
+            var movementPoint = targetPoint;
+            var movementRadius = radius;
+            if (isTradelane &&
+                (tradelaneEntryPathActive || d2 <= TradelaneMotion.EntryManeuverDistance) &&
+                TryGetTradelaneDirection(dock, hp, world, out var direction))
+            {
+                var body = Parent.PhysicsComponent.Body;
+                if (TradelaneMotion.HasCrossedEntryPlane(
+                        body.Position,
+                        targetPoint,
+                        direction,
+                        radius + body.Collider.Radius,
+                        body.Collider.Radius))
+                {
+                    control.Cruise = false;
+                    SetThrottle(0, control, input);
+                    TurnTowardsDirection(time, direction);
+                    return false;
+                }
+
+                if (!tradelaneEntryPathActive)
+                {
+                    BeginTradelaneEntryPath(targetPoint, direction, d2);
+                }
+
+                entryDirection = FollowTradelaneEntryPath(
+                    Parent.PhysicsComponent.Body.Position);
+                movementPoint = tradelaneEntryEnd;
+                movementRadius = 0;
+            }
+
+            if (!MoveToPoint(
+                    time,
+                    movementPoint,
+                    movementRadius,
+                    0,
+                    maxSpeed,
+                    true,
+                    control,
+                    input,
+                    world,
+                    false,
+                    entryDirection))
             {
                 return false; // not finished
             }
 
             if (isTradelane)
             {
+                if (entryDirection is { } alignmentDirection)
+                {
+                    TurnTowardsDirection(time, alignmentDirection);
+                }
+
                 return false; // wait for the server to start the tradelane
             }
 
@@ -843,9 +1047,13 @@ namespace LibreLancer.World.Components
             SetAutopilotStrafe(StrafeControls.None, Vector2.Zero);
         }
 
-        public void StartDock(GameObject target, GotoKind kind, int dockIndex = 0)
+        public void StartDock(
+            GameObject target,
+            GotoKind kind,
+            int dockIndex = 0,
+            string? tradelaneHardpoint = null)
         {
-            SetInstance(new DockBehavior(this, dockIndex));
+            SetInstance(new DockBehavior(this, dockIndex, tradelaneHardpoint));
             instance?.Start(kind, target, 1, 40);
         }
 

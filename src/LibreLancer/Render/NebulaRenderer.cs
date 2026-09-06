@@ -66,15 +66,15 @@ namespace LibreLancer.Render
 
 		public bool FogTransitioned()
 		{
-			if (Math.Abs(Nebula.Zone!.EdgeFraction) < 0.000000001) // basically == 0. Instant transition
-            {
-                return true;
-            }
-
-            return (1 - Nebula.Zone.ScaledDistance(sysr.Camera.Position)) >= Nebula.Zone.EdgeFraction;
-			// var scaled = Nebula.Zone.Shape.Scale(1 - Nebula.Zone.EdgeFraction);
-			// return scaled.ContainsPoint(sysr.Camera.Position);
+			return FogTransitionOpacity() >= 1f;
 		}
+
+        public float FogTransitionOpacity()
+        {
+            if (Math.Abs(Nebula.Zone!.EdgeFraction) < 0.000000001) // Instant transition
+                return 1f;
+            return CalculateTransition(Nebula.Zone);
+        }
 
         private float CalculateTransition(Zone zone)
 		{
@@ -87,7 +87,7 @@ namespace LibreLancer.Render
 		public void RenderFogTransition(RenderContext ren)
 		{
 			var c = GetFogColor();
-			c.A = CalculateTransition(Nebula.Zone!);
+			c.A = FogTransitionOpacity();
             ren.TintViewport(c);
         }
 
@@ -121,7 +121,7 @@ namespace LibreLancer.Render
                     interiorPuffs[i].Shape = sprites.GetShape(Nebula.InteriorCloudShapes!.GetNext(rand));
                     interiorPuffs[i].Position = sysr.Camera.Position + RandomPointSphere(Nebula.InteriorCloudMaxDistance);
                     interiorPuffs[i].Spawned = true;
-                    interiorPuffs[i].Velocity = RandomDirection() * Nebula.InteriorCloudDrift;
+                    interiorPuffs[i].Velocity = rand.NextUnitVector() * Nebula.InteriorCloudDrift;
                 }
                 interiorPuffs[i].Position += interiorPuffs[i].Velocity * (float)elapsed;
             }
@@ -217,6 +217,7 @@ namespace LibreLancer.Render
 				var factor = CalculateTransition(ex.Zone!);
 				FogRange.Y = MathHelper.Lerp(FogRange.Y, ex.FogFar, factor);
 			}
+
 			lightning = null;
 			if (dynLightningActive)
 			{
@@ -500,17 +501,6 @@ namespace LibreLancer.Render
 					);
 				}
 			}
-		}
-
-        private Vector3 RandomDirection()
-		{
-			var v = new Vector3(
-				-1f + (float)(rand.NextDouble() * 2),
-				-1f + (float)(rand.NextDouble() * 2),
-				-1f + (float)(rand.NextDouble() * 2)
-			);
-			v.Normalize();
-			return v;
 		}
 
         private Vector3 RandomPointSphere(float radius)

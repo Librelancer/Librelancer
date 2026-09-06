@@ -85,7 +85,7 @@ public class BaseNpcEditorTab : GameContentTab
         allBases = Data.GameData.Items.Bases.OrderBy(x => x.Nickname).ToArray();
 
         roomViewport = new Viewport3D(mainWindow);
-        roomViewport.EnableMSAA = false;
+        roomViewport.EnableAntiAliasing = false;
         roomViewport.Draw3D = DrawRoomGL;
         roomViewport.Mode = CameraModes.Arcball;
         roomViewport.DefaultOffset =

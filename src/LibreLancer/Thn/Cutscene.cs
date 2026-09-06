@@ -195,7 +195,7 @@ public class Cutscene : IDisposable
                 World.Dispose();
             }
 
-            Renderer = new SystemRenderer(camera, resourceManager, game);
+            Renderer = new SystemRenderer(camera, resourceManager, game) { AllowPerPixelLighting = false };
             World = new GameWorld(Renderer, null, resourceManager, null, false);
         }
 

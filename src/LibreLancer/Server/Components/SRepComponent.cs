@@ -15,7 +15,8 @@ public class SRepComponent : GameComponent
     public void SetAttitude(GameObject go, RepAttitude a)
     {
         forcedReps[go] = a;
-        if (go.TryGetComponent<SPlayerComponent>(out var p))
+        if (Parent.NetID != 0 &&
+            go.TryGetComponent<SPlayerComponent>(out var p))
         {
             p.Player.RpcClient.UpdateAttitude(new ObjNetId(Parent.NetID), a);
         }

@@ -12,6 +12,7 @@ public class Equipment : NamedItem
     public ResolvedModel? ModelFile;
     public ResolvedGood? Good;
     public float Volume;
+    public float Hitpoints;
 
     public LootCrateEquipment? LootAppearance;
     public int UnitsPerContainer;

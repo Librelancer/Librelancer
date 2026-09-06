@@ -73,7 +73,7 @@ namespace LibreLancer.Server
             Listener = new GameListener(this);
         }
 
-        public GameServer(GameDataManager gameData, ConvexMeshCollection convexCollection)
+        public GameServer(GameDataManager gameData, ConvexShapeCollection convexCollection)
         {
             Resources = new ServerResourceManager(convexCollection, gameData.VFS);
             GameData = gameData;
@@ -194,7 +194,7 @@ namespace LibreLancer.Server
             {
                 bp.Add(new BaselinePrice()
                 {
-                    GoodCRC = CrcTool.FLModelCrc(good.Ini.Nickname),
+                    GoodCRC = FLHash.CreateID(good.Ini.Nickname),
                     Price = (ulong) good.Ini.Price
                 });
             }

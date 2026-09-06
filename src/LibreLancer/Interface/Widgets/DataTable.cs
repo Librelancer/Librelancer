@@ -65,6 +65,8 @@ namespace LibreLancer.Interface
         public string HeaderFont { get; set; } = "$Header";
         public int HeaderTextSize { get; set; } = 14;
         public InterfaceColor? HeaderColor { get; set; }
+        public InterfaceColor? HeaderActiveColor { get; set; }
+        public string? ActiveSortColumn { get; set; }
         public InterfaceColor? LineColor { get; set; }
         public InterfaceColor? LineHover { get; set; }
         public InterfaceColor? LineDown { get; set; }
@@ -113,9 +115,16 @@ namespace LibreLancer.Interface
             GenerateDividerPositions();
         }
 
+        public void ResetScroll()
+        {
+            childOffset = 0;
+            Scrollbar.ScrollOffset = 0;
+        }
+
         public void SetData(ITableData data)
         {
             this.data = data;
+            ResetScroll();
         }
 
         private class WattleData : ITableData
@@ -264,6 +273,18 @@ namespace LibreLancer.Interface
 
             var rowCount = Math.Min(DisplayRowCount, (data!.Count - childOffset));
 
+            if (ShowHeaders)
+            {
+                for (int column = 0; column < Columns.Count; column++)
+                {
+                    if (!GetCell(rect, -1, column).Contains(context.MouseX, context.MouseY))
+                        continue;
+
+                    onHeaderClick?.Invoke(Columns[column].Data);
+                    return;
+                }
+            }
+
             for (int row = 0; row < rowCount; row++)
             {
                 for (int column = 0; column < Columns.Count; column++)
@@ -308,11 +329,17 @@ namespace LibreLancer.Interface
         }
 
         private Action? onSelect;
+        private Action<string>? onHeaderClick;
         private Action<int, int>? onDoubleClicked;
 
         public void OnItemSelected(Closure c)
         {
             onSelect = () => c.Call();
+        }
+
+        public void OnHeaderClick(Closure c)
+        {
+            onHeaderClick = column => c.Call(column);
         }
 
         public void OnDoubleClick(Closure c)
@@ -414,9 +441,12 @@ namespace LibreLancer.Interface
                 for (int i = 0; i < Columns.Count; i++)
                 {
                     var c = GetCell(rect, -1, i);
+                    var headerColor = ActiveSortColumn == Columns[i].Data
+                        ? HeaderActiveColor ?? HeaderColor ?? InterfaceColor.White
+                        : HeaderColor ?? InterfaceColor.White;
                     RenderText(context, drawList, ref columnStrings![i], c, HeaderTextSize, HeaderFont,
-                        HeaderColor ?? InterfaceColor.White, TextShadow,
-                        HorizontalAlignment.Center, VerticalAlignment.Default,
+                        headerColor, TextShadow,
+                        Columns[i].TextAlignment, VerticalAlignment.Default,
                         true, Columns[i].GetLabel(context));
                 }
             }
@@ -438,7 +468,7 @@ namespace LibreLancer.Interface
                     // Process hovering on a row
                     bool hovered = false;
 
-                    if (data.Selected != row)
+                    if (data.Selected != row + childOffset)
                     {
                         for (int column = 0; column < Columns.Count; column++)
                         {

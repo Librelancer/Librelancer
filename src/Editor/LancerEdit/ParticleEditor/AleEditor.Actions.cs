@@ -221,6 +221,23 @@ partial class AleEditor
         public override void Undo() => Library.Effects.Add(Effect);
     }
 
+    class RenameNode(ParticleLibrary Library, FxNode Node, string OldName, string NewName)
+        : EditorAction
+    {
+        void Set(string current, string updated)
+        {
+            Node.NodeName = current;
+            Node.CRC = CrcTool.FLAleCrc(Node.NodeName);
+            Library.Nodes.Remove(Node.NodeName);
+            Node.NodeName = updated;
+            Node.CRC = CrcTool.FLAleCrc(Node.NodeName);
+            Library.Nodes.Add(Node.NodeName, Node);
+        }
+
+        public override void Commit() => Set(OldName, NewName);
+        public override void Undo() => Set(NewName, OldName);
+    }
+
     class RenameEffect(ParticleLibrary Library, ParticleEffect Effect,
         string OldName, string NewName)
         : EditorAction
@@ -238,6 +255,4 @@ partial class AleEditor
         public override void Commit() => Set(OldName, NewName);
         public override void Undo() => Set(NewName, OldName);
     }
-
-
 }

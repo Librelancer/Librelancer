@@ -61,6 +61,9 @@ public class Character : BaseEntity
     // Current ship archetype
     public string? Ship { get; set; }
 
+    // CRCs of ship parts destroyed on the current ship
+    public IReadOnlyList<uint> DestroyedParts { get; set; } = [];
+
     // Current faction affiliation
     public string? Affiliation { get; set; }
 

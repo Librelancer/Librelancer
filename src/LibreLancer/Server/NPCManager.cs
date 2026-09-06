@@ -142,7 +142,8 @@ namespace LibreLancer.Server
             int arrivalIndex,
             MissionRuntime? msn = null,
             bool registerNpc = true,
-            bool arrivalIndexReserved = false
+            bool arrivalIndexReserved = false,
+            IEnumerable<GameObject>? neutralTo = null
             )
         {
             var ship = World.Server.GameData.Items.Ships.Get(loadout.Archetype);
@@ -215,6 +216,11 @@ namespace LibreLancer.Server
             obj.AddComponent(new WeaponControlComponent(obj));
             obj.AddComponent(new SDestroyableComponent(obj, World));
             obj.AddComponent(new DirectiveRunnerComponent(obj));
+            if (neutralTo != null && obj.TryGetComponent<SRepComponent>(out var rep))
+            {
+                foreach (var neutralTarget in neutralTo)
+                    rep.SetAttitude(neutralTarget, RepAttitude.Neutral);
+            }
             // NPCs spawn already cloaked
             if (obj.TryGetComponent<CloakComponent>(out var cloak))
             {

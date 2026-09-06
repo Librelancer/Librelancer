@@ -15,7 +15,7 @@ namespace LibreLancer.Database.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
 
             modelBuilder.Entity("LibreLancer.Entities.Character.Account", b =>
                 {
@@ -113,6 +113,10 @@ namespace LibreLancer.Database.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.PrimitiveCollection<string>("DestroyedParts")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<long>("FightersKilled")

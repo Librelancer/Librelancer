@@ -221,7 +221,7 @@ public static class ModelExporter
         }
         if (settings.IncludeHulls && sur != null)
         {
-            var hulls = sur.GetMesh(new ConvexMeshId(is3db ? 0 : CrcTool.FLModelCrc(node.Name), 0));
+            var hulls = sur.GetMesh(new ConvexShapeId(is3db ? 0 : CrcTool.FLModelCrc(node.Name), 0));
             for (int i = 0; i < hulls.Length; i++)
             {
                 var surnode = new ModelNode

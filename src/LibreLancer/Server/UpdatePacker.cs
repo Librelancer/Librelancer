@@ -56,7 +56,7 @@ public class UpdatePacker
             packet.Tick = tick;
             packet.OldTick = oldTick;
             packet.InputSequence = self.LatestReceived;
-            packet.SetAuthState(authState, oldState, tick);
+            packet.SetAuthState(authState, oldState);
 
             maxPacketSize -= packet.DataSize;
 

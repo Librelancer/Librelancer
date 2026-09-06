@@ -25,7 +25,7 @@ namespace LancerEdit
 
         public override string Title { get; set; } = "Create new .txm Document";
         public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.Modal;
-        public override Vector2 InitSize => new Vector2(450, 555);
+        public override Vector2 InitSize => new Vector2(450, 555) * ImGuiHelper.Scale;
 
         static readonly float LABEL_WIDTH = 125f;
         static readonly float BUTTON_WIDTH = 110f;
@@ -115,7 +115,7 @@ namespace LancerEdit
             ImGui.AlignTextToFramePadding();
             ImGui.Text("Grid size"); ImGui.SameLine(LABEL_WIDTH * ImGuiHelper.Scale);
             ImGui.InputInt2("##gridSize", ref gridSize, ImGuiInputTextFlags.None);
-            
+
             ImGui.Spacing();
         }
         void DrawMipsFileSelect()
@@ -180,7 +180,7 @@ namespace LancerEdit
 
                         showTextureImportPopup = true;
                         requestOpenTextureImportPopup = true;
-                        
+
                     }
                 });
             }
@@ -380,9 +380,9 @@ namespace LancerEdit
             mipNodeChildren.ForEach(e => {
                 e.Parent = mipsNode;
                 mipsNode.Children.Add(e);
-            });  
+            });
             textureLibraryNode.Children.Add(mipsNode);
-            
+
             var TexRectNode = new LUtfNode() { Name = $"{_nodeName}", Children = new List<LUtfNode>(), Parent= textureLibraryNode };
             TexRectNode.Children.Add(LUtfNode.IntNode(TexRectNode, "Texture count", textureCount));
             TexRectNode.Children.Add(LUtfNode.IntNode(TexRectNode, "Frame count", frameCount));

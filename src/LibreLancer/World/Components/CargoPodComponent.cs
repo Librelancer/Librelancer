@@ -36,16 +36,6 @@ public class CargoPodComponent : GameComponent
         this.world = null;
     }
 
-    private Vector3 RandomDirection()
-    {
-        var direction = new Vector3(
-            (random.NextSingle() * 2) - 1,
-            (random.NextSingle() * 2) - 1,
-            (random.NextSingle() * 2) - 1);
-
-        return direction.LengthSquared() > float.Epsilon ? direction.Normalized() : Vector3.UnitY;
-    }
-
     private void OnKilled(GameObject? attacker)
     {
         var currentWorld = world;
@@ -67,7 +57,7 @@ public class CargoPodComponent : GameComponent
                 var count = Math.Min(remaining, UnitsPerDroppedContainer);
                 remaining -= count;
 
-                var direction = RandomDirection();
+                var direction = random.NextUnitVector();
                 var offset = direction * (2 + (random.NextSingle() * 4));
                 var impulse = direction * (40 + (random.NextSingle() * 60));
                 currentWorld.Server.SpawnLoot(crate, cargo.Item, count,

@@ -47,7 +47,7 @@ namespace LibreLancer.Fx
 			return FxRandom.NextFloat(s_min, s_max);
 		}
 
-        protected override void SetParticle(EmitterReference reference, ref Particle particle, float sparam, float globaltime)
+        protected override void SetParticle(ParticleEffectInstance instance, EmitterReference reference, ref Particle particle, float sparam, float globaltime)
 		{
 			var r_min = MinRadius.GetValue(sparam, 0);
 			var r_max = MaxRadius.GetValue(sparam, 0);
@@ -58,11 +58,16 @@ namespace LibreLancer.Fx
 
 			var n = RandomInCone(s_min, s_max);
 
-            if (DoTransform(reference, sparam, globaltime, out var translate, out var rotate))
+            var p = n * radius;
+
+            ref Matrix4x4 particleSpawnTransform = ref instance.EmitterParticleSpawnTransforms[reference.EmitterNodeIdx];
+            if (!particleSpawnTransform.IsIdentity)
             {
-                n = Vector3.Transform(n, rotate);
+                //TODO: Opimize
+                p=Vector3.Transform(p, particleSpawnTransform);
+                n=Vector3.TransformNormal(n, particleSpawnTransform);
             }
-            var p = n * radius + translate;
+
 			n *= Pressure!.GetValue(sparam, 0);
             particle.Position = p;
             particle.Velocity = n;

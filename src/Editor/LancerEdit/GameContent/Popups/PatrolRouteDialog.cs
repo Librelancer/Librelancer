@@ -13,7 +13,7 @@ namespace LancerEdit.GameContent.Popups;
 public class PatrolRouteDialog : PopupWindow
 {
     public override string Title { get; set; } = "Patrol Route Configuration";
-    public override Vector2 InitSize => new Vector2(400, 500);
+    public override Vector2 InitSize => new Vector2(400, 500) * ImGuiHelper.Scale;
 
     // Patrol route parameters
     private string pathLabel = "";

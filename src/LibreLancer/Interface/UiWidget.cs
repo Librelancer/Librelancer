@@ -119,7 +119,7 @@ namespace LibreLancer.Interface
             UpdateAnimation(delta);
         }
 
-        private static TextAlignment CastAlign(HorizontalAlignment h)
+        protected static TextAlignment CastAlign(HorizontalAlignment h)
         {
             if (h == HorizontalAlignment.Center)
             {
@@ -149,7 +149,7 @@ namespace LibreLancer.Interface
             var lineHeight = context.RenderContext.Renderer2D.LineHeight(fnt, size);
             return context.PixelsToPoints(lineHeight);
         }
-        
+
         protected Vector2 MeasureText(
             UiContext context,
             ref CachedRenderString? cache,

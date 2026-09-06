@@ -10,7 +10,7 @@ public sealed class BanPopup : PopupWindow
     public override string Title { get; set; }
     public override ImGuiWindowFlags WindowFlags => ImGuiWindowFlags.NoCollapse;
     public override bool NoClose => true;
-    public override Vector2 InitSize => new Vector2(400, 300);
+    public override Vector2 InitSize => new Vector2(400, 300) * ImGuiHelper.Scale;
 
     private readonly string playerName;
     private readonly Action<DateTime?> callback;

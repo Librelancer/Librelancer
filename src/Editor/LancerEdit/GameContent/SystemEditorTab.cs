@@ -77,7 +77,7 @@ public class SystemEditorTab : GameContentTab
         SaveStrategy = new StarSystemSaveStrategy(this);
         this.Data = gameData;
         viewport = new Viewport3D(mw);
-        viewport.EnableMSAA = false; //MSAA handled by SystemRenderer
+        viewport.EnableAntiAliasing = false; //MSAA handled by SystemRenderer
         viewport.DefaultOffset = new Vector3(0, 0, 4);
         viewport.ModelScale = 1000f;
         cameraMode = mw.Config.DefaultSysEditCameraMode;
@@ -1367,6 +1367,12 @@ public class SystemEditorTab : GameContentTab
         StarsphereProp("Layer 3", CurrentSystem.StarsNebula, x =>
             UndoBuffer.Commit(new SysDataSetStars(CurrentSystem, CurrentSystem.StarsNebula, x, "Nebula", this)));
         Controls.EndEditorTable();
+        ImGui.PushStyleVar(ImGuiStyleVar.SeparatorTextBorderSize, 1);
+        ImGui.SeparatorText("Statistics");
+        ImGui.PopStyleVar();
+        ImGui.Text($"{ObjectsList.Objects.Count} Objects");
+        ImGui.Text($"{ZoneList.Zones.Count} Zones");
+        ImGui.Text($"{LightsList.Sources.Count} Lights");
     }
 
     private static readonly Color4[] zoneColors = new Color4[]

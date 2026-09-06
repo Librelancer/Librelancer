@@ -1,5 +1,6 @@
 #include "includes/Camera.hlsl"
 #include "includes/Transforms.hlsl"
+#include "includes/Lighting.hlsl"
 
 struct VSInput
 {

@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using LibreLancer.Data;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Items;
 using LibreLancer.Data.GameData.Market;
+using LibreLancer.Data.GameData.RandomMissions;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.Schema.Equipment;
 using LibreLancer.Entities.Character;
 using LibreLancer.Net.Protocol;
+using LibreLancer.Server.RandomMissions;
 using LibreLancer.World;
 
 namespace LibreLancer.Server;
@@ -19,11 +20,162 @@ public class BasesidePlayer : IBasesidePlayer
 {
     public Player Player;
     public Base? BaseData;
+    private readonly List<GeneratedRandomMission> generatedMissions = [];
+    public NetMissionOffer[] NetMissionOffers = [];
+    private bool generatedMissionOffers;
 
     public BasesidePlayer(Player player, Base baseData)
     {
         BaseData = baseData;
         Player = player;
+        GenerateMissionOffers("bar");
+    }
+
+    public void GenerateMissionOffers(string? roomNickname)
+    {
+        if (BaseData == null || generatedMissionOffers)
+            return;
+
+        generatedMissions.Clear();
+        generatedMissionOffers = true;
+        var offers = Player.Game.GameData.Items.GetRandomMissionOffers(BaseData, roomNickname: roomNickname);
+        var systemIdsName = Player.Game.GameData.Items.Systems.Get(BaseData.System)?.IdsName ?? 0;
+        var generatedOffers = new List<(RandomMissionOffer Offer, GeneratedRandomMission Mission)>();
+        var random = Random.Shared;
+        foreach (var offer in offers)
+        {
+            if (!RandomMissionGenerator.TryGenerate(Player.Game.GameData, offer, Player.Story?.MissionNum, out var generated))
+                continue;
+            generatedOffers.Add((offer, generated));
+        }
+
+        var selectedOffers = SelectMissionOffers(
+            generatedOffers,
+            GetMissionOfferCount(BaseData, generatedOffers.Count, random),
+            random);
+        generatedMissions.AddRange(selectedOffers);
+        NetMissionOffers = selectedOffers
+            .Select(x => CreateNetMissionOffer(x, systemIdsName))
+            .ToArray();
+    }
+
+    static int GetMissionOfferCount(Base baseData, int availableCount, Random random)
+    {
+        if (availableCount <= 0)
+            return 0;
+
+        var min = Math.Clamp(baseData.MinMissionOffers, 0, availableCount);
+        var max = baseData.MaxMissionOffers > 0
+            ? Math.Clamp(baseData.MaxMissionOffers, min, availableCount)
+            : availableCount;
+        if (min == 0 && max > 0)
+            min = 1;
+        return min == max ? min : random.Next(min, max + 1);
+    }
+
+    static List<GeneratedRandomMission> SelectMissionOffers(
+        List<(RandomMissionOffer Offer, GeneratedRandomMission Mission)> candidates,
+        int count,
+        Random random)
+    {
+        var selected = new List<GeneratedRandomMission>();
+        var deferred = new List<GeneratedRandomMission>();
+        var available = new List<(RandomMissionOffer Offer, GeneratedRandomMission Mission)>(candidates);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        while (selected.Count < count && available.Count > 0)
+        {
+            var index = WeightedPick(available, random);
+            var candidate = available[index];
+            available.RemoveAt(index);
+
+            var key = string.Join("|",
+                candidate.Offer.Faction?.Nickname,
+                candidate.Mission.MissionType,
+                candidate.Mission.Parameters.HostileFaction.Nickname,
+                MissionLocationKey(candidate.Mission));
+            if (seen.Add(key))
+            {
+                selected.Add(candidate.Mission);
+            }
+            else
+            {
+                deferred.Add(candidate.Mission);
+            }
+        }
+
+        for (int i = 0; selected.Count < count && i < deferred.Count; i++)
+            selected.Add(deferred[i]);
+        return selected;
+    }
+
+    static int WeightedPick(List<(RandomMissionOffer Offer, GeneratedRandomMission Mission)> candidates, Random random)
+    {
+        var total = candidates.Sum(OfferWeight);
+        var choice = random.NextSingle() * total;
+        var cumulative = 0f;
+        for (int i = 0; i < candidates.Count; i++)
+        {
+            cumulative += OfferWeight(candidates[i]);
+            if (choice <= cumulative)
+                return i;
+        }
+        return candidates.Count - 1;
+    }
+
+    static float OfferWeight((RandomMissionOffer Offer, GeneratedRandomMission Mission) item) =>
+        Math.Max(0.0001f, item.Offer.Weight);
+
+    static string MissionLocationKey(GeneratedRandomMission mission)
+    {
+        return mission.TargetLocation switch
+        {
+            Zone z => $"zone:{z.Nickname}:{z.IdsName}",
+            Base b => $"base:{b.Nickname}:{b.IdsName}",
+            SystemObject o => $"object:{o.Nickname}:{o.IdsName}",
+            NamedItem n => $"item:{n.Nickname}:{n.IdsName}",
+            IdsArgument i => $"ids:{i.Category}:{i.Ids}",
+            StringArgument s => $"string:{s.Category}:{s.Value}",
+            _ => $"target-zone:{mission.Parameters.TargetZone.Nickname}"
+        };
+    }
+
+    public void AcceptMissionOffer(int id)
+    {
+        var idx = generatedMissions.FindIndex(x => x.Id == id);
+        if (idx < 0)
+        {
+            FLLog.Warning("RandomMissions",
+                $"{Player.Name} tried to accept unknown random mission seed {id}");
+            return;
+        }
+        var mission = generatedMissions[idx];
+        Player.StartRandomMission(mission, CreateNetMissionOffer(mission));
+        ClearMissionOffers();
+    }
+
+    NetMissionOffer CreateNetMissionOffer(GeneratedRandomMission mission, int? systemIdsName = null)
+    {
+        var idsName = systemIdsName ??
+            mission.Parameters.DestinationSystem?.IdsName ?? 0;
+        return new NetMissionOffer
+        {
+            Id = mission.Id,
+            //NpcIdsName = mission.Offer.Npc.IndividualName, 0
+            FactionIdsName = mission.Parameters.OfferFaction?.IdsName ?? 0,
+            SystemIdsName = idsName,
+            Reward = mission.Parameters.Reward,
+            MissionType = mission.MissionType,
+            OfferText = mission.OfferText,
+            TargetName = mission.TargetName
+        };
+    }
+
+    public void ClearMissionOffers()
+    {
+        generatedMissions.Clear();
+        generatedMissionOffers = false;
+        NetMissionOffers = [];
     }
 
     private string? FirstAvailableHardpoint(string? hptype)
@@ -62,8 +214,22 @@ public class BasesidePlayer : IBasesidePlayer
         return false;
     }
 
+    private static Equipment? GetBundledAmmo(Equipment equipment)
+    {
+        if (equipment is MissileLauncherEquipment launcher && launcher.Munition.Def.RequiresAmmo)
+            return launcher.Munition;
+
+        if (equipment is MineDropperEquipment mine && mine.Mine?.Def.RequiresAmmo == true)
+            return mine.Mine!;
+
+        return null;
+    }
+
     public Task<bool> PurchaseGood(string item, int count)
     {
+        if (count <= 0)
+            return Task.FromResult(false);
+
         if (BaseData == null)
         {
             return Task.FromResult(false);
@@ -77,6 +243,11 @@ public class BasesidePlayer : IBasesidePlayer
             return Task.FromResult(false);
         }
 
+        var equipment = g.Good.Equipment;
+        var bundledAmmo = GetBundledAmmo(equipment);
+        const int bundledAmmoPerLauncher = 10;
+        var bundledAmmoCount = 0;
+
         var cost = (long) (g.Price * (ulong) count);
 
         if (Player.Character!.Credits < cost)
@@ -85,26 +256,53 @@ public class BasesidePlayer : IBasesidePlayer
         }
 
         var hp = count == 1
-            ? FirstAvailableHardpoint(g.Good.Equipment.HpType)
+            ? FirstAvailableHardpoint(equipment.HpType)
             : null;
 
         if (hp == null &&
-            count > CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship!, g.Good.Equipment))
+            count > CargoUtilities.GetItemLimit(Player.Character.Items, Player.Character.Ship!, equipment))
         {
             FLLog.Error("Player", $"{Player.Name} tried to overfill cargo hold");
             return Task.FromResult(false);
+        }
+
+        if (bundledAmmo != null)
+        {
+            var ammoCount = (long) bundledAmmoPerLauncher * count;
+            if (ammoCount > int.MaxValue)
+                return Task.FromResult(false);
+
+            var itemsAfterLauncher = Player.Character.Items;
+            if (hp == null)
+            {
+                itemsAfterLauncher = new List<NetCargo>(Player.Character.Items)
+                {
+                    new NetCargo { Equipment = equipment, Count = count }
+                };
+            }
+
+            bundledAmmoCount = (int) ammoCount;
+            if (bundledAmmoCount > CargoUtilities.GetItemLimit(
+                    itemsAfterLauncher, Player.Character.Ship!, bundledAmmo))
+            {
+                FLLog.Error("Player", $"{Player.Name} tried to overfill cargo hold with bundled ammunition");
+                return Task.FromResult(false);
+            }
         }
 
         using (var c = Player.Character.BeginTransaction())
         {
             if (hp != null)
             {
-                c.AddCargo(g.Good.Equipment, hp, 1);
+                c.AddCargo(equipment, hp, 1);
             }
             else
             {
-                c.AddCargo(g.Good.Equipment, null, count);
+                c.AddCargo(equipment, null, count);
             }
+
+            if (bundledAmmo != null)
+                c.AddCargo(bundledAmmo, null, bundledAmmoCount);
 
             c.UpdateCredits(Player.Character.Credits - cost);
         }
@@ -383,7 +581,7 @@ public class BasesidePlayer : IBasesidePlayer
             volume += item.Equipment!.Volume * (item.Count - soldAmount);
         }
 
-        volume += included.OfType<PackageAddon>().Sum(item => item.Equipment.Volume * item.Amount);
+        volume += included.OfType<SaleAddon>().Sum(item => item.Equipment.Volume * item.Amount);
 
         if (volume > resolved.Ship.HoldSize)
         {
@@ -446,7 +644,7 @@ public class BasesidePlayer : IBasesidePlayer
             c.UpdateCredits(Player.Character.Credits - shipPrice);
         }
 
-        Player.UpdateCurrentInventory();
+        Player.UpdateCurrentInventory(resetDestroyedParts: true);
         // Success
         return Task.FromResult(shipPrice < 0 ? ShipPurchaseStatus.SuccessGainCredits : ShipPurchaseStatus.Success);
     }

@@ -12,6 +12,7 @@ namespace LibreLancer.Data.GameData;
 public class Archetype : IdentifiableItem
 {
     public ResolvedModel? ModelFile;
+    public string? EnvMapMaterial;
     public string? NavmapIcon;
     public ObjectLoadout? Loadout;
     public ArchetypeType Type;
@@ -20,6 +21,7 @@ public class Archetype : IdentifiableItem
     public List<SeparablePart> SeparableParts = [];
     public float SolarRadius;
     public float Hitpoints;
+    public bool PhantomPhysics;
 
     public bool CanVisit => Type switch
     {

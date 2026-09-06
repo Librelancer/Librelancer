@@ -121,6 +121,7 @@ public static class SurfaceBuilder
 
         parts[0].Dynamic = true;
         var result = new SurFile() { Surfaces = parts };
+        //result.Convert(); LATER: Store optimised hulls in .sur
         if (!VerifyWriteSur(result))
             warnings.Add(EditMessage.Warning("Verify writing sur failed"));
         return new EditResult<SurFile>(result, warnings);

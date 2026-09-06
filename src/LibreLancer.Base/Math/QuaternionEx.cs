@@ -2,14 +2,19 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
+using System;
 using System.Numerics;
 
 namespace LibreLancer;
 
-public class QuaternionEx
+public static class QuaternionEx
 {
     public static Quaternion LookAt(Vector3 sourcePoint, Vector3 destPoint)
     {
+        if (MathF.Abs((sourcePoint - destPoint).LengthSquared()) < float.Epsilon)
+        {
+            return Quaternion.Identity;
+        }
         var forwardVector = Vector3.Normalize(destPoint - sourcePoint);
 
         float dot = Vector3.Dot(-Vector3.UnitZ, forwardVector);

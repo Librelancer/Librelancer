@@ -22,7 +22,7 @@ namespace LibreLancer.Interface
         {
             foreach (var e in Elements)
             {
-                e.Render(context, drawList, rectangle, tint ?? Color4.White);
+                e.Draw(context, drawList, rectangle, tint ?? Color4.White);
             }
         }
 
@@ -48,8 +48,21 @@ namespace LibreLancer.Interface
 
     public class DisplayElement
     {
+        public Metric X { get; set; }
+        public Metric Y { get; set; }
+        public Metric Width { get; set; } = Metric.HundredPercent;
+        public Metric Height { get; set; } = Metric.HundredPercent;
         public bool Enabled = true;
-        public virtual void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 color)
+
+        public void Draw(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 color)
+        {
+            var x = clientRectangle.X + X.ToPoint(clientRectangle, MetricAxis.X);
+            var y = clientRectangle.Y + Y.ToPoint(clientRectangle, MetricAxis.Y);
+            var w = Width.ToPoint(clientRectangle, MetricAxis.X);
+            var h = Height.ToPoint(clientRectangle, MetricAxis.Y);
+            Render(context, drawList, new(x,y,w,h), color);
+        }
+        protected virtual void Render(UiContext context, DrawList2D drawList, RectangleF clientRectangle, Color4 color)
         {
         }
     }

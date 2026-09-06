@@ -22,9 +22,9 @@ public partial class DynamicAsteroids
     [Entry("placement_offset")]
     public int PlacementOffset;
     [Entry("max_velocity")]
-    public int MaxVelocity;
+    public int? MaxVelocity;
     [Entry("max_angular_velocity")]
-    public int MaxAngularVelocity;
+    public int? MaxAngularVelocity;
     [Entry("color_shift")]
     public Vector3 ColorShift;
 }

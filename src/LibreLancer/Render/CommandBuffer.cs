@@ -57,7 +57,8 @@ namespace LibreLancer.Render
             float z = 0,
             DfmSkinning? skinning = null,
             int offset = 0,
-            int userData = 0)
+            int userData = 0,
+            string? envMap = null)
 		{
             if (count == 0)
             {
@@ -78,7 +79,8 @@ namespace LibreLancer.Render
                     Type = RenderCommand.MakeType(RenderCmdType.Material, primitive),
                     World = world,
                     UserData = userData,
-                    Hash = Unsafe.BitCast<float,int>(opacity)
+                    Hash = Unsafe.BitCast<float,int>(opacity),
+                    EnvMap = envMap
                 };
 			}
 			else
@@ -95,6 +97,7 @@ namespace LibreLancer.Render
                 material.MaterialAnim = anim;
                 material.World = world;
                 material.Use(rstate, buffer.VertexType, ref lights, userData);
+                material.EnvMap = envMap;
                 if (material.DoubleSided) {
                     rstate.Cull = false;
                 }
@@ -283,6 +286,7 @@ namespace LibreLancer.Render
 		public int Hash;
 		public int Index;
         public int UserData;
+        public string? EnvMap;
 
         public RenderCmdType CmdType => (RenderCmdType) (Type >> 4);
         public PrimitiveTypes Primitive => (PrimitiveTypes) (Type & 0xF);
@@ -305,6 +309,7 @@ namespace LibreLancer.Render
 				Material.MaterialAnim = MaterialAnim;
 				Material.World = World;
                 Material.OpacityMultiplier = 1;
+                Material.EnvMap = EnvMap;
                 if (CmdType == RenderCmdType.MaterialFade)
 				{
 					Material.Fade = true;

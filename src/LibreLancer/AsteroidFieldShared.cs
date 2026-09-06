@@ -9,7 +9,9 @@ using System.Runtime.CompilerServices;
 namespace LibreLancer
 {
 	public static class AsteroidFieldShared
-	{
+    {
+        public static readonly float DynamicAsteroidMass = 1.5f;
+
         public static Vector3 GetCloseCube(Vector3 cameraPos, int cubeSize)
         {
             var posX = (int) (cameraPos.X < 0 ? cameraPos.X - 0.1f : cameraPos.X + 0.1f);
