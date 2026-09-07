@@ -43,7 +43,8 @@ public class ModelImageRenderer
         lighting.Lights.SourceEnabled[1] = true;
         lighting.NumberOfTilesX = -1;
     }
-    public static void RenderToPng(GameResourceManager resources, RigidModel model, int width, int height, string outfile)
+
+    public static void RenderToPng(GameResourceManager resources, RigidModel model, int width, int height, string outfile, AntialiasMode aaMode = AntialiasMode.None)
     {
         //Set up state
         var renderContext = resources.GLWindow.RenderContext;
@@ -51,7 +52,12 @@ public class ModelImageRenderer
         var restoreTarget = renderContext.RenderTarget;
         var renderTarget = new RenderTarget2D(resources.GLWindow.RenderContext, width, height);
 
-        renderContext.RenderTarget = renderTarget;
+        //Set antialiasing if asked
+        AntialiasTarget aaRenderTarget = null;
+        if (aaMode != AntialiasMode.None && aaMode <= renderContext.MaxAntialias)
+            aaRenderTarget = new AntialiasTarget(renderContext, width, height, aaMode);
+
+        renderContext.RenderTarget = aaRenderTarget != null ? aaRenderTarget : renderTarget;
         renderContext.PushViewport(0,0,width,height);
         renderContext.ClearColor = Color4.Transparent;
         renderContext.ClearAll();
@@ -75,7 +81,13 @@ public class ModelImageRenderer
         renderContext.DepthWrite = false;
         commandBuffer.DrawTransparent(renderContext);
         renderContext.DepthWrite = true;
+
         //Clean state
+        if (aaRenderTarget != null)
+        {
+            aaRenderTarget.BlitToRenderTarget(renderTarget); // blit into the plain target
+            aaRenderTarget.Dispose();
+        }
         renderContext.PopViewport();
         renderContext.RenderTarget = restoreTarget;
         commandBuffer.Dispose();
