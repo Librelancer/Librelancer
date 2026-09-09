@@ -222,6 +222,10 @@ public class BasesidePlayer : IBasesidePlayer
         if (equipment is MineDropperEquipment mine && mine.Mine?.Def.RequiresAmmo == true)
             return mine.Mine!;
 
+        if (equipment is CountermeasureEquipment countermeasure &&
+            countermeasure.Munition?.Def.RequiresAmmo == true)
+            return countermeasure.Munition;
+
         return null;
     }
 

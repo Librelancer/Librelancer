@@ -294,10 +294,24 @@ namespace LibreLancer.Client
                     return categoryCompare;
                 }
 
-                var classCompare = GetEquipmentClass(session, x).CompareTo(GetEquipmentClass(session, y));
-                if (classCompare != 0)
+                if (UsesAlphabeticalSort(filter))
                 {
-                    return classCompare;
+                    var nameCompare = string.Compare(
+                        session.Game.GameData.GetString(x.IdsName) ?? "Z",
+                        session.Game.GameData.GetString(y.IdsName) ?? "Z",
+                        StringComparison.Ordinal);
+                    if (nameCompare != 0)
+                    {
+                        return nameCompare;
+                    }
+                }
+                else
+                {
+                    var classCompare = GetEquipmentClass(session, x).CompareTo(GetEquipmentClass(session, y));
+                    if (classCompare != 0)
+                    {
+                        return classCompare;
+                    }
                 }
 
                 var priceCompare = x.Price.CompareTo(y.Price);
@@ -329,6 +343,10 @@ namespace LibreLancer.Client
 
         private static uint GetGoodSortId(string? good) =>
             string.IsNullOrEmpty(good) ? uint.MaxValue : FLHash.CreateID(good);
+
+        private static bool UsesAlphabeticalSort(string? filter) =>
+            string.Equals(filter, "commodity", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(filter, "internal", StringComparison.OrdinalIgnoreCase);
 
         private static int GetSortCategory(string? filter, UIInventoryItem item)
         {
