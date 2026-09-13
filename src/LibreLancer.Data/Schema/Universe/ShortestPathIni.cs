@@ -14,7 +14,7 @@ public partial class ShortestPathIni
     public void AddFile(string path, FileSystem vfs) => ParseIni(path, vfs);
 }
 
-public record ShortestPathEntry(string? Start, string? End, string[] Hops);
+public record ShortestPathEntry(string Start, string End, string[] Hops);
 
 [ParsedSection]
 public partial class SystemConnections

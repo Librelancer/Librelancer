@@ -21,12 +21,11 @@ public class AudioImportInfo
     public int Samples;
     public int TotalMp3Bytes = -1;
     public LdFormat PcmFormat;
-    public byte[] Data;
+    public byte[]? Data;
 }
 
 public static class AudioImporter
 {
-
     static int GetByteLength(AudioDecoder audio)
     {
         int totalBytes = 0;
@@ -55,7 +54,7 @@ public static class AudioImporter
             info.TotalMp3Bytes = GetByteLength(decoder);
     }
 
-    public static AudioImportInfo Analyze(Stream stream, bool includeData = false)
+    public static AudioImportInfo? Analyze(Stream stream, bool includeData = false)
     {
         try
         {
@@ -120,16 +119,17 @@ public static class AudioImporter
         {
             var reader = new BinaryReader(new MemoryStream(src));
             Span<byte> tag = stackalloc byte[4];
-            reader.Read(tag);
+            if (reader.Read(tag) < 4)
+                return EditResult<byte[]>.Error("Failed to read file");
             if (!tag.SequenceEqual("RIFF"u8))
                 return src.AsResult();
             reader.Skip(4);
-            reader.Read(tag);
-            if (!tag.SequenceEqual("WAVE"u8))
+            if (reader.Read(tag) < 4|| !tag.SequenceEqual("WAVE"u8))
                 return EditResult<byte[]>.Error("Failed to read RIFF file");
             while (true)
             {
-                reader.Read(tag);
+                if(reader.Read(tag) < 4)
+                    return EditResult<byte[]>.Error("Failed to read RIFF file");
                 if (tag.SequenceEqual("data"u8))
                 {
                     var sz = reader.ReadInt32();

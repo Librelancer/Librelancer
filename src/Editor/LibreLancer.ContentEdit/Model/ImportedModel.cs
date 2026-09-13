@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -10,23 +11,21 @@ using LibreLancer.Utf.Anm;
 using LibreLancer.Utf.Cmp;
 using LibreLancer.Utf.Vms;
 using LibreLancer.World;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using SimpleMesh;
 
 namespace LibreLancer.ContentEdit.Model;
 
-public class ImportedModel
+public class ImportedModel(string name, string copyright, ImportedModelNode root)
 {
-    public string Name;
-    public string Copyright;
-    public ImportedModelNode Root;
-    public Dictionary<string, ImageData> Images;
-    public Animation[] ImportAnimations;
+    public string Name = name;
+    public string Copyright = copyright;
+    public ImportedModelNode Root = root;
+    public Dictionary<string, ImageData> Images = new();
+    public Animation[] ImportAnimations = [];
 
     public static EditResult<ImportedModel> FromSimpleMesh(string name, SimpleMesh.Model input)
     {
-        Dictionary<string, ModelNode[]> autodetect = new Dictionary<string,ModelNode[]>(StringComparer.InvariantCultureIgnoreCase);
+        Dictionary<string, ModelNode?[]> autodetect = new(StringComparer.InvariantCultureIgnoreCase);
         foreach (var obj in input.Roots)
         {
             var res = GetLods(obj, autodetect);
@@ -45,17 +44,16 @@ public class ImportedModel
         if (nodes.Count == 0) {
             return EditResult<ImportedModel>.Error("Could not find root model");
         }
-        if (nodes[0].Def == null)
+        if (nodes[0].Def?.Geometry == null)
         {
             return EditResult<ImportedModel>.Error("Model root must be a mesh");
         }
-        if(nodes[0].Def.Geometry?.Kind == GeometryKind.Lines)
+        if(nodes[0].Def!.Geometry!.Kind == GeometryKind.Lines)
             return EditResult<ImportedModel>.Error("Root mesh cannot be wireframe");
         var geo = CheckGeometries(nodes[0]);
         if (geo.IsError)
             return new EditResult<ImportedModel>(null, geo.Messages);
-        var m = new ImportedModel()
-            { Name = name, Root = nodes[0], Images = input.Images, Copyright = input.Copyright ?? "" };
+        var m = new ImportedModel(name, input.Copyright ?? "", nodes[0]) { Images = input.Images, Copyright = input.Copyright ?? "" };
         //Set up root
         m.Root.Construct = null;
         HashSet<string> usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -63,19 +61,17 @@ public class ImportedModel
         usedNames.Add("Root");
         foreach (var child in m.Root.Children)
         {
-            child.Construct.ParentName = "Root";
+            child.Construct!.ParentName = "Root";
             CheckDuplicateNaming(child, usedNames, warnings);
         }
 
-        if (input.Animations != null) {
-            m.ImportAnimations = input.Animations.Where(x => !"<Default>".Equals(x.Name, StringComparison.OrdinalIgnoreCase)).ToArray();
-            var defAnim =
-                input.Animations.FirstOrDefault(x => "<Default>".Equals(x.Name, StringComparison.OrdinalIgnoreCase));
-            if (defAnim != null)
-            {
-                foreach (var child in m.Root.Children)
-                    ApplyDefaultPose(defAnim, child);
-            }
+        m.ImportAnimations = input.Animations.Where(x => !"<Default>".Equals(x.Name, StringComparison.OrdinalIgnoreCase)).ToArray();
+        var defAnim =
+            input.Animations.FirstOrDefault(x => "<Default>".Equals(x.Name, StringComparison.OrdinalIgnoreCase));
+        if (defAnim != null)
+        {
+            foreach (var child in m.Root.Children)
+                ApplyDefaultPose(defAnim, child);
         }
 
         return new EditResult<ImportedModel>(m, warnings);
@@ -95,7 +91,7 @@ public class ImportedModel
             usedNames.Add(n.Name);
         }
         foreach (var child in n.Children) {
-            child.Construct.ParentName = n.Name;
+            child.Construct!.ParentName = n.Name;
             CheckDuplicateNaming(child, usedNames, warnings);
         }
     }
@@ -104,7 +100,7 @@ public class ImportedModel
     {
         if (node.Def != null)
         {
-            if (node.Def.Geometry.Indices.Length > ushort.MaxValue)
+            if (node.Def.Geometry!.Indices.Length > ushort.MaxValue)
             {
                 return EditResult<bool>.Error($"Node {node.Name ?? "(noname)"} has >65535 indices");
             }
@@ -132,7 +128,7 @@ public class ImportedModel
         var rot = anm.Rotations.FirstOrDefault(x => x.Target.Equals(node.Name, StringComparison.OrdinalIgnoreCase));
         if (tr != null || rot != null)
         {
-            var con = node.Construct.Clone();
+            var con = node.Construct!.Clone();
             var p = tr != null ? tr.Keyframes[0].Translation : con.Origin;
             var r = rot != null
                 ? rot.Keyframes[0].Rotation
@@ -157,7 +153,7 @@ public class ImportedModel
                 node.Name.EndsWith("$hull"));
     }
 
-    static bool GetHardpoint(ModelNode node, out ImportedHardpoint hp)
+    static bool GetHardpoint(ModelNode node, [NotNullWhen(true)]out ImportedHardpoint? hp)
     {
         hp = null;
         PropertyValue pv;
@@ -194,7 +190,7 @@ public class ImportedModel
             hpdef = new FixedHardpointDefinition(node.Name) {Orientation = orientation, Position = position};
         }
 
-        hp = new ImportedHardpoint() { Hardpoint = hpdef, Hulls = node.Children.Where(IsHull).ToList() };
+        hp = new ImportedHardpoint(hpdef) { Hulls = node.Children.Where(IsHull).ToList() };
         return true;
     }
 
@@ -329,19 +325,21 @@ public class ImportedModel
         };
     }
 
-    static EditResult<bool> AutodetectTree(ModelNode obj, List<ImportedModelNode> parent, string parentName, Dictionary<string,ModelNode[]> autodetect)
+    static EditResult<bool> AutodetectTree(ModelNode obj, List<ImportedModelNode> parent, string? parentName, Dictionary<string,ModelNode?[]> autodetect)
     {
         //Skip detected lods & hulls
         var num = LodNumber(obj, out _);
         if (num != 0 && num != NULL_GEOMETRY) return true.AsResult();
         if (IsHull(obj)) return true.AsResult();
         //Build tree
-        var mdl = new ImportedModelNode();
-        mdl.Name = obj.Name;
+        var mdl = new ImportedModelNode(obj.Name);
         if (obj.Name.EndsWith("$lod0", StringComparison.InvariantCultureIgnoreCase))
             mdl.Name = obj.Name.Remove(obj.Name.Length - 5, 5);
-        (mdl.Construct, mdl.ConstructPropertiesSet) = GetConstruct(obj, mdl.Name, parentName);
-        mdl.Construct?.Reset();
+        if (parentName != null)
+        {
+            (mdl.Construct, mdl.ConstructPropertiesSet) = GetConstruct(obj, mdl.Name, parentName);
+            mdl.Construct?.Reset();
+        }
         if (num != NULL_GEOMETRY) {
             var geometry = autodetect[mdl.Name];
             foreach (var g in geometry)
@@ -369,13 +367,12 @@ public class ImportedModel
         return true.AsResult();
     }
 
-    static EditResult<bool> GetLods(ModelNode obj, Dictionary<string,ModelNode[]> autodetect)
+    static EditResult<bool> GetLods(ModelNode obj, Dictionary<string,ModelNode?[]> autodetect)
     {
         string objn;
         var num = LodNumber(obj, out objn);
         if(num >= 0) {
-            ModelNode[] lods;
-            if(!autodetect.TryGetValue(objn, out lods)) {
+            if(!autodetect.TryGetValue(objn, out var lods)) {
                 lods = new ModelNode[10];
                 autodetect.Add(objn, lods);
             }
@@ -413,7 +410,7 @@ public class ImportedModel
 
     bool VerifyModelMaterials(ModelNode mn)
     {
-        if (mn != null && mn.Geometry.Groups.Any(x => string.IsNullOrWhiteSpace(x.Material.Name)))
+        if (mn.Geometry != null && mn.Geometry.Groups.Any(x => string.IsNullOrWhiteSpace(x.Material.Name)))
             return false;
         return true;
     }
@@ -424,7 +421,7 @@ public class ImportedModel
         {
             if (!VerifyModelMaterials(l)) return false;
         }
-        if (!VerifyModelMaterials(r.Def)) return false;
+        if (r.Def != null && !VerifyModelMaterials(r.Def)) return false;
         foreach(var child in r.Children)
             if (!VerifyMaterials(child))
                 return false;
@@ -454,9 +451,9 @@ public class ImportedModel
         //Vanity
         if (!string.IsNullOrWhiteSpace(Copyright))
         {
-            utf.Root.Children.Add(LUtfNode.StringNode(utf.Root, "Copyright", Copyright));
+            utf.Root.Children!.Add(LUtfNode.StringNode(utf.Root, "Copyright", Copyright));
         }
-        utf.Root.Children.Add(LUtfNode.StringNode(utf.Root, "Exporter Version",  "LancerEdit " + Platform.GetInformationalVersion<ImportedModel>()));
+        utf.Root.Children!.Add(LUtfNode.StringNode(utf.Root, "Exporter Version",  "LancerEdit " + Platform.GetInformationalVersion<ImportedModel>()));
         List<EditMessage> warnings = new List<EditMessage>();
 
         if (string.IsNullOrWhiteSpace(Name))
@@ -551,8 +548,8 @@ public class ImportedModel
     static void IterateMaterials(List<Material> materials, ImportedModelNode mdl)
     {
         foreach (var lod in mdl.LODs)
-        foreach (var dc in lod.Geometry.Groups)
-            if (dc.Material != null && !HasMat(materials, dc.Material))
+        foreach (var dc in lod.Geometry!.Groups)
+            if (!HasMat(materials, dc.Material))
                 materials.Add(dc.Material);
         foreach (var child in mdl.Children)
             IterateMaterials(materials, child);
@@ -560,10 +557,10 @@ public class ImportedModel
 
     class ConsBuilder
     {
-        public FixConstructor Fix;
-        public RevConstructor Rev;
-        public PrisConstructor Pris;
-        public SphereConstructor Sphere;
+        public FixConstructor? Fix;
+        public RevConstructor? Rev;
+        public PrisConstructor? Pris;
+        public SphereConstructor? Sphere;
     }
 
     void BuildNodeList(ImportedModelNode node, List<ImportedModelNode> allNodes)
@@ -576,7 +573,7 @@ public class ImportedModel
     void ProcessConstruct(ImportedModelNode mdl, LUtfNode cmpnd, ConsBuilder cons, string suffix,
         ref int index)
     {
-        cmpnd.Children.Add(CmpndNode(cmpnd, "PART_" + mdl.Name, mdl.Name + suffix, mdl.Name, index++));
+        cmpnd.Children!.Add(CmpndNode(cmpnd, "PART_" + mdl.Name, mdl.Name + suffix, mdl.Name, index++));
         switch (mdl.Construct)
         {
             case FixConstruct fix:
@@ -616,13 +613,13 @@ public class ImportedModel
     {
         var modelNode = new LUtfNode() {Parent = root, Name = model.Name + suffix};
         modelNode.Children = new List<LUtfNode>();
-        root.Children.Add(modelNode);
+        root.Children!.Add(modelNode);
         Export3DB(mdlName, modelNode, model, settings, vms);
         foreach (var child in model.Children)
             ExportModels(mdlName, root, suffix, vms, child, settings);
     }
 
-    static ushort[] GetIndicesForWire(Geometry lod, Geometry vmeshwire)
+    static ushort[]? GetIndicesForWire(Geometry lod, Geometry vmeshwire)
     {
         ushort[] newIndices = new ushort[vmeshwire.Indices.Length];
         for (int i = 0; i < vmeshwire.Indices.Length; i++)
@@ -660,7 +657,7 @@ public class ImportedModel
         return wireNode;
     }
 
-    static void Export3DB(string mdlName, LUtfNode node3db, ImportedModelNode mdl, ModelImporterSettings settings, LUtfNode vmeshlibrary = null)
+    static void Export3DB(string mdlName, LUtfNode node3db, ImportedModelNode mdl, ModelImporterSettings settings, LUtfNode? vmeshlibrary = null)
     {
         var vms = vmeshlibrary ?? new LUtfNode()
             { Name = "VMeshLibrary", Parent = node3db, Children = new List<LUtfNode>() };
@@ -668,23 +665,23 @@ public class ImportedModel
         {
             if (settings.AdvancedMaterials)
             {
-                if (mdl.LODs[i].Geometry.Groups.Any(x => x.Material.NormalTexture != null))
+                if (mdl.LODs[i].Geometry!.Groups.Any(x => x.Material.NormalTexture != null))
                 {
-                    mdl.LODs[i].Geometry.CalculateTangents();
+                    mdl.LODs[i].Geometry!.CalculateTangents();
                 }
             }
             var n = new LUtfNode()
             {
-                Name = $"{mdlName}-{mdl.Name}.lod{i}.{(int)GeometryWriter.FVF(mdl.LODs[i].Geometry, settings.AdvancedMaterials)}.vms",
+                Name = $"{mdlName}-{mdl.Name}.lod{i}.{(int)GeometryWriter.FVF(mdl.LODs[i].Geometry!, settings.AdvancedMaterials)}.vms",
                 Parent = vms
             };
             n.Children = new List<LUtfNode>();
             n.Children.Add(new LUtfNode()
-                    { Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(mdl.LODs[i].Geometry, settings.AdvancedMaterials) });
-            vms.Children.Add(n);
+                    { Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(mdl.LODs[i].Geometry!, settings.AdvancedMaterials) });
+            vms.Children!.Add(n);
         }
         if (vmeshlibrary == null && mdl.LODs.Count > 0)
-            node3db.Children.Add(vms);
+            node3db.Children!.Add(vms);
 
         if (mdl.LODs.Count > 1)
         {
@@ -697,13 +694,13 @@ public class ImportedModel
                 var n = new LUtfNode() {Name = "Level" + i, Parent = multilevel};
                 n.Children = new List<LUtfNode>();
                 n.Children.Add(new LUtfNode() {Name = "VMeshPart", Parent = n, Children = new List<LUtfNode>()});
-                n.Children[0].Children.Add(new LUtfNode()
+                n.Children[0].Children!.Add(new LUtfNode()
                 {
                     Name = "VMeshRef",
                     Parent = n.Children[0],
-                    Data = GeometryWriter.VMeshRef(mdl.LODs[i].Geometry,
+                    Data = GeometryWriter.VMeshRef(mdl.LODs[i].Geometry!,
                         string.Format("{0}-{1}.lod{2}.{3}.vms", mdlName, mdl.Name, i,
-                            (int) GeometryWriter.FVF(mdl.LODs[i].Geometry, settings.AdvancedMaterials)))
+                            (int) GeometryWriter.FVF(mdl.LODs[i].Geometry!, settings.AdvancedMaterials)))
                 });
                 multilevel.Children.Add(n);
             }
@@ -720,7 +717,7 @@ public class ImportedModel
 
             mlfloats[mlfloats.Length - 1] = 1000000;
             switch2.Data = UnsafeHelpers.CastArray(mlfloats);
-            node3db.Children.Add(multilevel);
+            node3db.Children!.Add(multilevel);
         }
         else if (mdl.LODs.Count == 0)
         {
@@ -732,7 +729,7 @@ public class ImportedModel
                 Parent = part,
                 Data = GeometryWriter.NullVMeshRef()
             });
-            node3db.Children.Add(part);
+            node3db.Children!.Add(part);
         }
         else
         {
@@ -742,29 +739,29 @@ public class ImportedModel
             {
                 Name = "VMeshRef",
                 Parent = part,
-                Data = GeometryWriter.VMeshRef(mdl.LODs[0].Geometry,
+                Data = GeometryWriter.VMeshRef(mdl.LODs[0].Geometry!,
                     string.Format("{0}-{1}.lod0.{2}.vms", mdlName, mdl.Name,
-                        (int) GeometryWriter.FVF(mdl.LODs[0].Geometry, settings.AdvancedMaterials)))
+                        (int) GeometryWriter.FVF(mdl.LODs[0].Geometry!, settings.AdvancedMaterials)))
             });
-            node3db.Children.Add(part);
+            node3db.Children!.Add(part);
         }
 
         if (mdl.Hardpoints.Count > 0)
         {
-            var hp = new ModelHpNode() {Node = node3db};
-            hp.HardpointsToNodes(mdl.Hardpoints.Select(x => new Hardpoint(x.Hardpoint, null)).ToList());
+            var hp = new ModelHpNode(node3db);
+            hp.HardpointsToNodes(mdl.Hardpoints.Select(x => new Hardpoint(x.Hardpoint, null!)).ToList());
         }
 
         if (mdl.Wire != null)
         {
-            ushort[] wireIndices = null;
-            Geometry wireLod = mdl.Wire.Geometry;
-            Geometry srcGeometry = null;
+            ushort[]? wireIndices = null;
+            Geometry wireLod = mdl.Wire.Geometry!;
+            Geometry? srcGeometry = null;
             int i;
             for (i = 0; i < mdl.LODs.Count; i++)
             {
-                if ((wireIndices = GetIndicesForWire(mdl.LODs[i].Geometry, wireLod)) != null) {
-                    srcGeometry = mdl.LODs[i].Geometry;
+                if ((wireIndices = GetIndicesForWire(mdl.LODs[i].Geometry!, wireLod)) != null) {
+                    srcGeometry = mdl.LODs[i].Geometry!;
                     break;
                 }
             }
@@ -772,7 +769,7 @@ public class ImportedModel
             {
                 FLLog.Info("Import", $"{mdl.Name} VMeshWire created from existing VMeshData");
                 node3db.Children.Add(GetVMeshWireNode(node3db,
-                    CrcTool.FLModelCrc($"{mdlName}-{mdl.Name}.lod{i}.{(int) GeometryWriter.FVF(srcGeometry, settings.AdvancedMaterials)}.vms"),
+                    CrcTool.FLModelCrc($"{mdlName}-{mdl.Name}.lod{i}.{(int) GeometryWriter.FVF(srcGeometry!, settings.AdvancedMaterials)}.vms"),
                     wireIndices
                     ));
             }
@@ -788,10 +785,10 @@ public class ImportedModel
                 n.Children = new List<LUtfNode>();
                 n.Children.Add(new LUtfNode()
                     {Name = "VMeshData", Parent = n, Data = GeometryWriter.VMeshData(wireLod, false, D3DFVF.XYZ)});
-                vms.Children.Add(n);
+                vms.Children!.Add(n);
                 if(vmeshlibrary == null && mdl.LODs.Count == 0)
                     node3db.Children.Add(vms);
-                node3db.Children.Add(GetVMeshWireNode(node3db, CrcTool.FLModelCrc(nodeName), wireLod.Indices.Indices16));
+                node3db.Children.Add(GetVMeshWireNode(node3db, CrcTool.FLModelCrc(nodeName), wireLod.Indices.Indices16!));
             }
         }
     }

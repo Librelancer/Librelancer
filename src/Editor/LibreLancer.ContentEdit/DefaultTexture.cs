@@ -3,17 +3,20 @@
 // LICENSE, which is part of this source code package
 
 using System;
+using System.IO;
+
 namespace LibreLancer.ContentEdit
 {
-    public static class DefaultTexture
+    public static unsafe class DefaultTexture
     {
-        public static readonly byte[] Data;
+        private static readonly void* _ptr;
+        private static readonly int _len;
+        public static ReadOnlySpan<byte> Data => new(_ptr, _len);
         static DefaultTexture()
         {
-            using(var stream = typeof(DefaultTexture).Assembly.GetManifestResourceStream("LibreLancer.ContentEdit.defaulttexture.dds")) {
-                Data = new byte[(int)stream.Length];
-                stream.Read(Data, 0, (int)stream.Length);
-            }
+            using var s = (UnmanagedMemoryStream) typeof(DefaultTexture).Assembly.GetManifestResourceStream("LibreLancer.ContentEdit.defaulttexture.dds")!;
+            _ptr = (void*)s.PositionPointer;
+            _len = checked((int)s.Length);
         }
     }
 }

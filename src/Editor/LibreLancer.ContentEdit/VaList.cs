@@ -32,7 +32,7 @@ abstract class VaListCallback : IDisposable
     protected abstract void Callback(string format, IntPtr args);
 
     private IntPtr ptr;
-    private CallbackDelegate cb;
+    private CallbackDelegate? cb;
 
 
     delegate void CallbackDelegate(string format, IntPtr args);
@@ -54,7 +54,7 @@ abstract class VaListCallback : IDisposable
         cb = null;
     }
 
-    class libc
+    class LibC
     {
         [DllImport("libc", CallingConvention = CallingConvention.Cdecl)]
         public static extern int vsnprintf(
@@ -64,7 +64,7 @@ abstract class VaListCallback : IDisposable
             IntPtr args);
     }
 
-    class msvcrt
+    class Msvcrt
     {
         [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int _vscprintf(
@@ -85,10 +85,10 @@ abstract class VaListCallback : IDisposable
 
         protected override void Callback(string format, IntPtr args)
         {
-            var byteLength = msvcrt._vscprintf(format, args) + 1;
+            var byteLength = Msvcrt._vscprintf(format, args) + 1;
             using var utf8 = UnsafeHelpers.Allocate(byteLength);
-            msvcrt.vsprintf((IntPtr)utf8, format, args);
-            var str = Marshal.PtrToStringUTF8((IntPtr)utf8);
+            Msvcrt.vsprintf((IntPtr)utf8, format, args);
+            var str = Marshal.PtrToStringUTF8((IntPtr)utf8) ?? "";
             Target(str);
         }
     }
@@ -101,10 +101,10 @@ abstract class VaListCallback : IDisposable
 
         protected override void Callback(string format, IntPtr args)
         {
-            int byteLength = libc.vsnprintf(IntPtr.Zero, UIntPtr.Zero, format, args) + 1;
+            int byteLength = LibC.vsnprintf(IntPtr.Zero, UIntPtr.Zero, format, args) + 1;
             using var utf8 = UnsafeHelpers.Allocate(byteLength);
-            libc.vsnprintf((IntPtr)utf8, (UIntPtr)byteLength, format, args);
-            var str = Marshal.PtrToStringUTF8((IntPtr)utf8);
+            LibC.vsnprintf((IntPtr)utf8, (UIntPtr)byteLength, format, args);
+            var str = Marshal.PtrToStringUTF8((IntPtr)utf8) ?? "";
             Target(str);
         }
     }
@@ -127,11 +127,11 @@ abstract class VaListCallback : IDisposable
         protected override unsafe void Callback(string format, IntPtr args)
         {
             var list = Marshal.PtrToStructure<valist_x64>(args);
-            var byteLength = libc.vsnprintf(IntPtr.Zero, UIntPtr.Zero, format, (IntPtr)(&list)) + 1;
+            var byteLength = LibC.vsnprintf(IntPtr.Zero, UIntPtr.Zero, format, (IntPtr)(&list)) + 1;
             list = Marshal.PtrToStructure<valist_x64>(args);
             using var utf8 = UnsafeHelpers.Allocate(byteLength);
-            libc.vsnprintf((IntPtr)utf8, (UIntPtr)byteLength, format, (IntPtr)(&list));
-            var str = Marshal.PtrToStringUTF8((IntPtr)utf8);
+            LibC.vsnprintf((IntPtr)utf8, (UIntPtr)byteLength, format, (IntPtr)(&list));
+            var str = Marshal.PtrToStringUTF8((IntPtr)utf8) ?? "";
             Target(str);
         }
     }

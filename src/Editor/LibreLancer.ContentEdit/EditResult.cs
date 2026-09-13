@@ -20,9 +20,9 @@ public class EditResult<T>
     {
         Data = data;
     }
-    public EditResult(T data, IEnumerable<EditMessage> messages)
+    public EditResult(T? data, IEnumerable<EditMessage> messages)
     {
-        Data = data;
+        Data = data!;
         Messages = new List<EditMessage>(messages);
     }
 

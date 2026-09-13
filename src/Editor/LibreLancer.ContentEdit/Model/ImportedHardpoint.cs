@@ -4,8 +4,8 @@ using SimpleMesh;
 
 namespace LibreLancer.ContentEdit.Model;
 
-public class ImportedHardpoint
+public class ImportedHardpoint(HardpointDefinition hardpoint)
 {
-    public HardpointDefinition Hardpoint;
+    public HardpointDefinition Hardpoint = hardpoint;
     public List<ModelNode> Hulls = new List<ModelNode>();
 }

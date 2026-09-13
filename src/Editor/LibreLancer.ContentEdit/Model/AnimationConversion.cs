@@ -18,7 +18,7 @@ static class AnimationConversion
         var rotations = new List<SM.RotationChannel>();
         foreach (var p in cmp.Parts.Where(x => x.Construct != null))
         {
-            var con = p.Construct.Clone();
+            var con = p.Construct!.Clone();
             var tr = new SM.TranslationChannel();
             tr.Target = p.ObjectName;
             tr.Keyframes = [
@@ -328,7 +328,6 @@ static class AnimationConversion
     public static EditResult<Script> ImportAnimation(List<ImportedModelNode> allNodes, SM.Animation anim)
     {
         var sc = new Script(anim.Name);
-        int i = 0;
         var messages = new List<EditMessage>();
         foreach (var rot in anim.Rotations)
         {

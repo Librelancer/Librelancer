@@ -26,7 +26,7 @@ public static class MaterialImporter
     }
 
     public static void GenerateResourceLibraries(
-        IEnumerable<Material> materials,
+        IReadOnlyList<Material> materials,
         Dictionary<string, ImageData> images,
         LUtfNode root,
         List<EditMessage> warnings,
@@ -55,26 +55,25 @@ public static class MaterialImporter
             }
         }
 
-        int i = 0;
         foreach (var mat in materials)
             mats.Children.Add(DefaultMaterialNode(mats,mat, generatePlaceholderTextures, advancedMaterials));
 
         if (mats.Children.Count > 0)
         {
             mats.Children.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
-            root.Children.Add(mats);
+            root.Children!.Add(mats);
         }
         if (txms.Children.Count > 0)
         {
             txms.Children.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
-            root.Children.Add(txms);
+            root.Children!.Add(txms);
         }
 
         tasks.Wait();
     }
 
     static void GenerateMetallicRoughnessTexture(
-        string texture,
+        string? texture,
         List<EditMessage> warnings,
         HashSet<string> createdTextures,
         LUtfNode txms,
@@ -89,12 +88,12 @@ public static class MaterialImporter
             var mtl = ImportTextureNode(txms, texture + "_METAL", img.Data, DDSFormat.MetallicRGTC1, tasks);
             var rough = ImportTextureNode(txms, texture + "_ROUGH", img.Data, DDSFormat.RoughnessRGTC1, tasks);
             if(mtl.IsSuccess)
-                txms.Children.Add(mtl.Data);
+                txms.Children!.Add(mtl.Data);
             else
                 warnings.Add(EditMessage.Warning($"{texture}_METAL not imported"));
             warnings.AddRange(mtl.Messages.Select(x => EditMessage.Warning(x.Message)));
             if (rough.IsSuccess)
-                txms.Children.Add(rough.Data);
+                txms.Children!.Add(rough.Data);
             else
                 warnings.Add(EditMessage.Warning($"{texture}_ROUGH not imported"));
             warnings.AddRange(rough.Messages.Select(x => EditMessage.Warning(x.Message)));
@@ -102,7 +101,7 @@ public static class MaterialImporter
     }
 
     static void GenerateTexture(
-        string texture,
+        string? texture,
         List<EditMessage> warnings,
         HashSet<string> createdTextures,
         LUtfNode txms,
@@ -118,14 +117,14 @@ public static class MaterialImporter
         {
             var result = ImportTextureNode(txms, texture, img.Data, format, tasks);
             if(result.IsSuccess)
-                txms.Children.Add(result.Data);
+                txms.Children!.Add(result.Data);
             else
                 warnings.Add(EditMessage.Warning($"{texture} not imported"));
             warnings.AddRange(result.Messages.Select(x => EditMessage.Warning(x.Message)));
         }
         else if (generatePlaceholders)
         {
-            txms.Children.Add(DefaultTextureNode(txms, texture));
+            txms.Children!.Add(DefaultTextureNode(txms, texture));
         }
     }
 
@@ -213,7 +212,7 @@ public static class MaterialImporter
         var texnode = new LUtfNode() { Name = name + ".dds", Parent = parent };
         texnode.Children = new List<LUtfNode>();
         var d = new byte[DefaultTexture.Data.Length];
-        Buffer.BlockCopy(DefaultTexture.Data, 0, d, 0, DefaultTexture.Data.Length);
+        DefaultTexture.Data.CopyTo(d);
         texnode.Children.Add(new LUtfNode() { Name = "MIPS", Parent = texnode, Data = d });
         return texnode;
     }

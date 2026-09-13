@@ -74,7 +74,7 @@ public static class CommentEscaping
         return sb.ToString();
     }
 
-    public static string Escape(string comment)
+    public static string Escape(string? comment)
     {
         if (string.IsNullOrWhiteSpace(comment))
         {

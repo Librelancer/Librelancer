@@ -518,11 +518,11 @@ public class ImportModelTab : EditorTab
 
     private void Import(TaskRunPopup popup)
     {
-        var o = ImportedModel.FromSimpleMesh(Path.GetFileNameWithoutExtension(modelNameDefault), editModel.Clone());
+        var o = ImportedModel.FromSimpleMesh(Path.GetFileNameWithoutExtension(modelNameDefault)!, editModel.Clone());
         win.ResultMessages(o, popup.Log);
         if (o.IsError)
         {
-            output = new ImportedModel {Name = Path.GetFileNameWithoutExtension(modelNameDefault)};
+            output = new ImportedModel(Path.GetFileNameWithoutExtension(modelNameDefault)!, "", new("Invalid"));
             DisposePreview();
             popup.Log("Failed to import\n");
         }

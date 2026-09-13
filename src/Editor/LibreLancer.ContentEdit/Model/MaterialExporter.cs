@@ -13,11 +13,11 @@ public static class MaterialExporter
 {
     public static Material GetMaterial(uint crc, ResourceManager resources, Dictionary<string, Material> materials)
     {
-        LibreLancer.Utf.Mat.Material mat;
+        LibreLancer.Utf.Mat.Material? mat;
         Color4 dc;
         string name;
-        string dt = null;
-        string et = null;
+        string? dt = null;
+        string? et = null;
         Color4 ec;
         int etIndex = 0;
         if ((mat = resources.FindMaterial(crc)) != null)
@@ -52,7 +52,7 @@ public static class MaterialExporter
         return m;
     }
 
-    static ImageData ExportSingleImage(string tex, HashSet<string> attempted, ResourceManager resources)
+    static ImageData? ExportSingleImage(string? tex, HashSet<string> attempted, ResourceManager resources)
     {
         if (string.IsNullOrWhiteSpace(tex) || attempted.Contains(tex))
             return null;

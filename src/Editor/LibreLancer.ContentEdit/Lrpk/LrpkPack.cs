@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -19,9 +20,11 @@ public class LrpkPack
 
     public List<LrpkWildcard> Rules = new List<LrpkWildcard>();
 
-    public event Action<string> Log;
+    public event Action<string>? Log;
     public bool Verbose = false;
     public int MaxThreads = 0;
+
+    private PackItem? sourceRoot;
 
     public LrpkPack(string rulesFile)
     {
@@ -96,25 +99,24 @@ public class LrpkPack
     }
 
 
-    class PackItem
+    class PackItem(string sourcePath, string name, string fullPath)
     {
-        public bool IsDirectory = false;
-        public string SourcePath;
-        public string Name;
-        public string FullPath;
+        public string SourcePath = sourcePath;
+        public string Name = name;
+        public string FullPath = fullPath;
         public PackMethod Method;
-        public List<PackItem> Children;
-        public MatchRule Matched;
+        public List<PackItem>? Children;
+        public MatchRule? Matched;
         public long Offset;
         public long Length;
         public double TestRatio;
 
-        public PackItem Referenced;
+        public PackItem? Referenced;
     }
 
     static void ApplyRules(PackItem item, MatchRule[] rules, string directoryPath)
     {
-        if (item.IsDirectory)
+        if (item.Children != null)
         {
             foreach (var child in item.Children)
                 ApplyRules(child, rules, (directoryPath == "" ? "" : directoryPath + "/") + item.Name);
@@ -200,7 +202,7 @@ public class LrpkPack
     {
         var fullPath = path == "" ? item.Name : path + "/" + item.Name;
 
-        if (item.IsDirectory)
+        if (item.Children != null)
         {
             if (Verbose && Log != null)
             {
@@ -265,7 +267,7 @@ public class LrpkPack
     IEnumerable<PackItem> IteratePack(PackItem item)
     {
         yield return item;
-        if (item.IsDirectory) {
+        if (item.Children != null) {
             foreach (var child in item.Children)
             {
                 foreach (var x in IteratePack(child))
@@ -274,30 +276,22 @@ public class LrpkPack
         }
     }
 
-    PackItem Iterate(DirectoryInfo info, string path = null)
+    PackItem Iterate(DirectoryInfo info, string? path = null)
     {
-        var pk = new PackItem();
-        pk.IsDirectory = true;
+        var pk = new PackItem(info.FullName, info.Name, path == null ? "" : $"{path}{info.Name}/");
         pk.Children = new List<PackItem>();
-        pk.Name = info.Name;
-        pk.FullPath = path == null ? "" : $"{path}{info.Name}/";
         foreach (var d in info.EnumerateDirectories())
         {
             pk.Children.Add(Iterate(d, pk.FullPath));
         }
         foreach (var f in info.EnumerateFiles())
         {
-            var child = new PackItem();
-            child.IsDirectory = false;
-            child.SourcePath = f.FullName;
-            child.Name = f.Name;
-            child.FullPath = $"{pk.FullPath}{f.Name}";
+            var child = new PackItem(f.FullName, f.Name, $"{pk.FullPath}{f.Name}");
             pk.Children.Add(child);
         }
         return pk;
     }
 
-    private PackItem sourceRoot;
 
     public void ReadSource(string directory)
     {
@@ -319,7 +313,7 @@ public class LrpkPack
     {
         Log?.Invoke("Compressing Block0...");
         offset = outputStream.Position;
-        var blk = IteratePack(sourceRoot).Where(x => x.Method == blockIdx).ToArray();
+        var blk = IteratePack(sourceRoot!).Where(x => x.Method == blockIdx).ToArray();
         if (blk.Length == 0) {
             length = 0;
             return false;
@@ -344,7 +338,7 @@ public class LrpkPack
 
     void WriteTree(BinaryWriter writer, PackItem item)
     {
-        if (item.IsDirectory)
+        if (item.Children != null)
         {
             writer.Write((byte)0);
             writer.WriteStringUTF8(item.Name);
@@ -354,7 +348,7 @@ public class LrpkPack
         }
         else if (item.Method == PackMethod.Reference)
         {
-            var type = item.Referenced.Method switch
+            var type = item.Referenced!.Method switch
             {
                 PackMethod.ZeroLength => 1,
                 PackMethod.Uncompressed => 2,
@@ -469,6 +463,10 @@ public class LrpkPack
 
     public void Pack(string outputFile)
     {
+        if (sourceRoot == null)
+        {
+            throw new Exception("No inputs added");
+        }
         Log?.Invoke($"Creating {outputFile}");
         using var outputStream = File.Create(outputFile);
         var outputWriter = new BinaryWriter(outputStream);

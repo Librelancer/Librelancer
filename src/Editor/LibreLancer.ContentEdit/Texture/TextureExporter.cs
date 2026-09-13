@@ -46,11 +46,15 @@ public static class TextureExporter
     /// <param name="embedDDS">Controls if DXT-compressed DDS resources are embedded as ancillary chunks</param>
     /// <returns>A byte[] array containing a png suitable for export, or null if the DDS is a cubemap</returns>
     /// <exception cref="InvalidOperationException">Internal error</exception>
-    public static byte[] ExportTexture(ImageResource resource, bool embedDDS)
+    public static byte[]? ExportTexture(ImageResource resource, bool embedDDS)
     {
         if (resource.Type == ImageType.TGA)
         {
             var toEncode = TGA.ImageFromStream(new MemoryStream(resource.Data));
+            if (toEncode == null)
+            {
+                return null;
+            }
             using var output = new MemoryStream();
             if (toEncode.Format == SurfaceFormat.Bgra8)
             {
@@ -72,7 +76,9 @@ public static class TextureExporter
         {
             var surface = DDS.ImageFromStream(new MemoryStream(resource.Data));
             if (surface == null)
+            {
                 return null;
+            }
             using var output = new MemoryStream();
             Bgra8[] converted;
             if (surface[0].Format == SurfaceFormat.Bgra8) //Uncompressed

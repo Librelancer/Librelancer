@@ -6,11 +6,11 @@ using LibreLancer.World;
 
 namespace LibreLancer.ContentEdit.Model;
 
-public class ModelHpNode
+public class ModelHpNode(LUtfNode node)
 {
-    public string Name;
-    public LUtfNode Node;
-    public LUtfNode HardpointsNode;
+    public string? Name;
+    public LUtfNode Node = node;
+    public LUtfNode? HardpointsNode;
 
     public void HardpointsToNodes(List<Hardpoint> hardpoints)
     {
@@ -18,7 +18,7 @@ public class ModelHpNode
         {
             if (HardpointsNode != null)
             {
-                Node.Children.Remove(HardpointsNode);
+                Node.Children!.Remove(HardpointsNode);
                 HardpointsNode = null;
             }
 
@@ -28,12 +28,12 @@ public class ModelHpNode
         if (HardpointsNode == null)
         {
             HardpointsNode = new LUtfNode() {Name = "Hardpoints", Parent = Node};
-            Node.Children.Add(HardpointsNode);
+            Node.Children!.Add(HardpointsNode);
         }
 
         HardpointsNode.Children = new List<LUtfNode>();
-        LUtfNode fix = null;
-        LUtfNode rev = null;
+        LUtfNode? fix = null;
+        LUtfNode? rev = null;
         var hps = hardpoints.Select(x => x.Definition);
         if (hps.Any((x) => x is FixedHardpointDefinition))
         {
@@ -55,22 +55,21 @@ public class ModelHpNode
             node.Children.Add(new LUtfNode()
             {
                 Name = "Orientation", Parent = node,
-                Data = UnsafeHelpers.CastArray(new float[]
-                {
+                Data = UnsafeHelpers.CastArray([
                     hp.Orientation.M11, hp.Orientation.M21, hp.Orientation.M31,
                     hp.Orientation.M12, hp.Orientation.M22, hp.Orientation.M32,
                     hp.Orientation.M13, hp.Orientation.M23, hp.Orientation.M33
-                })
+                ])
             });
             node.Children.Add(new LUtfNode()
             {
                 Name = "Position", Parent = node,
-                Data = UnsafeHelpers.CastArray(new float[] {hp.Position.X, hp.Position.Y, hp.Position.Z})
+                Data = UnsafeHelpers.CastArray([hp.Position.X, hp.Position.Y, hp.Position.Z])
             });
             if (hp is FixedHardpointDefinition)
             {
                 node.Parent = fix;
-                fix.Children.Add(node);
+                fix!.Children!.Add(node);
             }
             else
             {
@@ -78,10 +77,9 @@ public class ModelHpNode
                 node.Children.Add(new LUtfNode()
                 {
                     Name = "Axis", Parent = node,
-                    Data = UnsafeHelpers.CastArray(new float[]
-                    {
+                    Data = UnsafeHelpers.CastArray([
                         revolute.Axis.X, revolute.Axis.Y, revolute.Axis.Z
-                    })
+                    ])
                 });
                 node.Children.Add(new LUtfNode()
                 {
@@ -94,7 +92,7 @@ public class ModelHpNode
                     Data = BitConverter.GetBytes(revolute.Max)
                 });
                 node.Parent = rev;
-                rev.Children.Add(node);
+                rev!.Children!.Add(node);
             }
         }
     }

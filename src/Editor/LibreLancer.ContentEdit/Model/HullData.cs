@@ -6,10 +6,10 @@ using SimpleMesh.Convex;
 
 namespace LibreLancer.ContentEdit.Model;
 
-public class HullData
+public class HullData(Hull hull, string source)
 {
-    public Hull Hull;
-    public string Source;
+    public Hull Hull = hull;
+    public string Source = source;
 
     public int FaceCount => Hull.Indices.Length / 3;
 
@@ -17,7 +17,7 @@ public class HullData
     {
         for (int i = 0; i < Hull.Indices.Length; i += 3)
         {
-            if (RayTriangleIntersection(ref ray, float.MaxValue,
+            if (RayTriangleIntersection(ref ray,
                     Hull.Vertices[Hull.Indices[i]],
                     Hull.Vertices[Hull.Indices[i + 1]],
                     Hull.Vertices[Hull.Indices[i + 2]]
@@ -28,11 +28,7 @@ public class HullData
         return -1;
     }
 
-    static float RayEpsilon = 1E-7f;
-    static float BigEpsilon = 1E-5f;
-
-    static bool RayTriangleIntersection(ref Ray ray, float maximumLength, Vector3 a, Vector3 b,
-        Vector3 c)
+    static bool RayTriangleIntersection(ref Ray ray, Vector3 a, Vector3 b, Vector3 c)
     {
         var ab = b - a;
         var ac = c - a;
@@ -87,6 +83,6 @@ public class HullData
         {
             return EditResult<HullData>.Error("Generated hull is too complex");
         }
-        return new HullData() { Hull = hull }.AsResult();
+        return new HullData(hull, "points array").AsResult();
     }
 }

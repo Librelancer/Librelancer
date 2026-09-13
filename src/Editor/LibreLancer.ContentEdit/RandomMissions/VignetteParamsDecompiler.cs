@@ -245,9 +245,9 @@ public static class VignetteParamsDecompiler
         }
 
         tree.FlattenEmptyNodes(tree.StartNode);
-        var references = tree.CullAndGetReferenceCount(tree.StartNode);
+        var references = tree.CullAndGetReferenceCount(tree.StartNode!);
 
-        WriteNode(tree.StartNode, tw, false, references, groups, true);
+        WriteNode(tree.StartNode!, tw, false, references, groups, true);
 
         foreach (var r in references)
         {

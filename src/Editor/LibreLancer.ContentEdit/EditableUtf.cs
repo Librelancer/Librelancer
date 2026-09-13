@@ -26,7 +26,7 @@ namespace LibreLancer.ContentEdit
     public class EditableUtf : LL.UtfFile
     {
         public LUtfNode Root;
-        public LL.IntermediateNode Source;
+        public LL.IntermediateNode? Source;
 
         public EditableUtf()
         {
@@ -40,27 +40,27 @@ namespace LibreLancer.ContentEdit
             Source = parseFile(filename, File.OpenRead(filename));
             foreach (var node in Source.Children)
             {
-                Root.Children.Add(ConvertNode(node, Root));
+                Root.Children!.Add(ConvertNode(node, Root));
             }
         }
 
         //Produce an engine-internal representation of the nodes
         public LL.IntermediateNode Export()
         {
-            var children = Root.Children.Select(ExportNode).ToList();
+            var children = Root.Children!.Select(ExportNode).ToList();
             return new LL.IntermediateNode("/", children);
         }
 
         public static LL.IntermediateNode NodeToEngine(LUtfNode node)
         {
-            return ExportNode(node) as LL.IntermediateNode;
+            return (LL.IntermediateNode)ExportNode(node);
         }
 
         static LL.Node ExportNode(LUtfNode n)
         {
             if (n.Data != null)
                 return new LL.LeafNode(n.Name, n.Data);
-            var children = new List<LL.Node>(n.Children.Count);
+            var children = new List<LL.Node>(n.Children!.Count);
             foreach (var child in n.Children)
                 children.Add(ExportNode(child));
             return new LL.IntermediateNode(n.Name, children);
@@ -90,15 +90,15 @@ namespace LibreLancer.ContentEdit
         string GetUtfPath(LUtfNode n)
         {
             List<string> strings = new List<string>();
-            LUtfNode node = n;
-            while (node.Name != "/" && node.Name != "\\")
+            LUtfNode? node = n;
+            while (node != null)
             {
                 strings.Add(node.Name);
                 node = node.Parent;
             }
 
             strings.Reverse();
-            var path = "/" + string.Join("/", strings);
+            var path = string.Join("/", strings);
             return path;
         }
 
@@ -171,7 +171,6 @@ namespace LibreLancer.ContentEdit
                             mem.WriteByte(0); //null terminate
                         }
 
-                        strings = null;
                         stringBlock = mem.ToArray();
                     }
 
@@ -321,7 +320,7 @@ namespace LibreLancer.ContentEdit
             writer.Write(strOff[node.Name]);
             writer.Write((int)LL.NodeFlags.Intermediate); //intermediateNode
             writer.Write((int)0); //padding
-            writer.Write(node.Children.Count == 0
+            writer.Write(node.Children!.Count == 0
                 ? 0
                 : (int)(writer.BaseStream.Position + 28)); //children start immediately after node
             writer.Write((int)0); //allocatedSize
@@ -355,11 +354,11 @@ namespace LibreLancer.ContentEdit
         private static long _interfaceId = 0;
         public long InterfaceID { get; private set; }
 
-        public string Name;
-        public string ResolvedName;
-        public List<LUtfNode> Children;
-        public LUtfNode Parent;
-        public byte[] Data;
+        public string Name = "";
+        public string? ResolvedName;
+        public List<LUtfNode>? Children;
+        public LUtfNode? Parent;
+        public byte[]? Data;
         internal bool Write = true;
 
         public LUtfNode()
@@ -382,7 +381,7 @@ namespace LibreLancer.ContentEdit
             {
                 if (Data != null)
                     return Encoding.ASCII.GetString(Data).TrimEnd('\0');
-                return null;
+                return "";
             }
             set { Data = Encoding.ASCII.GetBytes(value + "\0"); }
         }

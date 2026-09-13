@@ -9,9 +9,9 @@ public static class SimpleMeshLoader
 {
     public static async Task<EditResult<SimpleMesh.Model>> ModelFromFile(
         string filename,
-        string blenderPath = null,
+        string? blenderPath = null,
         CancellationToken cancellationToken = default,
-        Action<string> log = null)
+        Action<string>? log = null)
     {
         var model =
             Blender.FileIsBlender(filename)

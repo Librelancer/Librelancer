@@ -26,7 +26,7 @@ public static class AleNodeWriter
         [
             new() { Name = "ALEffectLib", Parent = parentALfx, Data = WriteALEffectLib(blankFxLib) }
         ];
-        utf.Root.Children.Add(parentALfx);
+        utf.Root.Children!.Add(parentALfx);
         var parentAlchemyNode = new LUtfNode() { Name = "AlchemyNodeLibrary", Parent = utf.Root };
         parentAlchemyNode.Children =
         [
@@ -79,7 +79,7 @@ public static class AleNodeWriter
         bw.Write(nodelib.Nodes.Count);
         foreach (var n in nodelib.Nodes)
         {
-            WriteString(bw, n.ClassName);
+            WriteString(bw, n.ClassName ?? "");
             foreach (var p in n.Parameters)
             {
                 WriteParameter(bw, p);

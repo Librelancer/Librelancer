@@ -506,7 +506,7 @@ public class VignetteParamsCompiler
         public class IfBlock
         {
             public BlockKind Kind;
-            public string Condition;
+            public string? Condition;
             public List<VStatement> Statements = new();
         }
 
@@ -523,7 +523,15 @@ public class VignetteParamsCompiler
             if(!lexer.IsIdentifier("if"))
                 throw new InvalidOperationException();
             Def = lexer.Current;
-            Blocks.Add(GetBlock(lexer, true));
+            IfBlock? ifBlock = GetBlock(lexer, true);
+            if (ifBlock == null)
+            {
+                throw new InvalidOperationException(); // unreachable
+            }
+            else
+            {
+                Blocks.Add(ifBlock);
+            }
             while(!lexer.IsIdentifier("end"))
             {
                 var nb = GetBlock(lexer, false);
@@ -541,7 +549,7 @@ public class VignetteParamsCompiler
             lexer.Next();
         }
 
-        IfBlock GetBlock(Lexer lexer, bool isIf)
+        IfBlock? GetBlock(Lexer lexer, bool isIf)
         {
             AssertKind(lexer, TokenKind.Identifier);
             if (lexer.IsIdentifier("end"))
@@ -606,7 +614,7 @@ public class VignetteParamsCompiler
             {
                 var dn = NewData(parent, astTree);
                 if (block.Kind == BlockKind.Group) {
-                    dn.Data.OfferGroup = context.Groups[block.Condition];
+                    dn.Data.OfferGroup = context.Groups[block.Condition!];
                 }
                 VignetteAst top = dn;
                 foreach(var s in block.Statements)
@@ -619,7 +627,7 @@ public class VignetteParamsCompiler
         {
             int mainId = astTree.NextId();
             AstDecision dec = new AstDecision(mainId, new DecisionNode());
-            dec.Decision.Nickname = Blocks[0].Kind == BlockKind.Group ? "branch" : Blocks[0].Condition;
+            dec.Decision.Nickname = Blocks[0].Kind == BlockKind.Group ? "branch" : Blocks[0].Condition!;
             astTree.Nodes[mainId] = dec;
             node.Children.Add(dec);
             node = dec;
@@ -636,7 +644,7 @@ public class VignetteParamsCompiler
                 {
                     var newId = astTree.NextId();
                     var newDec = new AstDecision(newId, new DecisionNode());
-                    newDec.Decision.Nickname = Blocks[i].Kind == BlockKind.Group ? "branch" : Blocks[i].Condition;
+                    newDec.Decision.Nickname = Blocks[i].Kind == BlockKind.Group ? "branch" : Blocks[i].Condition!;
                     astTree.Nodes[newId] = newDec;
                     dec.Children.Add(newDec);
                     CompileBlock(newDec, Blocks[i], astTree, context);
@@ -862,7 +870,7 @@ public class VignetteParamsCompiler
             }
             foreach (var t in data.Data.ObjectiveTexts)
             {
-                var v = new List<ValueBase>() { t.Target, t.Ids };
+                var v = new List<ValueBase>() { t.Target!, t.Ids };
                 v.AddRange(t.Arguments.Select(x => (ValueBase)x));
                 s.Entry("objective_text", v.ToArray());
             }
@@ -883,7 +891,7 @@ public class VignetteParamsCompiler
             {
                 s.Entry("comm_sequence", cs.Event, cs.Target.ToString(),
                     cs.Unknown1, cs.Unknown2, cs.Unknown3,
-                    cs.Source.ToString(), cs.Comm);
+                    cs.Source.ToString(), cs.Comm!);
             }
         }
         else if (node is AstDecision decision)
@@ -896,7 +904,7 @@ public class VignetteParamsCompiler
         {
             s = b.Section("DocumentationNode")
                 .Entry("node_id", doc.Id)
-                .Entry("documentation", doc.Docs.Documentation);
+                .OptionalEntry("documentation", doc.Docs.Documentation);
         }
         else
         {

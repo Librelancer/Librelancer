@@ -30,12 +30,8 @@ namespace LibreLancer.ContentEdit
         KAISER
     }
 
-    class CrunchMipLevel
-    {
-        public int Width;
-        public int Height;
-        public byte[] Bytes;
-    }
+    record struct CrunchMipLevel(int Width, int Height, byte[] Bytes);
+
     static class Crunch
     {
         [DllImport("crnlibglue")]

@@ -18,11 +18,11 @@ public static class Tangents
         {
             var meshData = new Dictionary<uint, VMeshEntries>();
             var vmsroot =
-                utf.Root.Children.FirstOrDefault(x =>
+                utf.Root.Children!.FirstOrDefault(x =>
                     x.Name.Equals("vmeshlibrary", StringComparison.OrdinalIgnoreCase));
             if (vmsroot != null)
                 GatherVMeshLibrary(meshData, vmsroot);
-            foreach (var child in utf.Root.Children)
+            foreach (var child in utf.Root.Children!)
             {
                 if (child.Children == null)
                     continue;
@@ -139,7 +139,8 @@ public static class Tangents
             x.Name.Equals("vmeshpart", StringComparison.OrdinalIgnoreCase));
         if (vmeshpart != null)
         {
-            var vmeshref = new VMeshRef(vmeshpart.Children[0].Data);
+            var dat = vmeshpart.Children![0].Data!;
+            var vmeshref = new VMeshRef(dat);
             if (data.TryGetValue(vmeshref.MeshCrc, out var entries))
                 entries.Refs.Add(vmeshref);
             else
@@ -149,13 +150,13 @@ public static class Tangents
 
         var multilevel = modelNode.Children.FirstOrDefault(x =>
             x.Name.Equals("multilevel", StringComparison.OrdinalIgnoreCase));
-        if (multilevel == null)
+        if (multilevel?.Children == null)
             return;
         foreach (var node in multilevel.Children.Where(x => x.Name.StartsWith(
                      "level", StringComparison.OrdinalIgnoreCase)))
         {
-            var levelPart = node.Children[0];
-            var vmeshref = new VMeshRef(levelPart.Children[0].Data);
+            var levelPart = node.Children![0];
+            var vmeshref = new VMeshRef(levelPart.Children![0].Data!);
             if (data.TryGetValue(vmeshref.MeshCrc, out var entries))
                 entries.Refs.Add(vmeshref);
             else
@@ -165,13 +166,13 @@ public static class Tangents
 
     static void GatherVMeshLibrary(Dictionary<uint, VMeshEntries> data, LUtfNode vmeshLibrary)
     {
-        foreach (var child in vmeshLibrary.Children)
+        foreach (var child in vmeshLibrary.Children!)
         {
-            var vms = child.Children.FirstOrDefault(x =>
+            var vms = child.Children!.FirstOrDefault(x =>
                 x.Name.Equals("vmeshdata", StringComparison.OrdinalIgnoreCase));
             if (vms == null)
                 continue;
-            var v = new VMeshData(vms.Data, child.Name);
+            var v = new VMeshData(vms.Data!, child.Name);
             data[CrcTool.FLModelCrc(child.Name)] = new(v, vms, new List<VMeshRef>(), child.Name);
         }
     }

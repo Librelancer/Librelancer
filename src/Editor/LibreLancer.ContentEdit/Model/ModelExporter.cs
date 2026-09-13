@@ -20,18 +20,22 @@ public static class ModelExporter
     public static EditResult<SimpleMesh.Model> Export(CmpFile cmp, SurFile sur, ModelExporterSettings settings, ResourceManager resources)
     {
         //Build tree
-        ExportModelNode rootModel = null;
+        ExportModelNode? rootModel = null;
         var parentModels = new List<ExportModelNode>();
         foreach (var p in cmp.Parts)
             if (p.Construct == null)
             {
-                rootModel = new ExportModelNode
+                rootModel = new ExportModelNode(p.ObjectName)
                 {
-                    Model = p.Model,
-                    Name = p.ObjectName,
+                    Model = p.Model!,
                 };
                 break;
             }
+
+        if (rootModel == null)
+        {
+            return EditResult<SimpleMesh.Model>.Error("Nothing to export");
+        }
 
         parentModels.Add(rootModel);
         var q = new Queue<Part>(cmp.Parts);
@@ -44,10 +48,10 @@ public static class ModelExporter
             foreach (var mdl in parentModels)
                 if (part.Construct.ParentName == mdl.Name)
                 {
-                    var child = new ExportModelNode
+                    var child = new ExportModelNode(mdl.Name)
                     {
                         Construct = part.Construct,
-                        Model = part.Model,
+                        Model = part.Model!,
                         Name = part.ObjectName,
                     };
                     mdl.Children.Add(child);
@@ -89,9 +93,8 @@ public static class ModelExporter
 
     public static EditResult<SimpleMesh.Model> Export(ModelFile mdl, SurFile sur, ModelExporterSettings settings, ResourceManager resources)
     {
-        var exportNode = new ExportModelNode()
+        var exportNode = new ExportModelNode("Root")
         {
-            Name = "Root",
             Model = mdl,
             Construct = null,
         };
@@ -155,7 +158,7 @@ public static class ModelExporter
         return n;
     }
 
-    static EditResult<ModelNode> ProcessNode(ExportModelNode node, SimpleMesh.Model dest, ModelExporterSettings settings, ResourceManager res, SurFile sur, List<Geometry> allGeos, bool is3db)
+    static EditResult<ModelNode> ProcessNode(ExportModelNode node, SimpleMesh.Model dest, ModelExporterSettings settings, ResourceManager res, SurFile? sur, List<Geometry> allGeos, bool is3db)
     {
         var sm = new ModelNode();
         sm.Name = node.Name;
@@ -194,7 +197,7 @@ public static class ModelExporter
         {
             sm.Properties["construct"] = "loose";
         }
-        var l0 = GeometryFromRef(node.Name, 0, node.Model.Levels[0], dest.Materials, allGeos, res);
+        var l0 = GeometryFromRef(node.Name, 0, node.Model!.Levels[0]!, dest.Materials, allGeos, res);
         if (l0.IsError)
             return EditResult<ModelNode>.Error($"Unable to export node {node.Name} (Level 0)", l0.Messages);
         sm.Geometry = l0.Data;
@@ -203,7 +206,7 @@ public static class ModelExporter
             for (int i = 1; i < node.Model.Levels.Length; i++)
             {
                 var lod = new ModelNode() {Name = node.Name + "$lod" + i};
-                var lodRes = GeometryFromRef(node.Name, i, node.Model.Levels[i], dest.Materials, allGeos, res);
+                var lodRes = GeometryFromRef(node.Name, i, node.Model.Levels[i]!, dest.Materials, allGeos, res);
                 if (lodRes.IsError)
                     return EditResult<ModelNode>.Error($"Unable to export node {node.Name} (Level {i})",
                         lodRes.Messages);
@@ -239,12 +242,16 @@ public static class ModelExporter
 
         if (node.Model.VMeshWire != null && settings.IncludeWireframes)
         {
-            var meshNode = new ModelNode
+            var geo = GeometryFromVMeshWire(node.Name, node.Model.VMeshWire, res, dest.Materials, allGeos);
+            if (geo != null)
             {
-                Geometry = GeometryFromVMeshWire(node.Name, node.Model.VMeshWire, res, dest.Materials, allGeos),
-                Name = node.Name + ".vmeshwire"
-            };
-            sm.Children.Add(meshNode);
+                var meshNode = new ModelNode
+                {
+                    Geometry = GeometryFromVMeshWire(node.Name, node.Model.VMeshWire, res, dest.Materials, allGeos),
+                    Name = node.Name + ".vmeshwire"
+                };
+                sm.Children.Add(meshNode);
+            }
         }
         foreach (var n in node.Children)
         {
@@ -269,11 +276,16 @@ public static class ModelExporter
     }
 
 
-    static Geometry GeometryFromVMeshWire(string name, VMeshWire wire, ResourceManager resources,
+    static Geometry? GeometryFromVMeshWire(string name, VMeshWire wire, ResourceManager resources,
         Dictionary<string, Material> materials, List<Geometry> allGeos)
     {
         var gb = new GeometryBuilder(VertexAttributes.None);
         var mesh = resources.FindMeshData(wire.MeshCRC);
+        if (mesh == null)
+        {
+            FLLog.Error("Exporter", $"Could not find VMeshData for VMeshWire {name}");
+            return null;
+        }
         for (int i = 0; i < wire.NumIndices; i++)
         {
             var idx = wire.VertexOffset + wire.Indices[i];
@@ -289,13 +301,13 @@ public static class ModelExporter
     }
 
     // Get just the referenced geometry from the VMeshData
-    static EditResult<Geometry> GeometryFromRef(string name, int level, VMeshRef vms, Dictionary<string,Material> materials, List<Geometry> geometries, ResourceManager resources)
+    static EditResult<Geometry?> GeometryFromRef(string name, int level, VMeshRef vms, Dictionary<string,Material> materials, List<Geometry> geometries, ResourceManager resources)
     {
         var mesh = resources.FindMeshData(vms.MeshCrc);
         if (vms.MeshCrc == 0)
-            return new EditResult<Geometry>(null);
+            return new EditResult<Geometry?>(null);
         if ((mesh == null))
-            return EditResult<Geometry>.Error($"{name} - VMeshData lookup failed 0x{vms.MeshCrc}");
+            return EditResult<Geometry?>.Error($"{name} - VMeshData lookup failed 0x{vms.MeshCrc}");
 
         var attrs = VertexAttributes.None;
         if (mesh.VertexFormat.Normal)
@@ -337,14 +349,14 @@ public static class ModelExporter
         var geo = gb.Finish();
         geo.Name = $"{name}.{(int)mesh.VertexFormat.FVF}.level{level}";
         geometries.Add(geo);
-        return geo.AsResult();
+        return new(geo);
     }
 
-    private class ExportModelNode
+    private class ExportModelNode(string name)
     {
-        public string Name;
+        public string Name = name;
         public List<ExportModelNode> Children = new();
-        public ModelFile Model;
-        public AbstractConstruct Construct;
+        public ModelFile? Model;
+        public AbstractConstruct? Construct;
     }
 }

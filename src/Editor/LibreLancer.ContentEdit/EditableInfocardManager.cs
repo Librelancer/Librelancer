@@ -18,11 +18,11 @@ public class EditableInfocardManager : InfocardManager
     private List<int> removedStrings = new List<int>();
     private List<int> removedInfocards = new List<int>();
 
-    public bool Dirty => dirtyStrings.Count > 0 || 
+    public bool Dirty => dirtyStrings.Count > 0 ||
                          dirtyInfocards.Count > 0 ||
                          removedStrings.Count > 0 ||
                          removedInfocards.Count > 0;
-    
+
     public void Reset()
     {
         dirtyStrings = new Dictionary<int, string>();
@@ -61,7 +61,7 @@ public class EditableInfocardManager : InfocardManager
         var (x, y) = (id >> 16, id & 0xFFFF);
         return Dlls[x].Strings.ContainsKey(y);
     }
-    
+
     public bool XmlExists(int id)
     {
         if (id < 0 || id > MaxIds) return false;
@@ -73,14 +73,14 @@ public class EditableInfocardManager : InfocardManager
 
     public override string GetStringResource(int id)
     {
-        if (removedStrings.Contains(id)) 
+        if (removedStrings.Contains(id))
             return "";
         if (dirtyStrings.TryGetValue(id, out var s))
             return s;
         return base.GetStringResource(id);
     }
 
-    public override string GetXmlResource(int id)
+    public override string? GetXmlResource(int id)
     {
         if (removedInfocards.Contains(id))
             return null;
@@ -129,24 +129,24 @@ public class EditableInfocardManager : InfocardManager
             ResourceType.Infocard => XmlExists,
             _ => id => false
         };
-        
+
         // First loop: find the highest ID currently in use for this type
         for (int i = 1; i < Dlls.Count * 65536; i++)
         {
             if (existsCheck(i) && i > highestExisting)
                 highestExisting = i;
         }
-        
+
         // No IDs in use yet → start at 1
-        if (highestExisting == -1) 
+        if (highestExisting == -1)
             return 1;
-        
+
         // If the next number after the highest is completely free, use it
         int nextId = highestExisting + 1;
         if (nextId < Dlls.Count * 65536 &&
             !StringExists(nextId) && !XmlExists(nextId))
             return nextId;
-        
+
         // Second loop: otherwise, find the next free slot after the highest ID
         // Two loops are used so we always start after the true highest used ID,
         // instead of filling the first small gap found.
@@ -155,7 +155,7 @@ public class EditableInfocardManager : InfocardManager
             if (!StringExists(i) && !XmlExists(i))
                 return i;
         }
-        
+
         // No free ID available
         return -1;
     }
@@ -191,7 +191,7 @@ public class EditableInfocardManager : InfocardManager
         else
         {
             dirtyInfocards[id] = value;
-        }        
+        }
     }
 
     public void Save()
@@ -214,26 +214,26 @@ public class EditableInfocardManager : InfocardManager
             Dlls[x].Strings.Remove(y);
             toWrite[x] = true;
         }
-        
+
         foreach (var s in removedInfocards)
         {
             var (x, y) = (s >> 16, s & 0xFFFF);
             Dlls[x].Infocards.Remove(y);
             toWrite[x] = true;
         }
-        
+
         for (int i = 0; i < Dlls.Count; i++)
         {
             if (!toWrite[i]) continue;
-            using (var f = File.Create(Dlls[i].SavePath)) {
+            using (var f = File.Create(Dlls[i].SavePath!)) {
                 DllWriter.Write(Dlls[i], f);
             }
         }
-        
+
         dirtyStrings = new Dictionary<int, string>();
         dirtyInfocards = new Dictionary<int, string>();
         removedStrings = new List<int>();
         removedInfocards = new List<int>();
     }
-    
+
 }

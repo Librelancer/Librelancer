@@ -130,6 +130,17 @@ public class IniBuilder
             return this;
         }
 
+        public IniSectionBuilder OptionalEntry(string name, int? value)
+        {
+            if (value != null)
+            {
+                var e = new Entry(Section, name);
+                e.Add(value.Value);
+                Section.Add(e);
+            }
+            return this;
+        }
+
         public IniSectionBuilder Entry(string name, ValueBase value)
         {
             var e = new Entry(Section, name);

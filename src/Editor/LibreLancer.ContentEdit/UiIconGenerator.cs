@@ -72,7 +72,7 @@ namespace LibreLancer.ContentEdit
             geom.Center = new Vector3(0.00066627f, -0.00288963f, -0.00000009f);
             geom.Radius = 0.05172854f;
             var vmsLib = new LUtfNode() {Name = "VMeshLibrary", Parent = modelFile.Root, Children = new List<LUtfNode>()};
-            modelFile.Root.Children.Add(vmsLib);
+            modelFile.Root.Children!.Add(vmsLib);
             var vmsName = new LUtfNode() {Name = meshName, Parent = vmsLib, Children = new List<LUtfNode>()};
             vmsLib.Children.Add(vmsName);
             vmsName.Children.Add(new LUtfNode()

@@ -59,7 +59,7 @@ public static class SurfaceBuilder
         return builder.ToString();
     }
 
-    static void DescribeNode(SurfaceNode node, StringBuilder builder)
+    static void DescribeNode(SurfaceNode? node, StringBuilder builder)
     {
         if (node == null)
         {
@@ -78,7 +78,7 @@ public static class SurfaceBuilder
         DescribeNode(node.Right, builder);
     }
 
-    static void DescribeHull(SurfaceHull hull, StringBuilder builder)
+    static void DescribeHull(SurfaceHull? hull, StringBuilder builder)
     {
         if (hull == null)
         {
@@ -127,7 +127,7 @@ public static class SurfaceBuilder
         return new EditResult<SurFile>(result, warnings);
     }
 
-    static HullData NodeToHull(ModelNode h, Matrix4x4 tr, List<EditMessage> warnings)
+    static HullData? NodeToHull(ModelNode h, Matrix4x4 tr, List<EditMessage> warnings)
     {
         if (h.Geometry == null)
         {
@@ -175,7 +175,7 @@ public static class SurfaceBuilder
     class SurfacePartContext
     {
         public List<EditMessage> Warnings;
-        public SurfacePartContext Parent;
+        public SurfacePartContext? Parent;
         public Matrix4x4 Transform;
 
         public HashSet<uint> HpIds = new HashSet<uint>();
@@ -183,7 +183,7 @@ public static class SurfaceBuilder
         public List<SurfacePoint> Points = new List<SurfacePoint>();
         public List<SurfaceNode> Nodes = new List<SurfaceNode>();
 
-        public SurfacePartContext(List<EditMessage> warnings, Matrix4x4 transform, SurfacePartContext parent)
+        public SurfacePartContext(List<EditMessage> warnings, Matrix4x4 transform, SurfacePartContext? parent)
         {
             this.Warnings = warnings;
             this.Parent = parent;
@@ -195,13 +195,10 @@ public static class SurfaceBuilder
             var transformed = new Vector3[h.Hull.Vertices.Length];
             for (int i = 0; i < transformed.Length; i++)
                 transformed[i] = Vector3.Transform(h.Hull.Vertices[i], matrix);
-            var h2 = new HullData()
-            {
-                Source = h.Source,
-                Hull = Hull.FromTriangles(transformed, h.Hull.Indices.ToArray())
-            };
+            var h2 = new HullData(Hull.FromTriangles(transformed, h.Hull.Indices.ToArray()), h.Source);
             AddHull(h2, crc, 4, hpid);
         }
+
         public void AddHull(HullData h, uint crc, byte type, bool hpid)
         {
             if (type == 4)
@@ -253,7 +250,7 @@ public static class SurfaceBuilder
     }
 
     static void CreateSurfacePart(ImportedModelNode node, List<SurfacePart> parts,
-        SurfacePartContext parent, NodeKind nodeKind, List<EditMessage> warnings)
+        SurfacePartContext? parent, NodeKind nodeKind, List<EditMessage> warnings)
     {
         var modelCrc = nodeKind switch
         {
@@ -261,7 +258,8 @@ public static class SurfaceBuilder
             NodeKind.NodeRoot => CrcTool.FLModelCrc("Root"),
             _ => CrcTool.FLModelCrc(node.Name),
         };
-        var convexHulls = node.Hulls.Select(x => NodeToHull(x, Matrix4x4.Identity, warnings)).Where(x => x != null).ToList();
+        var convexHulls = node.Hulls.Select(x => NodeToHull(x, Matrix4x4.Identity, warnings))
+            .OfType<HullData>().ToList();
         if (convexHulls.Count == 0)
         {
             warnings.Add(EditMessage.Warning($"Node {node.Name} has no valid collision hulls"));
@@ -279,7 +277,7 @@ public static class SurfaceBuilder
             if (hp.Hulls.Count == 0)
                 continue;
             var hullDatas = hp.Hulls.Select(x => NodeToHull(x, hp.Hardpoint.Transform.Matrix(), warnings))
-                .Where(x => x != null).ToArray();
+                .OfType<HullData>().ToArray();
             if (hullDatas.Length == 0)
             {
                 warnings.Add(EditMessage.Warning($"Node {hp.Hardpoint.Name} has no valid collision hulls"));
@@ -459,24 +457,20 @@ public static class SurfaceBuilder
         var verts = new List<Vector3>();
         var indices = new List<int>();
         var tr = h.Transform * parentTransform;
-        foreach (var i in h.Geometry.Indices.Indices16)
+        foreach (var i in h.Geometry!.Indices.Indices16!)
         {
             verts.AddIfUnique(Vector3.Transform(h.Geometry.Vertices.Position[i], tr), out int index);
             indices.Add(index);
         }
 
-        var inputHull = new HullData()
-        {
-            Hull = Hull.FromTriangles(verts.ToArray(), indices.ToArray()),
-            Source = h.Name,
-        };
+        var inputHull = new HullData(Hull.FromTriangles(verts.ToArray(), indices.ToArray()), h.Name);
         return QuickhullAndVerify(inputHull);
     }
 
 
     static EditResult<HullData> QuickhullAndVerify(HullData h)
     {
-        EditMessage warning = h.Hull.Kind switch
+        EditMessage? warning = h.Hull.Kind switch
         {
             HullKind.NonWatertight =>  EditMessage.Warning($"{h.Source} is not convex (not water-tight), fixing."),
             HullKind.Multibody => EditMessage.Warning($"{h.Source} is not convex (not all triangles connected), creating convex hull."),

@@ -113,7 +113,7 @@ public static class IniSerializer
     {
         var builder = new IniBuilder();
 
-        IniBuilder.IniSectionBuilder tPanels = null;
+        IniBuilder.IniSectionBuilder? tPanels = null;
         foreach (var f in ast.TexturePanels)
         {
             tPanels ??= builder.Section("TexturePanels");
@@ -133,7 +133,7 @@ public static class IniSerializer
         {
             builder.Section("Band")
                 .Entry("render_parts", ast.Band.RenderParts)
-                .Entry("shape", ast.Band.Shape)
+                .Entry("shape", ast.Band.Shape!)
                 .Entry("height", ast.Band.Height)
                 .Entry("offset_dist", ast.Band.OffsetDistance)
                 .Entry("fade", ast.Band.Fade)
@@ -148,7 +148,7 @@ public static class IniSerializer
             var s = builder.Section("Exclusion Zones");
             foreach (var z in ast.ExclusionZones)
             {
-                s.Entry("exclusion", z.Zone.Nickname);
+                s.Entry("exclusion", z.Zone!.Nickname);
                 if (z.ExcludeBillboards)
                     s.Entry("exclude_billboards", 1);
                 if (z.ExcludeDynamicAsteroids)
@@ -170,23 +170,26 @@ public static class IniSerializer
         if (ast.Cube is { Count: > 0 })
         {
             var cb = builder.Section("Cube");
-            if (ast.CubeRotation.AxisX != AsteroidCubeRotation.Default_AxisX)
-                cb.Entry("xaxis_rotation", ast.CubeRotation.AxisX);
-            if (ast.CubeRotation.AxisY != AsteroidCubeRotation.Default_AxisY)
-                cb.Entry("yaxis_rotation", ast.CubeRotation.AxisY);
-            if (ast.CubeRotation.AxisZ != AsteroidCubeRotation.Default_AxisZ)
-                cb.Entry("zaxis_rotation", ast.CubeRotation.AxisZ);
+            if (ast.CubeRotation != null)
+            {
+                if (ast.CubeRotation.AxisX != AsteroidCubeRotation.Default_AxisX)
+                    cb.Entry("xaxis_rotation", ast.CubeRotation.AxisX);
+                if (ast.CubeRotation.AxisY != AsteroidCubeRotation.Default_AxisY)
+                    cb.Entry("yaxis_rotation", ast.CubeRotation.AxisY);
+                if (ast.CubeRotation.AxisZ != AsteroidCubeRotation.Default_AxisZ)
+                    cb.Entry("zaxis_rotation", ast.CubeRotation.AxisZ);
+            }
             foreach (var c in ast.Cube)
             {
                 var a = c.Rotation.GetEulerDegrees();
                 if (!string.IsNullOrWhiteSpace(c.Info))
                 {
-                    cb.Entry("asteroid", c.Archetype.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z,
+                    cb.Entry("asteroid", c.Archetype!.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z,
                         c.Info);
                 }
                 else
                 {
-                    cb.Entry("asteroid", c.Archetype.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z);
+                    cb.Entry("asteroid", c.Archetype!.Nickname, c.Position.X, c.Position.Y, c.Position.Z, a.X, a.Y, a.Z);
                 }
             }
         }
@@ -205,12 +208,12 @@ public static class IniSerializer
         foreach (var d in ast.DynamicAsteroids)
         {
             builder.Section("DynamicAsteroids")
-                .Entry("asteroid", d.Asteroid.Nickname)
+                .Entry("asteroid", d.Asteroid!.Nickname)
                 .Entry("count", d.Count)
                 .Entry("placement_radius", d.PlacementRadius)
                 .Entry("placement_offset", d.PlacementOffset)
-                .Entry("max_velocity", d.MaxVelocity)
-                .Entry("max_angular_velocity", d.MaxAngularVelocity)
+                .OptionalEntry("max_velocity", d.MaxVelocity)
+                .OptionalEntry("max_angular_velocity", d.MaxAngularVelocity)
                 .Entry("color_shift", d.ColorShift);
         }
 
@@ -351,7 +354,7 @@ public static class IniSerializer
                 sb.Entry("encounter", e.Archetype, e.Difficulty, e.Chance);
                 foreach (var f in e.FactionSpawns)
                 {
-                    sb.Entry("faction", f.Faction, f.Chance);
+                    sb.Entry("faction", f.Faction!, f.Chance);
                 }
             }
         }
@@ -385,11 +388,11 @@ public static class IniSerializer
         {
             if (obj.Dock.Kind == DockKinds.Base)
             {
-                sb.Entry("dock_with", obj.Dock.Target);
+                sb.Entry("dock_with", obj.Dock.Target!);
             }
             else if (obj.Dock.Kind == DockKinds.Jump)
             {
-                sb.Entry("goto", obj.Dock.Target, obj.Dock.Exit, obj.Dock.Tunnel);
+                sb.Entry("goto", obj.Dock.Target!, obj.Dock.Exit!, obj.Dock.Tunnel!);
             }
             else if (obj.Dock.Kind == DockKinds.Tradelane)
             {
@@ -462,16 +465,16 @@ public static class IniSerializer
     {
         var ib = new IniBuilder();
         var section = ib.Section("Room_Info")
-            .Entry("set_script", room.SetScript?.SourcePath);
+            .OptionalEntry("set_script", room.SetScript?.SourcePath);
         foreach (var scene in room.SceneScripts)
         {
             if (scene.TrafficPriority)
             {
-                section.Entry("scene", scene.AllAmbient ? "all" : "ambient", scene.Thn.SourcePath, "TRAFFIC_PRIORITY");
+                section.Entry("scene", scene.AllAmbient ? "all" : "ambient", scene.Thn.SourcePath!, "TRAFFIC_PRIORITY");
             }
             else
             {
-                section.Entry("scene", scene.AllAmbient ? "all" : "ambient", scene.Thn.SourcePath);
+                section.Entry("scene", scene.AllAmbient ? "all" : "ambient", scene.Thn.SourcePath!);
             }
         }
 
@@ -537,7 +540,7 @@ public static class IniSerializer
             foreach (var fac in b.BaseFactions)
             {
                 var facSection = ib.Section("BaseFaction")
-                    .Entry("faction", fac.Faction?.Nickname)
+                    .Entry("faction", fac.Faction!.Nickname)
                     .OptionalEntry("weight", fac.Weight)
                     .OptionalEntry("offers_missions", fac.OffersMissions);
                 foreach (var mt in fac.Missions)
@@ -566,19 +569,19 @@ public static class IniSerializer
                     section.OptionalEntry("room", e.room.Nickname);
                 foreach (var br in e.npc.Bribes)
                 {
-                    section.Entry("bribe", br.Faction?.Nickname, br.Price, br.Ids);
+                    section.Entry("bribe", br.Faction!.Nickname, br.Price, br.Ids);
                 }
 
                 foreach (var r in e.npc.Rumors.Where(x => !x.Type2))
                 {
-                    section.Entry("rumor", r.Start?.Item.Nickname, r.End?.Item.Nickname, r.RepRequired, r.Ids);
+                    section.Entry("rumor", r.Start!.Item.Nickname, r.End!.Item.Nickname, r.RepRequired, r.Ids);
                     if (r.Objects != null)
                         section.Entry("rumorknowdb", r.Objects);
                 }
 
                 foreach (var r2 in e.npc.Rumors.Where(x => x.Type2))
                 {
-                    section.Entry("rumor_type2", r2.Start?.Item.Nickname, r2.End?.Item.Nickname, r2.RepRequired, r2.Ids);
+                    section.Entry("rumor_type2", r2.Start?.Item.Nickname ?? "", r2.End?.Item.Nickname ?? "", r2.RepRequired, r2.Ids);
                     if (r2.Objects != null)
                         section.Entry("rumorknowdb", r2.Objects);
                 }
@@ -586,8 +589,7 @@ public static class IniSerializer
                 foreach (var k in e.npc.Know)
                 {
                     section.Entry("know", k.Ids1, k.Ids2, k.Price, k.RepRequired);
-                    if (k.Objects != null)
-                        section.Entry("knowdb", k.Objects);
+                    section.Entry("knowdb", k.Objects);
                 }
             }
 
@@ -599,7 +601,7 @@ public static class IniSerializer
                 foreach (var npc in room.Npcs)
                 {
                     if (npc.Placement == null) continue;
-                    section.Entry("fixture", npc.Nickname, npc.Placement.Spot, npc.Placement.FidgetScript?.SourcePath, npc.Placement.Action);
+                    section.Entry("fixture", npc.Nickname, npc.Placement.Spot, npc.Placement.FidgetScript?.SourcePath ?? "", npc.Placement.Action);
                 }
             }
 
@@ -626,8 +628,8 @@ public static class IniSerializer
             }
 
             // category is omitted entirely as it is unused, and not read in by FL
-            section.Entry("icon", article.Icon)
-                .Entry("logo", article.Logo)
+            section.Entry("icon", article.Icon!)
+                .Entry("logo", article.Logo!)
                 .Entry("headline", article.Headline)
                 .Entry("text", article.Text)
                 .OptionalEntry("autoselect", article.AutoSelect)
@@ -660,7 +662,7 @@ public static class IniSerializer
         var s = builder.Section("MsnShip");
 
         s.Entry("nickname", ship.Nickname)
-            .Entry("NPC", ship.NPC.Nickname)
+            .Entry("NPC", ship.NPC!.Nickname)
             .OptionalEntry("random_name", ship.RandomName)
             .OptionalEntry("system", ship.System)
             .OptionalEntry("radius", ship.Radius)
@@ -690,7 +692,7 @@ public static class IniSerializer
         }
         foreach (var cargo in ship.Cargo)
         {
-            s.Entry("cargo", cargo.Cargo, cargo.Count);
+            s.Entry("cargo", cargo.Cargo!, cargo.Count);
         }
         foreach (var lbl in ship.Labels)
         {
@@ -702,7 +704,7 @@ public static class IniSerializer
     {
         var s = ini.Section("NPC");
         s.Entry("nickname", npc.Nickname)
-            .Entry("npc_ship_arch", npc.NpcShipArch)
+            .Entry("npc_ship_arch", npc.NpcShipArch!)
             .OptionalEntry("affiliation", npc.Affiliation?.Nickname)
             .Entry("individual_name", npc.IndividualName)
             .OptionalEntry("voice", npc.Voice);
@@ -747,7 +749,7 @@ public static class IniSerializer
         var s = ini.Section("MsnFormation");
         s.Entry("nickname", formation.Nickname)
             .Entry("orientation", formation.Orientation)
-            .Entry("formation", formation.Formation);
+            .Entry("formation", formation.Formation!);
         foreach (var ship in formation.Ships)
         {
             s.Entry("ship", ship.Nickname);
@@ -790,10 +792,10 @@ public static class IniSerializer
         var s = ini.Section("MsnSolar");
         s.Entry("nickname", solar.Nickname)
             .OptionalEntry("faction", solar.Faction?.Nickname)
-            .Entry("system", solar.System)
+            .Entry("system", solar.System!)
             .Entry("position", solar.Position)
             .Entry("orientation", solar.Orientation)
-            .Entry("archetype", solar.Archetype.Nickname)
+            .Entry("archetype", solar.Archetype!.Nickname)
             .Entry("radius", solar.Radius);
         SerializeCostume(s, "costume", solar.Costume);
         foreach (var label in solar.Labels)
@@ -812,7 +814,7 @@ public static class IniSerializer
         var s = ini.Section("MsnLoot");
 
         s.Entry("nickname", loot.Nickname)
-            .Entry("archetype", loot.Archetype.Nickname)
+            .Entry("archetype", loot.Archetype!.Nickname)
             .Entry("string_id", loot.StringId)
             .Entry("velocity", loot.Velocity)
             .Entry("equip_amount", loot.EquipAmount)
@@ -835,11 +837,11 @@ public static class IniSerializer
     {
         var s = ini.Section("Dialog");
         s.Entry("nickname", dialog.Nickname)
-            .Entry("system", dialog.System);
+            .Entry("system", dialog.System!);
 
         foreach (var line in dialog.Lines)
         {
-            List<ValueBase> values = [line.Source, line.Target, line.Line];
+            List<ValueBase> values = [line.Source!, line.Target!, line.Line!];
             if (line.Unknown1.Present)
                 values.Add(line.Unknown1.Value);
             if(line.Unknown2.Present)

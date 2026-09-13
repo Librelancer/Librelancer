@@ -280,9 +280,8 @@ namespace LancerEdit
                         {
                             foreach (var child in Utf.Root.Children.Where((x) => x.Name.EndsWith(".3db", StringComparison.OrdinalIgnoreCase)))
                             {
-                                var n = new ModelHpNode();
+                                var n = new ModelHpNode(child);
                                 n.Name = child.Name;
-                                n.Node = child;
                                 n.HardpointsNode = child.Children.FirstOrDefault((x) => x.Name.Equals("hardpoints", StringComparison.OrdinalIgnoreCase));
                                 hpn.Nodes.Add(n);
                             }
@@ -291,9 +290,8 @@ namespace LancerEdit
                         }
                         else
                         {
-                            var n = new ModelHpNode();
+                            var n = new ModelHpNode(Utf.Root);
                             n.Name = "ROOT";
-                            n.Node = Utf.Root;
                             n.HardpointsNode = Utf.Root.Children.FirstOrDefault((x) => x.Name.Equals("hardpoints", StringComparison.OrdinalIgnoreCase));
                             hpn.Nodes.Add(n);
                         }

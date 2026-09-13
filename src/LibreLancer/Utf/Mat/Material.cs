@@ -77,7 +77,7 @@ namespace LibreLancer.Utf.Mat
         /// </summary>
         public int EtFlags { get; private set; }
 
-        public string EtName = null!;
+        public string? EtName;
 
         public Color4 Ac { get; set; }
 

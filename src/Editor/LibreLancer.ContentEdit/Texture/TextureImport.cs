@@ -39,17 +39,11 @@ namespace LibreLancer.ContentEdit
         Alpha
     }
 
-    public class AnalyzedTexture
-    {
-        public TexLoadType Type;
-        public Texture2D Texture;
-        public bool OneBitAlpha = false;
-        public byte[] Source;
-    }
+    public record AnalyzedTexture(TexLoadType Type, Texture2D? Texture, bool OneBitAlpha, byte[] Source);
 
     public class TextureImport
     {
-        static byte[] GetEmbeddedDDS(Image lr, Stream input)
+        static byte[]? GetEmbeddedDDS(Image lr, Stream input)
         {
             try
             {
@@ -57,7 +51,7 @@ namespace LibreLancer.ContentEdit
                 if (reader.ReadUInt64() != 0xA1A0A0D474E5089) //Not PNG
                     return null;
                 Span<byte> fourcc = stackalloc byte[4];
-                byte[] ddszChunk = null;
+                byte[]? ddszChunk = null;
                 while ((reader.BaseStream.Position + 4) < reader.BaseStream.Length)
                 {
                     var len = reader.ReadInt32BE();
@@ -96,7 +90,7 @@ namespace LibreLancer.ContentEdit
             }
         }
 
-        public static EditResult<AnalyzedTexture> OpenBuffer(byte[] input, RenderContext context)
+        public static EditResult<AnalyzedTexture> OpenBuffer(byte[] input, RenderContext? context)
         {
             try
             {
@@ -104,11 +98,8 @@ namespace LibreLancer.ContentEdit
                 {
                     if (DDS.StreamIsDDS(file))
                     {
-                        return (new AnalyzedTexture()
-                        {
-                            Type = TexLoadType.DDS,
-                            Texture = (Texture2D)DDS.FromStream(context, file)
-                        }).AsResult();
+                        return new AnalyzedTexture(TexLoadType.DDS, context == null ? null : (Texture2D)DDS.FromStream(context, file), false,
+                            input).AsResult();
                     }
                 }
                 Image lr;
@@ -118,22 +109,19 @@ namespace LibreLancer.ContentEdit
                 }
                 using (var file = new MemoryStream(input))
                 {
-                    byte[] embedded;
+                    byte[]? embedded;
                     if ((embedded = GetEmbeddedDDS(lr, file)) != null)
                     {
-                        return (new AnalyzedTexture()
-                        {
-                            Type = TexLoadType.DDS,
-                            Texture = context == null ? null : (Texture2D)DDS.FromStream(context, new MemoryStream(embedded)),
-                            Source = input
-                        }).AsResult();
+                        return new AnalyzedTexture(TexLoadType.DDS,
+                            context == null ? null : (Texture2D)DDS.FromStream(context, new MemoryStream(embedded)),
+                            false, input).AsResult();
                     }
                 }
 
                 EditMessage[] warning = Array.Empty<EditMessage>();
                 if (lr.Width != lr.Height)
                 {
-                    warning = new[] { EditMessage.Warning($"Dimensions of {input} are not square") };
+                    warning = [EditMessage.Warning($"Dimensions of {input} are not square")];
                 }
                 if (!MathHelper.IsPowerOfTwo(lr.Width) ||
                     !MathHelper.IsPowerOfTwo(lr.Height))
@@ -157,19 +145,16 @@ namespace LibreLancer.ContentEdit
                 }
                 if (opaque)
                     oneBitAlpha = false;
-                Texture2D tex = null;
+                Texture2D? tex = null;
                 if (context != null)
                 {
                     tex = new Texture2D(context, lr.Width, lr.Height);
                     tex.SetData(lr.Data);
                 }
-                return new EditResult<AnalyzedTexture>(new AnalyzedTexture()
-                {
-                    Type = opaque ? TexLoadType.Opaque : TexLoadType.Alpha,
-                    Texture = tex, OneBitAlpha = oneBitAlpha, Source = input
-                }, warning);
+                return new EditResult<AnalyzedTexture>(new AnalyzedTexture(opaque ? TexLoadType.Opaque : TexLoadType.Alpha,
+                    tex, oneBitAlpha, input), warning);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return EditResult<AnalyzedTexture>.Error($"Could not load file {input}");
             }
@@ -303,7 +288,7 @@ namespace LibreLancer.ContentEdit
                 else
                 {
                     var raw =  Generic.ImageFromStream(ms, false);
-                    byte[] embedded;
+                    byte[]? embedded;
                     if ((embedded = GetEmbeddedDDS(raw, new MemoryStream(input.ToArray()))) != null)
                     {
                         return new LUtfNode() { Name = "MIPS", Data = embedded, Parent = parent };

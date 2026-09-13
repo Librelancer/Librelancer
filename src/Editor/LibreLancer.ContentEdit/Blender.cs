@@ -41,8 +41,6 @@ public class Blender
 
         public void Dispose()
         {
-            if (allFiles == null)
-                return;
             foreach (var f in allFiles)
             {
                 try
@@ -54,7 +52,7 @@ public class Blender
                     // ignored
                 }
             }
-            allFiles = null;
+            allFiles.Clear();
         }
     }
 
@@ -66,7 +64,7 @@ public class Blender
         ExportScript = exportReader.ReadToEnd();
     }
 
-    public static string AutodetectBlender()
+    public static string? AutodetectBlender()
     {
         if (Platform.RunningOS == OS.Windows)
         {
@@ -135,7 +133,7 @@ public class Blender
         return true; // Valid Blender file
     }
 
-    public static bool BlenderPathValid(string blenderPath = null)
+    public static bool BlenderPathValid(string? blenderPath = null)
     {
         if (string.IsNullOrWhiteSpace(blenderPath))
             blenderPath = AutodetectBlender();
@@ -151,7 +149,7 @@ public class Blender
     static string EscapeCode(string s) => JsonValue.Create(s).ToJsonString();
 
     private const int CANCELLED = -255;
-    static async Task<int> RunBlender(string blenderPath, string args, string pythonCode, CancellationToken cancellation = default, Action<string> log = null, string flatpakExtra = "")
+    static async Task<int> RunBlender(string blenderPath, string args, string pythonCode, CancellationToken cancellation = default, Action<string>? log = null, string flatpakExtra = "")
     {
         using var temp = new TempFiles();
         var pythonFile = temp.WriteText(pythonCode);
@@ -173,6 +171,11 @@ public class Blender
         log?.Invoke($"Running {processName} {processArgs}\n");
         log?.Invoke("Python:\n" + pythonCode + "\n");
         var process = Process.Start(psi);
+        if (process == null)
+        {
+            log?.Invoke("Process.Start call failed.");
+            return -1;
+        }
         if (log != null)
         {
             process.OutputDataReceived += (o, e) =>
@@ -206,7 +209,7 @@ public class Blender
             File.Delete(file);
     }
 
-    public static async Task<EditResult<SimpleMesh.Model>> LoadBlenderFile(string file, CancellationToken cancellation = default, Action<string> log = null, string blenderPath = null)
+    public static async Task<EditResult<SimpleMesh.Model>> LoadBlenderFile(string file, CancellationToken cancellation = default, Action<string>? log = null, string? blenderPath = null)
     {
         if (string.IsNullOrWhiteSpace(blenderPath))
             blenderPath = AutodetectBlender();
@@ -251,7 +254,7 @@ public class Blender
         }
     }
 
-    public static async Task<EditResult<bool>> ExportBlenderFile(SimpleMesh.Model exported, string file, string blenderPath = null, CancellationToken cancellation = default, Action<string> logLine = null)
+    public static async Task<EditResult<bool>> ExportBlenderFile(SimpleMesh.Model exported, string file, string? blenderPath = null, CancellationToken cancellation = default, Action<string>? logLine = null)
     {
         if (string.IsNullOrWhiteSpace(blenderPath))
             blenderPath = AutodetectBlender();

@@ -7,7 +7,7 @@ class CompileErrorException : Exception
     public string Error { get; private set; }
     public int Column { get; private set; }
     public int Line { get; private set; }
-    public string Source { get; private set; }
+    public string SourceFile { get; private set; }
 
     public CompileErrorException(Lexer lexer, string message)
         : this(lexer, lexer.Current, message)
@@ -19,11 +19,11 @@ class CompileErrorException : Exception
     {
     }
 
-    public CompileErrorException(string source, int column, int line, string message) :
-        base($"{message} at {source}: {line}:{column}.")
+    public CompileErrorException(string sourceFile, int column, int line, string message) :
+        base($"{message} at {sourceFile}: {line}:{column}.")
     {
         Error = message;
-        Source = source;
+        SourceFile = sourceFile;
         Line = line;
         Column = column;
     }

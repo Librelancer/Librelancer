@@ -173,17 +173,17 @@ public class AstData(int id, DataNode data) : VignetteAst(id)
     {
         if (Children.Count > 0)
             return DataNodeKind.Closed;
-        if (data.RewardText.Target != null || data.FailureText.Target != null || data.ObjectiveTexts.Count > 0)
+        if (Data.RewardText.Target != null || Data.FailureText.Target != null || Data.ObjectiveTexts.Count > 0)
             return DataNodeKind.Objective;
-        if (data.Difficulty != null)
+        if (Data.Difficulty != null)
             return DataNodeKind.Difficulty;
-        if (data.Weight != null)
+        if (Data.Weight != null)
             return DataNodeKind.Weight;
-        if (data.CommSequences.Count > 0)
+        if (Data.CommSequences.Count > 0)
             return DataNodeKind.CommSequence;
-        if (data.AllowableZoneTypes != null)
+        if (Data.AllowableZoneTypes != null)
             return DataNodeKind.AllowableZone;
-        if (data.OfferTexts.Count > 0)
+        if (Data.OfferTexts.Count > 0)
             return DataNodeKind.Offer;
         return DataNodeKind.None;
     }
@@ -194,14 +194,14 @@ public class AstData(int id, DataNode data) : VignetteAst(id)
         return k == a || k == b;
     }
 
-    public override string ToString() => $"{id}: DATA";
+    public override string ToString() => $"{Id}: DATA";
 }
 
 public class AstDoc(int id, DocumentationNode docs) : VignetteAst(id)
 {
     public DocumentationNode Docs = docs;
 
-    public override string ToString() => $"{id}: {Docs?.Documentation ?? "NULL"}";
+    public override string ToString() => $"{Id}: {Docs?.Documentation ?? "NULL"}";
 }
 
 public class AstDecision(int id, DecisionNode decision) : VignetteAst(id)
@@ -211,7 +211,7 @@ public class AstDecision(int id, DecisionNode decision) : VignetteAst(id)
     public string[]? GroupA;
     public string[]? GroupB;
 
-    public override string ToString() => $"{id}: {Decision?.Nickname}";
+    public override string ToString() => $"{Id}: {Decision?.Nickname}";
 }
 
 public class AstIfElse(int id) : VignetteAst(id)

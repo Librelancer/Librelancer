@@ -89,7 +89,7 @@ public static class Mp3Encoder
     static extern void lame_close(IntPtr gfp);
 
 
-    static byte[] GetLAMETagFrame(IntPtr context)
+    static byte[]? GetLAMETagFrame(IntPtr context)
     {
         byte[] buffer = new byte[1];
         int frameSize = lame_get_lametag_frame(context, buffer, 0);
@@ -103,7 +103,7 @@ public static class Mp3Encoder
     }
 
     static unsafe void RunEncode(Stream input, Stream output, int bitrateKbps, Mp3EncodePreset preset, CancellationToken cancellation,
-        Action<string> log = null)
+        Action<string>? log = null)
     {
         using var audio = new AudioDecoder(input);
         var mp3file = new MemoryStream();
@@ -246,7 +246,7 @@ public static class Mp3Encoder
         }
     }
 
-    public static Task EncodeStream(Stream input, Stream output, int bitrateKbps, Mp3EncodePreset preset, CancellationToken cancellation = default, Action<string> log = null)
+    public static Task EncodeStream(Stream input, Stream output, int bitrateKbps, Mp3EncodePreset preset, CancellationToken cancellation = default, Action<string>? log = null)
     {
         return Task.Run(() => RunEncode(input, output, bitrateKbps, preset, cancellation, log));
     }

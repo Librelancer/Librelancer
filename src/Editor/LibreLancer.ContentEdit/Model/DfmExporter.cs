@@ -219,7 +219,7 @@ public static class DfmExporter
 
         var length = (dfm.Parts.Keys.Max() + 1);
 
-        ModelNode[] bones = new ModelNode[length];
+        ModelNode?[] bones = new ModelNode?[length];
         Matrix4x4[] inverseBindMatrices = new Matrix4x4[length];
 
         for(int i = 0; i < inverseBindMatrices.Length; i++)
@@ -286,23 +286,13 @@ public static class DfmExporter
         var meshNode = new ModelNode() { Name = "MESH", Geometry = g };
         root.Children.Add(meshNode);
 
-        var anims = new List<Animation>();
-        if (anm != null)
-        {
-            foreach (var sc in anm)
-            {
-                anims.Add(ExportAnimation(dfm, sc));
-            }
-        }
-
-
-        var sk = new Skin() { Bones = bones, InverseBindMatrices = inverseBindMatrices, Name = "SKIN" };
+        var sk = new Skin() { Bones = bones!, InverseBindMatrices = inverseBindMatrices, Name = "SKIN" };
         meshNode.Skin = sk;
 
         output.Roots = [root];
         output.Geometries = [g];
         output.Skins = [sk];
-        output.Animations = anims.ToArray();
+        output.Animations = anm.Select(x => ExportAnimation(dfm, x)).ToArray();
         if (settings.IncludeTextures)
         {
             output.Images = MaterialExporter.ExportImages(resources, output.Materials);
