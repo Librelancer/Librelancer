@@ -69,7 +69,7 @@ public class AntialiasTarget : RenderTarget
         renderContext.PushViewport(0, 0, Width, Height);
         renderContext.PushScissor(new(0, 0, Width, Height), false);
         // Fetch shaders and set RT size
-        uint level = (uint)Mode;
+        uint level = (uint)(Mode - 1);
         var rtMetrics = new Vector4(1.0f / Width, 1.0f / Height, Width, Height);
         var edgeDetection = renderContext.SMAAEdgeDetection.Get(level);
         edgeDetection.SetUniformBlock(3, ref rtMetrics);
