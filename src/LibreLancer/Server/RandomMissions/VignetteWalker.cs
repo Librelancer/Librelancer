@@ -64,15 +64,19 @@ public record MissionVariantPath(VignetteBranches Branches, VignetteDecisions De
     }
 }
 
+/// <summary>
+/// Stores True/False path constructed backwards from end node. (end->start)
+/// Accessed in opposite direction (start->end)
+/// </summary>
 public struct VignetteBranches : IEnumerable<bool>
 {
     private BitArray128 data;
     private int count;
     public int Count => count;
 
-    public bool this[int index] => data[index];
+    public bool this[int index] => data[Count - 1 - index];
 
-    public void Add(bool b)
+    public void Push(bool b)
     {
         data[count++] = b;
     }
@@ -80,17 +84,6 @@ public struct VignetteBranches : IEnumerable<bool>
     public void Pop()
     {
         count--;
-    }
-
-    public VignetteBranches CopyReversed()
-    {
-        var dest = new VignetteBranches();
-        for (int i = 0; i < Count; i++)
-        {
-            dest.data[i] = data[Count - 1 - i];
-        }
-        dest.count = count;
-        return dest;
     }
 
     public Enumerator GetEnumerator() => new Enumerator(this);
@@ -107,16 +100,16 @@ public struct VignetteBranches : IEnumerable<bool>
         internal Enumerator(VignetteBranches branches)
         {
             _branches = branches;
-            _index = -1;
+            _index = branches.Count;
         }
 
         public bool MoveNext()
         {
-            _index++;
-            return _index < _branches.Count;
+            _index--;
+            return _index >= 0;
         }
 
-        public void Reset() => _index = -1;
+        public void Reset() => _index = _branches.Count;
 
         public bool Current => _branches[_index];
 
@@ -240,7 +233,7 @@ public static class VignetteWalker
     {
         if (currentNode == startNode)
         {
-            paths.Add(currentBranches.CopyReversed());
+            paths.Add(currentBranches);
             return;
         }
 
@@ -249,7 +242,7 @@ public static class VignetteWalker
             if (IsExcluded(parent, p))
                 continue;
 
-            currentBranches.Add(parent.Left == currentNode);
+            currentBranches.Push(parent.Left == currentNode);
 
             FindPathsBackwards(parent, startNode, p, ref currentBranches, paths);
 
