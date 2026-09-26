@@ -67,6 +67,17 @@ namespace LibreLancer.Server.Components
 
         public void Docked()
         {
+            if (MissionRuntime != null)
+            {
+                if (Parent.TryGetComponent<AutopilotComponent>(out var autopilot))
+                    autopilot.Cancel();
+                if (Parent.TryGetComponent<ShipSteeringComponent>(out var steering))
+                {
+                    steering.InThrottle = 0;
+                    steering.Cruise = false;
+                }
+                return;
+            }
             manager.Despawn(Parent, false);
         }
 
