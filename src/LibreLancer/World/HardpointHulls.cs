@@ -2,60 +2,35 @@ namespace LibreLancer.World;
 
 public static class HardpointHulls
 {
-    public static void Activate(GameComponent childComponent)
+    public static void Activate(EquipmentObject child)
     {
-        var eq = childComponent.Parent;
-
-        if ((GameObject?)eq == null)
-        {
-            FLLog.Warning("Game", "Failed to activate hardpoint hull, equipment object missing");
-            return;
-        }
-
-        var p = childComponent.Parent?.Parent;
-
-        if (p == null)
-        {
-            FLLog.Warning("Game", "Failed to activate hardpoint hull, parent missing");
-            return;
-        }
-
+        var p = child.Parent;
         if (p.PhysicsComponent == null)
         {
             // Not in physics mode.
             return;
         }
-
-        if (childComponent.Parent?.Attachment == null)
+        if (child.Attachment == null)
         {
-            FLLog.Warning("Game", $"Failed to activate hardpoint hull on {p}, no attachment");
             return;
         }
-
-        p.PhysicsComponent!.ActivateHardpoint(eq.Attachment!, eq);
+        p.PhysicsComponent.ActivateHardpoint(child.Attachment, child);
     }
 
-    public static void Deactivate(GameComponent childComponent)
+    public static void Deactivate(EquipmentObject child)
     {
-        var eq = childComponent.Parent;
-        if ((GameObject?)eq == null)
+        var p = child.Parent;
+        if (p.PhysicsComponent == null)
+        {
+            // Not in physics mode.
+            return;
+        }
+        if (child.Attachment == null)
         {
             return;
         }
 
-        var p = childComponent.Parent?.Parent;
-
-        if (eq.Attachment == null)
-        {
-            return;
-        }
-
-        if (p == null)
-        {
-            return;
-        }
-
-        p.PhysicsComponent?.DeactivateHardpoint(eq.Attachment);
-        FLLog.Info("HARDPOINT", $"Deactivate {eq.Attachment} on {p}");
+        p.PhysicsComponent.DeactivateHardpoint(child.Attachment);
+        FLLog.Info("HARDPOINT", $"Deactivate {child.Attachment} on {p}");
     }
 }

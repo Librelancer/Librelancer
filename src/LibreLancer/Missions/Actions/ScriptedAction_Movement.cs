@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using LibreLancer.Data.Ini;
 using LibreLancer.Data.Schema.Missions;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using LibreLancer.World.Equipments;
 
 namespace LibreLancer.Missions.Actions
 {
@@ -68,11 +70,11 @@ namespace LibreLancer.Missions.Actions
                     FLLog.Debug("Mission", $"{obj} change cloaked to {Cloaked}");
                     if (Cloaked)
                     {
-                        obj.GetComponent<CloakComponent>()?.Cloak(world);
+                        obj.EquipmentOfType<CloakingDevice>().FirstOrDefault()?.Cloak(world);
                     }
                     else
                     {
-                        obj.GetComponent<CloakComponent>()?.Uncloak(world);
+                        obj.EquipmentOfType<CloakingDevice>().FirstOrDefault()?.Uncloak(world);
                     }
                 }
             });
@@ -193,8 +195,8 @@ namespace LibreLancer.Missions.Actions
                         return;
                     }
 
-                    var quat = Orientation ?? obj.LocalTransform.Orientation;
-                    obj.SetLocalTransform(new Transform3D(Position, quat));
+                    var quat = Orientation ?? obj.Transform.Orientation;
+                    obj.SetTransform(new Transform3D(Position, quat));
                 });
             }
             else

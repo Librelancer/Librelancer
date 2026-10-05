@@ -9,6 +9,7 @@ using LibreLancer.Missions;
 using LibreLancer.Server.Ai;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using LibreLancer.World.Equipments;
 using Pilot = LibreLancer.Data.GameData.Pilot;
 
 namespace LibreLancer.Server.Components
@@ -132,7 +133,7 @@ namespace LibreLancer.Server.Components
                 center = Vector3.Zero;
                 return false;
             }
-            center = stayInRangeObject?.WorldTransform.Position ?? stayInRangePoint;
+            center = stayInRangeObject?.Transform.Position ?? stayInRangePoint;
             return stayInRangeObject == null || stayInRangeObject.Flags.HasFlag(GameObjectFlags.Exists);
         }
 
@@ -229,9 +230,9 @@ namespace LibreLancer.Server.Components
 
             if (Parent.TryGetComponent<WeaponControlComponent>(out var weapons))
             {
-                foreach (var gun in Parent.GetChildComponents<GunComponent>())
+                foreach (var gun in Parent.EquipmentOfType<Gun>())
                 {
-                    if (gun.Object.Def.AutoTurret)
+                    if (gun.GunEquipment.Def.AutoTurret)
                     {
                         hasAutoTurrets = true;
                         break;
@@ -302,12 +303,12 @@ namespace LibreLancer.Server.Components
         public void FireWeaponGroups(WeaponControlComponent weapons, FireInfo fireInfo, GameWorld world)
         {
             // Get all weapons and group them by type
-            var regularGuns = new List<GunComponent>();
-            var autoTurrets = new List<GunComponent>();
+            var regularGuns = new List<Gun>();
+            var autoTurrets = new List<Gun>();
 
-            foreach (var gun in Parent.GetChildComponents<GunComponent>())
+            foreach (var gun in Parent.EquipmentOfType<Gun>())
             {
-                if (gun.Object.Def.AutoTurret)
+                if (gun.GunEquipment.Def.AutoTurret)
                 {
                     autoTurrets.Add(gun);
                 }
@@ -432,7 +433,7 @@ namespace LibreLancer.Server.Components
         {
             if (other.PhysicsComponent == null)
             {
-                return other.WorldTransform.Position;
+                return other.Transform.Position;
             }
 
             var myPos = Parent.PhysicsComponent!.Body.Position;
@@ -459,7 +460,7 @@ namespace LibreLancer.Server.Components
             GameObject? shootAt = null;
             int shootAtWeight = -1000;
             float shootAtDistance = float.MaxValue;
-            var myPos = Parent.WorldTransform.Position;
+            var myPos = Parent.Transform.Position;
             var hasStayInRange = TryGetStayInRangeCenter(out var stayInRangeCenter);
 
             foreach (var other in world.SpatialLookup
@@ -475,21 +476,21 @@ namespace LibreLancer.Server.Components
                     continue;
                 }
 
-                if (!(Vector3.Distance(other.WorldTransform.Position, myPos) < 5000) ||
+                if (!(Vector3.Distance(other.Transform.Position, myPos) < 5000) ||
                     !IsHostileTo(other))
                 {
                     continue;
                 }
 
                 if (hasStayInRange &&
-                    Vector3.DistanceSquared(other.WorldTransform.Position, stayInRangeCenter) >
+                    Vector3.DistanceSquared(other.Transform.Position, stayInRangeCenter) >
                     stayInRangeRadius * stayInRangeRadius)
                 {
                     continue;
                 }
 
                 int weight = GetHostileWeight(other);
-                var distance = Vector3.DistanceSquared(other.WorldTransform.Position, myPos);
+                var distance = Vector3.DistanceSquared(other.Transform.Position, myPos);
 
                 if (weight > shootAtWeight || weight == shootAtWeight && distance < shootAtDistance)
                 {
@@ -509,7 +510,7 @@ namespace LibreLancer.Server.Components
                     manager.AttackingPlayer++;
                 }
 
-                var dist = Vector3.Distance(shootAt.WorldTransform.Position, myPos);
+                var dist = Vector3.Distance(shootAt.Transform.Position, myPos);
 
                 var gunRange = weapons.GetGunMaxRange() * 0.95f;
                 weapons.AimPoint = GetAimPosition(shootAt, weapons, false); // Regular guns aim
@@ -595,11 +596,11 @@ namespace LibreLancer.Server.Components
             int autoTurrets = 0;
             int regularGuns = 0;
 
-            foreach (var gun in Parent.GetChildComponents<GunComponent>())
+            foreach (var gun in Parent.EquipmentOfType<Gun>())
             {
                 totalGuns++;
 
-                if (gun.Object.Def.AutoTurret)
+                if (gun.GunEquipment.Def.AutoTurret)
                 {
                     autoTurrets++;
                 }
@@ -794,7 +795,7 @@ namespace LibreLancer.Server.Components
 
             bool canTransition = false;
 
-            var mypos = Parent.WorldTransform.Position;
+            var mypos = Parent.Transform.Position;
 
             si.InThrottle = 0;
             si.InPitch = 0;
@@ -822,7 +823,7 @@ namespace LibreLancer.Server.Components
                 case StateGraphEntry.Buzz:
                 {
                     var dist = Pilot?.BuzzPassBy?.DistanceToPassBy ?? 100;
-                    var dest = shootAt.WorldTransform.Transform(buzzDirection * dist);
+                    var dest = shootAt.Transform.Transform(buzzDirection * dist);
                     ap.GotoVec(dest, GotoKind.GotoNoCruise, 1, 0);
                     canTransition = timeInState >= (Pilot?.BuzzPassBy?.PassByTime ?? 5) ||
                                     Vector3.DistanceSquared(dest, mypos) < 16;

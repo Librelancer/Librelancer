@@ -120,7 +120,7 @@ namespace LibreLancer.World.Components
 
         protected Vector3 GetTargetPoint()
         {
-            return TargetObject == null ? _targetPosition : TargetObject.WorldTransform.Position;
+            return TargetObject == null ? _targetPosition : TargetObject.Transform.Position;
         }
 
         protected float GetTargetRadius()
@@ -162,7 +162,7 @@ namespace LibreLancer.World.Components
 
             var localDirection = Vector3.Transform(
                 Vector3.Normalize(worldDirection),
-                Quaternion.Conjugate(Parent.WorldTransform.Orientation));
+                Quaternion.Conjugate(Parent.Transform.Orientation));
             return TurnTowardsLocalDirection(time, localDirection);
         }
 
@@ -310,8 +310,8 @@ namespace LibreLancer.World.Components
                 return false;
             }
 
-            var entryPosition = (entryHardpoint.TransformNoRotate * TargetObject.WorldTransform).Position;
-            var nextPosition = (nextHardpoint.TransformNoRotate * nextRing.WorldTransform).Position;
+            var entryPosition = (entryHardpoint.TransformNoRotate * TargetObject.Transform).Position;
+            var nextPosition = (nextHardpoint.TransformNoRotate * nextRing.Transform).Position;
             direction = nextPosition - entryPosition;
             return direction.LengthSquared() > float.Epsilon;
         }
@@ -445,7 +445,7 @@ namespace LibreLancer.World.Components
             var radius = isTradelane || lastTargetHp == 2 ? dock.GetTriggerRadius(dockIndex) : 5;
             var targetPoint = ((isTradelane
                     ? hp.TransformNoRotate
-                    : hp.Transform) * TargetObject!.WorldTransform).Position;
+                    : hp.Transform) * TargetObject!.Transform).Position;
             var isDockingRing = IsDockingRingIndex(dock, dockIndex);
 
             var d2 = (targetPoint - Parent.PhysicsComponent!.Body!.Position).Length();
@@ -589,7 +589,7 @@ namespace LibreLancer.World.Components
             if (hps.Length < 2)
             {
                 var info = docking.GetUndockInfo(index);
-                var fallbackPoint = (info.End!.Transform * TargetObject!.WorldTransform).Position;
+                var fallbackPoint = (info.End!.Transform * TargetObject!.Transform).Position;
                 return MoveToPoint(time, fallbackPoint, 25, 0, 1f, false, control, input, world, false);
             }
 
@@ -598,7 +598,7 @@ namespace LibreLancer.World.Components
                 return true;
             }
 
-            var targetPoint = (hps[targetHp].Transform * TargetObject!.WorldTransform).Position;
+            var targetPoint = (hps[targetHp].Transform * TargetObject!.Transform).Position;
             if (!MoveToPoint(time, targetPoint, 25, 0, 1f, false, control, input, world, false))
             {
                 return false;
@@ -657,7 +657,7 @@ namespace LibreLancer.World.Components
                 return world.GetObject(cruiseSpeedReferenceNickname);
 
             // "Player" in mission objlists is a special token for a player object, not an object nickname.
-            var parentPosition = Parent.PhysicsComponent?.Body?.Position ?? Parent.WorldTransform.Position;
+            var parentPosition = Parent.PhysicsComponent?.Body?.Position ?? Parent.Transform.Position;
             GameObject? nearestPlayer = null;
             var nearestDistance = float.MaxValue;
             foreach (var candidate in world.Objects)
@@ -666,7 +666,7 @@ namespace LibreLancer.World.Components
                     !candidate.Flags.HasFlag(GameObjectFlags.Exists))
                     continue;
                 var candidatePosition = candidate.PhysicsComponent?.Body?.Position ??
-                                        candidate.WorldTransform.Position;
+                                        candidate.Transform.Position;
                 var distance = Vector3.DistanceSquared(parentPosition, candidatePosition);
                 if (distance < nearestDistance)
                 {
@@ -692,8 +692,8 @@ namespace LibreLancer.World.Components
             cruiseSpeedReference = ResolveCruiseSpeedReference(world);
             if (cruiseSpeedReference is { } reference && reference.Flags.HasFlag(GameObjectFlags.Exists))
             {
-                var parentPosition = Parent.PhysicsComponent?.Body?.Position ?? Parent.WorldTransform.Position;
-                var referencePosition = reference.PhysicsComponent?.Body?.Position ?? reference.WorldTransform.Position;
+                var parentPosition = Parent.PhysicsComponent?.Body?.Position ?? Parent.Transform.Position;
+                var referencePosition = reference.PhysicsComponent?.Body?.Position ?? reference.Transform.Position;
                 var distance = Vector3.Distance(parentPosition, referencePosition);
                 var cruiseFactor = ReferenceCruiseFactor(distance, cruiseSpeedFullDistance,
                     cruiseSpeedZeroDistance);
@@ -702,7 +702,7 @@ namespace LibreLancer.World.Components
                 SetThrottle(control.InThrottle * cruiseFactor, control, input);
                 if (control.Cruise)
                 {
-                    var cruiseSpeed = Parent.GetComponent<SEngineComponent>()?.Engine.CruiseSpeed ?? 300;
+                    var cruiseSpeed = Parent.CoreEquipment.Engine?.Equipment.CruiseSpeed ?? 300;
                     control.CruiseSpeedOffset = ReferenceCruiseSpeedOffset(distance, cruiseSpeedFullDistance,
                         cruiseSpeedZeroDistance, cruiseSpeed);
                 }
@@ -761,7 +761,7 @@ namespace LibreLancer.World.Components
         }
 
         private static Vector3 ShipPosition(GameObject ship) =>
-            ship.PhysicsComponent?.Body?.Position ?? ship.WorldTransform.Position;
+            ship.PhysicsComponent?.Body?.Position ?? ship.Transform.Position;
 
         private bool ShouldCruise(GameObject lead)
         {
@@ -854,10 +854,10 @@ namespace LibreLancer.World.Components
 
         private static void DrawFormationPoints(GameWorld world, ShipFormation formation, Vector3 currentTarget)
         {
-            DrawFormationPoint(world, formation.LeadShip.WorldTransform.Position, Color4.Yellow, 20);
+            DrawFormationPoint(world, formation.LeadShip.Transform.Position, Color4.Yellow, 20);
             foreach (var follower in formation.Followers)
             {
-                var point = formation.LeadShip.WorldTransform.Transform(formation.GetShipOffset(follower));
+                var point = formation.LeadShip.Transform.Transform(formation.GetShipOffset(follower));
                 DrawFormationPoint(world, point, Color4.Yellow);
             }
             DrawFormationPoint(world, currentTarget, Color4.Cyan, 22);
@@ -903,7 +903,7 @@ namespace LibreLancer.World.Components
                 targetPoint - leadPosition);
             var desiredVelocity = FormationControl.DesiredVelocity(slotVelocity, slotError);
             var leadThrottle = LeadThrottle(lead);
-            var cruiseSpeed = Parent.GetComponent<SEngineComponent>()?.Engine.CruiseSpeed ?? 300;
+            var cruiseSpeed = Parent.CoreEquipment.Engine?.Equipment.CruiseSpeed ?? 300;
             var selfForward = body.RotateVector(-Vector3.UnitZ);
             var travelDirection = slotVelocity.LengthSquared() > 400
                 ? slotVelocity

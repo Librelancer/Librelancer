@@ -187,7 +187,7 @@ namespace LibreLancer.Render
             }
         }
 
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool forceCull)
         {
             var visible = (
                 !forceCull &&

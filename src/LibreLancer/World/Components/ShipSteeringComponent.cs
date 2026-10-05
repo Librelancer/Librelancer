@@ -103,7 +103,7 @@ namespace LibreLancer.World.Components
             physics.CruiseSpeedOffset = Cruise ? CruiseSpeedOffset : 0;
             if (Cruise && escortSpeedFactor < 1)
             {
-                var cruiseSpeed = Parent.GetComponent<SEngineComponent>()?.Engine.CruiseSpeed ?? 300;
+                var cruiseSpeed = Parent.CoreEquipment.Engine?.Equipment.CruiseSpeed ?? 300;
                 physics.CruiseSpeedOffset = MathF.Min(physics.CruiseSpeedOffset,
                     -cruiseSpeed * (1 - escortSpeedFactor));
             }

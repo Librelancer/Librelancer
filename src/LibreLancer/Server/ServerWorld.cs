@@ -22,6 +22,7 @@ using LibreLancer.Resources;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using LibreLancer.World.Equipments;
 
 namespace LibreLancer.Server
 {
@@ -200,7 +201,7 @@ namespace LibreLancer.Server
 
             var missile = obj.GetComponent<SMissileComponent>();
             var deployable = obj.GetComponent<SDeployableComponent>();
-            var pos = obj.PhysicsComponent?.Body?.Position ?? obj.LocalTransform.Position;
+            var pos = obj.PhysicsComponent?.Body?.Position ?? obj.Transform.Position;
             var explosion = missile?.Missile.Explosion ?? deployable?.Munition.Explosion;
             var explosionFx = missile?.Missile.ExplodeFx ?? deployable?.Munition.ExplosionFx;
             var explosionEffect = explosionFx?.CRC ?? 0;
@@ -227,9 +228,9 @@ namespace LibreLancer.Server
             {
                 if (other?.Tag is GameObject g && g.TryGetComponent<SHealthComponent>(out var health))
                 {
-                    health.DamageExplosion(explosion.HullDamage, explosion.EnergyDamage,
-                            owner, pos, explosion.Radius);
                     health.OnProjectileHit(owner);
+                    health.DamageExplosion(explosion.HullDamage, explosion.EnergyDamage,
+                        owner, pos, explosion.Radius, GameWorld);
                 }
             }
         }
@@ -250,7 +251,7 @@ namespace LibreLancer.Server
 
             var seekerRangeSquared = seekerRange * seekerRange;
 
-            var missilePosition = missile.Parent.PhysicsComponent?.Body.Position ?? missile.Parent.LocalTransform.Position;
+            var missilePosition = missile.Parent.PhysicsComponent?.Body.Position ?? missile.Parent.Transform.Position;
 
             foreach (var obj in GameWorld.SpatialLookup.GetNearbyObjects(missile.Parent,
                          missilePosition, seekerRange))
@@ -344,14 +345,10 @@ namespace LibreLancer.Server
 
             int id = 1;
 
-            foreach (var item in obj.GetComponents<EquipmentComponent>())
+            foreach (var item in obj.AllEquipment)
             {
-                ld.Items.Add(item.GetDescription(id++));
-            }
-
-            foreach (var item in obj.GetChildComponents<EquipmentComponent>())
-            {
-                ld.Items.Add(item.GetDescription(id++));
+                if (item.TryGetDescription(id++, out var cg))
+                    ld.Items.Add(cg);
             }
 
             if (obj.TryGetComponent<AbstractCargoComponent>(out var cargo))
@@ -375,7 +372,7 @@ namespace LibreLancer.Server
                 info.Name = obj.Name;
             }
 
-            var tr = obj.WorldTransform;
+            var tr = obj.Transform;
             info.Position = tr.Position;
             info.Orientation = tr.Orientation;
 
@@ -479,14 +476,12 @@ namespace LibreLancer.Server
                 info.Loadout.Health = health.CurrentHealth;
             }
 
-            foreach (var item in obj.GetComponents<EquipmentComponent>())
+            foreach (var item in obj.AllEquipment)
             {
-                info.Loadout.Items.Add(item.GetDescription());
-            }
-
-            foreach (var item in obj.GetChildComponents<EquipmentComponent>())
-            {
-                info.Loadout.Items.Add(item.GetDescription());
+                if (item.TryGetDescription(0, out var desc))
+                {
+                    info.Loadout.Items.Add(desc);
+                }
             }
 
             return info;
@@ -528,7 +523,7 @@ namespace LibreLancer.Server
             GameWorld.AddObject(obj);
             obj.Register(GameWorld);
             FLLog.Debug("Server", $"Spawning player with rotation {orientation}");
-            obj.SetLocalTransform(new Transform3D(position, orientation));
+            obj.SetTransform(new Transform3D(position, orientation));
             int objSpawn = 0;
             var allComplexSpawns = new ObjectSpawnInfo[Players.Count + spawnedObjects.Count];
 
@@ -590,12 +585,12 @@ namespace LibreLancer.Server
             }
             else if (obj.TryGetComponent<SHealthComponent>(out var health))
             {
+                health.OnProjectileHit(owner);
                 var destroyedPart = health.Damage(
                     munition.Def.HullDamage,
                     munition.Def.EnergyDamage,
                     owner,
-                    hitObject);
-                health.OnProjectileHit(owner);
+                    hitObject, GameWorld);
 
                 if (destroyedPart != null &&
                     obj.Model!.TryGetCollisionGroup(destroyedPart, out var collisionGroup))
@@ -660,7 +655,7 @@ namespace LibreLancer.Server
             actions.Enqueue(() =>
             {
                 var go = new GameObject(missile.ModelFile!.LoadFile(Server.Resources)!, Server.Resources, false, true);
-                go.SetLocalTransform(transform);
+                go.SetTransform(transform);
                 go.Kind = GameObjectKind.Missile;
                 go.NetID = IdGenerator.Allocate();
                 go.PhysicsComponent?.Mass = 1;
@@ -706,7 +701,7 @@ namespace LibreLancer.Server
                     return;
                 }
 
-                go.SetLocalTransform(transform);
+                go.SetTransform(transform);
                 var physics = go.PhysicsComponent;
                 physics.Mass = munition.Def.Mass > 0 ? munition.Def.Mass : 1;
                 physics.Collidable = false;
@@ -755,7 +750,7 @@ namespace LibreLancer.Server
                 {
                     int tgtUnique = 0;
 
-                    for (int i = 0; i < wo.NetOrderWeapons!.Length; i++)
+                    for (int i = 0; i < wo.AllWeapons.Length; i++)
                     {
                         if ((projectiles.Guns & (1UL << i)) == 0)
                         {
@@ -769,9 +764,9 @@ namespace LibreLancer.Server
                             target = projectiles.OtherTargets[tgtUnique++];
                         }
 
-                        if (!wo.NetOrderWeapons[i].Fire(target, GameWorld))
+                        if (!wo.AllWeapons[i].Fire(target, GameWorld))
                         {
-                            FLLog.Debug("Server", $"Request failed firing {wo.NetOrderWeapons[i].Parent.Attachment}");
+                            FLLog.Debug("Server", $"Request failed firing {wo.AllWeapons[i].Attachment}");
                         }
                     }
                 }
@@ -788,13 +783,13 @@ namespace LibreLancer.Server
 
                 foreach (var m in missiles)
                 {
-                    var x = go.Children.FirstOrDefault(c => m.Hardpoint == c.Attachment?.CRC);
+                    var x = go.AllEquipment.FirstOrDefault(c => m.Hardpoint == c.Attachment?.CRC);
 
-                    if (x?.TryGetComponent<MissileLauncherComponent>(out var missileLauncher) ?? false)
+                    if (x is MissileLauncher missileLauncher)
                     {
                         missileLauncher.Fire(Vector3.Zero, GameWorld, GetObject(m.Target));
                     }
-                    else if (x?.TryGetComponent<MunitionLauncherComponent>(out var deployableLauncher) ?? false)
+                    else if (x is AbstractLauncher deployableLauncher)
                     {
                         deployableLauncher.Fire(Vector3.Zero, GameWorld);
                     }
@@ -939,7 +934,7 @@ namespace LibreLancer.Server
                 gameobj.Name = new ObjectName(idsName);
             }
 
-            gameobj.SetLocalTransform(new Transform3D(position, orientation));
+            gameobj.SetTransform(new Transform3D(position, orientation));
             gameobj.Nickname = nickname;
             gameobj.AddComponent(new SSolarComponent(gameobj) { Faction = rep });
 
@@ -1004,7 +999,7 @@ namespace LibreLancer.Server
                     ArchetypeName = crate.Nickname,
                     Nickname = nickname ?? ""
                 };
-                go.SetLocalTransform(transform);
+                go.SetTransform(transform);
                 GameWorld.AddObject(go);
                 updatingObjects.Add(go);
                 go.Register(GameWorld);
@@ -1047,7 +1042,7 @@ namespace LibreLancer.Server
                 go.Kind = GameObjectKind.DynamicAsteroid;
                 go.PhysicsComponent!.Mass = AsteroidFieldShared.DynamicAsteroidMass;
                 go.AddComponent(new DynamicAsteroidComponent(go, maxLinearVelocity, maxAngularVelocity, despawnDistance, spawnGroup, component, player));
-                go.SetLocalTransform(transform);
+                go.SetTransform(transform);
                 GameWorld.AddObject(go);
                 updatingObjects.Add(go);
                 go.Register(GameWorld);
@@ -1068,7 +1063,7 @@ namespace LibreLancer.Server
             string archetype,
             string part,
             Transform3D transform,
-            GameObject[] children,
+            EquipmentObject[] children,
             uint[] destroyedParts,
             float mass,
             Vector3 initialForce
@@ -1110,7 +1105,7 @@ namespace LibreLancer.Server
                 }
 
                 go.NetID = id;
-                go.SetLocalTransform(transform);
+                go.SetTransform(transform);
                 var sepInfo = sep.FirstOrDefault(x => x.Part.Equals(part, StringComparison.OrdinalIgnoreCase));
                 var lifetime = debrisRandom.Next(
                     sepInfo?.DebrisType?.Lifetime ?? new ValueRange<float>(30, 30));
@@ -1129,9 +1124,10 @@ namespace LibreLancer.Server
                     {
                         c.Attachment = newHp;
                         c.Parent = go;
-                        go.Children.Add(c);
+                        go.AddChild(c);
                     }
                 }
+                go.ResolveReferences();
 
                 GameWorld.AddObject(go);
                 updatingObjects.Add(go);
@@ -1172,11 +1168,14 @@ namespace LibreLancer.Server
                 p.RpcClient.DestroyPart(obj, part);
         }
 
-        public void EquipmentDestroyed(GameObject obj, Hardpoint hardpoint)
+        public void OnEquipmentDestroyed(GameObject obj, EquipmentObject eq)
         {
+            if (eq.Attachment == null)
+                return;
+
             foreach (Player p in Players.Keys)
             {
-                p.RpcClient.DestroyEquipment(obj, true, hardpoint.Name);
+                p.RpcClient.DestroyEquipment(obj, true, eq.Attachment.Name);
             }
             // Save destroyed cargo pods
             if (obj.SystemObject != null)
@@ -1186,11 +1185,11 @@ namespace LibreLancer.Server
                     list = [];
                     solarDestroyedHardpoints[obj] = list;
                 }
-                list.Add(hardpoint.Name);
+                list.Add(eq.Attachment.Name);
             }
             // Remove from SHealthComponent
             var health = obj.GetComponent<SHealthComponent>()!;
-            health.EquipmentHealths.Remove(hardpoint);
+            health.EquipmentHealths.Remove(eq.Attachment);
         }
 
         public void LocalChatMessage(Player player, BinaryChatMessage message)
@@ -1202,7 +1201,7 @@ namespace LibreLancer.Server
                     message);
 
                 foreach (var obj in GameWorld.SpatialLookup.GetNearbyObjects(pObj,
-                             pObj.LocalTransform.Position, 15000))
+                             pObj.Transform.Position, 15000))
                 {
                     if (obj.TryGetComponent<SPlayerComponent>(out var other))
                     {
@@ -1293,9 +1292,9 @@ namespace LibreLancer.Server
                     !obj.TryGetComponent<SHealthComponent>(out var health))
                     continue;
 
-                var damagePerSecond = GameWorld.ZoneDamageAt(obj.WorldTransform.Position);
+                var damagePerSecond = GameWorld.ZoneDamageAt(obj.Transform.Position);
                 if (damagePerSecond > 0)
-                    health.DamageZone(damagePerSecond * (float)delta);
+                    health.DamageZone(damagePerSecond * (float)delta, GameWorld);
             }
         }
 
@@ -1340,7 +1339,7 @@ namespace LibreLancer.Server
             // Update players
             foreach (var player in Players)
             {
-                var tr = player.Value.WorldTransform;
+                var tr = player.Value.Transform;
                 player.Key.Position = tr.Position;
                 player.Key.Orientation = tr.Orientation;
             }
@@ -1361,7 +1360,7 @@ namespace LibreLancer.Server
                 if (obj.SystemObject == null)
                 {
                     // Don't send pos/orient of system objects, client doesn't read it.
-                    var tr = obj.WorldTransform;
+                    var tr = obj.Transform;
                     update.Position = new(tr.Position);
                     update.Orientation = tr.Orientation;
                 }
@@ -1373,10 +1372,10 @@ namespace LibreLancer.Server
                     update.AngularVelocity = new(obj.PhysicsComponent.Body.AngularVelocity);
                 }
 
-                if (obj.TryGetComponent<SEngineComponent>(out var eng))
+                if (obj.CoreEquipment.Engine != null)
                 {
-                    update.ThrottleFloat = eng.Speed;
-                    update.EngineKill = eng.EngineKill;
+                    update.ThrottleFloat = obj.CoreEquipment.Engine.Speed;
+                    update.EngineKill = obj.CoreEquipment.Engine.EngineKill;
                 }
 
                 if (obj.TryGetComponent<ShipPhysicsComponent>(out var objPhysics))
@@ -1398,7 +1397,7 @@ namespace LibreLancer.Server
                 if (obj.TryGetComponent<SHealthComponent>(out var health))
                 {
                     update.Hull = (int)health.CurrentHealth;
-                    var sh = obj.GetFirstChildComponent<SShieldComponent>();
+                    var sh = obj.CoreEquipment.Shield;
 
                     if (sh != null)
                     {
@@ -1436,7 +1435,7 @@ namespace LibreLancer.Server
             {
                 var phealthcomponent = player.Value.GetComponent<SHealthComponent>();
                 var phealth = phealthcomponent!.CurrentHealth;
-                var pshieldComponent = player.Value.GetFirstChildComponent<SShieldComponent>();
+                var pshieldComponent = player.Value.CoreEquipment.Shield;
                 float pshield = 0;
 
                 if (pshieldComponent != null)

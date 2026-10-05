@@ -12,6 +12,7 @@ using LibreLancer.Net.Protocol;
 using LibreLancer.Server.Components;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using LibreLancer.World.Equipments;
 using Pilot = LibreLancer.Data.GameData.Pilot;
 
 namespace LibreLancer.Server
@@ -108,8 +109,8 @@ namespace LibreLancer.Server
         public GameObject SpawnJumper(JumperNpc jumper, MissionRuntime msn, string jumpObject)
         {
             var jumpPoint = World.GameWorld.GetObject(jumpObject);
-            var pos = jumpPoint!.WorldTransform.Position;
-            var orient = jumpPoint.WorldTransform.Orientation;
+            var pos = jumpPoint!.Transform.Position;
+            var orient = jumpPoint.Transform.Orientation;
             pos = Vector3.Transform(new Vector3(rand.Next(-50, 50), rand.Next(-50, 50), rand.Next(-300, -100)),
                 orient) + pos;
             var newObj = DoSpawn(
@@ -186,7 +187,7 @@ namespace LibreLancer.Server
                 Name = name,
                 Nickname = nickname
             };
-            obj.SetLocalTransform(new Transform3D(position, orient));
+            obj.SetTransform(new Transform3D(position, orient));
             obj.AddComponent(new SHealthComponent(obj)
             {
                 CurrentHealth = ship!.Hitpoints,
@@ -216,13 +217,14 @@ namespace LibreLancer.Server
             obj.AddComponent(new WeaponControlComponent(obj));
             obj.AddComponent(new SDestroyableComponent(obj, World));
             obj.AddComponent(new DirectiveRunnerComponent(obj));
+            obj.ResolveReferences();
             if (neutralTo != null && obj.TryGetComponent<SRepComponent>(out var rep))
             {
                 foreach (var neutralTarget in neutralTo)
                     rep.SetAttitude(neutralTarget, RepAttitude.Neutral);
             }
             // NPCs spawn already cloaked
-            if (obj.TryGetComponent<CloakComponent>(out var cloak))
+            if (obj.TryFindEquipment<CloakingDevice>(out var cloak))
             {
                 cloak.SetInitCloaked();
             }

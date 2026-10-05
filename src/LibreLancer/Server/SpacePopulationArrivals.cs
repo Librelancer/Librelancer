@@ -102,8 +102,8 @@ public partial class SpacePopulationManager
             out var arrivalIndex))
         {
             spawn = new SpawnLocation(
-                arrivalObject.WorldTransform.Position,
-                arrivalObject.WorldTransform.Orientation,
+                arrivalObject.Transform.Position,
+                arrivalObject.Transform.Orientation,
                 arrivalObject.Nickname,
                 arrivalIndex);
             return true;
@@ -169,8 +169,8 @@ public partial class SpacePopulationManager
             if (string.IsNullOrWhiteSpace(obj.Nickname) ||
                 obj.SystemObject == null ||
                 !Alive(obj) ||
-                !zone.ContainsPoint(obj.WorldTransform.Position) ||
-                IsInsideRandomMissionNoSpawnZone(obj.WorldTransform.Position) ||
+                !zone.ContainsPoint(obj.Transform.Position) ||
+                IsInsideRandomMissionNoSpawnZone(obj.Transform.Position) ||
                 !obj.TryGetComponent<SDockableComponent>(out var dockable) ||
                 dockable.DockPoints.Length == 0 ||
                 !dockable.TryGetUndockIndex(out var dockIndex) ||
@@ -179,7 +179,7 @@ public partial class SpacePopulationManager
                 continue;
             }
 
-            var distance = DistanceToNearestPlayer(obj.WorldTransform.Position, players);
+            var distance = DistanceToNearestPlayer(obj.Transform.Position, players);
             if (distance < minDistance || distance > searchDistance)
                 continue;
 

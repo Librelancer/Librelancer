@@ -14,6 +14,7 @@ using LibreLancer.Infocards;
 using LibreLancer.Server;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using LibreLancer.World.Equipments;
 using WattleScript.Interpreter;
 
 namespace LibreLancer.Client
@@ -113,7 +114,7 @@ namespace LibreLancer.Client
             var refireDelay = 0f;
             var powerUsage = 0f;
             Motor? motor = null;
-            //Do not confuse, this is building the equipment stats infocard line by line here, because its not like ships which are 
+            //Do not confuse, this is building the equipment stats infocard line by line here, because its not like ships which are
             //defined on the dlls, equipment is defined in game data and must be built.
             switch (equipment)
             {
@@ -161,7 +162,7 @@ namespace LibreLancer.Client
                 weaponClass = hpType.Class;
             }
 
-            var range = MissileLauncherComponent.CalculateRange(lifetime, muzzleVelocity, motor);
+            var range = MissileLauncher.CalculateRange(lifetime, muzzleVelocity, motor);
             var labels = new[]
             {
                 "Stats",

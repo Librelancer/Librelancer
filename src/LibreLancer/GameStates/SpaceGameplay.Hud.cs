@@ -266,7 +266,7 @@ partial class SpaceGameplay
                         DrawUnselectedArrow(delta, obj, pos, context, drawList, clientRectangle);
                         break;
                     case true when (obj.Flags & GameObjectFlags.Hidden) == 0:
-                        var distance = Vector3.Distance(player.WorldTransform.Position, obj.WorldTransform.Position);
+                        var distance = Vector3.Distance(player.Transform.Position, obj.Transform.Position);
                         if (distance <= ShipReticleRange)
                         {
                             DrawShipReticle(obj, pos, distance, context, drawList);
@@ -388,7 +388,7 @@ partial class SpaceGameplay
                 return false;
             }
 
-            return g.scanner?.CanScan(g.Selection.Selected) ?? false;
+            return g.player.CoreEquipment.Scanner?.CanScan(g.Selection.Selected) ?? false;
         }
 
         public void ScanSelected() => g.session.SpaceRpc.Scan(g.Selection.Selected!);
@@ -439,7 +439,7 @@ partial class SpaceGameplay
         {
             return g.canTractorAny && g.Selection.Selected != null &&
                    g.Selection.Selected.Kind == GameObjectKind.Loot &&
-                   Vector3.Distance(g.Selection.Selected.WorldTransform.Position, g.tractorOrigin) <
+                   Vector3.Distance(g.Selection.Selected.Transform.Position, g.tractorOrigin) <
                    g.maxTractorDistance;
         }
 
@@ -571,7 +571,7 @@ partial class SpaceGameplay
 
         public string SelectionName()
         {
-            return g.Selection.Selected?.Name?.GetName(g.Game.GameData, g.player.WorldTransform.Position) ??
+            return g.Selection.Selected?.Name?.GetName(g.Game.GameData, g.player.Transform.Position) ??
                    "NULL";
         }
 
@@ -584,8 +584,8 @@ partial class SpaceGameplay
                 return "";
             }
 
-            var playerPosition = g.player.WorldTransform.Position;
-            var targetPosition = g.Selection.Selected.WorldTransform.Position;
+            var playerPosition = g.player.Transform.Position;
+            var targetPosition = g.Selection.Selected.Transform.Position;
             var distance = Vector3.Distance(playerPosition, targetPosition);
             return distance < 2000f
                 ? $"{(int)distance}-M"
@@ -617,17 +617,8 @@ partial class SpaceGameplay
 
         public float SelectionShield()
         {
-            if (g.Selection.Selected == null)
-            {
-                return -1;
-            }
-
-            if (!g.Selection.Selected.TryGetFirstChildComponent<CShieldComponent>(out var shield))
-            {
-                return -1;
-            }
-
-            return shield.ShieldPercent;
+            var sh = g.Selection.Selected?.CoreEquipment.Shield;
+            return sh == null ? -1 : (sh.Health / sh.MaxHealth);
         }
 
         public string SelectionReputation()
@@ -672,8 +663,8 @@ partial class SpaceGameplay
             nav.PopulateIcons(g.ui, g.sys);
             nav.SetAddWaypointFunction(g.CreateUserWaypoint);
             nav.SetBestPathFunction(g.ComputeBestPathToSelection);
-            nav.SetPlayerPositionProvider(() => g.player.WorldTransform.Position);
-            nav.SetPlayerOrientationProvider(() => g.player.WorldTransform.Orientation);
+            nav.SetPlayerPositionProvider(() => g.player.Transform.Position);
+            nav.SetPlayerOrientationProvider(() => g.player.Transform.Orientation);
             nav.SetPlayerSystemProvider(() => g.sys.CRC);
             nav.SetUserWaypointProvider(g.session.GetUserWaypointsForNavmap);
         }
@@ -699,16 +690,18 @@ partial class SpaceGameplay
 
         public bool RadiationWarning()
         {
-            var position = g.player.WorldTransform.Position;
+            var position = g.player.Transform.Position;
             return g.world.ZoneDamageAt(position) > 0 && !g.world.InAtmosphere(position);
         }
 
         public float GetPlayerShield()
         {
-            return g.player.GetFirstChildComponent<CShieldComponent>()?.ShieldPercent ?? -1;
+            var sh = g.player.CoreEquipment.Shield;
+            return sh == null ? -1 : (sh.Health / sh.MaxHealth);
         }
 
-        public float GetPlayerPower() => g.powerCore.CurrentEnergy / g.powerCore.Equip.Capacity;
+        public float GetPlayerPower() =>
+            g.player.CoreEquipment.Power!.CurrentEnergy / g.player.CoreEquipment.Power!.Equipment.Def.Capacity;
 
         private string activeManeuver = "FreeFlight";
 
@@ -767,7 +760,7 @@ partial class SpaceGameplay
         }
 
         public int ThrustPercent() =>
-            ((int)(g.powerCore.CurrentThrustCapacity / g.powerCore.Equip.ThrustCapacity * 100));
+            ((int)(g.player.CoreEquipment.Power!.CurrentThrustCapacity / g.player.CoreEquipment.Power!.Equipment.Def.ThrustCapacity * 100));
 
         public int Speed() => ((int)g.player.PhysicsComponent!.Body.LinearVelocity.Length());
     }

@@ -116,12 +116,12 @@ public class MainWindow : Game
         RenderContext.ReplaceViewport(0, 0, Width, Height);
 
 
-        if (monkey.WorldTransform.Position.Z < mZ)
+        if (monkey.Transform.Position.Z < mZ)
         {
             throw new Exception();
         }
 
-        mZ = monkey.WorldTransform.Position.Z;
+        mZ = monkey.Transform.Position.Z;
         world.RenderUpdate(elapsed);
         renderer.Draw(Width, Height);
 
@@ -138,8 +138,8 @@ public class MainWindow : Game
 
         var camera = (ThnCamera)cutscene.CameraHandle;
 
-        Console.WriteLine($"r: {camera.Position}, {monkey.WorldTransform.Position}, " +
-            $"{monkey.WorldTransform.Position + new Vector3(-10, 7.5f, 30)}");
+        Console.WriteLine($"r: {camera.Position}, {monkey.Transform.Position}, " +
+            $"{monkey.Transform.Position + new Vector3(-10, 7.5f, 30)}");
         ImGui.PushFont(ImGuiHelper.Roboto, 0);
 
         var o = vsync;
@@ -148,7 +148,7 @@ public class MainWindow : Game
             SetVSync(vsync);
         ImGui.Text("Test scene for following .thn MainObject with the camera. Enter = rotate, Space = velocity.");
         ImGui.Text($"FPS: {RenderFrequency:0.00}");
-        ImGui.Text($"Monkey Pos: {monkey.LocalTransform.Position}");
+        ImGui.Text($"Monkey Pos: {monkey.Transform.Position}");
         ImGui.Text($"Monkey Velocity: {monkey.PhysicsComponent.Body.LinearVelocity}");
         ImGui.Text($"{monkey.PhysicsComponent.Body.AngularVelocity}");
         ImGui.PopFont();

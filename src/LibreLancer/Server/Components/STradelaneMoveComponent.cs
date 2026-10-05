@@ -275,10 +275,7 @@ namespace LibreLancer.Server.Components
             body.LinearVelocity = direction * speed;
             body.AngularVelocity = Vector3.Zero;
 
-            if (Parent.TryGetComponent<SEngineComponent>(out var engine))
-            {
-                engine.Speed = MathHelper.Clamp(speed / TradelaneMotion.Speed, 0, 1) * 0.9f;
-            }
+            Parent.CoreEquipment.Engine?.Speed = MathHelper.Clamp(speed / TradelaneMotion.Speed, 0, 1) * 0.9f;
         }
 
         private void UpdateManualExit(double time)
@@ -295,10 +292,7 @@ namespace LibreLancer.Server.Components
             Parent.PhysicsComponent.Body.LinearVelocity = direction * speed;
             Parent.PhysicsComponent.Body.AngularVelocity = Vector3.Zero;
 
-            if (Parent.TryGetComponent<SEngineComponent>(out var engine))
-            {
-                engine.Speed = MathHelper.Clamp(speed / TradelaneMotion.Speed, 0, 1) * 0.9f;
-            }
+            Parent.CoreEquipment.Engine?.Speed = MathHelper.Clamp(speed / TradelaneMotion.Speed, 0, 1) * 0.9f;
 
             if (manualExitTime >= TradelaneMotion.ManualExitDuration)
             {
@@ -312,7 +306,7 @@ namespace LibreLancer.Server.Components
                 ? Parent.Formation.GetShipOffset(Parent)
                 : Vector3.Zero;
 
-            return (tradelane.GetHardpoint(lane)!.TransformNoRotate * tradelane.WorldTransform)
+            return (tradelane.GetHardpoint(lane)!.TransformNoRotate * tradelane.Transform)
                 .Transform(offset);
         }
 
@@ -350,18 +344,17 @@ namespace LibreLancer.Server.Components
         private float NormalThrottleSpeed()
         {
             if (Parent.TryGetComponent<ShipPhysicsComponent>(out var physics) &&
-                Parent.TryGetComponent<SEngineComponent>(out var engine))
+                Parent.CoreEquipment.Engine != null)
             {
-                return TradelaneMotion.NormalThrottleSpeed(physics.Ship, engine.Engine);
+                return TradelaneMotion.NormalThrottleSpeed(physics.Ship, Parent.CoreEquipment.Engine.Equipment);
             }
 
             return TradelaneMotion.Speed;
         }
 
-        private static bool TradelaneDisrupted(float distance, GameObject tradelaneComponent) =>
+        private static bool TradelaneDisrupted(float distance, GameObject tradelane) =>
             distance < 3000 &&
-            tradelaneComponent.TryGetFirstChildComponent<SShieldComponent>(out var comp) &&
-            comp.Health < float.Epsilon;
+            tradelane.CoreEquipment.Shield is { Health: < float.Epsilon };
 
         private void TradeLaneDisruption()
         {

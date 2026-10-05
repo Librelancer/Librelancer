@@ -6,5 +6,5 @@ namespace LibreLancer.Data.GameData.Items;
 
 public class EffectEquipment : Equipment
 {
-    public ResolvedFx? Particles;
+    public ResolvedFx? Effect;
 }

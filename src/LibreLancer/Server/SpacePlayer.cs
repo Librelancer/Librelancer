@@ -32,8 +32,8 @@ public class SpacePlayer : ISpacePlayer
         world.EnqueueAction(() =>
         {
             var obj = World.Players[player];
-            var rot = orientation ?? obj.LocalTransform.Orientation;
-            obj.SetLocalTransform(new Transform3D(position, rot));
+            var rot = orientation ?? obj.Transform.Orientation;
+            obj.SetTransform(new Transform3D(position, rot));
         });
     }
 
@@ -44,9 +44,9 @@ public class SpacePlayer : ISpacePlayer
             var obj = World.Players[player];
             var other = world.GameWorld.GetObject(target);
 
-            if (other != null && obj.TryGetComponent<STractorComponent>(out var tractor))
+            if (other != null && obj.CoreEquipment.Tractor != null)
             {
-                tractor.TryTractor(other, world);
+                obj.CoreEquipment.Tractor.TryTractor(other, world);
             }
         });
     }

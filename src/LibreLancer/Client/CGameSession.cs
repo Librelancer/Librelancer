@@ -625,7 +625,7 @@ public partial class CGameSession : IClientPlayer
         var ship = serverWorld.GameWorld.GetObject(new ObjNetId(netId));
         if (ship?.Formation == null || !ship.Formation.Contains(ship))
             return false;
-        shipPosition = ship.PhysicsComponent?.Body?.Position ?? ship.WorldTransform.Position;
+        shipPosition = ship.PhysicsComponent?.Body?.Position ?? ship.Transform.Position;
         targetPosition = ship.Formation.GetShipPosition(ship);
         return true;
     }
@@ -704,7 +704,7 @@ public partial class CGameSession : IClientPlayer
         else if (str.TrimEnd() == "/pos")
         {
             ((IClientPlayer)this).OnConsoleMessage(spaceGameplay != null
-                ? spaceGameplay.player.LocalTransform.Position.ToString()
+                ? spaceGameplay.player.Transform.Position.ToString()
                 : "null");
         }
         else

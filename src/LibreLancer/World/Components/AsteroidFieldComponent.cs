@@ -424,7 +424,7 @@ namespace LibreLancer.World.Components
             {
                 var spawnGroup = GetSpawnID(index, p);
                 int spawnCount = spawnCounts.GetValueOrDefault(spawnGroup);
-                var pos = p.LocalTransform.Position;
+                var pos = p.Transform.Position;
                 while(spawnCount < asteroids.Count)
                 {
                     spawnCount++;
@@ -505,7 +505,7 @@ namespace LibreLancer.World.Components
                 if (other?.Tag is GameObject g && g.TryGetComponent<SHealthComponent>(out var health))
                 {
                     health.DamageExplosion(explosion.HullDamage, explosion.EnergyDamage, null, minePosition,
-                        explosion.Radius);
+                        explosion.Radius, world);
                 }
             }
         }

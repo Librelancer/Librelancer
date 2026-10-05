@@ -38,7 +38,7 @@ World Time: {12:F2}
                 else
                 {
                     selObj =
-                        Selection.Selected.Name?.GetName(Game.GameData, player.WorldTransform.Position) ??
+                        Selection.Selected.Name?.GetName(Game.GameData, player.Transform.Position) ??
                         "unknown object";
                 }
 
@@ -53,7 +53,7 @@ World Time: {12:F2}
             ImGui.Text(text);
             ImGui.Text(
                 $"Render Resolution: {Game.RenderContext.CurrentViewport.Width}x{Game.RenderContext.CurrentViewport.Height}");
-            ImGui.Text($"Player Position: {player.WorldTransform.Position}");
+            ImGui.Text($"Player Position: {player.Transform.Position}");
             ImGui.Text($"PredictionErrorPos: {player.PhysicsComponent!.PredictionErrorPos}");
             ImGui.Text($"PredictionErrorQuat: {player.PhysicsComponent!.PredictionErrorQuat} ({MathHelper.QuatError(
                 player.PhysicsComponent!.PredictionErrorQuat, Quaternion.Identity)})");
@@ -167,7 +167,7 @@ World Time: {12:F2}
                             (player.Formation?.Contains(selected) == true ? player.Formation : null);
             if (formation == null)
                 return;
-            shipPosition = selected.PhysicsComponent?.Body?.Position ?? selected.WorldTransform.Position;
+            shipPosition = selected.PhysicsComponent?.Body?.Position ?? selected.Transform.Position;
             targetPosition = formation.GetShipPosition(selected);
         }
 

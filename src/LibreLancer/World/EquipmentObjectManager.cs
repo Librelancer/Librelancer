@@ -3,23 +3,14 @@
 // LICENSE, which is part of this source code package
 
 using System;
-using System.Collections.Generic;
-using System.Numerics;
 using LibreLancer.Client.Components;
 using LibreLancer.Data.GameData.Items;
-using LibreLancer.Render;
 using LibreLancer.Resources;
-using LibreLancer.Server.Components;
 using LibreLancer.Sounds;
-using LibreLancer.World.Components;
+using LibreLancer.World.Equipments;
 
 namespace LibreLancer.World
 {
-    /// <summary>
-    /// Return a GameObject only if you add one to the parent
-    /// </summary>
-    public delegate GameObject? MountEquipmentHandler(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type, string? hardpoint, Equipment equip);
-
     public enum EquipmentType
     {
         Server,
@@ -27,97 +18,156 @@ namespace LibreLancer.World
         LocalPlayer,
         Cutscene
     }
-    public class EquipmentObjectManager
-    {
-        private static Dictionary<Type, MountEquipmentHandler> handlers = new();
-        public static void RegisterType<T>(MountEquipmentHandler handler)
-        {
-            handlers.Add(typeof(T), handler);
-        }
 
+    public static class EquipmentObjectManager
+    {
         public static void InstantiateEquipment(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type, string? hardpoint, Equipment equip)
         {
-            var equipType = equip.GetType();
-            if (!handlers.TryGetValue(equipType, out var handle))
-            {
-                FLLog.Error("Equipment", $"Cannot instantiate {equipType}");
-                return;
-            }
-
-            var obj = handle(parent, res, snd, type, hardpoint, equip);
-            // Do setup of child attachment, hardpoint, lod inheriting, static position etc.
-            if (obj == null)
-            {
-                parent.AddComponent(new EquipmentComponent(equip, parent));
-                return;
-            }
-
-            obj.Parent = parent;
-            var component = new EquipmentComponent(equip, obj);
-            obj.AddComponent(component);
-            if (equip.Hitpoints > 0)
-            {
-                if (type == EquipmentType.Server && !obj.TryGetComponent<SHealthComponent>(out _))
-                {
-                    obj.AddComponent(new SHealthComponent(obj)
-                    {
-                        MaxHealth = equip.Hitpoints,
-                        CurrentHealth = equip.Hitpoints
-                    });
-                }
-                else if (type is EquipmentType.LocalPlayer or EquipmentType.RemoteObject &&
-                         !obj.TryGetComponent<CHealthComponent>(out _))
-                {
-                    obj.AddComponent(new CHealthComponent(obj)
-                    {
-                        MaxHealth = equip.Hitpoints,
-                        CurrentHealth = equip.Hitpoints
-                    });
-                }
-            }
-            parent.Children.Add(obj);
-            if (equip.LODRanges != null && obj.RenderComponent is ModelRenderer mrender)
-                mrender.LODRanges = equip.LODRanges;
-
-            if (equip.HPChild != null)
-            {
-                var hpChild = obj.GetHardpoint(equip.HPChild);
-
-                if (hpChild != null)
-                {
-                    obj.SetLocalTransform(hpChild.Transform.Inverse());
-                }
-            }
-
-            var hp = parent.GetHardpoint(hardpoint);
-            obj.Attachment = hp;
-            HardpointHulls.Activate(component);
-
-            if (obj.RenderComponent is not ModelRenderer || parent.RenderComponent == null)
-            {
-                return;
-            }
-
-            if (parent.RenderComponent is ModelRenderer { LODRanges: not null })
-            {
-                obj.RenderComponent.InheritCull = true;
-            }
-            else if (parent.RenderComponent is ModelRenderer)
-            {
-                var mr = (ModelRenderer) parent.RenderComponent;
-                // if (mr.Model.Mesh != null && mr.Model.Switch2 != null)
-                //  obj. RenderComponent.InheritCull = true;
-                // if(mr.CmpParts != null)
-                //{
-                /*Part? parentPart = null;
-                            if (hp.parent != null)
-                                parentPart = mr.CmpParts.Find((o) => o.ObjectName == hp.parent.ChildName);
-                            else
-                                parentPart = mr.CmpParts.Find((o) => o.ObjectName == "Root");
-                            if (parentPart.Model.Switch2 != null)
-                                obj.RenderComponent.InheritCull = true;*/
-                //}
-            }
+            var obj = Create(parent, res, snd, type, parent.GetHardpoint(hardpoint), equip);
+            parent.AddChild(obj);
+            HardpointHulls.Activate(obj);
         }
+
+        static EquipmentObject Create(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type,
+            Hardpoint? hardpoint, Equipment equip) =>
+            equip switch
+            {
+                CargoPodEquipment => CargoPod(parent, res, snd, type, hardpoint, equip),
+                CountermeasureEquipment => Countermeasure(parent, res, snd, type, hardpoint, equip),
+                EffectEquipment => AttachedEffect(parent, res, snd, type, hardpoint, equip),
+                CloakEquipment => Cloak(parent, res, snd, type, hardpoint, equip),
+                EngineEquipment => Engine(parent, res, snd, type, hardpoint, equip),
+                GunEquipment => Gun(parent, res, snd, type, hardpoint, equip),
+                InternalFxEquipment => InternalEffect(parent, res, snd, type, hardpoint, equip),
+                LightEquipment => Light(parent, res, snd, type, hardpoint, equip),
+                MissileLauncherEquipment => MissileLauncher(parent, res, snd, type, hardpoint, equip),
+                MineDropperEquipment => MineDropper(parent, res, snd, type, hardpoint, equip),
+                PowerEquipment => Power(parent, res, snd, type, hardpoint, equip),
+                ScannerEquipment => Scanner(parent, res, snd, type, hardpoint, equip),
+                ShieldEquipment => Shield(parent, res, snd, type, hardpoint, equip),
+                ThrusterEquipment => Thruster(parent, res, snd, type, hardpoint, equip),
+                TractorEquipment => Tractor(parent, res, snd, type, hardpoint, equip),
+                TradelaneEquipment => Tradelane(parent, res, snd, type, hardpoint, equip),
+                _ => throw new NotImplementedException()
+            };
+
+        private static EquipmentObject CargoPod(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type, Hardpoint? hardpoint, Equipment equip)
+        {
+            var pod = (CargoPodEquipment)equip;
+            return new CargoPod(parent, hardpoint, pod, type, res);
+        }
+
+        private static EquipmentObject Countermeasure(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type, Hardpoint? hardpoint, Equipment equip)
+        {
+            var cm = (CountermeasureEquipment)equip;
+            snd?.LoadSound(cm.Munition?.Def.OneShotSound);
+            return new CountermeasureLauncher(parent, hardpoint, cm, type, res);
+        }
+
+        private static EquipmentObject AttachedEffect(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type,
+            Hardpoint? hardpoint, Equipment equip)
+        {
+            var e = (EffectEquipment)equip;
+            snd?.LoadSound(e.Effect?.Sound?.Nickname);
+            return new AttachedEffect(parent, hardpoint, e, type, res, snd);
+        }
+
+        private static EquipmentObject InternalEffect(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type,
+            Hardpoint? hardpoint, Equipment equip)
+        {
+            var e = (InternalFxEquipment)equip;
+            snd?.LoadSound(e.Sound);
+            return new InternalFx(parent, hardpoint, e, snd, type);
+        }
+
+        private static EquipmentObject Cloak(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type,
+            Hardpoint? hardpoint, Equipment equip) =>
+            new CloakingDevice(parent, hardpoint, (CloakEquipment)equip, type, res);
+
+        private static EquipmentObject Engine(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type,
+            Hardpoint? hardpoint, Equipment equip)
+        {
+            var eng = (EngineEquipment)equip;
+            if (snd != null)
+            {
+                snd.LoadSound(eng.Def.CruiseLoopSound);
+                snd.LoadSound(eng.Def.CruiseStartSound);
+                snd.LoadSound(eng.Def.CruiseStopSound);
+                snd.LoadSound(eng.Def.CruiseBackfireSound);
+                snd.LoadSound(eng.Def.CruiseStopSound);
+                snd.LoadSound(eng.Def.EngineKillSound);
+                snd.LoadSound(eng.Def.RumbleSound);
+                snd.LoadSound(eng.Def.CharacterLoopSound);
+                snd.LoadSound(eng.Def.CharacterStartSound);
+            }
+
+            return new Engine(parent, hardpoint, eng, res, snd, type);
+        }
+
+        private static EquipmentObject Gun(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type,
+            Hardpoint? hardpoint, Equipment equip)
+        {
+            var gn = (GunEquipment)equip;
+            snd?.LoadSound(gn.Munition.Def.OneShotSound);
+            return new Gun(parent, hardpoint, gn, type, res);
+        }
+
+        private static EquipmentObject Light(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type, Hardpoint? hardpoint, Equipment equip) =>
+            new Light(parent, hardpoint, (LightEquipment)equip, type);
+
+        private static EquipmentObject MissileLauncher(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type, Hardpoint? hardpoint, Equipment equip)
+        {
+            var gn = (MissileLauncherEquipment)equip;
+            snd?.LoadSound(gn.Munition.Def.OneShotSound);
+            return new MissileLauncher(parent, hardpoint, gn, type, res);
+        }
+
+        private static EquipmentObject MineDropper(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type, Hardpoint? hardpoint, Equipment equip)
+        {
+            var md = (MineDropperEquipment)equip;
+            snd?.LoadSound(md.Mine?.Def.OneShotSound);
+            return new MineDropper(parent, hardpoint, md, type, res);
+        }
+
+        private static EquipmentObject Power(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type,
+            Hardpoint? hardpoint, Equipment equip) =>
+            new PowerCore(parent, hardpoint, (PowerEquipment)equip, type);
+
+        private static EquipmentObject Scanner(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type,
+            Hardpoint? hardpoint, Equipment equip) =>
+            new Scanner(parent, hardpoint, (ScannerEquipment)equip, type);
+
+        private static EquipmentObject Shield(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type, Hardpoint? hardpoint, Equipment equip)
+        {
+            return new Shield(parent, hardpoint, (ShieldEquipment)equip, type, res);
+        }
+
+        private static EquipmentObject Thruster(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type,
+            Hardpoint? hardpoint, Equipment equip) =>
+            new Thruster(parent, hardpoint, (ThrusterEquipment)equip, type, res, snd);
+
+
+        private static EquipmentObject Tractor(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type, Hardpoint? hardpoint, Equipment equip)
+            => new Tractor(parent, hardpoint, (TractorEquipment)equip, type);
+
+        private static EquipmentObject Tradelane(GameObject parent, ResourceManager res, SoundManager? snd,
+            EquipmentType type,
+            Hardpoint? hardpoint, Equipment equip)
+            => new Tradelane(parent, hardpoint, (TradelaneEquipment)equip, type, res);
     }
 }

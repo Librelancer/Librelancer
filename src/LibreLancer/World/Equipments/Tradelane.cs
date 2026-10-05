@@ -1,41 +1,30 @@
 using LibreLancer.Data.GameData.Items;
-using LibreLancer.Physics;
 using LibreLancer.Render;
 using LibreLancer.Resources;
-using LibreLancer.World;
 
-namespace LibreLancer.Client.Components;
+namespace LibreLancer.World.Equipments;
 
-public class CTradelaneComponent : GameComponent
+public class Tradelane : EquipmentObject<TradelaneEquipment>
 {
-    public TradelaneEquipment Def;
-
     private ParticleEffectRenderer? leftLane;
     private ParticleEffectRenderer? rightLane;
     private bool leftActive;
     private bool rightActive;
 
-    public CTradelaneComponent(GameObject parent, TradelaneEquipment tl) : base(parent)
+    public Tradelane(GameObject parent, Hardpoint? attachment, TradelaneEquipment equipment, EquipmentType type, ResourceManager resources) :
+        base(parent, attachment, equipment, type, false, true)
     {
-        Def = tl;
-    }
-
-    public override void Register(GameWorld world)
-    {
-        if (GetGameData(world) == null)
-        {
+        if (type != EquipmentType.LocalPlayer &&
+            type != EquipmentType.RemoteObject)
             return;
-        }
+        var laneFx = base.Equipment.RingActive?.GetEffect(resources);
 
-        var resman = GetResourceManager(world)!;
-        var laneFx = Def.RingActive?.GetEffect(resman);
-
-        var leftHp = Parent?.GetHardpoint("HpLeftLane");
-        var rightHp = Parent?.GetHardpoint("HpRightLane");
+        var leftHp = parent.GetHardpoint("HpLeftLane");
+        var rightHp = parent.GetHardpoint("HpRightLane");
 
         if (laneFx is null || leftHp is null || rightHp is null)
         {
-            FLLog.Warning("CTradelaneComponent", $"Register called but component could not be resolved. laneFx: {laneFx}, leftHp: {leftHp}, rightHp: {rightHp}");
+            FLLog.Warning("Tradelane", $"Register called but component could not be resolved. laneFx: {laneFx}, leftHp: {leftHp}, rightHp: {rightHp}");
             return;
         }
 
@@ -51,8 +40,6 @@ public class CTradelaneComponent : GameComponent
             Active = rightActive,
             SParam = 1
         };
-        Parent?.ExtraRenderers.Add(leftLane);
-        Parent?.ExtraRenderers.Add(rightLane);
     }
 
     public void SetActive(bool left, bool active)
@@ -68,4 +55,18 @@ public class CTradelaneComponent : GameComponent
     public void ActivateRight() => SetActive(false, true);
     public void DeactivateLeft() => SetActive(true, false);
     public void DeactivateRight() => SetActive(false, false);
+
+    public override void RenderUpdate(double delta)
+    {
+        var mat = Parent.Transform.Matrix();
+        var pos = Parent.Transform.Position;
+        leftLane?.Update(delta, pos, mat);
+        rightLane?.Update(delta, pos, mat);
+    }
+
+    public override void PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool parentCull)
+    {
+        leftLane?.PrepareRender(camera, nr, sys, parentCull);
+        rightLane?.PrepareRender(camera, nr, sys, parentCull);
+    }
 }

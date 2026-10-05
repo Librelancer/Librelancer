@@ -631,7 +631,7 @@ namespace LibreLancer.Missions.Actions
             runtime.Player.MissionWorldAction(() =>
             {
                 var gameObj = runtime.Player.Space!.World.GameWorld.GetObject(Tradelane)!;
-                var firstChild = gameObj.GetFirstChildComponent<SShieldComponent>();
+                var firstChild = gameObj.CoreEquipment.Shield;
 
                 if (firstChild != null)
                 {

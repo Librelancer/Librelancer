@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using LibreLancer.Client.Components;
 using LibreLancer.World;
+using LibreLancer.World.Equipments;
 
 namespace LibreLancer.Thn
 {
@@ -13,7 +14,7 @@ namespace LibreLancer.Thn
     {
         public ThnScript? SetScript;
         public GameObject? PlayerShip;
-        public CEngineComponent PlayerEngine = null!;
+        public Engine PlayerEngine = null!;
         public GameObject MainObject = null!;
         public Dictionary<string,string> Substitutions = new(StringComparer.OrdinalIgnoreCase);
         public ThnScriptContext(ThnScript? set)

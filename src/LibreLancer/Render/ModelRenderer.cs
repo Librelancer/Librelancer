@@ -153,7 +153,7 @@ namespace LibreLancer.Render
         private Matrix4x4 _worldSph;
         private BitArray128 visibleParts;
 
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool forceCull)
         {
             _worldSph = World;
 

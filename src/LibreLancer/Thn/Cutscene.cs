@@ -12,6 +12,7 @@ using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.Thn.Events;
 using LibreLancer.World;
+using LibreLancer.World.Equipments;
 
 namespace LibreLancer.Thn;
 
@@ -22,7 +23,7 @@ public class Cutscene : IDisposable
     public SystemRenderer? Renderer;
     public GameObject? PlayerShip => scriptContext.PlayerShip;
 
-    public CEngineComponent PlayerEngine => scriptContext.PlayerEngine;
+    public Engine PlayerEngine => scriptContext.PlayerEngine;
 
     // Public properties
     public GameResourceManager ResourceManager => resourceManager;

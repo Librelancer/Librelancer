@@ -8,7 +8,6 @@ using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.World;
 using LibreLancer.Data.IO;
 using LibreLancer.Graphics;
-using LibreLancer.Items;
 using LibreLancer.Physics;
 using LibreLancer.Resources;
 using LibreLancer.Utf.Anm;

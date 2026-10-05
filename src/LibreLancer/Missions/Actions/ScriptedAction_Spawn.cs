@@ -150,7 +150,7 @@ namespace LibreLancer.Missions.Actions
                     runtime.Random.NextFloat(-1, 1)).Normalized();
                 var range = runtime.Random.NextFloat(ship.RelativePosition.MinRange,
                     ship.RelativePosition.MaxRange);
-                pos = relObj.WorldTransform.Position + (dir * range);
+                pos = relObj.Transform.Position + (dir * range);
             }
 
             var arrivalObject = string.IsNullOrWhiteSpace(ship.ArrivalObj.Object) || spawnpos.Present
@@ -399,7 +399,7 @@ namespace LibreLancer.Missions.Actions
                     }
                     else
                     {
-                        pos = obj.WorldTransform.Transform(lootDef.RelPosOffset);
+                        pos = obj.Transform.Transform(lootDef.RelPosOffset);
                     }
                 }
 

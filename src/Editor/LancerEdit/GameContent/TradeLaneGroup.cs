@@ -24,8 +24,8 @@ public class TradeLaneGroup
             for (int j = i + 1; j < Members.Count; j++)
             {
                 float d = Vector3.DistanceSquared(
-                    Members[i].LocalTransform.Position,
-                    Members[j].LocalTransform.Position);
+                    Members[i].Transform.Position,
+                    Members[j].Transform.Position);
                 if (d > maxDist)
                 {
                     maxDist = d;

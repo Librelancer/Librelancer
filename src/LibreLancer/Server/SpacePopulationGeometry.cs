@@ -136,7 +136,7 @@ public partial class SpacePopulationManager
                 start,
                 end,
                 pathIndex,
-                player.WorldTransform.Position,
+                player.Transform.Position,
                 PatrolPathSpawnMinDistance,
                 maxDistance);
         }
@@ -255,7 +255,7 @@ public partial class SpacePopulationManager
         var point = Vector3.Lerp(candidate.Start, candidate.End, t);
         for (int i = 0; i < 4; i++)
         {
-            var playerPosition = GetNearestPlayer(point, players).WorldTransform.Position;
+            var playerPosition = GetNearestPlayer(point, players).Transform.Position;
             var distance = Vector3.Distance(point, playerPosition);
             if (distance + 1 >= PatrolPathSpawnMinDistance &&
                 distance <= maxDistance &&
@@ -320,8 +320,8 @@ public partial class SpacePopulationManager
         {
             var player = players[random.Next(players.Length)];
             var distance = Lerp(minDistance, maxDistance, random.NextSingle());
-            var candidate = player.WorldTransform.Position + random.NextUnitVector() * distance;
-            candidate = ClampSpawnHeight(candidate, player.WorldTransform.Position);
+            var candidate = player.Transform.Position + random.NextUnitVector() * distance;
+            candidate = ClampSpawnHeight(candidate, player.Transform.Position);
             if (zone.ContainsPoint(candidate) &&
                 !IsInsideRandomMissionNoSpawnZone(candidate))
             {
@@ -334,7 +334,7 @@ public partial class SpacePopulationManager
         {
             var sampled = SampleZonePoint(zone);
             var player = GetNearestPlayer(sampled, players);
-            var candidate = ClampSpawnHeight(sampled, player.WorldTransform.Position);
+            var candidate = ClampSpawnHeight(sampled, player.Transform.Position);
             var distance = DistanceToNearestPlayer(candidate, players);
             if (distance >= minDistance &&
                 distance <= maxDistance * 1.5f &&
@@ -365,7 +365,7 @@ public partial class SpacePopulationManager
         var nearest = float.MaxValue;
         foreach (var player in players)
         {
-            var distance = Vector3.Distance(point, player.WorldTransform.Position);
+            var distance = Vector3.Distance(point, player.Transform.Position);
             if (distance < nearest)
                 nearest = distance;
         }
@@ -375,10 +375,10 @@ public partial class SpacePopulationManager
     private GameObject GetNearestPlayer(Vector3 point, GameObject[] players)
     {
         var nearest = players[0];
-        var nearestDistance = Vector3.DistanceSquared(point, nearest.WorldTransform.Position);
+        var nearestDistance = Vector3.DistanceSquared(point, nearest.Transform.Position);
         for (int i = 1; i < players.Length; i++)
         {
-            var distance = Vector3.DistanceSquared(point, players[i].WorldTransform.Position);
+            var distance = Vector3.DistanceSquared(point, players[i].Transform.Position);
             if (distance < nearestDistance)
             {
                 nearest = players[i];

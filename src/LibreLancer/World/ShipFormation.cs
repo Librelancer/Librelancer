@@ -85,7 +85,7 @@ namespace LibreLancer.World
             var offset = isPlayer && PlayerTargetPosition != null
                 ? PlayerTargetPosition.Value
                 : GetShipOffset(self);
-            return LeadShip.WorldTransform.Transform(offset);
+            return LeadShip.Transform.Transform(offset);
         }
 
         public bool Contains(GameObject obj)

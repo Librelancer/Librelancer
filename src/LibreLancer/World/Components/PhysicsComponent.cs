@@ -83,7 +83,7 @@ namespace LibreLancer.World.Components
 
             var interpPos = lastPosition + (pos - lastPosition) * fraction;
             var interpQuat = Quaternion.Slerp(lastOrientation, quat, fraction);
-            Parent!.SetLocalTransform(new Transform3D(interpPos, interpQuat), true);
+            Parent!.SetTransform(new Transform3D(interpPos, interpQuat), true);
         }
 
         private Vector3 lastPosition;
@@ -135,7 +135,7 @@ namespace LibreLancer.World.Components
             var pos = Body.Position;
             var quat = Body.Orientation;
 
-            Parent!.SetLocalTransform(new Transform3D(pos + PredictionErrorPos, quat * PredictionErrorQuat), true);
+            Parent!.SetTransform(new Transform3D(pos + PredictionErrorPos, quat * PredictionErrorQuat), true);
         }
 
         public override void Register(GameWorld world)
@@ -195,8 +195,8 @@ namespace LibreLancer.World.Components
                 FLLog.Error("Sur", $"Hull load failure for object {Parent!.Nickname ?? Parent!.NetID.ToString()}");
             }
 
-            Body = Mass < float.Epsilon ? world.Physics!.AddStaticObject(Parent!.WorldTransform, cld) :
-                world.Physics!.AddDynamicObject(Mass, Parent!.WorldTransform, cld, Parent.Kind == GameObjectKind.DynamicAsteroid, Inertia);
+            Body = Mass < float.Epsilon ? world.Physics!.AddStaticObject(Parent!.Transform, cld) :
+                world.Physics!.AddDynamicObject(Mass, Parent!.Transform, cld, Parent.Kind == GameObjectKind.DynamicAsteroid, Inertia);
             Body.Tag = Parent;
             Body.Collidable = Collidable;
             collider = cld;

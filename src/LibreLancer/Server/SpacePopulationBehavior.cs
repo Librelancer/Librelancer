@@ -24,7 +24,7 @@ public partial class SpacePopulationManager
         if (leader == null)
             return;
 
-        var directives = BuildDirectives(group, leader.WorldTransform.Position);
+        var directives = BuildDirectives(group, leader.Transform.Position);
         if (directives.Length == 0)
             return;
 
@@ -292,7 +292,7 @@ public partial class SpacePopulationManager
                 continue;
             }
 
-            var distance = Vector3.DistanceSquared(currentPosition, obj.WorldTransform.Position);
+            var distance = Vector3.DistanceSquared(currentPosition, obj.Transform.Position);
             if (distance > maxDistanceSquared || distance >= nearestDistance)
                 continue;
 
@@ -320,7 +320,7 @@ public partial class SpacePopulationManager
                 continue;
             }
 
-            var distance = Vector3.DistanceSquared(currentPosition, obj.WorldTransform.Position);
+            var distance = Vector3.DistanceSquared(currentPosition, obj.Transform.Position);
             if (distance < nearestDistance)
             {
                 nearestDistance = distance;

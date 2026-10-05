@@ -16,6 +16,7 @@ using LibreLancer.Net.Protocol;
 using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.World.Components;
+using LibreLancer.World.Equipments;
 
 namespace LibreLancer.World
 {
@@ -239,14 +240,14 @@ namespace LibreLancer.World
             return fireRequest;
         }
 
-        public void QueueFire(GameObject owner, WeaponComponent component, Vector3 target)
+        public void QueueFire(GameObject owner, AbstractWeapon component, Vector3 target)
         {
             if (!owner.TryGetComponent<WeaponControlComponent>(out var wc))
             {
                 return;
             }
 
-            var wpIdx = Array.IndexOf(wc.NetOrderWeapons!, component);
+            var wpIdx = Array.IndexOf(wc.AllWeapons, component);
             if (wpIdx == -1)
             {
                 return;

@@ -154,7 +154,7 @@ public sealed class SDeployableComponent : GameComponent
         var body = target.PhysicsComponent?.Body;
         if (body == null)
         {
-            return target.WorldTransform.Position;
+            return target.Transform.Position;
         }
 
         var toCenter = body.Position - position;

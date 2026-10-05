@@ -33,7 +33,7 @@ public partial class SpacePopulationManager
             {
                 if (!group.InCombat)
                 {
-                    group.ResumeDutyTarget = GetDutyResumeTarget(group, leader.WorldTransform.Position);
+                    group.ResumeDutyTarget = GetDutyResumeTarget(group, leader.Transform.Position);
                     SuspendGroupDirectives(group);
                 }
                 group.InCombat = true;
@@ -73,7 +73,7 @@ public partial class SpacePopulationManager
             return null;
 
         var rangeSquared = range * range;
-        var position = ship.WorldTransform.Position;
+        var position = ship.Transform.Position;
         GameObject? selected = null;
         var selectedDistance = float.MaxValue;
 
@@ -88,7 +88,7 @@ public partial class SpacePopulationManager
                 continue;
             }
 
-            var distance = Vector3.DistanceSquared(position, other.WorldTransform.Position);
+            var distance = Vector3.DistanceSquared(position, other.Transform.Position);
             if (distance > rangeSquared || distance >= selectedDistance)
                 continue;
 
@@ -175,7 +175,7 @@ public partial class SpacePopulationManager
 
         foreach (var player in players)
         {
-            if (Vector3.DistanceSquared(ship.WorldTransform.Position, player.WorldTransform.Position) <=
+            if (Vector3.DistanceSquared(ship.Transform.Position, player.Transform.Position) <=
                 BattleDistance * BattleDistance &&
                 rep.IsHostileTo(player))
             {
@@ -199,7 +199,7 @@ public partial class SpacePopulationManager
                     continue;
                 }
 
-                if (group.Ships.Any(x => IsInsideRandomMissionNoSpawnZone(x.WorldTransform.Position)))
+                if (group.Ships.Any(x => IsInsideRandomMissionNoSpawnZone(x.Transform.Position)))
                 {
                     foreach (var ship in group.Ships)
                     {
@@ -216,7 +216,7 @@ public partial class SpacePopulationManager
                 var persistDistance = state.InBattle || GroupInCombat(group, players)
                     ? Math.Max(basePersistDistance, BattlePersistDistance)
                     : basePersistDistance;
-                if (players.Length == 0 || group.Ships.All(x => DistanceToNearestPlayer(x.WorldTransform.Position, players) > persistDistance))
+                if (players.Length == 0 || group.Ships.All(x => DistanceToNearestPlayer(x.Transform.Position, players) > persistDistance))
                 {
                     foreach (var ship in group.Ships)
                     {

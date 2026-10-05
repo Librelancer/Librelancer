@@ -5,6 +5,7 @@ using System.Numerics;
 using LibreLancer.Client.Components;
 using LibreLancer.Render;
 using LibreLancer.World;
+using LibreLancer.World.Equipments;
 
 namespace LibreLancer.Thn;
 
@@ -24,7 +25,7 @@ public class ThnSceneObject
     public ThnSound? Sound;
     public bool Animating = false;
     public bool PosFromObject = false;
-    public CEngineComponent? Engine;
+    public Engine? Engine;
     public int MonitorIndex = 0;
 
     public List<ThnAttachment> Attachments = new();
@@ -40,7 +41,7 @@ public class ThnSceneObject
     {
         if (PosFromObject)
         {
-            return Object!.WorldTransform;
+            return Object!.Transform;
         }
 
         Transform3D self = new(Translate, Rotate);
@@ -122,11 +123,11 @@ public class ThnSceneObject
 
             if (HpMount == null)
             {
-                Object.SetLocalTransform(new Transform3D(Translate, Rotate));
+                Object.SetTransform(new Transform3D(Translate, Rotate));
             }
             else
             {
-                Object.SetLocalTransform(HpMount.Transform.Inverse() * new Transform3D(Translate, Rotate));
+                Object.SetTransform(HpMount.Transform.Inverse() * new Transform3D(Translate, Rotate));
             }
         }
 
@@ -186,6 +187,7 @@ public class ThnPathParent(ThnSceneObject Path)
 public class ThnObjectParent(ThnSceneObject obj, IRenderHardpoint? hardpoint, RigidModelPart? part)
     : ThnAttachParent
 {
+    public Transform3D ChildOffset = Transform3D.Identity;
     public override Transform3D GetTransform(bool pathLookAt)
     {
         var tr = obj.GetTransform();
@@ -195,7 +197,7 @@ public class ThnObjectParent(ThnSceneObject obj, IRenderHardpoint? hardpoint, Ri
             {
                 tr = obj.HpMount.Transform.Inverse() * tr;
             }
-            return part.LocalTransform * tr;
+            return ChildOffset * part.LocalTransform * tr;
         }
 
         if (hardpoint != null)
@@ -204,9 +206,9 @@ public class ThnObjectParent(ThnSceneObject obj, IRenderHardpoint? hardpoint, Ri
             {
                 tr = obj.HpMount.Transform.Inverse() * tr;
             }
-            return hardpoint.Transform * tr;
+            return ChildOffset * hardpoint.Transform * tr;
         }
 
-        return tr;
+        return ChildOffset * tr;
     }
 }

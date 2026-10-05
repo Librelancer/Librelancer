@@ -128,7 +128,7 @@ public partial class SpacePopulationManager
         var effectiveDensity = 0;
         foreach (var player in players)
         {
-            var position = player.WorldTransform.Position;
+            var position = player.Transform.Position;
             if (!IsPopulationZoneActive(state, position) ||
                 !AllowsPopulationSpawn(state.Zone, position))
             {

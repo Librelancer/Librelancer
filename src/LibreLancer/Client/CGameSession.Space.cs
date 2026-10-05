@@ -19,6 +19,7 @@ using LibreLancer.Sounds.VoiceLines;
 using LibreLancer.Thn;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using LibreLancer.World.Equipments;
 
 namespace LibreLancer.Client;
 
@@ -299,8 +300,8 @@ public partial class CGameSession
         if (hp != null)
         {
             hp.CurrentHealth = state.Health;
-            var sh = gp.player.GetFirstChildComponent<CShieldComponent>();
-            sh?.SetShieldHealth(state.Shield);
+            var sh = gp.player.CoreEquipment.Shield;
+            sh?.Health = state.Shield;
         }
 
         if (gp?.player == null || !resync)
@@ -344,13 +345,13 @@ public partial class CGameSession
                 // This needs some work to not show the errors in collision on screen
                 // for the client, but it's almost there
                 // This is much faster than stepping the entire simulation again
-                var transform = gp.player.LocalTransform;
+                var transform = gp.player.Transform;
                 var predictedPos = transform.Position;
                 var predictedOrient = transform.Orientation;
                 moveState[i].Position = state.Position;
                 moveState[i].Orientation = state.Orientation.Quaternion;
                 // Set states
-                gp.player.SetLocalTransform(new Transform3D(state.Position, state.Orientation.Quaternion));
+                gp.player.SetTransform(new Transform3D(state.Position, state.Orientation.Quaternion));
                 gp.player.PhysicsComponent!.Body!.LinearVelocity = state.LinearVelocity;
                 gp.player.PhysicsComponent.Body.AngularVelocity = state.AngularVelocity;
                 if (gp.player.TryGetComponent<CTradelaneMoveComponent>(out var authoritativeTradelane))
@@ -377,12 +378,13 @@ public partial class CGameSession
         if (obj == null)
             return;
 
-        if (obj.TryGetComponent<CEngineComponent>(out var eng))
+        if (obj.CoreEquipment.Engine != null)
         {
+            var eng = obj.CoreEquipment.Engine;
             eng.Speed = update.ThrottleFloat;
             eng.EngineKill = update.EngineKill;
             eng.CruiseThrust = update.CruiseThrust;
-            foreach (var comp in obj.GetChildComponents<CThrusterComponent>())
+            foreach (var comp in eng.Thrusters)
                 comp.Enabled = update.CruiseThrust == CruiseThrustState.Thrusting;
         }
 
@@ -400,14 +402,10 @@ public partial class CGameSession
         if (obj.TryGetComponent<CHealthComponent>(out var health))
             health.CurrentHealth = update.Hull;
 
-        if (obj.TryGetFirstChildComponent<CShieldComponent>(out var sh))
-            sh.SetShieldHealth(update.Shield);
+        obj.CoreEquipment.Shield?.Health = update.Shield;
 
         if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)
         {
-            if (weapons.NetOrderWeapons == null)
-                weapons.UpdateNetWeapons();
-
             weapons.SetRotations(update.Guns!);
         }
 
@@ -419,12 +417,10 @@ public partial class CGameSession
             }
 
             var hp = obj.GetHardpoint(ph.Hardpoint);
-            var child = hp == null
-                ? null
-                : obj.GetHardpointChild(hp, c => c.TryGetComponent<CHealthComponent>(out _));
-            if (child != null && child.TryGetComponent<CHealthComponent>(out var childHealth))
+            var child = hp == null ? null : obj.AllEquipment.FirstOrDefault(x => x.Attachment == hp);
+            if (child != null && !child.Invincible)
             {
-                childHealth.CurrentHealth = childHealth.MaxHealth * (ph.Health / 255f);
+                child.Health = child.MaxHealth * (ph.Health / 255f);
             }
         }
 
@@ -432,8 +428,8 @@ public partial class CGameSession
         if (obj.SystemObject != null)
             return;
 
-        var oldPos = obj.LocalTransform.Position;
-        var oldQuat = obj.LocalTransform.Orientation;
+        var oldPos = obj.Transform.Position;
+        var oldQuat = obj.Transform.Orientation;
         obj.PhysicsComponent.Body.SetTransform(new Transform3D(update.Position.ToVector3(), update.Orientation.Quaternion));
         obj.PhysicsComponent!.Body.LinearVelocity = update.LinearVelocity.ToVector3();
         obj.PhysicsComponent.Body.AngularVelocity = update.AngularVelocity.ToVector3();
@@ -660,12 +656,12 @@ public partial class CGameSession
                 return;
             }
 
-            var effectPosition = obj.WorldTransform.Position;
+            var effectPosition = obj.Transform.Position;
             ResolvedFx? separationEffect = null;
             if (obj.Model?.TryGetCollisionGroup(part, out var collisionGroup) == true)
             {
                 var modelPart = collisionGroup.ModelPart;
-                effectPosition = obj.WorldTransform.Transform(
+                effectPosition = obj.Transform.Transform(
                     modelPart.LocalTransform.Transform(modelPart.Mesh?.Center ?? Vector3.Zero));
                 separationEffect = collisionGroup.Definition.SeparationExplosion?.Effect;
             }
@@ -695,10 +691,9 @@ public partial class CGameSession
             var hp = obj.GetHardpoint(hardpoint);
             if (explode && hp != null)
             {
-                var child = obj.GetHardpointChild(hp, c => c.TryGetComponent<CExplosionComponent>(out _));
-                if (child != null)
+                foreach (var c in obj.AllEquipment.Where(x => x.Attachment == hp))
                 {
-                    spaceGameplay.Explode(child);
+                    spaceGameplay.Explode(c);
                 }
             }
 
@@ -806,8 +801,8 @@ public partial class CGameSession
 
             if (src != null &&
                 dst != null &&
-                src.TryGetComponent<CTractorComponent>(out var tractor))
-                tractor.AddBeam(dst);
+                src.CoreEquipment.Tractor != null)
+                src.CoreEquipment.Tractor.AddBeam(dst);
         });
     }
 
@@ -820,21 +815,21 @@ public partial class CGameSession
 
             if (src != null &&
                 dst != null &&
-                src.TryGetComponent<CTractorComponent>(out var tractor))
-                tractor.RemoveBeam(dst);
+                src.CoreEquipment.Tractor != null)
+                src.CoreEquipment.Tractor.RemoveBeam(dst);
         });
     }
 
     void IClientPlayer.Cloak(ObjNetId ship)
     {
         RunSync(() =>
-            spaceGameplay!.world.GetObject(ship)?.GetComponent<CloakComponent>()?.Cloak(spaceGameplay!.world));
+            spaceGameplay!.world.GetObject(ship)?.EquipmentOfType<CloakingDevice>().FirstOrDefault()?.Cloak(spaceGameplay!.world));
     }
 
     void IClientPlayer.Uncloak(ObjNetId ship)
     {
         RunSync(() =>
-            spaceGameplay!.world.GetObject(ship)?.GetComponent<CloakComponent>()?.Uncloak(spaceGameplay!.world));
+            spaceGameplay!.world.GetObject(ship)?.EquipmentOfType<CloakingDevice>().FirstOrDefault()?.Uncloak(spaceGameplay!.world));
     }
 
     void IClientPlayer.TractorFailed()
@@ -902,7 +897,7 @@ public partial class CGameSession
     private void SetTradelaneLaneState(uint id, bool left, bool active)
     {
         var obj = spaceGameplay!.world.GetObject(id);
-        if (obj?.TryGetComponent<CTradelaneComponent>(out var tradelane) == true)
+        if (obj?.TryFindEquipment<Tradelane>(out var tradelane) == true)
         {
             tradelane.SetActive(left, active);
             return;
@@ -922,7 +917,7 @@ public partial class CGameSession
         if (!pendingTradelaneLanes.TryGetValue(obj.NicknameCRC, out var state))
             return;
 
-        if (obj.TryGetComponent<CTradelaneComponent>(out var tradelane))
+        if (obj.TryFindEquipment<Tradelane>(out var tradelane))
         {
             if ((state & 1) != 0) tradelane.ActivateLeft();
             if ((state & 2) != 0) tradelane.ActivateRight();
@@ -1257,7 +1252,7 @@ public partial class CGameSession
                 newObj.Name ??= objInfo.Name;
                 newObj.NetID = objInfo.ID.Value;
                 newObj.Nickname = objInfo.Nickname;
-                newObj.SetLocalTransform(new Transform3D(objInfo.Position, objInfo.Orientation));
+                newObj.SetTransform(new Transform3D(objInfo.Position, objInfo.Orientation));
                 var head = Game.GameData.Items.Bodyparts.Get(objInfo.CommHead);
                 var body = Game.GameData.Items.Bodyparts.Get(objInfo.CommBody);
                 var helmet = Game.GameData.Items.Accessories.Get(objInfo.CommHelmet);
@@ -1326,9 +1321,12 @@ public partial class CGameSession
                 else
                     newObj.AddComponent(new WeaponControlComponent(newObj));
 
-                if ((objInfo.Flags & ObjectSpawnFlags.Hidden) == ObjectSpawnFlags.Hidden &&
-                    newObj.TryGetComponent<CloakComponent>(out var cloaked))
-                    cloaked.SetInitCloaked();
+                newObj.ResolveReferences();
+
+                if ((objInfo.Flags & ObjectSpawnFlags.Hidden) == ObjectSpawnFlags.Hidden)
+                {
+                    newObj.EquipmentOfType<CloakingDevice>().FirstOrDefault()?.SetInitCloaked();
+                }
 
                 // add fx
                 if (objInfo.Effects is { Length: > 0 })
@@ -1392,15 +1390,7 @@ public partial class CGameSession
         if (sepInfo is { ChildDamageCap: not null } &&
             go.Model.TryGetHardpoint(sepInfo.ChildDamageCapHardpoint, out var capHp))
         {
-            var dcap = GameObject.WithModel(sepInfo.ChildDamageCap.Model!, true, Game.ResourceManager);
-            dcap.Attachment = capHp;
-            dcap.Parent = go;
-            dcap.RenderComponent!.InheritCull = false;
-
-            if (dcap.Model!.TryGetHardpoint("DpConnect", out var dpConnect))
-                dcap.SetLocalTransform(dpConnect.Transform.Inverse());
-
-            go.Children.Add(dcap);
+            go.AddChild(new DamageCap(go, sepInfo.ChildDamageCap, capHp, Game.ResourceManager, EquipmentType.RemoteObject));
         }
 
         return go;
@@ -1458,7 +1448,7 @@ public partial class CGameSession
 
             var go = new GameObject(model,
                 Game.ResourceManager);
-            go.SetLocalTransform(new Transform3D(position, orientation));
+            go.SetTransform(new Transform3D(position, orientation));
             go.NetID = id;
             go.Kind = GameObjectKind.Missile;
             go.PhysicsComponent?.Mass = 1;
@@ -1500,10 +1490,8 @@ public partial class CGameSession
                 {
                     var tgtUnique = 0;
 
-                    if (wc.NetOrderWeapons == null)
-                        wc.UpdateNetWeapons();
 
-                    for (var i = 0; i < wc.NetOrderWeapons!.Length; i++)
+                    for (var i = 0; i < wc.AllWeapons.Length; i++)
                     {
                         if ((p.Guns & (1UL << i)) == 0)
                             continue;
@@ -1513,7 +1501,7 @@ public partial class CGameSession
                         if ((p.Unique & (1UL << i)) != 0)
                             target = p.OtherTargets[tgtUnique++];
 
-                        wc.NetOrderWeapons[i].Fire(target, spaceGameplay.world, null, true);
+                        wc.AllWeapons[i].Fire(target, spaceGameplay.world, null, true);
                     }
                 }
             }

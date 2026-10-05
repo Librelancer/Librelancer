@@ -1107,7 +1107,7 @@ public class Cnd_DistVecLbl : ScriptedCondition
             {
                 continue;
             }
-            bool isInside = Vector3.Distance(obj.WorldTransform.Position, Position) <= Distance;
+            bool isInside = Vector3.Distance(obj.Transform.Position, Position) <= Distance;
             satisfied = isInside == Inside;
             if (satisfied && Any)
             {
@@ -1174,7 +1174,7 @@ public class Cnd_DistVec : ScriptedCondition
         var obj = space.World.GameWorld.GetObject(SourceShip);
         if (obj == null)
             return false;
-        bool isInside = Vector3.Distance(obj.WorldTransform.Position, Position) <= Distance;
+        bool isInside = Vector3.Distance(obj.Transform.Position, Position) <= Distance;
         if (TickAway.Present)
         {
             var st = (ConditionDouble)self.Storage;
@@ -1251,7 +1251,7 @@ public class Cnd_DistShip : ScriptedCondition
         var obj2 = space.World.GameWorld.GetObject(DestObject);
         if (obj == null || obj2 == null)
             return false;
-        var isInside = Vector3.Distance(obj.WorldTransform.Position, obj2.WorldTransform.Position) <= Distance;
+        var isInside = Vector3.Distance(obj.Transform.Position, obj2.Transform.Position) <= Distance;
         if (TickAway.Present)
         {
             var st = (ConditionDouble)self.Storage;

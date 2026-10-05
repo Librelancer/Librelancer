@@ -57,14 +57,10 @@ public class JumperNpc
             npc.Health = health.CurrentHealth;
         }
 
-        foreach (var item in go.GetComponents<EquipmentComponent>())
+        foreach (var item in go.AllEquipment)
         {
-            ld.Items.Add(item.GetLoadoutItem());
-        }
-
-        foreach (var item in go.GetChildComponents<EquipmentComponent>())
-        {
-            ld.Items.Add(item.GetLoadoutItem());
+            if (item.TryGetLoadoutItem(out var lditem))
+                ld.Items.Add(lditem);
         }
 
         if (go.TryGetComponent<SNPCCargoComponent>(out var cargo))
