@@ -33,11 +33,19 @@ public class InternalFx : EquipmentObject<InternalFxEquipment>
         }
     }
 
+    public void StartAnimation()
+    {
+        if (Equipment.Animation != null)
+        {
+            Parent.AnimationComponent?.StartAnimation(Equipment.Animation);
+        }
+    }
+
     public override void ResolveReferences()
     {
         if (needTriggerAnimation)
         {
-            Parent.AnimationComponent?.StartAnimation(Equipment.Animation!);
+            StartAnimation();
             needTriggerAnimation = false;
         }
     }

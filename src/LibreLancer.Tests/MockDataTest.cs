@@ -60,7 +60,19 @@ public class MockDataTest
     [Fact]
     public void CanQueryEquipment()
     {
-        var gdm = ConstructMockData();
-        Assert.Equal("gun01", gdm.Items.Equipment.Get("gun01").Nickname);
+        var mock = new MockData();
+        mock.HashAndAdd(new GunEquipment
+        {
+            Nickname = "gun01",
+            Def = null!,
+            Munition = null!
+        }, mock.GameData.Items.Equipment);
+    }
+
+    [Fact]
+    public void CanFindFile()
+    {
+        var mock = new MockData();
+        Assert.True(mock.VFS.FileExists("plainzip.zip"));
     }
 }

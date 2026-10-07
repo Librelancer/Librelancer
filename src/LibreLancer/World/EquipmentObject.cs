@@ -138,7 +138,7 @@ public abstract class EquipmentModelObject<T> : EquipmentObject<T>
     where T : Equipment
 {
     private ModelRenderer? renderer;
-    protected DestructibleModel? Model;
+    public DestructibleModel? Model;
 
     protected EquipmentModelObject(
         GameObject parent,
