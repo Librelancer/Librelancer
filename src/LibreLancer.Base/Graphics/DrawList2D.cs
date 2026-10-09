@@ -16,11 +16,10 @@ public class DrawList2D
     record struct DrawCall(
         int BaseVertex,
         int StartIndex,
-        int PrimitiveCount,
+        ushort PrimitiveCount,
         ushort BlendMode,
-        Texture? Texture,
         Rectangle? Clip,
-        Action<RenderContext>? Callback);
+        object? TextureOrCallback);
 
     private List<DrawCall> drawCalls = new();
     private Stack<Rectangle> clips = new Stack<Rectangle>();
@@ -134,7 +133,7 @@ public class DrawList2D
         var primCount = (indexCount - startIndex) / 3;
         if (primCount > 0)
         {
-            drawCalls.Add(new(baseVertex, startIndex, primCount, currentMode, currentTexture, activeClip, null));
+            drawCalls.Add(new(baseVertex, startIndex, (ushort)primCount, currentMode, activeClip, currentTexture));
         }
         currentMode = BlendMode.Normal;
         currentTexture = null;
@@ -145,7 +144,7 @@ public class DrawList2D
     public void AddCallback(Action<RenderContext> callback)
     {
         Flush();
-        drawCalls.Add(new(0, 0, 0, 0, null, activeClip, callback));
+        drawCalls.Add(new(0, 0, 0, 0, activeClip, callback));
     }
 
     public unsafe void Render(bool parentClip = true)
@@ -169,9 +168,9 @@ public class DrawList2D
                     continue;
             }
 
-            if (call.Callback != null)
+            if (call.TextureOrCallback is Action<RenderContext> cb)
             {
-                call.Callback(rc);
+                cb(rc);
                 if (call.Clip != null)
                 {
                     rc.PopScissor();
@@ -181,7 +180,7 @@ public class DrawList2D
 
             ren.SetViewport(rc.CurrentViewport.Width, rc.CurrentViewport.Height);
 
-            var tex = call.Texture ?? ren.Dot;
+            var tex = (call.TextureOrCallback as Texture) ?? ren.Dot;
 
             rc.Textures[0] = tex;
             rc.Samplers[0] = new(rc.PreferredFilterLevel, WrapMode.Repeat, WrapMode.Repeat);
