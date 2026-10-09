@@ -1,2 +1,0 @@
-vertex Navmap.vert.hlsl
-fragment Navmap.frag.hlsl

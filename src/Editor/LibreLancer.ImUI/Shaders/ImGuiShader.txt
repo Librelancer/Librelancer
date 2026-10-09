@@ -1,3 +1,0 @@
-vertex ImGuiShader.vert.hlsl
-fragment ImGuiShader.frag.hlsl
-feature USECOLOR 1

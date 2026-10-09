@@ -1,2 +1,0 @@
-vertex Nomad.vert.hlsl
-fragment Nomad.frag.hlsl

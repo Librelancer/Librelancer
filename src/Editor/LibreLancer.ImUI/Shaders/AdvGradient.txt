@@ -1,2 +1,0 @@
-vertex AdvGradient.vert.hlsl
-fragment AdvGradient.frag.hlsl

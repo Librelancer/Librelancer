@@ -1,2 +1,0 @@
-vertex Basic_FVF.vert.hlsl
-fragment AsteroidBand.frag.hlsl

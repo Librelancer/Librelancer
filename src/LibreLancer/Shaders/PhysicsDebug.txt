@@ -1,2 +1,0 @@
-vertex PhysicsDebug.vert.hlsl
-fragment Color.frag.hlsl

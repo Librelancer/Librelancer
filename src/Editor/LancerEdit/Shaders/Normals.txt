@@ -1,2 +1,0 @@
-vertex Normals.vert.hlsl
-fragment Normals.frag.hlsl

@@ -1,2 +1,0 @@
-vertex Sun.vert.hlsl
-fragment SunRadial.frag.hlsl

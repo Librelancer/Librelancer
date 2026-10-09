@@ -1,2 +1,0 @@
-vertex Particle.vert.hlsl
-fragment Sprite.frag.hlsl

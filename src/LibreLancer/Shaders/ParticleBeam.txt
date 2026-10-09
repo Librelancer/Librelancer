@@ -1,2 +1,0 @@
-vertex ParticleBeam.vert.hlsl
-fragment Sprite.frag.hlsl

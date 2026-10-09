@@ -1,2 +1,0 @@
-vertex Billboard.vert.hlsl
-fragment Sprite.frag.hlsl

@@ -1,3 +1,0 @@
-vertex Atmosphere.vert.hlsl
-fragment Atmosphere.frag.hlsl
-feature VERTEX_LIGHTING 1

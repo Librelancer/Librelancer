@@ -1,1 +1,0 @@
-https://github.com/kcat/openal-soft/archive/refs/tags/1.25.2.tar.gz

@@ -1,2 +1,0 @@
-vertex NebulaExtPuff.vert.hlsl
-fragment NebulaExtPuff.frag.hlsl
