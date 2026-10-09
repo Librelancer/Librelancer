@@ -64,11 +64,10 @@ public class Gun : AbstractWeapon
             toSpawn = projectiles.GetData(GunEquipment);
         }
 
-        RunMuzzleFlash();
 
         var tr = (Attachment!.Transform * Parent.Transform);
         var hp = Attachment.Name;
-        bool retval = false;
+        bool didFire = false;
 
         foreach (var hpFire in hpfires)
         {
@@ -84,7 +83,7 @@ public class Gun : AbstractWeapon
                 continue;
             }
 
-            retval = true;
+            didFire = true;
             projectiles.SpawnProjectile(Parent, hp, toSpawn, pos, heading);
 
             if (!fromServer)
@@ -93,7 +92,10 @@ public class Gun : AbstractWeapon
             }
         }
 
-        return retval;
+        if(didFire)
+            RunMuzzleFlash();
+
+        return didFire;
     }
 
     public override void ResolveReferences()
