@@ -11,6 +11,7 @@ public class Equipment : NamedItem
     public string? HPChild;
     public ResolvedModel? ModelFile;
     public ResolvedGood? Good;
+    public Explosion? Explosion;
     public float Volume;
     public float Hitpoints;
 

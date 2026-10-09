@@ -4,7 +4,8 @@
 
 namespace LibreLancer.Data.GameData.Items;
 
-public class AnimationEquipment : Equipment
+public class InternalFxEquipment : Equipment
 {
-    public required string? Animation;
+    public string? Animation;
+    public string? Sound;
 }

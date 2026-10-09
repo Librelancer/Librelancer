@@ -32,7 +32,7 @@ public class ObjectSetTransform(GameObject target, SystemObjectList list,Transfo
     {
         data.Position = value.Position;
         data.Rotation = value.Orientation;
-        Target.SetLocalTransform(value);
+        Target.SetTransform(value);
         if (list.Selection.Count > 0 && list.Selection[0] == Target)
             list.SelectedTransform = value.Matrix();
     }

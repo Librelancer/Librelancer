@@ -2,15 +2,13 @@
 // This file is subject to the terms and conditions defined in
 // LICENSE, which is part of this source code package
 
-using System.Numerics;
-using System.Runtime.CompilerServices;
 using LibreLancer.Graphics;
 
 namespace LibreLancer.Render
 {
 	public abstract class ObjectRenderer
 	{
-		public abstract void Update(double time, Vector3 position, Matrix4x4 transform);
+		public abstract void Update(double time, Transform3D transform);
 		public abstract void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr);
 		public virtual void DepthPrepass(ICamera camera, RenderContext rstate) { }
 		// Rendering Parameters

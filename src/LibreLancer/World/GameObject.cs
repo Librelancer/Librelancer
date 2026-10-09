@@ -20,6 +20,7 @@ using LibreLancer.Resources;
 using LibreLancer.Sounds;
 using LibreLancer.Utf.Mat;
 using LibreLancer.World.Components;
+using LibreLancer.World.Equipments;
 using Archetype = LibreLancer.Data.GameData.Archetype;
 using Sun = LibreLancer.Data.GameData.Archetypes.Sun;
 
@@ -196,15 +197,16 @@ namespace LibreLancer.World
         public List<ObjectRenderer> ExtraRenderers = [];
 
         //Private Fields
-        private Hardpoint? _attachment;
-        private Transform3D _localTransform = Transform3D.Identity;
+        private Transform3D transform = Transform3D.Identity;
         private string? _nickname;
-        private Transform3D worldTransform = Transform3D.Identity;
-        private GameObject? _parent;
-        public readonly List<GameObject> Children = [];
         private readonly Dictionary<Type, GameComponent> componentLookup = new();
-
         private readonly List<GameComponent> components = [];
+
+
+        public EquipmentLookup CoreEquipment = new();
+        private List<EquipmentObject> allChildren = [];
+        private List<EquipmentObject> updateChildren = [];
+        private List<EquipmentObject> renderChildren = [];
 
         //Components
         public ObjectRenderer? RenderComponent { get; set; }
@@ -251,64 +253,39 @@ namespace LibreLancer.World
             }
         }
 
-        public Transform3D LocalTransform => _localTransform;
+        public IEnumerable<T> EquipmentOfType<T>() where T : EquipmentObject => allChildren.OfType<T>();
 
-        public void SetLocalTransform(Transform3D tr, bool phys = false)
+        public bool TryFindEquipment<T>([NotNullWhen(true)]out T? res) where T : EquipmentObject
         {
-            _localTransform = tr;
-            var l = _localTransform.Orientation.Length();
+            res = EquipmentOfType<T>().FirstOrDefault();
+            return res != null;
+        }
+
+        public IEnumerable<EquipmentObject> AllEquipment => allChildren;
+
+        public Transform3D Transform => transform;
+
+        public void SetTransform(Transform3D tr, bool phys = false)
+        {
+            transform = tr;
+            var l = transform.Orientation.Length();
 
             if (l < float.Epsilon)
             {
-                _localTransform.Orientation = Quaternion.Identity;
+                transform.Orientation = Quaternion.Identity;
             }
             else if (Math.Abs(l - 1) >= 1e-6f)
             {
-                _localTransform.Orientation = Quaternion.Normalize(_localTransform.Orientation);
-            }
-
-            TransformDirty = true;
-
-            for (int i = 0; i < Children.Count; i++)
-            {
-                Children[i].TransformDirty = true;
+                transform.Orientation = Quaternion.Normalize(transform.Orientation);
             }
 
             if (!phys && PhysicsComponent is { Body: not null })
             {
                 PhysicsComponent.Body.SetTransform(tr);
             }
-        }
 
-        private Transform3D CalculateTransform()
-        {
-            var tr = LocalTransform;
-            if (_attachment != null)
-            {
-                tr *= _attachment.Transform;
-            }
-
-            if (_parent != null)
-            {
-                tr *= _parent.WorldTransform;
-            }
-
-            return tr;
-        }
-
-        public Transform3D WorldTransform
-        {
-            get
-            {
-                if (!TransformDirty)
-                {
-                    return worldTransform;
-                }
-
-                TransformDirty = false;
-                worldTransform = CalculateTransform();
-                return worldTransform;
-            }
+            foreach(var child in allChildren)
+                child.NeedUpdateTransform();
         }
 
         public void AddComponent<T>(T component) where T : GameComponent
@@ -319,12 +296,41 @@ namespace LibreLancer.World
 
         private void RegisterComponentTypes(GameComponent component)
         {
-
             for (var componentType = component.GetType();
                  componentType != null && componentType != typeof(GameComponent);
                  componentType = componentType.BaseType)
             {
                 componentLookup.TryAdd(componentType, component);
+            }
+        }
+
+        public void ResolveReferences()
+        {
+            foreach (var component in components)
+            {
+                component.ResolveReferences();
+            }
+            foreach (var child in allChildren)
+            {
+                child.ResolveReferences();
+            }
+        }
+
+        public void AddChild(EquipmentObject obj)
+        {
+            allChildren.Add(obj);
+            CoreEquipment.Set(obj);
+            if(obj.Updates) updateChildren.Add(obj);
+            if(obj.Renders) renderChildren.Add(obj);
+        }
+
+        public void RemoveChild(EquipmentObject obj)
+        {
+            if (allChildren.Remove(obj))
+            {
+                CoreEquipment.Unset(obj);
+                if (obj.Updates) updateChildren.Remove(obj);
+                if (obj.Renders) renderChildren.Remove(obj);
             }
         }
 
@@ -360,28 +366,7 @@ namespace LibreLancer.World
         {
             if (components.Remove(component))
             {
-
                 RebuildComponentLookup();
-            }
-        }
-
-        public GameObject? Parent
-        {
-            get => _parent;
-            set
-            {
-                _parent = value;
-                TransformDirty = true;
-            }
-        }
-
-        public Hardpoint? Attachment
-        {
-            get => _attachment;
-            set
-            {
-                _attachment = value;
-                TransformDirty = true;
             }
         }
 
@@ -490,39 +475,36 @@ namespace LibreLancer.World
 
         public void UpdateCollision()
         {
-            foreach (var child in Children)
-                child.TransformDirty = true;
-
             PhysicsComponent?.UpdateParts();
         }
 
-        public bool DisableCmpPart(uint part, GameWorld? world, ResourceManager res, out GameObject[] children)
+        public bool DisableCmpPart(uint part, GameWorld? world, ResourceManager res, out EquipmentObject[] children)
         {
             if (Model != null && Model.DestroyPart(part, out var destroyed))
             {
                 PhysicsComponent?.DisablePart(destroyed);
                 world?.Server?.PartDisabled(this, part);
-                var removedChildren = new List<GameObject>();
+                var removedChildren = new List<EquipmentObject>();
 
-                for (int i = Children.Count - 1; i >= 0; i--)
+                for (int i = allChildren.Count - 1; i >= 0; i--)
                 {
-                    var child = Children[i];
+                    var child = allChildren[i];
 
                     if (!(child.Attachment?.Parent?.Active ?? true))
                     {
                         removedChildren.Add(child);
-                        Children.RemoveAt(i);
+                        allChildren.RemoveAt(i);
+                        if (child.Updates) updateChildren.Remove(child);
+                        if (child.Renders) renderChildren.Remove(child);
                     }
                 }
 
                 foreach (var hp in destroyed.Hardpoints)
                 {
                     PhysicsComponent?.DeactivateHardpoint(hp);
-                    for (int i = 0; i < components.Count; i++)
-                    {
-                        components[i].HardpointDestroyed(hp);
-                    }
                 }
+
+                ResolveReferences();
 
                 var sp = Model.SeparableParts.FirstOrDefault((x =>
                     x.Part.Equals(destroyed.Name, StringComparison.OrdinalIgnoreCase)));
@@ -530,24 +512,10 @@ namespace LibreLancer.World
                 if (sp != null && sp.ParentDamageCap != null &&
                     Model.TryGetHardpoint(sp.ParentDamageCapHardpoint, out var capHardpoint))
                 {
-                    var cap = WithModel(sp.ParentDamageCap.Model!, RenderComponent != null, res);
-                    cap.Attachment = capHardpoint;
-                    cap.Parent = this;
-
-                    if (cap.Model!.TryGetHardpoint("DpConnect", out var childHp))
-                    {
-                        cap.SetLocalTransform(childHp.Transform.Inverse());
-                    }
-
-                    if (cap.RenderComponent != null)
-                    {
-                        cap.RenderComponent.InheritCull = false;
-                    }
-
-                    Children.Add(cap);
+                    AddChild(new DamageCap(this, sp.ParentDamageCap, capHardpoint, res,
+                        RenderComponent != null ? EquipmentType.RemoteObject : EquipmentType.Server));
                 }
 
-                GetComponent<WeaponControlComponent>()?.UpdateNetWeapons();
                 children = removedChildren.ToArray();
                 return true;
             }
@@ -556,7 +524,7 @@ namespace LibreLancer.World
             return false;
         }
 
-        public bool DisableCmpPart(string part, GameWorld? world, ResourceManager res, out GameObject[] children) =>
+        public bool DisableCmpPart(string part, GameWorld? world, ResourceManager res, out EquipmentObject[] children) =>
             DisableCmpPart(CrcTool.FLModelCrc(part), world, res, out children);
 
         public void SpawnDebris(string part, GameWorld world, ResourceManager res)
@@ -580,8 +548,8 @@ namespace LibreLancer.World
             var sp = Model.SeparableParts.FirstOrDefault((x =>
                 x.Part.Equals(srcPart.Name, StringComparison.OrdinalIgnoreCase)));
 
-            var tr = srcPart.LocalTransform * WorldTransform;
-            var vec = (tr.Position - WorldTransform.Position).Normalized();
+            var tr = srcPart.LocalTransform * Transform;
+            var vec = (tr.Position - Transform.Position).Normalized();
             var initialforce = 100f;
             var mass = 50f;
 
@@ -653,37 +621,20 @@ namespace LibreLancer.World
             }
         }
 
-        public void SetLoadout(ObjectLoadout loadout, ResourceManager resources, SoundManager? snd, bool cutscene = false)
+        public void SetLoadout(ObjectLoadout loadout, ResourceManager resources, SoundManager? snd, EquipmentType type)
         {
             foreach (var item in loadout.Items)
             {
-                var type = cutscene ? EquipmentType.Cutscene :
-                    (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server;
-
-                if (item.Equipment is AnimationEquipment anm)
-                {
-                    if (anm.Animation != null)
-                    {
-                        AnimationComponent?.StartAnimation(anm.Animation);
-                    }
-                }
-                else
-                {
-                    EquipmentObjectManager.InstantiateEquipment(this, resources, snd,
-                        type, item.Hardpoint ?? "internal", item.Equipment);
-                }
+                EquipmentObjectManager.InstantiateEquipment(this, resources, snd,
+                    type, item.Hardpoint ?? "internal", item.Equipment);
             }
 
             foreach (var cargo in loadout.Cargo.Where(x => !string.IsNullOrWhiteSpace(x.Hardpoint)))
             {
-                foreach (var child in Children)
+                foreach (var pod in EquipmentOfType<CargoPod>())
                 {
-                    if (!cargo.Hardpoint!.Equals(child.Attachment?.Name, StringComparison.OrdinalIgnoreCase) ||
-                        !child.TryGetComponent<CargoPodComponent>(out var pod))
-                    {
+                    if (!cargo.Hardpoint!.Equals(pod.Attachment?.Name, StringComparison.OrdinalIgnoreCase))
                         continue;
-                    }
-
                     pod.Cargo.Add(new BasicCargo(cargo.Item, cargo.Count));
                 }
             }
@@ -691,86 +642,21 @@ namespace LibreLancer.World
 
         public bool RemoveEquipment(string hardpoint, GameWorld world)
         {
-            for (int i = Children.Count - 1; i >= 0; i--)
+            for (int i = allChildren.Count - 1; i >= 0; i--)
             {
-                var child = Children[i];
-                if (!hardpoint.Equals(child.Attachment?.Name, StringComparison.OrdinalIgnoreCase) ||
-                    !child.TryGetComponent<EquipmentComponent>(out var equipment))
+                var child = allChildren[i];
+                if (!hardpoint.Equals(child.Attachment?.Name, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                HardpointHulls.Deactivate(equipment);
-                child.Unregister(world);
-                Children.RemoveAt(i);
+                HardpointHulls.Deactivate(child);
+                child.OnRemoved();
+                allChildren.RemoveAt(i);
                 return true;
             }
 
             return false;
-        }
-
-        public bool TryGetFirstChildComponent<T>([MaybeNullWhen(false)] out T result) where T : GameComponent
-        {
-            foreach (var child in Children)
-            {
-                if (child.TryGetComponent(out result))
-                {
-                    return true;
-                }
-            }
-
-            result = null;
-            return false;
-        }
-
-        public T? GetFirstChildComponent<T>() where T : GameComponent
-        {
-            return Children.Select(T? (t) => t.GetComponent<T>()).OfType<T>().FirstOrDefault();
-        }
-
-        public struct ChildComponentEnumerator<T> : IEnumerator<T> where T : GameComponent
-        {
-            private int i;
-            private readonly GameObject obj;
-
-            public ChildComponentEnumerator(GameObject obj)
-            {
-                this.obj = obj;
-                i = 0;
-            }
-
-            public bool MoveNext()
-            {
-                if (i >= obj.Children.Count)
-                {
-                    current = null;
-                    return false;
-                }
-
-                T? result = null;
-
-                while (i < obj.Children.Count && (result = obj.Children[i].GetComponent<T>()) == null)
-                {
-                    i++;
-                }
-
-                i++;
-                current = result;
-                return result != null;
-            }
-
-            public void Reset()
-            {
-                i = 0;
-                current = null;
-            }
-
-            private T? current;
-            public T Current => current ?? throw new InvalidOperationException();
-
-            object? IEnumerator.Current => Current;
-
-            public void Dispose() => Reset();
         }
 
         public struct ComponentEnumerator<T> : IEnumerator<T> where T : GameComponent
@@ -823,16 +709,12 @@ namespace LibreLancer.World
             return new(new ComponentEnumerator<T>(this));
         }
 
-        public StructEnumerable<T, ChildComponentEnumerator<T>> GetChildComponents<T>() where T : GameComponent
-        {
-            return new(new ChildComponentEnumerator<T>(this));
-        }
 
         public void Update(double time, GameWorld world)
         {
-            for (int i = 0; i < Children.Count; i++)
+            for (int i = 0; i < updateChildren.Count; i++)
             {
-                Children[i].Update(time, world);
+                updateChildren[i].OnUpdate(time, world);
             }
 
             for (int i = 0; i < components.Count; i++)
@@ -843,43 +725,27 @@ namespace LibreLancer.World
 
         public void RenderUpdate(double time)
         {
-            var world = WorldTransform.Matrix();
+            RenderComponent?.Update(time, Transform);
 
-            RenderComponent?.Update(time, WorldTransform.Position, world);
-
-            for (int i = 0; i < Children.Count; i++)
+            for (int i = 0; i < renderChildren.Count; i++)
             {
-                Children[i].RenderUpdate(time);
+                renderChildren[i].RenderUpdate(time);
             }
 
             foreach (var child in ExtraRenderers)
             {
-                child.Update(time, WorldTransform.Position, world);
+                child.Update(time, Transform);
             }
         }
 
         public void SetDockingLights(bool active)
         {
-            if (RenderComponent is LightEquipRenderer rootLight && rootLight.IsDockingLight)
-                rootLight.SetDockingLight(active);
-
-            foreach (var child in Children)
+            foreach (var child in EquipmentOfType<Light>())
                 child.SetDockingLights(active);
-
-            foreach (var renderer in ExtraRenderers)
-            {
-                if (renderer is LightEquipRenderer light && light.IsDockingLight)
-                    light.SetDockingLight(active);
-            }
         }
 
         public void Register(GameWorld world)
         {
-            foreach (var child in Children)
-            {
-                child.Register(world);
-            }
-
             foreach (var component in components)
             {
                 component.Register(world);
@@ -904,7 +770,7 @@ namespace LibreLancer.World
                 parentCull = true;
             }
 
-            foreach (var child in Children)
+            foreach (var child in renderChildren)
             {
                 child.PrepareRender(camera, nr, sys, parentCull);
             }
@@ -921,10 +787,12 @@ namespace LibreLancer.World
             ExtraRenderers.Clear();
             componentLookup.Clear();
             components.Clear();
-            Children.Clear();
-            _parent = null;
+            allChildren.Clear();
+            updateChildren.Clear();
+            renderChildren.Clear();
+            CoreEquipment.Clear();
             TransformDirty = true;
-            _localTransform = Transform3D.Identity;
+            transform = Transform3D.Identity;
             Nickname = null;
             Name = null;
             Flags = 0;
@@ -932,7 +800,6 @@ namespace LibreLancer.World
             Kind = GameObjectKind.None;
             NetID = 0;
             ArchetypeName = null;
-            _attachment = null;
             SystemObject = null;
             Model = null;
             RenderComponent = null;
@@ -950,9 +817,9 @@ namespace LibreLancer.World
                 component.Unregister(world);
             }
 
-            foreach (var child in Children)
+            foreach (var child in allChildren)
             {
-                child.Unregister(world);
+                child.OnRemoved();
             }
 
             Flags &= ~GameObjectFlags.Exists;
@@ -980,36 +847,7 @@ namespace LibreLancer.World
             return hardpoint;
         }
 
-        public GameObject? GetHardpointChild(Hardpoint? hardpoint, Func<GameObject, bool>? predicate = null)
-        {
-            if (hardpoint == null)
-            {
-                return null;
-            }
-            foreach (var child in Children)
-            {
-                if (!ReferenceEquals(child.Attachment, hardpoint) &&
-                    !hardpoint.Name.Equals(child.Attachment?.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (predicate == null || predicate(child))
-                {
-                    return child;
-                }
-            }
-            return null;
-        }
-
-        public GameObject? GetCargoPodChild(Hardpoint? hardpoint) =>
-            GetHardpointChild(hardpoint, IsCargoPodChild);
-
-        public static bool IsCargoPodChild(GameObject child) =>
-            child.TryGetComponent<EquipmentComponent>(out var equipment) &&
-            equipment.Equipment is CargoPodEquipment;
-
-        public Vector3 InverseTransformPoint(Vector3 input) => WorldTransform.InverseTransform(input);
+        public Vector3 InverseTransformPoint(Vector3 input) => Transform.InverseTransform(input);
 
         public IEnumerable<Hardpoint> GetHardpoints() => Model!.Hardpoints;
 

@@ -9,4 +9,7 @@ public class EngineEquipment : Equipment
     public required Data.Schema.Equipment.Engine Def;
     public float CruiseAccelTime = 5;
     public float CruiseSpeed = 300;
+    public ResolvedFx? TrailEffect;
+    public ResolvedFx? TrailEffectPlayer;
+    public ResolvedFx? FlameEffect;
 }

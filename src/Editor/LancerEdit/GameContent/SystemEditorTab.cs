@@ -339,12 +339,13 @@ public class SystemEditorTab : GameContentTab
         //Load system
         renderer = new SystemRenderer(camera, Data.Resources, win);
         World = new GameWorld(renderer, Data.Sounds, Data.Resources, null, true);
+        World.DefaultObjectType = EquipmentType.Editor;
         OriginalSystem = system;
         ResetOriginalObjects();
         CurrentSystem = system.Clone();
         Data.GameData.LoadAllSystem(CurrentSystem);
-        World.LoadSystem(CurrentSystem, Data.Resources, null, false, false);
-        World.Renderer.LoadLights(CurrentSystem);
+        World.LoadSystem(CurrentSystem, Data.Resources, null, false);
+        World.Renderer!.LoadLights(CurrentSystem);
         World.Renderer.LoadStarspheres(CurrentSystem);
         systemMap.SetObjects(CurrentSystem);
         renderer.PhysicsHook = RenderEditorObjects;
@@ -697,10 +698,10 @@ public class SystemEditorTab : GameContentTab
 
     private void OnObjectSelectionChanged(GameObject obj)
     {
-        arcballTarget = obj?.LocalTransform.Position ?? Vector3.Zero;
+        arcballTarget = obj?.Transform.Position ?? Vector3.Zero;
 
         var r = (obj!.RenderComponent as ModelRenderer)?.Model?.GetRadius() ?? 10f;
-        viewport.CameraOffset = obj.LocalTransform.Position + new Vector3(0, 0, -r * 3.5f);
+        viewport.CameraOffset = obj.Transform.Position + new Vector3(0, 0, -r * 3.5f);
         viewport.CameraRotation = new Vector2(-MathF.PI, 0);
     }
 
@@ -716,11 +717,11 @@ public class SystemEditorTab : GameContentTab
         obj.SystemObject.Archetype = archetype;
         obj.SystemObject.Loadout = loadout;
         obj.SystemObject.Star = star;
-        var tr = obj.LocalTransform;
-        World.InitObject(obj, true, obj.SystemObject, Data.Resources, null, false, true,
+        var tr = obj.Transform;
+        World.InitObject(obj, true, obj.SystemObject, Data.Resources, null,  true,
             obj.SystemObject.Loadout, obj.SystemObject.Archetype,
             (OptionalArgument<Sun>)obj.SystemObject.Star);
-        obj.SetLocalTransform(tr);
+        obj.SetTransform(tr);
     }
 
 
@@ -794,8 +795,8 @@ public class SystemEditorTab : GameContentTab
         Controls.IdsInputXmlUndo("Infocard", win, Data, Popups, UndoBuffer, () => ref sel.SystemObject.IdsInfo);
 
         // Position
-        var pos = sel.LocalTransform.Position;
-        var rot = sel.LocalTransform.GetEulerDegrees();
+        var pos = sel.Transform.Position;
+        var rot = sel.Transform.GetEulerDegrees();
         var buttonClicks = Controls.EditAndCopyButtonRow("Position", $"{pos.X:0.00}, {pos.Y:0.00}, {pos.Z: 0.00}", true);
         if (buttonClicks.copyButtonClicked)
         {
@@ -804,7 +805,7 @@ public class SystemEditorTab : GameContentTab
 
         if (buttonClicks.editButtonClicked)
         {
-            var oldTr = sel.LocalTransform;
+            var oldTr = sel.Transform;
             Popups.OpenPopup(new Vector3Popup("Position", false, oldTr.Position, (value, kind) =>
             {
                 if (kind == SetActionKind.Commit)
@@ -813,11 +814,11 @@ public class SystemEditorTab : GameContentTab
                 }
                 else if (kind == SetActionKind.Revert)
                 {
-                    sel.SetLocalTransform(oldTr);
+                    sel.SetTransform(oldTr);
                 }
                 else
                 {
-                    sel.SetLocalTransform(oldTr with { Position = value });
+                    sel.SetTransform(oldTr with { Position = value });
                 }
             }));
         }
@@ -829,11 +830,11 @@ public class SystemEditorTab : GameContentTab
             ImGui.OpenPopup("retcopy");
         }
 
-        Controls.RotationCopyPopup("retcopy", sel.LocalTransform.Matrix(), win);
+        Controls.RotationCopyPopup("retcopy", sel.Transform.Matrix(), win);
 
         if (buttonClicks.editButtonClicked)
         {
-            var oldTr = sel.LocalTransform;
+            var oldTr = sel.Transform;
             var angles = oldTr.Orientation.GetEulerDegrees();
             Popups.OpenPopup(new Vector3Popup("Position", true, angles, (value, kind) =>
             {
@@ -844,11 +845,11 @@ public class SystemEditorTab : GameContentTab
                 }
                 else if (kind == SetActionKind.Revert)
                 {
-                    sel.SetLocalTransform(oldTr);
+                    sel.SetTransform(oldTr);
                 }
                 else
                 {
-                    sel.SetLocalTransform(oldTr with { Orientation = newOrient });
+                    sel.SetTransform(oldTr with { Orientation = newOrient });
                 }
             }));
         }
@@ -1064,9 +1065,9 @@ public class SystemEditorTab : GameContentTab
                                     ? Transform3D.Identity
                                     : childHp.Transform.Inverse();
                                 var attachment = hp?.Transform ?? Transform3D.Identity;
-                                var tr = child * attachment * ObjectsList.Selection[0].LocalTransform;
+                                var tr = child * attachment * ObjectsList.Selection[0].Transform;
                                 var setTr = new ObjectSetTransform(
-                                    ObjectsList.Selection[1], ObjectsList, ObjectsList.Selection[1].LocalTransform,
+                                    ObjectsList.Selection[1], ObjectsList, ObjectsList.Selection[1].Transform,
                                     tr);
                                 if (setParent)
                                 {
@@ -1425,7 +1426,7 @@ public class SystemEditorTab : GameContentTab
             var rc = obj.RenderComponent as ModelRenderer;
             if (rc == null) continue;
             var bbox = rc.Model.GetBoundingBox();
-            EditorPrimitives.DrawBox(renderer.DebugRenderer, bbox, obj.LocalTransform.Matrix(), Color4.White);
+            EditorPrimitives.DrawBox(renderer.DebugRenderer, bbox, obj.Transform.Matrix(), Color4.White);
         }
 
         if (LightsList.Selected != null && LightsMode)
@@ -1559,7 +1560,7 @@ public class SystemEditorTab : GameContentTab
     {
         //MakeCopy() after new object data to clone the SystemObject - detaches from world state
         public static ObjectClipboardItem Create(GameObject obj)
-            => new(obj.SystemObject.Clone(), obj.LocalTransform);
+            => new(obj.SystemObject.Clone(), obj.Transform);
     }
 
     public override void OnHotkey(Hotkeys hk, bool shiftPressed)
@@ -1610,7 +1611,7 @@ public class SystemEditorTab : GameContentTab
             UndoBuffer.Commit(EditorAggregateAction.Create(sel.ToArray()));
             ObjectsList.SetObjects(World);
             ObjectsList.Selection = sel.Select(x => x.Object).ToList();
-            ObjectsList.SelectedTransform = ObjectsList.Selection[0].LocalTransform.Matrix();
+            ObjectsList.SelectedTransform = ObjectsList.Selection[0].Transform.Matrix();
         }
 
         if (hk == Hotkeys.Copy && LightsMode && LightsList.Selected != null)
@@ -1740,14 +1741,14 @@ public class SystemEditorTab : GameContentTab
                 if (!manipulatingObjects)
                 {
                     foreach (var go in ObjectsList.Selection)
-                        originalObjTransforms.Add((go, go.LocalTransform));
+                        originalObjTransforms.Add((go, go.Transform));
                     manipulatingObjects = true;
                 }
 
                 for (int i = 0; i < ObjectsList.Selection.Count; i++)
                 {
                     ObjectsList.Selection[i]
-                        .SetLocalTransform(Transform3D.FromMatrix(ImGuizmo.ApplyDelta(ObjectsList.Selection[i].LocalTransform.Matrix(), delta, op)));
+                        .SetTransform(Transform3D.FromMatrix(ImGuizmo.ApplyDelta(ObjectsList.Selection[i].Transform.Matrix(), delta, op)));
                 }
             }
 
@@ -1755,7 +1756,7 @@ public class SystemEditorTab : GameContentTab
             if (!ImGuizmo.IsUsing() && manipulatingObjects)
             {
                 var actions = originalObjTransforms.Select(x => (EditorAction)new
-                    ObjectSetTransform(x.Object, ObjectsList, x.Transform, x.Object.LocalTransform)).ToArray();
+                    ObjectSetTransform(x.Object, ObjectsList, x.Transform, x.Object.Transform)).ToArray();
                 UndoBuffer.Commit(EditorAggregateAction.Create(actions)); // Need commit to set SystemObject fields
                 manipulatingObjects = false;
                 originalObjTransforms = new();

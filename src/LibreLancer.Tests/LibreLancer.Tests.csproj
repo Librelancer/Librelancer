@@ -38,8 +38,7 @@
     </ItemGroup>
     <ItemGroup>
       <EmbeddedResource Include="Ini\TestAssets\*.ini" />
-      <EmbeddedResource Include="TestAssets\plainzip.zip" />
-      <EmbeddedResource Include="TestAssets\zipwithextra.dat" />
+      <EmbeddedResource Include="TestAssets\*" />
     </ItemGroup>
 
 </Project>

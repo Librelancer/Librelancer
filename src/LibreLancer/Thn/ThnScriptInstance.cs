@@ -88,7 +88,7 @@ namespace LibreLancer.Thn
                     ((ModelRenderer) obj.Object.RenderComponent).LightGroup = kv.Value.LightGroup;
                     obj.Entity = kv.Value;
                     Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-                    obj.Object.SetLocalTransform(new Transform3D(transform, obj.Rotate));
+                    obj.Object.SetTransform(new Transform3D(transform, obj.Rotate));
                     obj.HpMount = Cutscene.PlayerShip!.GetHardpoint("HpMount");
                     Cutscene.AddWorldObject(obj.Object);
                     Objects.Add(kv.Key, obj);
@@ -297,7 +297,7 @@ namespace LibreLancer.Thn
                     if (!obj.PosFromObject)
                     {
                         Vector3 transform = kv.Value.Position ?? Vector3.Zero;
-                        obj.Object.SetLocalTransform(new Transform3D(transform, kv.Value.Rotation));
+                        obj.Object.SetTransform(new Transform3D(transform, kv.Value.Rotation));
                         Cutscene.AddWorldObject(obj.Object);
                     }
                 }

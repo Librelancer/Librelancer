@@ -28,6 +28,10 @@ namespace LibreLancer.World
         {
         }
 
+        public virtual void ResolveReferences()
+        {
+        }
+
         protected SoundManager? GetSoundManager(GameWorld world)
         {
             return world.Renderer != null ? world.Renderer!.Game.GetService<SoundManager>() : null;

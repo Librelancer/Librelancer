@@ -37,7 +37,7 @@ public class SMissileComponent : GameComponent
         }
 
         var phys = Parent.PhysicsComponent!;
-        phys.Body.LinearVelocity = Vector3.Transform(-Vector3.UnitZ, Parent.LocalTransform.Orientation) * Speed;
+        phys.Body.LinearVelocity = Vector3.Transform(-Vector3.UnitZ, Parent.Transform.Orientation) * Speed;
 
         if (Target != null &&
             !Target.Flags.HasFlag(GameObjectFlags.Exists))
@@ -52,7 +52,7 @@ public class SMissileComponent : GameComponent
 
         if (Target != null)
         {
-            TurnTowards(time, Target.LocalTransform.Position);
+            TurnTowards(time, Target.Transform.Position);
         }
 
         if (Missile.Def.MaxAngularVelocity > 0 &&

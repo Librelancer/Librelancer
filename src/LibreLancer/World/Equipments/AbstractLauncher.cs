@@ -3,14 +3,20 @@ using System.Linq;
 using System.Numerics;
 using LibreLancer.Client.Components;
 using LibreLancer.Data.GameData.Items;
+using LibreLancer.Resources;
+using LibreLancer.World.Components;
 
-namespace LibreLancer.World.Components;
+namespace LibreLancer.World.Equipments;
 
-public abstract class MunitionLauncherComponent : WeaponComponent
+public abstract class AbstractLauncher : AbstractWeapon
 {
     protected Hardpoint? HpFire;
 
-    protected MunitionLauncherComponent(GameObject parent) : base(parent)
+    protected AbstractLauncher(GameObject parent,
+        Hardpoint? attachment,
+        Equipment equipment,
+        EquipmentType type,
+        ResourceManager resources) : base(parent, attachment, equipment, type, resources)
     {
     }
 
@@ -25,14 +31,12 @@ public abstract class MunitionLauncherComponent : WeaponComponent
         ? 0
         : Munition.Def.Lifetime * MuzzleVelocity;
 
-    public override int IdsName => Parent.GetComponent<EquipmentComponent>()?.Equipment.IdsName ?? 0;
 
     public int AmmoCount
     {
         get
         {
-            if (Munition == null || Parent.Parent == null ||
-                !Parent.Parent.TryGetComponent<AbstractCargoComponent>(out var cargo))
+            if (Munition == null || !Parent.TryGetComponent<AbstractCargoComponent>(out var cargo))
             {
                 return 0;
             }
@@ -48,8 +52,8 @@ public abstract class MunitionLauncherComponent : WeaponComponent
     protected override bool OnFire(Vector3 point, GameWorld world, GameObject? target, bool fromServer)
     {
         var munition = Munition;
-        var owner = Parent.Parent;
-        if (munition == null || owner == null || munition.ModelFile == null)
+        var owner = Parent;
+        if (munition == null || munition.ModelFile == null)
         {
             return false;
         }
@@ -73,10 +77,7 @@ public abstract class MunitionLauncherComponent : WeaponComponent
         {
             Parent.AnimationComponent?.StartAnimation(UseAnimation, false);
         }
-        if (Parent.TryGetComponent<CMuzzleFlashComponent>(out var muzzleFlash))
-        {
-            muzzleFlash.OnFired();
-        }
+        RunMuzzleFlash();
 
         if (world.Server != null)
         {
@@ -84,7 +85,7 @@ public abstract class MunitionLauncherComponent : WeaponComponent
         }
         else
         {
-            var hardpoint = Parent.Attachment!;
+            var hardpoint = Attachment!;
             world.Projectiles.PlayProjectileSound(owner, munition.Def.OneShotSound,
                 transform.Position, hardpoint.Name);
             world.Projectiles.QueueMissile(hardpoint.CRC, null);
@@ -96,9 +97,9 @@ public abstract class MunitionLauncherComponent : WeaponComponent
 
     private bool TryConsumeResources(GameObject owner, MunitionEquip munition, bool consumePower)
     {
-        if (consumePower && PowerUsage > 0 &&
-            owner.TryGetComponent<PowerCoreComponent>(out var power))
+        if (consumePower && PowerUsage > 0 && owner.CoreEquipment.Power != null)
         {
+            var power = owner.CoreEquipment.Power;
             if (power.CurrentEnergy < PowerUsage ||
                 (munition.Def.RequiresAmmo && !TryConsumeAmmo(owner, munition)))
             {
@@ -121,51 +122,19 @@ public abstract class MunitionLauncherComponent : WeaponComponent
     private bool TryGetFireTransform(out Transform3D transform)
     {
         transform = Transform3D.Identity;
-        if (Parent.Parent == null || Parent.Attachment == null)
+        if (Attachment == null)
         {
             return false;
         }
 
-        HpFire ??= Parent.GetHardpoints()
+        HpFire ??= GetHardpoints()
             .FirstOrDefault(x => x.Name.StartsWith("hpfire", StringComparison.OrdinalIgnoreCase));
 
-        var shipTransform = Parent.Parent.PhysicsComponent?.Body is { } body
+        var shipTransform = Parent.PhysicsComponent?.Body is { } body
             ? new Transform3D(body.Position, body.Orientation)
-            : Parent.Parent.WorldTransform;
-        var mount = Parent.Attachment.Transform * shipTransform;
+            : Parent.Transform;
+        var mount = Attachment.Transform * shipTransform;
         transform = (HpFire?.Transform ?? Transform3D.Identity) * mount;
         return true;
     }
-}
-
-public sealed class CountermeasureLauncherComponent : MunitionLauncherComponent
-{
-    public CountermeasureEquipment Object { get; }
-
-    public CountermeasureLauncherComponent(GameObject parent, CountermeasureEquipment equipment) : base(parent)
-    {
-        Object = equipment;
-    }
-
-    public override MunitionEquip? Munition => Object.Munition;
-    protected override float MuzzleVelocity => Object.Def.MuzzleVelocity;
-    protected override float PowerUsage => Object.Def.PowerUsage;
-    protected override string? UseAnimation => Object.Def.UseAnimation;
-    protected override double GetRefireDelay() => Object.Def.RefireDelay;
-}
-
-public sealed class MineLauncherComponent : MunitionLauncherComponent
-{
-    public MineDropperEquipment Object { get; }
-
-    public MineLauncherComponent(GameObject parent, MineDropperEquipment equipment) : base(parent)
-    {
-        Object = equipment;
-    }
-
-    public override MunitionEquip? Munition => Object.Mine;
-    protected override float MuzzleVelocity => Object.Def.MuzzleVelocity;
-    protected override float PowerUsage => Object.Def.PowerUsage;
-    protected override string? UseAnimation => Object.Def.UseAnimation;
-    protected override double GetRefireDelay() => Object.Def.RefireDelay;
 }

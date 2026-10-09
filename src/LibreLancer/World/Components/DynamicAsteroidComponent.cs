@@ -20,7 +20,7 @@ public class DynamicAsteroidComponent(GameObject parent, float maxVelocity, floa
             RefObject != null)
         {
             if ((RefObject.Flags & GameObjectFlags.Exists) == 0 ||
-                Vector3.DistanceSquared(Parent.LocalTransform.Position, RefObject.LocalTransform.Position) >
+                Vector3.DistanceSquared(Parent.Transform.Position, RefObject.Transform.Position) >
                 SquareDespawnDistance)
             {
                 world.Server!.RemoveSpawnedObject(Parent, false);

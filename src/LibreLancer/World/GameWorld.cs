@@ -8,11 +8,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using LibreLancer.Client.Components;
 using LibreLancer.Data.GameData;
 using LibreLancer.Data.GameData.Archetypes;
 using LibreLancer.Data.GameData.World;
-using LibreLancer.Items;
 using LibreLancer.Net;
 using LibreLancer.Net.Protocol;
 using LibreLancer.Physics;
@@ -27,19 +25,20 @@ namespace LibreLancer.World
 {
     public class GameWorld : IDisposable
     {
+        public EquipmentType DefaultObjectType;
+
         public readonly PhysicsWorld? Physics;
         public readonly SystemRenderer? Renderer;
         public readonly SoundManager? Sounds;
         public readonly ProjectileManager Projectiles = null!;
 
         public ServerWorld? Server;
+        public Random Random = new();
 
         private List<GameObject> objects = [];
         private Dictionary<int, GameObject> netIDLookup = new();
 
         public IReadOnlyList<GameObject> Objects => objects;
-
-        public IReadOnlyList<GameObject> AllObjects => objects;
 
         public readonly SpatialLookup SpatialLookup = new();
         public ZoneLookup? Zones;
@@ -50,10 +49,6 @@ namespace LibreLancer.World
         int atmosphereSetVersion = -1;
         private BoundingSphere[] atmospheres = null!;
 
-        static GameWorld()
-        {
-            EquipmentHandlers.Register();
-        }
 
         public GameWorld(SystemRenderer? render, SoundManager? sounds, ResourceManager? resources, Func<double>? timeSource,
             bool initPhys = true)
@@ -82,6 +77,10 @@ namespace LibreLancer.World
             {
                 Projectiles = new ProjectileManager(this);
             }
+
+            DefaultObjectType = render != null
+                ? EquipmentType.RemoteObject
+                : EquipmentType.Server;
         }
 
         public void SpawnTempFx(ResolvedFx? fx, Vector3 position)
@@ -98,7 +97,6 @@ namespace LibreLancer.World
         }
 
         public void InitObject(GameObject g, bool reinit, SystemObject obj, ResourceManager res, SoundManager? snd,
-            bool server,
             bool changeLoadout = false, ObjectLoadout? newLoadout = null, Archetype? changedArch = null,
             OptionalArgument<Sun> changedStar = default,
             Func<int>? netId = null)
@@ -125,15 +123,15 @@ namespace LibreLancer.World
 
             g.Nickname = obj.Nickname;
             g.SystemObject = obj;
-            g.SetLocalTransform(new Transform3D(obj.Position, obj.Rotation));
+            g.SetTransform(new Transform3D(obj.Position, obj.Rotation));
 
             if (loadout != null)
             {
-                g.SetLoadout(loadout, res, snd);
+                g.SetLoadout(loadout, res, snd, DefaultObjectType);
             }
             else if (arch.Loadout != null)
             {
-                g.SetLoadout(arch.Loadout, res, snd);
+                g.SetLoadout(arch.Loadout, res, snd, DefaultObjectType);
             }
 
             if (g.RenderComponent is ModelRenderer mr)
@@ -145,7 +143,7 @@ namespace LibreLancer.World
             // Dock with no DockSphere?
             if (obj.Dock != null && arch.DockSpheres.Count > 0)
             {
-                if (server)
+                if (DefaultObjectType == EquipmentType.Server)
                 {
                     g.AddComponent(new SDockableComponent(g, obj.Dock, arch.DockSpheres.ToArray()));
                 }
@@ -157,7 +155,7 @@ namespace LibreLancer.World
                 });
             }
 
-            if (server)
+            if (DefaultObjectType == EquipmentType.Server)
             {
                 g.AddComponent(new SHealthComponent(g) { InfiniteHealth = true, CurrentHealth = 100, MaxHealth = 100 });
 
@@ -177,16 +175,15 @@ namespace LibreLancer.World
             g.Register(this);
         }
 
-        public void NewObject(SystemObject obj, ResourceManager res, SoundManager? snd, bool server,
+        public void NewObject(SystemObject obj, ResourceManager res, SoundManager? snd,
             bool changeLoadout = false, ObjectLoadout? newLoadout = null, Archetype? changedArch = null,
             OptionalArgument<Sun> changedStar = default, Func<int>? netId = null)
         {
             var g = new GameObject();
-            InitObject(g, false, obj, res, snd, server, changeLoadout, newLoadout, changedArch, changedStar, netId);
+            InitObject(g, false, obj, res, snd, changeLoadout, newLoadout, changedArch, changedStar, netId);
         }
 
-        public void LoadSystem(StarSystem sys, ResourceManager res, SoundManager? snd, bool server,
-            bool loadRenderer = true)
+        public void LoadSystem(StarSystem sys, ResourceManager res, SoundManager? snd, bool loadRenderer = true)
         {
             Zones?.Dispose();
             Zones = new(sys.Zones);
@@ -217,7 +214,7 @@ namespace LibreLancer.World
 
             // Allocate netIds for system objects, use even numbers only
             // so that NPCs can be encoded in fewer bytes
-            if (server)
+            if (DefaultObjectType == EquipmentType.Server)
             {
                 netId = () =>
                 {
@@ -228,10 +225,10 @@ namespace LibreLancer.World
 
             foreach (var obj in sys.Objects)
             {
-                NewObject(obj, res, snd, server, false, null, null, default, netId);
+                NewObject(obj, res, snd, false, null, null, default, netId);
             }
 
-            if (server)
+            if (DefaultObjectType == EquipmentType.Server)
             {
                 foreach (var id in toFree)
                 {
@@ -303,6 +300,7 @@ namespace LibreLancer.World
 
         public void AddObject(GameObject obj)
         {
+            obj.ResolveReferences();
             objects.Add(obj);
 
             if (timeSource != null)
@@ -320,7 +318,7 @@ namespace LibreLancer.World
                 atmosphereVersion++;
             }
 
-            SpatialLookup.AddObject(obj, obj.WorldTransform.Position);
+            SpatialLookup.AddObject(obj, obj.Transform.Position);
         }
 
         public void RemoveObject(GameObject obj)
@@ -376,7 +374,7 @@ namespace LibreLancer.World
             if (atmosphereSetVersion != atmosphereVersion)
             {
                 atmospheres = objects.Where(x => x.SystemObject != null && x.SystemObject.AtmosphereRange > 0)
-                    .Select(x => new BoundingSphere(x.LocalTransform.Position, x.SystemObject!.AtmosphereRange))
+                    .Select(x => new BoundingSphere(x.Transform.Position, x.SystemObject!.AtmosphereRange))
                     .ToArray();
                 atmosphereSetVersion = atmosphereVersion;
             }
@@ -408,7 +406,7 @@ namespace LibreLancer.World
             for (int i = 0; i < objects.Count; i++)
             {
                 objects[i].PhysicsComponent?.Update(t, this);
-                SpatialLookup.UpdatePosition(objects[i], objects[i].WorldTransform.Position);
+                SpatialLookup.UpdatePosition(objects[i], objects[i].Transform.Position);
             }
         }
 

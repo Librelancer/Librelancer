@@ -53,7 +53,7 @@ namespace LibreLancer.Render
         {
             return false;
         }
-        public override void Update(double time, Vector3 position, Matrix4x4 transform)
+        public override void Update(double time, Transform3D transform)
         {
             for (var i = 0; i < renderCount; i++)
             {

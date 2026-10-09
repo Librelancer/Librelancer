@@ -39,7 +39,7 @@ public class SystemObjectList
 
     public void SelectSingle(GameObject obj)
     {
-        SelectedTransform = (obj?.LocalTransform ?? Transform3D.Identity).Matrix();
+        SelectedTransform = (obj?.Transform ?? Transform3D.Identity).Matrix();
         if (Selection.Count > 0)
         {
             Selection = [];
@@ -60,7 +60,7 @@ public class SystemObjectList
 
         foreach (var obj in objects)
         {
-            SelectedTransform = (obj?.LocalTransform ?? Transform3D.Identity).Matrix();
+            SelectedTransform = (obj?.Transform ?? Transform3D.Identity).Matrix();
 
             if (obj != null)
             {

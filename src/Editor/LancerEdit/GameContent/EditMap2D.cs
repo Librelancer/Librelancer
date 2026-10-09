@@ -335,7 +335,7 @@ public class EditMap2D
                 continue;
 
             Vector2 screen = WorldToScreen(
-                obj.LocalTransform.Position,
+                obj.Transform.Position,
                 system,
                 mapTopLeft,
                 mapSize
@@ -468,7 +468,7 @@ public class EditMap2D
                 {
                     tab.ForceSelectObject(obj);
                     dragTarget = obj;
-                    dragOriginalTransform = obj.LocalTransform;
+                    dragOriginalTransform = obj.Transform;
                 }
 
                 if (dragTarget == obj)
@@ -487,10 +487,10 @@ public class EditMap2D
                             delta.Y / mapSize * scale
                         );
 
-                        obj.SetLocalTransform(
+                        obj.SetTransform(
                             new Transform3D(
-                                obj.LocalTransform.Position + worldDelta,
-                                obj.LocalTransform.Orientation
+                                obj.Transform.Position + worldDelta,
+                                obj.Transform.Orientation
                             )
                         );
                     }
@@ -501,7 +501,7 @@ public class EditMap2D
                                 obj,
                                 tab.ObjectsList,
                                 dragOriginalTransform,
-                                obj.LocalTransform
+                                obj.Transform
                             )
                         );
 
@@ -533,8 +533,8 @@ public class EditMap2D
             if (startObj == null || endObj == null)
                 continue;
 
-            Vector2 start = WorldToScreen(startObj.LocalTransform.Position, system, mapTopLeft, mapSize);
-            Vector2 end = WorldToScreen(endObj.LocalTransform.Position, system, mapTopLeft, mapSize);
+            Vector2 start = WorldToScreen(startObj.Transform.Position, system, mapTopLeft, mapSize);
+            Vector2 end = WorldToScreen(endObj.Transform.Position, system, mapTopLeft, mapSize);
 
             // draw line
             var col = selected ? _selectedColour : _tradelaneDeselectedColour;
@@ -558,7 +558,7 @@ public class EditMap2D
             {
                 bool selected = tab.ObjectsList.Selection.Contains(ring);
 
-                Vector2 screenPos = WorldToScreen(ring.LocalTransform.Position, system, mapTopLeft, mapSize);
+                Vector2 screenPos = WorldToScreen(ring.Transform.Position, system, mapTopLeft, mapSize);
 
                 Vector2 min = screenPos - new Vector2(size / 2);
                 Vector2 max = screenPos + new Vector2(size / 2);
@@ -736,7 +736,7 @@ public class EditMap2D
         tradeLaneDragStartTransforms = new Dictionary<GameObject, Transform3D>();
         foreach (var obj in group.Members)
         {
-            tradeLaneDragStartTransforms[obj] = obj.LocalTransform;
+            tradeLaneDragStartTransforms[obj] = obj.Transform;
         }
     }
 
@@ -763,7 +763,7 @@ public class EditMap2D
             {
                 var start = tradeLaneDragStartTransforms[obj];
 
-                obj.SetLocalTransform(
+                obj.SetTransform(
                     new Transform3D(
                         start.Position + worldDelta,
                         start.Orientation
@@ -784,7 +784,7 @@ public class EditMap2D
             kvp.Key,
             tab.ObjectsList,
             kvp.Value,
-            kvp.Key.LocalTransform
+            kvp.Key.Transform
         ));
         tab.UndoBuffer.Commit(EditorAggregateAction.Create(actions.ToArray()));
         draggingTradeLaneGroup = null;

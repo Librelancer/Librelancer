@@ -15,7 +15,7 @@ namespace LibreLancer.Render
     {
         private const float BASE_SIZE = 10f;
         private Vector3 pos;
-        private Vector3 forward;
+        private Vector3 forward = Vector3.UnitZ;
 
         private SystemRenderer? sys;
         private LightEquipment equip;
@@ -151,18 +151,23 @@ namespace LibreLancer.Render
 
         }
 
-
         private double timer = 0;
         private bool lt_on = true;
         private Color3f colorBulb;
         private Color3f colorGlow;
 
-        public override void Update(double time, Vector3 position, Matrix4x4 transform)
+        public void SetTransform(Transform3D transform)
+        {
+            pos = transform.Position;
+            if (equip.FlareCone != null)
+                forward = Vector3.Transform(Vector3.UnitZ, transform.Orientation);
+        }
+
+        public override void Update(double time, Transform3D transform)
         {
             if (!LightOn || sys == null)
                 return;
-            pos = position;
-            forward = transform.GetForward();
+
             if (equip.Animated)
             {
                 timer -= time;
@@ -187,7 +192,7 @@ namespace LibreLancer.Render
             }
         }
 
-        public override bool PrepareRender(ICamera camera, NebulaRenderer nr, SystemRenderer sys, bool forceCull)
+        public override bool PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool forceCull)
         {
             var visible = (
                 !forceCull &&

@@ -71,7 +71,7 @@ public class PreviewRenderer : IDisposable
         camera.Update(width, height, res, Vector3.Zero);
         var world = new GameWorld(renderer, null, resources, null, false);
         var obj = new GameObject(mdl, resources, true, false);
-        obj.SetLocalTransform(Transform3D.Identity);
+        obj.SetTransform(Transform3D.Identity);
         world.AddObject(obj);
         return RenderWorldAndDispose(obj, world, width, height);
     }
@@ -120,9 +120,9 @@ public class PreviewRenderer : IDisposable
         camera.Update(width, height, res, Vector3.Zero);
         var world = new GameWorld(renderer, null, resources, null, false);
         var obj = new GameObject(archetype, null, resources, true, false);
-        if(archetype.Loadout != null)
-            obj.SetLoadout(archetype.Loadout, resources, null);
-        obj.SetLocalTransform(Transform3D.Identity);
+        if (archetype.Loadout != null)
+            obj.SetLoadout(archetype.Loadout, resources, null, EquipmentType.Editor);
+        obj.SetTransform(Transform3D.Identity);
         world.AddObject(obj);
         obj.Register(world); //no physics but register method called
         return RenderWorldAndDispose(obj, world, width, height);

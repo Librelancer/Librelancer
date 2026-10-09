@@ -159,7 +159,7 @@ public class AsteroidFieldEdit
         for (int i = 0; i < Field.Cube.Count; i++)
         {
             var c = Field.Cube[i];
-            asteroids[i].SetLocalTransform(new Transform3D(c.Position * Field.CubeSize, c.Rotation));
+            asteroids[i].SetTransform(new Transform3D(c.Position * Field.CubeSize, c.Rotation));
         }
     }
 
@@ -179,7 +179,7 @@ public class AsteroidFieldEdit
     void MoveCameraTo(GameObject obj)
     {
         var r = (obj.RenderComponent as ModelRenderer)?.Model?.GetRadius() ?? 10f;
-        viewport.CameraOffset = obj.LocalTransform.Position + new Vector3(0, 0, -r * 3.5f);
+        viewport.CameraOffset = obj.Transform.Position + new Vector3(0, 0, -r * 3.5f);
         viewport.CameraRotation = new Vector2(-MathF.PI, 0);
     }
 

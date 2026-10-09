@@ -1070,11 +1070,12 @@ public class GameItemDb
             {
                 lights.Add(val.Nickname, new LightInheritHelper(l));
             }
-            else if (val is InternalFx)
+            else if (val is InternalFx ifx)
             {
-                var eq = new AnimationEquipment
+                var eq = new InternalFxEquipment
                 {
-                    Animation = ((InternalFx)val).UseAnimation
+                    Animation = ifx.UseAnimation,
+                    Sound = ifx.UseSound
                 };
                 equip = eq;
             }
@@ -1260,7 +1261,13 @@ public class GameItemDb
 
             if (val is Engine deng)
             {
-                var engequip = new EngineEquipment() { Def = deng };
+                var engequip = new EngineEquipment()
+                {
+                    Def = deng,
+                    TrailEffect = Effects.Get(deng.TrailEffect),
+                    TrailEffectPlayer = Effects.Get(deng.TrailEffectPlayer),
+                    FlameEffect = Effects.Get(deng.FlameEffect)
+                };
 
                 if (deng.CruiseSpeed > 0)
                 {
@@ -2704,7 +2711,7 @@ public class GameItemDb
     {
         var equip = new EffectEquipment()
         {
-            Particles = Effects.Get(fx.Particles),
+            Effect = Effects.Get(fx.Particles),
         };
         return equip;
     }

@@ -129,9 +129,9 @@ public class CTradelaneMoveComponent(GameObject parent) : GameComponent(parent)
 
     private void SetEngineSpeed(float speed)
     {
-        if (Parent.TryGetComponent<CEngineComponent>(out var engine))
+        if (Parent.CoreEquipment.Engine != null)
         {
-            engine.Speed = MathHelper.Clamp(speed / TradelaneMotion.Speed, 0, 1) * 0.9f;
+            Parent.CoreEquipment.Engine.Speed = MathHelper.Clamp(speed / TradelaneMotion.Speed, 0, 1) * 0.9f;
         }
     }
 }

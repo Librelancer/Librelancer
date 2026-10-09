@@ -6,10 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using LibreLancer.Data.GameData.Items;
-using LibreLancer.Data.Schema.Ships;
-using LibreLancer.Net.Protocol;
 using LibreLancer.World;
 using LibreLancer.World.Components;
+using LibreLancer.World.Equipments;
 
 namespace LibreLancer.Server.Components
 {
@@ -82,46 +81,56 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            var shield = Parent.GetFirstChildComponent<SShieldComponent>();
+            var shield = Parent.CoreEquipment.Shield;
             if (shield == null)
             {
                 return;
             }
 
-            if (shield.Equip.Def.MaxCapacity - shield.Health < 100)
+            if (shield.Equipment.Def.MaxCapacity - shield.ShieldHealth < 100)
             {
                 return;
             }
 
-            var amountToHeal = (shield.Equip.Def.MaxCapacity - shield.Health);
+            var amountToHeal = (shield.Equipment.Def.MaxCapacity - shield.ShieldHealth);
             var max = (int)Math.Ceiling(amountToHeal / first.Def.Hitpoints);
             var healamount = cargo.TryConsume(first, max);
-            shield.Health += healamount * first.Def.Hitpoints;
-            if (shield.Health > shield.Equip.Def.MaxCapacity)
+            shield.ShieldHealth += healamount * first.Def.Hitpoints;
+            if (shield.ShieldHealth > shield.Equipment.Def.MaxCapacity)
             {
-                shield.Health = shield.Equip.Def.MaxCapacity;
+                shield.ShieldHealth = shield.Equipment.Def.MaxCapacity;
             }
         }
 
         // Make internal when possible
-        public void HandleChildHullDamage(float hullDamage, GameObject? attacker, GameObject? child)
+        public void HandleChildHullDamage(float hullDamage, GameObject? attacker, EquipmentObject? child, GameWorld world)
         {
             if (child == null)
                 return;
-            if (child.TryGetComponent<CargoPodComponent>(out _) && //cargo pods only for now
-                child.TryGetComponent<SHealthComponent>(out var childHealth))
+            if (child is CargoPod cargoPod)
             {
-                childHealth.HandleHullDamage(hullDamage, attacker, null);
-                if(childHealth.CurrentHealth < childHealth.MaxHealth && child.Attachment != null)
-                   EquipmentHealths[child.Attachment] = childHealth.CurrentHealth / childHealth.MaxHealth;
-                if (Parent.TryGetComponent<SSolarComponent>(out var solar))
-                    solar.SendPartsUpdate = true;
+                if (cargoPod.HandleHullDamage(hullDamage))
+                {
+                    DestroyChild(cargoPod, world);
+                }
+                else
+                {
+                    if(cargoPod.Health < cargoPod.MaxHealth && child.Attachment != null)
+                        EquipmentHealths[child.Attachment] = cargoPod.Health / cargoPod.MaxHealth;
+                    if (Parent.TryGetComponent<SSolarComponent>(out var solar))
+                        solar.SendPartsUpdate = true;
+                }
             }
         }
 
-        private void HandleHullDamage(float hullDamage, GameObject? attacker, GameObject? child)
+        void DestroyChild(EquipmentObject child, GameWorld world)
         {
-            HandleChildHullDamage(hullDamage, attacker, child);
+            Parent.RemoveChild(child);
+        }
+
+        private void HandleHullDamage(float hullDamage, GameObject? attacker, EquipmentObject? child, GameWorld world)
+        {
+            HandleChildHullDamage(hullDamage, attacker, child, world);
 
             if (InfiniteHealth)
             {
@@ -183,40 +192,41 @@ namespace LibreLancer.Server.Components
             }
         }
 
-        public void DamageExplosion(float hullDamage, float energyDamage, GameObject? attacker, Vector3 origin, float radius)
+        public void DamageExplosion(float hullDamage, float energyDamage, GameObject? attacker, Vector3 origin, float radius, GameWorld world)
         {
             if (energyDamage <= 0)
             {
                 energyDamage = hullDamage / 2.0f;
             }
 
-            var shield = Parent.GetFirstChildComponent<SShieldComponent>();
+            var shield = Parent.CoreEquipment.Shield;
 
             if (shield is not null && shield.Damage(energyDamage))
             {
                 return;
             }
 
-            HandleHullDamage(hullDamage, attacker, null);
+            HandleHullDamage(hullDamage, attacker, null, world);
             var radiusSquared = radius * radius;
-            foreach (var child in Parent.Children)
+            foreach (var child in Parent.AllEquipment)
             {
-                if (Vector3.DistanceSquared(child.WorldTransform.Position, origin) > radiusSquared)
+                if (Vector3.DistanceSquared(child.GetTransform().Position, origin) > radiusSquared)
                 {
                     continue;
                 }
-                HandleChildHullDamage(hullDamage, attacker, child);
+
+                HandleChildHullDamage(hullDamage, attacker, child, world);
             }
         }
 
-        public RigidModelPart? Damage(float hullDamage, float energyDamage, GameObject? attacker, object? hitObject)
+        public RigidModelPart? Damage(float hullDamage, float energyDamage, GameObject? attacker, object? hitObject, GameWorld world)
         {
             if (energyDamage <= 0)
             {
                 energyDamage = hullDamage / 2.0f;
             }
 
-            var shield = Parent.GetFirstChildComponent<SShieldComponent>();
+            var shield = Parent.CoreEquipment.Shield;
 
             if (shield is not null && shield.Damage(energyDamage))
             {
@@ -254,7 +264,7 @@ namespace LibreLancer.Server.Components
 
                 if (collisionGroup.Definition.RootHealthProxy)
                 {
-                    HandleHullDamage(hullDamage, attacker, null);
+                    HandleHullDamage(hullDamage, attacker, null, world);
                 }
                 else if (Parent.TryGetComponent<SNPCComponent>(out var npc))
                 {
@@ -264,28 +274,39 @@ namespace LibreLancer.Server.Components
                 return destroyed ? modelPart : null;
             }
 
-            HandleHullDamage(hullDamage, attacker, hitObject as GameObject);
+            HandleHullDamage(hullDamage, attacker, hitObject as EquipmentObject, world);
             return null;
         }
 
-        public void DamageZone(float damage)
+        public void DamageZone(float damage, GameWorld world)
         {
             if (damage <= 0)
                 return;
 
             // Environmental damage bypasses shields and affects mounted equipment,
             // but Freelancer damage zones do not damage weapons.
-            HandleHullDamage(damage, null, null);
-            foreach (var child in Parent.Children)
+            HandleHullDamage(damage, null, null, world);
+            List<EquipmentObject> toDestroy = [];
+            foreach (var child in Parent.AllEquipment)
             {
-                if (!child.TryGetComponent<EquipmentComponent>(out var equipment) ||
-                    equipment.Equipment is GunEquipment or MissileLauncherEquipment or MineDropperEquipment ||
-                    !child.TryGetComponent<SHealthComponent>(out var equipmentHealth))
+                if (child is DamageCap ||
+                    child.Equipment is GunEquipment or MissileLauncherEquipment or MineDropperEquipment ||
+                    child.Invincible)
                     continue;
 
-                equipmentHealth.HandleHullDamage(damage, null, null);
-                if (child.Attachment is { } hardpoint)
-                    EquipmentHealths[hardpoint] = equipmentHealth.CurrentHealth / equipmentHealth.MaxHealth;
+                if (child.HandleHullDamage(damage))
+                {
+                    toDestroy.Add(child);
+                }
+                else if (child.Attachment is { } hardpoint)
+                {
+                    EquipmentHealths[hardpoint] = child.Health / child.MaxHealth;
+                }
+            }
+
+            foreach (var c in toDestroy)
+            {
+                DestroyChild(c, world);
             }
         }
     }

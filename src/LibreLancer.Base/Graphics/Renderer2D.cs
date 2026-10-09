@@ -101,11 +101,11 @@ public unsafe class Renderer2D : IDisposable
         return RichText.LineHeight(fontName, size);
     }
 
-    public Point MeasureStringCached(ref CachedRenderString? cache, string fontName, float size, string text,
+    public MeasureResult MeasureStringCached(ref CachedRenderString? cache, string fontName, float size, string text,
         bool underline = false, bool shadow = false, TextAlignment alignment = TextAlignment.Left, float maxWidth = 0)
     {
         if (text == "" || size < 1) //skip empty str
-            return Point.Zero;
+            return default;
         return RichText.MeasureStringCached(ref cache, fontName, size, maxWidth, text, underline, shadow, alignment);
     }
 

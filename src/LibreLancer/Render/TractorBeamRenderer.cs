@@ -1,12 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Net;
 using System.Numerics;
-using LibreLancer.Client.Components;
 using LibreLancer.Graphics;
 using LibreLancer.Resources;
+using LibreLancer.World;
 
 namespace LibreLancer.Render;
+
+public record struct VisibleBeam(GameObject Target, float Distance, int Seed);
 
 public partial class TractorBeamRenderer : ObjectRenderer
 {
@@ -74,9 +74,9 @@ public partial class TractorBeamRenderer : ObjectRenderer
         return true;
     }
 
-    public override void Update(double time, Vector3 position, Matrix4x4 transform)
+    public override void Update(double time, Transform3D transform)
     {
-        pos = position;
+        pos = transform.Position;
     }
 
     public override void Draw(ICamera camera, CommandBuffer commands, SystemLighting lights, NebulaRenderer nr)
@@ -88,7 +88,7 @@ public partial class TractorBeamRenderer : ObjectRenderer
 
         foreach (var beam in TractorBeams)
         {
-            var tgtPos = beam.Target.WorldTransform.Position;
+            var tgtPos = beam.Target.Transform.Position;
             var len = (tgtPos - Origin).Length();
             var dir = (tgtPos - Origin).Normalized();
 

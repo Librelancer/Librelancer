@@ -1764,8 +1764,8 @@ namespace LibreLancer.Server
                         undockFrom = MissionRuntime?.SpawnMissionSolarForBase(launchBase, world);
                         if (undockFrom != null)
                         {
-                            Position = undockFrom.WorldTransform.Position;
-                            Orientation = undockFrom.LocalTransform.Orientation;
+                            Position = undockFrom.Transform.Position;
+                            Orientation = undockFrom.Transform.Orientation;
                         }
                     }
 

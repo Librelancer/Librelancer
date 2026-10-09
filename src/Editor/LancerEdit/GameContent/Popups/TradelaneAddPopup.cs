@@ -62,13 +62,13 @@ public class TradelaneAddPopup : PopupWindow
 
         var orderRight = gameObjects
             .Where(ValidName)
-            .OrderBy(x => Vector3.Distance(start, x.LocalTransform.Position)).ToArray();
+            .OrderBy(x => Vector3.Distance(start, x.Transform.Position)).ToArray();
         idsRight = new SystemObjectLookup(orderRight, dc);
         rightObject = orderRight.Length > 0 ? orderRight[0] : null;
 
         var orderLeft = gameObjects
             .Where(ValidName)
-            .OrderBy(x => Vector3.Distance(end, x.LocalTransform.Position)).ToArray();
+            .OrderBy(x => Vector3.Distance(end, x.Transform.Position)).ToArray();
         idsLeft = new(orderLeft, dc);
         leftObject = orderLeft.Length > 0 ? orderLeft[0] : null;
 

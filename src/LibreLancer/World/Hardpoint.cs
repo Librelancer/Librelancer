@@ -11,14 +11,9 @@ namespace LibreLancer.World
 {
     public class Hardpoint : IRenderHardpoint
     {
-        private Matrix4x4 transform;
         public RigidModelPart? Parent;
-        public RevoluteHardpointDefinition? Revolute;
         public HardpointDefinition Definition;
-        public float CurrentRevolution;
-        private Quaternion rotation = Quaternion.Identity;
-
-        public uint CRC { get; private set; }
+        public int ParentVersion = 0;
 
         public string Name
         {
@@ -30,12 +25,44 @@ namespace LibreLancer.World
             }
         }
 
+        public uint CRC { get; private set; }
+
+        public bool Revolute;
+        public Vector3 RevolveAxis;
+        public float RevolveMax;
+        public float RevolveMin;
+        public float CurrentRevolution;
+        public Transform3D HpTransformInfo;
+
+        private Quaternion rotation = Quaternion.Identity;
+        private Transform3D rotatedTransform;
 
         public void Revolve(float val)
         {
-            var clamped = MathHelper.Clamp(val, Revolute!.Min, Revolute.Max);
-            CurrentRevolution = clamped;
-            rotation = Quaternion.CreateFromAxisAngle(Revolute.Axis, clamped);
+            if (Revolute)
+            {
+                var clamped = MathHelper.Clamp(val, RevolveMin, RevolveMax);
+                CurrentRevolution = clamped;
+                rotation = Quaternion.CreateFromAxisAngle(RevolveAxis, clamped);
+                rotatedTransform = new Transform3D(Vector3.Zero, rotation) * HpTransformInfo;
+            }
+        }
+
+        public void RefreshValues()
+        {
+            HpTransformInfo = Definition.Transform;
+            if (Definition is RevoluteHardpointDefinition rev)
+            {
+                Revolute = true;
+                RevolveAxis = rev.Axis;
+                RevolveMin = rev.Min;
+                RevolveMax = rev.Max;
+                Revolve(CurrentRevolution);
+            }
+            else
+            {
+                rotatedTransform = HpTransformInfo;
+            }
         }
 
         public Hardpoint(HardpointDefinition def, RigidModelPart parent)
@@ -43,19 +70,25 @@ namespace LibreLancer.World
             Parent = parent;
             Definition = def;
             Name = def.Name;
-            Revolute = def as RevoluteHardpointDefinition;
+            HpTransformInfo = def.Transform;
+            rotatedTransform = HpTransformInfo;
+            if (def is RevoluteHardpointDefinition rev)
+            {
+                Revolute = true;
+                RevolveAxis = rev.Axis;
+                RevolveMin = rev.Min;
+                RevolveMax = rev.Max;
+            }
         }
-
-        public Transform3D HpTransformInfo => Definition.Transform;
 
         public Transform3D TransformNoRotate
         {
             get
             {
                 if (Parent != null)
-                    return Definition.Transform * Parent.LocalTransform;
+                    return HpTransformInfo * Parent.LocalTransform;
                 else
-                    return Definition.Transform;
+                    return HpTransformInfo;
             }
         }
 
@@ -63,11 +96,10 @@ namespace LibreLancer.World
         {
             get
             {
-                var tr = (new Transform3D(Vector3.Zero, rotation) * Definition.Transform);
                 if (Parent != null)
-                    return tr * Parent.LocalTransform;
+                    return rotatedTransform * Parent.LocalTransform;
                 else
-                    return tr;
+                    return rotatedTransform;
             }
         }
         public override string ToString()

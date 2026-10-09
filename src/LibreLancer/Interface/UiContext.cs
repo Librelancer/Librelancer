@@ -496,7 +496,7 @@ namespace LibreLancer.Interface
                 var measuredText = RenderContext.Renderer2D.MeasureStringCached(
                     ref rolloverCache, fnt, sz, requestedRollover, false,
                     shadow != null, TextAlignment.Left, maxWidth);
-                var rectSize = PixelsToPoints(measuredText);
+                var rectSize = PixelsToPoints(measuredText.Size);
 
                 var ttRect = new RectangleF(0, 0, rectSize.X + 4, rectSize.Y + 2);
                 style?.Background?.Draw(this, dlist, ttRect);
@@ -527,7 +527,7 @@ namespace LibreLancer.Interface
                 var measuredText = RenderContext.Renderer2D.MeasureStringCached(
                     ref tooltipCache, fnt, sz, requestedTooltip, false,
                     shadow != null, TextAlignment.Left, maxWidth);
-                var rectSize = PixelsToPoints(measuredText);
+                var rectSize = PixelsToPoints(measuredText.Size);
 
                 var rectOffset = style?.OffsetY ?? 0;
 

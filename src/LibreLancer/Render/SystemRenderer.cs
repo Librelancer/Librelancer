@@ -189,7 +189,7 @@ namespace LibreLancer.Render
 
             for (var i = tempFx.Count - 1; i >= 0; i--)
             {
-                tempFx[i].Render.Update(elapsed, tempFx[i].Position, Matrix4x4.CreateTranslation(tempFx[i].Position));
+                tempFx[i].Render.Update(elapsed, new(tempFx[i].Position, Quaternion.Identity));
 
                 if (tempFx[i].Render.Finished)
                 {

@@ -11,6 +11,7 @@ public class RichTextEngine
     private class BlurgRenderCache : CachedRenderString
     {
         public BlurgResult? Result;
+        public float LineHeight;
     }
 
 
@@ -299,6 +300,7 @@ public class RichTextEngine
             fmt.DefaultShadow =
                 shadow ? new BlurgShadow { Color = new BlurgColor(128, 0, 0, 255), Pixels = 2 } : default;
             pc.Result = blurg.BuildFormattedText(fmt, false, maxWidth);
+            pc.LineHeight = fnt.LineHeight(size);
         }
     }
 
@@ -329,12 +331,14 @@ public class RichTextEngine
         }
     }
 
-    public Point MeasureStringCached(ref CachedRenderString? cache, string fontName, float size, float maxWidth,
+    public MeasureResult MeasureStringCached(ref CachedRenderString? cache, string fontName, float size, float maxWidth,
         string text,
         bool underline, bool shadow, TextAlignment alignment)
     {
         UpdateCache(ref cache, fontName, size, text, underline, alignment, shadow, maxWidth);
         var pc = (BlurgRenderCache?)cache;
-        return pc?.Result is null ? new Point(0, 0) : new Point((int) pc!.Result.Width, (int) pc.Result.Height);
+        return pc?.Result is null
+            ? default
+            : new(new Point((int)pc.Result.Width, (int)pc.Result.Height), pc.LineHeight);
     }
 }

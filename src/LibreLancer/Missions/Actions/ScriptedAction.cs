@@ -478,6 +478,16 @@ namespace LibreLancer.Missions.Actions
                         });
                     }
 
+                    foreach (var cg in loadout.Cargo)
+                    {
+                        p.Character.Items.Add(new NetCargo()
+                        {
+                            Equipment = cg.Item,
+                            Hardpoint = null,
+                            Count = cg.Count,
+                            Health = 1
+                        });
+                    }
                 }
 
                 runtime.Player.UpdateCurrentInventory(resetDestroyedParts: true);
@@ -631,7 +641,7 @@ namespace LibreLancer.Missions.Actions
             runtime.Player.MissionWorldAction(() =>
             {
                 var gameObj = runtime.Player.Space!.World.GameWorld.GetObject(Tradelane)!;
-                var firstChild = gameObj.GetFirstChildComponent<SShieldComponent>();
+                var firstChild = gameObj.CoreEquipment.Shield;
 
                 if (firstChild != null)
                 {

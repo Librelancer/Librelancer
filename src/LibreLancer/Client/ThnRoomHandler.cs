@@ -125,7 +125,7 @@ public static class ThnRoomHandler
         obj.AnimationComponent = animation;
         obj.AddComponent(animation);
         var spotObj = scene!.GetObject(spot)!;
-        obj.SetLocalTransform(new Transform3D(spotObj.Translate with { Y = 0 }, spotObj.Rotate));
+        obj.SetTransform(new Transform3D(spotObj.Translate with { Y = 0 }, spotObj.Rotate));
         var thnObj = new ThnSceneObject
         {
             Name = name,
