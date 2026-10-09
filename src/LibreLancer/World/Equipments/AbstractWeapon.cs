@@ -49,7 +49,6 @@ public abstract class AbstractWeapon : EquipmentModelObject<Equipment>
                 Active = false,
                 Attachment = fire
             };
-            Parent.ExtraRenderers.Add(pr);
             flashFx.Add(pr);
         }
     }
@@ -108,10 +107,15 @@ public abstract class AbstractWeapon : EquipmentModelObject<Equipment>
         var rads = MathHelper.DegreesToRadians(TurnRate);
         var delta = (float)(time * rads);
 
-        if (hp.Revolute != null)
+        if (hp.Revolute)
         {
-            var target = MathHelper.Clamp(x, hp.Revolute.Min, hp.Revolute.Max);
+            var target = MathHelper.Clamp(x, hp.RevolveMin, hp.RevolveMax);
             var current = MoveTowards(hp.CurrentRevolution, target, delta);
+
+            if (Math.Abs(target - current) < float.Epsilon)
+            {
+                NeedUpdateTransform();
+            }
 
             hp.Revolve(current);
             Angles.X = hp.CurrentRevolution;
@@ -131,6 +135,11 @@ public abstract class AbstractWeapon : EquipmentModelObject<Equipment>
         {
             var target = MathHelper.Clamp(y, barrel.Min, barrel.Max);
             var current = MoveTowards(barrel.Current, target, delta);
+
+            if (Math.Abs(target - current) < float.Epsilon)
+            {
+                NeedUpdateTransform();
+            }
 
             barrel.Update(current, Quaternion.Identity);
             Angles.Y = barrel.Current;

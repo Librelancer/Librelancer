@@ -15,7 +15,7 @@ public class InternalFx : EquipmentObject<InternalFxEquipment>
         SoundManager? sounds,
         EquipmentType type) : base(parent, attachment, equipment, type, UpdatesEnabled(equipment, type), false)
     {
-        needTriggerAnimation = (type == EquipmentType.Server || type == EquipmentType.Cutscene) &&
+        needTriggerAnimation = (type == EquipmentType.Server || type == EquipmentType.Cutscene || type == EquipmentType.Editor) &&
                                equipment.Animation != null;
         if (equipment.Sound != null && sounds != null)
         {

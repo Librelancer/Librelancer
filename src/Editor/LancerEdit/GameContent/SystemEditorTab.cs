@@ -339,12 +339,13 @@ public class SystemEditorTab : GameContentTab
         //Load system
         renderer = new SystemRenderer(camera, Data.Resources, win);
         World = new GameWorld(renderer, Data.Sounds, Data.Resources, null, true);
+        World.DefaultObjectType = EquipmentType.Editor;
         OriginalSystem = system;
         ResetOriginalObjects();
         CurrentSystem = system.Clone();
         Data.GameData.LoadAllSystem(CurrentSystem);
-        World.LoadSystem(CurrentSystem, Data.Resources, null, false, false);
-        World.Renderer.LoadLights(CurrentSystem);
+        World.LoadSystem(CurrentSystem, Data.Resources, null, false);
+        World.Renderer!.LoadLights(CurrentSystem);
         World.Renderer.LoadStarspheres(CurrentSystem);
         systemMap.SetObjects(CurrentSystem);
         renderer.PhysicsHook = RenderEditorObjects;
@@ -717,7 +718,7 @@ public class SystemEditorTab : GameContentTab
         obj.SystemObject.Loadout = loadout;
         obj.SystemObject.Star = star;
         var tr = obj.Transform;
-        World.InitObject(obj, true, obj.SystemObject, Data.Resources, null, false, true,
+        World.InitObject(obj, true, obj.SystemObject, Data.Resources, null,  true,
             obj.SystemObject.Loadout, obj.SystemObject.Archetype,
             (OptionalArgument<Sun>)obj.SystemObject.Star);
         obj.SetTransform(tr);

@@ -180,6 +180,7 @@ namespace LancerEdit
                 editingGizmo.EditingMin = MathHelper.DegreesToRadians(HPmin);
                 editingGizmo.EditingMax = MathHelper.DegreesToRadians(HPmax);
             }
+            hpEditing.RefreshValues();
             ImGui.End();
             if (hpEditOpen == false)
             {

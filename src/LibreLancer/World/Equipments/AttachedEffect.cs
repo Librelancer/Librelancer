@@ -10,6 +10,10 @@ public class AttachedEffect : EquipmentObject<EffectEquipment>
     private AttachedSound? sfx;
     private ParticleEffectRenderer? pfx;
 
+    static bool UseEffect(EquipmentType type) =>
+        type != EquipmentType.Cutscene &&
+        type != EquipmentType.Server;
+
     public AttachedEffect(
         GameObject parent,
         Hardpoint? attachment,
@@ -17,12 +21,10 @@ public class AttachedEffect : EquipmentObject<EffectEquipment>
         EquipmentType type,
         ResourceManager resources,
         SoundManager? sounds)
-        : base(parent, attachment, equipment, type,
-            type == EquipmentType.LocalPlayer || type == EquipmentType.RemoteObject,
-            type == EquipmentType.LocalPlayer || type == EquipmentType.RemoteObject)
+        : base(parent, attachment, equipment, type, UseEffect(type), UseEffect(type))
     {
         // This equipment is only active on the client in space
-        if (type == EquipmentType.Cutscene || type == EquipmentType.Server)
+        if (!UseEffect(type))
             return;
         // Init
         var audio = equipment.Effect?.Sound;
@@ -53,6 +55,7 @@ public class AttachedEffect : EquipmentObject<EffectEquipment>
         {
             var tr = GetTransform();
             var mat = tr.Matrix();
+            pfx.SParam = Parent.CoreEquipment.Engine?.Speed ?? 0;
             pfx.Update(delta, tr.Position, mat);
         }
     }

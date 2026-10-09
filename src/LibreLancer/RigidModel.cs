@@ -363,6 +363,21 @@ namespace LibreLancer
             }
         }
 
+        public void MarkUpdated()
+        {
+            foreach (var hp in Hardpoints)
+            {
+                hp.ParentVersion++;
+            }
+            if (Children != null)
+            {
+                foreach (var mp in Children)
+                {
+                    mp.MarkUpdated();
+                }
+            }
+        }
+
         internal void CalculateBoundingBox(ref Vector3 min, ref Vector3 max)
         {
             if (Mesh == null)

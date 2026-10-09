@@ -49,6 +49,32 @@ public abstract class EquipmentObject
         }
     }
 
+    private bool transformDirty = true;
+    private int attachVersion = 0;
+    private Transform3D cachedTransform;
+
+    public Transform3D GetTransform() => GetTransform(out _);
+
+    public Transform3D GetTransform(out bool changed)
+    {
+        var dirty = transformDirty || (Attachment != null && attachVersion != Attachment.ParentVersion);
+        changed = dirty;
+        if (dirty)
+        {
+            var tr = Offset * (Attachment?.Transform ?? Transform3D.Identity);
+            tr *= Parent.Transform;
+            cachedTransform = tr;
+            transformDirty = false;
+            attachVersion = Attachment?.ParentVersion ?? 0;
+        }
+        return cachedTransform;
+    }
+
+    public void NeedUpdateTransform()
+    {
+        transformDirty = true;
+    }
+
     public bool HandleHullDamage(float hullDamage)
     {
         if (Invincible)
@@ -100,13 +126,6 @@ public abstract class EquipmentObject
 
     public virtual void PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool parentCull)
     {
-    }
-
-    public virtual Transform3D GetTransform()
-    {
-        var tr = Offset * (Attachment?.Transform ?? Transform3D.Identity);
-        tr *= Parent.Transform;
-        return tr;
     }
 
     public virtual void OnKilled(GameObject? attacker, GameWorld world)

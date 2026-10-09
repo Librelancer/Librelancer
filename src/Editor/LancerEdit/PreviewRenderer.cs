@@ -120,8 +120,8 @@ public class PreviewRenderer : IDisposable
         camera.Update(width, height, res, Vector3.Zero);
         var world = new GameWorld(renderer, null, resources, null, false);
         var obj = new GameObject(archetype, null, resources, true, false);
-        if(archetype.Loadout != null)
-            obj.SetLoadout(archetype.Loadout, resources, null);
+        if (archetype.Loadout != null)
+            obj.SetLoadout(archetype.Loadout, resources, null, EquipmentType.Editor);
         obj.SetTransform(Transform3D.Identity);
         world.AddObject(obj);
         obj.Register(world); //no physics but register method called

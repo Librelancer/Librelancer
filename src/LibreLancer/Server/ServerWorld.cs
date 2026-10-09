@@ -945,7 +945,7 @@ namespace LibreLancer.Server
             }
             solarLoadout ??= arch.Loadout;
             if (solarLoadout != null)
-                gameobj.SetLoadout(solarLoadout, Server.Resources, null);
+                gameobj.SetLoadout(solarLoadout, Server.Resources, null, EquipmentType.Server);
 
             if (!string.IsNullOrWhiteSpace(dockWith))
             {

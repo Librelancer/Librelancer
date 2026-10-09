@@ -14,6 +14,7 @@ namespace LibreLancer.World
     public enum EquipmentType
     {
         Server,
+        Editor,
         RemoteObject,
         LocalPlayer,
         Cutscene
@@ -21,6 +22,7 @@ namespace LibreLancer.World
 
     public static class EquipmentObjectManager
     {
+
         public static void InstantiateEquipment(GameObject parent, ResourceManager res, SoundManager? snd, EquipmentType type, string? hardpoint, Equipment equip)
         {
             var obj = Create(parent, res, snd, type, parent.GetHardpoint(hardpoint), equip);

@@ -91,24 +91,29 @@ namespace LibreLancer.World.Components
                     foreach (var jm in sc.JointMaps)
                     {
                         var mdl = Parent == null ? rm : Parent.Model!.RigidModel;
-                        var joint = mdl.Parts[jm.ChildName].Construct;
-                        ChannelFloat angles = 0;
-                        float t = a.Reverse ? 0 : jm.Channel.Duration;
-                        int jointCursor = 0;
-
-                        if (jm.Channel.HasAngle)
+                        var part = mdl.Parts[jm.ChildName];
+                        var joint = part.Construct;
+                        if (joint != null)
                         {
-                            angles = jm.Channel.FloatAtTime((float) t, ref jointCursor);
+                            ChannelFloat angles = 0;
+                            float t = a.Reverse ? 0 : jm.Channel.Duration;
+                            int jointCursor = 0;
+
+                            if (jm.Channel.HasAngle)
+                            {
+                                angles = jm.Channel.FloatAtTime((float) t, ref jointCursor);
+                            }
+
+                            var quat = Quaternion.Identity;
+
+                            if (jm.Channel.HasOrientation)
+                            {
+                                quat = jm.Channel.QuaternionAtTime((float) t, ref jointCursor);
+                            }
+
+                            joint.Update(angles, quat);
+                            part.MarkUpdated();
                         }
-
-                        var quat = Quaternion.Identity;
-
-                        if (jm.Channel.HasOrientation)
-                        {
-                            quat = jm.Channel.QuaternionAtTime((float) t, ref jointCursor);
-                        }
-
-                        joint?.Update(angles, quat);
                     }
 
                     completeAnimations.Add(new ActiveAnimation(sc, a.Name)
@@ -204,6 +209,10 @@ namespace LibreLancer.World.Components
                 foreach (var p in Parent.Model!.RigidModel.AllParts)
                 {
                     p.Construct?.Reset();
+                    foreach (var hp in p.Hardpoints)
+                    {
+                        hp.ParentVersion++;
+                    }
                 }
 
                 Parent.Model.RigidModel.UpdateTransform();
@@ -213,6 +222,10 @@ namespace LibreLancer.World.Components
                 foreach (var p in rm.AllParts)
                 {
                     p.Construct?.Reset();
+                    foreach (var hp in p.Hardpoints)
+                    {
+                        hp.ParentVersion++;
+                    }
                 }
 
                 rm.UpdateTransform();
@@ -329,7 +342,8 @@ namespace LibreLancer.World.Components
             bool reverse)
         {
             var mdl = Parent == null ? rm : Parent.Model!.RigidModel;
-            var joint = mdl.Parts[jm.ChildName].Construct;
+            var part = mdl.Parts[jm.ChildName];
+            var joint = part.Construct;
             double t = (getTotalTime() - startTime) * timeScale;
             bool done = false;
 
@@ -348,21 +362,24 @@ namespace LibreLancer.World.Components
                 t = jm.Channel.Duration - t;
             }
 
-            ChannelFloat angle = 0;
-
-            if (jm.Channel.HasAngle)
+            if (joint != null)
             {
-                angle = jm.Channel.FloatAtTime((float) t, ref cur);
+                ChannelFloat angle = 0;
+
+                if (jm.Channel.HasAngle)
+                {
+                    angle = jm.Channel.FloatAtTime((float) t, ref cur);
+                }
+
+                var quat = Quaternion.Identity;
+
+                if (jm.Channel.HasOrientation)
+                {
+                    quat = jm.Channel.QuaternionAtTime((float) t, ref cur);
+                }
+                joint.Update(angle, quat);
+                part.MarkUpdated();
             }
-
-            var quat = Quaternion.Identity;
-
-            if (jm.Channel.HasOrientation)
-            {
-                quat = jm.Channel.QuaternionAtTime((float) t, ref cur);
-            }
-
-            joint?.Update(angle, quat);
             return done;
         }
 

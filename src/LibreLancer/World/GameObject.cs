@@ -283,6 +283,9 @@ namespace LibreLancer.World
             {
                 PhysicsComponent.Body.SetTransform(tr);
             }
+
+            foreach(var child in allChildren)
+                child.NeedUpdateTransform();
         }
 
         public void AddComponent<T>(T component) where T : GameComponent
@@ -618,12 +621,10 @@ namespace LibreLancer.World
             }
         }
 
-        public void SetLoadout(ObjectLoadout loadout, ResourceManager resources, SoundManager? snd, bool cutscene = false)
+        public void SetLoadout(ObjectLoadout loadout, ResourceManager resources, SoundManager? snd, EquipmentType type)
         {
             foreach (var item in loadout.Items)
             {
-                var type = cutscene ? EquipmentType.Cutscene :
-                    (RenderComponent != null) ? EquipmentType.RemoteObject : EquipmentType.Server;
                 EquipmentObjectManager.InstantiateEquipment(this, resources, snd,
                     type, item.Hardpoint ?? "internal", item.Equipment);
             }

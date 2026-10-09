@@ -242,7 +242,7 @@ namespace LibreLancer
             sysrender.ZOverride = true; // Draw all with regular Z
             world = new GameWorld(sysrender, Game.Sound, Game.ResourceManager, () => session.WorldTime);
             // Game.GameData.PreloadObjects(session.Preloads);
-            world.LoadSystem(sys, Game.ResourceManager, Game.Sound, false);
+            world.LoadSystem(sys, Game.ResourceManager, Game.Sound);
             session.WorldReady();
             world.AddObject(player);
             player.Register(world);

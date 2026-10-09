@@ -14,7 +14,6 @@ internal record struct GLTextureInfo(string Identifier, int Unit, int Sampler);
 
 internal class GLShader : IShader
 {
-    private const int MAX_UNIFORM_LOC = 280;
     private uint programID = 0;
     private GLRenderContext context;
 
