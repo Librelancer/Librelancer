@@ -22,8 +22,7 @@ public class Tractor : EquipmentObject<TractorEquipment>
 
 
     public Tractor(GameObject parent, Hardpoint? attachment, TractorEquipment equipment, EquipmentType type)
-        : base(parent, attachment, equipment, type, type == EquipmentType.Server,
-            type == EquipmentType.LocalPlayer || type == EquipmentType.RemoteObject)
+        : base(parent, attachment, equipment, type, true, type == EquipmentType.LocalPlayer || type == EquipmentType.RemoteObject)
     {
         if (type == EquipmentType.LocalPlayer || type == EquipmentType.RemoteObject)
         {
