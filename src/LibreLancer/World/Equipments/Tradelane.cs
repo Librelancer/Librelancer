@@ -58,10 +58,8 @@ public class Tradelane : EquipmentObject<TradelaneEquipment>
 
     public override void RenderUpdate(double delta)
     {
-        var mat = Parent.Transform.Matrix();
-        var pos = Parent.Transform.Position;
-        leftLane?.Update(delta, pos, mat);
-        rightLane?.Update(delta, pos, mat);
+        leftLane?.Update(delta, Parent.Transform);
+        rightLane?.Update(delta, Parent.Transform);
     }
 
     public override void PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool parentCull)

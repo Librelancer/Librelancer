@@ -187,7 +187,7 @@ public abstract class EquipmentModelObject<T> : EquipmentObject<T>
         if (renderer != null)
         {
             var tr = GetTransform();
-            renderer.Update(delta, tr.Position, tr.Matrix());
+            renderer.Update(delta, tr);
         }
     }
 

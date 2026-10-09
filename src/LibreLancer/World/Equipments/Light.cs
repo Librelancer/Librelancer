@@ -16,8 +16,10 @@ public sealed class Light : EquipmentObject<LightEquipment>
 
     public override void RenderUpdate(double delta)
     {
-        var tr = GetTransform();
-        renderer.Update(delta, tr.Position, tr.Matrix());
+        var tr = GetTransform(out var changed);
+        if (changed)
+            renderer.SetTransform(tr);
+        renderer.Update(delta, tr);
     }
 
     public void SetDockingLights(bool active) => renderer?.SetDockingLight(active);

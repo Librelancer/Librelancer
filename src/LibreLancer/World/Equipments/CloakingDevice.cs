@@ -147,10 +147,8 @@ public class CloakingDevice : EquipmentModelObject<CloakEquipment>
     public override void RenderUpdate(double delta)
     {
         base.RenderUpdate(delta);
-        var p = Parent.Transform;
-        var mat = Parent.Transform.Matrix();
-        inFx?.Update(delta, p.Position, mat);
-        outFx?.Update(delta, p.Position, mat);
+        inFx?.Update(delta, Parent.Transform);
+        outFx?.Update(delta, Parent.Transform);
     }
 
     public override void PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool parentCull)

@@ -58,9 +58,9 @@ namespace LibreLancer.Render
             );
         }
 
-        public override void Update(double elapsed, Vector3 position, Matrix4x4 transform)
+        public override void Update(double elapsed, Transform3D transform)
         {
-            pos = position;
+            pos = transform.Position;
         }
 
         public static int GetVertexCount(Sun sun)

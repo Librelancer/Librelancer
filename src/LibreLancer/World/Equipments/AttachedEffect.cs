@@ -54,9 +54,8 @@ public class AttachedEffect : EquipmentObject<EffectEquipment>
         if (pfx != null)
         {
             var tr = GetTransform();
-            var mat = tr.Matrix();
             pfx.SParam = Parent.CoreEquipment.Engine?.Speed ?? 0;
-            pfx.Update(delta, tr.Position, mat);
+            pfx.Update(delta, tr);
         }
     }
 

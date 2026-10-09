@@ -56,7 +56,7 @@ public class DamageCap : EquipmentObject
         if (renderer != null)
         {
             var tr = GetTransform();
-            renderer.Update(delta, tr.Position, tr.Matrix());
+            renderer.Update(delta, tr);
         }
     }
 

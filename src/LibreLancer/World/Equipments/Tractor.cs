@@ -152,7 +152,7 @@ public class Tractor : EquipmentObject<TractorEquipment>
 
     public override void RenderUpdate(double delta)
     {
-        renderer?.Update(delta, Parent.Transform.Position, Parent.Transform.Matrix());
+        renderer?.Update(delta, Parent.Transform);
     }
 
     public override void PrepareRender(ICamera camera, NebulaRenderer? nr, SystemRenderer sys, bool parentCull)

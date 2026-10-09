@@ -76,10 +76,9 @@ public class Thruster : EquipmentModelObject<ThrusterEquipment>
     {
         base.RenderUpdate(delta);
         var tr = GetTransform();
-        var mat = tr.Matrix();
         foreach (var renderer in fireFx)
         {
-            renderer.Update(delta, tr.Position, mat);
+            renderer.Update(delta, tr);
         }
     }
 

@@ -65,7 +65,7 @@ namespace LibreLancer.Render
             return false;
         }
 
-		public override void Update(double time, Vector3 position, Matrix4x4 transform)
+		public override void Update(double time, Transform3D transform)
 		{
             if (fx == null)
             {
@@ -73,19 +73,18 @@ namespace LibreLancer.Render
             }
 
             if (Attachment != null) {
-                transform = Attachment.Transform.Matrix() * transform;
-                position = Vector3.Transform(Vector3.Zero, transform);
+                transform = Attachment.Transform * transform;
             }
-			pos = position;
-            dist = Vector3.DistanceSquared(position, cameraPos);
+			pos = transform.Position;
+            dist = Vector3.DistanceSquared(pos, cameraPos);
 
             if (!Active || !(dist < CULL))
             {
                 return;
             }
 
-            tr = transform;
-            fx.Update(time, transform, SParam);
+            tr = transform.Matrix();
+            fx.Update(time, tr, SParam);
             fx.DrawIndex = Index;
             if (fx.IsFinished())
             {

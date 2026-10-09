@@ -24,10 +24,10 @@ namespace LibreLancer.Render
 
         private Matrix4x4 transform;
         private double globalTime;
-        public override void Update(double time, Vector3 position, Matrix4x4 transform)
+        public override void Update(double time, Transform3D transform)
         {
             globalTime = time;
-            this.transform = transform;
+            this.transform = transform.Matrix();
         }
 
         private SystemRenderer sysren = null!;

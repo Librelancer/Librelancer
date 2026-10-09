@@ -207,10 +207,9 @@ public class Engine : EquipmentObject<EngineEquipment>
         if (fireFx.Count > 0)
         {
             var tr = Parent.Transform;
-            var mat = Parent.Transform.Matrix();
             foreach (var fx in fireFx)
             {
-                fx.Update(delta, tr.Position, mat);
+                fx.Update(delta, tr);
             }
         }
     }

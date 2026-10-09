@@ -77,10 +77,9 @@ public abstract class AbstractWeapon : EquipmentModelObject<Equipment>
         if (flashFx.Count > 0)
         {
             var tr = GetTransform();
-            var mat = tr.Matrix();
             foreach (var fx in flashFx)
             {
-                fx.Update(delta, tr.Position, mat);
+                fx.Update(delta, tr);
             }
         }
     }

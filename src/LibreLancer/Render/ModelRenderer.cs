@@ -37,14 +37,14 @@ namespace LibreLancer.Render
         private double spinY;
         private double spinZ;
 
-        public override void Update(double elapsed, Vector3 position, Matrix4x4 transform)
+        public override void Update(double elapsed, Transform3D transform)
         {
             if (sysr == null)
             {
                 return;
             }
 
-            World = transform;
+            World = transform.Matrix();
             if (RenderScale != 1f)
             {
                 World = Matrix4x4.CreateScale(RenderScale) * World;
@@ -74,10 +74,10 @@ namespace LibreLancer.Render
                 }
             }
 
-            if (NebulaVersion != sysr.ZoneVersion || pos != position && sysr != null)
+            if (NebulaVersion != sysr.ZoneVersion || pos != transform.Position && sysr != null)
             {
-                pos = position;
-                Nebula = sysr.ObjectInNebula(position);
+                pos = transform.Position;
+                Nebula = sysr.ObjectInNebula(pos);
                 NebulaVersion = sysr.ZoneVersion;
             }
         }
