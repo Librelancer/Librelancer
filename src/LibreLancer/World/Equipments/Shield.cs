@@ -8,7 +8,7 @@ namespace LibreLancer.World.Equipments;
 
 public class Shield : EquipmentModelObject<ShieldEquipment>
 {
-    public float Health
+    public float ShieldHealth
     {
         get => _health < MinHealth ? 0 : _health;
         set => _health = value;
@@ -28,7 +28,7 @@ public class Shield : EquipmentModelObject<ShieldEquipment>
         EquipmentType type,
         ResourceManager resources) : base(parent, attachment, equipment, type, resources, true)
     {
-        Health = equipment.Def.MaxCapacity;
+        ShieldHealth = equipment.Def.MaxCapacity;
         updateCapacities = type == EquipmentType.Server;
     }
 
@@ -91,14 +91,14 @@ public class Shield : EquipmentModelObject<ShieldEquipment>
     public override void OnUpdate(double delta, GameWorld world)
     {
         UpdateCapacities(delta);
-        if (Health >= MinHealth && !shieldHpActive)
+        if (ShieldHealth >= MinHealth && !shieldHpActive)
         {
             shieldHpActive = true;
             if (Parent.TryGetComponent<ShipComponent>(out var ship)) {
                 ship.ActivateShieldBubble(Attachment!.Name);
             }
         }
-        else if (Health < MinHealth && shieldHpActive)
+        else if (ShieldHealth < MinHealth && shieldHpActive)
         {
             shieldHpActive = false;
             if (Parent.TryGetComponent<ShipComponent>(out var ship)) {

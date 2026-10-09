@@ -301,7 +301,7 @@ public partial class CGameSession
         {
             hp.CurrentHealth = state.Health;
             var sh = gp.player.CoreEquipment.Shield;
-            sh?.Health = state.Shield;
+            sh?.ShieldHealth = state.Shield;
         }
 
         if (gp?.player == null || !resync)
@@ -402,7 +402,7 @@ public partial class CGameSession
         if (obj.TryGetComponent<CHealthComponent>(out var health))
             health.CurrentHealth = update.Hull;
 
-        obj.CoreEquipment.Shield?.Health = update.Shield;
+        obj.CoreEquipment.Shield?.ShieldHealth = update.Shield;
 
         if (obj.TryGetComponent<WeaponControlComponent>(out var weapons) && (update.Guns?.Length ?? 0) > 0)
         {

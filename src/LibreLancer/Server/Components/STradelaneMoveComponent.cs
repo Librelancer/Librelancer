@@ -354,7 +354,7 @@ namespace LibreLancer.Server.Components
 
         private static bool TradelaneDisrupted(float distance, GameObject tradelane) =>
             distance < 3000 &&
-            tradelane.CoreEquipment.Shield is { Health: < float.Epsilon };
+            tradelane.CoreEquipment.Shield is { ShieldHealth: < float.Epsilon };
 
         private void TradeLaneDisruption()
         {

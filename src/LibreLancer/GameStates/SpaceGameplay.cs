@@ -287,7 +287,7 @@ namespace LibreLancer
                 return false;
             }
 
-            if (shield.Equipment.Def.MaxCapacity - shield.Health < 100)
+            if (shield.Equipment.Def.MaxCapacity - shield.ShieldHealth < 100)
             {
                 return false;
             }

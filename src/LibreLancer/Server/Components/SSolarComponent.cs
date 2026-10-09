@@ -38,7 +38,7 @@ namespace LibreLancer.Server.Components
                 var shield = Parent.CoreEquipment.Shield;
                 if (shield != null)
                 {
-                    if (shield.Health < shield.Equipment.Def.MaxCapacity) {
+                    if (shield.ShieldHealth < shield.Equipment.Def.MaxCapacity) {
                         SendSolarUpdate = true;
                         stopUpdateTimer = UPDATE_TIMEOUT_TICKS;
                     }

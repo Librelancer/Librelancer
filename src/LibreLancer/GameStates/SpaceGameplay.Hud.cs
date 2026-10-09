@@ -618,7 +618,7 @@ partial class SpaceGameplay
         public float SelectionShield()
         {
             var sh = g.Selection.Selected?.CoreEquipment.Shield;
-            return sh == null ? -1 : (sh.Health / sh.MaxHealth);
+            return sh == null ? -1 : (sh.ShieldHealth / sh.Equipment.Def.MaxCapacity);
         }
 
         public string SelectionReputation()
@@ -697,7 +697,7 @@ partial class SpaceGameplay
         public float GetPlayerShield()
         {
             var sh = g.player.CoreEquipment.Shield;
-            return sh == null ? -1 : (sh.Health / sh.MaxHealth);
+            return sh == null ? -1 : (sh.ShieldHealth / sh.MaxHealth);
         }
 
         public float GetPlayerPower() =>

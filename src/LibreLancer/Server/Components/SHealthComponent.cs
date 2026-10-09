@@ -87,18 +87,18 @@ namespace LibreLancer.Server.Components
                 return;
             }
 
-            if (shield.Equipment.Def.MaxCapacity - shield.Health < 100)
+            if (shield.Equipment.Def.MaxCapacity - shield.ShieldHealth < 100)
             {
                 return;
             }
 
-            var amountToHeal = (shield.Equipment.Def.MaxCapacity - shield.Health);
+            var amountToHeal = (shield.Equipment.Def.MaxCapacity - shield.ShieldHealth);
             var max = (int)Math.Ceiling(amountToHeal / first.Def.Hitpoints);
             var healamount = cargo.TryConsume(first, max);
-            shield.Health += healamount * first.Def.Hitpoints;
-            if (shield.Health > shield.Equipment.Def.MaxCapacity)
+            shield.ShieldHealth += healamount * first.Def.Hitpoints;
+            if (shield.ShieldHealth > shield.Equipment.Def.MaxCapacity)
             {
-                shield.Health = shield.Equipment.Def.MaxCapacity;
+                shield.ShieldHealth = shield.Equipment.Def.MaxCapacity;
             }
         }
 

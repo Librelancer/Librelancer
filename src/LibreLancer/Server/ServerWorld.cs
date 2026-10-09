@@ -1401,7 +1401,7 @@ namespace LibreLancer.Server
 
                     if (sh != null)
                     {
-                        update.Shield = (int)sh.Health;
+                        update.Shield = (int)sh.ShieldHealth;
                     }
                     var damagedParts = health.EquipmentHealths
                         .Select(x => new PartHealth(
@@ -1440,7 +1440,7 @@ namespace LibreLancer.Server
 
                 if (pshieldComponent != null)
                 {
-                    pshield = pshieldComponent.Health;
+                    pshield = pshieldComponent.ShieldHealth;
                 }
 
                 var selfPlayer = player.Value.GetComponent<SPlayerComponent>();
